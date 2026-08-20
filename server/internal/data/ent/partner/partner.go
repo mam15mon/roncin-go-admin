@@ -41,6 +41,8 @@ const (
 	EdgeContacts = "contacts"
 	// EdgeAliases holds the string denoting the aliases edge name in mutations.
 	EdgeAliases = "aliases"
+	// EdgeContracts holds the string denoting the contracts edge name in mutations.
+	EdgeContracts = "contracts"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -71,6 +73,13 @@ const (
 	AliasesInverseTable = "partner_alias"
 	// AliasesColumn is the table column denoting the aliases relation/edge.
 	AliasesColumn = "partner_id"
+	// ContractsTable is the table that holds the contracts relation/edge.
+	ContractsTable = "partner_contracts"
+	// ContractsInverseTable is the table name for the PartnerContract entity.
+	// It exists in this package in order to avoid circular dependency with the "partnercontract" package.
+	ContractsInverseTable = "partner_contracts"
+	// ContractsColumn is the table column denoting the contracts relation/edge.
+	ContractsColumn = "partner_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -221,6 +230,20 @@ func ByAliases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAliasesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByContractsCount orders the results by contracts count.
+func ByContractsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContractsStep(), opts...)
+	}
+}
+
+// ByContracts orders the results by contracts terms.
+func ByContracts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContractsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -247,5 +270,12 @@ func newAliasesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AliasesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AliasesTable, AliasesColumn),
+	)
+}
+func newContractsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContractsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContractsTable, ContractsColumn),
 	)
 }

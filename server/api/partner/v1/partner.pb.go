@@ -77,6 +77,110 @@ func (PartnerRoleType) EnumDescriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
 }
 
+type PartnerAccountStatus int32
+
+const (
+	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED PartnerAccountStatus = 0
+	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_ACTIVE      PartnerAccountStatus = 1
+	PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_INACTIVE    PartnerAccountStatus = 2
+)
+
+// Enum value maps for PartnerAccountStatus.
+var (
+	PartnerAccountStatus_name = map[int32]string{
+		0: "PARTNER_ACCOUNT_STATUS_UNSPECIFIED",
+		1: "PARTNER_ACCOUNT_STATUS_ACTIVE",
+		2: "PARTNER_ACCOUNT_STATUS_INACTIVE",
+	}
+	PartnerAccountStatus_value = map[string]int32{
+		"PARTNER_ACCOUNT_STATUS_UNSPECIFIED": 0,
+		"PARTNER_ACCOUNT_STATUS_ACTIVE":      1,
+		"PARTNER_ACCOUNT_STATUS_INACTIVE":    2,
+	}
+)
+
+func (x PartnerAccountStatus) Enum() *PartnerAccountStatus {
+	p := new(PartnerAccountStatus)
+	*p = x
+	return p
+}
+
+func (x PartnerAccountStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PartnerAccountStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_partner_v1_partner_proto_enumTypes[1].Descriptor()
+}
+
+func (PartnerAccountStatus) Type() protoreflect.EnumType {
+	return &file_partner_v1_partner_proto_enumTypes[1]
+}
+
+func (x PartnerAccountStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PartnerAccountStatus.Descriptor instead.
+func (PartnerAccountStatus) EnumDescriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{1}
+}
+
+type PartnerContractStatus int32
+
+const (
+	PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED PartnerContractStatus = 0
+	PartnerContractStatus_PARTNER_CONTRACT_STATUS_PENDING     PartnerContractStatus = 1
+	PartnerContractStatus_PARTNER_CONTRACT_STATUS_ACTIVE      PartnerContractStatus = 2
+	PartnerContractStatus_PARTNER_CONTRACT_STATUS_EXPIRED     PartnerContractStatus = 3
+	PartnerContractStatus_PARTNER_CONTRACT_STATUS_TERMINATED  PartnerContractStatus = 4
+)
+
+// Enum value maps for PartnerContractStatus.
+var (
+	PartnerContractStatus_name = map[int32]string{
+		0: "PARTNER_CONTRACT_STATUS_UNSPECIFIED",
+		1: "PARTNER_CONTRACT_STATUS_PENDING",
+		2: "PARTNER_CONTRACT_STATUS_ACTIVE",
+		3: "PARTNER_CONTRACT_STATUS_EXPIRED",
+		4: "PARTNER_CONTRACT_STATUS_TERMINATED",
+	}
+	PartnerContractStatus_value = map[string]int32{
+		"PARTNER_CONTRACT_STATUS_UNSPECIFIED": 0,
+		"PARTNER_CONTRACT_STATUS_PENDING":     1,
+		"PARTNER_CONTRACT_STATUS_ACTIVE":      2,
+		"PARTNER_CONTRACT_STATUS_EXPIRED":     3,
+		"PARTNER_CONTRACT_STATUS_TERMINATED":  4,
+	}
+)
+
+func (x PartnerContractStatus) Enum() *PartnerContractStatus {
+	p := new(PartnerContractStatus)
+	*p = x
+	return p
+}
+
+func (x PartnerContractStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PartnerContractStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_partner_v1_partner_proto_enumTypes[2].Descriptor()
+}
+
+func (PartnerContractStatus) Type() protoreflect.EnumType {
+	return &file_partner_v1_partner_proto_enumTypes[2]
+}
+
+func (x PartnerContractStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PartnerContractStatus.Descriptor instead.
+func (PartnerContractStatus) EnumDescriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{2}
+}
+
 type PartnerRole struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Type            PartnerRoleType        `protobuf:"varint,1,opt,name=type,proto3,enum=partner.v1.PartnerRoleType" json:"type,omitempty"`
@@ -1021,6 +1125,1250 @@ func (x *SetSupplierBlacklistRequest) GetReason() string {
 	return ""
 }
 
+type PartnerAccount struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Id                      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerRoleId           string                 `protobuf:"bytes,2,opt,name=partner_role_id,json=partnerRoleId,proto3" json:"partner_role_id,omitempty"`
+	AccountType             string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	Currency                string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
+	InvoiceTitle            string                 `protobuf:"bytes,5,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
+	UnifiedSocialCreditCode string                 `protobuf:"bytes,6,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
+	BillingAddress          string                 `protobuf:"bytes,7,opt,name=billing_address,json=billingAddress,proto3" json:"billing_address,omitempty"`
+	BillingPhone            string                 `protobuf:"bytes,8,opt,name=billing_phone,json=billingPhone,proto3" json:"billing_phone,omitempty"`
+	BankName                string                 `protobuf:"bytes,9,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount             string                 `protobuf:"bytes,10,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	SwiftCode               string                 `protobuf:"bytes,11,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	IsDefault               bool                   `protobuf:"varint,12,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Status                  PartnerAccountStatus   `protobuf:"varint,13,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
+	Remark                  string                 `protobuf:"bytes,14,opt,name=remark,proto3" json:"remark,omitempty"`
+	CreatedAt               string                 `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt               string                 `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *PartnerAccount) Reset() {
+	*x = PartnerAccount{}
+	mi := &file_partner_v1_partner_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAccount) ProtoMessage() {}
+
+func (x *PartnerAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAccount.ProtoReflect.Descriptor instead.
+func (*PartnerAccount) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PartnerAccount) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetPartnerRoleId() string {
+	if x != nil {
+		return x.PartnerRoleId
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetAccountType() string {
+	if x != nil {
+		return x.AccountType
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetInvoiceTitle() string {
+	if x != nil {
+		return x.InvoiceTitle
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetUnifiedSocialCreditCode() string {
+	if x != nil {
+		return x.UnifiedSocialCreditCode
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetBillingAddress() string {
+	if x != nil {
+		return x.BillingAddress
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetBillingPhone() string {
+	if x != nil {
+		return x.BillingPhone
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetBankAccount() string {
+	if x != nil {
+		return x.BankAccount
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetSwiftCode() string {
+	if x != nil {
+		return x.SwiftCode
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+func (x *PartnerAccount) GetStatus() PartnerAccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *PartnerAccount) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *PartnerAccount) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type PartnerAccountInput struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Currency                string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	InvoiceTitle            string                 `protobuf:"bytes,2,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
+	UnifiedSocialCreditCode string                 `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
+	BillingAddress          string                 `protobuf:"bytes,4,opt,name=billing_address,json=billingAddress,proto3" json:"billing_address,omitempty"`
+	BillingPhone            string                 `protobuf:"bytes,5,opt,name=billing_phone,json=billingPhone,proto3" json:"billing_phone,omitempty"`
+	BankName                string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount             string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	SwiftCode               string                 `protobuf:"bytes,8,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	IsDefault               bool                   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Status                  PartnerAccountStatus   `protobuf:"varint,10,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
+	Remark                  string                 `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *PartnerAccountInput) Reset() {
+	*x = PartnerAccountInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAccountInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAccountInput) ProtoMessage() {}
+
+func (x *PartnerAccountInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAccountInput.ProtoReflect.Descriptor instead.
+func (*PartnerAccountInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *PartnerAccountInput) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetInvoiceTitle() string {
+	if x != nil {
+		return x.InvoiceTitle
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetUnifiedSocialCreditCode() string {
+	if x != nil {
+		return x.UnifiedSocialCreditCode
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetBillingAddress() string {
+	if x != nil {
+		return x.BillingAddress
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetBillingPhone() string {
+	if x != nil {
+		return x.BillingPhone
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetBankAccount() string {
+	if x != nil {
+		return x.BankAccount
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetSwiftCode() string {
+	if x != nil {
+		return x.SwiftCode
+	}
+	return ""
+}
+
+func (x *PartnerAccountInput) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+func (x *PartnerAccountInput) GetStatus() PartnerAccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *PartnerAccountInput) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
+type ListPartnerAccountsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,2,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPartnerAccountsRequest) Reset() {
+	*x = ListPartnerAccountsRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPartnerAccountsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPartnerAccountsRequest) ProtoMessage() {}
+
+func (x *ListPartnerAccountsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPartnerAccountsRequest.ProtoReflect.Descriptor instead.
+func (*ListPartnerAccountsRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListPartnerAccountsRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *ListPartnerAccountsRequest) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+type CreatePartnerAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Account       *PartnerAccountInput   `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreatePartnerAccountRequest) Reset() {
+	*x = CreatePartnerAccountRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePartnerAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePartnerAccountRequest) ProtoMessage() {}
+
+func (x *CreatePartnerAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePartnerAccountRequest.ProtoReflect.Descriptor instead.
+func (*CreatePartnerAccountRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CreatePartnerAccountRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *CreatePartnerAccountRequest) GetAccount() *PartnerAccountInput {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+type UpdatePartnerAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Account       *PartnerAccountInput   `protobuf:"bytes,3,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePartnerAccountRequest) Reset() {
+	*x = UpdatePartnerAccountRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePartnerAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePartnerAccountRequest) ProtoMessage() {}
+
+func (x *UpdatePartnerAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePartnerAccountRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePartnerAccountRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdatePartnerAccountRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *UpdatePartnerAccountRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdatePartnerAccountRequest) GetAccount() *PartnerAccountInput {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+type PartnerAccountReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *PartnerAccount        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerAccountReply) Reset() {
+	*x = PartnerAccountReply{}
+	mi := &file_partner_v1_partner_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAccountReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAccountReply) ProtoMessage() {}
+
+func (x *PartnerAccountReply) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAccountReply.ProtoReflect.Descriptor instead.
+func (*PartnerAccountReply) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PartnerAccountReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PartnerAccountReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PartnerAccountReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PartnerAccountReply) GetData() *PartnerAccount {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PartnerAccountReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PartnerAccountListReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*PartnerAccount      `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerAccountListReply) Reset() {
+	*x = PartnerAccountListReply{}
+	mi := &file_partner_v1_partner_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAccountListReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAccountListReply) ProtoMessage() {}
+
+func (x *PartnerAccountListReply) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAccountListReply.ProtoReflect.Descriptor instead.
+func (*PartnerAccountListReply) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *PartnerAccountListReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PartnerAccountListReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PartnerAccountListReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PartnerAccountListReply) GetData() []*PartnerAccount {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PartnerAccountListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PartnerContract struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerId         string                 `protobuf:"bytes,2,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	ContractNo        string                 `protobuf:"bytes,3,opt,name=contract_no,json=contractNo,proto3" json:"contract_no,omitempty"`
+	Name              string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Status            PartnerContractStatus  `protobuf:"varint,5,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
+	StartDate         string                 `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate           string                 `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	PaymentTerms      string                 `protobuf:"bytes,8,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`
+	DisputeResolution string                 `protobuf:"bytes,9,opt,name=dispute_resolution,json=disputeResolution,proto3" json:"dispute_resolution,omitempty"`
+	OtherNotes        string                 `protobuf:"bytes,10,opt,name=other_notes,json=otherNotes,proto3" json:"other_notes,omitempty"`
+	CreatedAt         string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt         string                 `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *PartnerContract) Reset() {
+	*x = PartnerContract{}
+	mi := &file_partner_v1_partner_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerContract) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerContract) ProtoMessage() {}
+
+func (x *PartnerContract) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerContract.ProtoReflect.Descriptor instead.
+func (*PartnerContract) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *PartnerContract) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetContractNo() string {
+	if x != nil {
+		return x.ContractNo
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetStatus() PartnerContractStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
+}
+
+func (x *PartnerContract) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetPaymentTerms() string {
+	if x != nil {
+		return x.PaymentTerms
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetDisputeResolution() string {
+	if x != nil {
+		return x.DisputeResolution
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetOtherNotes() string {
+	if x != nil {
+		return x.OtherNotes
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *PartnerContract) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type CreatePartnerContractInput struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ContractNo        string                 `protobuf:"bytes,1,opt,name=contract_no,json=contractNo,proto3" json:"contract_no,omitempty"`
+	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Status            PartnerContractStatus  `protobuf:"varint,3,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
+	StartDate         string                 `protobuf:"bytes,4,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate           string                 `protobuf:"bytes,5,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	PaymentTerms      string                 `protobuf:"bytes,6,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`
+	DisputeResolution string                 `protobuf:"bytes,7,opt,name=dispute_resolution,json=disputeResolution,proto3" json:"dispute_resolution,omitempty"`
+	OtherNotes        string                 `protobuf:"bytes,8,opt,name=other_notes,json=otherNotes,proto3" json:"other_notes,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *CreatePartnerContractInput) Reset() {
+	*x = CreatePartnerContractInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePartnerContractInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePartnerContractInput) ProtoMessage() {}
+
+func (x *CreatePartnerContractInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePartnerContractInput.ProtoReflect.Descriptor instead.
+func (*CreatePartnerContractInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreatePartnerContractInput) GetContractNo() string {
+	if x != nil {
+		return x.ContractNo
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetStatus() PartnerContractStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
+}
+
+func (x *CreatePartnerContractInput) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetPaymentTerms() string {
+	if x != nil {
+		return x.PaymentTerms
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetDisputeResolution() string {
+	if x != nil {
+		return x.DisputeResolution
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractInput) GetOtherNotes() string {
+	if x != nil {
+		return x.OtherNotes
+	}
+	return ""
+}
+
+type UpdatePartnerContractInput struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Name              string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Status            PartnerContractStatus  `protobuf:"varint,2,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
+	StartDate         string                 `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate           string                 `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	PaymentTerms      string                 `protobuf:"bytes,5,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`
+	DisputeResolution string                 `protobuf:"bytes,6,opt,name=dispute_resolution,json=disputeResolution,proto3" json:"dispute_resolution,omitempty"`
+	OtherNotes        string                 `protobuf:"bytes,7,opt,name=other_notes,json=otherNotes,proto3" json:"other_notes,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdatePartnerContractInput) Reset() {
+	*x = UpdatePartnerContractInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePartnerContractInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePartnerContractInput) ProtoMessage() {}
+
+func (x *UpdatePartnerContractInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePartnerContractInput.ProtoReflect.Descriptor instead.
+func (*UpdatePartnerContractInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpdatePartnerContractInput) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractInput) GetStatus() PartnerContractStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
+}
+
+func (x *UpdatePartnerContractInput) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractInput) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractInput) GetPaymentTerms() string {
+	if x != nil {
+		return x.PaymentTerms
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractInput) GetDisputeResolution() string {
+	if x != nil {
+		return x.DisputeResolution
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractInput) GetOtherNotes() string {
+	if x != nil {
+		return x.OtherNotes
+	}
+	return ""
+}
+
+type ListPartnerContractsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Status        *PartnerContractStatus `protobuf:"varint,2,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus,oneof" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPartnerContractsRequest) Reset() {
+	*x = ListPartnerContractsRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPartnerContractsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPartnerContractsRequest) ProtoMessage() {}
+
+func (x *ListPartnerContractsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPartnerContractsRequest.ProtoReflect.Descriptor instead.
+func (*ListPartnerContractsRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListPartnerContractsRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *ListPartnerContractsRequest) GetStatus() PartnerContractStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
+}
+
+type CreatePartnerContractRequest struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	PartnerId     string                      `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Contract      *CreatePartnerContractInput `protobuf:"bytes,2,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreatePartnerContractRequest) Reset() {
+	*x = CreatePartnerContractRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePartnerContractRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePartnerContractRequest) ProtoMessage() {}
+
+func (x *CreatePartnerContractRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePartnerContractRequest.ProtoReflect.Descriptor instead.
+func (*CreatePartnerContractRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CreatePartnerContractRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *CreatePartnerContractRequest) GetContract() *CreatePartnerContractInput {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type UpdatePartnerContractRequest struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	PartnerId     string                      `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	Id            string                      `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Contract      *UpdatePartnerContractInput `protobuf:"bytes,3,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePartnerContractRequest) Reset() {
+	*x = UpdatePartnerContractRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePartnerContractRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePartnerContractRequest) ProtoMessage() {}
+
+func (x *UpdatePartnerContractRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePartnerContractRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePartnerContractRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *UpdatePartnerContractRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdatePartnerContractRequest) GetContract() *UpdatePartnerContractInput {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type PartnerContractReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *PartnerContract       `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerContractReply) Reset() {
+	*x = PartnerContractReply{}
+	mi := &file_partner_v1_partner_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerContractReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerContractReply) ProtoMessage() {}
+
+func (x *PartnerContractReply) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerContractReply.ProtoReflect.Descriptor instead.
+func (*PartnerContractReply) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *PartnerContractReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PartnerContractReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PartnerContractReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PartnerContractReply) GetData() *PartnerContract {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PartnerContractReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PartnerContractListReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*PartnerContract     `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerContractListReply) Reset() {
+	*x = PartnerContractListReply{}
+	mi := &file_partner_v1_partner_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerContractListReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerContractListReply) ProtoMessage() {}
+
+func (x *PartnerContractListReply) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerContractListReply.ProtoReflect.Descriptor instead.
+func (*PartnerContractListReply) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *PartnerContractListReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PartnerContractListReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PartnerContractListReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PartnerContractListReply) GetData() []*PartnerContract {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PartnerContractListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type PartnerReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1034,7 +2382,7 @@ type PartnerReply struct {
 
 func (x *PartnerReply) Reset() {
 	*x = PartnerReply{}
-	mi := &file_partner_v1_partner_proto_msgTypes[12]
+	mi := &file_partner_v1_partner_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1046,7 +2394,7 @@ func (x *PartnerReply) String() string {
 func (*PartnerReply) ProtoMessage() {}
 
 func (x *PartnerReply) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[12]
+	mi := &file_partner_v1_partner_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1059,7 +2407,7 @@ func (x *PartnerReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerReply.ProtoReflect.Descriptor instead.
 func (*PartnerReply) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{12}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PartnerReply) GetSuccess() bool {
@@ -1113,7 +2461,7 @@ type PartnerListReply struct {
 
 func (x *PartnerListReply) Reset() {
 	*x = PartnerListReply{}
-	mi := &file_partner_v1_partner_proto_msgTypes[13]
+	mi := &file_partner_v1_partner_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1125,7 +2473,7 @@ func (x *PartnerListReply) String() string {
 func (*PartnerListReply) ProtoMessage() {}
 
 func (x *PartnerListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[13]
+	mi := &file_partner_v1_partner_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1138,7 +2486,7 @@ func (x *PartnerListReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerListReply.ProtoReflect.Descriptor instead.
 func (*PartnerListReply) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{13}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *PartnerListReply) GetSuccess() bool {
@@ -1296,7 +2644,139 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x1bSetSupplierBlacklistRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\vblacklisted\x18\x02 \x01(\bR\vblacklisted\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\x9a\x01\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xc5\x04\n" +
+	"\x0ePartnerAccount\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\x0fpartner_role_id\x18\x02 \x01(\tR\rpartnerRoleId\x12!\n" +
+	"\faccount_type\x18\x03 \x01(\tR\vaccountType\x12\x1a\n" +
+	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12#\n" +
+	"\rinvoice_title\x18\x05 \x01(\tR\finvoiceTitle\x12;\n" +
+	"\x1aunified_social_credit_code\x18\x06 \x01(\tR\x17unifiedSocialCreditCode\x12'\n" +
+	"\x0fbilling_address\x18\a \x01(\tR\x0ebillingAddress\x12#\n" +
+	"\rbilling_phone\x18\b \x01(\tR\fbillingPhone\x12\x1b\n" +
+	"\tbank_name\x18\t \x01(\tR\bbankName\x12!\n" +
+	"\fbank_account\x18\n" +
+	" \x01(\tR\vbankAccount\x12\x1d\n" +
+	"\n" +
+	"swift_code\x18\v \x01(\tR\tswiftCode\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\f \x01(\bR\tisDefault\x128\n" +
+	"\x06status\x18\r \x01(\x0e2 .partner.v1.PartnerAccountStatusR\x06status\x12\x16\n" +
+	"\x06remark\x18\x0e \x01(\tR\x06remark\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x0f \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x10 \x01(\tR\tupdatedAt\"\xc0\x03\n" +
+	"\x13PartnerAccountInput\x12\x1f\n" +
+	"\bcurrency\x18\x01 \x01(\tB\x03\xe0A\x02R\bcurrency\x12(\n" +
+	"\rinvoice_title\x18\x02 \x01(\tB\x03\xe0A\x02R\finvoiceTitle\x12;\n" +
+	"\x1aunified_social_credit_code\x18\x03 \x01(\tR\x17unifiedSocialCreditCode\x12'\n" +
+	"\x0fbilling_address\x18\x04 \x01(\tR\x0ebillingAddress\x12#\n" +
+	"\rbilling_phone\x18\x05 \x01(\tR\fbillingPhone\x12\x1b\n" +
+	"\tbank_name\x18\x06 \x01(\tR\bbankName\x12!\n" +
+	"\fbank_account\x18\a \x01(\tR\vbankAccount\x12\x1d\n" +
+	"\n" +
+	"swift_code\x18\b \x01(\tR\tswiftCode\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\t \x01(\bR\tisDefault\x12=\n" +
+	"\x06status\x18\n" +
+	" \x01(\x0e2 .partner.v1.PartnerAccountStatusB\x03\xe0A\x02R\x06status\x12\x16\n" +
+	"\x06remark\x18\v \x01(\tR\x06remark\"k\n" +
+	"\x1aListPartnerAccountsRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x1d\n" +
+	"\aenabled\x18\x02 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\x81\x01\n" +
+	"\x1bCreatePartnerAccountRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12>\n" +
+	"\aaccount\x18\x02 \x01(\v2\x1f.partner.v1.PartnerAccountInputB\x03\xe0A\x02R\aaccount\"\x96\x01\n" +
+	"\x1bUpdatePartnerAccountRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12>\n" +
+	"\aaccount\x18\x03 \x01(\v2\x1f.partner.v1.PartnerAccountInputB\x03\xe0A\x02R\aaccount\"\xa8\x01\n" +
+	"\x13PartnerAccountReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
+	"\x04data\x18\x04 \x01(\v2\x1a.partner.v1.PartnerAccountR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xac\x01\n" +
+	"\x17PartnerAccountListReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
+	"\x04data\x18\x04 \x03(\v2\x1a.partner.v1.PartnerAccountR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9d\x03\n" +
+	"\x0fPartnerContract\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"partner_id\x18\x02 \x01(\tR\tpartnerId\x12\x1f\n" +
+	"\vcontract_no\x18\x03 \x01(\tR\n" +
+	"contractNo\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x129\n" +
+	"\x06status\x18\x05 \x01(\x0e2!.partner.v1.PartnerContractStatusR\x06status\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x06 \x01(\tR\tstartDate\x12\x19\n" +
+	"\bend_date\x18\a \x01(\tR\aendDate\x12#\n" +
+	"\rpayment_terms\x18\b \x01(\tR\fpaymentTerms\x12-\n" +
+	"\x12dispute_resolution\x18\t \x01(\tR\x11disputeResolution\x12\x1f\n" +
+	"\vother_notes\x18\n" +
+	" \x01(\tR\n" +
+	"otherNotes\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAt\"\xd4\x02\n" +
+	"\x1aCreatePartnerContractInput\x12$\n" +
+	"\vcontract_no\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"contractNo\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12>\n" +
+	"\x06status\x18\x03 \x01(\x0e2!.partner.v1.PartnerContractStatusB\x03\xe0A\x02R\x06status\x12\"\n" +
+	"\n" +
+	"start_date\x18\x04 \x01(\tB\x03\xe0A\x02R\tstartDate\x12\x1e\n" +
+	"\bend_date\x18\x05 \x01(\tB\x03\xe0A\x02R\aendDate\x12#\n" +
+	"\rpayment_terms\x18\x06 \x01(\tR\fpaymentTerms\x12-\n" +
+	"\x12dispute_resolution\x18\a \x01(\tR\x11disputeResolution\x12\x1f\n" +
+	"\vother_notes\x18\b \x01(\tR\n" +
+	"otherNotes\"\xae\x02\n" +
+	"\x1aUpdatePartnerContractInput\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12>\n" +
+	"\x06status\x18\x02 \x01(\x0e2!.partner.v1.PartnerContractStatusB\x03\xe0A\x02R\x06status\x12\"\n" +
+	"\n" +
+	"start_date\x18\x03 \x01(\tB\x03\xe0A\x02R\tstartDate\x12\x1e\n" +
+	"\bend_date\x18\x04 \x01(\tB\x03\xe0A\x02R\aendDate\x12#\n" +
+	"\rpayment_terms\x18\x05 \x01(\tR\fpaymentTerms\x12-\n" +
+	"\x12dispute_resolution\x18\x06 \x01(\tR\x11disputeResolution\x12\x1f\n" +
+	"\vother_notes\x18\a \x01(\tR\n" +
+	"otherNotes\"\x8c\x01\n" +
+	"\x1bListPartnerContractsRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12>\n" +
+	"\x06status\x18\x02 \x01(\x0e2!.partner.v1.PartnerContractStatusH\x00R\x06status\x88\x01\x01B\t\n" +
+	"\a_status\"\x8b\x01\n" +
+	"\x1cCreatePartnerContractRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12G\n" +
+	"\bcontract\x18\x02 \x01(\v2&.partner.v1.CreatePartnerContractInputB\x03\xe0A\x02R\bcontract\"\xa0\x01\n" +
+	"\x1cUpdatePartnerContractRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12G\n" +
+	"\bcontract\x18\x03 \x01(\v2&.partner.v1.UpdatePartnerContractInputB\x03\xe0A\x02R\bcontract\"\xaa\x01\n" +
+	"\x14PartnerContractReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x01(\v2\x1b.partner.v1.PartnerContractR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xae\x01\n" +
+	"\x18PartnerContractListReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x03(\v2\x1b.partner.v1.PartnerContractR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9a\x01\n" +
 	"\fPartnerReply\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -1317,14 +2797,30 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x1aPARTNER_ROLE_TYPE_CUSTOMER\x10\x01\x12\x1e\n" +
 	"\x1aPARTNER_ROLE_TYPE_SUPPLIER\x10\x02\x12\x1b\n" +
 	"\x17PARTNER_ROLE_TYPE_AGENT\x10\x03\x12\x1d\n" +
-	"\x19PARTNER_ROLE_TYPE_CARRIER\x10\x042\xc9\x04\n" +
+	"\x19PARTNER_ROLE_TYPE_CARRIER\x10\x04*\x86\x01\n" +
+	"\x14PartnerAccountStatus\x12&\n" +
+	"\"PARTNER_ACCOUNT_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dPARTNER_ACCOUNT_STATUS_ACTIVE\x10\x01\x12#\n" +
+	"\x1fPARTNER_ACCOUNT_STATUS_INACTIVE\x10\x02*\xd6\x01\n" +
+	"\x15PartnerContractStatus\x12'\n" +
+	"#PARTNER_CONTRACT_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fPARTNER_CONTRACT_STATUS_PENDING\x10\x01\x12\"\n" +
+	"\x1ePARTNER_CONTRACT_STATUS_ACTIVE\x10\x02\x12#\n" +
+	"\x1fPARTNER_CONTRACT_STATUS_EXPIRED\x10\x03\x12&\n" +
+	"\"PARTNER_CONTRACT_STATUS_TERMINATED\x10\x042\xe1\v\n" +
 	"\x0ePartnerService\x12d\n" +
 	"\n" +
 	"GetPartner\x12\x1d.partner.v1.GetPartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/partners/{id}\x12g\n" +
 	"\fListPartners\x12\x1f.partner.v1.ListPartnersRequest\x1a\x1c.partner.v1.PartnerListReply\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/partners\x12h\n" +
 	"\rCreatePartner\x12 .partner.v1.CreatePartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/partners\x12m\n" +
 	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a\x18.partner.v1.PartnerReply\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\x8e\x01\n" +
-	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a\x18.partner.v1.PartnerReply\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklistB<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a\x18.partner.v1.PartnerReply\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklist\x12\x92\x01\n" +
+	"\x13ListPartnerAccounts\x12&.partner.v1.ListPartnerAccountsRequest\x1a#.partner.v1.PartnerAccountListReply\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/partners/{partner_id}/accounts\x12\x93\x01\n" +
+	"\x14CreatePartnerAccount\x12'.partner.v1.CreatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/partners/{partner_id}/accounts\x12\x98\x01\n" +
+	"\x14UpdatePartnerAccount\x12'.partner.v1.UpdatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"6\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/partners/{partner_id}/accounts/{id}\x12\x96\x01\n" +
+	"\x14ListPartnerContracts\x12'.partner.v1.ListPartnerContractsRequest\x1a$.partner.v1.PartnerContractListReply\"/\x82\xd3\xe4\x93\x02)\x12'/api/v1/partners/{partner_id}/contracts\x12\x97\x01\n" +
+	"\x15CreatePartnerContract\x12(.partner.v1.CreatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/partners/{partner_id}/contracts\x12\x9c\x01\n" +
+	"\x15UpdatePartnerContract\x12(.partner.v1.UpdatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"7\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/partners/{partner_id}/contracts/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_partner_proto_rawDescOnce sync.Once
@@ -1338,55 +2834,98 @@ func file_partner_v1_partner_proto_rawDescGZIP() []byte {
 	return file_partner_v1_partner_proto_rawDescData
 }
 
-var file_partner_v1_partner_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_partner_v1_partner_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_partner_v1_partner_proto_goTypes = []any{
-	(PartnerRoleType)(0),                // 0: partner.v1.PartnerRoleType
-	(*PartnerRole)(nil),                 // 1: partner.v1.PartnerRole
-	(*PartnerContact)(nil),              // 2: partner.v1.PartnerContact
-	(*PartnerAlias)(nil),                // 3: partner.v1.PartnerAlias
-	(*Partner)(nil),                     // 4: partner.v1.Partner
-	(*PartnerRoleInput)(nil),            // 5: partner.v1.PartnerRoleInput
-	(*PartnerContactInput)(nil),         // 6: partner.v1.PartnerContactInput
-	(*PartnerAliasInput)(nil),           // 7: partner.v1.PartnerAliasInput
-	(*GetPartnerRequest)(nil),           // 8: partner.v1.GetPartnerRequest
-	(*ListPartnersRequest)(nil),         // 9: partner.v1.ListPartnersRequest
-	(*CreatePartnerRequest)(nil),        // 10: partner.v1.CreatePartnerRequest
-	(*UpdatePartnerRequest)(nil),        // 11: partner.v1.UpdatePartnerRequest
-	(*SetSupplierBlacklistRequest)(nil), // 12: partner.v1.SetSupplierBlacklistRequest
-	(*PartnerReply)(nil),                // 13: partner.v1.PartnerReply
-	(*PartnerListReply)(nil),            // 14: partner.v1.PartnerListReply
+	(PartnerRoleType)(0),                 // 0: partner.v1.PartnerRoleType
+	(PartnerAccountStatus)(0),            // 1: partner.v1.PartnerAccountStatus
+	(PartnerContractStatus)(0),           // 2: partner.v1.PartnerContractStatus
+	(*PartnerRole)(nil),                  // 3: partner.v1.PartnerRole
+	(*PartnerContact)(nil),               // 4: partner.v1.PartnerContact
+	(*PartnerAlias)(nil),                 // 5: partner.v1.PartnerAlias
+	(*Partner)(nil),                      // 6: partner.v1.Partner
+	(*PartnerRoleInput)(nil),             // 7: partner.v1.PartnerRoleInput
+	(*PartnerContactInput)(nil),          // 8: partner.v1.PartnerContactInput
+	(*PartnerAliasInput)(nil),            // 9: partner.v1.PartnerAliasInput
+	(*GetPartnerRequest)(nil),            // 10: partner.v1.GetPartnerRequest
+	(*ListPartnersRequest)(nil),          // 11: partner.v1.ListPartnersRequest
+	(*CreatePartnerRequest)(nil),         // 12: partner.v1.CreatePartnerRequest
+	(*UpdatePartnerRequest)(nil),         // 13: partner.v1.UpdatePartnerRequest
+	(*SetSupplierBlacklistRequest)(nil),  // 14: partner.v1.SetSupplierBlacklistRequest
+	(*PartnerAccount)(nil),               // 15: partner.v1.PartnerAccount
+	(*PartnerAccountInput)(nil),          // 16: partner.v1.PartnerAccountInput
+	(*ListPartnerAccountsRequest)(nil),   // 17: partner.v1.ListPartnerAccountsRequest
+	(*CreatePartnerAccountRequest)(nil),  // 18: partner.v1.CreatePartnerAccountRequest
+	(*UpdatePartnerAccountRequest)(nil),  // 19: partner.v1.UpdatePartnerAccountRequest
+	(*PartnerAccountReply)(nil),          // 20: partner.v1.PartnerAccountReply
+	(*PartnerAccountListReply)(nil),      // 21: partner.v1.PartnerAccountListReply
+	(*PartnerContract)(nil),              // 22: partner.v1.PartnerContract
+	(*CreatePartnerContractInput)(nil),   // 23: partner.v1.CreatePartnerContractInput
+	(*UpdatePartnerContractInput)(nil),   // 24: partner.v1.UpdatePartnerContractInput
+	(*ListPartnerContractsRequest)(nil),  // 25: partner.v1.ListPartnerContractsRequest
+	(*CreatePartnerContractRequest)(nil), // 26: partner.v1.CreatePartnerContractRequest
+	(*UpdatePartnerContractRequest)(nil), // 27: partner.v1.UpdatePartnerContractRequest
+	(*PartnerContractReply)(nil),         // 28: partner.v1.PartnerContractReply
+	(*PartnerContractListReply)(nil),     // 29: partner.v1.PartnerContractListReply
+	(*PartnerReply)(nil),                 // 30: partner.v1.PartnerReply
+	(*PartnerListReply)(nil),             // 31: partner.v1.PartnerListReply
 }
 var file_partner_v1_partner_proto_depIdxs = []int32{
 	0,  // 0: partner.v1.PartnerRole.type:type_name -> partner.v1.PartnerRoleType
-	1,  // 1: partner.v1.Partner.roles:type_name -> partner.v1.PartnerRole
-	2,  // 2: partner.v1.Partner.contacts:type_name -> partner.v1.PartnerContact
-	3,  // 3: partner.v1.Partner.aliases:type_name -> partner.v1.PartnerAlias
+	3,  // 1: partner.v1.Partner.roles:type_name -> partner.v1.PartnerRole
+	4,  // 2: partner.v1.Partner.contacts:type_name -> partner.v1.PartnerContact
+	5,  // 3: partner.v1.Partner.aliases:type_name -> partner.v1.PartnerAlias
 	0,  // 4: partner.v1.PartnerRoleInput.type:type_name -> partner.v1.PartnerRoleType
 	0,  // 5: partner.v1.ListPartnersRequest.role:type_name -> partner.v1.PartnerRoleType
-	5,  // 6: partner.v1.CreatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
-	6,  // 7: partner.v1.CreatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
-	7,  // 8: partner.v1.CreatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
-	5,  // 9: partner.v1.UpdatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
-	6,  // 10: partner.v1.UpdatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
-	7,  // 11: partner.v1.UpdatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
-	4,  // 12: partner.v1.PartnerReply.data:type_name -> partner.v1.Partner
-	4,  // 13: partner.v1.PartnerListReply.data:type_name -> partner.v1.Partner
-	8,  // 14: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
-	9,  // 15: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
-	10, // 16: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
-	11, // 17: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
-	12, // 18: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
-	13, // 19: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.PartnerReply
-	14, // 20: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.PartnerListReply
-	13, // 21: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.PartnerReply
-	13, // 22: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.PartnerReply
-	13, // 23: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.PartnerReply
-	19, // [19:24] is the sub-list for method output_type
-	14, // [14:19] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	7,  // 6: partner.v1.CreatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
+	8,  // 7: partner.v1.CreatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
+	9,  // 8: partner.v1.CreatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
+	7,  // 9: partner.v1.UpdatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
+	8,  // 10: partner.v1.UpdatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
+	9,  // 11: partner.v1.UpdatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
+	1,  // 12: partner.v1.PartnerAccount.status:type_name -> partner.v1.PartnerAccountStatus
+	1,  // 13: partner.v1.PartnerAccountInput.status:type_name -> partner.v1.PartnerAccountStatus
+	16, // 14: partner.v1.CreatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
+	16, // 15: partner.v1.UpdatePartnerAccountRequest.account:type_name -> partner.v1.PartnerAccountInput
+	15, // 16: partner.v1.PartnerAccountReply.data:type_name -> partner.v1.PartnerAccount
+	15, // 17: partner.v1.PartnerAccountListReply.data:type_name -> partner.v1.PartnerAccount
+	2,  // 18: partner.v1.PartnerContract.status:type_name -> partner.v1.PartnerContractStatus
+	2,  // 19: partner.v1.CreatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	2,  // 20: partner.v1.UpdatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	2,  // 21: partner.v1.ListPartnerContractsRequest.status:type_name -> partner.v1.PartnerContractStatus
+	23, // 22: partner.v1.CreatePartnerContractRequest.contract:type_name -> partner.v1.CreatePartnerContractInput
+	24, // 23: partner.v1.UpdatePartnerContractRequest.contract:type_name -> partner.v1.UpdatePartnerContractInput
+	22, // 24: partner.v1.PartnerContractReply.data:type_name -> partner.v1.PartnerContract
+	22, // 25: partner.v1.PartnerContractListReply.data:type_name -> partner.v1.PartnerContract
+	6,  // 26: partner.v1.PartnerReply.data:type_name -> partner.v1.Partner
+	6,  // 27: partner.v1.PartnerListReply.data:type_name -> partner.v1.Partner
+	10, // 28: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
+	11, // 29: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
+	12, // 30: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
+	13, // 31: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
+	14, // 32: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
+	17, // 33: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
+	18, // 34: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
+	19, // 35: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
+	25, // 36: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
+	26, // 37: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
+	27, // 38: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
+	30, // 39: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.PartnerReply
+	31, // 40: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.PartnerListReply
+	30, // 41: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.PartnerReply
+	30, // 42: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.PartnerReply
+	30, // 43: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.PartnerReply
+	21, // 44: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.PartnerAccountListReply
+	20, // 45: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.PartnerAccountReply
+	20, // 46: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.PartnerAccountReply
+	29, // 47: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.PartnerContractListReply
+	28, // 48: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.PartnerContractReply
+	28, // 49: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.PartnerContractReply
+	39, // [39:50] is the sub-list for method output_type
+	28, // [28:39] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }
@@ -1395,13 +2934,15 @@ func file_partner_v1_partner_proto_init() {
 		return
 	}
 	file_partner_v1_partner_proto_msgTypes[8].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[14].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[22].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_partner_v1_partner_proto_rawDesc), len(file_partner_v1_partner_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   14,
+			NumEnums:      3,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

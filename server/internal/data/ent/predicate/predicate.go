@@ -33,11 +33,17 @@ type Organization func(*sql.Selector)
 // Partner is the predicate function for partner builders.
 type Partner func(*sql.Selector)
 
+// PartnerAccount is the predicate function for partneraccount builders.
+type PartnerAccount func(*sql.Selector)
+
 // PartnerAlias is the predicate function for partneralias builders.
 type PartnerAlias func(*sql.Selector)
 
 // PartnerContact is the predicate function for partnercontact builders.
 type PartnerContact func(*sql.Selector)
+
+// PartnerContract is the predicate function for partnercontract builders.
+type PartnerContract func(*sql.Selector)
 
 // PartnerRole is the predicate function for partnerrole builders.
 type PartnerRole func(*sql.Selector)

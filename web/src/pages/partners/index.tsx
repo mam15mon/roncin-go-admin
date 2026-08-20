@@ -1,5 +1,6 @@
 import {
   EditOutlined,
+  FolderOpenOutlined,
   PlusOutlined,
   ReloadOutlined,
   StopOutlined,
@@ -28,6 +29,7 @@ import {
   partnerServiceSetSupplierBlacklist,
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
+import PartnerSecondary from './partner-secondary';
 
 const roleOptions = [
   { label: '客户', value: 1 },
@@ -76,6 +78,7 @@ export default function Partners() {
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.Partner>();
   const [blacklistPartner, setBlacklistPartner] = useState<API.Partner>();
+  const [secondaryPartner, setSecondaryPartner] = useState<API.Partner>();
 
   const openCreate = () => {
     setEditing(undefined);
@@ -161,31 +164,42 @@ export default function Partners() {
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 270,
       fixed: 'right',
-      render: (_, record) =>
-        access.canManagePartners ? (
-          <Space size={0}>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => openEdit(record)}
-            >
-              编辑
-            </Button>
-            {record.roles?.some((role) => role.type === 2) ? (
+      render: (_, record) => (
+        <Space size={0} wrap>
+          <Button
+            type="link"
+            size="small"
+            icon={<FolderOpenOutlined />}
+            onClick={() => setSecondaryPartner(record)}
+          >
+            账户/合同
+          </Button>
+          {access.canManagePartners ? (
+            <>
               <Button
                 type="link"
                 size="small"
-                icon={<StopOutlined />}
-                onClick={() => openBlacklist(record)}
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
               >
-                黑名单
+                编辑
               </Button>
-            ) : null}
-          </Space>
-        ) : null,
+              {record.roles?.some((role) => role.type === 2) ? (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<StopOutlined />}
+                  onClick={() => openBlacklist(record)}
+                >
+                  黑名单
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+        </Space>
+      ),
     },
   ];
 
@@ -385,6 +399,13 @@ export default function Partners() {
           fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
         />
       </ModalForm>
+
+      <PartnerSecondary
+        partner={secondaryPartner}
+        open={Boolean(secondaryPartner)}
+        canManage={access.canManagePartners}
+        onClose={() => setSecondaryPartner(undefined)}
+      />
     </>
   );
 }

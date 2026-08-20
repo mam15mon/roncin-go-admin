@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -33,6 +34,7 @@ type PartnerQuery struct {
 	withRoles        *PartnerRoleQuery
 	withContacts     *PartnerContactQuery
 	withAliases      *PartnerAliasQuery
+	withContracts    *PartnerContractQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -151,6 +153,28 @@ func (_q *PartnerQuery) QueryAliases() *PartnerAliasQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partneralias.Table, partneralias.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.AliasesTable, partner.AliasesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryContracts chains the current query on the "contracts" edge.
+func (_q *PartnerQuery) QueryContracts() *PartnerContractQuery {
+	query := (&PartnerContractClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partnercontract.Table, partnercontract.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.ContractsTable, partner.ContractsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -354,6 +378,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withRoles:        _q.withRoles.Clone(),
 		withContacts:     _q.withContacts.Clone(),
 		withAliases:      _q.withAliases.Clone(),
+		withContracts:    _q.withContracts.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -401,6 +426,17 @@ func (_q *PartnerQuery) WithAliases(opts ...func(*PartnerAliasQuery)) *PartnerQu
 		opt(query)
 	}
 	_q.withAliases = query
+	return _q
+}
+
+// WithContracts tells the query-builder to eager-load the nodes that are connected to
+// the "contracts" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithContracts(opts ...func(*PartnerContractQuery)) *PartnerQuery {
+	query := (&PartnerContractClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withContracts = query
 	return _q
 }
 
@@ -482,11 +518,12 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
 			_q.withAliases != nil,
+			_q.withContracts != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -534,6 +571,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadAliases(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Aliases = []*PartnerAlias{} },
 			func(n *Partner, e *PartnerAlias) { n.Edges.Aliases = append(n.Edges.Aliases, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withContracts; query != nil {
+		if err := _q.loadContracts(ctx, query, nodes,
+			func(n *Partner) { n.Edges.Contracts = []*PartnerContract{} },
+			func(n *Partner, e *PartnerContract) { n.Edges.Contracts = append(n.Edges.Contracts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -644,6 +688,36 @@ func (_q *PartnerQuery) loadAliases(ctx context.Context, query *PartnerAliasQuer
 	}
 	query.Where(predicate.PartnerAlias(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.AliasesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadContracts(ctx context.Context, query *PartnerContractQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerContract)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnercontract.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerContract(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.ContractsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

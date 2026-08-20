@@ -30,10 +30,14 @@ type Tx struct {
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
 	Partner *PartnerClient
+	// PartnerAccount is the client for interacting with the PartnerAccount builders.
+	PartnerAccount *PartnerAccountClient
 	// PartnerAlias is the client for interacting with the PartnerAlias builders.
 	PartnerAlias *PartnerAliasClient
 	// PartnerContact is the client for interacting with the PartnerContact builders.
 	PartnerContact *PartnerContactClient
+	// PartnerContract is the client for interacting with the PartnerContract builders.
+	PartnerContract *PartnerContractClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
 	PartnerRole *PartnerRoleClient
 	// Permission is the client for interacting with the Permission builders.
@@ -190,8 +194,10 @@ func (tx *Tx) init() {
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
 	tx.Partner = NewPartnerClient(tx.config)
+	tx.PartnerAccount = NewPartnerAccountClient(tx.config)
 	tx.PartnerAlias = NewPartnerAliasClient(tx.config)
 	tx.PartnerContact = NewPartnerContactClient(tx.config)
+	tx.PartnerContract = NewPartnerContractClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)

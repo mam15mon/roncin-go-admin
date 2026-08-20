@@ -15,8 +15,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -597,6 +599,95 @@ func init() {
 	partnerDescID := partnerMixinFields0[0].Descriptor()
 	// partner.DefaultID holds the default value on creation for the id field.
 	partner.DefaultID = partnerDescID.Default.(func() uuid.UUID)
+	partneraccountMixin := schema.PartnerAccount{}.Mixin()
+	partneraccountMixinFields0 := partneraccountMixin[0].Fields()
+	_ = partneraccountMixinFields0
+	partneraccountMixinFields1 := partneraccountMixin[1].Fields()
+	_ = partneraccountMixinFields1
+	partneraccountFields := schema.PartnerAccount{}.Fields()
+	_ = partneraccountFields
+	// partneraccountDescCreatedAt is the schema descriptor for created_at field.
+	partneraccountDescCreatedAt := partneraccountMixinFields1[0].Descriptor()
+	// partneraccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partneraccount.DefaultCreatedAt = partneraccountDescCreatedAt.Default.(func() time.Time)
+	// partneraccountDescUpdatedAt is the schema descriptor for updated_at field.
+	partneraccountDescUpdatedAt := partneraccountMixinFields1[1].Descriptor()
+	// partneraccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partneraccount.DefaultUpdatedAt = partneraccountDescUpdatedAt.Default.(func() time.Time)
+	// partneraccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partneraccount.UpdateDefaultUpdatedAt = partneraccountDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partneraccountDescCurrency is the schema descriptor for currency field.
+	partneraccountDescCurrency := partneraccountFields[2].Descriptor()
+	// partneraccount.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	partneraccount.CurrencyValidator = func() func(string) error {
+		validators := partneraccountDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescInvoiceTitle is the schema descriptor for invoice_title field.
+	partneraccountDescInvoiceTitle := partneraccountFields[3].Descriptor()
+	// partneraccount.InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
+	partneraccount.InvoiceTitleValidator = func() func(string) error {
+		validators := partneraccountDescInvoiceTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(invoice_title string) error {
+			for _, fn := range fns {
+				if err := fn(invoice_title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partneraccountDescUnifiedSocialCreditCode is the schema descriptor for unified_social_credit_code field.
+	partneraccountDescUnifiedSocialCreditCode := partneraccountFields[4].Descriptor()
+	// partneraccount.UnifiedSocialCreditCodeValidator is a validator for the "unified_social_credit_code" field. It is called by the builders before save.
+	partneraccount.UnifiedSocialCreditCodeValidator = partneraccountDescUnifiedSocialCreditCode.Validators[0].(func(string) error)
+	// partneraccountDescBillingAddress is the schema descriptor for billing_address field.
+	partneraccountDescBillingAddress := partneraccountFields[5].Descriptor()
+	// partneraccount.BillingAddressValidator is a validator for the "billing_address" field. It is called by the builders before save.
+	partneraccount.BillingAddressValidator = partneraccountDescBillingAddress.Validators[0].(func(string) error)
+	// partneraccountDescBillingPhone is the schema descriptor for billing_phone field.
+	partneraccountDescBillingPhone := partneraccountFields[6].Descriptor()
+	// partneraccount.BillingPhoneValidator is a validator for the "billing_phone" field. It is called by the builders before save.
+	partneraccount.BillingPhoneValidator = partneraccountDescBillingPhone.Validators[0].(func(string) error)
+	// partneraccountDescBankName is the schema descriptor for bank_name field.
+	partneraccountDescBankName := partneraccountFields[7].Descriptor()
+	// partneraccount.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
+	partneraccount.BankNameValidator = partneraccountDescBankName.Validators[0].(func(string) error)
+	// partneraccountDescBankAccount is the schema descriptor for bank_account field.
+	partneraccountDescBankAccount := partneraccountFields[8].Descriptor()
+	// partneraccount.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
+	partneraccount.BankAccountValidator = partneraccountDescBankAccount.Validators[0].(func(string) error)
+	// partneraccountDescSwiftCode is the schema descriptor for swift_code field.
+	partneraccountDescSwiftCode := partneraccountFields[9].Descriptor()
+	// partneraccount.SwiftCodeValidator is a validator for the "swift_code" field. It is called by the builders before save.
+	partneraccount.SwiftCodeValidator = partneraccountDescSwiftCode.Validators[0].(func(string) error)
+	// partneraccountDescIsDefault is the schema descriptor for is_default field.
+	partneraccountDescIsDefault := partneraccountFields[10].Descriptor()
+	// partneraccount.DefaultIsDefault holds the default value on creation for the is_default field.
+	partneraccount.DefaultIsDefault = partneraccountDescIsDefault.Default.(bool)
+	// partneraccountDescRemark is the schema descriptor for remark field.
+	partneraccountDescRemark := partneraccountFields[12].Descriptor()
+	// partneraccount.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	partneraccount.RemarkValidator = partneraccountDescRemark.Validators[0].(func(string) error)
+	// partneraccountDescID is the schema descriptor for id field.
+	partneraccountDescID := partneraccountMixinFields0[0].Descriptor()
+	// partneraccount.DefaultID holds the default value on creation for the id field.
+	partneraccount.DefaultID = partneraccountDescID.Default.(func() uuid.UUID)
 	partneraliasMixin := schema.PartnerAlias{}.Mixin()
 	partneraliasMixinFields0 := partneraliasMixin[0].Fields()
 	_ = partneraliasMixinFields0
@@ -715,6 +806,75 @@ func init() {
 	partnercontactDescID := partnercontactMixinFields0[0].Descriptor()
 	// partnercontact.DefaultID holds the default value on creation for the id field.
 	partnercontact.DefaultID = partnercontactDescID.Default.(func() uuid.UUID)
+	partnercontractMixin := schema.PartnerContract{}.Mixin()
+	partnercontractMixinFields0 := partnercontractMixin[0].Fields()
+	_ = partnercontractMixinFields0
+	partnercontractMixinFields1 := partnercontractMixin[1].Fields()
+	_ = partnercontractMixinFields1
+	partnercontractFields := schema.PartnerContract{}.Fields()
+	_ = partnercontractFields
+	// partnercontractDescCreatedAt is the schema descriptor for created_at field.
+	partnercontractDescCreatedAt := partnercontractMixinFields1[0].Descriptor()
+	// partnercontract.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partnercontract.DefaultCreatedAt = partnercontractDescCreatedAt.Default.(func() time.Time)
+	// partnercontractDescUpdatedAt is the schema descriptor for updated_at field.
+	partnercontractDescUpdatedAt := partnercontractMixinFields1[1].Descriptor()
+	// partnercontract.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partnercontract.DefaultUpdatedAt = partnercontractDescUpdatedAt.Default.(func() time.Time)
+	// partnercontract.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partnercontract.UpdateDefaultUpdatedAt = partnercontractDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnercontractDescContractNo is the schema descriptor for contract_no field.
+	partnercontractDescContractNo := partnercontractFields[1].Descriptor()
+	// partnercontract.ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.
+	partnercontract.ContractNoValidator = func() func(string) error {
+		validators := partnercontractDescContractNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(contract_no string) error {
+			for _, fn := range fns {
+				if err := fn(contract_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnercontractDescName is the schema descriptor for name field.
+	partnercontractDescName := partnercontractFields[2].Descriptor()
+	// partnercontract.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	partnercontract.NameValidator = func() func(string) error {
+		validators := partnercontractDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnercontractDescPaymentTerms is the schema descriptor for payment_terms field.
+	partnercontractDescPaymentTerms := partnercontractFields[6].Descriptor()
+	// partnercontract.PaymentTermsValidator is a validator for the "payment_terms" field. It is called by the builders before save.
+	partnercontract.PaymentTermsValidator = partnercontractDescPaymentTerms.Validators[0].(func(string) error)
+	// partnercontractDescDisputeResolution is the schema descriptor for dispute_resolution field.
+	partnercontractDescDisputeResolution := partnercontractFields[7].Descriptor()
+	// partnercontract.DisputeResolutionValidator is a validator for the "dispute_resolution" field. It is called by the builders before save.
+	partnercontract.DisputeResolutionValidator = partnercontractDescDisputeResolution.Validators[0].(func(string) error)
+	// partnercontractDescOtherNotes is the schema descriptor for other_notes field.
+	partnercontractDescOtherNotes := partnercontractFields[8].Descriptor()
+	// partnercontract.OtherNotesValidator is a validator for the "other_notes" field. It is called by the builders before save.
+	partnercontract.OtherNotesValidator = partnercontractDescOtherNotes.Validators[0].(func(string) error)
+	// partnercontractDescID is the schema descriptor for id field.
+	partnercontractDescID := partnercontractMixinFields0[0].Descriptor()
+	// partnercontract.DefaultID holds the default value on creation for the id field.
+	partnercontract.DefaultID = partnercontractDescID.Default.(func() uuid.UUID)
 	partnerroleMixin := schema.PartnerRole{}.Mixin()
 	partnerroleMixinFields0 := partnerroleMixin[0].Fields()
 	_ = partnerroleMixinFields0

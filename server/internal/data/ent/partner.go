@@ -53,9 +53,11 @@ type PartnerEdges struct {
 	Contacts []*PartnerContact `json:"contacts,omitempty"`
 	// Aliases holds the value of the aliases edge.
 	Aliases []*PartnerAlias `json:"aliases,omitempty"`
+	// Contracts holds the value of the contracts edge.
+	Contracts []*PartnerContract `json:"contracts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -94,6 +96,15 @@ func (e PartnerEdges) AliasesOrErr() ([]*PartnerAlias, error) {
 		return e.Aliases, nil
 	}
 	return nil, &NotLoadedError{edge: "aliases"}
+}
+
+// ContractsOrErr returns the Contracts value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
+	if e.loadedTypes[4] {
+		return e.Contracts, nil
+	}
+	return nil, &NotLoadedError{edge: "contracts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -216,6 +227,11 @@ func (_m *Partner) QueryContacts() *PartnerContactQuery {
 // QueryAliases queries the "aliases" edge of the Partner entity.
 func (_m *Partner) QueryAliases() *PartnerAliasQuery {
 	return NewPartnerClient(_m.config).QueryAliases(_m)
+}
+
+// QueryContracts queries the "contracts" edge of the Partner entity.
+func (_m *Partner) QueryContracts() *PartnerContractQuery {
+	return NewPartnerClient(_m.config).QueryContracts(_m)
 }
 
 // Update returns a builder for updating this Partner.

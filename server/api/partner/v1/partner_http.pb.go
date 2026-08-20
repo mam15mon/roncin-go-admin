@@ -18,17 +18,29 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationPartnerServiceCreatePartner = "/partner.v1.PartnerService/CreatePartner"
+const OperationPartnerServiceCreatePartnerAccount = "/partner.v1.PartnerService/CreatePartnerAccount"
+const OperationPartnerServiceCreatePartnerContract = "/partner.v1.PartnerService/CreatePartnerContract"
 const OperationPartnerServiceGetPartner = "/partner.v1.PartnerService/GetPartner"
+const OperationPartnerServiceListPartnerAccounts = "/partner.v1.PartnerService/ListPartnerAccounts"
+const OperationPartnerServiceListPartnerContracts = "/partner.v1.PartnerService/ListPartnerContracts"
 const OperationPartnerServiceListPartners = "/partner.v1.PartnerService/ListPartners"
 const OperationPartnerServiceSetSupplierBlacklist = "/partner.v1.PartnerService/SetSupplierBlacklist"
 const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdatePartner"
+const OperationPartnerServiceUpdatePartnerAccount = "/partner.v1.PartnerService/UpdatePartnerAccount"
+const OperationPartnerServiceUpdatePartnerContract = "/partner.v1.PartnerService/UpdatePartnerContract"
 
 type PartnerServiceHTTPServer interface {
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
+	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error)
+	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
 	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
+	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
+	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
+	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error)
+	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
 }
 
 func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServer) {
@@ -38,6 +50,12 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{id}/supplier-blacklist", _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partners/{partner_id}/accounts", _PartnerService_ListPartnerAccounts0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/partners/{partner_id}/accounts", _PartnerService_CreatePartnerAccount0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/partners/{partner_id}/accounts/{id}", _PartnerService_UpdatePartnerAccount0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partners/{partner_id}/contracts", _PartnerService_ListPartnerContracts0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/partners/{partner_id}/contracts", _PartnerService_CreatePartnerContract0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/partners/{partner_id}/contracts/{id}", _PartnerService_UpdatePartnerContract0_HTTP_Handler(srv))
 }
 
 func _PartnerService_GetPartner0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
@@ -144,12 +162,150 @@ func _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv PartnerServiceHTTPSe
 	}
 }
 
+func _PartnerService_ListPartnerAccounts0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPartnerAccountsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceListPartnerAccounts)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPartnerAccounts(ctx, req.(*ListPartnerAccountsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerAccountListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_CreatePartnerAccount0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreatePartnerAccountRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceCreatePartnerAccount)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePartnerAccount(ctx, req.(*CreatePartnerAccountRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerAccountReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_UpdatePartnerAccount0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePartnerAccountRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceUpdatePartnerAccount)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePartnerAccount(ctx, req.(*UpdatePartnerAccountRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerAccountReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_ListPartnerContracts0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPartnerContractsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceListPartnerContracts)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPartnerContracts(ctx, req.(*ListPartnerContractsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerContractListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_CreatePartnerContract0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreatePartnerContractRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceCreatePartnerContract)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePartnerContract(ctx, req.(*CreatePartnerContractRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerContractReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_UpdatePartnerContract0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePartnerContractRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceUpdatePartnerContract)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePartnerContract(ctx, req.(*UpdatePartnerContractRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerContractReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type PartnerServiceHTTPClient interface {
 	CreatePartner(ctx context.Context, req *CreatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
+	CreatePartnerAccount(ctx context.Context, req *CreatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
+	CreatePartnerContract(ctx context.Context, req *CreatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
 	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
+	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *PartnerAccountListReply, err error)
+	ListPartnerContracts(ctx context.Context, req *ListPartnerContractsRequest, opts ...http.CallOption) (rsp *PartnerContractListReply, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *PartnerListReply, err error)
 	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
+	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
+	UpdatePartnerContract(ctx context.Context, req *UpdatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
 }
 
 type PartnerServiceHTTPClientImpl struct {
@@ -177,6 +333,40 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartner(ctx context.Context, in *Cr
 	return &out, nil
 }
 
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...http.CallOption) (*PartnerAccountReply, error) {
+	var out PartnerAccountReply
+	pattern := "/api/v1/partners/{partner_id}/accounts"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceCreatePartnerAccount),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...http.CallOption) (*PartnerContractReply, error) {
+	var out PartnerContractReply
+	pattern := "/api/v1/partners/{partner_id}/contracts"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceCreatePartnerContract),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
 	var out PartnerReply
 	pattern := "/api/v1/partners/{id}"
@@ -184,6 +374,38 @@ func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPa
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationPartnerServiceGetPartner),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...http.CallOption) (*PartnerAccountListReply, error) {
+	var out PartnerAccountListReply
+	pattern := "/api/v1/partners/{partner_id}/accounts"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceListPartnerAccounts),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...http.CallOption) (*PartnerContractListReply, error) {
+	var out PartnerContractListReply
+	pattern := "/api/v1/partners/{partner_id}/contracts"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceListPartnerContracts),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -234,6 +456,40 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartner(ctx context.Context, in *Up
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationPartnerServiceUpdatePartner),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...http.CallOption) (*PartnerAccountReply, error) {
+	var out PartnerAccountReply
+	pattern := "/api/v1/partners/{partner_id}/accounts/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceUpdatePartnerAccount),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...http.CallOption) (*PartnerContractReply, error) {
+	var out PartnerContractReply
+	pattern := "/api/v1/partners/{partner_id}/contracts/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceUpdatePartnerContract),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

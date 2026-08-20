@@ -13,11 +13,13 @@ import (
 
 type PartnerService struct {
 	v1.UnimplementedPartnerServiceServer
-	usecase *biz.PartnerUsecase
+	usecase         *biz.PartnerUsecase
+	accountUsecase  *biz.PartnerAccountUsecase
+	contractUsecase *biz.PartnerContractUsecase
 }
 
-func NewPartnerService(usecase *biz.PartnerUsecase) *PartnerService {
-	return &PartnerService{usecase: usecase}
+func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerAccountUsecase, contractUsecase *biz.PartnerContractUsecase) *PartnerService {
+	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase}
 }
 
 func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.PartnerReply, error) {
@@ -119,6 +121,235 @@ func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.S
 		return nil, err
 	}
 	return partnerReply(ctx, updated), nil
+}
+
+func (s *PartnerService) ListPartnerAccounts(ctx context.Context, request *v1.ListPartnerAccountsRequest) (*v1.PartnerAccountListReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerAccountInvalidArgument
+	}
+	var enabled *bool
+	if request.Enabled != nil {
+		value := request.GetEnabled()
+		enabled = &value
+	}
+	items, err := s.accountUsecase.List(ctx, principal.Organization.ID, partnerID, enabled)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.PartnerAccount, 0, len(items))
+	for _, item := range items {
+		data = append(data, partnerAccountToAPI(item))
+	}
+	return &v1.PartnerAccountListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.CreatePartnerAccountRequest) (*v1.PartnerAccountReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil || request.GetAccount() == nil {
+		return nil, biz.ErrPartnerAccountInvalidArgument
+	}
+	created, err := s.accountUsecase.Create(ctx, principal.Organization.ID, principal.UserID, partnerID, partnerAccountFromAPI(request.GetAccount()))
+	if err != nil {
+		return nil, err
+	}
+	return partnerAccountReply(ctx, created), nil
+}
+
+func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.UpdatePartnerAccountRequest) (*v1.PartnerAccountReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, partnerErr := uuid.Parse(request.GetPartnerId())
+	id, idErr := uuid.Parse(request.GetId())
+	if partnerErr != nil || idErr != nil || request.GetAccount() == nil {
+		return nil, biz.ErrPartnerAccountInvalidArgument
+	}
+	updated, err := s.accountUsecase.Update(ctx, principal.Organization.ID, principal.UserID, partnerID, id, partnerAccountFromAPI(request.GetAccount()))
+	if err != nil {
+		return nil, err
+	}
+	return partnerAccountReply(ctx, updated), nil
+}
+
+func (s *PartnerService) ListPartnerContracts(ctx context.Context, request *v1.ListPartnerContractsRequest) (*v1.PartnerContractListReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerContractInvalidArgument
+	}
+	var status *biz.PartnerContractStatus
+	if request.Status != nil {
+		value := partnerContractStatusFromAPI(request.GetStatus())
+		status = &value
+	}
+	items, err := s.contractUsecase.List(ctx, principal.Organization.ID, partnerID, status)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.PartnerContract, 0, len(items))
+	for _, item := range items {
+		data = append(data, partnerContractToAPI(item))
+	}
+	return &v1.PartnerContractListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.CreatePartnerContractRequest) (*v1.PartnerContractReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil || request.GetContract() == nil {
+		return nil, biz.ErrPartnerContractInvalidArgument
+	}
+	input := request.GetContract()
+	startDate, endDate, err := parseContractDates(input.GetStartDate(), input.GetEndDate())
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.contractUsecase.Create(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.PartnerContract{
+		ContractNo: input.GetContractNo(), Name: input.GetName(), Status: partnerContractStatusFromAPI(input.GetStatus()),
+		StartDate: startDate, EndDate: endDate, PaymentTerms: input.GetPaymentTerms(), DisputeResolution: input.GetDisputeResolution(), OtherNotes: input.GetOtherNotes(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return partnerContractReply(ctx, created), nil
+}
+
+func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.UpdatePartnerContractRequest) (*v1.PartnerContractReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, partnerErr := uuid.Parse(request.GetPartnerId())
+	id, idErr := uuid.Parse(request.GetId())
+	if partnerErr != nil || idErr != nil || request.GetContract() == nil {
+		return nil, biz.ErrPartnerContractInvalidArgument
+	}
+	input := request.GetContract()
+	startDate, endDate, err := parseContractDates(input.GetStartDate(), input.GetEndDate())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.contractUsecase.Update(ctx, principal.Organization.ID, principal.UserID, partnerID, id, &biz.PartnerContract{
+		Name: input.GetName(), Status: partnerContractStatusFromAPI(input.GetStatus()),
+		StartDate: startDate, EndDate: endDate, PaymentTerms: input.GetPaymentTerms(), DisputeResolution: input.GetDisputeResolution(), OtherNotes: input.GetOtherNotes(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return partnerContractReply(ctx, updated), nil
+}
+
+func parseContractDates(start, end string) (time.Time, time.Time, error) {
+	startDate, err := time.Parse(time.RFC3339, start)
+	if err != nil {
+		return time.Time{}, time.Time{}, biz.ErrPartnerContractInvalidArgument
+	}
+	endDate, err := time.Parse(time.RFC3339, end)
+	if err != nil {
+		return time.Time{}, time.Time{}, biz.ErrPartnerContractInvalidArgument
+	}
+	return startDate, endDate, nil
+}
+
+func partnerAccountFromAPI(value *v1.PartnerAccountInput) *biz.PartnerAccount {
+	return &biz.PartnerAccount{
+		Currency: value.GetCurrency(), InvoiceTitle: value.GetInvoiceTitle(), UnifiedSocialCreditCode: value.GetUnifiedSocialCreditCode(),
+		BillingAddress: value.GetBillingAddress(), BillingPhone: value.GetBillingPhone(), BankName: value.GetBankName(), BankAccount: value.GetBankAccount(),
+		SwiftCode: value.GetSwiftCode(), IsDefault: value.GetIsDefault(), Status: partnerAccountStatusFromAPI(value.GetStatus()), Remark: value.GetRemark(),
+	}
+}
+
+func partnerAccountStatusFromAPI(value v1.PartnerAccountStatus) biz.PartnerAccountStatus {
+	if value == v1.PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_ACTIVE {
+		return biz.PartnerAccountActive
+	}
+	if value == v1.PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_INACTIVE {
+		return biz.PartnerAccountInactive
+	}
+	return ""
+}
+
+func partnerAccountStatusToAPI(value biz.PartnerAccountStatus) v1.PartnerAccountStatus {
+	if value == biz.PartnerAccountActive {
+		return v1.PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_ACTIVE
+	}
+	if value == biz.PartnerAccountInactive {
+		return v1.PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_INACTIVE
+	}
+	return v1.PartnerAccountStatus_PARTNER_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func partnerContractStatusFromAPI(value v1.PartnerContractStatus) biz.PartnerContractStatus {
+	switch value {
+	case v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_PENDING:
+		return biz.PartnerContractPending
+	case v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_ACTIVE:
+		return biz.PartnerContractActive
+	case v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_EXPIRED:
+		return biz.PartnerContractExpired
+	case v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_TERMINATED:
+		return biz.PartnerContractTerminated
+	default:
+		return ""
+	}
+}
+
+func partnerContractStatusToAPI(value biz.PartnerContractStatus) v1.PartnerContractStatus {
+	switch value {
+	case biz.PartnerContractPending:
+		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_PENDING
+	case biz.PartnerContractActive:
+		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_ACTIVE
+	case biz.PartnerContractExpired:
+		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_EXPIRED
+	case biz.PartnerContractTerminated:
+		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_TERMINATED
+	default:
+		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
+	}
+}
+
+func partnerAccountReply(ctx context.Context, value *biz.PartnerAccount) *v1.PartnerAccountReply {
+	return &v1.PartnerAccountReply{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+}
+
+func partnerContractReply(ctx context.Context, value *biz.PartnerContract) *v1.PartnerContractReply {
+	return &v1.PartnerContractReply{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+}
+
+func partnerAccountToAPI(value *biz.PartnerAccount) *v1.PartnerAccount {
+	return &v1.PartnerAccount{
+		Id: value.ID.String(), PartnerRoleId: value.PartnerRoleID.String(), AccountType: value.AccountType,
+		Currency: value.Currency, InvoiceTitle: value.InvoiceTitle, UnifiedSocialCreditCode: value.UnifiedSocialCreditCode,
+		BillingAddress: value.BillingAddress, BillingPhone: value.BillingPhone, BankName: value.BankName, BankAccount: value.BankAccount,
+		SwiftCode: value.SwiftCode, IsDefault: value.IsDefault, Status: partnerAccountStatusToAPI(value.Status), Remark: value.Remark,
+		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func partnerContractToAPI(value *biz.PartnerContract) *v1.PartnerContract {
+	return &v1.PartnerContract{
+		Id: value.ID.String(), PartnerId: value.PartnerID.String(), ContractNo: value.ContractNo, Name: value.Name,
+		Status: partnerContractStatusToAPI(value.Status), StartDate: value.StartDate.Format(time.RFC3339), EndDate: value.EndDate.Format(time.RFC3339),
+		PaymentTerms: value.PaymentTerms, DisputeResolution: value.DisputeResolution, OtherNotes: value.OtherNotes,
+		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
+	}
 }
 
 func pageValues(page, pageSize int32) (int, int, error) {

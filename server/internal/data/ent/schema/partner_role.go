@@ -28,6 +28,7 @@ func (PartnerRole) Fields() []ent.Field {
 func (PartnerRole) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("partner", Partner.Type).Ref("roles").Field("partner_id").Unique().Required(),
+		edge.To("accounts", PartnerAccount.Type),
 	}
 }
 

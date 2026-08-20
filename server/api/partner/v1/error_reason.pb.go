@@ -37,6 +37,13 @@ const (
 	ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED    ErrorReason = 10
 	ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED ErrorReason = 11
 	ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE ErrorReason = 12
+	ErrorReason_PARTNER_ACCOUNT_NOT_FOUND         ErrorReason = 13
+	ErrorReason_PARTNER_ACCOUNT_INVALID_ARGUMENT  ErrorReason = 14
+	ErrorReason_PARTNER_ACCOUNT_DEFAULT_CONFLICT  ErrorReason = 15
+	ErrorReason_PARTNER_CONTRACT_NOT_FOUND        ErrorReason = 16
+	ErrorReason_PARTNER_CONTRACT_NO_EXISTS        ErrorReason = 17
+	ErrorReason_PARTNER_CONTRACT_INVALID_ARGUMENT ErrorReason = 18
+	ErrorReason_PARTNER_CONTRACT_STATUS_CONFLICT  ErrorReason = 19
 )
 
 // Enum value maps for ErrorReason.
@@ -55,6 +62,13 @@ var (
 		10: "PARTNER_SUPPLIER_ROLE_REQUIRED",
 		11: "PARTNER_BLACKLIST_REASON_REQUIRED",
 		12: "PARTNER_BLACKLISTED_SUPPLIER_ROLE",
+		13: "PARTNER_ACCOUNT_NOT_FOUND",
+		14: "PARTNER_ACCOUNT_INVALID_ARGUMENT",
+		15: "PARTNER_ACCOUNT_DEFAULT_CONFLICT",
+		16: "PARTNER_CONTRACT_NOT_FOUND",
+		17: "PARTNER_CONTRACT_NO_EXISTS",
+		18: "PARTNER_CONTRACT_INVALID_ARGUMENT",
+		19: "PARTNER_CONTRACT_STATUS_CONFLICT",
 	}
 	ErrorReason_value = map[string]int32{
 		"PARTNER_UNSPECIFIED":               0,
@@ -70,6 +84,13 @@ var (
 		"PARTNER_SUPPLIER_ROLE_REQUIRED":    10,
 		"PARTNER_BLACKLIST_REASON_REQUIRED": 11,
 		"PARTNER_BLACKLISTED_SUPPLIER_ROLE": 12,
+		"PARTNER_ACCOUNT_NOT_FOUND":         13,
+		"PARTNER_ACCOUNT_INVALID_ARGUMENT":  14,
+		"PARTNER_ACCOUNT_DEFAULT_CONFLICT":  15,
+		"PARTNER_CONTRACT_NOT_FOUND":        16,
+		"PARTNER_CONTRACT_NO_EXISTS":        17,
+		"PARTNER_CONTRACT_INVALID_ARGUMENT": 18,
+		"PARTNER_CONTRACT_STATUS_CONFLICT":  19,
 	}
 )
 
@@ -105,7 +126,7 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*\x8d\x03\n" +
+	"partner.v1*\x85\x05\n" +
 	"\vErrorReason\x12\x17\n" +
 	"\x13PARTNER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PARTNER_NOT_FOUND\x10\x01\x12\x17\n" +
@@ -120,7 +141,14 @@ const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\x1ePARTNER_SUPPLIER_ROLE_REQUIRED\x10\n" +
 	"\x12%\n" +
 	"!PARTNER_BLACKLIST_REASON_REQUIRED\x10\v\x12%\n" +
-	"!PARTNER_BLACKLISTED_SUPPLIER_ROLE\x10\fB<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"!PARTNER_BLACKLISTED_SUPPLIER_ROLE\x10\f\x12\x1d\n" +
+	"\x19PARTNER_ACCOUNT_NOT_FOUND\x10\r\x12$\n" +
+	" PARTNER_ACCOUNT_INVALID_ARGUMENT\x10\x0e\x12$\n" +
+	" PARTNER_ACCOUNT_DEFAULT_CONFLICT\x10\x0f\x12\x1e\n" +
+	"\x1aPARTNER_CONTRACT_NOT_FOUND\x10\x10\x12\x1e\n" +
+	"\x1aPARTNER_CONTRACT_NO_EXISTS\x10\x11\x12%\n" +
+	"!PARTNER_CONTRACT_INVALID_ARGUMENT\x10\x12\x12$\n" +
+	" PARTNER_CONTRACT_STATUS_CONFLICT\x10\x13B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once

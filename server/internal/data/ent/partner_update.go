@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -185,6 +186,21 @@ func (_u *PartnerUpdate) AddAliases(v ...*PartnerAlias) *PartnerUpdate {
 	return _u.AddAliasIDs(ids...)
 }
 
+// AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
+func (_u *PartnerUpdate) AddContractIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddContractIDs(ids...)
+	return _u
+}
+
+// AddContracts adds the "contracts" edges to the PartnerContract entity.
+func (_u *PartnerUpdate) AddContracts(v ...*PartnerContract) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContractIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -257,6 +273,27 @@ func (_u *PartnerUpdate) RemoveAliases(v ...*PartnerAlias) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAliasIDs(ids...)
+}
+
+// ClearContracts clears all "contracts" edges to the PartnerContract entity.
+func (_u *PartnerUpdate) ClearContracts() *PartnerUpdate {
+	_u.mutation.ClearContracts()
+	return _u
+}
+
+// RemoveContractIDs removes the "contracts" edge to PartnerContract entities by IDs.
+func (_u *PartnerUpdate) RemoveContractIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveContractIDs(ids...)
+	return _u
+}
+
+// RemoveContracts removes "contracts" edges to PartnerContract entities.
+func (_u *PartnerUpdate) RemoveContracts(v ...*PartnerContract) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContractIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -523,6 +560,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContractsIDs(); len(nodes) > 0 && !_u.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContractsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partner.Label}
@@ -695,6 +777,21 @@ func (_u *PartnerUpdateOne) AddAliases(v ...*PartnerAlias) *PartnerUpdateOne {
 	return _u.AddAliasIDs(ids...)
 }
 
+// AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
+func (_u *PartnerUpdateOne) AddContractIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddContractIDs(ids...)
+	return _u
+}
+
+// AddContracts adds the "contracts" edges to the PartnerContract entity.
+func (_u *PartnerUpdateOne) AddContracts(v ...*PartnerContract) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContractIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -767,6 +864,27 @@ func (_u *PartnerUpdateOne) RemoveAliases(v ...*PartnerAlias) *PartnerUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAliasIDs(ids...)
+}
+
+// ClearContracts clears all "contracts" edges to the PartnerContract entity.
+func (_u *PartnerUpdateOne) ClearContracts() *PartnerUpdateOne {
+	_u.mutation.ClearContracts()
+	return _u
+}
+
+// RemoveContractIDs removes the "contracts" edge to PartnerContract entities by IDs.
+func (_u *PartnerUpdateOne) RemoveContractIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveContractIDs(ids...)
+	return _u
+}
+
+// RemoveContracts removes "contracts" edges to PartnerContract entities.
+func (_u *PartnerUpdateOne) RemoveContracts(v ...*PartnerContract) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContractIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -1056,6 +1174,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContractsIDs(); len(nodes) > 0 && !_u.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContractsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContractsTable,
+			Columns: []string{partner.ContractsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

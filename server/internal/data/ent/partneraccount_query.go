@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -14,61 +13,59 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
-// PartnerRoleQuery is the builder for querying PartnerRole entities.
-type PartnerRoleQuery struct {
+// PartnerAccountQuery is the builder for querying PartnerAccount entities.
+type PartnerAccountQuery struct {
 	config
-	ctx          *QueryContext
-	order        []partnerrole.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.PartnerRole
-	withPartner  *PartnerQuery
-	withAccounts *PartnerAccountQuery
-	modifiers    []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []partneraccount.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.PartnerAccount
+	withPartnerRole *PartnerRoleQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the PartnerRoleQuery builder.
-func (_q *PartnerRoleQuery) Where(ps ...predicate.PartnerRole) *PartnerRoleQuery {
+// Where adds a new predicate for the PartnerAccountQuery builder.
+func (_q *PartnerAccountQuery) Where(ps ...predicate.PartnerAccount) *PartnerAccountQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *PartnerRoleQuery) Limit(limit int) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) Limit(limit int) *PartnerAccountQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *PartnerRoleQuery) Offset(offset int) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) Offset(offset int) *PartnerAccountQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *PartnerRoleQuery) Unique(unique bool) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) Unique(unique bool) *PartnerAccountQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *PartnerRoleQuery) Order(o ...partnerrole.OrderOption) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) Order(o ...partneraccount.OrderOption) *PartnerAccountQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryPartner chains the current query on the "partner" edge.
-func (_q *PartnerRoleQuery) QueryPartner() *PartnerQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// QueryPartnerRole chains the current query on the "partner_role" edge.
+func (_q *PartnerAccountQuery) QueryPartnerRole() *PartnerRoleQuery {
+	query := (&PartnerRoleClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -78,9 +75,9 @@ func (_q *PartnerRoleQuery) QueryPartner() *PartnerQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, selector),
-			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, partnerrole.PartnerTable, partnerrole.PartnerColumn),
+			sqlgraph.From(partneraccount.Table, partneraccount.FieldID, selector),
+			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partneraccount.PartnerRoleTable, partneraccount.PartnerRoleColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,43 +85,21 @@ func (_q *PartnerRoleQuery) QueryPartner() *PartnerQuery {
 	return query
 }
 
-// QueryAccounts chains the current query on the "accounts" edge.
-func (_q *PartnerRoleQuery) QueryAccounts() *PartnerAccountQuery {
-	query := (&PartnerAccountClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, selector),
-			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.AccountsTable, partnerrole.AccountsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first PartnerRole entity from the query.
-// Returns a *NotFoundError when no PartnerRole was found.
-func (_q *PartnerRoleQuery) First(ctx context.Context) (*PartnerRole, error) {
+// First returns the first PartnerAccount entity from the query.
+// Returns a *NotFoundError when no PartnerAccount was found.
+func (_q *PartnerAccountQuery) First(ctx context.Context) (*PartnerAccount, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{partnerrole.Label}
+		return nil, &NotFoundError{partneraccount.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *PartnerRoleQuery) FirstX(ctx context.Context) *PartnerRole {
+func (_q *PartnerAccountQuery) FirstX(ctx context.Context) *PartnerAccount {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,22 +107,22 @@ func (_q *PartnerRoleQuery) FirstX(ctx context.Context) *PartnerRole {
 	return node
 }
 
-// FirstID returns the first PartnerRole ID from the query.
-// Returns a *NotFoundError when no PartnerRole ID was found.
-func (_q *PartnerRoleQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first PartnerAccount ID from the query.
+// Returns a *NotFoundError when no PartnerAccount ID was found.
+func (_q *PartnerAccountQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{partnerrole.Label}
+		err = &NotFoundError{partneraccount.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *PartnerRoleQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *PartnerAccountQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -155,10 +130,10 @@ func (_q *PartnerRoleQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single PartnerRole entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one PartnerRole entity is found.
-// Returns a *NotFoundError when no PartnerRole entities are found.
-func (_q *PartnerRoleQuery) Only(ctx context.Context) (*PartnerRole, error) {
+// Only returns a single PartnerAccount entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one PartnerAccount entity is found.
+// Returns a *NotFoundError when no PartnerAccount entities are found.
+func (_q *PartnerAccountQuery) Only(ctx context.Context) (*PartnerAccount, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -167,14 +142,14 @@ func (_q *PartnerRoleQuery) Only(ctx context.Context) (*PartnerRole, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{partnerrole.Label}
+		return nil, &NotFoundError{partneraccount.Label}
 	default:
-		return nil, &NotSingularError{partnerrole.Label}
+		return nil, &NotSingularError{partneraccount.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *PartnerRoleQuery) OnlyX(ctx context.Context) *PartnerRole {
+func (_q *PartnerAccountQuery) OnlyX(ctx context.Context) *PartnerAccount {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -182,10 +157,10 @@ func (_q *PartnerRoleQuery) OnlyX(ctx context.Context) *PartnerRole {
 	return node
 }
 
-// OnlyID is like Only, but returns the only PartnerRole ID in the query.
-// Returns a *NotSingularError when more than one PartnerRole ID is found.
+// OnlyID is like Only, but returns the only PartnerAccount ID in the query.
+// Returns a *NotSingularError when more than one PartnerAccount ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *PartnerRoleQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *PartnerAccountQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -194,15 +169,15 @@ func (_q *PartnerRoleQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{partnerrole.Label}
+		err = &NotFoundError{partneraccount.Label}
 	default:
-		err = &NotSingularError{partnerrole.Label}
+		err = &NotSingularError{partneraccount.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *PartnerRoleQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *PartnerAccountQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -210,18 +185,18 @@ func (_q *PartnerRoleQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of PartnerRoles.
-func (_q *PartnerRoleQuery) All(ctx context.Context) ([]*PartnerRole, error) {
+// All executes the query and returns a list of PartnerAccounts.
+func (_q *PartnerAccountQuery) All(ctx context.Context) ([]*PartnerAccount, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*PartnerRole, *PartnerRoleQuery]()
-	return withInterceptors[[]*PartnerRole](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*PartnerAccount, *PartnerAccountQuery]()
+	return withInterceptors[[]*PartnerAccount](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *PartnerRoleQuery) AllX(ctx context.Context) []*PartnerRole {
+func (_q *PartnerAccountQuery) AllX(ctx context.Context) []*PartnerAccount {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -229,20 +204,20 @@ func (_q *PartnerRoleQuery) AllX(ctx context.Context) []*PartnerRole {
 	return nodes
 }
 
-// IDs executes the query and returns a list of PartnerRole IDs.
-func (_q *PartnerRoleQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of PartnerAccount IDs.
+func (_q *PartnerAccountQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(partnerrole.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(partneraccount.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *PartnerRoleQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *PartnerAccountQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -251,16 +226,16 @@ func (_q *PartnerRoleQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *PartnerRoleQuery) Count(ctx context.Context) (int, error) {
+func (_q *PartnerAccountQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*PartnerRoleQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*PartnerAccountQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *PartnerRoleQuery) CountX(ctx context.Context) int {
+func (_q *PartnerAccountQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -269,7 +244,7 @@ func (_q *PartnerRoleQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *PartnerRoleQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *PartnerAccountQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -282,7 +257,7 @@ func (_q *PartnerRoleQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *PartnerRoleQuery) ExistX(ctx context.Context) bool {
+func (_q *PartnerAccountQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -290,45 +265,33 @@ func (_q *PartnerRoleQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the PartnerRoleQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the PartnerAccountQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *PartnerRoleQuery) Clone() *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) Clone() *PartnerAccountQuery {
 	if _q == nil {
 		return nil
 	}
-	return &PartnerRoleQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]partnerrole.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.PartnerRole{}, _q.predicates...),
-		withPartner:  _q.withPartner.Clone(),
-		withAccounts: _q.withAccounts.Clone(),
+	return &PartnerAccountQuery{
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]partneraccount.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.PartnerAccount{}, _q.predicates...),
+		withPartnerRole: _q.withPartnerRole.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithPartner tells the query-builder to eager-load the nodes that are connected to
-// the "partner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PartnerRoleQuery) WithPartner(opts ...func(*PartnerQuery)) *PartnerRoleQuery {
-	query := (&PartnerClient{config: _q.config}).Query()
+// WithPartnerRole tells the query-builder to eager-load the nodes that are connected to
+// the "partner_role" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerAccountQuery) WithPartnerRole(opts ...func(*PartnerRoleQuery)) *PartnerAccountQuery {
+	query := (&PartnerRoleClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withPartner = query
-	return _q
-}
-
-// WithAccounts tells the query-builder to eager-load the nodes that are connected to
-// the "accounts" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PartnerRoleQuery) WithAccounts(opts ...func(*PartnerAccountQuery)) *PartnerRoleQuery {
-	query := (&PartnerAccountClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withAccounts = query
+	_q.withPartnerRole = query
 	return _q
 }
 
@@ -342,15 +305,15 @@ func (_q *PartnerRoleQuery) WithAccounts(opts ...func(*PartnerAccountQuery)) *Pa
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.PartnerRole.Query().
-//		GroupBy(partnerrole.FieldCreatedAt).
+//	client.PartnerAccount.Query().
+//		GroupBy(partneraccount.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *PartnerRoleQuery) GroupBy(field string, fields ...string) *PartnerRoleGroupBy {
+func (_q *PartnerAccountQuery) GroupBy(field string, fields ...string) *PartnerAccountGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &PartnerRoleGroupBy{build: _q}
+	grbuild := &PartnerAccountGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = partnerrole.Label
+	grbuild.label = partneraccount.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -364,23 +327,23 @@ func (_q *PartnerRoleQuery) GroupBy(field string, fields ...string) *PartnerRole
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.PartnerRole.Query().
-//		Select(partnerrole.FieldCreatedAt).
+//	client.PartnerAccount.Query().
+//		Select(partneraccount.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *PartnerRoleQuery) Select(fields ...string) *PartnerRoleSelect {
+func (_q *PartnerAccountQuery) Select(fields ...string) *PartnerAccountSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &PartnerRoleSelect{PartnerRoleQuery: _q}
-	sbuild.label = partnerrole.Label
+	sbuild := &PartnerAccountSelect{PartnerAccountQuery: _q}
+	sbuild.label = partneraccount.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a PartnerRoleSelect configured with the given aggregations.
-func (_q *PartnerRoleQuery) Aggregate(fns ...AggregateFunc) *PartnerRoleSelect {
+// Aggregate returns a PartnerAccountSelect configured with the given aggregations.
+func (_q *PartnerAccountQuery) Aggregate(fns ...AggregateFunc) *PartnerAccountSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *PartnerRoleQuery) prepareQuery(ctx context.Context) error {
+func (_q *PartnerAccountQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -392,7 +355,7 @@ func (_q *PartnerRoleQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !partnerrole.ValidColumn(f) {
+		if !partneraccount.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -406,20 +369,19 @@ func (_q *PartnerRoleQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *PartnerRoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PartnerRole, error) {
+func (_q *PartnerAccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PartnerAccount, error) {
 	var (
-		nodes       = []*PartnerRole{}
+		nodes       = []*PartnerAccount{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withPartner != nil,
-			_q.withAccounts != nil,
+		loadedTypes = [1]bool{
+			_q.withPartnerRole != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*PartnerRole).scanValues(nil, columns)
+		return (*PartnerAccount).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &PartnerRole{config: _q.config}
+		node := &PartnerAccount{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -436,27 +398,20 @@ func (_q *PartnerRoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withPartner; query != nil {
-		if err := _q.loadPartner(ctx, query, nodes, nil,
-			func(n *PartnerRole, e *Partner) { n.Edges.Partner = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withAccounts; query != nil {
-		if err := _q.loadAccounts(ctx, query, nodes,
-			func(n *PartnerRole) { n.Edges.Accounts = []*PartnerAccount{} },
-			func(n *PartnerRole, e *PartnerAccount) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
+	if query := _q.withPartnerRole; query != nil {
+		if err := _q.loadPartnerRole(ctx, query, nodes, nil,
+			func(n *PartnerAccount, e *PartnerRole) { n.Edges.PartnerRole = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *PartnerRoleQuery) loadPartner(ctx context.Context, query *PartnerQuery, nodes []*PartnerRole, init func(*PartnerRole), assign func(*PartnerRole, *Partner)) error {
+func (_q *PartnerAccountQuery) loadPartnerRole(ctx context.Context, query *PartnerRoleQuery, nodes []*PartnerAccount, init func(*PartnerAccount), assign func(*PartnerAccount, *PartnerRole)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*PartnerRole)
+	nodeids := make(map[uuid.UUID][]*PartnerAccount)
 	for i := range nodes {
-		fk := nodes[i].PartnerID
+		fk := nodes[i].PartnerRoleID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -465,7 +420,7 @@ func (_q *PartnerRoleQuery) loadPartner(ctx context.Context, query *PartnerQuery
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(partner.IDIn(ids...))
+	query.Where(partnerrole.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -473,7 +428,7 @@ func (_q *PartnerRoleQuery) loadPartner(ctx context.Context, query *PartnerQuery
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "partner_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "partner_role_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -481,38 +436,8 @@ func (_q *PartnerRoleQuery) loadPartner(ctx context.Context, query *PartnerQuery
 	}
 	return nil
 }
-func (_q *PartnerRoleQuery) loadAccounts(ctx context.Context, query *PartnerAccountQuery, nodes []*PartnerRole, init func(*PartnerRole), assign func(*PartnerRole, *PartnerAccount)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*PartnerRole)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(partneraccount.FieldPartnerRoleID)
-	}
-	query.Where(predicate.PartnerAccount(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(partnerrole.AccountsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.PartnerRoleID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "partner_role_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 
-func (_q *PartnerRoleQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *PartnerAccountQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	if len(_q.modifiers) > 0 {
 		_spec.Modifiers = _q.modifiers
@@ -524,8 +449,8 @@ func (_q *PartnerRoleQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *PartnerRoleQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(partnerrole.Table, partnerrole.Columns, sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID))
+func (_q *PartnerAccountQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(partneraccount.Table, partneraccount.Columns, sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -534,14 +459,14 @@ func (_q *PartnerRoleQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, partnerrole.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, partneraccount.FieldID)
 		for i := range fields {
-			if fields[i] != partnerrole.FieldID {
+			if fields[i] != partneraccount.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if _q.withPartner != nil {
-			_spec.Node.AddColumnOnce(partnerrole.FieldPartnerID)
+		if _q.withPartnerRole != nil {
+			_spec.Node.AddColumnOnce(partneraccount.FieldPartnerRoleID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -567,12 +492,12 @@ func (_q *PartnerRoleQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *PartnerRoleQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *PartnerAccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(partnerrole.Table)
+	t1 := builder.Table(partneraccount.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = partnerrole.Columns
+		columns = partneraccount.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -605,7 +530,7 @@ func (_q *PartnerRoleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (_q *PartnerRoleQuery) ForUpdate(opts ...sql.LockOption) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) ForUpdate(opts ...sql.LockOption) *PartnerAccountQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -618,7 +543,7 @@ func (_q *PartnerRoleQuery) ForUpdate(opts ...sql.LockOption) *PartnerRoleQuery 
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (_q *PartnerRoleQuery) ForShare(opts ...sql.LockOption) *PartnerRoleQuery {
+func (_q *PartnerAccountQuery) ForShare(opts ...sql.LockOption) *PartnerAccountQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -628,28 +553,28 @@ func (_q *PartnerRoleQuery) ForShare(opts ...sql.LockOption) *PartnerRoleQuery {
 	return _q
 }
 
-// PartnerRoleGroupBy is the group-by builder for PartnerRole entities.
-type PartnerRoleGroupBy struct {
+// PartnerAccountGroupBy is the group-by builder for PartnerAccount entities.
+type PartnerAccountGroupBy struct {
 	selector
-	build *PartnerRoleQuery
+	build *PartnerAccountQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *PartnerRoleGroupBy) Aggregate(fns ...AggregateFunc) *PartnerRoleGroupBy {
+func (_g *PartnerAccountGroupBy) Aggregate(fns ...AggregateFunc) *PartnerAccountGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *PartnerRoleGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *PartnerAccountGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PartnerRoleQuery, *PartnerRoleGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*PartnerAccountQuery, *PartnerAccountGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *PartnerRoleGroupBy) sqlScan(ctx context.Context, root *PartnerRoleQuery, v any) error {
+func (_g *PartnerAccountGroupBy) sqlScan(ctx context.Context, root *PartnerAccountQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -676,28 +601,28 @@ func (_g *PartnerRoleGroupBy) sqlScan(ctx context.Context, root *PartnerRoleQuer
 	return sql.ScanSlice(rows, v)
 }
 
-// PartnerRoleSelect is the builder for selecting fields of PartnerRole entities.
-type PartnerRoleSelect struct {
-	*PartnerRoleQuery
+// PartnerAccountSelect is the builder for selecting fields of PartnerAccount entities.
+type PartnerAccountSelect struct {
+	*PartnerAccountQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *PartnerRoleSelect) Aggregate(fns ...AggregateFunc) *PartnerRoleSelect {
+func (_s *PartnerAccountSelect) Aggregate(fns ...AggregateFunc) *PartnerAccountSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *PartnerRoleSelect) Scan(ctx context.Context, v any) error {
+func (_s *PartnerAccountSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PartnerRoleQuery, *PartnerRoleSelect](ctx, _s.PartnerRoleQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*PartnerAccountQuery, *PartnerAccountSelect](ctx, _s.PartnerAccountQuery, _s, _s.inters, v)
 }
 
-func (_s *PartnerRoleSelect) sqlScan(ctx context.Context, root *PartnerRoleQuery, v any) error {
+func (_s *PartnerAccountSelect) sqlScan(ctx context.Context, root *PartnerAccountQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

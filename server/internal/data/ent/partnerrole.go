@@ -47,9 +47,11 @@ type PartnerRole struct {
 type PartnerRoleEdges struct {
 	// Partner holds the value of the partner edge.
 	Partner *Partner `json:"partner,omitempty"`
+	// Accounts holds the value of the accounts edge.
+	Accounts []*PartnerAccount `json:"accounts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PartnerOrErr returns the Partner value or an error if the edge
@@ -61,6 +63,15 @@ func (e PartnerRoleEdges) PartnerOrErr() (*Partner, error) {
 		return nil, &NotFoundError{label: partner.Label}
 	}
 	return nil, &NotLoadedError{edge: "partner"}
+}
+
+// AccountsOrErr returns the Accounts value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerRoleEdges) AccountsOrErr() ([]*PartnerAccount, error) {
+	if e.loadedTypes[1] {
+		return e.Accounts, nil
+	}
+	return nil, &NotLoadedError{edge: "accounts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -171,6 +182,11 @@ func (_m *PartnerRole) Value(name string) (ent.Value, error) {
 // QueryPartner queries the "partner" edge of the PartnerRole entity.
 func (_m *PartnerRole) QueryPartner() *PartnerQuery {
 	return NewPartnerRoleClient(_m.config).QueryPartner(_m)
+}
+
+// QueryAccounts queries the "accounts" edge of the PartnerRole entity.
+func (_m *PartnerRole) QueryAccounts() *PartnerAccountQuery {
+	return NewPartnerRoleClient(_m.config).QueryAccounts(_m)
 }
 
 // Update returns a builder for updating this PartnerRole.

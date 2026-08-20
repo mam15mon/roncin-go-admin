@@ -648,6 +648,29 @@ func HasAliasesWith(preds ...predicate.PartnerAlias) predicate.Partner {
 	})
 }
 
+// HasContracts applies the HasEdge predicate on the "contracts" edge.
+func HasContracts() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContractsTable, ContractsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContractsWith applies the HasEdge predicate on the "contracts" edge with a given conditions (other predicates).
+func HasContractsWith(preds ...predicate.PartnerContract) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newContractsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Partner) predicate.Partner {
 	return predicate.Partner(sql.AndPredicates(predicates...))

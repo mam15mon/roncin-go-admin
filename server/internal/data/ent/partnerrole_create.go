@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 )
 
@@ -149,6 +150,21 @@ func (_c *PartnerRoleCreate) SetNillableID(v *uuid.UUID) *PartnerRoleCreate {
 // SetPartner sets the "partner" edge to the Partner entity.
 func (_c *PartnerRoleCreate) SetPartner(v *Partner) *PartnerRoleCreate {
 	return _c.SetPartnerID(v.ID)
+}
+
+// AddAccountIDs adds the "accounts" edge to the PartnerAccount entity by IDs.
+func (_c *PartnerRoleCreate) AddAccountIDs(ids ...uuid.UUID) *PartnerRoleCreate {
+	_c.mutation.AddAccountIDs(ids...)
+	return _c
+}
+
+// AddAccounts adds the "accounts" edges to the PartnerAccount entity.
+func (_c *PartnerRoleCreate) AddAccounts(v ...*PartnerAccount) *PartnerRoleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAccountIDs(ids...)
 }
 
 // Mutation returns the PartnerRoleMutation object of the builder.
@@ -323,6 +339,22 @@ func (_c *PartnerRoleCreate) createSpec() (*PartnerRole, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.PartnerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partnerrole.AccountsTable,
+			Columns: []string{partnerrole.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

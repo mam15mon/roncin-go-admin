@@ -19,11 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartnerService_GetPartner_FullMethodName           = "/partner.v1.PartnerService/GetPartner"
-	PartnerService_ListPartners_FullMethodName         = "/partner.v1.PartnerService/ListPartners"
-	PartnerService_CreatePartner_FullMethodName        = "/partner.v1.PartnerService/CreatePartner"
-	PartnerService_UpdatePartner_FullMethodName        = "/partner.v1.PartnerService/UpdatePartner"
-	PartnerService_SetSupplierBlacklist_FullMethodName = "/partner.v1.PartnerService/SetSupplierBlacklist"
+	PartnerService_GetPartner_FullMethodName            = "/partner.v1.PartnerService/GetPartner"
+	PartnerService_ListPartners_FullMethodName          = "/partner.v1.PartnerService/ListPartners"
+	PartnerService_CreatePartner_FullMethodName         = "/partner.v1.PartnerService/CreatePartner"
+	PartnerService_UpdatePartner_FullMethodName         = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_SetSupplierBlacklist_FullMethodName  = "/partner.v1.PartnerService/SetSupplierBlacklist"
+	PartnerService_ListPartnerAccounts_FullMethodName   = "/partner.v1.PartnerService/ListPartnerAccounts"
+	PartnerService_CreatePartnerAccount_FullMethodName  = "/partner.v1.PartnerService/CreatePartnerAccount"
+	PartnerService_UpdatePartnerAccount_FullMethodName  = "/partner.v1.PartnerService/UpdatePartnerAccount"
+	PartnerService_ListPartnerContracts_FullMethodName  = "/partner.v1.PartnerService/ListPartnerContracts"
+	PartnerService_CreatePartnerContract_FullMethodName = "/partner.v1.PartnerService/CreatePartnerContract"
+	PartnerService_UpdatePartnerContract_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerContract"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -35,6 +41,12 @@ type PartnerServiceClient interface {
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error)
+	ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*PartnerAccountListReply, error)
+	CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error)
+	UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error)
+	ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*PartnerContractListReply, error)
+	CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
+	UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
 }
 
 type partnerServiceClient struct {
@@ -95,6 +107,66 @@ func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *Set
 	return out, nil
 }
 
+func (c *partnerServiceClient) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*PartnerAccountListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAccountListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAccountReply)
+	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAccountReply)
+	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*PartnerContractListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerContractListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerContracts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerContractReply)
+	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerContract_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerContractReply)
+	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerContract_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
@@ -104,6 +176,12 @@ type PartnerServiceServer interface {
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
+	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
+	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error)
+	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error)
+	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
+	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
+	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -128,6 +206,24 @@ func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdateP
 }
 func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetSupplierBlacklist not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerAccounts not implemented")
+}
+func (UnimplementedPartnerServiceServer) CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePartnerAccount not implemented")
+}
+func (UnimplementedPartnerServiceServer) UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerAccount not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerContracts not implemented")
+}
+func (UnimplementedPartnerServiceServer) CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePartnerContract not implemented")
+}
+func (UnimplementedPartnerServiceServer) UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerContract not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +336,114 @@ func _PartnerService_SetSupplierBlacklist_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ListPartnerAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerAccounts(ctx, req.(*ListPartnerAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_CreatePartnerAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePartnerAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).CreatePartnerAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_CreatePartnerAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).CreatePartnerAccount(ctx, req.(*CreatePartnerAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_UpdatePartnerAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePartnerAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).UpdatePartnerAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_UpdatePartnerAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).UpdatePartnerAccount(ctx, req.(*UpdatePartnerAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_ListPartnerContracts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerContractsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerContracts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerContracts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerContracts(ctx, req.(*ListPartnerContractsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_CreatePartnerContract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePartnerContractRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).CreatePartnerContract(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_CreatePartnerContract_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).CreatePartnerContract(ctx, req.(*CreatePartnerContractRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_UpdatePartnerContract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePartnerContractRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).UpdatePartnerContract(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_UpdatePartnerContract_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).UpdatePartnerContract(ctx, req.(*UpdatePartnerContractRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +470,30 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetSupplierBlacklist",
 			Handler:    _PartnerService_SetSupplierBlacklist_Handler,
+		},
+		{
+			MethodName: "ListPartnerAccounts",
+			Handler:    _PartnerService_ListPartnerAccounts_Handler,
+		},
+		{
+			MethodName: "CreatePartnerAccount",
+			Handler:    _PartnerService_CreatePartnerAccount_Handler,
+		},
+		{
+			MethodName: "UpdatePartnerAccount",
+			Handler:    _PartnerService_UpdatePartnerAccount_Handler,
+		},
+		{
+			MethodName: "ListPartnerContracts",
+			Handler:    _PartnerService_ListPartnerContracts_Handler,
+		},
+		{
+			MethodName: "CreatePartnerContract",
+			Handler:    _PartnerService_CreatePartnerContract_Handler,
+		},
+		{
+			MethodName: "UpdatePartnerContract",
+			Handler:    _PartnerService_UpdatePartnerContract_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

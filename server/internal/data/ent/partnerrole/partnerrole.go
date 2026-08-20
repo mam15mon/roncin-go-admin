@@ -36,6 +36,8 @@ const (
 	FieldBlacklistedBy = "blacklisted_by"
 	// EdgePartner holds the string denoting the partner edge name in mutations.
 	EdgePartner = "partner"
+	// EdgeAccounts holds the string denoting the accounts edge name in mutations.
+	EdgeAccounts = "accounts"
 	// Table holds the table name of the partnerrole in the database.
 	Table = "partner_roles"
 	// PartnerTable is the table that holds the partner relation/edge.
@@ -45,6 +47,13 @@ const (
 	PartnerInverseTable = "partners"
 	// PartnerColumn is the table column denoting the partner relation/edge.
 	PartnerColumn = "partner_id"
+	// AccountsTable is the table that holds the accounts relation/edge.
+	AccountsTable = "partner_accounts"
+	// AccountsInverseTable is the table name for the PartnerAccount entity.
+	// It exists in this package in order to avoid circular dependency with the "partneraccount" package.
+	AccountsInverseTable = "partner_accounts"
+	// AccountsColumn is the table column denoting the accounts relation/edge.
+	AccountsColumn = "partner_role_id"
 )
 
 // Columns holds all SQL columns for partnerrole fields.
@@ -172,10 +181,31 @@ func ByPartnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPartnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAccountsCount orders the results by accounts count.
+func ByAccountsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccountsStep(), opts...)
+	}
+}
+
+// ByAccounts orders the results by accounts terms.
+func ByAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, PartnerTable, PartnerColumn),
+	)
+}
+func newAccountsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccountsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccountsTable, AccountsColumn),
 	)
 }

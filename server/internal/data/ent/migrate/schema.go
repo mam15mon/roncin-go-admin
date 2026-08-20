@@ -431,6 +431,64 @@ var (
 			},
 		},
 	}
+	// PartnerAccountsColumns holds the columns for the "partner_accounts" table.
+	PartnerAccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "account_type", Type: field.TypeEnum, Enums: []string{"customer_settlement"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "invoice_title", Type: field.TypeString, Size: 200},
+		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "billing_address", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "billing_phone", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "swift_code", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
+		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "partner_role_id", Type: field.TypeUUID},
+	}
+	// PartnerAccountsTable holds the schema information for the "partner_accounts" table.
+	PartnerAccountsTable = &schema.Table{
+		Name:       "partner_accounts",
+		Columns:    PartnerAccountsColumns,
+		PrimaryKey: []*schema.Column{PartnerAccountsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_accounts_partner_roles_accounts",
+				Columns:    []*schema.Column{PartnerAccountsColumns[15]},
+				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partneraccount_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAccountsColumns[2]},
+			},
+			{
+				Name:    "partner_account_default_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default",
+				},
+			},
+			{
+				Name:    "partneraccount_partner_role_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[13]},
+			},
+			{
+				Name:    "partneraccount_partner_role_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[1]},
+			},
+		},
+	}
 	// PartnerAliasColumns holds the columns for the "partner_alias" table.
 	PartnerAliasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -515,6 +573,57 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "is_primary",
 				},
+			},
+		},
+	}
+	// PartnerContractsColumns holds the columns for the "partner_contracts" table.
+	PartnerContractsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "contract_no", Type: field.TypeString, Size: 100},
+		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active", "expired", "terminated"}, Default: "pending"},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "payment_terms", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "dispute_resolution", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "other_notes", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// PartnerContractsTable holds the schema information for the "partner_contracts" table.
+	PartnerContractsTable = &schema.Table{
+		Name:       "partner_contracts",
+		Columns:    PartnerContractsColumns,
+		PrimaryKey: []*schema.Column{PartnerContractsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_contracts_partners_contracts",
+				Columns:    []*schema.Column{PartnerContractsColumns[11]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnercontract_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContractsColumns[2]},
+			},
+			{
+				Name:    "partner_contract_no_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerContractsColumns[11], PartnerContractsColumns[3]},
+			},
+			{
+				Name:    "partnercontract_partner_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContractsColumns[11], PartnerContractsColumns[5]},
+			},
+			{
+				Name:    "partnercontract_partner_id_start_date_end_date",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContractsColumns[11], PartnerContractsColumns[6], PartnerContractsColumns[7]},
 			},
 		},
 	}
@@ -900,8 +1009,10 @@ var (
 		NumberSequencesTable,
 		OrganizationsTable,
 		PartnersTable,
+		PartnerAccountsTable,
 		PartnerAliasTable,
 		PartnerContactsTable,
+		PartnerContractsTable,
 		PartnerRolesTable,
 		PermissionsTable,
 		RolesTable,
@@ -924,8 +1035,10 @@ func init() {
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
+	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	PartnerAliasTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerContractsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable

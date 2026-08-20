@@ -36,6 +36,42 @@ service PartnerService {
       body: "*"
     };
   }
+
+  rpc ListPartnerAccounts(ListPartnerAccountsRequest) returns (PartnerAccountListReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/accounts"};
+  }
+
+  rpc CreatePartnerAccount(CreatePartnerAccountRequest) returns (PartnerAccountReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/{partner_id}/accounts"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePartnerAccount(UpdatePartnerAccountRequest) returns (PartnerAccountReply) {
+    option (google.api.http) = {
+      put: "/api/v1/partners/{partner_id}/accounts/{id}"
+      body: "*"
+    };
+  }
+
+  rpc ListPartnerContracts(ListPartnerContractsRequest) returns (PartnerContractListReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/contracts"};
+  }
+
+  rpc CreatePartnerContract(CreatePartnerContractRequest) returns (PartnerContractReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/{partner_id}/contracts"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePartnerContract(UpdatePartnerContractRequest) returns (PartnerContractReply) {
+    option (google.api.http) = {
+      put: "/api/v1/partners/{partner_id}/contracts/{id}"
+      body: "*"
+    };
+  }
 }
 
 enum PartnerRoleType {
@@ -144,6 +180,153 @@ message SetSupplierBlacklistRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   bool blacklisted = 2;
   string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+enum PartnerAccountStatus {
+  PARTNER_ACCOUNT_STATUS_UNSPECIFIED = 0;
+  PARTNER_ACCOUNT_STATUS_ACTIVE = 1;
+  PARTNER_ACCOUNT_STATUS_INACTIVE = 2;
+}
+
+message PartnerAccount {
+  string id = 1;
+  string partner_role_id = 2;
+  string account_type = 3;
+  string currency = 4;
+  string invoice_title = 5;
+  string unified_social_credit_code = 6;
+  string billing_address = 7;
+  string billing_phone = 8;
+  string bank_name = 9;
+  string bank_account = 10;
+  string swift_code = 11;
+  bool is_default = 12;
+  PartnerAccountStatus status = 13;
+  string remark = 14;
+  string created_at = 15;
+  string updated_at = 16;
+}
+
+message PartnerAccountInput {
+  string currency = 1 [(google.api.field_behavior) = REQUIRED];
+  string invoice_title = 2 [(google.api.field_behavior) = REQUIRED];
+  string unified_social_credit_code = 3;
+  string billing_address = 4;
+  string billing_phone = 5;
+  string bank_name = 6;
+  string bank_account = 7;
+  string swift_code = 8;
+  bool is_default = 9;
+  PartnerAccountStatus status = 10 [(google.api.field_behavior) = REQUIRED];
+  string remark = 11;
+}
+
+message ListPartnerAccountsRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional bool enabled = 2;
+}
+
+message CreatePartnerAccountRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerAccountInput account = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdatePartnerAccountRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  PartnerAccountInput account = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PartnerAccountReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerAccount data = 4;
+  string trace_id = 5;
+}
+
+message PartnerAccountListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerAccount data = 4;
+  string trace_id = 5;
+}
+
+enum PartnerContractStatus {
+  PARTNER_CONTRACT_STATUS_UNSPECIFIED = 0;
+  PARTNER_CONTRACT_STATUS_PENDING = 1;
+  PARTNER_CONTRACT_STATUS_ACTIVE = 2;
+  PARTNER_CONTRACT_STATUS_EXPIRED = 3;
+  PARTNER_CONTRACT_STATUS_TERMINATED = 4;
+}
+
+message PartnerContract {
+  string id = 1;
+  string partner_id = 2;
+  string contract_no = 3;
+  string name = 4;
+  PartnerContractStatus status = 5;
+  string start_date = 6;
+  string end_date = 7;
+  string payment_terms = 8;
+  string dispute_resolution = 9;
+  string other_notes = 10;
+  string created_at = 12;
+  string updated_at = 13;
+}
+
+message CreatePartnerContractInput {
+  string contract_no = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  PartnerContractStatus status = 3 [(google.api.field_behavior) = REQUIRED];
+  string start_date = 4 [(google.api.field_behavior) = REQUIRED];
+  string end_date = 5 [(google.api.field_behavior) = REQUIRED];
+  string payment_terms = 6;
+  string dispute_resolution = 7;
+  string other_notes = 8;
+}
+
+message UpdatePartnerContractInput {
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerContractStatus status = 2 [(google.api.field_behavior) = REQUIRED];
+  string start_date = 3 [(google.api.field_behavior) = REQUIRED];
+  string end_date = 4 [(google.api.field_behavior) = REQUIRED];
+  string payment_terms = 5;
+  string dispute_resolution = 6;
+  string other_notes = 7;
+}
+
+message ListPartnerContractsRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional PartnerContractStatus status = 2;
+}
+
+message CreatePartnerContractRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  CreatePartnerContractInput contract = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdatePartnerContractRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  UpdatePartnerContractInput contract = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PartnerContractReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerContract data = 4;
+  string trace_id = 5;
+}
+
+message PartnerContractListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerContract data = 4;
+  string trace_id = 5;
 }
 
 message PartnerReply {
