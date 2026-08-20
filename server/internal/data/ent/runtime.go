@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -81,6 +82,93 @@ func init() {
 	auditlogDescID := auditlogMixinFields0[0].Descriptor()
 	// auditlog.DefaultID holds the default value on creation for the id field.
 	auditlog.DefaultID = auditlogDescID.Default.(func() uuid.UUID)
+	masterdataitemMixin := schema.MasterDataItem{}.Mixin()
+	masterdataitemMixinFields0 := masterdataitemMixin[0].Fields()
+	_ = masterdataitemMixinFields0
+	masterdataitemMixinFields1 := masterdataitemMixin[1].Fields()
+	_ = masterdataitemMixinFields1
+	masterdataitemFields := schema.MasterDataItem{}.Fields()
+	_ = masterdataitemFields
+	// masterdataitemDescCreatedAt is the schema descriptor for created_at field.
+	masterdataitemDescCreatedAt := masterdataitemMixinFields1[0].Descriptor()
+	// masterdataitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	masterdataitem.DefaultCreatedAt = masterdataitemDescCreatedAt.Default.(func() time.Time)
+	// masterdataitemDescUpdatedAt is the schema descriptor for updated_at field.
+	masterdataitemDescUpdatedAt := masterdataitemMixinFields1[1].Descriptor()
+	// masterdataitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	masterdataitem.DefaultUpdatedAt = masterdataitemDescUpdatedAt.Default.(func() time.Time)
+	// masterdataitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	masterdataitem.UpdateDefaultUpdatedAt = masterdataitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// masterdataitemDescCode is the schema descriptor for code field.
+	masterdataitemDescCode := masterdataitemFields[2].Descriptor()
+	// masterdataitem.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	masterdataitem.CodeValidator = func() func(string) error {
+		validators := masterdataitemDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// masterdataitemDescName is the schema descriptor for name field.
+	masterdataitemDescName := masterdataitemFields[3].Descriptor()
+	// masterdataitem.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	masterdataitem.NameValidator = func() func(string) error {
+		validators := masterdataitemDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// masterdataitemDescNameEn is the schema descriptor for name_en field.
+	masterdataitemDescNameEn := masterdataitemFields[4].Descriptor()
+	// masterdataitem.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	masterdataitem.NameEnValidator = masterdataitemDescNameEn.Validators[0].(func(string) error)
+	// masterdataitemDescParentCode is the schema descriptor for parent_code field.
+	masterdataitemDescParentCode := masterdataitemFields[5].Descriptor()
+	// masterdataitem.ParentCodeValidator is a validator for the "parent_code" field. It is called by the builders before save.
+	masterdataitem.ParentCodeValidator = masterdataitemDescParentCode.Validators[0].(func(string) error)
+	// masterdataitemDescTransportMode is the schema descriptor for transport_mode field.
+	masterdataitemDescTransportMode := masterdataitemFields[6].Descriptor()
+	// masterdataitem.TransportModeValidator is a validator for the "transport_mode" field. It is called by the builders before save.
+	masterdataitem.TransportModeValidator = masterdataitemDescTransportMode.Validators[0].(func(string) error)
+	// masterdataitemDescTeuFactor is the schema descriptor for teu_factor field.
+	masterdataitemDescTeuFactor := masterdataitemFields[7].Descriptor()
+	// masterdataitem.TeuFactorValidator is a validator for the "teu_factor" field. It is called by the builders before save.
+	masterdataitem.TeuFactorValidator = masterdataitemDescTeuFactor.Validators[0].(func(string) error)
+	// masterdataitemDescSource is the schema descriptor for source field.
+	masterdataitemDescSource := masterdataitemFields[8].Descriptor()
+	// masterdataitem.DefaultSource holds the default value on creation for the source field.
+	masterdataitem.DefaultSource = masterdataitemDescSource.Default.(string)
+	// masterdataitem.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	masterdataitem.SourceValidator = masterdataitemDescSource.Validators[0].(func(string) error)
+	// masterdataitemDescSortOrder is the schema descriptor for sort_order field.
+	masterdataitemDescSortOrder := masterdataitemFields[9].Descriptor()
+	// masterdataitem.DefaultSortOrder holds the default value on creation for the sort_order field.
+	masterdataitem.DefaultSortOrder = masterdataitemDescSortOrder.Default.(int)
+	// masterdataitemDescEnabled is the schema descriptor for enabled field.
+	masterdataitemDescEnabled := masterdataitemFields[10].Descriptor()
+	// masterdataitem.DefaultEnabled holds the default value on creation for the enabled field.
+	masterdataitem.DefaultEnabled = masterdataitemDescEnabled.Default.(bool)
+	// masterdataitemDescID is the schema descriptor for id field.
+	masterdataitemDescID := masterdataitemMixinFields0[0].Descriptor()
+	// masterdataitem.DefaultID holds the default value on creation for the id field.
+	masterdataitem.DefaultID = masterdataitemDescID.Default.(func() uuid.UUID)
 	membershipMixin := schema.Membership{}.Mixin()
 	membershipMixinFields0 := membershipMixin[0].Fields()
 	_ = membershipMixinFields0

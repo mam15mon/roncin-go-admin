@@ -39,6 +39,8 @@ const (
 	EdgeSessions = "sessions"
 	// EdgePartners holds the string denoting the partners edge name in mutations.
 	EdgePartners = "partners"
+	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
+	EdgeMasterDataItems = "master_data_items"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -77,6 +79,13 @@ const (
 	PartnersInverseTable = "partners"
 	// PartnersColumn is the table column denoting the partners relation/edge.
 	PartnersColumn = "organization_id"
+	// MasterDataItemsTable is the table that holds the master_data_items relation/edge.
+	MasterDataItemsTable = "master_data_items"
+	// MasterDataItemsInverseTable is the table name for the MasterDataItem entity.
+	// It exists in this package in order to avoid circular dependency with the "masterdataitem" package.
+	MasterDataItemsInverseTable = "master_data_items"
+	// MasterDataItemsColumn is the table column denoting the master_data_items relation/edge.
+	MasterDataItemsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -231,6 +240,20 @@ func ByPartners(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPartnersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByMasterDataItemsCount orders the results by master_data_items count.
+func ByMasterDataItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMasterDataItemsStep(), opts...)
+	}
+}
+
+// ByMasterDataItems orders the results by master_data_items terms.
+func ByMasterDataItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMasterDataItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -271,5 +294,12 @@ func newPartnersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartnersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartnersTable, PartnersColumn),
+	)
+}
+func newMasterDataItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MasterDataItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
 	)
 }

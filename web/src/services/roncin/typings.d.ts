@@ -161,6 +161,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateMasterDataItemRequest = {
+    kind: number;
+    code: string;
+    name: string;
+    nameEn?: string;
+    parentCode?: string;
+    transportMode?: string;
+    teuFactor?: string;
+    source?: string;
+    sortOrder?: number;
+  };
+
   type CreateOrganizationRequest = {
     code: string;
     name: string;
@@ -213,6 +225,62 @@ declare namespace API {
   type LoginRequest = {
     username: string;
     password: string;
+  };
+
+  type MasterDataItem = {
+    id?: string;
+    organizationId?: string;
+    kind?: number;
+    code?: string;
+    name?: string;
+    nameEn?: string;
+    parentCode?: string;
+    transportMode?: string;
+    teuFactor?: string;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type MasterDataItemListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type MasterDataItemReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem;
+    traceId?: string;
+  };
+
+  type MasterDataOptionsReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    traceId?: string;
+  };
+
+  type MasterDataServiceListItemsParams = {
+    page?: number;
+    pageSize?: number;
+    kind?: number;
+    keyword?: string;
+    enabled?: boolean;
+  };
+
+  type MasterDataServiceUpdateItemParams = {
+    id: string;
   };
 
   type MeReply = {
@@ -294,6 +362,19 @@ declare namespace API {
 
   type SwitchOrganizationRequest = {
     organizationId: string;
+  };
+
+  type UpdateMasterDataItemRequest = {
+    id: string;
+    name: string;
+    nameEn?: string;
+    parentCode?: string;
+    transportMode?: string;
+    teuFactor?: string;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    kind: number;
   };
 
   type UpdateOrganizationRequest = {

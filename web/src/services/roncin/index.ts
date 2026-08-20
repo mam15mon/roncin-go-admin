@@ -4,9 +4,11 @@
 // API 唯一标识：
 import * as adminService from "./adminService";
 import * as authService from "./authService";
+import * as masterDataService from "./masterDataService";
 import * as partnerService from "./partnerService";
 export default {
   adminService,
   authService,
+  masterDataService,
   partnerService,
 };

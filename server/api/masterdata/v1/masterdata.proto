@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package masterdata.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1";
+
+service MasterDataService {
+  rpc ListItems(ListMasterDataItemsRequest) returns (MasterDataItemListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/items"};
+  }
+
+  rpc CreateItem(CreateMasterDataItemRequest) returns (MasterDataItemReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/items"
+      body: "*"
+    };
+  }
+
+  rpc UpdateItem(UpdateMasterDataItemRequest) returns (MasterDataItemReply) {
+    option (google.api.http) = {
+      put: "/api/v1/master-data/items/{id}"
+      body: "*"
+    };
+  }
+
+  rpc ListOptions(ListMasterDataOptionsRequest) returns (MasterDataOptionsReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/options"};
+  }
+}
+
+enum MasterDataKind {
+  MASTER_DATA_KIND_UNSPECIFIED = 0;
+  MASTER_DATA_KIND_CURRENCY = 1;
+  MASTER_DATA_KIND_COUNTRY = 2;
+  MASTER_DATA_KIND_REGION = 3;
+  MASTER_DATA_KIND_PORT = 4;
+  MASTER_DATA_KIND_AIRPORT = 5;
+  MASTER_DATA_KIND_CARRIER = 6;
+  MASTER_DATA_KIND_CONTAINER_SPEC = 7;
+  MASTER_DATA_KIND_SERVICE_TYPE = 8;
+  MASTER_DATA_KIND_CARGO_CATEGORY = 9;
+}
+
+message ListMasterDataItemsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  MasterDataKind kind = 3;
+  string keyword = 4;
+  optional bool enabled = 5;
+}
+
+message CreateMasterDataItemRequest {
+  MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string code = 2 [(google.api.field_behavior) = REQUIRED];
+  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string name_en = 4;
+  optional string parent_code = 5;
+  optional string transport_mode = 6;
+  optional string teu_factor = 7;
+  string source = 8;
+  int32 sort_order = 9;
+}
+
+message UpdateMasterDataItemRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string name_en = 3;
+  optional string parent_code = 4;
+  optional string transport_mode = 5;
+  optional string teu_factor = 6;
+  string source = 7;
+  int32 sort_order = 8;
+  bool enabled = 9;
+  MasterDataKind kind = 10 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListMasterDataOptionsRequest {}
+
+message MasterDataItem {
+  string id = 1;
+  string organization_id = 2;
+  MasterDataKind kind = 3;
+  string code = 4;
+  string name = 5;
+  optional string name_en = 6;
+  optional string parent_code = 7;
+  optional string transport_mode = 8;
+  optional string teu_factor = 9;
+  string source = 10;
+  int32 sort_order = 11;
+  bool enabled = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message MasterDataItemListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated MasterDataItem data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message MasterDataItemReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  MasterDataItem data = 4;
+  string trace_id = 5;
+}
+
+message MasterDataOptionsReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated MasterDataItem data = 4;
+  string trace_id = 5;
+}

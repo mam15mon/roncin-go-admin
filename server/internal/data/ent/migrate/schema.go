@@ -57,6 +57,59 @@ var (
 			},
 		},
 	}
+	// MasterDataItemsColumns holds the columns for the "master_data_items" table.
+	MasterDataItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category"}},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "parent_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "transport_mode", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "teu_factor", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// MasterDataItemsTable holds the schema information for the "master_data_items" table.
+	MasterDataItemsTable = &schema.Table{
+		Name:       "master_data_items",
+		Columns:    MasterDataItemsColumns,
+		PrimaryKey: []*schema.Column{MasterDataItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "master_data_items_organizations_master_data_items",
+				Columns:    []*schema.Column{MasterDataItemsColumns[13]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "masterdataitem_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{MasterDataItemsColumns[2]},
+			},
+			{
+				Name:    "masterdataitem_organization_id_kind_code",
+				Unique:  true,
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
+			},
+			{
+				Name:    "masterdataitem_organization_id_kind_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[12], MasterDataItemsColumns[11]},
+			},
+			{
+				Name:    "masterdataitem_organization_id_kind_name",
+				Unique:  false,
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
+			},
+		},
+	}
 	// MembershipsColumns holds the columns for the "memberships" table.
 	MembershipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -424,6 +477,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuditLogsTable,
+		MasterDataItemsTable,
 		MembershipsTable,
 		OrganizationsTable,
 		PartnersTable,
@@ -437,6 +491,7 @@ var (
 )
 
 func init() {
+	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable

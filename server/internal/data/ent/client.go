@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -34,6 +35,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
+	// MasterDataItem is the client for interacting with the MasterDataItem builders.
+	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
 	// Organization is the client for interacting with the Organization builders.
@@ -62,6 +65,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AuditLog = NewAuditLogClient(c.config)
+	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
@@ -163,6 +167,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:            ctx,
 		config:         cfg,
 		AuditLog:       NewAuditLogClient(cfg),
+		MasterDataItem: NewMasterDataItemClient(cfg),
 		Membership:     NewMembershipClient(cfg),
 		Organization:   NewOrganizationClient(cfg),
 		Partner:        NewPartnerClient(cfg),
@@ -191,6 +196,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:            ctx,
 		config:         cfg,
 		AuditLog:       NewAuditLogClient(cfg),
+		MasterDataItem: NewMasterDataItemClient(cfg),
 		Membership:     NewMembershipClient(cfg),
 		Organization:   NewOrganizationClient(cfg),
 		Partner:        NewPartnerClient(cfg),
@@ -228,8 +234,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AuditLog, c.Membership, c.Organization, c.Partner, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.Organization, c.Partner,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -239,8 +245,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AuditLog, c.Membership, c.Organization, c.Partner, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.Organization, c.Partner,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -251,6 +257,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AuditLogMutation:
 		return c.AuditLog.mutate(ctx, m)
+	case *MasterDataItemMutation:
+		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
 		return c.Membership.mutate(ctx, m)
 	case *OrganizationMutation:
@@ -402,6 +410,155 @@ func (c *AuditLogClient) mutate(ctx context.Context, m *AuditLogMutation) (Value
 		return (&AuditLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AuditLog mutation op: %q", m.Op())
+	}
+}
+
+// MasterDataItemClient is a client for the MasterDataItem schema.
+type MasterDataItemClient struct {
+	config
+}
+
+// NewMasterDataItemClient returns a client for the MasterDataItem from the given config.
+func NewMasterDataItemClient(c config) *MasterDataItemClient {
+	return &MasterDataItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `masterdataitem.Hooks(f(g(h())))`.
+func (c *MasterDataItemClient) Use(hooks ...Hook) {
+	c.hooks.MasterDataItem = append(c.hooks.MasterDataItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `masterdataitem.Intercept(f(g(h())))`.
+func (c *MasterDataItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MasterDataItem = append(c.inters.MasterDataItem, interceptors...)
+}
+
+// Create returns a builder for creating a MasterDataItem entity.
+func (c *MasterDataItemClient) Create() *MasterDataItemCreate {
+	mutation := newMasterDataItemMutation(c.config, OpCreate)
+	return &MasterDataItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MasterDataItem entities.
+func (c *MasterDataItemClient) CreateBulk(builders ...*MasterDataItemCreate) *MasterDataItemCreateBulk {
+	return &MasterDataItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MasterDataItemClient) MapCreateBulk(slice any, setFunc func(*MasterDataItemCreate, int)) *MasterDataItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MasterDataItemCreateBulk{err: fmt.Errorf("calling to MasterDataItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MasterDataItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MasterDataItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MasterDataItem.
+func (c *MasterDataItemClient) Update() *MasterDataItemUpdate {
+	mutation := newMasterDataItemMutation(c.config, OpUpdate)
+	return &MasterDataItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MasterDataItemClient) UpdateOne(_m *MasterDataItem) *MasterDataItemUpdateOne {
+	mutation := newMasterDataItemMutation(c.config, OpUpdateOne, withMasterDataItem(_m))
+	return &MasterDataItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MasterDataItemClient) UpdateOneID(id uuid.UUID) *MasterDataItemUpdateOne {
+	mutation := newMasterDataItemMutation(c.config, OpUpdateOne, withMasterDataItemID(id))
+	return &MasterDataItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MasterDataItem.
+func (c *MasterDataItemClient) Delete() *MasterDataItemDelete {
+	mutation := newMasterDataItemMutation(c.config, OpDelete)
+	return &MasterDataItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MasterDataItemClient) DeleteOne(_m *MasterDataItem) *MasterDataItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MasterDataItemClient) DeleteOneID(id uuid.UUID) *MasterDataItemDeleteOne {
+	builder := c.Delete().Where(masterdataitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MasterDataItemDeleteOne{builder}
+}
+
+// Query returns a query builder for MasterDataItem.
+func (c *MasterDataItemClient) Query() *MasterDataItemQuery {
+	return &MasterDataItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMasterDataItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MasterDataItem entity by its id.
+func (c *MasterDataItemClient) Get(ctx context.Context, id uuid.UUID) (*MasterDataItem, error) {
+	return c.Query().Where(masterdataitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MasterDataItemClient) GetX(ctx context.Context, id uuid.UUID) *MasterDataItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a MasterDataItem.
+func (c *MasterDataItemClient) QueryOrganization(_m *MasterDataItem) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, masterdataitem.OrganizationTable, masterdataitem.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MasterDataItemClient) Hooks() []Hook {
+	return c.hooks.MasterDataItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *MasterDataItemClient) Interceptors() []Interceptor {
+	return c.inters.MasterDataItem
+}
+
+func (c *MasterDataItemClient) mutate(ctx context.Context, m *MasterDataItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MasterDataItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MasterDataItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MasterDataItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MasterDataItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MasterDataItem mutation op: %q", m.Op())
 	}
 }
 
@@ -783,6 +940,22 @@ func (c *OrganizationClient) QueryPartners(_m *Organization) *PartnerQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.PartnersTable, organization.PartnersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterDataItems queries the master_data_items edge of a Organization.
+func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataItemQuery {
+	query := (&MasterDataItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1792,11 +1965,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuditLog, Membership, Organization, Partner, Permission, Role, RoleAssignment,
-		Session, User []ent.Hook
+		AuditLog, MasterDataItem, Membership, Organization, Partner, Permission, Role,
+		RoleAssignment, Session, User []ent.Hook
 	}
 	inters struct {
-		AuditLog, Membership, Organization, Partner, Permission, Role, RoleAssignment,
-		Session, User []ent.Interceptor
+		AuditLog, MasterDataItem, Membership, Organization, Partner, Permission, Role,
+		RoleAssignment, Session, User []ent.Interceptor
 	}
 )

@@ -474,6 +474,29 @@ func HasPartnersWith(preds ...predicate.Partner) predicate.Organization {
 	})
 }
 
+// HasMasterDataItems applies the HasEdge predicate on the "master_data_items" edge.
+func HasMasterDataItems() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMasterDataItemsWith applies the HasEdge predicate on the "master_data_items" edge with a given conditions (other predicates).
+func HasMasterDataItemsWith(preds ...predicate.MasterDataItem) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newMasterDataItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

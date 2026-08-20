@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -185,6 +186,21 @@ func (_c *OrganizationCreate) AddPartners(v ...*Partner) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddPartnerIDs(ids...)
+}
+
+// AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
+func (_c *OrganizationCreate) AddMasterDataItemIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddMasterDataItemIDs(ids...)
+	return _c
+}
+
+// AddMasterDataItems adds the "master_data_items" edges to the MasterDataItem entity.
+func (_c *OrganizationCreate) AddMasterDataItems(v ...*MasterDataItem) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddMasterDataItemIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -412,6 +428,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MasterDataItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -6,6 +6,8 @@ const permissions = {
   auditRead: 'system.audit.read',
   partnerRead: 'business.partner.read',
   partnerManage: 'business.partner.manage',
+  masterDataRead: 'system.master_data.read',
+  masterDataManage: 'system.master_data.manage',
 } as const;
 
 export default function access(
@@ -33,5 +35,7 @@ export default function access(
     canReadAudit: has(permissions.auditRead) && hasScope('organization'),
     canReadPartners: has(permissions.partnerRead) && hasScope('organization'),
     canManagePartners: has(permissions.partnerManage) && hasScope('organization'),
+    canReadMasterData: has(permissions.masterDataRead) && hasScope('organization'),
+    canManageMasterData: has(permissions.masterDataManage) && hasScope('organization'),
   };
 }

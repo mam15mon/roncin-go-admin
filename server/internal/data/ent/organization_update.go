@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -167,6 +168,21 @@ func (_u *OrganizationUpdate) AddPartners(v ...*Partner) *OrganizationUpdate {
 	return _u.AddPartnerIDs(ids...)
 }
 
+// AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
+func (_u *OrganizationUpdate) AddMasterDataItemIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddMasterDataItemIDs(ids...)
+	return _u
+}
+
+// AddMasterDataItems adds the "master_data_items" edges to the MasterDataItem entity.
+func (_u *OrganizationUpdate) AddMasterDataItems(v ...*MasterDataItem) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMasterDataItemIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -281,6 +297,27 @@ func (_u *OrganizationUpdate) RemovePartners(v ...*Partner) *OrganizationUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerIDs(ids...)
+}
+
+// ClearMasterDataItems clears all "master_data_items" edges to the MasterDataItem entity.
+func (_u *OrganizationUpdate) ClearMasterDataItems() *OrganizationUpdate {
+	_u.mutation.ClearMasterDataItems()
+	return _u
+}
+
+// RemoveMasterDataItemIDs removes the "master_data_items" edge to MasterDataItem entities by IDs.
+func (_u *OrganizationUpdate) RemoveMasterDataItemIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveMasterDataItemIDs(ids...)
+	return _u
+}
+
+// RemoveMasterDataItems removes "master_data_items" edges to MasterDataItem entities.
+func (_u *OrganizationUpdate) RemoveMasterDataItems(v ...*MasterDataItem) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMasterDataItemIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -604,6 +641,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.MasterDataItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMasterDataItemsIDs(); len(nodes) > 0 && !_u.mutation.MasterDataItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MasterDataItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -758,6 +840,21 @@ func (_u *OrganizationUpdateOne) AddPartners(v ...*Partner) *OrganizationUpdateO
 	return _u.AddPartnerIDs(ids...)
 }
 
+// AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
+func (_u *OrganizationUpdateOne) AddMasterDataItemIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddMasterDataItemIDs(ids...)
+	return _u
+}
+
+// AddMasterDataItems adds the "master_data_items" edges to the MasterDataItem entity.
+func (_u *OrganizationUpdateOne) AddMasterDataItems(v ...*MasterDataItem) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMasterDataItemIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -872,6 +969,27 @@ func (_u *OrganizationUpdateOne) RemovePartners(v ...*Partner) *OrganizationUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerIDs(ids...)
+}
+
+// ClearMasterDataItems clears all "master_data_items" edges to the MasterDataItem entity.
+func (_u *OrganizationUpdateOne) ClearMasterDataItems() *OrganizationUpdateOne {
+	_u.mutation.ClearMasterDataItems()
+	return _u
+}
+
+// RemoveMasterDataItemIDs removes the "master_data_items" edge to MasterDataItem entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveMasterDataItemIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveMasterDataItemIDs(ids...)
+	return _u
+}
+
+// RemoveMasterDataItems removes "master_data_items" edges to MasterDataItem entities.
+func (_u *OrganizationUpdateOne) RemoveMasterDataItems(v ...*MasterDataItem) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMasterDataItemIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -1218,6 +1336,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MasterDataItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMasterDataItemsIDs(); len(nodes) > 0 && !_u.mutation.MasterDataItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MasterDataItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MasterDataItemsTable,
+			Columns: []string{organization.MasterDataItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

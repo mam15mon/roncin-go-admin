@@ -25,6 +25,13 @@ export default [
     component: './partners',
   },
   {
+    path: '/master-data',
+    name: '主数据',
+    icon: 'database',
+    access: 'canReadMasterData',
+    component: './master-data',
+  },
+  {
     path: '/admin',
     name: '系统管理',
     icon: 'setting',

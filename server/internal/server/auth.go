@@ -7,6 +7,7 @@ import (
 
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -38,21 +39,25 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		authv1.OperationAuthServiceSwitchOrganization: {},
 	}
 	permissionOperations := map[string]permissionRule{
-		adminv1.OperationAdminServiceListOrganizations:  {key: access.OrganizationManage, scope: biz.DataScopeAll},
-		adminv1.OperationAdminServiceCreateOrganization: {key: access.OrganizationManage, scope: biz.DataScopeAll},
-		adminv1.OperationAdminServiceUpdateOrganization: {key: access.OrganizationManage, scope: biz.DataScopeAll},
-		adminv1.OperationAdminServiceListUsers:          {key: access.UserManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceCreateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceUpdateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceResetUserPassword:  {key: access.UserManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceListRoles:          {key: access.RoleManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceCreateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceUpdateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceListPermissions:    {key: access.RoleManage, scope: biz.DataScopeOrganization},
-		adminv1.OperationAdminServiceListAuditLogs:      {key: access.AuditRead, scope: biz.DataScopeOrganization},
-		partnerv1.OperationPartnerServiceListPartners:   {key: access.PartnerRead, scope: biz.DataScopeOrganization},
-		partnerv1.OperationPartnerServiceCreatePartner:  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
-		partnerv1.OperationPartnerServiceUpdatePartner:  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListOrganizations:     {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceCreateOrganization:    {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceUpdateOrganization:    {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceListUsers:             {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceCreateUser:            {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceUpdateUser:            {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceResetUserPassword:     {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListRoles:             {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceCreateRole:            {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceUpdateRole:            {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListPermissions:       {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListAuditLogs:         {key: access.AuditRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceListPartners:      {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceCreatePartner:     {key: access.PartnerManage, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceUpdatePartner:     {key: access.PartnerManage, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceListItems:   {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceListOptions: {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceCreateItem:  {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceUpdateItem:  {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -35,6 +36,7 @@ const (
 
 	// Node types.
 	TypeAuditLog       = "AuditLog"
+	TypeMasterDataItem = "MasterDataItem"
 	TypeMembership     = "Membership"
 	TypeOrganization   = "Organization"
 	TypePartner        = "Partner"
@@ -1143,6 +1145,1155 @@ func (m *AuditLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AuditLog edge %s", name)
 }
 
+// MasterDataItemMutation represents an operation that mutates the MasterDataItem nodes in the graph.
+type MasterDataItemMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	kind                *masterdataitem.Kind
+	code                *string
+	name                *string
+	name_en             *string
+	parent_code         *string
+	transport_mode      *string
+	teu_factor          *string
+	source              *string
+	sort_order          *int
+	addsort_order       *int
+	enabled             *bool
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*MasterDataItem, error)
+	predicates          []predicate.MasterDataItem
+}
+
+var _ ent.Mutation = (*MasterDataItemMutation)(nil)
+
+// masterdataitemOption allows management of the mutation configuration using functional options.
+type masterdataitemOption func(*MasterDataItemMutation)
+
+// newMasterDataItemMutation creates new mutation for the MasterDataItem entity.
+func newMasterDataItemMutation(c config, op Op, opts ...masterdataitemOption) *MasterDataItemMutation {
+	m := &MasterDataItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMasterDataItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMasterDataItemID sets the ID field of the mutation.
+func withMasterDataItemID(id uuid.UUID) masterdataitemOption {
+	return func(m *MasterDataItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MasterDataItem
+		)
+		m.oldValue = func(ctx context.Context) (*MasterDataItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MasterDataItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMasterDataItem sets the old MasterDataItem of the mutation.
+func withMasterDataItem(node *MasterDataItem) masterdataitemOption {
+	return func(m *MasterDataItemMutation) {
+		m.oldValue = func(context.Context) (*MasterDataItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MasterDataItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MasterDataItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MasterDataItem entities.
+func (m *MasterDataItemMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MasterDataItemMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MasterDataItemMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MasterDataItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MasterDataItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MasterDataItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MasterDataItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MasterDataItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MasterDataItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MasterDataItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *MasterDataItemMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *MasterDataItemMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *MasterDataItemMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *MasterDataItemMutation) SetKind(value masterdataitem.Kind) {
+	m.kind = &value
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *MasterDataItemMutation) Kind() (r masterdataitem.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldKind(ctx context.Context) (v masterdataitem.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *MasterDataItemMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetCode sets the "code" field.
+func (m *MasterDataItemMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *MasterDataItemMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *MasterDataItemMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetName sets the "name" field.
+func (m *MasterDataItemMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *MasterDataItemMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *MasterDataItemMutation) ResetName() {
+	m.name = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *MasterDataItemMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *MasterDataItemMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldNameEn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (m *MasterDataItemMutation) ClearNameEn() {
+	m.name_en = nil
+	m.clearedFields[masterdataitem.FieldNameEn] = struct{}{}
+}
+
+// NameEnCleared returns if the "name_en" field was cleared in this mutation.
+func (m *MasterDataItemMutation) NameEnCleared() bool {
+	_, ok := m.clearedFields[masterdataitem.FieldNameEn]
+	return ok
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *MasterDataItemMutation) ResetNameEn() {
+	m.name_en = nil
+	delete(m.clearedFields, masterdataitem.FieldNameEn)
+}
+
+// SetParentCode sets the "parent_code" field.
+func (m *MasterDataItemMutation) SetParentCode(s string) {
+	m.parent_code = &s
+}
+
+// ParentCode returns the value of the "parent_code" field in the mutation.
+func (m *MasterDataItemMutation) ParentCode() (r string, exists bool) {
+	v := m.parent_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentCode returns the old "parent_code" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldParentCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentCode: %w", err)
+	}
+	return oldValue.ParentCode, nil
+}
+
+// ClearParentCode clears the value of the "parent_code" field.
+func (m *MasterDataItemMutation) ClearParentCode() {
+	m.parent_code = nil
+	m.clearedFields[masterdataitem.FieldParentCode] = struct{}{}
+}
+
+// ParentCodeCleared returns if the "parent_code" field was cleared in this mutation.
+func (m *MasterDataItemMutation) ParentCodeCleared() bool {
+	_, ok := m.clearedFields[masterdataitem.FieldParentCode]
+	return ok
+}
+
+// ResetParentCode resets all changes to the "parent_code" field.
+func (m *MasterDataItemMutation) ResetParentCode() {
+	m.parent_code = nil
+	delete(m.clearedFields, masterdataitem.FieldParentCode)
+}
+
+// SetTransportMode sets the "transport_mode" field.
+func (m *MasterDataItemMutation) SetTransportMode(s string) {
+	m.transport_mode = &s
+}
+
+// TransportMode returns the value of the "transport_mode" field in the mutation.
+func (m *MasterDataItemMutation) TransportMode() (r string, exists bool) {
+	v := m.transport_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTransportMode returns the old "transport_mode" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldTransportMode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTransportMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTransportMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTransportMode: %w", err)
+	}
+	return oldValue.TransportMode, nil
+}
+
+// ClearTransportMode clears the value of the "transport_mode" field.
+func (m *MasterDataItemMutation) ClearTransportMode() {
+	m.transport_mode = nil
+	m.clearedFields[masterdataitem.FieldTransportMode] = struct{}{}
+}
+
+// TransportModeCleared returns if the "transport_mode" field was cleared in this mutation.
+func (m *MasterDataItemMutation) TransportModeCleared() bool {
+	_, ok := m.clearedFields[masterdataitem.FieldTransportMode]
+	return ok
+}
+
+// ResetTransportMode resets all changes to the "transport_mode" field.
+func (m *MasterDataItemMutation) ResetTransportMode() {
+	m.transport_mode = nil
+	delete(m.clearedFields, masterdataitem.FieldTransportMode)
+}
+
+// SetTeuFactor sets the "teu_factor" field.
+func (m *MasterDataItemMutation) SetTeuFactor(s string) {
+	m.teu_factor = &s
+}
+
+// TeuFactor returns the value of the "teu_factor" field in the mutation.
+func (m *MasterDataItemMutation) TeuFactor() (r string, exists bool) {
+	v := m.teu_factor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTeuFactor returns the old "teu_factor" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldTeuFactor(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTeuFactor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTeuFactor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTeuFactor: %w", err)
+	}
+	return oldValue.TeuFactor, nil
+}
+
+// ClearTeuFactor clears the value of the "teu_factor" field.
+func (m *MasterDataItemMutation) ClearTeuFactor() {
+	m.teu_factor = nil
+	m.clearedFields[masterdataitem.FieldTeuFactor] = struct{}{}
+}
+
+// TeuFactorCleared returns if the "teu_factor" field was cleared in this mutation.
+func (m *MasterDataItemMutation) TeuFactorCleared() bool {
+	_, ok := m.clearedFields[masterdataitem.FieldTeuFactor]
+	return ok
+}
+
+// ResetTeuFactor resets all changes to the "teu_factor" field.
+func (m *MasterDataItemMutation) ResetTeuFactor() {
+	m.teu_factor = nil
+	delete(m.clearedFields, masterdataitem.FieldTeuFactor)
+}
+
+// SetSource sets the "source" field.
+func (m *MasterDataItemMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *MasterDataItemMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *MasterDataItemMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *MasterDataItemMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *MasterDataItemMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *MasterDataItemMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *MasterDataItemMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *MasterDataItemMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *MasterDataItemMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *MasterDataItemMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *MasterDataItemMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *MasterDataItemMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[masterdataitem.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *MasterDataItemMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *MasterDataItemMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *MasterDataItemMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the MasterDataItemMutation builder.
+func (m *MasterDataItemMutation) Where(ps ...predicate.MasterDataItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MasterDataItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MasterDataItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MasterDataItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MasterDataItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MasterDataItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MasterDataItem).
+func (m *MasterDataItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MasterDataItemMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.created_at != nil {
+		fields = append(fields, masterdataitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, masterdataitem.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, masterdataitem.FieldOrganizationID)
+	}
+	if m.kind != nil {
+		fields = append(fields, masterdataitem.FieldKind)
+	}
+	if m.code != nil {
+		fields = append(fields, masterdataitem.FieldCode)
+	}
+	if m.name != nil {
+		fields = append(fields, masterdataitem.FieldName)
+	}
+	if m.name_en != nil {
+		fields = append(fields, masterdataitem.FieldNameEn)
+	}
+	if m.parent_code != nil {
+		fields = append(fields, masterdataitem.FieldParentCode)
+	}
+	if m.transport_mode != nil {
+		fields = append(fields, masterdataitem.FieldTransportMode)
+	}
+	if m.teu_factor != nil {
+		fields = append(fields, masterdataitem.FieldTeuFactor)
+	}
+	if m.source != nil {
+		fields = append(fields, masterdataitem.FieldSource)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, masterdataitem.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, masterdataitem.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MasterDataItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case masterdataitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case masterdataitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case masterdataitem.FieldOrganizationID:
+		return m.OrganizationID()
+	case masterdataitem.FieldKind:
+		return m.Kind()
+	case masterdataitem.FieldCode:
+		return m.Code()
+	case masterdataitem.FieldName:
+		return m.Name()
+	case masterdataitem.FieldNameEn:
+		return m.NameEn()
+	case masterdataitem.FieldParentCode:
+		return m.ParentCode()
+	case masterdataitem.FieldTransportMode:
+		return m.TransportMode()
+	case masterdataitem.FieldTeuFactor:
+		return m.TeuFactor()
+	case masterdataitem.FieldSource:
+		return m.Source()
+	case masterdataitem.FieldSortOrder:
+		return m.SortOrder()
+	case masterdataitem.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MasterDataItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case masterdataitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case masterdataitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case masterdataitem.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case masterdataitem.FieldKind:
+		return m.OldKind(ctx)
+	case masterdataitem.FieldCode:
+		return m.OldCode(ctx)
+	case masterdataitem.FieldName:
+		return m.OldName(ctx)
+	case masterdataitem.FieldNameEn:
+		return m.OldNameEn(ctx)
+	case masterdataitem.FieldParentCode:
+		return m.OldParentCode(ctx)
+	case masterdataitem.FieldTransportMode:
+		return m.OldTransportMode(ctx)
+	case masterdataitem.FieldTeuFactor:
+		return m.OldTeuFactor(ctx)
+	case masterdataitem.FieldSource:
+		return m.OldSource(ctx)
+	case masterdataitem.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case masterdataitem.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown MasterDataItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MasterDataItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case masterdataitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case masterdataitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case masterdataitem.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case masterdataitem.FieldKind:
+		v, ok := value.(masterdataitem.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case masterdataitem.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case masterdataitem.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case masterdataitem.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
+		return nil
+	case masterdataitem.FieldParentCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentCode(v)
+		return nil
+	case masterdataitem.FieldTransportMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTransportMode(v)
+		return nil
+	case masterdataitem.FieldTeuFactor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTeuFactor(v)
+		return nil
+	case masterdataitem.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case masterdataitem.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case masterdataitem.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MasterDataItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, masterdataitem.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MasterDataItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case masterdataitem.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MasterDataItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case masterdataitem.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MasterDataItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(masterdataitem.FieldNameEn) {
+		fields = append(fields, masterdataitem.FieldNameEn)
+	}
+	if m.FieldCleared(masterdataitem.FieldParentCode) {
+		fields = append(fields, masterdataitem.FieldParentCode)
+	}
+	if m.FieldCleared(masterdataitem.FieldTransportMode) {
+		fields = append(fields, masterdataitem.FieldTransportMode)
+	}
+	if m.FieldCleared(masterdataitem.FieldTeuFactor) {
+		fields = append(fields, masterdataitem.FieldTeuFactor)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MasterDataItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MasterDataItemMutation) ClearField(name string) error {
+	switch name {
+	case masterdataitem.FieldNameEn:
+		m.ClearNameEn()
+		return nil
+	case masterdataitem.FieldParentCode:
+		m.ClearParentCode()
+		return nil
+	case masterdataitem.FieldTransportMode:
+		m.ClearTransportMode()
+		return nil
+	case masterdataitem.FieldTeuFactor:
+		m.ClearTeuFactor()
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MasterDataItemMutation) ResetField(name string) error {
+	switch name {
+	case masterdataitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case masterdataitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case masterdataitem.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case masterdataitem.FieldKind:
+		m.ResetKind()
+		return nil
+	case masterdataitem.FieldCode:
+		m.ResetCode()
+		return nil
+	case masterdataitem.FieldName:
+		m.ResetName()
+		return nil
+	case masterdataitem.FieldNameEn:
+		m.ResetNameEn()
+		return nil
+	case masterdataitem.FieldParentCode:
+		m.ResetParentCode()
+		return nil
+	case masterdataitem.FieldTransportMode:
+		m.ResetTransportMode()
+		return nil
+	case masterdataitem.FieldTeuFactor:
+		m.ResetTeuFactor()
+		return nil
+	case masterdataitem.FieldSource:
+		m.ResetSource()
+		return nil
+	case masterdataitem.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case masterdataitem.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MasterDataItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.organization != nil {
+		edges = append(edges, masterdataitem.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MasterDataItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case masterdataitem.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MasterDataItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MasterDataItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MasterDataItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedorganization {
+		edges = append(edges, masterdataitem.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MasterDataItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case masterdataitem.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MasterDataItemMutation) ClearEdge(name string) error {
+	switch name {
+	case masterdataitem.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MasterDataItemMutation) ResetEdge(name string) error {
+	switch name {
+	case masterdataitem.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown MasterDataItem edge %s", name)
+}
+
 // MembershipMutation represents an operation that mutates the Membership nodes in the graph.
 type MembershipMutation struct {
 	config
@@ -1933,35 +3084,38 @@ func (m *MembershipMutation) ResetEdge(name string) error {
 // OrganizationMutation represents an operation that mutates the Organization nodes in the graph.
 type OrganizationMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	code               *string
-	name               *string
-	enabled            *bool
-	clearedFields      map[string]struct{}
-	parent             *uuid.UUID
-	clearedparent      bool
-	children           map[uuid.UUID]struct{}
-	removedchildren    map[uuid.UUID]struct{}
-	clearedchildren    bool
-	memberships        map[uuid.UUID]struct{}
-	removedmemberships map[uuid.UUID]struct{}
-	clearedmemberships bool
-	roles              map[uuid.UUID]struct{}
-	removedroles       map[uuid.UUID]struct{}
-	clearedroles       bool
-	sessions           map[uuid.UUID]struct{}
-	removedsessions    map[uuid.UUID]struct{}
-	clearedsessions    bool
-	partners           map[uuid.UUID]struct{}
-	removedpartners    map[uuid.UUID]struct{}
-	clearedpartners    bool
-	done               bool
-	oldValue           func(context.Context) (*Organization, error)
-	predicates         []predicate.Organization
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	code                     *string
+	name                     *string
+	enabled                  *bool
+	clearedFields            map[string]struct{}
+	parent                   *uuid.UUID
+	clearedparent            bool
+	children                 map[uuid.UUID]struct{}
+	removedchildren          map[uuid.UUID]struct{}
+	clearedchildren          bool
+	memberships              map[uuid.UUID]struct{}
+	removedmemberships       map[uuid.UUID]struct{}
+	clearedmemberships       bool
+	roles                    map[uuid.UUID]struct{}
+	removedroles             map[uuid.UUID]struct{}
+	clearedroles             bool
+	sessions                 map[uuid.UUID]struct{}
+	removedsessions          map[uuid.UUID]struct{}
+	clearedsessions          bool
+	partners                 map[uuid.UUID]struct{}
+	removedpartners          map[uuid.UUID]struct{}
+	clearedpartners          bool
+	master_data_items        map[uuid.UUID]struct{}
+	removedmaster_data_items map[uuid.UUID]struct{}
+	clearedmaster_data_items bool
+	done                     bool
+	oldValue                 func(context.Context) (*Organization, error)
+	predicates               []predicate.Organization
 }
 
 var _ ent.Mutation = (*OrganizationMutation)(nil)
@@ -2594,6 +3748,60 @@ func (m *OrganizationMutation) ResetPartners() {
 	m.removedpartners = nil
 }
 
+// AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by ids.
+func (m *OrganizationMutation) AddMasterDataItemIDs(ids ...uuid.UUID) {
+	if m.master_data_items == nil {
+		m.master_data_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.master_data_items[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMasterDataItems clears the "master_data_items" edge to the MasterDataItem entity.
+func (m *OrganizationMutation) ClearMasterDataItems() {
+	m.clearedmaster_data_items = true
+}
+
+// MasterDataItemsCleared reports if the "master_data_items" edge to the MasterDataItem entity was cleared.
+func (m *OrganizationMutation) MasterDataItemsCleared() bool {
+	return m.clearedmaster_data_items
+}
+
+// RemoveMasterDataItemIDs removes the "master_data_items" edge to the MasterDataItem entity by IDs.
+func (m *OrganizationMutation) RemoveMasterDataItemIDs(ids ...uuid.UUID) {
+	if m.removedmaster_data_items == nil {
+		m.removedmaster_data_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.master_data_items, ids[i])
+		m.removedmaster_data_items[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMasterDataItems returns the removed IDs of the "master_data_items" edge to the MasterDataItem entity.
+func (m *OrganizationMutation) RemovedMasterDataItemsIDs() (ids []uuid.UUID) {
+	for id := range m.removedmaster_data_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MasterDataItemsIDs returns the "master_data_items" edge IDs in the mutation.
+func (m *OrganizationMutation) MasterDataItemsIDs() (ids []uuid.UUID) {
+	for id := range m.master_data_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMasterDataItems resets all changes to the "master_data_items" edge.
+func (m *OrganizationMutation) ResetMasterDataItems() {
+	m.master_data_items = nil
+	m.clearedmaster_data_items = false
+	m.removedmaster_data_items = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -2821,7 +4029,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -2839,6 +4047,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.partners != nil {
 		edges = append(edges, organization.EdgePartners)
+	}
+	if m.master_data_items != nil {
+		edges = append(edges, organization.EdgeMasterDataItems)
 	}
 	return edges
 }
@@ -2881,13 +4092,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeMasterDataItems:
+		ids := make([]ent.Value, 0, len(m.master_data_items))
+		for id := range m.master_data_items {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -2902,6 +4119,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedpartners != nil {
 		edges = append(edges, organization.EdgePartners)
+	}
+	if m.removedmaster_data_items != nil {
+		edges = append(edges, organization.EdgeMasterDataItems)
 	}
 	return edges
 }
@@ -2940,13 +4160,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeMasterDataItems:
+		ids := make([]ent.Value, 0, len(m.removedmaster_data_items))
+		for id := range m.removedmaster_data_items {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -2964,6 +4190,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedpartners {
 		edges = append(edges, organization.EdgePartners)
+	}
+	if m.clearedmaster_data_items {
+		edges = append(edges, organization.EdgeMasterDataItems)
 	}
 	return edges
 }
@@ -2984,6 +4213,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedsessions
 	case organization.EdgePartners:
 		return m.clearedpartners
+	case organization.EdgeMasterDataItems:
+		return m.clearedmaster_data_items
 	}
 	return false
 }
@@ -3020,6 +4251,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgePartners:
 		m.ResetPartners()
+		return nil
+	case organization.EdgeMasterDataItems:
+		m.ResetMasterDataItems()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)

@@ -526,6 +526,154 @@
         }
       }
     },
+    "/api/v1/master-data/items": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListItems",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_CreateItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.CreateMasterDataItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/items/{id}": {
+      "put": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_UpdateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.UpdateMasterDataItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/options": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.MasterDataOptionsReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/partners": {
       "get": {
         "tags": [
@@ -1344,6 +1492,217 @@
           }
         }
       },
+      "masterdata.v1.CreateMasterDataItemRequest": {
+        "required": [
+          "kind",
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "parentCode": {
+            "type": "string"
+          },
+          "transportMode": {
+            "type": "string"
+          },
+          "teuFactor": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "masterdata.v1.MasterDataItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "parentCode": {
+            "type": "string"
+          },
+          "transportMode": {
+            "type": "string"
+          },
+          "teuFactor": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.MasterDataItemListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.MasterDataItemReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.MasterDataOptionsReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.UpdateMasterDataItemRequest": {
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "parentCode": {
+            "type": "string"
+          },
+          "transportMode": {
+            "type": "string"
+          },
+          "teuFactor": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "integer",
+            "format": "enum"
+          }
+        }
+      },
       "partner.v1.CreatePartnerRequest": {
         "required": [
           "code",
@@ -1519,6 +1878,9 @@
     {
       "name": "AuthService",
       "description": "AuthService owns the browser session boundary for the management console."
+    },
+    {
+      "name": "MasterDataService"
     },
     {
       "name": "PartnerService"

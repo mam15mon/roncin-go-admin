@@ -15,6 +15,8 @@ const (
 	AuditRead          = "system.audit.read"
 	PartnerRead        = "business.partner.read"
 	PartnerManage      = "business.partner.manage"
+	MasterDataRead     = "system.master_data.read"
+	MasterDataManage   = "system.master_data.manage"
 )
 
 var manifest = []Permission{
@@ -25,6 +27,8 @@ var manifest = []Permission{
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理", Description: "查看安全与业务操作审计"},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料", Description: "查看当前组织的客户与供应商档案"},
 	{Key: PartnerManage, Name: "管理往来单位", Group: "业务资料", Description: "新增、编辑和启停客户与供应商档案"},
+	{Key: MasterDataRead, Name: "查看主数据", Group: "系统管理", Description: "查看订单表单所需的基础选项"},
+	{Key: MasterDataManage, Name: "管理主数据", Group: "系统管理", Description: "维护币种、地区、港口、机场和订单基础目录"},
 }
 
 func Manifest() []Permission { return append([]Permission(nil), manifest...) }

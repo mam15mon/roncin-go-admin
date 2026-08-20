@@ -50,9 +50,11 @@ type OrganizationEdges struct {
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Partners holds the value of the partners edge.
 	Partners []*Partner `json:"partners,omitempty"`
+	// MasterDataItems holds the value of the master_data_items edge.
+	MasterDataItems []*MasterDataItem `json:"master_data_items,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -109,6 +111,15 @@ func (e OrganizationEdges) PartnersOrErr() ([]*Partner, error) {
 		return e.Partners, nil
 	}
 	return nil, &NotLoadedError{edge: "partners"}
+}
+
+// MasterDataItemsOrErr returns the MasterDataItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
+	if e.loadedTypes[6] {
+		return e.MasterDataItems, nil
+	}
+	return nil, &NotLoadedError{edge: "master_data_items"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -225,6 +236,11 @@ func (_m *Organization) QuerySessions() *SessionQuery {
 // QueryPartners queries the "partners" edge of the Organization entity.
 func (_m *Organization) QueryPartners() *PartnerQuery {
 	return NewOrganizationClient(_m.config).QueryPartners(_m)
+}
+
+// QueryMasterDataItems queries the "master_data_items" edge of the Organization entity.
+func (_m *Organization) QueryMasterDataItems() *MasterDataItemQuery {
+	return NewOrganizationClient(_m.config).QueryMasterDataItems(_m)
 }
 
 // Update returns a builder for updating this Organization.
