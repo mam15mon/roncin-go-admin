@@ -177,6 +177,18 @@ func (f PartnerRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerRoleMutation", m)
 }
 
+// The PartnerSettlementRuleFunc type is an adapter to allow the use of ordinary
+// function as PartnerSettlementRule mutator.
+type PartnerSettlementRuleFunc func(context.Context, *ent.PartnerSettlementRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerSettlementRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerSettlementRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerSettlementRuleMutation", m)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

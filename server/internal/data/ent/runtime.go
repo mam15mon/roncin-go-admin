@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -908,6 +909,49 @@ func init() {
 	partnerroleDescID := partnerroleMixinFields0[0].Descriptor()
 	// partnerrole.DefaultID holds the default value on creation for the id field.
 	partnerrole.DefaultID = partnerroleDescID.Default.(func() uuid.UUID)
+	partnersettlementruleMixin := schema.PartnerSettlementRule{}.Mixin()
+	partnersettlementruleMixinFields0 := partnersettlementruleMixin[0].Fields()
+	_ = partnersettlementruleMixinFields0
+	partnersettlementruleMixinFields1 := partnersettlementruleMixin[1].Fields()
+	_ = partnersettlementruleMixinFields1
+	partnersettlementruleFields := schema.PartnerSettlementRule{}.Fields()
+	_ = partnersettlementruleFields
+	// partnersettlementruleDescCreatedAt is the schema descriptor for created_at field.
+	partnersettlementruleDescCreatedAt := partnersettlementruleMixinFields1[0].Descriptor()
+	// partnersettlementrule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partnersettlementrule.DefaultCreatedAt = partnersettlementruleDescCreatedAt.Default.(func() time.Time)
+	// partnersettlementruleDescUpdatedAt is the schema descriptor for updated_at field.
+	partnersettlementruleDescUpdatedAt := partnersettlementruleMixinFields1[1].Descriptor()
+	// partnersettlementrule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partnersettlementrule.DefaultUpdatedAt = partnersettlementruleDescUpdatedAt.Default.(func() time.Time)
+	// partnersettlementrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partnersettlementrule.UpdateDefaultUpdatedAt = partnersettlementruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnersettlementruleDescSettlementCurrency is the schema descriptor for settlement_currency field.
+	partnersettlementruleDescSettlementCurrency := partnersettlementruleFields[6].Descriptor()
+	// partnersettlementrule.SettlementCurrencyValidator is a validator for the "settlement_currency" field. It is called by the builders before save.
+	partnersettlementrule.SettlementCurrencyValidator = func() func(string) error {
+		validators := partnersettlementruleDescSettlementCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_currency string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnersettlementruleDescIsActive is the schema descriptor for is_active field.
+	partnersettlementruleDescIsActive := partnersettlementruleFields[7].Descriptor()
+	// partnersettlementrule.DefaultIsActive holds the default value on creation for the is_active field.
+	partnersettlementrule.DefaultIsActive = partnersettlementruleDescIsActive.Default.(bool)
+	// partnersettlementruleDescID is the schema descriptor for id field.
+	partnersettlementruleDescID := partnersettlementruleMixinFields0[0].Descriptor()
+	// partnersettlementrule.DefaultID holds the default value on creation for the id field.
+	partnersettlementrule.DefaultID = partnersettlementruleDescID.Default.(func() uuid.UUID)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0

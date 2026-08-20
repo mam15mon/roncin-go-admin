@@ -40,6 +40,8 @@ type Tx struct {
 	PartnerContract *PartnerContractClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
 	PartnerRole *PartnerRoleClient
+	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
+	PartnerSettlementRule *PartnerSettlementRuleClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Role is the client for interacting with the Role builders.
@@ -199,6 +201,7 @@ func (tx *Tx) init() {
 	tx.PartnerContact = NewPartnerContactClient(tx.config)
 	tx.PartnerContract = NewPartnerContractClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)
+	tx.PartnerSettlementRule = NewPartnerSettlementRuleClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)

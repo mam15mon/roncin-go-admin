@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -72,6 +73,8 @@ type Client struct {
 	PartnerContract *PartnerContractClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
 	PartnerRole *PartnerRoleClient
+	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
+	PartnerSettlementRule *PartnerSettlementRuleClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Role is the client for interacting with the Role builders.
@@ -111,6 +114,7 @@ func (c *Client) init() {
 	c.PartnerContact = NewPartnerContactClient(c.config)
 	c.PartnerContract = NewPartnerContractClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
+	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
@@ -224,6 +228,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
+		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
 		Permission:            NewPermissionClient(cfg),
 		Role:                  NewRoleClient(cfg),
 		RoleAssignment:        NewRoleAssignmentClient(cfg),
@@ -264,6 +269,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
+		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
 		Permission:            NewPermissionClient(cfg),
 		Role:                  NewRoleClient(cfg),
 		RoleAssignment:        NewRoleAssignmentClient(cfg),
@@ -303,8 +309,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.Permission, c.Role, c.RoleAssignment,
-		c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
+		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -317,8 +324,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.Permission, c.Role, c.RoleAssignment,
-		c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
+		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -355,6 +363,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerContract.mutate(ctx, m)
 	case *PartnerRoleMutation:
 		return c.PartnerRole.mutate(ctx, m)
+	case *PartnerSettlementRuleMutation:
+		return c.PartnerSettlementRule.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
 	case *RoleMutation:
@@ -2707,6 +2717,22 @@ func (c *PartnerRoleClient) QueryAccounts(_m *PartnerRole) *PartnerAccountQuery 
 	return query
 }
 
+// QuerySettlementRules queries the settlement_rules edge of a PartnerRole.
+func (c *PartnerRoleClient) QuerySettlementRules(_m *PartnerRole) *PartnerSettlementRuleQuery {
+	query := (&PartnerSettlementRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, id),
+			sqlgraph.To(partnersettlementrule.Table, partnersettlementrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.SettlementRulesTable, partnerrole.SettlementRulesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PartnerRoleClient) Hooks() []Hook {
 	return c.hooks.PartnerRole
@@ -2729,6 +2755,155 @@ func (c *PartnerRoleClient) mutate(ctx context.Context, m *PartnerRoleMutation) 
 		return (&PartnerRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown PartnerRole mutation op: %q", m.Op())
+	}
+}
+
+// PartnerSettlementRuleClient is a client for the PartnerSettlementRule schema.
+type PartnerSettlementRuleClient struct {
+	config
+}
+
+// NewPartnerSettlementRuleClient returns a client for the PartnerSettlementRule from the given config.
+func NewPartnerSettlementRuleClient(c config) *PartnerSettlementRuleClient {
+	return &PartnerSettlementRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnersettlementrule.Hooks(f(g(h())))`.
+func (c *PartnerSettlementRuleClient) Use(hooks ...Hook) {
+	c.hooks.PartnerSettlementRule = append(c.hooks.PartnerSettlementRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnersettlementrule.Intercept(f(g(h())))`.
+func (c *PartnerSettlementRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerSettlementRule = append(c.inters.PartnerSettlementRule, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerSettlementRule entity.
+func (c *PartnerSettlementRuleClient) Create() *PartnerSettlementRuleCreate {
+	mutation := newPartnerSettlementRuleMutation(c.config, OpCreate)
+	return &PartnerSettlementRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerSettlementRule entities.
+func (c *PartnerSettlementRuleClient) CreateBulk(builders ...*PartnerSettlementRuleCreate) *PartnerSettlementRuleCreateBulk {
+	return &PartnerSettlementRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerSettlementRuleClient) MapCreateBulk(slice any, setFunc func(*PartnerSettlementRuleCreate, int)) *PartnerSettlementRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerSettlementRuleCreateBulk{err: fmt.Errorf("calling to PartnerSettlementRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerSettlementRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerSettlementRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerSettlementRule.
+func (c *PartnerSettlementRuleClient) Update() *PartnerSettlementRuleUpdate {
+	mutation := newPartnerSettlementRuleMutation(c.config, OpUpdate)
+	return &PartnerSettlementRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerSettlementRuleClient) UpdateOne(_m *PartnerSettlementRule) *PartnerSettlementRuleUpdateOne {
+	mutation := newPartnerSettlementRuleMutation(c.config, OpUpdateOne, withPartnerSettlementRule(_m))
+	return &PartnerSettlementRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerSettlementRuleClient) UpdateOneID(id uuid.UUID) *PartnerSettlementRuleUpdateOne {
+	mutation := newPartnerSettlementRuleMutation(c.config, OpUpdateOne, withPartnerSettlementRuleID(id))
+	return &PartnerSettlementRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerSettlementRule.
+func (c *PartnerSettlementRuleClient) Delete() *PartnerSettlementRuleDelete {
+	mutation := newPartnerSettlementRuleMutation(c.config, OpDelete)
+	return &PartnerSettlementRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerSettlementRuleClient) DeleteOne(_m *PartnerSettlementRule) *PartnerSettlementRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerSettlementRuleClient) DeleteOneID(id uuid.UUID) *PartnerSettlementRuleDeleteOne {
+	builder := c.Delete().Where(partnersettlementrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerSettlementRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerSettlementRule.
+func (c *PartnerSettlementRuleClient) Query() *PartnerSettlementRuleQuery {
+	return &PartnerSettlementRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerSettlementRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerSettlementRule entity by its id.
+func (c *PartnerSettlementRuleClient) Get(ctx context.Context, id uuid.UUID) (*PartnerSettlementRule, error) {
+	return c.Query().Where(partnersettlementrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerSettlementRuleClient) GetX(ctx context.Context, id uuid.UUID) *PartnerSettlementRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPartnerRole queries the partner_role edge of a PartnerSettlementRule.
+func (c *PartnerSettlementRuleClient) QueryPartnerRole(_m *PartnerSettlementRule) *PartnerRoleQuery {
+	query := (&PartnerRoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnersettlementrule.Table, partnersettlementrule.FieldID, id),
+			sqlgraph.To(partnerrole.Table, partnerrole.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnersettlementrule.PartnerRoleTable, partnersettlementrule.PartnerRoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerSettlementRuleClient) Hooks() []Hook {
+	return c.hooks.PartnerSettlementRule
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerSettlementRuleClient) Interceptors() []Interceptor {
+	return c.inters.PartnerSettlementRule
+}
+
+func (c *PartnerSettlementRuleClient) mutate(ctx context.Context, m *PartnerSettlementRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerSettlementRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerSettlementRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerSettlementRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerSettlementRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerSettlementRule mutation op: %q", m.Op())
 	}
 }
 
@@ -3876,14 +4051,15 @@ type (
 	hooks struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerContact, PartnerContract, PartnerRole, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
+		PartnerAlias, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerContact, PartnerContract, PartnerRole, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
-		User []ent.Interceptor
+		PartnerAlias, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}
 )

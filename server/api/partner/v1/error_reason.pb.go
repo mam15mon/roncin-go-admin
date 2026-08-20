@@ -24,26 +24,29 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_PARTNER_UNSPECIFIED               ErrorReason = 0
-	ErrorReason_PARTNER_NOT_FOUND                 ErrorReason = 1
-	ErrorReason_PARTNER_CODE_EXISTS               ErrorReason = 2
-	ErrorReason_PARTNER_NAME_EXISTS               ErrorReason = 3
-	ErrorReason_PARTNER_USCC_EXISTS               ErrorReason = 4
-	ErrorReason_PARTNER_ROLE_REQUIRED             ErrorReason = 5
-	ErrorReason_PARTNER_INVALID_ROLE              ErrorReason = 6
-	ErrorReason_PARTNER_INVALID_ARGUMENT          ErrorReason = 7
-	ErrorReason_PARTNER_PRIMARY_CONTACT_CONFLICT  ErrorReason = 8
-	ErrorReason_PARTNER_ALIAS_EXISTS              ErrorReason = 9
-	ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED    ErrorReason = 10
-	ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED ErrorReason = 11
-	ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE ErrorReason = 12
-	ErrorReason_PARTNER_ACCOUNT_NOT_FOUND         ErrorReason = 13
-	ErrorReason_PARTNER_ACCOUNT_INVALID_ARGUMENT  ErrorReason = 14
-	ErrorReason_PARTNER_ACCOUNT_DEFAULT_CONFLICT  ErrorReason = 15
-	ErrorReason_PARTNER_CONTRACT_NOT_FOUND        ErrorReason = 16
-	ErrorReason_PARTNER_CONTRACT_NO_EXISTS        ErrorReason = 17
-	ErrorReason_PARTNER_CONTRACT_INVALID_ARGUMENT ErrorReason = 18
-	ErrorReason_PARTNER_CONTRACT_STATUS_CONFLICT  ErrorReason = 19
+	ErrorReason_PARTNER_UNSPECIFIED                      ErrorReason = 0
+	ErrorReason_PARTNER_NOT_FOUND                        ErrorReason = 1
+	ErrorReason_PARTNER_CODE_EXISTS                      ErrorReason = 2
+	ErrorReason_PARTNER_NAME_EXISTS                      ErrorReason = 3
+	ErrorReason_PARTNER_USCC_EXISTS                      ErrorReason = 4
+	ErrorReason_PARTNER_ROLE_REQUIRED                    ErrorReason = 5
+	ErrorReason_PARTNER_INVALID_ROLE                     ErrorReason = 6
+	ErrorReason_PARTNER_INVALID_ARGUMENT                 ErrorReason = 7
+	ErrorReason_PARTNER_PRIMARY_CONTACT_CONFLICT         ErrorReason = 8
+	ErrorReason_PARTNER_ALIAS_EXISTS                     ErrorReason = 9
+	ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED           ErrorReason = 10
+	ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED        ErrorReason = 11
+	ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE        ErrorReason = 12
+	ErrorReason_PARTNER_ACCOUNT_NOT_FOUND                ErrorReason = 13
+	ErrorReason_PARTNER_ACCOUNT_INVALID_ARGUMENT         ErrorReason = 14
+	ErrorReason_PARTNER_ACCOUNT_DEFAULT_CONFLICT         ErrorReason = 15
+	ErrorReason_PARTNER_CONTRACT_NOT_FOUND               ErrorReason = 16
+	ErrorReason_PARTNER_CONTRACT_NO_EXISTS               ErrorReason = 17
+	ErrorReason_PARTNER_CONTRACT_INVALID_ARGUMENT        ErrorReason = 18
+	ErrorReason_PARTNER_CONTRACT_STATUS_CONFLICT         ErrorReason = 19
+	ErrorReason_PARTNER_SETTLEMENT_RULE_NOT_FOUND        ErrorReason = 20
+	ErrorReason_PARTNER_SETTLEMENT_RULE_EXISTS           ErrorReason = 21
+	ErrorReason_PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT ErrorReason = 22
 )
 
 // Enum value maps for ErrorReason.
@@ -69,28 +72,34 @@ var (
 		17: "PARTNER_CONTRACT_NO_EXISTS",
 		18: "PARTNER_CONTRACT_INVALID_ARGUMENT",
 		19: "PARTNER_CONTRACT_STATUS_CONFLICT",
+		20: "PARTNER_SETTLEMENT_RULE_NOT_FOUND",
+		21: "PARTNER_SETTLEMENT_RULE_EXISTS",
+		22: "PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
-		"PARTNER_UNSPECIFIED":               0,
-		"PARTNER_NOT_FOUND":                 1,
-		"PARTNER_CODE_EXISTS":               2,
-		"PARTNER_NAME_EXISTS":               3,
-		"PARTNER_USCC_EXISTS":               4,
-		"PARTNER_ROLE_REQUIRED":             5,
-		"PARTNER_INVALID_ROLE":              6,
-		"PARTNER_INVALID_ARGUMENT":          7,
-		"PARTNER_PRIMARY_CONTACT_CONFLICT":  8,
-		"PARTNER_ALIAS_EXISTS":              9,
-		"PARTNER_SUPPLIER_ROLE_REQUIRED":    10,
-		"PARTNER_BLACKLIST_REASON_REQUIRED": 11,
-		"PARTNER_BLACKLISTED_SUPPLIER_ROLE": 12,
-		"PARTNER_ACCOUNT_NOT_FOUND":         13,
-		"PARTNER_ACCOUNT_INVALID_ARGUMENT":  14,
-		"PARTNER_ACCOUNT_DEFAULT_CONFLICT":  15,
-		"PARTNER_CONTRACT_NOT_FOUND":        16,
-		"PARTNER_CONTRACT_NO_EXISTS":        17,
-		"PARTNER_CONTRACT_INVALID_ARGUMENT": 18,
-		"PARTNER_CONTRACT_STATUS_CONFLICT":  19,
+		"PARTNER_UNSPECIFIED":                      0,
+		"PARTNER_NOT_FOUND":                        1,
+		"PARTNER_CODE_EXISTS":                      2,
+		"PARTNER_NAME_EXISTS":                      3,
+		"PARTNER_USCC_EXISTS":                      4,
+		"PARTNER_ROLE_REQUIRED":                    5,
+		"PARTNER_INVALID_ROLE":                     6,
+		"PARTNER_INVALID_ARGUMENT":                 7,
+		"PARTNER_PRIMARY_CONTACT_CONFLICT":         8,
+		"PARTNER_ALIAS_EXISTS":                     9,
+		"PARTNER_SUPPLIER_ROLE_REQUIRED":           10,
+		"PARTNER_BLACKLIST_REASON_REQUIRED":        11,
+		"PARTNER_BLACKLISTED_SUPPLIER_ROLE":        12,
+		"PARTNER_ACCOUNT_NOT_FOUND":                13,
+		"PARTNER_ACCOUNT_INVALID_ARGUMENT":         14,
+		"PARTNER_ACCOUNT_DEFAULT_CONFLICT":         15,
+		"PARTNER_CONTRACT_NOT_FOUND":               16,
+		"PARTNER_CONTRACT_NO_EXISTS":               17,
+		"PARTNER_CONTRACT_INVALID_ARGUMENT":        18,
+		"PARTNER_CONTRACT_STATUS_CONFLICT":         19,
+		"PARTNER_SETTLEMENT_RULE_NOT_FOUND":        20,
+		"PARTNER_SETTLEMENT_RULE_EXISTS":           21,
+		"PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT": 22,
 	}
 )
 
@@ -126,7 +135,7 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*\x85\x05\n" +
+	"partner.v1*\xfe\x05\n" +
 	"\vErrorReason\x12\x17\n" +
 	"\x13PARTNER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PARTNER_NOT_FOUND\x10\x01\x12\x17\n" +
@@ -148,7 +157,10 @@ const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\x1aPARTNER_CONTRACT_NOT_FOUND\x10\x10\x12\x1e\n" +
 	"\x1aPARTNER_CONTRACT_NO_EXISTS\x10\x11\x12%\n" +
 	"!PARTNER_CONTRACT_INVALID_ARGUMENT\x10\x12\x12$\n" +
-	" PARTNER_CONTRACT_STATUS_CONFLICT\x10\x13B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	" PARTNER_CONTRACT_STATUS_CONFLICT\x10\x13\x12%\n" +
+	"!PARTNER_SETTLEMENT_RULE_NOT_FOUND\x10\x14\x12\"\n" +
+	"\x1ePARTNER_SETTLEMENT_RULE_EXISTS\x10\x15\x12,\n" +
+	"(PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT\x10\x16B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once

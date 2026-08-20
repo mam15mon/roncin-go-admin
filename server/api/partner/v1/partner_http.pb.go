@@ -20,27 +20,33 @@ const _ = http.SupportPackageIsVersion3
 const OperationPartnerServiceCreatePartner = "/partner.v1.PartnerService/CreatePartner"
 const OperationPartnerServiceCreatePartnerAccount = "/partner.v1.PartnerService/CreatePartnerAccount"
 const OperationPartnerServiceCreatePartnerContract = "/partner.v1.PartnerService/CreatePartnerContract"
+const OperationPartnerServiceCreatePartnerSettlementRule = "/partner.v1.PartnerService/CreatePartnerSettlementRule"
 const OperationPartnerServiceGetPartner = "/partner.v1.PartnerService/GetPartner"
 const OperationPartnerServiceListPartnerAccounts = "/partner.v1.PartnerService/ListPartnerAccounts"
 const OperationPartnerServiceListPartnerContracts = "/partner.v1.PartnerService/ListPartnerContracts"
+const OperationPartnerServiceListPartnerSettlementRules = "/partner.v1.PartnerService/ListPartnerSettlementRules"
 const OperationPartnerServiceListPartners = "/partner.v1.PartnerService/ListPartners"
 const OperationPartnerServiceSetSupplierBlacklist = "/partner.v1.PartnerService/SetSupplierBlacklist"
 const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdatePartner"
 const OperationPartnerServiceUpdatePartnerAccount = "/partner.v1.PartnerService/UpdatePartnerAccount"
 const OperationPartnerServiceUpdatePartnerContract = "/partner.v1.PartnerService/UpdatePartnerContract"
+const OperationPartnerServiceUpdatePartnerSettlementRule = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
 
 type PartnerServiceHTTPServer interface {
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
 	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error)
 	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
+	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
 	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
 	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
 	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
+	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error)
 	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
+	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
 }
 
 func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServer) {
@@ -56,6 +62,9 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r.Handle("GET", "/api/v1/partners/{partner_id}/contracts", _PartnerService_ListPartnerContracts0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{partner_id}/contracts", _PartnerService_CreatePartnerContract0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{partner_id}/contracts/{id}", _PartnerService_UpdatePartnerContract0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules", _PartnerService_ListPartnerSettlementRules0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules", _PartnerService_CreatePartnerSettlementRule0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}", _PartnerService_UpdatePartnerSettlementRule0_HTTP_Handler(srv))
 }
 
 func _PartnerService_GetPartner0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
@@ -294,18 +303,87 @@ func _PartnerService_UpdatePartnerContract0_HTTP_Handler(srv PartnerServiceHTTPS
 	}
 }
 
+func _PartnerService_ListPartnerSettlementRules0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPartnerSettlementRulesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceListPartnerSettlementRules)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPartnerSettlementRules(ctx, req.(*ListPartnerSettlementRulesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerSettlementRuleListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_CreatePartnerSettlementRule0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreatePartnerSettlementRuleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceCreatePartnerSettlementRule)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePartnerSettlementRule(ctx, req.(*CreatePartnerSettlementRuleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerSettlementRuleReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_UpdatePartnerSettlementRule0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePartnerSettlementRuleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceUpdatePartnerSettlementRule)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePartnerSettlementRule(ctx, req.(*UpdatePartnerSettlementRuleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerSettlementRuleReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type PartnerServiceHTTPClient interface {
 	CreatePartner(ctx context.Context, req *CreatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	CreatePartnerAccount(ctx context.Context, req *CreatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
 	CreatePartnerContract(ctx context.Context, req *CreatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
+	CreatePartnerSettlementRule(ctx context.Context, req *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleReply, err error)
 	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *PartnerAccountListReply, err error)
 	ListPartnerContracts(ctx context.Context, req *ListPartnerContractsRequest, opts ...http.CallOption) (rsp *PartnerContractListReply, err error)
+	ListPartnerSettlementRules(ctx context.Context, req *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleListReply, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *PartnerListReply, err error)
 	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
 	UpdatePartnerContract(ctx context.Context, req *UpdatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
+	UpdatePartnerSettlementRule(ctx context.Context, req *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleReply, err error)
 }
 
 type PartnerServiceHTTPClientImpl struct {
@@ -367,6 +445,23 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartnerContract(ctx context.Context
 	return &out, nil
 }
 
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (*PartnerSettlementRuleReply, error) {
+	var out PartnerSettlementRuleReply
+	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceCreatePartnerSettlementRule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
 	var out PartnerReply
 	pattern := "/api/v1/partners/{id}"
@@ -406,6 +501,22 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerContracts(ctx context.Context,
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationPartnerServiceListPartnerContracts),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (*PartnerSettlementRuleListReply, error) {
+	var out PartnerSettlementRuleListReply
+	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceListPartnerSettlementRules),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -490,6 +601,23 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartnerContract(ctx context.Context
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationPartnerServiceUpdatePartnerContract),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (*PartnerSettlementRuleReply, error) {
+	var out PartnerSettlementRuleReply
+	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceUpdatePartnerSettlementRule),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

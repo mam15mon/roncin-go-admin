@@ -48,6 +48,9 @@ type PartnerContract func(*sql.Selector)
 // PartnerRole is the predicate function for partnerrole builders.
 type PartnerRole func(*sql.Selector)
 
+// PartnerSettlementRule is the predicate function for partnersettlementrule builders.
+type PartnerSettlementRule func(*sql.Selector)
+
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 

@@ -457,6 +457,29 @@ func HasAccountsWith(preds ...predicate.PartnerAccount) predicate.PartnerRole {
 	})
 }
 
+// HasSettlementRules applies the HasEdge predicate on the "settlement_rules" edge.
+func HasSettlementRules() predicate.PartnerRole {
+	return predicate.PartnerRole(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SettlementRulesTable, SettlementRulesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSettlementRulesWith applies the HasEdge predicate on the "settlement_rules" edge with a given conditions (other predicates).
+func HasSettlementRulesWith(preds ...predicate.PartnerSettlementRule) predicate.PartnerRole {
+	return predicate.PartnerRole(func(s *sql.Selector) {
+		step := newSettlementRulesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.PartnerRole) predicate.PartnerRole {
 	return predicate.PartnerRole(sql.AndPredicates(predicates...))

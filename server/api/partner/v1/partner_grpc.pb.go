@@ -19,17 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartnerService_GetPartner_FullMethodName            = "/partner.v1.PartnerService/GetPartner"
-	PartnerService_ListPartners_FullMethodName          = "/partner.v1.PartnerService/ListPartners"
-	PartnerService_CreatePartner_FullMethodName         = "/partner.v1.PartnerService/CreatePartner"
-	PartnerService_UpdatePartner_FullMethodName         = "/partner.v1.PartnerService/UpdatePartner"
-	PartnerService_SetSupplierBlacklist_FullMethodName  = "/partner.v1.PartnerService/SetSupplierBlacklist"
-	PartnerService_ListPartnerAccounts_FullMethodName   = "/partner.v1.PartnerService/ListPartnerAccounts"
-	PartnerService_CreatePartnerAccount_FullMethodName  = "/partner.v1.PartnerService/CreatePartnerAccount"
-	PartnerService_UpdatePartnerAccount_FullMethodName  = "/partner.v1.PartnerService/UpdatePartnerAccount"
-	PartnerService_ListPartnerContracts_FullMethodName  = "/partner.v1.PartnerService/ListPartnerContracts"
-	PartnerService_CreatePartnerContract_FullMethodName = "/partner.v1.PartnerService/CreatePartnerContract"
-	PartnerService_UpdatePartnerContract_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerContract"
+	PartnerService_GetPartner_FullMethodName                  = "/partner.v1.PartnerService/GetPartner"
+	PartnerService_ListPartners_FullMethodName                = "/partner.v1.PartnerService/ListPartners"
+	PartnerService_CreatePartner_FullMethodName               = "/partner.v1.PartnerService/CreatePartner"
+	PartnerService_UpdatePartner_FullMethodName               = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_SetSupplierBlacklist_FullMethodName        = "/partner.v1.PartnerService/SetSupplierBlacklist"
+	PartnerService_ListPartnerAccounts_FullMethodName         = "/partner.v1.PartnerService/ListPartnerAccounts"
+	PartnerService_CreatePartnerAccount_FullMethodName        = "/partner.v1.PartnerService/CreatePartnerAccount"
+	PartnerService_UpdatePartnerAccount_FullMethodName        = "/partner.v1.PartnerService/UpdatePartnerAccount"
+	PartnerService_ListPartnerContracts_FullMethodName        = "/partner.v1.PartnerService/ListPartnerContracts"
+	PartnerService_CreatePartnerContract_FullMethodName       = "/partner.v1.PartnerService/CreatePartnerContract"
+	PartnerService_UpdatePartnerContract_FullMethodName       = "/partner.v1.PartnerService/UpdatePartnerContract"
+	PartnerService_ListPartnerSettlementRules_FullMethodName  = "/partner.v1.PartnerService/ListPartnerSettlementRules"
+	PartnerService_CreatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/CreatePartnerSettlementRule"
+	PartnerService_UpdatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -47,6 +50,9 @@ type PartnerServiceClient interface {
 	ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*PartnerContractListReply, error)
 	CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
 	UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
+	ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleListReply, error)
+	CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
+	UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
 }
 
 type partnerServiceClient struct {
@@ -167,6 +173,36 @@ func (c *partnerServiceClient) UpdatePartnerContract(ctx context.Context, in *Up
 	return out, nil
 }
 
+func (c *partnerServiceClient) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerSettlementRuleListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerSettlementRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerSettlementRuleReply)
+	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerSettlementRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerSettlementRuleReply)
+	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerSettlementRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
@@ -182,6 +218,9 @@ type PartnerServiceServer interface {
 	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
 	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
 	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
+	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
+	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
+	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -224,6 +263,15 @@ func (UnimplementedPartnerServiceServer) CreatePartnerContract(context.Context, 
 }
 func (UnimplementedPartnerServiceServer) UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerContract not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerSettlementRules not implemented")
+}
+func (UnimplementedPartnerServiceServer) CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePartnerSettlementRule not implemented")
+}
+func (UnimplementedPartnerServiceServer) UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerSettlementRule not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -444,6 +492,60 @@ func _PartnerService_UpdatePartnerContract_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ListPartnerSettlementRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerSettlementRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerSettlementRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerSettlementRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerSettlementRules(ctx, req.(*ListPartnerSettlementRulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_CreatePartnerSettlementRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePartnerSettlementRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).CreatePartnerSettlementRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_CreatePartnerSettlementRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).CreatePartnerSettlementRule(ctx, req.(*CreatePartnerSettlementRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_UpdatePartnerSettlementRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePartnerSettlementRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).UpdatePartnerSettlementRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_UpdatePartnerSettlementRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).UpdatePartnerSettlementRule(ctx, req.(*UpdatePartnerSettlementRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +596,18 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartnerContract",
 			Handler:    _PartnerService_UpdatePartnerContract_Handler,
+		},
+		{
+			MethodName: "ListPartnerSettlementRules",
+			Handler:    _PartnerService_ListPartnerSettlementRules_Handler,
+		},
+		{
+			MethodName: "CreatePartnerSettlementRule",
+			Handler:    _PartnerService_CreatePartnerSettlementRule_Handler,
+		},
+		{
+			MethodName: "UpdatePartnerSettlementRule",
+			Handler:    _PartnerService_UpdatePartnerSettlementRule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

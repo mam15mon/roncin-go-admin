@@ -17,19 +17,21 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
 // PartnerRoleQuery is the builder for querying PartnerRole entities.
 type PartnerRoleQuery struct {
 	config
-	ctx          *QueryContext
-	order        []partnerrole.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.PartnerRole
-	withPartner  *PartnerQuery
-	withAccounts *PartnerAccountQuery
-	modifiers    []func(*sql.Selector)
+	ctx                 *QueryContext
+	order               []partnerrole.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.PartnerRole
+	withPartner         *PartnerQuery
+	withAccounts        *PartnerAccountQuery
+	withSettlementRules *PartnerSettlementRuleQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (_q *PartnerRoleQuery) QueryAccounts() *PartnerAccountQuery {
 			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, selector),
 			sqlgraph.To(partneraccount.Table, partneraccount.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.AccountsTable, partnerrole.AccountsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySettlementRules chains the current query on the "settlement_rules" edge.
+func (_q *PartnerRoleQuery) QuerySettlementRules() *PartnerSettlementRuleQuery {
+	query := (&PartnerSettlementRuleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerrole.Table, partnerrole.FieldID, selector),
+			sqlgraph.To(partnersettlementrule.Table, partnersettlementrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partnerrole.SettlementRulesTable, partnerrole.SettlementRulesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -297,13 +321,14 @@ func (_q *PartnerRoleQuery) Clone() *PartnerRoleQuery {
 		return nil
 	}
 	return &PartnerRoleQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]partnerrole.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.PartnerRole{}, _q.predicates...),
-		withPartner:  _q.withPartner.Clone(),
-		withAccounts: _q.withAccounts.Clone(),
+		config:              _q.config,
+		ctx:                 _q.ctx.Clone(),
+		order:               append([]partnerrole.OrderOption{}, _q.order...),
+		inters:              append([]Interceptor{}, _q.inters...),
+		predicates:          append([]predicate.PartnerRole{}, _q.predicates...),
+		withPartner:         _q.withPartner.Clone(),
+		withAccounts:        _q.withAccounts.Clone(),
+		withSettlementRules: _q.withSettlementRules.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *PartnerRoleQuery) WithAccounts(opts ...func(*PartnerAccountQuery)) *Pa
 		opt(query)
 	}
 	_q.withAccounts = query
+	return _q
+}
+
+// WithSettlementRules tells the query-builder to eager-load the nodes that are connected to
+// the "settlement_rules" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerRoleQuery) WithSettlementRules(opts ...func(*PartnerSettlementRuleQuery)) *PartnerRoleQuery {
+	query := (&PartnerSettlementRuleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSettlementRules = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *PartnerRoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*PartnerRole{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withPartner != nil,
 			_q.withAccounts != nil,
+			_q.withSettlementRules != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -446,6 +483,15 @@ func (_q *PartnerRoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadAccounts(ctx, query, nodes,
 			func(n *PartnerRole) { n.Edges.Accounts = []*PartnerAccount{} },
 			func(n *PartnerRole, e *PartnerAccount) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSettlementRules; query != nil {
+		if err := _q.loadSettlementRules(ctx, query, nodes,
+			func(n *PartnerRole) { n.Edges.SettlementRules = []*PartnerSettlementRule{} },
+			func(n *PartnerRole, e *PartnerSettlementRule) {
+				n.Edges.SettlementRules = append(n.Edges.SettlementRules, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -496,6 +542,36 @@ func (_q *PartnerRoleQuery) loadAccounts(ctx context.Context, query *PartnerAcco
 	}
 	query.Where(predicate.PartnerAccount(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partnerrole.AccountsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerRoleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_role_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerRoleQuery) loadSettlementRules(ctx context.Context, query *PartnerSettlementRuleQuery, nodes []*PartnerRole, init func(*PartnerRole), assign func(*PartnerRole, *PartnerSettlementRule)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*PartnerRole)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnersettlementrule.FieldPartnerRoleID)
+	}
+	query.Where(predicate.PartnerSettlementRule(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partnerrole.SettlementRulesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

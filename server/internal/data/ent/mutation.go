@@ -27,6 +27,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -60,6 +61,7 @@ const (
 	TypePartnerContact        = "PartnerContact"
 	TypePartnerContract       = "PartnerContract"
 	TypePartnerRole           = "PartnerRole"
+	TypePartnerSettlementRule = "PartnerSettlementRule"
 	TypePermission            = "Permission"
 	TypeRole                  = "Role"
 	TypeRoleAssignment        = "RoleAssignment"
@@ -13137,26 +13139,29 @@ func (m *PartnerContractMutation) ResetEdge(name string) error {
 // PartnerRoleMutation represents an operation that mutates the PartnerRole nodes in the graph.
 type PartnerRoleMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	created_at       *time.Time
-	updated_at       *time.Time
-	role_type        *partnerrole.RoleType
-	enabled          *bool
-	blacklisted      *bool
-	blacklist_reason *string
-	blacklisted_at   *time.Time
-	blacklisted_by   *uuid.UUID
-	clearedFields    map[string]struct{}
-	partner          *uuid.UUID
-	clearedpartner   bool
-	accounts         map[uuid.UUID]struct{}
-	removedaccounts  map[uuid.UUID]struct{}
-	clearedaccounts  bool
-	done             bool
-	oldValue         func(context.Context) (*PartnerRole, error)
-	predicates       []predicate.PartnerRole
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	role_type               *partnerrole.RoleType
+	enabled                 *bool
+	blacklisted             *bool
+	blacklist_reason        *string
+	blacklisted_at          *time.Time
+	blacklisted_by          *uuid.UUID
+	clearedFields           map[string]struct{}
+	partner                 *uuid.UUID
+	clearedpartner          bool
+	accounts                map[uuid.UUID]struct{}
+	removedaccounts         map[uuid.UUID]struct{}
+	clearedaccounts         bool
+	settlement_rules        map[uuid.UUID]struct{}
+	removedsettlement_rules map[uuid.UUID]struct{}
+	clearedsettlement_rules bool
+	done                    bool
+	oldValue                func(context.Context) (*PartnerRole, error)
+	predicates              []predicate.PartnerRole
 }
 
 var _ ent.Mutation = (*PartnerRoleMutation)(nil)
@@ -13707,6 +13712,60 @@ func (m *PartnerRoleMutation) ResetAccounts() {
 	m.removedaccounts = nil
 }
 
+// AddSettlementRuleIDs adds the "settlement_rules" edge to the PartnerSettlementRule entity by ids.
+func (m *PartnerRoleMutation) AddSettlementRuleIDs(ids ...uuid.UUID) {
+	if m.settlement_rules == nil {
+		m.settlement_rules = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.settlement_rules[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSettlementRules clears the "settlement_rules" edge to the PartnerSettlementRule entity.
+func (m *PartnerRoleMutation) ClearSettlementRules() {
+	m.clearedsettlement_rules = true
+}
+
+// SettlementRulesCleared reports if the "settlement_rules" edge to the PartnerSettlementRule entity was cleared.
+func (m *PartnerRoleMutation) SettlementRulesCleared() bool {
+	return m.clearedsettlement_rules
+}
+
+// RemoveSettlementRuleIDs removes the "settlement_rules" edge to the PartnerSettlementRule entity by IDs.
+func (m *PartnerRoleMutation) RemoveSettlementRuleIDs(ids ...uuid.UUID) {
+	if m.removedsettlement_rules == nil {
+		m.removedsettlement_rules = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.settlement_rules, ids[i])
+		m.removedsettlement_rules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSettlementRules returns the removed IDs of the "settlement_rules" edge to the PartnerSettlementRule entity.
+func (m *PartnerRoleMutation) RemovedSettlementRulesIDs() (ids []uuid.UUID) {
+	for id := range m.removedsettlement_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SettlementRulesIDs returns the "settlement_rules" edge IDs in the mutation.
+func (m *PartnerRoleMutation) SettlementRulesIDs() (ids []uuid.UUID) {
+	for id := range m.settlement_rules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSettlementRules resets all changes to the "settlement_rules" edge.
+func (m *PartnerRoleMutation) ResetSettlementRules() {
+	m.settlement_rules = nil
+	m.clearedsettlement_rules = false
+	m.removedsettlement_rules = nil
+}
+
 // Where appends a list predicates to the PartnerRoleMutation builder.
 func (m *PartnerRoleMutation) Where(ps ...predicate.PartnerRole) {
 	m.predicates = append(m.predicates, ps...)
@@ -13997,12 +14056,15 @@ func (m *PartnerRoleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerRoleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.partner != nil {
 		edges = append(edges, partnerrole.EdgePartner)
 	}
 	if m.accounts != nil {
 		edges = append(edges, partnerrole.EdgeAccounts)
+	}
+	if m.settlement_rules != nil {
+		edges = append(edges, partnerrole.EdgeSettlementRules)
 	}
 	return edges
 }
@@ -14021,15 +14083,24 @@ func (m *PartnerRoleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partnerrole.EdgeSettlementRules:
+		ids := make([]ent.Value, 0, len(m.settlement_rules))
+		for id := range m.settlement_rules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerRoleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedaccounts != nil {
 		edges = append(edges, partnerrole.EdgeAccounts)
+	}
+	if m.removedsettlement_rules != nil {
+		edges = append(edges, partnerrole.EdgeSettlementRules)
 	}
 	return edges
 }
@@ -14044,18 +14115,27 @@ func (m *PartnerRoleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partnerrole.EdgeSettlementRules:
+		ids := make([]ent.Value, 0, len(m.removedsettlement_rules))
+		for id := range m.removedsettlement_rules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerRoleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedpartner {
 		edges = append(edges, partnerrole.EdgePartner)
 	}
 	if m.clearedaccounts {
 		edges = append(edges, partnerrole.EdgeAccounts)
+	}
+	if m.clearedsettlement_rules {
+		edges = append(edges, partnerrole.EdgeSettlementRules)
 	}
 	return edges
 }
@@ -14068,6 +14148,8 @@ func (m *PartnerRoleMutation) EdgeCleared(name string) bool {
 		return m.clearedpartner
 	case partnerrole.EdgeAccounts:
 		return m.clearedaccounts
+	case partnerrole.EdgeSettlementRules:
+		return m.clearedsettlement_rules
 	}
 	return false
 }
@@ -14093,8 +14175,1014 @@ func (m *PartnerRoleMutation) ResetEdge(name string) error {
 	case partnerrole.EdgeAccounts:
 		m.ResetAccounts()
 		return nil
+	case partnerrole.EdgeSettlementRules:
+		m.ResetSettlementRules()
+		return nil
 	}
 	return fmt.Errorf("unknown PartnerRole edge %s", name)
+}
+
+// PartnerSettlementRuleMutation represents an operation that mutates the PartnerSettlementRule nodes in the graph.
+type PartnerSettlementRuleMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	statement_mode           *partnersettlementrule.StatementMode
+	settlement_method        *partnersettlementrule.SettlementMethod
+	settlement_day           *int
+	addsettlement_day        *int
+	settlement_cycle_days    *int
+	addsettlement_cycle_days *int
+	settlement_base          *partnersettlementrule.SettlementBase
+	settlement_currency      *string
+	is_active                *bool
+	clearedFields            map[string]struct{}
+	partner_role             *uuid.UUID
+	clearedpartner_role      bool
+	done                     bool
+	oldValue                 func(context.Context) (*PartnerSettlementRule, error)
+	predicates               []predicate.PartnerSettlementRule
+}
+
+var _ ent.Mutation = (*PartnerSettlementRuleMutation)(nil)
+
+// partnersettlementruleOption allows management of the mutation configuration using functional options.
+type partnersettlementruleOption func(*PartnerSettlementRuleMutation)
+
+// newPartnerSettlementRuleMutation creates new mutation for the PartnerSettlementRule entity.
+func newPartnerSettlementRuleMutation(c config, op Op, opts ...partnersettlementruleOption) *PartnerSettlementRuleMutation {
+	m := &PartnerSettlementRuleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePartnerSettlementRule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPartnerSettlementRuleID sets the ID field of the mutation.
+func withPartnerSettlementRuleID(id uuid.UUID) partnersettlementruleOption {
+	return func(m *PartnerSettlementRuleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PartnerSettlementRule
+		)
+		m.oldValue = func(ctx context.Context) (*PartnerSettlementRule, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PartnerSettlementRule.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPartnerSettlementRule sets the old PartnerSettlementRule of the mutation.
+func withPartnerSettlementRule(node *PartnerSettlementRule) partnersettlementruleOption {
+	return func(m *PartnerSettlementRuleMutation) {
+		m.oldValue = func(context.Context) (*PartnerSettlementRule, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PartnerSettlementRuleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PartnerSettlementRuleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PartnerSettlementRule entities.
+func (m *PartnerSettlementRuleMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PartnerSettlementRuleMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PartnerSettlementRuleMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PartnerSettlementRule.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PartnerSettlementRuleMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PartnerSettlementRuleMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PartnerSettlementRuleMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PartnerSettlementRuleMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PartnerSettlementRuleMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PartnerSettlementRuleMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetPartnerRoleID sets the "partner_role_id" field.
+func (m *PartnerSettlementRuleMutation) SetPartnerRoleID(u uuid.UUID) {
+	m.partner_role = &u
+}
+
+// PartnerRoleID returns the value of the "partner_role_id" field in the mutation.
+func (m *PartnerSettlementRuleMutation) PartnerRoleID() (r uuid.UUID, exists bool) {
+	v := m.partner_role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartnerRoleID returns the old "partner_role_id" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldPartnerRoleID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartnerRoleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartnerRoleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartnerRoleID: %w", err)
+	}
+	return oldValue.PartnerRoleID, nil
+}
+
+// ResetPartnerRoleID resets all changes to the "partner_role_id" field.
+func (m *PartnerSettlementRuleMutation) ResetPartnerRoleID() {
+	m.partner_role = nil
+}
+
+// SetStatementMode sets the "statement_mode" field.
+func (m *PartnerSettlementRuleMutation) SetStatementMode(pm partnersettlementrule.StatementMode) {
+	m.statement_mode = &pm
+}
+
+// StatementMode returns the value of the "statement_mode" field in the mutation.
+func (m *PartnerSettlementRuleMutation) StatementMode() (r partnersettlementrule.StatementMode, exists bool) {
+	v := m.statement_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatementMode returns the old "statement_mode" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldStatementMode(ctx context.Context) (v partnersettlementrule.StatementMode, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatementMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatementMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatementMode: %w", err)
+	}
+	return oldValue.StatementMode, nil
+}
+
+// ResetStatementMode resets all changes to the "statement_mode" field.
+func (m *PartnerSettlementRuleMutation) ResetStatementMode() {
+	m.statement_mode = nil
+}
+
+// SetSettlementMethod sets the "settlement_method" field.
+func (m *PartnerSettlementRuleMutation) SetSettlementMethod(pm partnersettlementrule.SettlementMethod) {
+	m.settlement_method = &pm
+}
+
+// SettlementMethod returns the value of the "settlement_method" field in the mutation.
+func (m *PartnerSettlementRuleMutation) SettlementMethod() (r partnersettlementrule.SettlementMethod, exists bool) {
+	v := m.settlement_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementMethod returns the old "settlement_method" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldSettlementMethod(ctx context.Context) (v partnersettlementrule.SettlementMethod, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementMethod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementMethod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementMethod: %w", err)
+	}
+	return oldValue.SettlementMethod, nil
+}
+
+// ResetSettlementMethod resets all changes to the "settlement_method" field.
+func (m *PartnerSettlementRuleMutation) ResetSettlementMethod() {
+	m.settlement_method = nil
+}
+
+// SetSettlementDay sets the "settlement_day" field.
+func (m *PartnerSettlementRuleMutation) SetSettlementDay(i int) {
+	m.settlement_day = &i
+	m.addsettlement_day = nil
+}
+
+// SettlementDay returns the value of the "settlement_day" field in the mutation.
+func (m *PartnerSettlementRuleMutation) SettlementDay() (r int, exists bool) {
+	v := m.settlement_day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementDay returns the old "settlement_day" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldSettlementDay(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementDay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementDay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementDay: %w", err)
+	}
+	return oldValue.SettlementDay, nil
+}
+
+// AddSettlementDay adds i to the "settlement_day" field.
+func (m *PartnerSettlementRuleMutation) AddSettlementDay(i int) {
+	if m.addsettlement_day != nil {
+		*m.addsettlement_day += i
+	} else {
+		m.addsettlement_day = &i
+	}
+}
+
+// AddedSettlementDay returns the value that was added to the "settlement_day" field in this mutation.
+func (m *PartnerSettlementRuleMutation) AddedSettlementDay() (r int, exists bool) {
+	v := m.addsettlement_day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSettlementDay clears the value of the "settlement_day" field.
+func (m *PartnerSettlementRuleMutation) ClearSettlementDay() {
+	m.settlement_day = nil
+	m.addsettlement_day = nil
+	m.clearedFields[partnersettlementrule.FieldSettlementDay] = struct{}{}
+}
+
+// SettlementDayCleared returns if the "settlement_day" field was cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) SettlementDayCleared() bool {
+	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementDay]
+	return ok
+}
+
+// ResetSettlementDay resets all changes to the "settlement_day" field.
+func (m *PartnerSettlementRuleMutation) ResetSettlementDay() {
+	m.settlement_day = nil
+	m.addsettlement_day = nil
+	delete(m.clearedFields, partnersettlementrule.FieldSettlementDay)
+}
+
+// SetSettlementCycleDays sets the "settlement_cycle_days" field.
+func (m *PartnerSettlementRuleMutation) SetSettlementCycleDays(i int) {
+	m.settlement_cycle_days = &i
+	m.addsettlement_cycle_days = nil
+}
+
+// SettlementCycleDays returns the value of the "settlement_cycle_days" field in the mutation.
+func (m *PartnerSettlementRuleMutation) SettlementCycleDays() (r int, exists bool) {
+	v := m.settlement_cycle_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementCycleDays returns the old "settlement_cycle_days" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldSettlementCycleDays(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementCycleDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementCycleDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementCycleDays: %w", err)
+	}
+	return oldValue.SettlementCycleDays, nil
+}
+
+// AddSettlementCycleDays adds i to the "settlement_cycle_days" field.
+func (m *PartnerSettlementRuleMutation) AddSettlementCycleDays(i int) {
+	if m.addsettlement_cycle_days != nil {
+		*m.addsettlement_cycle_days += i
+	} else {
+		m.addsettlement_cycle_days = &i
+	}
+}
+
+// AddedSettlementCycleDays returns the value that was added to the "settlement_cycle_days" field in this mutation.
+func (m *PartnerSettlementRuleMutation) AddedSettlementCycleDays() (r int, exists bool) {
+	v := m.addsettlement_cycle_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSettlementCycleDays clears the value of the "settlement_cycle_days" field.
+func (m *PartnerSettlementRuleMutation) ClearSettlementCycleDays() {
+	m.settlement_cycle_days = nil
+	m.addsettlement_cycle_days = nil
+	m.clearedFields[partnersettlementrule.FieldSettlementCycleDays] = struct{}{}
+}
+
+// SettlementCycleDaysCleared returns if the "settlement_cycle_days" field was cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) SettlementCycleDaysCleared() bool {
+	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementCycleDays]
+	return ok
+}
+
+// ResetSettlementCycleDays resets all changes to the "settlement_cycle_days" field.
+func (m *PartnerSettlementRuleMutation) ResetSettlementCycleDays() {
+	m.settlement_cycle_days = nil
+	m.addsettlement_cycle_days = nil
+	delete(m.clearedFields, partnersettlementrule.FieldSettlementCycleDays)
+}
+
+// SetSettlementBase sets the "settlement_base" field.
+func (m *PartnerSettlementRuleMutation) SetSettlementBase(pb partnersettlementrule.SettlementBase) {
+	m.settlement_base = &pb
+}
+
+// SettlementBase returns the value of the "settlement_base" field in the mutation.
+func (m *PartnerSettlementRuleMutation) SettlementBase() (r partnersettlementrule.SettlementBase, exists bool) {
+	v := m.settlement_base
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementBase returns the old "settlement_base" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldSettlementBase(ctx context.Context) (v *partnersettlementrule.SettlementBase, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementBase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementBase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementBase: %w", err)
+	}
+	return oldValue.SettlementBase, nil
+}
+
+// ClearSettlementBase clears the value of the "settlement_base" field.
+func (m *PartnerSettlementRuleMutation) ClearSettlementBase() {
+	m.settlement_base = nil
+	m.clearedFields[partnersettlementrule.FieldSettlementBase] = struct{}{}
+}
+
+// SettlementBaseCleared returns if the "settlement_base" field was cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) SettlementBaseCleared() bool {
+	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementBase]
+	return ok
+}
+
+// ResetSettlementBase resets all changes to the "settlement_base" field.
+func (m *PartnerSettlementRuleMutation) ResetSettlementBase() {
+	m.settlement_base = nil
+	delete(m.clearedFields, partnersettlementrule.FieldSettlementBase)
+}
+
+// SetSettlementCurrency sets the "settlement_currency" field.
+func (m *PartnerSettlementRuleMutation) SetSettlementCurrency(s string) {
+	m.settlement_currency = &s
+}
+
+// SettlementCurrency returns the value of the "settlement_currency" field in the mutation.
+func (m *PartnerSettlementRuleMutation) SettlementCurrency() (r string, exists bool) {
+	v := m.settlement_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementCurrency returns the old "settlement_currency" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldSettlementCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementCurrency: %w", err)
+	}
+	return oldValue.SettlementCurrency, nil
+}
+
+// ResetSettlementCurrency resets all changes to the "settlement_currency" field.
+func (m *PartnerSettlementRuleMutation) ResetSettlementCurrency() {
+	m.settlement_currency = nil
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *PartnerSettlementRuleMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *PartnerSettlementRuleMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the PartnerSettlementRule entity.
+// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerSettlementRuleMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *PartnerSettlementRuleMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// ClearPartnerRole clears the "partner_role" edge to the PartnerRole entity.
+func (m *PartnerSettlementRuleMutation) ClearPartnerRole() {
+	m.clearedpartner_role = true
+	m.clearedFields[partnersettlementrule.FieldPartnerRoleID] = struct{}{}
+}
+
+// PartnerRoleCleared reports if the "partner_role" edge to the PartnerRole entity was cleared.
+func (m *PartnerSettlementRuleMutation) PartnerRoleCleared() bool {
+	return m.clearedpartner_role
+}
+
+// PartnerRoleIDs returns the "partner_role" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartnerRoleID instead. It exists only for internal usage by the builders.
+func (m *PartnerSettlementRuleMutation) PartnerRoleIDs() (ids []uuid.UUID) {
+	if id := m.partner_role; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPartnerRole resets all changes to the "partner_role" edge.
+func (m *PartnerSettlementRuleMutation) ResetPartnerRole() {
+	m.partner_role = nil
+	m.clearedpartner_role = false
+}
+
+// Where appends a list predicates to the PartnerSettlementRuleMutation builder.
+func (m *PartnerSettlementRuleMutation) Where(ps ...predicate.PartnerSettlementRule) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PartnerSettlementRuleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PartnerSettlementRuleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PartnerSettlementRule, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PartnerSettlementRuleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PartnerSettlementRuleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PartnerSettlementRule).
+func (m *PartnerSettlementRuleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PartnerSettlementRuleMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, partnersettlementrule.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, partnersettlementrule.FieldUpdatedAt)
+	}
+	if m.partner_role != nil {
+		fields = append(fields, partnersettlementrule.FieldPartnerRoleID)
+	}
+	if m.statement_mode != nil {
+		fields = append(fields, partnersettlementrule.FieldStatementMode)
+	}
+	if m.settlement_method != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementMethod)
+	}
+	if m.settlement_day != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementDay)
+	}
+	if m.settlement_cycle_days != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
+	}
+	if m.settlement_base != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementBase)
+	}
+	if m.settlement_currency != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementCurrency)
+	}
+	if m.is_active != nil {
+		fields = append(fields, partnersettlementrule.FieldIsActive)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PartnerSettlementRuleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case partnersettlementrule.FieldCreatedAt:
+		return m.CreatedAt()
+	case partnersettlementrule.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case partnersettlementrule.FieldPartnerRoleID:
+		return m.PartnerRoleID()
+	case partnersettlementrule.FieldStatementMode:
+		return m.StatementMode()
+	case partnersettlementrule.FieldSettlementMethod:
+		return m.SettlementMethod()
+	case partnersettlementrule.FieldSettlementDay:
+		return m.SettlementDay()
+	case partnersettlementrule.FieldSettlementCycleDays:
+		return m.SettlementCycleDays()
+	case partnersettlementrule.FieldSettlementBase:
+		return m.SettlementBase()
+	case partnersettlementrule.FieldSettlementCurrency:
+		return m.SettlementCurrency()
+	case partnersettlementrule.FieldIsActive:
+		return m.IsActive()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PartnerSettlementRuleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case partnersettlementrule.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case partnersettlementrule.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case partnersettlementrule.FieldPartnerRoleID:
+		return m.OldPartnerRoleID(ctx)
+	case partnersettlementrule.FieldStatementMode:
+		return m.OldStatementMode(ctx)
+	case partnersettlementrule.FieldSettlementMethod:
+		return m.OldSettlementMethod(ctx)
+	case partnersettlementrule.FieldSettlementDay:
+		return m.OldSettlementDay(ctx)
+	case partnersettlementrule.FieldSettlementCycleDays:
+		return m.OldSettlementCycleDays(ctx)
+	case partnersettlementrule.FieldSettlementBase:
+		return m.OldSettlementBase(ctx)
+	case partnersettlementrule.FieldSettlementCurrency:
+		return m.OldSettlementCurrency(ctx)
+	case partnersettlementrule.FieldIsActive:
+		return m.OldIsActive(ctx)
+	}
+	return nil, fmt.Errorf("unknown PartnerSettlementRule field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartnerSettlementRuleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case partnersettlementrule.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case partnersettlementrule.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case partnersettlementrule.FieldPartnerRoleID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartnerRoleID(v)
+		return nil
+	case partnersettlementrule.FieldStatementMode:
+		v, ok := value.(partnersettlementrule.StatementMode)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatementMode(v)
+		return nil
+	case partnersettlementrule.FieldSettlementMethod:
+		v, ok := value.(partnersettlementrule.SettlementMethod)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementMethod(v)
+		return nil
+	case partnersettlementrule.FieldSettlementDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementDay(v)
+		return nil
+	case partnersettlementrule.FieldSettlementCycleDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementCycleDays(v)
+		return nil
+	case partnersettlementrule.FieldSettlementBase:
+		v, ok := value.(partnersettlementrule.SettlementBase)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementBase(v)
+		return nil
+	case partnersettlementrule.FieldSettlementCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementCurrency(v)
+		return nil
+	case partnersettlementrule.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PartnerSettlementRuleMutation) AddedFields() []string {
+	var fields []string
+	if m.addsettlement_day != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementDay)
+	}
+	if m.addsettlement_cycle_days != nil {
+		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PartnerSettlementRuleMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case partnersettlementrule.FieldSettlementDay:
+		return m.AddedSettlementDay()
+	case partnersettlementrule.FieldSettlementCycleDays:
+		return m.AddedSettlementCycleDays()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartnerSettlementRuleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case partnersettlementrule.FieldSettlementDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSettlementDay(v)
+		return nil
+	case partnersettlementrule.FieldSettlementCycleDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSettlementCycleDays(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PartnerSettlementRuleMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(partnersettlementrule.FieldSettlementDay) {
+		fields = append(fields, partnersettlementrule.FieldSettlementDay)
+	}
+	if m.FieldCleared(partnersettlementrule.FieldSettlementCycleDays) {
+		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
+	}
+	if m.FieldCleared(partnersettlementrule.FieldSettlementBase) {
+		fields = append(fields, partnersettlementrule.FieldSettlementBase)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PartnerSettlementRuleMutation) ClearField(name string) error {
+	switch name {
+	case partnersettlementrule.FieldSettlementDay:
+		m.ClearSettlementDay()
+		return nil
+	case partnersettlementrule.FieldSettlementCycleDays:
+		m.ClearSettlementCycleDays()
+		return nil
+	case partnersettlementrule.FieldSettlementBase:
+		m.ClearSettlementBase()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PartnerSettlementRuleMutation) ResetField(name string) error {
+	switch name {
+	case partnersettlementrule.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case partnersettlementrule.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case partnersettlementrule.FieldPartnerRoleID:
+		m.ResetPartnerRoleID()
+		return nil
+	case partnersettlementrule.FieldStatementMode:
+		m.ResetStatementMode()
+		return nil
+	case partnersettlementrule.FieldSettlementMethod:
+		m.ResetSettlementMethod()
+		return nil
+	case partnersettlementrule.FieldSettlementDay:
+		m.ResetSettlementDay()
+		return nil
+	case partnersettlementrule.FieldSettlementCycleDays:
+		m.ResetSettlementCycleDays()
+		return nil
+	case partnersettlementrule.FieldSettlementBase:
+		m.ResetSettlementBase()
+		return nil
+	case partnersettlementrule.FieldSettlementCurrency:
+		m.ResetSettlementCurrency()
+		return nil
+	case partnersettlementrule.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PartnerSettlementRuleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.partner_role != nil {
+		edges = append(edges, partnersettlementrule.EdgePartnerRole)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PartnerSettlementRuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case partnersettlementrule.EdgePartnerRole:
+		if id := m.partner_role; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PartnerSettlementRuleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PartnerSettlementRuleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedpartner_role {
+		edges = append(edges, partnersettlementrule.EdgePartnerRole)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PartnerSettlementRuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case partnersettlementrule.EdgePartnerRole:
+		return m.clearedpartner_role
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PartnerSettlementRuleMutation) ClearEdge(name string) error {
+	switch name {
+	case partnersettlementrule.EdgePartnerRole:
+		m.ClearPartnerRole()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PartnerSettlementRuleMutation) ResetEdge(name string) error {
+	switch name {
+	case partnersettlementrule.EdgePartnerRole:
+		m.ResetPartnerRole()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerSettlementRule edge %s", name)
 }
 
 // PermissionMutation represents an operation that mutates the Permission nodes in the graph.

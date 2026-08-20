@@ -49,9 +49,11 @@ type PartnerRoleEdges struct {
 	Partner *Partner `json:"partner,omitempty"`
 	// Accounts holds the value of the accounts edge.
 	Accounts []*PartnerAccount `json:"accounts,omitempty"`
+	// SettlementRules holds the value of the settlement_rules edge.
+	SettlementRules []*PartnerSettlementRule `json:"settlement_rules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // PartnerOrErr returns the Partner value or an error if the edge
@@ -72,6 +74,15 @@ func (e PartnerRoleEdges) AccountsOrErr() ([]*PartnerAccount, error) {
 		return e.Accounts, nil
 	}
 	return nil, &NotLoadedError{edge: "accounts"}
+}
+
+// SettlementRulesOrErr returns the SettlementRules value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerRoleEdges) SettlementRulesOrErr() ([]*PartnerSettlementRule, error) {
+	if e.loadedTypes[2] {
+		return e.SettlementRules, nil
+	}
+	return nil, &NotLoadedError{edge: "settlement_rules"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -187,6 +198,11 @@ func (_m *PartnerRole) QueryPartner() *PartnerQuery {
 // QueryAccounts queries the "accounts" edge of the PartnerRole entity.
 func (_m *PartnerRole) QueryAccounts() *PartnerAccountQuery {
 	return NewPartnerRoleClient(_m.config).QueryAccounts(_m)
+}
+
+// QuerySettlementRules queries the "settlement_rules" edge of the PartnerRole entity.
+func (_m *PartnerRole) QuerySettlementRules() *PartnerSettlementRuleQuery {
+	return NewPartnerRoleClient(_m.config).QuerySettlementRules(_m)
 }
 
 // Update returns a builder for updating this PartnerRole.

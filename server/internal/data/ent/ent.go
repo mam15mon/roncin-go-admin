@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -107,6 +108,7 @@ func checkColumn(t, c string) error {
 			partnercontact.Table:        partnercontact.ValidColumn,
 			partnercontract.Table:       partnercontract.ValidColumn,
 			partnerrole.Table:           partnerrole.ValidColumn,
+			partnersettlementrule.Table: partnersettlementrule.ValidColumn,
 			permission.Table:            permission.ValidColumn,
 			role.Table:                  role.ValidColumn,
 			roleassignment.Table:        roleassignment.ValidColumn,

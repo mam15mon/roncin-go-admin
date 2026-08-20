@@ -924,6 +924,94 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerContractReply'
+    /api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerSettlementRules
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: roleType
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleListReply'
+        post:
+            tags:
+                - PartnerService
+            operationId: PartnerService_CreatePartnerSettlementRule
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: roleType
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.CreatePartnerSettlementRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleReply'
+    /api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules/{id}:
+        put:
+            tags:
+                - PartnerService
+            operationId: PartnerService_UpdatePartnerSettlementRule
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: roleType
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.UpdatePartnerSettlementRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleReply'
 components:
     schemas:
         admin.v1.AdminAuditLog:
@@ -2054,6 +2142,20 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+        partner.v1.CreatePartnerSettlementRuleRequest:
+            required:
+                - partnerId
+                - roleType
+                - rule
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                roleType:
+                    type: integer
+                    format: enum
+                rule:
+                    $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
         partner.v1.Partner:
             type: object
             properties:
@@ -2358,6 +2460,92 @@ components:
                     format: enum
                 enabled:
                     type: boolean
+        partner.v1.PartnerSettlementRule:
+            type: object
+            properties:
+                id:
+                    type: string
+                partnerRoleId:
+                    type: string
+                statementMode:
+                    type: integer
+                    format: enum
+                settlementMethod:
+                    type: integer
+                    format: enum
+                settlementDay:
+                    type: integer
+                    format: int32
+                settlementCycleDays:
+                    type: integer
+                    format: int32
+                settlementBase:
+                    type: integer
+                    format: enum
+                settlementCurrency:
+                    type: string
+                isActive:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerSettlementRuleInput:
+            required:
+                - statementMode
+                - settlementMethod
+                - settlementCurrency
+            type: object
+            properties:
+                statementMode:
+                    type: integer
+                    format: enum
+                settlementMethod:
+                    type: integer
+                    format: enum
+                settlementDay:
+                    type: integer
+                    format: int32
+                settlementCycleDays:
+                    type: integer
+                    format: int32
+                settlementBase:
+                    type: integer
+                    format: enum
+                settlementCurrency:
+                    type: string
+                isActive:
+                    type: boolean
+        partner.v1.PartnerSettlementRuleListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerSettlementRule'
+                traceId:
+                    type: string
+        partner.v1.PartnerSettlementRuleReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.PartnerSettlementRule'
+                traceId:
+                    type: string
         partner.v1.SetSupplierBlacklistRequest:
             required:
                 - id
@@ -2447,6 +2635,23 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+        partner.v1.UpdatePartnerSettlementRuleRequest:
+            required:
+                - partnerId
+                - roleType
+                - id
+                - rule
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                roleType:
+                    type: integer
+                    format: enum
+                id:
+                    type: string
+                rule:
+                    $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
 tags:
     - name: AdminService
     - name: AuthService

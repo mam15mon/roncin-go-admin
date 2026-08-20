@@ -72,6 +72,24 @@ service PartnerService {
       body: "*"
     };
   }
+
+  rpc ListPartnerSettlementRules(ListPartnerSettlementRulesRequest) returns (PartnerSettlementRuleListReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"};
+  }
+
+  rpc CreatePartnerSettlementRule(CreatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePartnerSettlementRule(UpdatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+    option (google.api.http) = {
+      put: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}"
+      body: "*"
+    };
+  }
 }
 
 enum PartnerRoleType {
@@ -326,6 +344,89 @@ message PartnerContractListReply {
   int32 code = 2;
   string message = 3;
   repeated PartnerContract data = 4;
+  string trace_id = 5;
+}
+
+enum PartnerStatementMode {
+  PARTNER_STATEMENT_MODE_UNSPECIFIED = 0;
+  PARTNER_STATEMENT_MODE_SINGLE = 1;
+  PARTNER_STATEMENT_MODE_MULTI = 2;
+}
+
+enum PartnerSettlementMethod {
+  PARTNER_SETTLEMENT_METHOD_UNSPECIFIED = 0;
+  PARTNER_SETTLEMENT_METHOD_BY_TICKET = 1;
+  PARTNER_SETTLEMENT_METHOD_MONTHLY = 2;
+  PARTNER_SETTLEMENT_METHOD_WEEKLY = 3;
+  PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY = 4;
+  PARTNER_SETTLEMENT_METHOD_BI_MONTHLY = 5;
+  PARTNER_SETTLEMENT_METHOD_QUARTERLY = 6;
+  PARTNER_SETTLEMENT_METHOD_DAYS_45 = 7;
+  PARTNER_SETTLEMENT_METHOD_PREPAID = 8;
+}
+
+enum PartnerSettlementBase {
+  PARTNER_SETTLEMENT_BASE_UNSPECIFIED = 0;
+  PARTNER_SETTLEMENT_BASE_BILL_DATE = 1;
+  PARTNER_SETTLEMENT_BASE_SAILING_DATE = 2;
+  PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE = 3;
+}
+
+message PartnerSettlementRule {
+  string id = 1;
+  string partner_role_id = 2;
+  PartnerStatementMode statement_mode = 3;
+  PartnerSettlementMethod settlement_method = 4;
+  optional int32 settlement_day = 5;
+  optional int32 settlement_cycle_days = 6;
+  optional PartnerSettlementBase settlement_base = 7;
+  string settlement_currency = 8;
+  bool is_active = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message PartnerSettlementRuleInput {
+  PartnerStatementMode statement_mode = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerSettlementMethod settlement_method = 2 [(google.api.field_behavior) = REQUIRED];
+  optional int32 settlement_day = 3;
+  optional int32 settlement_cycle_days = 4;
+  optional PartnerSettlementBase settlement_base = 5;
+  string settlement_currency = 6 [(google.api.field_behavior) = REQUIRED];
+  bool is_active = 7;
+}
+
+message ListPartnerSettlementRulesRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerRoleType role_type = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CreatePartnerSettlementRuleRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerRoleType role_type = 2 [(google.api.field_behavior) = REQUIRED];
+  PartnerSettlementRuleInput rule = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdatePartnerSettlementRuleRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerRoleType role_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string id = 3 [(google.api.field_behavior) = REQUIRED];
+  PartnerSettlementRuleInput rule = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PartnerSettlementRuleReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerSettlementRule data = 4;
+  string trace_id = 5;
+}
+
+message PartnerSettlementRuleListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerSettlementRule data = 4;
   string trace_id = 5;
 }
 

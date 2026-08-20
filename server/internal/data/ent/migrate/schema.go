@@ -676,6 +676,51 @@ var (
 			},
 		},
 	}
+	// PartnerSettlementRulesColumns holds the columns for the "partner_settlement_rules" table.
+	PartnerSettlementRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "statement_mode", Type: field.TypeEnum, Enums: []string{"single", "multi"}},
+		{Name: "settlement_method", Type: field.TypeEnum, Enums: []string{"by_ticket", "monthly", "weekly", "semi_monthly", "bi_monthly", "quarterly", "days_45", "prepaid"}},
+		{Name: "settlement_day", Type: field.TypeInt, Nullable: true},
+		{Name: "settlement_cycle_days", Type: field.TypeInt, Nullable: true},
+		{Name: "settlement_base", Type: field.TypeEnum, Nullable: true, Enums: []string{"bill_date", "sailing_date", "arrival_date"}},
+		{Name: "settlement_currency", Type: field.TypeString, Size: 3},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "partner_role_id", Type: field.TypeUUID},
+	}
+	// PartnerSettlementRulesTable holds the schema information for the "partner_settlement_rules" table.
+	PartnerSettlementRulesTable = &schema.Table{
+		Name:       "partner_settlement_rules",
+		Columns:    PartnerSettlementRulesColumns,
+		PrimaryKey: []*schema.Column{PartnerSettlementRulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_settlement_rules_partner_roles_settlement_rules",
+				Columns:    []*schema.Column{PartnerSettlementRulesColumns[10]},
+				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnersettlementrule_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[2]},
+			},
+			{
+				Name:    "partner_settlement_rule_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[10], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
+			},
+			{
+				Name:    "partnersettlementrule_partner_role_id_is_active",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[10], PartnerSettlementRulesColumns[9]},
+			},
+		},
+	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1014,6 +1059,7 @@ var (
 		PartnerContactsTable,
 		PartnerContractsTable,
 		PartnerRolesTable,
+		PartnerSettlementRulesTable,
 		PermissionsTable,
 		RolesTable,
 		RoleAssignmentsTable,
@@ -1040,6 +1086,7 @@ func init() {
 	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContractsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable

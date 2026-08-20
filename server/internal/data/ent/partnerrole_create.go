@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 )
 
 // PartnerRoleCreate is the builder for creating a PartnerRole entity.
@@ -165,6 +166,21 @@ func (_c *PartnerRoleCreate) AddAccounts(v ...*PartnerAccount) *PartnerRoleCreat
 		ids[i] = v[i].ID
 	}
 	return _c.AddAccountIDs(ids...)
+}
+
+// AddSettlementRuleIDs adds the "settlement_rules" edge to the PartnerSettlementRule entity by IDs.
+func (_c *PartnerRoleCreate) AddSettlementRuleIDs(ids ...uuid.UUID) *PartnerRoleCreate {
+	_c.mutation.AddSettlementRuleIDs(ids...)
+	return _c
+}
+
+// AddSettlementRules adds the "settlement_rules" edges to the PartnerSettlementRule entity.
+func (_c *PartnerRoleCreate) AddSettlementRules(v ...*PartnerSettlementRule) *PartnerRoleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSettlementRuleIDs(ids...)
 }
 
 // Mutation returns the PartnerRoleMutation object of the builder.
@@ -350,6 +366,22 @@ func (_c *PartnerRoleCreate) createSpec() (*PartnerRole, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partneraccount.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SettlementRulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partnerrole.SettlementRulesTable,
+			Columns: []string{partnerrole.SettlementRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnersettlementrule.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

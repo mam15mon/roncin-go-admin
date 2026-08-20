@@ -38,6 +38,8 @@ const (
 	EdgePartner = "partner"
 	// EdgeAccounts holds the string denoting the accounts edge name in mutations.
 	EdgeAccounts = "accounts"
+	// EdgeSettlementRules holds the string denoting the settlement_rules edge name in mutations.
+	EdgeSettlementRules = "settlement_rules"
 	// Table holds the table name of the partnerrole in the database.
 	Table = "partner_roles"
 	// PartnerTable is the table that holds the partner relation/edge.
@@ -54,6 +56,13 @@ const (
 	AccountsInverseTable = "partner_accounts"
 	// AccountsColumn is the table column denoting the accounts relation/edge.
 	AccountsColumn = "partner_role_id"
+	// SettlementRulesTable is the table that holds the settlement_rules relation/edge.
+	SettlementRulesTable = "partner_settlement_rules"
+	// SettlementRulesInverseTable is the table name for the PartnerSettlementRule entity.
+	// It exists in this package in order to avoid circular dependency with the "partnersettlementrule" package.
+	SettlementRulesInverseTable = "partner_settlement_rules"
+	// SettlementRulesColumn is the table column denoting the settlement_rules relation/edge.
+	SettlementRulesColumn = "partner_role_id"
 )
 
 // Columns holds all SQL columns for partnerrole fields.
@@ -195,6 +204,20 @@ func ByAccounts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAccountsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySettlementRulesCount orders the results by settlement_rules count.
+func BySettlementRulesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSettlementRulesStep(), opts...)
+	}
+}
+
+// BySettlementRules orders the results by settlement_rules terms.
+func BySettlementRules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSettlementRulesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -207,5 +230,12 @@ func newAccountsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AccountsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AccountsTable, AccountsColumn),
+	)
+}
+func newSettlementRulesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SettlementRulesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SettlementRulesTable, SettlementRulesColumn),
 	)
 }
