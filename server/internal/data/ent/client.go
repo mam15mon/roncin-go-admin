@@ -9,8 +9,8 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/migrate"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
