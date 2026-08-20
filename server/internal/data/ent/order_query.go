@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -39,6 +40,7 @@ type OrderQuery struct {
 	withServiceTypes    *OrderServiceTypeQuery
 	withCargoCategories *OrderCargoCategoryQuery
 	withMilestones      *OrderMilestoneQuery
+	withAttachments     *OrderAttachmentQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -223,6 +225,28 @@ func (_q *OrderQuery) QueryMilestones() *OrderMilestoneQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(ordermilestone.Table, ordermilestone.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.MilestonesTable, order.MilestonesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAttachments chains the current query on the "attachments" edge.
+func (_q *OrderQuery) QueryAttachments() *OrderAttachmentQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(orderattachment.Table, orderattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.AttachmentsTable, order.AttachmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -429,6 +453,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withServiceTypes:    _q.withServiceTypes.Clone(),
 		withCargoCategories: _q.withCargoCategories.Clone(),
 		withMilestones:      _q.withMilestones.Clone(),
+		withAttachments:     _q.withAttachments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -512,6 +537,17 @@ func (_q *OrderQuery) WithMilestones(opts ...func(*OrderMilestoneQuery)) *OrderQ
 	return _q
 }
 
+// WithAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithAttachments(opts ...func(*OrderAttachmentQuery)) *OrderQuery {
+	query := (&OrderAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAttachments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -590,7 +626,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withStatusTemplate != nil,
@@ -598,6 +634,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withServiceTypes != nil,
 			_q.withCargoCategories != nil,
 			_q.withMilestones != nil,
+			_q.withAttachments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -664,6 +701,13 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadMilestones(ctx, query, nodes,
 			func(n *Order) { n.Edges.Milestones = []*OrderMilestone{} },
 			func(n *Order, e *OrderMilestone) { n.Edges.Milestones = append(n.Edges.Milestones, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAttachments; query != nil {
+		if err := _q.loadAttachments(ctx, query, nodes,
+			func(n *Order) { n.Edges.Attachments = []*OrderAttachment{} },
+			func(n *Order, e *OrderAttachment) { n.Edges.Attachments = append(n.Edges.Attachments, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -862,6 +906,36 @@ func (_q *OrderQuery) loadMilestones(ctx context.Context, query *OrderMilestoneQ
 	}
 	query.Where(predicate.OrderMilestone(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.MilestonesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadAttachments(ctx context.Context, query *OrderAttachmentQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderattachment.FieldOrderID)
+	}
+	query.Where(predicate.OrderAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.AttachmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -565,6 +566,125 @@ func init() {
 	orderDescID := orderMixinFields0[0].Descriptor()
 	// order.DefaultID holds the default value on creation for the id field.
 	order.DefaultID = orderDescID.Default.(func() uuid.UUID)
+	orderattachmentMixin := schema.OrderAttachment{}.Mixin()
+	orderattachmentMixinFields0 := orderattachmentMixin[0].Fields()
+	_ = orderattachmentMixinFields0
+	orderattachmentMixinFields1 := orderattachmentMixin[1].Fields()
+	_ = orderattachmentMixinFields1
+	orderattachmentFields := schema.OrderAttachment{}.Fields()
+	_ = orderattachmentFields
+	// orderattachmentDescCreatedAt is the schema descriptor for created_at field.
+	orderattachmentDescCreatedAt := orderattachmentMixinFields1[0].Descriptor()
+	// orderattachment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderattachment.DefaultCreatedAt = orderattachmentDescCreatedAt.Default.(func() time.Time)
+	// orderattachmentDescUpdatedAt is the schema descriptor for updated_at field.
+	orderattachmentDescUpdatedAt := orderattachmentMixinFields1[1].Descriptor()
+	// orderattachment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderattachment.DefaultUpdatedAt = orderattachmentDescUpdatedAt.Default.(func() time.Time)
+	// orderattachment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderattachment.UpdateDefaultUpdatedAt = orderattachmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderattachmentDescDocType is the schema descriptor for doc_type field.
+	orderattachmentDescDocType := orderattachmentFields[1].Descriptor()
+	// orderattachment.DocTypeValidator is a validator for the "doc_type" field. It is called by the builders before save.
+	orderattachment.DocTypeValidator = func() func(string) error {
+		validators := orderattachmentDescDocType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(doc_type string) error {
+			for _, fn := range fns {
+				if err := fn(doc_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	orderattachmentDescIdempotencyKey := orderattachmentFields[2].Descriptor()
+	// orderattachment.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	orderattachment.IdempotencyKeyValidator = func() func(string) error {
+		validators := orderattachmentDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentDescFileName is the schema descriptor for file_name field.
+	orderattachmentDescFileName := orderattachmentFields[3].Descriptor()
+	// orderattachment.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	orderattachment.FileNameValidator = func() func(string) error {
+		validators := orderattachmentDescFileName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_name string) error {
+			for _, fn := range fns {
+				if err := fn(file_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentDescMimeType is the schema descriptor for mime_type field.
+	orderattachmentDescMimeType := orderattachmentFields[4].Descriptor()
+	// orderattachment.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	orderattachment.MimeTypeValidator = func() func(string) error {
+		validators := orderattachmentDescMimeType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mime_type string) error {
+			for _, fn := range fns {
+				if err := fn(mime_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentDescFileSize is the schema descriptor for file_size field.
+	orderattachmentDescFileSize := orderattachmentFields[5].Descriptor()
+	// orderattachment.FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
+	orderattachment.FileSizeValidator = orderattachmentDescFileSize.Validators[0].(func(int64) error)
+	// orderattachmentDescObjectKey is the schema descriptor for object_key field.
+	orderattachmentDescObjectKey := orderattachmentFields[6].Descriptor()
+	// orderattachment.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	orderattachment.ObjectKeyValidator = func() func(string) error {
+		validators := orderattachmentDescObjectKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(object_key string) error {
+			for _, fn := range fns {
+				if err := fn(object_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderattachmentDescChecksum is the schema descriptor for checksum field.
+	orderattachmentDescChecksum := orderattachmentFields[7].Descriptor()
+	// orderattachment.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
+	orderattachment.ChecksumValidator = orderattachmentDescChecksum.Validators[0].(func(string) error)
+	// orderattachmentDescID is the schema descriptor for id field.
+	orderattachmentDescID := orderattachmentMixinFields0[0].Descriptor()
+	// orderattachment.DefaultID holds the default value on creation for the id field.
+	orderattachment.DefaultID = orderattachmentDescID.Default.(func() uuid.UUID)
 	ordercargocategoryMixin := schema.OrderCargoCategory{}.Mixin()
 	ordercargocategoryMixinFields0 := ordercargocategoryMixin[0].Fields()
 	_ = ordercargocategoryMixinFields0

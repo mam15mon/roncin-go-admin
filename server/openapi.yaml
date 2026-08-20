@@ -779,6 +779,49 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.OrderReply'
+    /api/v1/orders/{orderId}/attachments:
+        get:
+            tags:
+                - OrderAttachmentService
+            description: ListAttachments 获取指定订单的附件列表。
+            operationId: OrderAttachmentService_ListAttachments
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderAttachmentListReply'
+        post:
+            tags:
+                - OrderAttachmentService
+            description: RegisterAttachment 注册订单附件。
+            operationId: OrderAttachmentService_RegisterAttachment
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.RegisterAttachmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderAttachmentReply'
     /api/v1/orders/{orderId}/milestones:
         get:
             tags:
@@ -2497,6 +2540,66 @@ components:
                 updatedAt:
                     type: string
             description: Order 订单核心信息。
+        order.v1.OrderAttachment:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                docType:
+                    type: string
+                idempotencyKey:
+                    type: string
+                fileName:
+                    type: string
+                mimeType:
+                    type: string
+                fileSize:
+                    type: string
+                objectKey:
+                    type: string
+                checksum:
+                    type: string
+                uploadedBy:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderAttachment 订单附件信息。
+        order.v1.OrderAttachmentListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderAttachment'
+                traceId:
+                    type: string
+            description: OrderAttachmentListReply 订单附件列表响应。
+        order.v1.OrderAttachmentReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderAttachment'
+                traceId:
+                    type: string
+            description: OrderAttachmentReply 单条订单附件响应。
         order.v1.OrderListReply:
             type: object
             properties:
@@ -2594,6 +2697,34 @@ components:
                 traceId:
                     type: string
             description: OrderReply 单条订单响应。
+        order.v1.RegisterAttachmentRequest:
+            required:
+                - orderId
+                - docType
+                - idempotencyKey
+                - fileName
+                - mimeType
+                - fileSize
+                - objectKey
+            type: object
+            properties:
+                orderId:
+                    type: string
+                docType:
+                    type: string
+                idempotencyKey:
+                    type: string
+                fileName:
+                    type: string
+                mimeType:
+                    type: string
+                fileSize:
+                    type: string
+                objectKey:
+                    type: string
+                checksum:
+                    type: string
+            description: RegisterAttachmentRequest 注册订单附件请求。
         order.v1.SetMilestoneRequest:
             required:
                 - orderId
@@ -3471,6 +3602,8 @@ tags:
     - name: AuthService
       description: AuthService owns the browser session boundary for the management console.
     - name: MasterDataService
+    - name: OrderAttachmentService
+      description: OrderAttachmentService 订单附件服务。
     - name: OrderMilestoneService
       description: OrderMilestoneService 订单里程碑服务。
     - name: OrderService

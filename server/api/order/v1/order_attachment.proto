@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderAttachmentService 订单附件服务。
+service OrderAttachmentService {
+  // ListAttachments 获取指定订单的附件列表。
+  rpc ListAttachments(ListAttachmentsRequest) returns (OrderAttachmentListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/attachments"};
+  }
+
+  // RegisterAttachment 注册订单附件。
+  rpc RegisterAttachment(RegisterAttachmentRequest) returns (OrderAttachmentReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/attachments"
+      body: "*"
+    };
+  }
+}
+
+// OrderAttachment 订单附件信息。
+message OrderAttachment {
+  string id = 1;
+  string order_id = 2;
+  string doc_type = 3;
+  string idempotency_key = 4;
+  string file_name = 5;
+  string mime_type = 6;
+  int64 file_size = 7;
+  string object_key = 8;
+  optional string checksum = 9;
+  optional string uploaded_by = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+// ListAttachmentsRequest 获取订单附件列表请求。
+message ListAttachmentsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RegisterAttachmentRequest 注册订单附件请求。
+message RegisterAttachmentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string doc_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
+  string file_name = 4 [(google.api.field_behavior) = REQUIRED];
+  string mime_type = 5 [(google.api.field_behavior) = REQUIRED];
+  int64 file_size = 6 [(google.api.field_behavior) = REQUIRED];
+  string object_key = 7 [(google.api.field_behavior) = REQUIRED];
+  optional string checksum = 8;
+}
+
+// OrderAttachmentReply 单条订单附件响应。
+message OrderAttachmentReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderAttachment data = 4;
+  string trace_id = 5;
+}
+
+// OrderAttachmentListReply 订单附件列表响应。
+message OrderAttachmentListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderAttachment data = 4;
+  string trace_id = 5;
+}

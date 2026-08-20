@@ -58,6 +58,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("service_types", OrderServiceType.Type),
 		edge.To("cargo_categories", OrderCargoCategory.Type),
 		edge.To("milestones", OrderMilestone.Type),
+		edge.To("attachments", OrderAttachment.Type),
 	}
 }
 

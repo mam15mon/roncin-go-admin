@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -108,6 +109,7 @@ func checkColumn(t, c string) error {
 			numberrule.Table:            numberrule.ValidColumn,
 			numbersequence.Table:        numbersequence.ValidColumn,
 			order.Table:                 order.ValidColumn,
+			orderattachment.Table:       orderattachment.ValidColumn,
 			ordercargocategory.Table:    ordercargocategory.ValidColumn,
 			ordermilestone.Table:        ordermilestone.ValidColumn,
 			orderservicetype.Table:      orderservicetype.ValidColumn,

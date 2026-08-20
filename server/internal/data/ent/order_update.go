@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -676,6 +677,21 @@ func (_u *OrderUpdate) AddMilestones(v ...*OrderMilestone) *OrderUpdate {
 	return _u.AddMilestoneIDs(ids...)
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by IDs.
+func (_u *OrderUpdate) AddAttachmentIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddAttachmentIDs(ids...)
+	return _u
+}
+
+// AddAttachments adds the "attachments" edges to the OrderAttachment entity.
+func (_u *OrderUpdate) AddAttachments(v ...*OrderAttachment) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -781,6 +797,27 @@ func (_u *OrderUpdate) RemoveMilestones(v ...*OrderMilestone) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMilestoneIDs(ids...)
+}
+
+// ClearAttachments clears all "attachments" edges to the OrderAttachment entity.
+func (_u *OrderUpdate) ClearAttachments() *OrderUpdate {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to OrderAttachment entities by IDs.
+func (_u *OrderUpdate) RemoveAttachmentIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveAttachmentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachments removes "attachments" edges to OrderAttachment entities.
+func (_u *OrderUpdate) RemoveAttachments(v ...*OrderAttachment) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1358,6 +1395,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2025,6 +2107,21 @@ func (_u *OrderUpdateOne) AddMilestones(v ...*OrderMilestone) *OrderUpdateOne {
 	return _u.AddMilestoneIDs(ids...)
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by IDs.
+func (_u *OrderUpdateOne) AddAttachmentIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddAttachmentIDs(ids...)
+	return _u
+}
+
+// AddAttachments adds the "attachments" edges to the OrderAttachment entity.
+func (_u *OrderUpdateOne) AddAttachments(v ...*OrderAttachment) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2130,6 +2227,27 @@ func (_u *OrderUpdateOne) RemoveMilestones(v ...*OrderMilestone) *OrderUpdateOne
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMilestoneIDs(ids...)
+}
+
+// ClearAttachments clears all "attachments" edges to the OrderAttachment entity.
+func (_u *OrderUpdateOne) ClearAttachments() *OrderUpdateOne {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to OrderAttachment entities by IDs.
+func (_u *OrderUpdateOne) RemoveAttachmentIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveAttachmentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachments removes "attachments" edges to OrderAttachment entities.
+func (_u *OrderUpdateOne) RemoveAttachments(v ...*OrderAttachment) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -2737,6 +2855,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

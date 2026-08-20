@@ -105,6 +105,18 @@ func (f OrderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderMutation", m)
 }
 
+// The OrderAttachmentFunc type is an adapter to allow the use of ordinary
+// function as OrderAttachment mutator.
+type OrderAttachmentFunc func(context.Context, *ent.OrderAttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderAttachmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderAttachmentMutation", m)
+}
+
 // The OrderCargoCategoryFunc type is an adapter to allow the use of ordinary
 // function as OrderCargoCategory mutator.
 type OrderCargoCategoryFunc func(context.Context, *ent.OrderCargoCategoryMutation) (ent.Value, error)

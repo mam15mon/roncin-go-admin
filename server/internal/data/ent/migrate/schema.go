@@ -426,6 +426,57 @@ var (
 			},
 		},
 	}
+	// OrderAttachmentsColumns holds the columns for the "order_attachments" table.
+	OrderAttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "doc_type", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "file_name", Type: field.TypeString, Size: 255},
+		{Name: "mime_type", Type: field.TypeString, Size: 127},
+		{Name: "file_size", Type: field.TypeInt64},
+		{Name: "object_key", Type: field.TypeString, Size: 1024},
+		{Name: "checksum", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "uploaded_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderAttachmentsTable holds the schema information for the "order_attachments" table.
+	OrderAttachmentsTable = &schema.Table{
+		Name:       "order_attachments",
+		Columns:    OrderAttachmentsColumns,
+		PrimaryKey: []*schema.Column{OrderAttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_attachments_orders_attachments",
+				Columns:    []*schema.Column{OrderAttachmentsColumns[11]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderattachment_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAttachmentsColumns[2]},
+			},
+			{
+				Name:    "order_attachment_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderAttachmentsColumns[11], OrderAttachmentsColumns[4]},
+			},
+			{
+				Name:    "order_attachment_object_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderAttachmentsColumns[8]},
+			},
+			{
+				Name:    "orderattachment_order_id_doc_type_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAttachmentsColumns[11], OrderAttachmentsColumns[3], OrderAttachmentsColumns[1]},
+			},
+		},
+	}
 	// OrderCargoCategoriesColumns holds the columns for the "order_cargo_categories" table.
 	OrderCargoCategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1332,6 +1383,7 @@ var (
 		NumberRulesTable,
 		NumberSequencesTable,
 		OrdersTable,
+		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
 		OrderMilestonesTable,
 		OrderServiceTypesTable,
@@ -1367,6 +1419,7 @@ func init() {
 	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
 	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
+	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -515,6 +516,21 @@ func (_c *OrderCreate) AddMilestones(v ...*OrderMilestone) *OrderCreate {
 	return _c.AddMilestoneIDs(ids...)
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by IDs.
+func (_c *OrderCreate) AddAttachmentIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddAttachmentIDs(ids...)
+	return _c
+}
+
+// AddAttachments adds the "attachments" edges to the OrderAttachment entity.
+func (_c *OrderCreate) AddAttachments(v ...*OrderAttachment) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -980,6 +996,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AttachmentsTable,
+			Columns: []string{order.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

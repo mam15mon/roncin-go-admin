@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -61,6 +62,7 @@ const (
 	TypeNumberRule            = "NumberRule"
 	TypeNumberSequence        = "NumberSequence"
 	TypeOrder                 = "Order"
+	TypeOrderAttachment       = "OrderAttachment"
 	TypeOrderCargoCategory    = "OrderCargoCategory"
 	TypeOrderMilestone        = "OrderMilestone"
 	TypeOrderServiceType      = "OrderServiceType"
@@ -6804,6 +6806,9 @@ type OrderMutation struct {
 	milestones              map[uuid.UUID]struct{}
 	removedmilestones       map[uuid.UUID]struct{}
 	clearedmilestones       bool
+	attachments             map[uuid.UUID]struct{}
+	removedattachments      map[uuid.UUID]struct{}
+	clearedattachments      bool
 	done                    bool
 	oldValue                func(context.Context) (*Order, error)
 	predicates              []predicate.Order
@@ -8705,6 +8710,60 @@ func (m *OrderMutation) ResetMilestones() {
 	m.removedmilestones = nil
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by ids.
+func (m *OrderMutation) AddAttachmentIDs(ids ...uuid.UUID) {
+	if m.attachments == nil {
+		m.attachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachments clears the "attachments" edge to the OrderAttachment entity.
+func (m *OrderMutation) ClearAttachments() {
+	m.clearedattachments = true
+}
+
+// AttachmentsCleared reports if the "attachments" edge to the OrderAttachment entity was cleared.
+func (m *OrderMutation) AttachmentsCleared() bool {
+	return m.clearedattachments
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to the OrderAttachment entity by IDs.
+func (m *OrderMutation) RemoveAttachmentIDs(ids ...uuid.UUID) {
+	if m.removedattachments == nil {
+		m.removedattachments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachments, ids[i])
+		m.removedattachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachments returns the removed IDs of the "attachments" edge to the OrderAttachment entity.
+func (m *OrderMutation) RemovedAttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentsIDs returns the "attachments" edge IDs in the mutation.
+func (m *OrderMutation) AttachmentsIDs() (ids []uuid.UUID) {
+	for id := range m.attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachments resets all changes to the "attachments" edge.
+func (m *OrderMutation) ResetAttachments() {
+	m.attachments = nil
+	m.clearedattachments = false
+	m.removedattachments = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -9532,7 +9591,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -9553,6 +9612,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.milestones != nil {
 		edges = append(edges, order.EdgeMilestones)
+	}
+	if m.attachments != nil {
+		edges = append(edges, order.EdgeAttachments)
 	}
 	return edges
 }
@@ -9597,13 +9659,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.attachments))
+		for id := range m.attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -9615,6 +9683,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedmilestones != nil {
 		edges = append(edges, order.EdgeMilestones)
+	}
+	if m.removedattachments != nil {
+		edges = append(edges, order.EdgeAttachments)
 	}
 	return edges
 }
@@ -9647,13 +9718,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.removedattachments))
+		for id := range m.removedattachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -9674,6 +9751,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedmilestones {
 		edges = append(edges, order.EdgeMilestones)
+	}
+	if m.clearedattachments {
+		edges = append(edges, order.EdgeAttachments)
 	}
 	return edges
 }
@@ -9696,6 +9776,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedcargo_categories
 	case order.EdgeMilestones:
 		return m.clearedmilestones
+	case order.EdgeAttachments:
+		return m.clearedattachments
 	}
 	return false
 }
@@ -9742,8 +9824,1014 @@ func (m *OrderMutation) ResetEdge(name string) error {
 	case order.EdgeMilestones:
 		m.ResetMilestones()
 		return nil
+	case order.EdgeAttachments:
+		m.ResetAttachments()
+		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
+}
+
+// OrderAttachmentMutation represents an operation that mutates the OrderAttachment nodes in the graph.
+type OrderAttachmentMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	doc_type        *string
+	idempotency_key *string
+	file_name       *string
+	mime_type       *string
+	file_size       *int64
+	addfile_size    *int64
+	object_key      *string
+	checksum        *string
+	uploaded_by     *uuid.UUID
+	clearedFields   map[string]struct{}
+	_order          *uuid.UUID
+	cleared_order   bool
+	done            bool
+	oldValue        func(context.Context) (*OrderAttachment, error)
+	predicates      []predicate.OrderAttachment
+}
+
+var _ ent.Mutation = (*OrderAttachmentMutation)(nil)
+
+// orderattachmentOption allows management of the mutation configuration using functional options.
+type orderattachmentOption func(*OrderAttachmentMutation)
+
+// newOrderAttachmentMutation creates new mutation for the OrderAttachment entity.
+func newOrderAttachmentMutation(c config, op Op, opts ...orderattachmentOption) *OrderAttachmentMutation {
+	m := &OrderAttachmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderAttachment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderAttachmentID sets the ID field of the mutation.
+func withOrderAttachmentID(id uuid.UUID) orderattachmentOption {
+	return func(m *OrderAttachmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderAttachment
+		)
+		m.oldValue = func(ctx context.Context) (*OrderAttachment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderAttachment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderAttachment sets the old OrderAttachment of the mutation.
+func withOrderAttachment(node *OrderAttachment) orderattachmentOption {
+	return func(m *OrderAttachmentMutation) {
+		m.oldValue = func(context.Context) (*OrderAttachment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderAttachmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderAttachmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderAttachment entities.
+func (m *OrderAttachmentMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderAttachmentMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderAttachmentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderAttachment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderAttachmentMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderAttachmentMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderAttachmentMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderAttachmentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderAttachmentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderAttachmentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderAttachmentMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderAttachmentMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderAttachmentMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetDocType sets the "doc_type" field.
+func (m *OrderAttachmentMutation) SetDocType(s string) {
+	m.doc_type = &s
+}
+
+// DocType returns the value of the "doc_type" field in the mutation.
+func (m *OrderAttachmentMutation) DocType() (r string, exists bool) {
+	v := m.doc_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocType returns the old "doc_type" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldDocType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocType: %w", err)
+	}
+	return oldValue.DocType, nil
+}
+
+// ResetDocType resets all changes to the "doc_type" field.
+func (m *OrderAttachmentMutation) ResetDocType() {
+	m.doc_type = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *OrderAttachmentMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *OrderAttachmentMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *OrderAttachmentMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetFileName sets the "file_name" field.
+func (m *OrderAttachmentMutation) SetFileName(s string) {
+	m.file_name = &s
+}
+
+// FileName returns the value of the "file_name" field in the mutation.
+func (m *OrderAttachmentMutation) FileName() (r string, exists bool) {
+	v := m.file_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "file_name" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "file_name" field.
+func (m *OrderAttachmentMutation) ResetFileName() {
+	m.file_name = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *OrderAttachmentMutation) SetMimeType(s string) {
+	m.mime_type = &s
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *OrderAttachmentMutation) MimeType() (r string, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldMimeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *OrderAttachmentMutation) ResetMimeType() {
+	m.mime_type = nil
+}
+
+// SetFileSize sets the "file_size" field.
+func (m *OrderAttachmentMutation) SetFileSize(i int64) {
+	m.file_size = &i
+	m.addfile_size = nil
+}
+
+// FileSize returns the value of the "file_size" field in the mutation.
+func (m *OrderAttachmentMutation) FileSize() (r int64, exists bool) {
+	v := m.file_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileSize returns the old "file_size" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldFileSize(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileSize: %w", err)
+	}
+	return oldValue.FileSize, nil
+}
+
+// AddFileSize adds i to the "file_size" field.
+func (m *OrderAttachmentMutation) AddFileSize(i int64) {
+	if m.addfile_size != nil {
+		*m.addfile_size += i
+	} else {
+		m.addfile_size = &i
+	}
+}
+
+// AddedFileSize returns the value that was added to the "file_size" field in this mutation.
+func (m *OrderAttachmentMutation) AddedFileSize() (r int64, exists bool) {
+	v := m.addfile_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFileSize resets all changes to the "file_size" field.
+func (m *OrderAttachmentMutation) ResetFileSize() {
+	m.file_size = nil
+	m.addfile_size = nil
+}
+
+// SetObjectKey sets the "object_key" field.
+func (m *OrderAttachmentMutation) SetObjectKey(s string) {
+	m.object_key = &s
+}
+
+// ObjectKey returns the value of the "object_key" field in the mutation.
+func (m *OrderAttachmentMutation) ObjectKey() (r string, exists bool) {
+	v := m.object_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldObjectKey returns the old "object_key" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldObjectKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldObjectKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldObjectKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldObjectKey: %w", err)
+	}
+	return oldValue.ObjectKey, nil
+}
+
+// ResetObjectKey resets all changes to the "object_key" field.
+func (m *OrderAttachmentMutation) ResetObjectKey() {
+	m.object_key = nil
+}
+
+// SetChecksum sets the "checksum" field.
+func (m *OrderAttachmentMutation) SetChecksum(s string) {
+	m.checksum = &s
+}
+
+// Checksum returns the value of the "checksum" field in the mutation.
+func (m *OrderAttachmentMutation) Checksum() (r string, exists bool) {
+	v := m.checksum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChecksum returns the old "checksum" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldChecksum(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChecksum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
+	}
+	return oldValue.Checksum, nil
+}
+
+// ClearChecksum clears the value of the "checksum" field.
+func (m *OrderAttachmentMutation) ClearChecksum() {
+	m.checksum = nil
+	m.clearedFields[orderattachment.FieldChecksum] = struct{}{}
+}
+
+// ChecksumCleared returns if the "checksum" field was cleared in this mutation.
+func (m *OrderAttachmentMutation) ChecksumCleared() bool {
+	_, ok := m.clearedFields[orderattachment.FieldChecksum]
+	return ok
+}
+
+// ResetChecksum resets all changes to the "checksum" field.
+func (m *OrderAttachmentMutation) ResetChecksum() {
+	m.checksum = nil
+	delete(m.clearedFields, orderattachment.FieldChecksum)
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (m *OrderAttachmentMutation) SetUploadedBy(u uuid.UUID) {
+	m.uploaded_by = &u
+}
+
+// UploadedBy returns the value of the "uploaded_by" field in the mutation.
+func (m *OrderAttachmentMutation) UploadedBy() (r uuid.UUID, exists bool) {
+	v := m.uploaded_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadedBy returns the old "uploaded_by" field's value of the OrderAttachment entity.
+// If the OrderAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAttachmentMutation) OldUploadedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadedBy: %w", err)
+	}
+	return oldValue.UploadedBy, nil
+}
+
+// ClearUploadedBy clears the value of the "uploaded_by" field.
+func (m *OrderAttachmentMutation) ClearUploadedBy() {
+	m.uploaded_by = nil
+	m.clearedFields[orderattachment.FieldUploadedBy] = struct{}{}
+}
+
+// UploadedByCleared returns if the "uploaded_by" field was cleared in this mutation.
+func (m *OrderAttachmentMutation) UploadedByCleared() bool {
+	_, ok := m.clearedFields[orderattachment.FieldUploadedBy]
+	return ok
+}
+
+// ResetUploadedBy resets all changes to the "uploaded_by" field.
+func (m *OrderAttachmentMutation) ResetUploadedBy() {
+	m.uploaded_by = nil
+	delete(m.clearedFields, orderattachment.FieldUploadedBy)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderAttachmentMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderattachment.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderAttachmentMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderAttachmentMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderAttachmentMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderAttachmentMutation builder.
+func (m *OrderAttachmentMutation) Where(ps ...predicate.OrderAttachment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderAttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderAttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderAttachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderAttachmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderAttachmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderAttachment).
+func (m *OrderAttachmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderAttachmentMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, orderattachment.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderattachment.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, orderattachment.FieldOrderID)
+	}
+	if m.doc_type != nil {
+		fields = append(fields, orderattachment.FieldDocType)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, orderattachment.FieldIdempotencyKey)
+	}
+	if m.file_name != nil {
+		fields = append(fields, orderattachment.FieldFileName)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, orderattachment.FieldMimeType)
+	}
+	if m.file_size != nil {
+		fields = append(fields, orderattachment.FieldFileSize)
+	}
+	if m.object_key != nil {
+		fields = append(fields, orderattachment.FieldObjectKey)
+	}
+	if m.checksum != nil {
+		fields = append(fields, orderattachment.FieldChecksum)
+	}
+	if m.uploaded_by != nil {
+		fields = append(fields, orderattachment.FieldUploadedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderAttachmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderattachment.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderattachment.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderattachment.FieldOrderID:
+		return m.OrderID()
+	case orderattachment.FieldDocType:
+		return m.DocType()
+	case orderattachment.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case orderattachment.FieldFileName:
+		return m.FileName()
+	case orderattachment.FieldMimeType:
+		return m.MimeType()
+	case orderattachment.FieldFileSize:
+		return m.FileSize()
+	case orderattachment.FieldObjectKey:
+		return m.ObjectKey()
+	case orderattachment.FieldChecksum:
+		return m.Checksum()
+	case orderattachment.FieldUploadedBy:
+		return m.UploadedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderAttachmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderattachment.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderattachment.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderattachment.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderattachment.FieldDocType:
+		return m.OldDocType(ctx)
+	case orderattachment.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case orderattachment.FieldFileName:
+		return m.OldFileName(ctx)
+	case orderattachment.FieldMimeType:
+		return m.OldMimeType(ctx)
+	case orderattachment.FieldFileSize:
+		return m.OldFileSize(ctx)
+	case orderattachment.FieldObjectKey:
+		return m.OldObjectKey(ctx)
+	case orderattachment.FieldChecksum:
+		return m.OldChecksum(ctx)
+	case orderattachment.FieldUploadedBy:
+		return m.OldUploadedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderAttachment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAttachmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderattachment.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderattachment.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderattachment.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderattachment.FieldDocType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocType(v)
+		return nil
+	case orderattachment.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case orderattachment.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case orderattachment.FieldMimeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
+		return nil
+	case orderattachment.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileSize(v)
+		return nil
+	case orderattachment.FieldObjectKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetObjectKey(v)
+		return nil
+	case orderattachment.FieldChecksum:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChecksum(v)
+		return nil
+	case orderattachment.FieldUploadedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderAttachmentMutation) AddedFields() []string {
+	var fields []string
+	if m.addfile_size != nil {
+		fields = append(fields, orderattachment.FieldFileSize)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderAttachmentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case orderattachment.FieldFileSize:
+		return m.AddedFileSize()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAttachmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case orderattachment.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFileSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderAttachmentMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderattachment.FieldChecksum) {
+		fields = append(fields, orderattachment.FieldChecksum)
+	}
+	if m.FieldCleared(orderattachment.FieldUploadedBy) {
+		fields = append(fields, orderattachment.FieldUploadedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderAttachmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderAttachmentMutation) ClearField(name string) error {
+	switch name {
+	case orderattachment.FieldChecksum:
+		m.ClearChecksum()
+		return nil
+	case orderattachment.FieldUploadedBy:
+		m.ClearUploadedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderAttachmentMutation) ResetField(name string) error {
+	switch name {
+	case orderattachment.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderattachment.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderattachment.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderattachment.FieldDocType:
+		m.ResetDocType()
+		return nil
+	case orderattachment.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case orderattachment.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case orderattachment.FieldMimeType:
+		m.ResetMimeType()
+		return nil
+	case orderattachment.FieldFileSize:
+		m.ResetFileSize()
+		return nil
+	case orderattachment.FieldObjectKey:
+		m.ResetObjectKey()
+		return nil
+	case orderattachment.FieldChecksum:
+		m.ResetChecksum()
+		return nil
+	case orderattachment.FieldUploadedBy:
+		m.ResetUploadedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderAttachmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, orderattachment.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderAttachmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderattachment.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderAttachmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderAttachmentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderAttachmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, orderattachment.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderAttachmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderattachment.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderAttachmentMutation) ClearEdge(name string) error {
+	switch name {
+	case orderattachment.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderAttachmentMutation) ResetEdge(name string) error {
+	switch name {
+	case orderattachment.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAttachment edge %s", name)
 }
 
 // OrderCargoCategoryMutation represents an operation that mutates the OrderCargoCategory nodes in the graph.

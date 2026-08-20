@@ -109,9 +109,11 @@ type OrderEdges struct {
 	CargoCategories []*OrderCargoCategory `json:"cargo_categories,omitempty"`
 	// Milestones holds the value of the milestones edge.
 	Milestones []*OrderMilestone `json:"milestones,omitempty"`
+	// Attachments holds the value of the attachments edge.
+	Attachments []*OrderAttachment `json:"attachments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -181,6 +183,15 @@ func (e OrderEdges) MilestonesOrErr() ([]*OrderMilestone, error) {
 		return e.Milestones, nil
 	}
 	return nil, &NotLoadedError{edge: "milestones"}
+}
+
+// AttachmentsOrErr returns the Attachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) AttachmentsOrErr() ([]*OrderAttachment, error) {
+	if e.loadedTypes[7] {
+		return e.Attachments, nil
+	}
+	return nil, &NotLoadedError{edge: "attachments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -473,6 +484,11 @@ func (_m *Order) QueryCargoCategories() *OrderCargoCategoryQuery {
 // QueryMilestones queries the "milestones" edge of the Order entity.
 func (_m *Order) QueryMilestones() *OrderMilestoneQuery {
 	return NewOrderClient(_m.config).QueryMilestones(_m)
+}
+
+// QueryAttachments queries the "attachments" edge of the Order entity.
+func (_m *Order) QueryAttachments() *OrderAttachmentQuery {
+	return NewOrderClient(_m.config).QueryAttachments(_m)
 }
 
 // Update returns a builder for updating this Order.

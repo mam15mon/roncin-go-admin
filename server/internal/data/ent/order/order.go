@@ -96,6 +96,8 @@ const (
 	EdgeCargoCategories = "cargo_categories"
 	// EdgeMilestones holds the string denoting the milestones edge name in mutations.
 	EdgeMilestones = "milestones"
+	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
+	EdgeAttachments = "attachments"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -147,6 +149,13 @@ const (
 	MilestonesInverseTable = "order_milestones"
 	// MilestonesColumn is the table column denoting the milestones relation/edge.
 	MilestonesColumn = "order_id"
+	// AttachmentsTable is the table that holds the attachments relation/edge.
+	AttachmentsTable = "order_attachments"
+	// AttachmentsInverseTable is the table name for the OrderAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "orderattachment" package.
+	AttachmentsInverseTable = "order_attachments"
+	// AttachmentsColumn is the table column denoting the attachments relation/edge.
+	AttachmentsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -663,6 +672,20 @@ func ByMilestones(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMilestonesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttachmentsCount orders the results by attachments count.
+func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachmentsStep(), opts...)
+	}
+}
+
+// ByAttachments orders the results by attachments terms.
+func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -710,5 +733,12 @@ func newMilestonesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MilestonesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MilestonesTable, MilestonesColumn),
+	)
+}
+func newAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
 	)
 }
