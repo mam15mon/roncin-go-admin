@@ -39,7 +39,7 @@
 | D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、ContainerSpec、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 已完成首批组织级主数据目录、编号规则/并发序列、状态与里程碑模板版本发布和默认版本切换；待补主数据导入契约。BillingUnit、FeeSetting、TaxableService 调整到 D07/P8，页面模板按固定表单决策后置。 |
 | D12 | 企业基础资源：`09-enterprise-resources.prisma` | BaseAddress、BaseConsignee、BaseShipper、BaseNotify、BaseResourcePartyRel、BaseNote、BaseTag、BaseBusinessCode、BaseImage、BaseTextSnippet | 未开始 | P4/P5 | 这是订单表单和往来单位的基础资源，不是普通字典；明确与 Party 的关系、文件存储、组织隔离、引用删除和权限。 |
 | D13 | 幂等：`10-idempotency.prisma` | IdempotencyKey | 未开始 | P1/P7 | API 写入幂等和后台任务幂等分别定义；明确键的作用域、请求摘要、过期、冲突响应和清理策略。 |
-| D14 | 数据维护作业：`11-data-maintenance-jobs.prisma` | RegionSyncJob、PortImportJob；另含 `UnlocodeImportBatch` | 未开始 | P4/P7/P10 | 主数据导入契约在 P4 定义，任务租约/重试/死信在 P7 建立，运维查询和回放在 P10 接入；不得与普通 IntegrationTask 混成无类型任务。 |
+| D14 | 数据维护作业：`11-data-maintenance-jobs.prisma` | RegionSyncJob、PortImportJob；另含 `UnlocodeImportBatch` | 部分完成 | P4/P7/P10 | P4 已提供最多 500 条、整批事务、显式 create-only/upsert 的结构化导入契约；外部文件解析、任务租约/重试/死信在 P7 建立，运维查询和回放在 P10 接入，不得与普通 IntegrationTask 混成无类型任务。 |
 
 ## 必须先完成的设计决策
 
