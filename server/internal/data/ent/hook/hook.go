@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-kratos/kratos-layout/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
 
 // The TodoFunc type is an adapter to allow the use of ordinary

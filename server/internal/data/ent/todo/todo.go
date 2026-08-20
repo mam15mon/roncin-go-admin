@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/go-kratos/kratos-layout/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/google/uuid"
 )
 

@@ -1,4 +1,4 @@
-module github.com/go-kratos/kratos-layout
+module github.com/roncin/roncin-go-admin/server
 
 go 1.25.7
 

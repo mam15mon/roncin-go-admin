@@ -9,13 +9,13 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/go-kratos/kratos-layout/internal/data/ent/migrate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/migrate"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/go-kratos/kratos-layout/internal/data/ent/todo"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
 )
 
 // Client is the client that holds all ent builders.

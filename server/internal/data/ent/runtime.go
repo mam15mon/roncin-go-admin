@@ -5,9 +5,9 @@ package ent
 import (
 	"time"
 
-	"github.com/go-kratos/kratos-layout/internal/biz"
-	"github.com/go-kratos/kratos-layout/internal/data/ent/schema"
-	"github.com/go-kratos/kratos-layout/internal/data/ent/todo"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
 	"github.com/google/uuid"
 )
 

@@ -804,7 +804,7 @@ const file_todo_v1_todo_proto_rawDesc = "" +
 	"\n" +
 	"DeleteTodo\x12\x1a.todo.v1.DeleteTodoRequest\x1a\x16.google.protobuf.Empty\"\x16\x82\xd3\xe4\x93\x02\x10*\x0e/v1/todos/{id}\x12X\n" +
 	"\tSyncTodos\x12\x18.todo.v1.SyncTodoRequest\x1a\x12.todo.v1.TodoEvent\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/todos/sync(\x010\x01BZ\n" +
-	"\x18io.grpc.examples.todo.v1B\tTodoProtoP\x01Z1github.com/go-kratos/kratos-layout/api/todo/v1;v1b\x06proto3"
+	"\x18io.grpc.examples.todo.v1B\tTodoProtoP\x01Z1github.com/roncin/roncin-go-admin/server/api/todo/v1;v1b\x06proto3"
 
 var (
 	file_todo_v1_todo_proto_rawDescOnce sync.Once

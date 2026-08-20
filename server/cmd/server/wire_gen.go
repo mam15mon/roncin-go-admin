@@ -7,11 +7,11 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos-layout/internal/biz"
-	"github.com/go-kratos/kratos-layout/internal/conf"
-	"github.com/go-kratos/kratos-layout/internal/data"
-	"github.com/go-kratos/kratos-layout/internal/server"
-	"github.com/go-kratos/kratos-layout/internal/service"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/internal/data"
+	"github.com/roncin/roncin-go-admin/server/internal/server"
+	"github.com/roncin/roncin-go-admin/server/internal/service"
 	"github.com/go-kratos/kratos/v3"
 	"log/slog"
 )
