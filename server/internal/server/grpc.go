@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
@@ -15,7 +16,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -36,5 +37,6 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, authUsecase *biz.A
 	}
 	srv := grpc.NewServer(opts...)
 	authv1.RegisterAuthServiceServer(srv, auth)
+	partnerv1.RegisterPartnerServiceServer(srv, partner)
 	return srv
 }

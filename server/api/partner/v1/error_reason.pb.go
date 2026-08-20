@@ -24,10 +24,11 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_PARTNER_UNSPECIFIED  ErrorReason = 0
-	ErrorReason_PARTNER_NOT_FOUND    ErrorReason = 1
-	ErrorReason_PARTNER_CODE_EXISTS  ErrorReason = 2
-	ErrorReason_PARTNER_INVALID_TYPE ErrorReason = 3
+	ErrorReason_PARTNER_UNSPECIFIED      ErrorReason = 0
+	ErrorReason_PARTNER_NOT_FOUND        ErrorReason = 1
+	ErrorReason_PARTNER_CODE_EXISTS      ErrorReason = 2
+	ErrorReason_PARTNER_INVALID_TYPE     ErrorReason = 3
+	ErrorReason_PARTNER_INVALID_ARGUMENT ErrorReason = 4
 )
 
 // Enum value maps for ErrorReason.
@@ -37,12 +38,14 @@ var (
 		1: "PARTNER_NOT_FOUND",
 		2: "PARTNER_CODE_EXISTS",
 		3: "PARTNER_INVALID_TYPE",
+		4: "PARTNER_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
-		"PARTNER_UNSPECIFIED":  0,
-		"PARTNER_NOT_FOUND":    1,
-		"PARTNER_CODE_EXISTS":  2,
-		"PARTNER_INVALID_TYPE": 3,
+		"PARTNER_UNSPECIFIED":      0,
+		"PARTNER_NOT_FOUND":        1,
+		"PARTNER_CODE_EXISTS":      2,
+		"PARTNER_INVALID_TYPE":     3,
+		"PARTNER_INVALID_ARGUMENT": 4,
 	}
 )
 
@@ -78,12 +81,13 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*p\n" +
+	"partner.v1*\x8e\x01\n" +
 	"\vErrorReason\x12\x17\n" +
 	"\x13PARTNER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PARTNER_NOT_FOUND\x10\x01\x12\x17\n" +
 	"\x13PARTNER_CODE_EXISTS\x10\x02\x12\x18\n" +
-	"\x14PARTNER_INVALID_TYPE\x10\x03B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"\x14PARTNER_INVALID_TYPE\x10\x03\x12\x1c\n" +
+	"\x18PARTNER_INVALID_ARGUMENT\x10\x04B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once
