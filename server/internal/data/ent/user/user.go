@@ -33,6 +33,8 @@ const (
 	EdgeMemberships = "memberships"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
+	EdgeOrderPersonnel = "order_personnel"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -49,6 +51,13 @@ const (
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
 	SessionsColumn = "user_id"
+	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
+	OrderPersonnelTable = "order_personnels"
+	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
+	// It exists in this package in order to avoid circular dependency with the "orderpersonnel" package.
+	OrderPersonnelInverseTable = "order_personnels"
+	// OrderPersonnelColumn is the table column denoting the order_personnel relation/edge.
+	OrderPersonnelColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -164,6 +173,20 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderPersonnelCount orders the results by order_personnel count.
+func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderPersonnelStep(), opts...)
+	}
+}
+
+// ByOrderPersonnel orders the results by order_personnel terms.
+func ByOrderPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -176,5 +199,12 @@ func newSessionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+	)
+}
+func newOrderPersonnelStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderPersonnelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderPersonnelTable, OrderPersonnelColumn),
 	)
 }

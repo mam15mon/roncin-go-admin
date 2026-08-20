@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -112,6 +113,7 @@ func checkColumn(t, c string) error {
 			orderattachment.Table:       orderattachment.ValidColumn,
 			ordercargocategory.Table:    ordercargocategory.ValidColumn,
 			ordermilestone.Table:        ordermilestone.ValidColumn,
+			orderpersonnel.Table:        orderpersonnel.ValidColumn,
 			orderservicetype.Table:      orderservicetype.ValidColumn,
 			orderstatuslog.Table:        orderstatuslog.ValidColumn,
 			organization.Table:          organization.ValidColumn,

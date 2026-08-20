@@ -871,6 +871,73 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.OrderMilestoneReply'
+    /api/v1/orders/{orderId}/personnel:
+        get:
+            tags:
+                - OrderPersonnelService
+            description: ListPersonnel 获取指定订单的协作人员列表。
+            operationId: OrderPersonnelService_ListPersonnel
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderPersonnelListReply'
+        post:
+            tags:
+                - OrderPersonnelService
+            description: AssignPersonnel 分配订单协作人员。
+            operationId: OrderPersonnelService_AssignPersonnel
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.AssignPersonnelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderPersonnelReply'
+    /api/v1/orders/{orderId}/personnel/{id}:
+        delete:
+            tags:
+                - OrderPersonnelService
+            description: RemovePersonnel 移除订单协作人员。
+            operationId: OrderPersonnelService_RemovePersonnel
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderPersonnelOperationReply'
     /api/v1/partners:
         get:
             tags:
@@ -2369,6 +2436,21 @@ components:
                     format: enum
                 enabled:
                     type: boolean
+        order.v1.AssignPersonnelRequest:
+            required:
+                - orderId
+                - userId
+                - role
+            type: object
+            properties:
+                orderId:
+                    type: string
+                userId:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+            description: AssignPersonnelRequest 分配订单协作人员请求。
         order.v1.CreateOrderRequest:
             required:
                 - customerId
@@ -2682,6 +2764,70 @@ components:
                 traceId:
                     type: string
             description: OrderMilestoneReply 单条订单里程碑响应。
+        order.v1.OrderPersonnel:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                userId:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+                assignedAt:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderPersonnel 订单协作人员信息。
+        order.v1.OrderPersonnelListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderPersonnel'
+                traceId:
+                    type: string
+            description: OrderPersonnelListReply 订单协作人员列表响应。
+        order.v1.OrderPersonnelOperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+            description: OrderPersonnelOperationReply 订单协作人员操作响应。
+        order.v1.OrderPersonnelReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderPersonnel'
+                traceId:
+                    type: string
+            description: OrderPersonnelReply 单条订单协作人员响应。
         order.v1.OrderReply:
             type: object
             properties:
@@ -3606,6 +3752,8 @@ tags:
       description: OrderAttachmentService 订单附件服务。
     - name: OrderMilestoneService
       description: OrderMilestoneService 订单里程碑服务。
+    - name: OrderPersonnelService
+      description: OrderPersonnelService 订单协作人员服务。
     - name: OrderService
       description: OrderService 订单核心服务。
     - name: PartnerService

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -139,6 +140,21 @@ func (_c *UserCreate) AddSessions(v ...*Session) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddSessionIDs(ids...)
+}
+
+// AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
+func (_c *UserCreate) AddOrderPersonnelIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddOrderPersonnelIDs(ids...)
+	return _c
+}
+
+// AddOrderPersonnel adds the "order_personnel" edges to the OrderPersonnel entity.
+func (_c *UserCreate) AddOrderPersonnel(v ...*OrderPersonnel) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderPersonnelIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -322,6 +338,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderPersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderPersonnelTable,
+			Columns: []string{user.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

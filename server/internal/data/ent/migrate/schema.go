@@ -555,6 +555,58 @@ var (
 			},
 		},
 	}
+	// OrderPersonnelsColumns holds the columns for the "order_personnels" table.
+	OrderPersonnelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "ASSOCIATE", "ASSOCIATE2"}},
+		{Name: "assigned_at", Type: field.TypeTime},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// OrderPersonnelsTable holds the schema information for the "order_personnels" table.
+	OrderPersonnelsTable = &schema.Table{
+		Name:       "order_personnels",
+		Columns:    OrderPersonnelsColumns,
+		PrimaryKey: []*schema.Column{OrderPersonnelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_personnels_orders_personnel",
+				Columns:    []*schema.Column{OrderPersonnelsColumns[5]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_personnels_users_order_personnel",
+				Columns:    []*schema.Column{OrderPersonnelsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderpersonnel_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderPersonnelsColumns[2]},
+			},
+			{
+				Name:    "orderpersonnel_order_id_user_id_role",
+				Unique:  true,
+				Columns: []*schema.Column{OrderPersonnelsColumns[5], OrderPersonnelsColumns[6], OrderPersonnelsColumns[3]},
+			},
+			{
+				Name:    "orderpersonnel_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderPersonnelsColumns[5]},
+			},
+			{
+				Name:    "orderpersonnel_user_id_role",
+				Unique:  false,
+				Columns: []*schema.Column{OrderPersonnelsColumns[6], OrderPersonnelsColumns[3]},
+			},
+		},
+	}
 	// OrderServiceTypesColumns holds the columns for the "order_service_types" table.
 	OrderServiceTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1386,6 +1438,7 @@ var (
 		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
 		OrderMilestonesTable,
+		OrderPersonnelsTable,
 		OrderServiceTypesTable,
 		OrderStatusLogsTable,
 		OrganizationsTable,
@@ -1422,6 +1475,8 @@ func init() {
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable

@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -692,6 +693,21 @@ func (_u *OrderUpdate) AddAttachments(v ...*OrderAttachment) *OrderUpdate {
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// AddPersonnelIDs adds the "personnel" edge to the OrderPersonnel entity by IDs.
+func (_u *OrderUpdate) AddPersonnelIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddPersonnelIDs(ids...)
+	return _u
+}
+
+// AddPersonnel adds the "personnel" edges to the OrderPersonnel entity.
+func (_u *OrderUpdate) AddPersonnel(v ...*OrderPersonnel) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPersonnelIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -818,6 +834,27 @@ func (_u *OrderUpdate) RemoveAttachments(v ...*OrderAttachment) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearPersonnel clears all "personnel" edges to the OrderPersonnel entity.
+func (_u *OrderUpdate) ClearPersonnel() *OrderUpdate {
+	_u.mutation.ClearPersonnel()
+	return _u
+}
+
+// RemovePersonnelIDs removes the "personnel" edge to OrderPersonnel entities by IDs.
+func (_u *OrderUpdate) RemovePersonnelIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemovePersonnelIDs(ids...)
+	return _u
+}
+
+// RemovePersonnel removes "personnel" edges to OrderPersonnel entities.
+func (_u *OrderUpdate) RemovePersonnel(v ...*OrderPersonnel) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePersonnelIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1440,6 +1477,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPersonnelIDs(); len(nodes) > 0 && !_u.mutation.PersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2122,6 +2204,21 @@ func (_u *OrderUpdateOne) AddAttachments(v ...*OrderAttachment) *OrderUpdateOne 
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// AddPersonnelIDs adds the "personnel" edge to the OrderPersonnel entity by IDs.
+func (_u *OrderUpdateOne) AddPersonnelIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddPersonnelIDs(ids...)
+	return _u
+}
+
+// AddPersonnel adds the "personnel" edges to the OrderPersonnel entity.
+func (_u *OrderUpdateOne) AddPersonnel(v ...*OrderPersonnel) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPersonnelIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2248,6 +2345,27 @@ func (_u *OrderUpdateOne) RemoveAttachments(v ...*OrderAttachment) *OrderUpdateO
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearPersonnel clears all "personnel" edges to the OrderPersonnel entity.
+func (_u *OrderUpdateOne) ClearPersonnel() *OrderUpdateOne {
+	_u.mutation.ClearPersonnel()
+	return _u
+}
+
+// RemovePersonnelIDs removes the "personnel" edge to OrderPersonnel entities by IDs.
+func (_u *OrderUpdateOne) RemovePersonnelIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemovePersonnelIDs(ids...)
+	return _u
+}
+
+// RemovePersonnel removes "personnel" edges to OrderPersonnel entities.
+func (_u *OrderUpdateOne) RemovePersonnel(v ...*OrderPersonnel) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePersonnelIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -2900,6 +3018,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPersonnelIDs(); len(nodes) > 0 && !_u.mutation.PersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.PersonnelTable,
+			Columns: []string{order.PersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

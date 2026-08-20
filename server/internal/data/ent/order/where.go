@@ -2060,6 +2060,29 @@ func HasAttachmentsWith(preds ...predicate.OrderAttachment) predicate.Order {
 	})
 }
 
+// HasPersonnel applies the HasEdge predicate on the "personnel" edge.
+func HasPersonnel() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PersonnelTable, PersonnelColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPersonnelWith applies the HasEdge predicate on the "personnel" edge with a given conditions (other predicates).
+func HasPersonnelWith(preds ...predicate.OrderPersonnel) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newPersonnelStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Order) predicate.Order {
 	return predicate.Order(sql.AndPredicates(predicates...))

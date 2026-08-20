@@ -98,6 +98,8 @@ const (
 	EdgeMilestones = "milestones"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
+	// EdgePersonnel holds the string denoting the personnel edge name in mutations.
+	EdgePersonnel = "personnel"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -156,6 +158,13 @@ const (
 	AttachmentsInverseTable = "order_attachments"
 	// AttachmentsColumn is the table column denoting the attachments relation/edge.
 	AttachmentsColumn = "order_id"
+	// PersonnelTable is the table that holds the personnel relation/edge.
+	PersonnelTable = "order_personnels"
+	// PersonnelInverseTable is the table name for the OrderPersonnel entity.
+	// It exists in this package in order to avoid circular dependency with the "orderpersonnel" package.
+	PersonnelInverseTable = "order_personnels"
+	// PersonnelColumn is the table column denoting the personnel relation/edge.
+	PersonnelColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -686,6 +695,20 @@ func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPersonnelCount orders the results by personnel count.
+func ByPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPersonnelStep(), opts...)
+	}
+}
+
+// ByPersonnel orders the results by personnel terms.
+func ByPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -740,5 +763,12 @@ func newAttachmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AttachmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
+	)
+}
+func newPersonnelStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PersonnelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PersonnelTable, PersonnelColumn),
 	)
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -757,6 +758,31 @@ func init() {
 	ordermilestoneDescID := ordermilestoneMixinFields0[0].Descriptor()
 	// ordermilestone.DefaultID holds the default value on creation for the id field.
 	ordermilestone.DefaultID = ordermilestoneDescID.Default.(func() uuid.UUID)
+	orderpersonnelMixin := schema.OrderPersonnel{}.Mixin()
+	orderpersonnelMixinFields0 := orderpersonnelMixin[0].Fields()
+	_ = orderpersonnelMixinFields0
+	orderpersonnelMixinFields1 := orderpersonnelMixin[1].Fields()
+	_ = orderpersonnelMixinFields1
+	orderpersonnelFields := schema.OrderPersonnel{}.Fields()
+	_ = orderpersonnelFields
+	// orderpersonnelDescCreatedAt is the schema descriptor for created_at field.
+	orderpersonnelDescCreatedAt := orderpersonnelMixinFields1[0].Descriptor()
+	// orderpersonnel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderpersonnel.DefaultCreatedAt = orderpersonnelDescCreatedAt.Default.(func() time.Time)
+	// orderpersonnelDescUpdatedAt is the schema descriptor for updated_at field.
+	orderpersonnelDescUpdatedAt := orderpersonnelMixinFields1[1].Descriptor()
+	// orderpersonnel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderpersonnel.DefaultUpdatedAt = orderpersonnelDescUpdatedAt.Default.(func() time.Time)
+	// orderpersonnel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderpersonnel.UpdateDefaultUpdatedAt = orderpersonnelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderpersonnelDescAssignedAt is the schema descriptor for assigned_at field.
+	orderpersonnelDescAssignedAt := orderpersonnelFields[3].Descriptor()
+	// orderpersonnel.DefaultAssignedAt holds the default value on creation for the assigned_at field.
+	orderpersonnel.DefaultAssignedAt = orderpersonnelDescAssignedAt.Default.(func() time.Time)
+	// orderpersonnelDescID is the schema descriptor for id field.
+	orderpersonnelDescID := orderpersonnelMixinFields0[0].Descriptor()
+	// orderpersonnel.DefaultID holds the default value on creation for the id field.
+	orderpersonnel.DefaultID = orderpersonnelDescID.Default.(func() uuid.UUID)
 	orderservicetypeMixin := schema.OrderServiceType{}.Mixin()
 	orderservicetypeMixinFields0 := orderservicetypeMixin[0].Fields()
 	_ = orderservicetypeMixinFields0

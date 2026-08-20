@@ -26,6 +26,7 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("memberships", Membership.Type),
 		edge.To("sessions", Session.Type),
+		edge.To("order_personnel", OrderPersonnel.Type),
 	}
 }
 

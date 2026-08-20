@@ -141,6 +141,18 @@ func (f OrderMilestoneFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderMilestoneMutation", m)
 }
 
+// The OrderPersonnelFunc type is an adapter to allow the use of ordinary
+// function as OrderPersonnel mutator.
+type OrderPersonnelFunc func(context.Context, *ent.OrderPersonnelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderPersonnelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderPersonnelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderPersonnelMutation", m)
+}
+
 // The OrderServiceTypeFunc type is an adapter to allow the use of ordinary
 // function as OrderServiceType mutator.
 type OrderServiceTypeFunc func(context.Context, *ent.OrderServiceTypeMutation) (ent.Value, error)

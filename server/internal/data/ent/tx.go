@@ -34,6 +34,8 @@ type Tx struct {
 	OrderCargoCategory *OrderCargoCategoryClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
+	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
+	OrderPersonnel *OrderPersonnelClient
 	// OrderServiceType is the client for interacting with the OrderServiceType builders.
 	OrderServiceType *OrderServiceTypeClient
 	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
@@ -212,6 +214,7 @@ func (tx *Tx) init() {
 	tx.OrderAttachment = NewOrderAttachmentClient(tx.config)
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
+	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)
 	tx.OrderServiceType = NewOrderServiceTypeClient(tx.config)
 	tx.OrderStatusLog = NewOrderStatusLogClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)

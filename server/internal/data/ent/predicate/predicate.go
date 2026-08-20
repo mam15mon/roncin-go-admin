@@ -39,6 +39,9 @@ type OrderCargoCategory func(*sql.Selector)
 // OrderMilestone is the predicate function for ordermilestone builders.
 type OrderMilestone func(*sql.Selector)
 
+// OrderPersonnel is the predicate function for orderpersonnel builders.
+type OrderPersonnel func(*sql.Selector)
+
 // OrderServiceType is the predicate function for orderservicetype builders.
 type OrderServiceType func(*sql.Selector)
 

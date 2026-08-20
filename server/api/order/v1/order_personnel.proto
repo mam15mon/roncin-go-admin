@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderPersonnelService 订单协作人员服务。
+service OrderPersonnelService {
+  // ListPersonnel 获取指定订单的协作人员列表。
+  rpc ListPersonnel(ListPersonnelRequest) returns (OrderPersonnelListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/personnel"};
+  }
+
+  // AssignPersonnel 分配订单协作人员。
+  rpc AssignPersonnel(AssignPersonnelRequest) returns (OrderPersonnelReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/personnel"
+      body: "*"
+    };
+  }
+
+  // RemovePersonnel 移除订单协作人员。
+  rpc RemovePersonnel(RemovePersonnelRequest) returns (OrderPersonnelOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/personnel/{id}"};
+  }
+}
+
+// OrderPersonnelRole 订单协作人员角色枚举。
+enum OrderPersonnelRole {
+  ORDER_PERSONNEL_ROLE_UNSPECIFIED = 0;
+  ORDER_PERSONNEL_ROLE_CREATOR = 1;
+  ORDER_PERSONNEL_ROLE_OPERATOR = 2;
+  ORDER_PERSONNEL_ROLE_SALES = 3;
+  ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE = 4;
+  ORDER_PERSONNEL_ROLE_DOCUMENT = 5;
+  ORDER_PERSONNEL_ROLE_COMMERCIAL = 6;
+  ORDER_PERSONNEL_ROLE_ASSOCIATE = 7;
+  ORDER_PERSONNEL_ROLE_ASSOCIATE2 = 8;
+}
+
+// OrderPersonnel 订单协作人员信息。
+message OrderPersonnel {
+  string id = 1;
+  string order_id = 2;
+  string user_id = 3;
+  OrderPersonnelRole role = 4;
+  string assigned_at = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// ListPersonnelRequest 获取订单协作人员列表请求。
+message ListPersonnelRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AssignPersonnelRequest 分配订单协作人员请求。
+message AssignPersonnelRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemovePersonnelRequest 移除订单协作人员请求。
+message RemovePersonnelRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderPersonnelReply 单条订单协作人员响应。
+message OrderPersonnelReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderPersonnel data = 4;
+  string trace_id = 5;
+}
+
+// OrderPersonnelListReply 订单协作人员列表响应。
+message OrderPersonnelListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderPersonnel data = 4;
+  string trace_id = 5;
+}
+
+// OrderPersonnelOperationReply 订单协作人员操作响应。
+message OrderPersonnelOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}
