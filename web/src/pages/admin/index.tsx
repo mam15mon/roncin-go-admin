@@ -4,6 +4,7 @@ import { useAccess } from '@umijs/max';
 import { Alert, Card, Tabs } from 'antd';
 import React from 'react';
 import OrganizationsPanel from './organizations';
+import AuditPanel from './audit';
 import PermissionsPanel from './permissions';
 import RolesPanel from './roles';
 import UsersPanel from './users';
@@ -33,6 +34,14 @@ export default function Admin() {
           label: '角色管理',
           icon: <SettingOutlined />,
           children: <RolesPanel />,
+        }
+      : null,
+    access.canReadAudit
+      ? {
+          key: 'audit',
+          label: '审计日志',
+          icon: <LockOutlined />,
+          children: <AuditPanel />,
         }
       : null,
     access.canManageRoles

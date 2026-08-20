@@ -129,6 +129,21 @@ type AuditEvent struct {
 	Details        map[string]string
 }
 
+type AuditLog struct {
+	ID             uuid.UUID
+	OrganizationID *uuid.UUID
+	UserID         *uuid.UUID
+	Action         string
+	ResourceType   *string
+	ResourceID     *string
+	Result         string
+	RequestID      string
+	TraceID        string
+	IPAddress      string
+	Details        map[string]string
+	CreatedAt      time.Time
+}
+
 type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)

@@ -1,4 +1,30 @@
 declare namespace API {
+  type AdminAuditLog = {
+    id?: string;
+    organizationId?: string;
+    userId?: string;
+    action?: string;
+    resourceType?: string;
+    resourceId?: string;
+    result?: string;
+    requestId?: string;
+    traceId?: string;
+    ipAddress?: string;
+    details?: Record<string, any>;
+    createdAt?: string;
+  };
+
+  type AdminAuditLogListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminAuditLog[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
   type AdminOrganization = {
     id?: string;
     code?: string;
@@ -64,6 +90,15 @@ declare namespace API {
     message?: string;
     data?: AdminRole;
     traceId?: string;
+  };
+
+  type AdminServiceListAuditLogsParams = {
+    page?: number;
+    pageSize?: number;
+    action?: string;
+    userId?: string;
+    startTime?: string;
+    endTime?: string;
   };
 
   type AdminServiceListUsersParams = {

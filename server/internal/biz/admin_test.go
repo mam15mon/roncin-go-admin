@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -59,6 +60,10 @@ func (s *adminRepoStub) ListPermissions(context.Context) ([]*AdminPermission, er
 	return nil, nil
 }
 
+func (s *adminRepoStub) ListAuditLogs(_ context.Context, _ uuid.UUID, options AdminAuditLogListOptions) (*AdminAuditLogList, error) {
+	return &AdminAuditLogList{Page: options.Page, PageSize: options.PageSize}, nil
+}
+
 type auditRepoStub struct {
 	events []*AuditEvent
 }
@@ -93,6 +98,15 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
 	if _, err := usecase.ListOrganizations(context.Background(), uuid.Nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("ListOrganizations() error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
+	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	start := time.Date(2026, 8, 20, 12, 0, 0, 0, time.UTC)
+	end := start.Add(-time.Minute)
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{Page: 1, PageSize: 20, StartTime: &start, EndTime: &end}); err != ErrAdminInvalidArgument {
+		t.Fatalf("ListAuditLogs() error = %v, want ErrAdminInvalidArgument", err)
 	}
 }
 

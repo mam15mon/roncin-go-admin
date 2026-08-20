@@ -76,6 +76,22 @@ type AdminUserList struct {
 	PageSize int
 }
 
+type AdminAuditLogListOptions struct {
+	Page      int
+	PageSize  int
+	Action    string
+	UserID    *uuid.UUID
+	StartTime *time.Time
+	EndTime   *time.Time
+}
+
+type AdminAuditLogList struct {
+	Items    []*AuditLog
+	Total    int
+	Page     int
+	PageSize int
+}
+
 type AdminRepo interface {
 	ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error)
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
@@ -87,6 +103,7 @@ type AdminRepo interface {
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	ListPermissions(context.Context) ([]*AdminPermission, error)
+	ListAuditLogs(context.Context, uuid.UUID, AdminAuditLogListOptions) (*AdminAuditLogList, error)
 }
 
 type AdminUsecase struct {
@@ -204,6 +221,17 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 
 func (uc *AdminUsecase) ListPermissions(ctx context.Context) ([]*AdminPermission, error) {
 	return uc.repo.ListPermissions(ctx)
+}
+
+func (uc *AdminUsecase) ListAuditLogs(ctx context.Context, organizationID uuid.UUID, options AdminAuditLogListOptions) (*AdminAuditLogList, error) {
+	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+		return nil, ErrAdminInvalidArgument
+	}
+	options.Action = strings.TrimSpace(options.Action)
+	if options.StartTime != nil && options.EndTime != nil && options.StartTime.After(*options.EndTime) {
+		return nil, ErrAdminInvalidArgument
+	}
+	return uc.repo.ListAuditLogs(ctx, organizationID, options)
 }
 
 func (uc *AdminUsecase) writeAudit(ctx context.Context, userID uuid.UUID, resourceID *uuid.UUID, action, value string) error {

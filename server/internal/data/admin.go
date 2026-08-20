@@ -2,17 +2,20 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"sort"
 	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
 
@@ -242,6 +245,61 @@ func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission
 		result = append(result, &biz.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
 	}
 	return result, nil
+}
+
+func (r *adminRepo) ListAuditLogs(ctx context.Context, organizationID uuid.UUID, options biz.AdminAuditLogListOptions) (*biz.AdminAuditLogList, error) {
+	query := r.data.db.AuditLog.Query().Where(auditlog.OrganizationIDEQ(organizationID))
+	if options.Action != "" {
+		query.Where(auditlog.ActionContains(options.Action))
+	}
+	if options.UserID != nil {
+		query.Where(auditlog.UserIDEQ(*options.UserID))
+	}
+	if options.StartTime != nil {
+		query.Where(auditlog.CreatedAtGTE(*options.StartTime))
+	}
+	if options.EndTime != nil {
+		query.Where(auditlog.CreatedAtLT(*options.EndTime))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.Order(auditlog.ByCreatedAt(entsql.OrderDesc())).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.AuditLog, 0, len(items))
+	for _, item := range items {
+		mapped, mapErr := auditLogToBiz(item)
+		if mapErr != nil {
+			return nil, mapErr
+		}
+		result = append(result, mapped)
+	}
+	return &biz.AdminAuditLogList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func auditLogToBiz(item *ent.AuditLog) (*biz.AuditLog, error) {
+	details := make(map[string]string)
+	if len(item.Details) > 0 {
+		if err := json.Unmarshal(item.Details, &details); err != nil {
+			return nil, err
+		}
+	}
+	return &biz.AuditLog{
+		ID: item.ID, OrganizationID: item.OrganizationID, UserID: item.UserID,
+		Action: item.Action, ResourceType: optionalAuditString(item.ResourceType), ResourceID: optionalAuditString(item.ResourceID),
+		Result: item.Result.String(), RequestID: item.RequestID, TraceID: item.TraceID, IPAddress: item.IPAddress,
+		Details: details, CreatedAt: item.CreatedAt,
+	}, nil
+}
+
+func optionalAuditString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 
 func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {

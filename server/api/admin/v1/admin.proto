@@ -65,6 +65,10 @@ service AdminService {
   rpc ListPermissions(ListPermissionsRequest) returns (AdminPermissionListReply) {
     option (google.api.http) = {get: "/api/v1/admin/permissions"};
   }
+
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (AdminAuditLogListReply) {
+    option (google.api.http) = {get: "/api/v1/admin/audit-logs"};
+  }
 }
 
 enum DataScope {
@@ -225,4 +229,39 @@ message AdminPermissionListReply {
   string message = 3;
   repeated AdminPermission data = 4;
   string trace_id = 5;
+}
+
+message ListAuditLogsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string action = 3;
+  string user_id = 4;
+  string start_time = 5;
+  string end_time = 6;
+}
+
+message AdminAuditLog {
+  string id = 1;
+  optional string organization_id = 2;
+  optional string user_id = 3;
+  string action = 4;
+  optional string resource_type = 5;
+  optional string resource_id = 6;
+  string result = 7;
+  string request_id = 8;
+  string trace_id = 9;
+  string ip_address = 10;
+  map<string, string> details = 11;
+  string created_at = 12;
+}
+
+message AdminAuditLogListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AdminAuditLog data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
 }
