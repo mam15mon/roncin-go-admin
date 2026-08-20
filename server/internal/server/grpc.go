@@ -1,8 +1,12 @@
 package server
 
 import (
+	"log/slog"
+
+	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	v1 "github.com/roncin/roncin-go-admin/server/api/todo/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 	"github.com/roncin/roncin-go-admin/server/internal/service"
 
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -10,10 +14,13 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, todo *service.TodoService) *grpc.Server {
+func NewGRPCServer(c *conf.Server, todo *service.TodoService, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
+			tracing.Server(),
+			requestmeta.Middleware(),
+			requestmeta.Logging(logger),
 		),
 	}
 	if c.Grpc.Network != "" {
