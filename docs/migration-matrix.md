@@ -28,7 +28,7 @@
 |---|---|---|---|---|---|
 | D01 | 认证：`00-auth.prisma` | User、Account、Session、VerificationToken、LoginRateLimitBucket、AccessPolicyCacheEpoch | 部分完成 | P2 | 新会话已落到 Go/Ent；补齐用户管理、会话撤销和登录限流；明确旧密码哈希是否可复用；不复制 JWT 权限快照作为后端安全依据。 |
 | D02 | 组织与 RBAC：`01-org-rbac.prisma` | Organization、RoleGroup、RoleGroupPermission、UserOrganizationAssignment、UserRoleGroupAssignment、AccessImpactSnapshot | 部分完成 | P2/P3 | 新 `Role`/`Permission`/`RoleAssignment` 已有基础模型；必须先完成旧角色组、权限、组织成员和数据范围的映射决策；AccessImpactSnapshot 是否保留需单独判断。 |
-| D03 | 往来单位：`02-party-master.prisma` | Carrier、Party、PartyRole、CustomerProfile、SupplierProfile、AgentProfile、PartyContact、PartyRoleAccount、PartyContract、PartyRoleSettlementRule、PartyAttachment 及日志 | 部分完成 | P5/P6 | 当前 `Partner` 只是简化档案；在模型评审通过前不得继续扩展订单、费用和财务对 Partner 的依赖。必须决定是否保留角色、账户、合同、附件、结算和黑名单。 |
+| D03 | 往来单位：`02-party-master.prisma` | Carrier、Party、PartyRole、CustomerProfile、SupplierProfile、AgentProfile、PartyContact、PartyRoleAccount、PartyContract、PartyRoleSettlementRule、PartyAttachment 及日志 | 部分完成 | P5/P6 | 已完成组织级法人档案、客户/供应商/代理/承运人显式角色、多联系人、单一主联系人、别名及供应商黑名单；待完成账户、合同、结算规则、附件、导入和导出。订单、费用和财务继续只引用 Partner 聚合 ID。 |
 | D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 未开始 | P6 | 先确定订单聚合边界、业务类型、服务类型、货物类别、编号规则、模板选择和状态机；自定义字段必须有权限和版本策略。 |
 | D05 | 订单扩展与执行：`04-order-extension.prisma` | OrderContainer、OrderCargoItem、OrderShippingDocument、OrderReleasePod、OrderCollaborator、OrderAbnormalCase、OrderAttachment、OrderAlertTask、OrderPersonnel 等 | 未开始 | P7 | 不能只按“订单执行”笼统迁移；需逐项覆盖集装箱、提单、附件、异常、人员、提醒和审计。 |
 | D06 | 报关与 AE 扩展：`04-order-extension.prisma` | OrderCustomsDeclaration、CustomsTaskStatus、OrderAeMonitor、OrderAeTransitInfo、OrderAeInsuranceDraft 及相关枚举 | 未开始 | P6/P7 | 这是独立业务范围，不得因通用订单模型存在而视为自动覆盖；P0 必须决定是否属于 MVP、支持哪些业务类型，以及数据是否迁移。 |
@@ -56,16 +56,24 @@
 
 ### M-002：Partner 与 Party 的目标模型
 
-需要明确以下范围是否进入新系统：
+本决策覆盖以下范围：
 
 - 一个 Party 多角色，还是客户/供应商拆成独立资源。
 - 客户、供应商、代理档案是否保留独立扩展表。
 - 联系人、账户、合同、结算规则、附件、黑名单和角色变更日志是否迁移。
 - 新订单、费用和财务引用的是 Party 聚合 ID，还是特定角色 ID。
 
-未决前，当前 `Partner` 只能视为试验性基础资料实现，不能作为完整 Party 的最终契约。
+当前目标决定：`Partner` 作为新系统中的 Party 聚合名称继续保留，但内部使用独立的角色、联系人、账户、合同、结算规则和黑名单边界；订单和费用只引用 Party 聚合 ID，不直接引用某个旧 Prisma 表。客户、供应商、代理和承运人通过显式角色关系区分，不再用 `customer/supplier/both` 三值字段承载所有业务语义。
 
-当前目标决定：`Partner` 作为新系统中的 Party 聚合名称继续保留 API 稳定性，但内部扩展独立的角色、联系人、账户、合同、结算规则和黑名单边界；订单和费用只引用 Party 聚合 ID，不直接引用某个旧 Prisma 表。客户、供应商、代理和承运人通过显式角色关系区分，不再用 `customer/supplier/both` 三值字段承载所有业务语义。
+第一组已落地以下修正：
+
+- 编码、归一化法人名称和统一社会信用代码均按组织建立唯一约束，不沿用旧系统的全局唯一。
+- 联系人从 Partner 主表拆出，数据库使用条件唯一索引保证每个 Partner 最多一个主联系人。
+- 别名保存归一化值并按 Partner 唯一，避免仅靠页面判断重复。
+- 供应商黑名单只能通过带原因的专用命令变更，并写入业务审计；存在黑名单状态时禁止通过普通编辑删除供应商角色。
+- 页面为仓库内固定 TypeScript/React 表单，没有低代码配置、动态脚本或代码默认回退。
+
+第二组仍需完成账户、合同、结算规则和附件；旧 `meta`、`advantages` 等无明确契约的 JSON 字段不原样迁移。
 
 ### M-003：旧 RBAC 到新 RBAC 的映射
 
