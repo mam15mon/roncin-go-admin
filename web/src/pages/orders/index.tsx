@@ -1,0 +1,846 @@
+import { EditOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
+import {
+  ModalForm,
+  ProFormDatePicker,
+  ProFormDigit,
+  ProFormSelect,
+  ProFormText,
+  ProFormTextArea,
+  ProTable,
+} from '@ant-design/pro-components';
+import { useAccess } from '@umijs/max';
+import { App, Button, Space, Tag } from 'antd';
+import dayjs from 'dayjs';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  masterDataServiceListOptions,
+  masterDataServiceListStatusTemplates,
+} from '@/services/roncin/masterDataService';
+import {
+  orderServiceCreateOrder,
+  orderServiceListOrders,
+  orderServiceTransitionOrderStatus,
+  orderServiceUpdateOrder,
+} from '@/services/roncin/orderService';
+import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+
+const businessTypeOptions = [
+  { label: '海运出口', value: 1 },
+  { label: '海运进口', value: 2 },
+  { label: '空运出口', value: 3 },
+  { label: '空运进口', value: 4 },
+  { label: '陆运', value: 5 },
+  { label: '铁路', value: 6 },
+];
+
+const businessTypeValueEnum = Object.fromEntries(
+  businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
+);
+
+const tradeDirectionOptions = [
+  { label: '出口', value: 1 },
+  { label: '进口', value: 2 },
+];
+
+const tradeDirectionValueEnum = Object.fromEntries(
+  tradeDirectionOptions.map((opt) => [opt.value, { text: opt.label }]),
+);
+
+const tradeTermOptions = [
+  { label: 'EXW', value: 1 },
+  { label: 'FCA', value: 2 },
+  { label: 'FOB', value: 3 },
+  { label: 'CFR', value: 4 },
+  { label: 'CIF', value: 5 },
+  { label: 'CPT', value: 6 },
+  { label: 'CIP', value: 7 },
+  { label: 'DAP', value: 8 },
+  { label: 'DPU', value: 9 },
+  { label: 'DDU', value: 10 },
+  { label: 'DDP', value: 11 },
+  { label: 'LDP', value: 12 },
+];
+
+const paymentTermOptions = [
+  { label: '预付 (PP)', value: 1 },
+  { label: '到付 (CC)', value: 2 },
+];
+
+const shipmentTypeOptions = [
+  { label: '整箱 (FCL)', value: 1 },
+  { label: '拼箱 (LCL)', value: 2 },
+  { label: '散杂货 (Break Bulk)', value: 3 },
+];
+
+const MASTER_DATA_KINDS = {
+  REGION: 3,
+  PORT: 4,
+  AIRPORT: 5,
+  SERVICE_TYPE: 8,
+  CARGO_CATEGORY: 9,
+} as const;
+
+type OrderFormValues = {
+  customerId: string;
+  businessType: number;
+  tradeDirection: number;
+  tradeTerm: number;
+  paymentTerm: number;
+  statusTemplateId?: string;
+  shipmentType?: number;
+  serviceTypeIds?: string[];
+  cargoCategoryIds?: string[];
+  originLocationId?: string;
+  destinationLocationId?: string;
+  vesselVoyage?: string;
+  etd?: string;
+  eta?: string;
+  goodsDescription?: string;
+  totalPackages?: number;
+  totalPackageUnit?: string;
+  notes?: string;
+};
+
+type TransitionFormValues = {
+  targetStatus: string;
+  reason?: string;
+};
+
+export default function Orders() {
+  const actionRef = useRef<ActionType | undefined>(undefined);
+  const createFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const editFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const transitionFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const { message } = App.useApp();
+  const access = useAccess();
+
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [transitionModalOpen, setTransitionModalOpen] = useState(false);
+
+  const [editingRecord, setEditingRecord] = useState<API.Order>();
+  const [transitionRecord, setTransitionRecord] = useState<API.Order>();
+  const [targetStatusOptions, setTargetStatusOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
+  const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    masterDataServiceListOptions().then((res) => {
+      setMasterOptions(res.data ?? []);
+    });
+  }, []);
+
+  const serviceTypeOptions = masterOptions
+    .filter(
+      (item) =>
+        item.kind === MASTER_DATA_KINDS.SERVICE_TYPE && item.enabled !== false,
+    )
+    .map((item) => ({
+      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      value: item.id ?? '',
+    }));
+
+  const cargoCategoryOptions = masterOptions
+    .filter(
+      (item) =>
+        item.kind === MASTER_DATA_KINDS.CARGO_CATEGORY && item.enabled !== false,
+    )
+    .map((item) => ({
+      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      value: item.id ?? '',
+    }));
+
+  const locationOptions = masterOptions
+    .filter(
+      (item) =>
+        item.kind !== undefined &&
+        [
+          MASTER_DATA_KINDS.REGION,
+          MASTER_DATA_KINDS.PORT,
+          MASTER_DATA_KINDS.AIRPORT,
+        ].includes(item.kind as 3 | 4 | 5) &&
+        item.enabled !== false,
+    )
+    .map((item) => ({
+      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      value: item.id ?? '',
+    }));
+
+  const searchCustomers = async (keyword?: string) => {
+    const res = await partnerServiceListPartners({
+      role: 1,
+      enabled: true,
+      keyword,
+    });
+    const partners = res.data ?? [];
+    setCustomerMap((prev) => {
+      const next = { ...prev };
+      for (const p of partners) {
+        if (p.id) {
+          next[p.id] = p.legalName
+            ? `${p.legalName} (${p.code})`
+            : p.code || p.id;
+        }
+      }
+      return next;
+    });
+    return partners.map((p) => ({
+      label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id,
+      value: p.id ?? '',
+    }));
+  };
+
+  const loadStatusTemplates = async (businessType?: number) => {
+    if (!businessType) {
+      return [];
+    }
+    const res = await masterDataServiceListStatusTemplates({
+      businessType,
+      published: true,
+    });
+    return (res.data ?? [])
+      .filter(
+        (tpl) =>
+          tpl.enabled !== false &&
+          (tpl.items ?? []).some((item) => item.code === 'DRAFT'),
+      )
+      .map((tpl) => ({
+        label: `${tpl.name} (v${tpl.version})`,
+        value: tpl.id ?? '',
+      }));
+  };
+
+  const openCreate = () => {
+    createFormRef.current?.resetFields();
+    setCreateModalOpen(true);
+  };
+
+  const openEdit = (record: API.Order) => {
+    setEditingRecord(record);
+    editFormRef.current?.setFieldsValue({
+      customerId: record.customerId,
+      businessType: record.businessType,
+      tradeDirection: record.tradeDirection,
+      tradeTerm: record.tradeTerm,
+      paymentTerm: record.paymentTerm,
+      shipmentType: record.shipmentType,
+      serviceTypeIds: record.serviceTypeIds,
+      cargoCategoryIds: record.cargoCategoryIds,
+      originLocationId: record.originLocationId,
+      destinationLocationId: record.destinationLocationId,
+      vesselVoyage: record.vesselVoyage,
+      etd: record.etd ? dayjs(record.etd) : undefined,
+      eta: record.eta ? dayjs(record.eta) : undefined,
+      goodsDescription: record.goodsDescription,
+      totalPackages: record.totalPackages,
+      totalPackageUnit: record.totalPackageUnit,
+      notes: record.notes,
+    });
+    setEditModalOpen(true);
+  };
+
+  const openTransition = async (record: API.Order) => {
+    setTransitionRecord(record);
+    transitionFormRef.current?.setFieldsValue({
+      currentStatus: record.status,
+      targetStatus: undefined,
+      reason: undefined,
+    });
+    const res = await masterDataServiceListStatusTemplates({
+      businessType: record.businessType,
+      published: true,
+    });
+    const template = (res.data ?? []).find(
+      (tpl) => tpl.id === record.statusTemplateId,
+    );
+    const validTargets = (template?.items ?? [])
+      .filter(
+        (item) =>
+          item.enabled !== false &&
+          item.code !== record.status &&
+          item.code !== 'DRAFT',
+      )
+      .map((item) => ({
+        label: item.code ? `${item.label} (${item.code})` : (item.label ?? ''),
+        value: item.code ?? '',
+      }));
+    setTargetStatusOptions(validTargets);
+    setTransitionModalOpen(true);
+  };
+
+  const columns: ProColumns<API.Order>[] = [
+    {
+      title: '关键词',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      valueType: 'text',
+      fieldProps: {
+        placeholder: '搜索订单号/备注/描述',
+      },
+    },
+    {
+      title: '订单号',
+      dataIndex: 'orderNo',
+      copyable: true,
+      search: false,
+      render: (_, record) => record.orderNo || '-',
+    },
+    {
+      title: '业务类型',
+      dataIndex: 'businessType',
+      valueType: 'select',
+      valueEnum: businessTypeValueEnum,
+      render: (_, record) =>
+        businessTypeValueEnum[record.businessType ?? 0]?.text || '-',
+    },
+    {
+      title: '客户',
+      dataIndex: 'customerId',
+      valueType: 'select',
+      fieldProps: {
+        showSearch: true,
+        placeholder: '搜索客户',
+      },
+      request: async ({ keyWords }) => searchCustomers(keyWords),
+      render: (_, record) =>
+        customerMap[record.customerId ?? ''] || record.customerId || '-',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      valueType: 'text',
+      render: (_, record) => (
+        <Tag color={record.status === 'DRAFT' ? 'default' : 'blue'}>
+          {record.status || '-'}
+        </Tag>
+      ),
+    },
+    {
+      title: '贸易方向',
+      dataIndex: 'tradeDirection',
+      search: false,
+      valueType: 'select',
+      valueEnum: tradeDirectionValueEnum,
+      render: (_, record) =>
+        tradeDirectionValueEnum[record.tradeDirection ?? 0]?.text || '-',
+    },
+    {
+      title: 'ETD',
+      dataIndex: 'etd',
+      search: false,
+      render: (_, record) =>
+        record.etd ? dayjs(record.etd).format('YYYY-MM-DD') : '-',
+    },
+    {
+      title: 'ETA',
+      dataIndex: 'eta',
+      search: false,
+      render: (_, record) =>
+        record.eta ? dayjs(record.eta).format('YYYY-MM-DD') : '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      key: 'option',
+      width: 150,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Space size="small">
+            {record.status === 'DRAFT' && (
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              >
+                编辑
+              </Button>
+            )}
+            <Button
+              type="link"
+              size="small"
+              icon={<SwapOutlined />}
+              onClick={() => openTransition(record)}
+            >
+              状态流转
+            </Button>
+          </Space>
+        );
+      },
+    },
+  ];
+
+  return (
+    <>
+      <ProTable<API.Order>
+        headerTitle="订单列表"
+        actionRef={actionRef}
+        rowKey="id"
+        columns={columns}
+        request={async (params) => {
+          const response = await orderServiceListOrders({
+            page: params.current,
+            pageSize: params.pageSize,
+            keyword: params.keyword,
+            status: params.status,
+            businessType: params.businessType,
+            customerId: params.customerId,
+          });
+          return {
+            data: response.data ?? [],
+            success: response.success ?? false,
+            total: response.total ?? 0,
+          };
+        }}
+        toolBarRender={() => [
+          access.canManageOrders && (
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreate}
+            >
+              新增订单
+            </Button>
+          ),
+        ]}
+      />
+
+      <ModalForm<OrderFormValues>
+        title="新增订单"
+        open={createModalOpen}
+        formRef={createFormRef}
+        grid
+        modalProps={{
+          destroyOnHidden: true,
+          width: 800,
+          onCancel: () => setCreateModalOpen(false),
+        }}
+        onOpenChange={setCreateModalOpen}
+        onFinish={async (values) => {
+          if (!values.statusTemplateId) return false;
+          await orderServiceCreateOrder({
+            customerId: values.customerId,
+            businessType: values.businessType,
+            tradeDirection: values.tradeDirection,
+            tradeTerm: values.tradeTerm,
+            paymentTerm: values.paymentTerm,
+            statusTemplateId: values.statusTemplateId,
+            shipmentType: values.shipmentType,
+            serviceTypeIds: values.serviceTypeIds,
+            cargoCategoryIds: values.cargoCategoryIds,
+            originLocationId: values.originLocationId,
+            destinationLocationId: values.destinationLocationId,
+            vesselVoyage: values.vesselVoyage,
+            etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
+            eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
+            goodsDescription: values.goodsDescription,
+            totalPackages: values.totalPackages,
+            totalPackageUnit: values.totalPackageUnit,
+            notes: values.notes,
+          });
+          message.success('创建订单成功');
+          setCreateModalOpen(false);
+          actionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="customerId"
+          label="客户"
+          rules={[{ required: true, message: '请选择客户' }]}
+          fieldProps={{
+            showSearch: true,
+            placeholder: '搜索客户',
+          }}
+          request={async ({ keyWords }) => searchCustomers(keyWords)}
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="businessType"
+          label="业务类型"
+          rules={[{ required: true, message: '请选择业务类型' }]}
+          options={businessTypeOptions}
+          placeholder="请选择业务类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="statusTemplateId"
+          label="状态模板"
+          rules={[{ required: true, message: '请选择状态模板' }]}
+          dependencies={['businessType']}
+          request={async ({ businessType }) =>
+            loadStatusTemplates(businessType ? Number(businessType) : undefined)
+          }
+          placeholder="请选择状态模板"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="tradeDirection"
+          label="贸易方向"
+          rules={[{ required: true, message: '请选择贸易方向' }]}
+          options={tradeDirectionOptions}
+          placeholder="请选择贸易方向"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="tradeTerm"
+          label="贸易条款"
+          rules={[{ required: true, message: '请选择贸易条款' }]}
+          options={tradeTermOptions}
+          placeholder="请选择贸易条款"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="paymentTerm"
+          label="付款条款"
+          rules={[{ required: true, message: '请选择付款条款' }]}
+          options={paymentTermOptions}
+          placeholder="请选择付款条款"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="shipmentType"
+          label="装载类型"
+          options={shipmentTypeOptions}
+          placeholder="请选择装载类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="originLocationId"
+          label="起运地点"
+          options={locationOptions}
+          fieldProps={{ showSearch: true }}
+          placeholder="请选择起运地点"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="destinationLocationId"
+          label="目的地点"
+          options={locationOptions}
+          fieldProps={{ showSearch: true }}
+          placeholder="请选择目的地点"
+        />
+        <ProFormText
+          colProps={{ span: 12 }}
+          name="vesselVoyage"
+          label="船名航次"
+          placeholder="请输入船名航次"
+        />
+        <ProFormDatePicker
+          colProps={{ span: 12 }}
+          name="etd"
+          label="ETD"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormDatePicker
+          colProps={{ span: 12 }}
+          name="eta"
+          label="ETA"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="serviceTypeIds"
+          label="服务类型"
+          mode="multiple"
+          options={serviceTypeOptions}
+          placeholder="请选择服务类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="cargoCategoryIds"
+          label="货物类别"
+          mode="multiple"
+          options={cargoCategoryOptions}
+          placeholder="请选择货物类别"
+        />
+        <ProFormDigit
+          colProps={{ span: 12 }}
+          name="totalPackages"
+          label="件数"
+          min={0}
+          placeholder="请输入件数"
+        />
+        <ProFormText
+          colProps={{ span: 12 }}
+          name="totalPackageUnit"
+          label="包装单位"
+          placeholder="例如: CTNS, PLTS"
+        />
+        <ProFormTextArea
+          colProps={{ span: 24 }}
+          name="goodsDescription"
+          label="货物描述"
+          placeholder="请输入货物描述"
+          fieldProps={{ maxLength: 1000, showCount: true }}
+        />
+        <ProFormTextArea
+          colProps={{ span: 24 }}
+          name="notes"
+          label="备注"
+          placeholder="请输入备注"
+          fieldProps={{ maxLength: 1000, showCount: true }}
+        />
+      </ModalForm>
+
+      <ModalForm<OrderFormValues>
+        title="编辑订单草稿"
+        open={editModalOpen}
+        formRef={editFormRef}
+        grid
+        initialValues={
+          editingRecord
+            ? {
+                customerId: editingRecord.customerId,
+                businessType: editingRecord.businessType,
+                tradeDirection: editingRecord.tradeDirection,
+                tradeTerm: editingRecord.tradeTerm,
+                paymentTerm: editingRecord.paymentTerm,
+                shipmentType: editingRecord.shipmentType,
+                serviceTypeIds: editingRecord.serviceTypeIds,
+                cargoCategoryIds: editingRecord.cargoCategoryIds,
+                originLocationId: editingRecord.originLocationId,
+                destinationLocationId: editingRecord.destinationLocationId,
+                vesselVoyage: editingRecord.vesselVoyage,
+                etd: editingRecord.etd ? dayjs(editingRecord.etd) : undefined,
+                eta: editingRecord.eta ? dayjs(editingRecord.eta) : undefined,
+                goodsDescription: editingRecord.goodsDescription,
+                totalPackages: editingRecord.totalPackages,
+                totalPackageUnit: editingRecord.totalPackageUnit,
+                notes: editingRecord.notes,
+              }
+            : undefined
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 800,
+          onCancel: () => setEditModalOpen(false),
+        }}
+        onOpenChange={setEditModalOpen}
+        onFinish={async (values) => {
+          if (!editingRecord?.id || !editingRecord?.status) return false;
+          await orderServiceUpdateOrder(
+            { id: editingRecord.id },
+            {
+              id: editingRecord.id,
+              expectedStatus: editingRecord.status,
+              customerId: values.customerId,
+              businessType: values.businessType,
+              tradeDirection: values.tradeDirection,
+              tradeTerm: values.tradeTerm,
+              paymentTerm: values.paymentTerm,
+              shipmentType: values.shipmentType,
+              serviceTypeIds: values.serviceTypeIds,
+              cargoCategoryIds: values.cargoCategoryIds,
+              originLocationId: values.originLocationId,
+              destinationLocationId: values.destinationLocationId,
+              vesselVoyage: values.vesselVoyage,
+              etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
+              eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
+              goodsDescription: values.goodsDescription,
+              totalPackages: values.totalPackages,
+              totalPackageUnit: values.totalPackageUnit,
+              notes: values.notes,
+            },
+          );
+          message.success('更新订单成功');
+          setEditModalOpen(false);
+          actionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="customerId"
+          label="客户"
+          rules={[{ required: true, message: '请选择客户' }]}
+          fieldProps={{
+            showSearch: true,
+            placeholder: '搜索客户',
+          }}
+          request={async ({ keyWords }) => searchCustomers(keyWords)}
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="businessType"
+          label="业务类型"
+          rules={[{ required: true, message: '请选择业务类型' }]}
+          options={businessTypeOptions}
+          placeholder="请选择业务类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="tradeDirection"
+          label="贸易方向"
+          rules={[{ required: true, message: '请选择贸易方向' }]}
+          options={tradeDirectionOptions}
+          placeholder="请选择贸易方向"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="tradeTerm"
+          label="贸易条款"
+          rules={[{ required: true, message: '请选择贸易条款' }]}
+          options={tradeTermOptions}
+          placeholder="请选择贸易条款"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="paymentTerm"
+          label="付款条款"
+          rules={[{ required: true, message: '请选择付款条款' }]}
+          options={paymentTermOptions}
+          placeholder="请选择付款条款"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="shipmentType"
+          label="装载类型"
+          options={shipmentTypeOptions}
+          placeholder="请选择装载类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="originLocationId"
+          label="起运地点"
+          options={locationOptions}
+          fieldProps={{ showSearch: true }}
+          placeholder="请选择起运地点"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="destinationLocationId"
+          label="目的地点"
+          options={locationOptions}
+          fieldProps={{ showSearch: true }}
+          placeholder="请选择目的地点"
+        />
+        <ProFormText
+          colProps={{ span: 12 }}
+          name="vesselVoyage"
+          label="船名航次"
+          placeholder="请输入船名航次"
+        />
+        <ProFormDatePicker
+          colProps={{ span: 12 }}
+          name="etd"
+          label="ETD"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormDatePicker
+          colProps={{ span: 12 }}
+          name="eta"
+          label="ETA"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="serviceTypeIds"
+          label="服务类型"
+          mode="multiple"
+          options={serviceTypeOptions}
+          placeholder="请选择服务类型"
+        />
+        <ProFormSelect
+          colProps={{ span: 12 }}
+          name="cargoCategoryIds"
+          label="货物类别"
+          mode="multiple"
+          options={cargoCategoryOptions}
+          placeholder="请选择货物类别"
+        />
+        <ProFormDigit
+          colProps={{ span: 12 }}
+          name="totalPackages"
+          label="件数"
+          min={0}
+          placeholder="请输入件数"
+        />
+        <ProFormText
+          colProps={{ span: 12 }}
+          name="totalPackageUnit"
+          label="包装单位"
+          placeholder="例如: CTNS, PLTS"
+        />
+        <ProFormTextArea
+          colProps={{ span: 24 }}
+          name="goodsDescription"
+          label="货物描述"
+          placeholder="请输入货物描述"
+          fieldProps={{ maxLength: 1000, showCount: true }}
+        />
+        <ProFormTextArea
+          colProps={{ span: 24 }}
+          name="notes"
+          label="备注"
+          placeholder="请输入备注"
+          fieldProps={{ maxLength: 1000, showCount: true }}
+        />
+      </ModalForm>
+
+      <ModalForm<TransitionFormValues>
+        title="状态流转"
+        open={transitionModalOpen}
+        formRef={transitionFormRef}
+        initialValues={
+          transitionRecord
+            ? { currentStatus: transitionRecord.status }
+            : undefined
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 520,
+          onCancel: () => setTransitionModalOpen(false),
+        }}
+        onOpenChange={setTransitionModalOpen}
+        onFinish={async (values) => {
+          if (!transitionRecord?.id || !transitionRecord?.status) return false;
+          await orderServiceTransitionOrderStatus(
+            { id: transitionRecord.id },
+            {
+              id: transitionRecord.id,
+              expectedStatus: transitionRecord.status,
+              targetStatus: values.targetStatus,
+              reason: values.reason,
+            },
+          );
+          message.success('状态流转成功');
+          setTransitionModalOpen(false);
+          actionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="currentStatus"
+          label="当前状态"
+          readonly
+          initialValue={transitionRecord?.status}
+        />
+        <ProFormSelect
+          name="targetStatus"
+          label="目标状态"
+          rules={[{ required: true, message: '请选择目标状态' }]}
+          options={targetStatusOptions}
+          placeholder="请选择目标状态"
+        />
+        <ProFormTextArea
+          name="reason"
+          label="流转原因"
+          placeholder="请输入流转原因"
+          fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+    </>
+  );
+}

@@ -25,6 +25,13 @@ export default [
     component: './partners',
   },
   {
+    path: '/orders',
+    name: '订单管理',
+    icon: 'ordered-list',
+    access: 'canReadOrders',
+    component: './orders',
+  },
+  {
     path: '/master-data',
     name: '主数据',
     icon: 'database',
