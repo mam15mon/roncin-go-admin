@@ -190,6 +190,39 @@ declare namespace API {
     resetPolicy: number;
   };
 
+  type CreateOrderRequest = {
+    customerId: string;
+    businessType: number;
+    tradeDirection: number;
+    tradeTerm: number;
+    paymentTerm: number;
+    statusTemplateId: string;
+    carrierId?: string;
+    bookingAgentId?: string;
+    shipmentType?: number;
+    containerOwnership?: number;
+    shipmentMode?: number;
+    serviceTypeIds?: string[];
+    cargoCategoryIds?: string[];
+    originLocationId?: string;
+    destinationLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselVoyage?: string;
+    etd?: string;
+    eta?: string;
+    siCutoff?: string;
+    docCutoff?: string;
+    customsCutoff?: string;
+    vgmCutoff?: string;
+    goodsDescription?: string;
+    totalPackages?: number;
+    totalPackageUnit?: string;
+    specialRequirements?: string;
+    orderDate?: string;
+    notes?: string;
+  };
+
   type CreateOrganizationRequest = {
     code: string;
     name: string;
@@ -495,6 +528,85 @@ declare namespace API {
     code?: number;
     message?: string;
     traceId?: string;
+  };
+
+  type Order = {
+    id?: string;
+    organizationId?: string;
+    orderNo?: string;
+    customerId?: string;
+    carrierId?: string;
+    bookingAgentId?: string;
+    businessType?: number;
+    tradeDirection?: number;
+    tradeTerm?: number;
+    paymentTerm?: number;
+    shipmentType?: number;
+    containerOwnership?: number;
+    shipmentMode?: number;
+    status?: string;
+    statusTemplateId?: string;
+    serviceTypeIds?: string[];
+    cargoCategoryIds?: string[];
+    originLocationId?: string;
+    destinationLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselVoyage?: string;
+    etd?: string;
+    eta?: string;
+    siCutoff?: string;
+    docCutoff?: string;
+    customsCutoff?: string;
+    vgmCutoff?: string;
+    goodsDescription?: string;
+    totalPackages?: number;
+    totalPackageUnit?: string;
+    specialRequirements?: string;
+    orderDate?: string;
+    notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type OrderReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
+  type OrderServiceGetOrderParams = {
+    id: string;
+  };
+
+  type OrderServiceListOrdersParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: string;
+    businessType?: number;
+    customerId?: string;
+  };
+
+  type OrderServiceTransitionOrderStatusParams = {
+    id: string;
+  };
+
+  type OrderServiceUpdateOrderParams = {
+    id: string;
   };
 
   type Organization = {
@@ -945,6 +1057,13 @@ declare namespace API {
     organizationId: string;
   };
 
+  type TransitionOrderStatusRequest = {
+    id: string;
+    expectedStatus: string;
+    targetStatus: string;
+    reason?: string;
+  };
+
   type UpdateMasterDataItemRequest = {
     id: string;
     name: string;
@@ -965,6 +1084,40 @@ declare namespace API {
     sequenceLength: number;
     resetPolicy: number;
     enabled?: boolean;
+  };
+
+  type UpdateOrderRequest = {
+    id: string;
+    expectedStatus: string;
+    customerId?: string;
+    businessType?: number;
+    tradeDirection?: number;
+    tradeTerm?: number;
+    paymentTerm?: number;
+    carrierId?: string;
+    bookingAgentId?: string;
+    shipmentType?: number;
+    containerOwnership?: number;
+    shipmentMode?: number;
+    serviceTypeIds?: string[];
+    cargoCategoryIds?: string[];
+    originLocationId?: string;
+    destinationLocationId?: string;
+    dischargeLocationId?: string;
+    transitLocationId?: string;
+    vesselVoyage?: string;
+    etd?: string;
+    eta?: string;
+    siCutoff?: string;
+    docCutoff?: string;
+    customsCutoff?: string;
+    vgmCutoff?: string;
+    goodsDescription?: string;
+    totalPackages?: number;
+    totalPackageUnit?: string;
+    specialRequirements?: string;
+    orderDate?: string;
+    notes?: string;
   };
 
   type UpdateOrganizationRequest = {
