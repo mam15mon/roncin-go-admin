@@ -22,6 +22,7 @@ const (
 	MasterDataService_ListItems_FullMethodName                   = "/masterdata.v1.MasterDataService/ListItems"
 	MasterDataService_CreateItem_FullMethodName                  = "/masterdata.v1.MasterDataService/CreateItem"
 	MasterDataService_UpdateItem_FullMethodName                  = "/masterdata.v1.MasterDataService/UpdateItem"
+	MasterDataService_ImportItems_FullMethodName                 = "/masterdata.v1.MasterDataService/ImportItems"
 	MasterDataService_ListOptions_FullMethodName                 = "/masterdata.v1.MasterDataService/ListOptions"
 	MasterDataService_ListNumberRules_FullMethodName             = "/masterdata.v1.MasterDataService/ListNumberRules"
 	MasterDataService_CreateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/CreateNumberRule"
@@ -43,6 +44,7 @@ type MasterDataServiceClient interface {
 	ListItems(ctx context.Context, in *ListMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataItemListReply, error)
 	CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
 	UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
+	ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataImportReply, error)
 	ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...grpc.CallOption) (*MasterDataOptionsReply, error)
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error)
 	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error)
@@ -89,6 +91,16 @@ func (c *masterDataServiceClient) UpdateItem(ctx context.Context, in *UpdateMast
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MasterDataItemReply)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataImportReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MasterDataImportReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ImportItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +234,7 @@ type MasterDataServiceServer interface {
 	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
 	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
 	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
+	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
 	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
@@ -252,6 +265,9 @@ func (UnimplementedMasterDataServiceServer) CreateItem(context.Context, *CreateM
 }
 func (UnimplementedMasterDataServiceServer) UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateItem not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportItems not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOptions not implemented")
@@ -360,6 +376,24 @@ func _MasterDataService_UpdateItem_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterDataServiceServer).UpdateItem(ctx, req.(*UpdateMasterDataItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ImportItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportMasterDataItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ImportItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ImportItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ImportItems(ctx, req.(*ImportMasterDataItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -598,6 +632,10 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateItem",
 			Handler:    _MasterDataService_UpdateItem_Handler,
+		},
+		{
+			MethodName: "ImportItems",
+			Handler:    _MasterDataService_ImportItems_Handler,
 		},
 		{
 			MethodName: "ListOptions",

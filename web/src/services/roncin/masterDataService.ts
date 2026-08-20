@@ -2,6 +2,21 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** 此处后端没有提供注释 POST /api/v1/master-data/import */
+export async function masterDataServiceImportItems(
+  body: API.ImportMasterDataItemsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.MasterDataImportReply>("/api/v1/master-data/import", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 GET /api/v1/master-data/items */
 export async function masterDataServiceListItems(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

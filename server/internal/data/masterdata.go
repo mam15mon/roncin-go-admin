@@ -84,6 +84,82 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 	return masterDataItemToBiz(updated), nil
 }
 
+func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem) (*biz.MasterDataImportResult, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.MasterDataImportResult{Items: make([]*biz.MasterDataItem, 0, len(inputs))}
+	for _, input := range inputs {
+		existing, err := tx.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind)), masterdataent.CodeEQ(input.Code)).Only(ctx)
+		if ent.IsNotFound(err) {
+			created, createErr := tx.MasterDataItem.Create().
+				SetOrganizationID(organizationID).
+				SetKind(masterdataent.Kind(input.Kind)).
+				SetCode(input.Code).
+				SetName(input.Name).
+				SetNillableNameEn(input.NameEN).
+				SetNillableParentCode(input.ParentCode).
+				SetNillableTransportMode(input.TransportMode).
+				SetNillableTeuFactor(input.TEUFactor).
+				SetSource(input.Source).
+				SetSortOrder(input.SortOrder).
+				SetEnabled(input.Enabled).
+				Save(ctx)
+			if createErr != nil {
+				_ = tx.Rollback()
+				if ent.IsConstraintError(createErr) {
+					return nil, biz.ErrMasterDataCodeExists
+				}
+				return nil, createErr
+			}
+			result.Items = append(result.Items, masterDataItemToBiz(created))
+			result.Created++
+			continue
+		}
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		if mode == biz.MasterDataImportModeCreateOnly {
+			_ = tx.Rollback()
+			return nil, biz.ErrMasterDataCodeExists
+		}
+		update := existing.Update().
+			SetName(input.Name).
+			SetNillableNameEn(input.NameEN).
+			SetNillableParentCode(input.ParentCode).
+			SetNillableTransportMode(input.TransportMode).
+			SetNillableTeuFactor(input.TEUFactor).
+			SetSource(input.Source).
+			SetSortOrder(input.SortOrder).
+			SetEnabled(input.Enabled)
+		if input.NameEN == nil {
+			update.ClearNameEn()
+		}
+		if input.ParentCode == nil {
+			update.ClearParentCode()
+		}
+		if input.TransportMode == nil {
+			update.ClearTransportMode()
+		}
+		if input.TEUFactor == nil {
+			update.ClearTeuFactor()
+		}
+		updated, updateErr := update.Save(ctx)
+		if updateErr != nil {
+			_ = tx.Rollback()
+			return nil, updateErr
+		}
+		result.Items = append(result.Items, masterDataItemToBiz(updated))
+		result.Updated++
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func masterDataItemsToBiz(items []*ent.MasterDataItem) []*biz.MasterDataItem {
 	result := make([]*biz.MasterDataItem, 0, len(items))
 	for _, item := range items {

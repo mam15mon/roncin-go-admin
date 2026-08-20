@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 
@@ -75,11 +76,36 @@ type MasterDataList struct {
 	PageSize int
 }
 
+type MasterDataImportMode string
+
+const (
+	MasterDataImportModeCreateOnly MasterDataImportMode = "create_only"
+	MasterDataImportModeUpsert     MasterDataImportMode = "upsert"
+)
+
+func (mode MasterDataImportMode) Valid() bool {
+	return mode == MasterDataImportModeCreateOnly || mode == MasterDataImportModeUpsert
+}
+
+type MasterDataImportInput struct {
+	Kind   MasterDataKind
+	Source string
+	Mode   MasterDataImportMode
+	Items  []*MasterDataItem
+}
+
+type MasterDataImportResult struct {
+	Items   []*MasterDataItem
+	Created int
+	Updated int
+}
+
 type MasterDataRepo interface {
 	List(context.Context, uuid.UUID, MasterDataListOptions) (*MasterDataList, error)
 	ListEnabled(context.Context, uuid.UUID) ([]*MasterDataItem, error)
 	Create(context.Context, uuid.UUID, *MasterDataItem) (*MasterDataItem, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *MasterDataItem) (*MasterDataItem, error)
+	Import(context.Context, uuid.UUID, MasterDataImportMode, []*MasterDataItem) (*MasterDataImportResult, error)
 }
 
 type MasterDataUsecase struct {
@@ -110,6 +136,9 @@ func (uc *MasterDataUsecase) ListOptions(ctx context.Context, organizationID uui
 }
 
 func (uc *MasterDataUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *MasterDataItem) (*MasterDataItem, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrMasterDataInvalidArgument
+	}
 	normalized, err := normalizeMasterDataItem(input, true)
 	if err != nil {
 		return nil, err
@@ -122,6 +151,40 @@ func (uc *MasterDataUsecase) Create(ctx context.Context, organizationID, actorID
 		return nil, fmt.Errorf("write master data create audit: %w", err)
 	}
 	return created, nil
+}
+
+func (uc *MasterDataUsecase) Import(ctx context.Context, organizationID, actorID uuid.UUID, input MasterDataImportInput) (*MasterDataImportResult, error) {
+	input.Source = strings.TrimSpace(input.Source)
+	if organizationID == uuid.Nil || !input.Kind.Valid() || !input.Mode.Valid() || input.Source == "" || utf8.RuneCountInString(input.Source) > 100 || len(input.Items) == 0 || len(input.Items) > 500 {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	items := make([]*MasterDataItem, 0, len(input.Items))
+	seen := make(map[string]struct{}, len(input.Items))
+	for _, item := range input.Items {
+		if item == nil {
+			return nil, ErrMasterDataInvalidArgument
+		}
+		copyItem := *item
+		copyItem.Kind = input.Kind
+		copyItem.Source = input.Source
+		normalized, err := normalizeMasterDataItem(&copyItem, true)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := seen[normalized.Code]; exists {
+			return nil, ErrMasterDataInvalidArgument
+		}
+		seen[normalized.Code] = struct{}{}
+		items = append(items, normalized)
+	}
+	result, err := uc.repo.Import(ctx, organizationID, input.Mode, items)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.import", Result: "success", Details: map[string]string{"master_data.kind": string(input.Kind), "source": input.Source, "mode": string(input.Mode), "created": fmt.Sprintf("%d", result.Created), "updated": fmt.Sprintf("%d", result.Updated)}}); err != nil {
+		return nil, fmt.Errorf("write master data import audit: %w", err)
+	}
+	return result, nil
 }
 
 func (uc *MasterDataUsecase) Update(ctx context.Context, organizationID, actorID, id uuid.UUID, input *MasterDataItem) (*MasterDataItem, error) {
@@ -157,7 +220,19 @@ func normalizeMasterDataItem(input *MasterDataItem, creating bool) (*MasterDataI
 	output.ParentCode = normalizedUpperOptionalString(output.ParentCode)
 	output.TransportMode = normalizedUpperOptionalString(output.TransportMode)
 	output.TEUFactor = normalizedOptionalString(output.TEUFactor)
-	if output.Name == "" || output.SortOrder < 0 || !output.Kind.Valid() || creating && output.Code == "" {
+	if !output.Kind.Valid() || output.Name == "" || utf8.RuneCountInString(output.Name) > 200 || output.SortOrder < 0 || utf8.RuneCountInString(output.Source) > 100 {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if creating && (output.Code == "" || utf8.RuneCountInString(output.Code) > 64) {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if optionalStringTooLong(output.NameEN, 200) || optionalStringTooLong(output.ParentCode, 64) || optionalStringTooLong(output.TransportMode, 32) || optionalStringTooLong(output.TEUFactor, 32) {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if output.ParentCode != nil && output.Kind != MasterDataKindRegion && output.Kind != MasterDataKindPort && output.Kind != MasterDataKindAirport {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if output.TransportMode != nil && output.Kind != MasterDataKindCarrier {
 		return nil, ErrMasterDataInvalidArgument
 	}
 	if output.TEUFactor != nil {
@@ -170,6 +245,10 @@ func normalizeMasterDataItem(input *MasterDataItem, creating bool) (*MasterDataI
 		}
 	}
 	return &output, nil
+}
+
+func optionalStringTooLong(value *string, maximum int) bool {
+	return value != nil && utf8.RuneCountInString(*value) > maximum
 }
 
 func normalizedOptionalString(value *string) *string {

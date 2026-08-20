@@ -526,6 +526,36 @@
         }
       }
     },
+    "/api/v1/master-data/import": {
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ImportItems",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.ImportMasterDataItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.MasterDataImportReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/master-data/items": {
       "get": {
         "tags": [
@@ -2010,6 +2040,100 @@
             "items": {
               "$ref": "#/components/schemas/masterdata.v1.StatusTemplateItemInput"
             }
+          }
+        }
+      },
+      "masterdata.v1.ImportMasterDataItemsRequest": {
+        "required": [
+          "kind",
+          "source",
+          "mode",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "source": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataImportItemInput"
+            }
+          }
+        }
+      },
+      "masterdata.v1.MasterDataImportItemInput": {
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "parentCode": {
+            "type": "string"
+          },
+          "transportMode": {
+            "type": "string"
+          },
+          "teuFactor": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.MasterDataImportReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

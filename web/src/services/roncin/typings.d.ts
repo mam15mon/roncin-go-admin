@@ -239,6 +239,13 @@ declare namespace API {
     roleScopes?: RoleScope[];
   };
 
+  type ImportMasterDataItemsRequest = {
+    kind: number;
+    source: string;
+    mode: number;
+    items: MasterDataImportItemInput[];
+  };
+
   type LoginReply = {
     success?: boolean;
     code?: number;
@@ -250,6 +257,27 @@ declare namespace API {
   type LoginRequest = {
     username: string;
     password: string;
+  };
+
+  type MasterDataImportItemInput = {
+    code: string;
+    name: string;
+    nameEn?: string;
+    parentCode?: string;
+    transportMode?: string;
+    teuFactor?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+  };
+
+  type MasterDataImportReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    createdCount?: number;
+    updatedCount?: number;
+    traceId?: string;
   };
 
   type MasterDataItem = {

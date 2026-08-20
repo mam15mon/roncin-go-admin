@@ -26,6 +26,13 @@ service MasterDataService {
     };
   }
 
+  rpc ImportItems(ImportMasterDataItemsRequest) returns (MasterDataImportReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/import"
+      body: "*"
+    };
+  }
+
   rpc ListOptions(ListMasterDataOptionsRequest) returns (MasterDataOptionsReply) {
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
@@ -97,6 +104,12 @@ service MasterDataService {
       body: "*"
     };
   }
+}
+
+enum MasterDataImportMode {
+  MASTER_DATA_IMPORT_MODE_UNSPECIFIED = 0;
+  MASTER_DATA_IMPORT_MODE_CREATE_ONLY = 1;
+  MASTER_DATA_IMPORT_MODE_UPSERT = 2;
 }
 
 enum MasterDataKind {
@@ -181,6 +194,34 @@ message UpdateMasterDataItemRequest {
   int32 sort_order = 8;
   bool enabled = 9;
   MasterDataKind kind = 10 [(google.api.field_behavior) = REQUIRED];
+}
+
+message MasterDataImportItemInput {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string name_en = 3;
+  optional string parent_code = 4;
+  optional string transport_mode = 5;
+  optional string teu_factor = 6;
+  int32 sort_order = 7;
+  optional bool enabled = 8;
+}
+
+message ImportMasterDataItemsRequest {
+  MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string source = 2 [(google.api.field_behavior) = REQUIRED];
+  MasterDataImportMode mode = 3 [(google.api.field_behavior) = REQUIRED];
+  repeated MasterDataImportItemInput items = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message MasterDataImportReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated MasterDataItem data = 4;
+  int32 created_count = 5;
+  int32 updated_count = 6;
+  string trace_id = 7;
 }
 
 message ListMasterDataOptionsRequest {}

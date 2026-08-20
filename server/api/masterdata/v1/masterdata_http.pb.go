@@ -21,6 +21,7 @@ const OperationMasterDataServiceCreateItem = "/masterdata.v1.MasterDataService/C
 const OperationMasterDataServiceCreateMilestoneTemplate = "/masterdata.v1.MasterDataService/CreateMilestoneTemplate"
 const OperationMasterDataServiceCreateNumberRule = "/masterdata.v1.MasterDataService/CreateNumberRule"
 const OperationMasterDataServiceCreateStatusTemplate = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
+const OperationMasterDataServiceImportItems = "/masterdata.v1.MasterDataService/ImportItems"
 const OperationMasterDataServiceListItems = "/masterdata.v1.MasterDataService/ListItems"
 const OperationMasterDataServiceListMilestoneTemplates = "/masterdata.v1.MasterDataService/ListMilestoneTemplates"
 const OperationMasterDataServiceListNumberRules = "/masterdata.v1.MasterDataService/ListNumberRules"
@@ -38,6 +39,7 @@ type MasterDataServiceHTTPServer interface {
 	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
 	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
+	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
 	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
 	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*MilestoneTemplateListReply, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
@@ -56,6 +58,7 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("GET", "/api/v1/master-data/items", _MasterDataService_ListItems0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/items", _MasterDataService_CreateItem0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/items/{id}", _MasterDataService_UpdateItem0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/import", _MasterDataService_ImportItems0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/options", _MasterDataService_ListOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/number-rules", _MasterDataService_CreateNumberRule0_HTTP_Handler(srv))
@@ -126,6 +129,25 @@ func _MasterDataService_UpdateItem0_HTTP_Handler(srv MasterDataServiceHTTPServer
 			return err
 		}
 		reply := out.(*MasterDataItemReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ImportItems0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ImportMasterDataItemsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceImportItems)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ImportItems(ctx, req.(*ImportMasterDataItemsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MasterDataImportReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -378,6 +400,7 @@ type MasterDataServiceHTTPClient interface {
 	CreateMilestoneTemplate(ctx context.Context, req *CreateMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
 	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
 	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
+	ImportItems(ctx context.Context, req *ImportMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataImportReply, err error)
 	ListItems(ctx context.Context, req *ListMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataItemListReply, err error)
 	ListMilestoneTemplates(ctx context.Context, req *ListMilestoneTemplatesRequest, opts ...http.CallOption) (rsp *MilestoneTemplateListReply, err error)
 	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *NumberRuleListReply, err error)
@@ -458,6 +481,23 @@ func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServiceCreateStatusTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...http.CallOption) (*MasterDataImportReply, error) {
+	var out MasterDataImportReply
+	pattern := "/api/v1/master-data/import"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceImportItems),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

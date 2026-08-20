@@ -87,6 +87,47 @@ func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListMasterDat
 	return &v1.MasterDataOptionsReply{Success: true, Code: 0, Message: "OK", Data: masterDataItemsToAPI(items), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportMasterDataItemsRequest) (*v1.MasterDataImportReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*biz.MasterDataItem, 0, len(request.GetItems()))
+	for _, item := range request.GetItems() {
+		if item == nil {
+			return nil, biz.ErrMasterDataInvalidArgument
+		}
+		items = append(items, &biz.MasterDataItem{
+			Code:          item.GetCode(),
+			Name:          item.GetName(),
+			NameEN:        optionalString(item.GetNameEn(), item.NameEn != nil),
+			ParentCode:    optionalString(item.GetParentCode(), item.ParentCode != nil),
+			TransportMode: optionalString(item.GetTransportMode(), item.TransportMode != nil),
+			TEUFactor:     optionalString(item.GetTeuFactor(), item.TeuFactor != nil),
+			SortOrder:     int(item.GetSortOrder()),
+			Enabled:       item.Enabled == nil || item.GetEnabled(),
+		})
+	}
+	result, err := s.usecase.Import(ctx, principal.Organization.ID, principal.UserID, biz.MasterDataImportInput{
+		Kind:   masterDataKindFromAPI(request.GetKind()),
+		Source: request.GetSource(),
+		Mode:   masterDataImportModeFromAPI(request.GetMode()),
+		Items:  items,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MasterDataImportReply{
+		Success:      true,
+		Code:         0,
+		Message:      "OK",
+		Data:         masterDataItemsToAPI(result.Items),
+		CreatedCount: int32(result.Created),
+		UpdatedCount: int32(result.Updated),
+		TraceId:      requestmeta.TraceID(ctx),
+	}, nil
+}
+
 func (s *MasterDataService) ListNumberRules(ctx context.Context, _ *v1.ListNumberRulesRequest) (*v1.NumberRuleListReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -430,6 +471,17 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY
 	default:
 		return v1.MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
+	}
+}
+
+func masterDataImportModeFromAPI(value v1.MasterDataImportMode) biz.MasterDataImportMode {
+	switch value {
+	case v1.MasterDataImportMode_MASTER_DATA_IMPORT_MODE_CREATE_ONLY:
+		return biz.MasterDataImportModeCreateOnly
+	case v1.MasterDataImportMode_MASTER_DATA_IMPORT_MODE_UPSERT:
+		return biz.MasterDataImportModeUpsert
+	default:
+		return ""
 	}
 }
 

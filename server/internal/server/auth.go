@@ -58,6 +58,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		masterdatav1.OperationMasterDataServiceListOptions:                 {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceCreateItem:                  {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceUpdateItem:                  {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceImportItems:                 {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListNumberRules:             {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceCreateNumberRule:            {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceUpdateNumberRule:            {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
