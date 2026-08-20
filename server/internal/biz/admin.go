@@ -77,9 +77,9 @@ type AdminUserList struct {
 }
 
 type AdminRepo interface {
-	ListOrganizations(context.Context) ([]*AdminOrganization, error)
+	ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error)
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
-	UpdateOrganization(context.Context, uuid.UUID, string, bool) (*AdminOrganization, error)
+	UpdateOrganization(context.Context, uuid.UUID, uuid.UUID, string, bool) (*AdminOrganization, error)
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
@@ -98,8 +98,11 @@ func NewAdminUsecase(repo AdminRepo, audit AuditRepo) *AdminUsecase {
 	return &AdminUsecase{repo: repo, audit: audit}
 }
 
-func (uc *AdminUsecase) ListOrganizations(ctx context.Context) ([]*AdminOrganization, error) {
-	return uc.repo.ListOrganizations(ctx)
+func (uc *AdminUsecase) ListOrganizations(ctx context.Context, organizationID uuid.UUID) ([]*AdminOrganization, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrAdminInvalidArgument
+	}
+	return uc.repo.ListOrganizations(ctx, organizationID)
 }
 
 func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID, input *AdminOrganization) (*AdminOrganization, error) {
@@ -114,12 +117,12 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 	return created, uc.writeAudit(ctx, userID, nil, "admin.organization.create", created.ID.String())
 }
 
-func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, id uuid.UUID, name string, enabled bool) (*AdminOrganization, error) {
+func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool) (*AdminOrganization, error) {
 	name = strings.TrimSpace(name)
-	if id == uuid.Nil || name == "" {
+	if organizationID == uuid.Nil || id == uuid.Nil || name == "" {
 		return nil, ErrAdminInvalidArgument
 	}
-	updated, err := uc.repo.UpdateOrganization(ctx, id, name, enabled)
+	updated, err := uc.repo.UpdateOrganization(ctx, organizationID, id, name, enabled)
 	if err != nil {
 		return nil, err
 	}

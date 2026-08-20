@@ -21,7 +21,11 @@ func NewAdminService(usecase *biz.AdminUsecase) *AdminService {
 }
 
 func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganizationsRequest) (*v1.AdminOrganizationListReply, error) {
-	items, err := s.usecase.ListOrganizations(ctx)
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.usecase.ListOrganizations(ctx, principal.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +41,8 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), Enabled: true})
+	parentID := principal.Organization.ID
+	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), ParentID: &parentID, Enabled: true})
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +58,7 @@ func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	updated, err := s.usecase.UpdateOrganization(ctx, principal.UserID, organizationID, request.GetName(), request.GetEnabled())
+	updated, err := s.usecase.UpdateOrganization(ctx, principal.UserID, principal.Organization.ID, organizationID, request.GetName(), request.GetEnabled())
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ type adminRepoStub struct {
 	userInput       *AdminUser
 }
 
-func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
+func (s *adminRepoStub) ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error) {
 	return nil, nil
 }
 
@@ -22,7 +22,7 @@ func (s *adminRepoStub) CreateOrganization(_ context.Context, input *AdminOrgani
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, _ string, _ bool) (*AdminOrganization, error) {
+func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, _ uuid.UUID, _ string, _ bool) (*AdminOrganization, error) {
 	return &AdminOrganization{}, nil
 }
 
@@ -86,6 +86,13 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	}
 	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: 101}); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid page size error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
+	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	if _, err := usecase.ListOrganizations(context.Background(), uuid.Nil); err != ErrAdminInvalidArgument {
+		t.Fatalf("ListOrganizations() error = %v, want ErrAdminInvalidArgument", err)
 	}
 }
 

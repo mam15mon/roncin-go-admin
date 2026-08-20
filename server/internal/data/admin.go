@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -19,8 +20,8 @@ type adminRepo struct{ data *Data }
 
 func NewAdminRepo(data *Data) biz.AdminRepo { return &adminRepo{data: data} }
 
-func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganization, error) {
-	items, err := r.data.db.Organization.Query().All(ctx)
+func (r *adminRepo) ListOrganizations(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminOrganization, error) {
+	items, err := r.data.db.Organization.Query().Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +34,11 @@ func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganiza
 }
 
 func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
-	created, err := r.data.db.Organization.Create().SetCode(input.Code).SetName(input.Name).Save(ctx)
+	create := r.data.db.Organization.Create().SetCode(input.Code).SetName(input.Name)
+	if input.ParentID != nil {
+		create.SetParentID(*input.ParentID)
+	}
+	created, err := create.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, biz.ErrAdminOrganizationCodeExists
@@ -43,8 +48,8 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 	return organizationToBiz(created), nil
 }
 
-func (r *adminRepo) UpdateOrganization(ctx context.Context, id uuid.UUID, name string, enabled bool) (*biz.AdminOrganization, error) {
-	updated, err := r.data.db.Organization.UpdateOneID(id).SetName(name).SetEnabled(enabled).Save(ctx)
+func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID, id uuid.UUID, name string, enabled bool) (*biz.AdminOrganization, error) {
+	updated, err := r.data.db.Organization.UpdateOneID(id).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(name).SetEnabled(enabled).Save(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrAdminOrganizationNotFound
