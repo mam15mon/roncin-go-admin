@@ -1,0 +1,227 @@
+package biz
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	stderrors "errors"
+	"fmt"
+	"strings"
+	"time"
+
+	v1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
+
+	"github.com/go-kratos/kratos/v3/errors"
+	"github.com/google/uuid"
+)
+
+var (
+	ErrInvalidCredentials    = errors.Unauthorized(v1.ErrorReason_AUTH_INVALID_CREDENTIALS.String(), "用户名或密码错误")
+	ErrSessionRequired       = errors.Unauthorized(v1.ErrorReason_AUTH_SESSION_REQUIRED.String(), "请先登录")
+	ErrSessionExpired        = errors.Unauthorized(v1.ErrorReason_AUTH_SESSION_EXPIRED.String(), "登录已过期")
+	ErrPermissionDenied      = errors.Forbidden(v1.ErrorReason_AUTH_PERMISSION_DENIED.String(), "无权执行此操作")
+	ErrOrganizationForbidden = errors.Forbidden(v1.ErrorReason_AUTH_ORGANIZATION_FORBIDDEN.String(), "无权访问该组织")
+)
+
+type DataScope string
+
+const (
+	DataScopeAll              DataScope = "all"
+	DataScopeOrganization     DataScope = "organization"
+	DataScopeOrganizationTree DataScope = "organization_tree"
+	DataScopeSelf             DataScope = "self"
+)
+
+type Organization struct {
+	ID   uuid.UUID
+	Code string
+	Name string
+}
+
+type RoleScope struct {
+	RoleCode  string
+	DataScope DataScope
+}
+
+type Credential struct {
+	UserID                uuid.UUID
+	Username              string
+	DisplayName           string
+	Email                 *string
+	PasswordHash          string
+	PrimaryOrganizationID uuid.UUID
+}
+
+type Principal struct {
+	SessionTokenHash string
+	UserID           uuid.UUID
+	Username         string
+	DisplayName      string
+	Email            *string
+	Organization     Organization
+	Organizations    []Organization
+	Permissions      []string
+	RoleScopes       []RoleScope
+}
+
+func (p *Principal) HasPermission(key string) bool {
+	for _, permission := range p.Permissions {
+		if permission == key {
+			return true
+		}
+	}
+	return false
+}
+
+type Session struct {
+	TokenHash      string
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
+	ExpiresAt      time.Time
+	UserAgent      string
+}
+
+type AuditEvent struct {
+	OrganizationID *uuid.UUID
+	UserID         *uuid.UUID
+	Action         string
+	Result         string
+	RequestID      string
+	TraceID        string
+	IPAddress      string
+	Details        map[string]string
+}
+
+type AuthRepo interface {
+	FindCredential(context.Context, string) (*Credential, error)
+	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
+	CreateSession(context.Context, *Session) error
+	FindSession(context.Context, string, time.Time) (*Session, error)
+	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time) error
+	RevokeSession(context.Context, string, time.Time) error
+	WriteAudit(context.Context, *AuditEvent) error
+}
+
+type SessionPolicy struct {
+	CookieName string
+	TTL        time.Duration
+	Secure     bool
+	SameSite   string
+}
+
+type principalContextKey struct{}
+
+func WithPrincipal(ctx context.Context, principal *Principal) context.Context {
+	return context.WithValue(ctx, principalContextKey{}, principal)
+}
+
+func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
+	principal, ok := ctx.Value(principalContextKey{}).(*Principal)
+	return principal, ok && principal != nil
+}
+
+type AuthUsecase struct {
+	repo   AuthRepo
+	policy *SessionPolicy
+}
+
+func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy) *AuthUsecase {
+	return &AuthUsecase{repo: repo, policy: policy}
+}
+
+func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent string) (string, *Principal, time.Time, error) {
+	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
+	credential, err := uc.repo.FindCredential(ctx, normalizedUsername)
+	if err != nil {
+		if stderrors.Is(err, ErrInvalidCredentials) {
+			if auditErr := uc.repo.WriteAudit(ctx, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}}); auditErr != nil {
+				return "", nil, time.Time{}, auditErr
+			}
+		}
+		return "", nil, time.Time{}, err
+	}
+	matched, err := password.Verify(plainPassword, credential.PasswordHash)
+	if err != nil {
+		return "", nil, time.Time{}, fmt.Errorf("verify password hash: %w", err)
+	}
+	if !matched {
+		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}}); err != nil {
+			return "", nil, time.Time{}, err
+		}
+		return "", nil, time.Time{}, ErrInvalidCredentials
+	}
+	principal, err := uc.repo.ResolvePrincipal(ctx, credential.UserID, credential.PrimaryOrganizationID)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	rawToken, tokenHash, err := newSessionToken()
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	expiresAt := time.Now().UTC().Add(uc.policy.TTL)
+	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}); err != nil {
+		return "", nil, time.Time{}, err
+	}
+	principal.SessionTokenHash = tokenHash
+	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: "auth.login", Result: "success"}); err != nil {
+		return "", nil, time.Time{}, err
+	}
+	return rawToken, principal, expiresAt, nil
+}
+
+func (uc *AuthUsecase) AuthenticateSession(ctx context.Context, rawToken string) (*Principal, error) {
+	if rawToken == "" {
+		return nil, ErrSessionRequired
+	}
+	tokenHash := hashSessionToken(rawToken)
+	storedSession, err := uc.repo.FindSession(ctx, tokenHash, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	principal, err := uc.repo.ResolvePrincipal(ctx, storedSession.UserID, storedSession.OrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	principal.SessionTokenHash = tokenHash
+	return principal, nil
+}
+
+func (uc *AuthUsecase) Logout(ctx context.Context, principal *Principal) error {
+	now := time.Now().UTC()
+	if err := uc.repo.RevokeSession(ctx, principal.SessionTokenHash, now); err != nil {
+		return err
+	}
+	return uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Action: "auth.logout", Result: "success"})
+}
+
+func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*Principal, error) {
+	now := time.Now().UTC()
+	if err := uc.repo.SwitchSessionOrganization(ctx, principal.SessionTokenHash, principal.UserID, organizationID, now); err != nil {
+		return nil, err
+	}
+	next, err := uc.repo.ResolvePrincipal(ctx, principal.UserID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	next.SessionTokenHash = principal.SessionTokenHash
+	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &principal.UserID, Action: "auth.organization.switch", Result: "success"}); err != nil {
+		return nil, err
+	}
+	return next, nil
+}
+
+func newSessionToken() (string, string, error) {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return "", "", fmt.Errorf("generate session token: %w", err)
+	}
+	rawToken := hex.EncodeToString(raw)
+	return rawToken, hashSessionToken(rawToken), nil
+}
+
+func hashSessionToken(raw string) string {
+	digest := sha256.Sum256([]byte(raw))
+	return hex.EncodeToString(digest[:])
+}
