@@ -23,7 +23,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -46,8 +45,6 @@ type Client struct {
 	RoleAssignment *RoleAssignmentClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
-	// Todo is the client for interacting with the Todo builders.
-	Todo *TodoClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -68,7 +65,6 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.Session = NewSessionClient(c.config)
-	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -169,7 +165,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:           NewRoleClient(cfg),
 		RoleAssignment: NewRoleAssignmentClient(cfg),
 		Session:        NewSessionClient(cfg),
-		Todo:           NewTodoClient(cfg),
 		User:           NewUserClient(cfg),
 	}, nil
 }
@@ -197,7 +192,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:           NewRoleClient(cfg),
 		RoleAssignment: NewRoleAssignmentClient(cfg),
 		Session:        NewSessionClient(cfg),
-		Todo:           NewTodoClient(cfg),
 		User:           NewUserClient(cfg),
 	}, nil
 }
@@ -229,7 +223,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuditLog, c.Membership, c.Organization, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.Todo, c.User,
+		c.RoleAssignment, c.Session, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -240,7 +234,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuditLog, c.Membership, c.Organization, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.Todo, c.User,
+		c.RoleAssignment, c.Session, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -263,8 +257,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoleAssignment.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
-	case *TodoMutation:
-		return c.Todo.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -1459,139 +1451,6 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 	}
 }
 
-// TodoClient is a client for the Todo schema.
-type TodoClient struct {
-	config
-}
-
-// NewTodoClient returns a client for the Todo from the given config.
-func NewTodoClient(c config) *TodoClient {
-	return &TodoClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `todo.Hooks(f(g(h())))`.
-func (c *TodoClient) Use(hooks ...Hook) {
-	c.hooks.Todo = append(c.hooks.Todo, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
-func (c *TodoClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Todo = append(c.inters.Todo, interceptors...)
-}
-
-// Create returns a builder for creating a Todo entity.
-func (c *TodoClient) Create() *TodoCreate {
-	mutation := newTodoMutation(c.config, OpCreate)
-	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Todo entities.
-func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
-	return &TodoCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *TodoClient) MapCreateBulk(slice any, setFunc func(*TodoCreate, int)) *TodoCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &TodoCreateBulk{err: fmt.Errorf("calling to TodoClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*TodoCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &TodoCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Todo.
-func (c *TodoClient) Update() *TodoUpdate {
-	mutation := newTodoMutation(c.config, OpUpdate)
-	return &TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TodoClient) UpdateOne(_m *Todo) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(_m))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TodoClient) UpdateOneID(id uuid.UUID) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Todo.
-func (c *TodoClient) Delete() *TodoDelete {
-	mutation := newTodoMutation(c.config, OpDelete)
-	return &TodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *TodoClient) DeleteOne(_m *Todo) *TodoDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TodoClient) DeleteOneID(id uuid.UUID) *TodoDeleteOne {
-	builder := c.Delete().Where(todo.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TodoDeleteOne{builder}
-}
-
-// Query returns a query builder for Todo.
-func (c *TodoClient) Query() *TodoQuery {
-	return &TodoQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeTodo},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Todo entity by its id.
-func (c *TodoClient) Get(ctx context.Context, id uuid.UUID) (*Todo, error) {
-	return c.Query().Where(todo.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TodoClient) GetX(ctx context.Context, id uuid.UUID) *Todo {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *TodoClient) Hooks() []Hook {
-	return c.hooks.Todo
-}
-
-// Interceptors returns the client interceptors.
-func (c *TodoClient) Interceptors() []Interceptor {
-	return c.inters.Todo
-}
-
-func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&TodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&TodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Todo mutation op: %q", m.Op())
-	}
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1761,10 +1620,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AuditLog, Membership, Organization, Permission, Role, RoleAssignment, Session,
-		Todo, User []ent.Hook
+		User []ent.Hook
 	}
 	inters struct {
 		AuditLog, Membership, Organization, Permission, Role, RoleAssignment, Session,
-		Todo, User []ent.Interceptor
+		User []ent.Interceptor
 	}
 )

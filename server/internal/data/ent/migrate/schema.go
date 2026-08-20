@@ -311,34 +311,6 @@ var (
 			},
 		},
 	}
-	// TodosColumns holds the columns for the "todos" table.
-	TodosColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "title", Type: field.TypeString, Default: ""},
-		{Name: "content", Type: field.TypeString, Default: ""},
-		{Name: "completed", Type: field.TypeBool, Default: false},
-		{Name: "status", Type: field.TypeInt32, Default: 1},
-	}
-	// TodosTable holds the schema information for the "todos" table.
-	TodosTable = &schema.Table{
-		Name:       "todos",
-		Columns:    TodosColumns,
-		PrimaryKey: []*schema.Column{TodosColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "todo_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{TodosColumns[2]},
-			},
-			{
-				Name:    "todo_status",
-				Unique:  false,
-				Columns: []*schema.Column{TodosColumns[6]},
-			},
-		},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -407,7 +379,6 @@ var (
 		RolesTable,
 		RoleAssignmentsTable,
 		SessionsTable,
-		TodosTable,
 		UsersTable,
 		RolePermissionsTable,
 	}

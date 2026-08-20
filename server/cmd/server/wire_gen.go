@@ -36,11 +36,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	}
 	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy)
 	authService := service.NewAuthService(authUsecase, sessionPolicy)
-	todoRepo := data.NewTodoRepo(dataData)
-	todoUsecase := biz.NewTodoUsecase(todoRepo)
-	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, todoService, authUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, todoService, authUsecase, sessionPolicy, logger)
+	grpcServer := server.NewGRPCServer(confServer, authService, authUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, authService, authUsecase, sessionPolicy, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

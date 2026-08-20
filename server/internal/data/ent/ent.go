@@ -19,7 +19,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -88,7 +87,6 @@ func checkColumn(t, c string) error {
 			role.Table:           role.ValidColumn,
 			roleassignment.Table: roleassignment.ValidColumn,
 			session.Table:        session.ValidColumn,
-			todo.Table:           todo.ValidColumn,
 			user.Table:           user.ValidColumn,
 		})
 	})

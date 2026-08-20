@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -15,7 +14,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -384,43 +382,6 @@ func init() {
 	sessionDescID := sessionMixinFields0[0].Descriptor()
 	// session.DefaultID holds the default value on creation for the id field.
 	session.DefaultID = sessionDescID.Default.(func() uuid.UUID)
-	todoMixin := schema.Todo{}.Mixin()
-	todoMixinFields0 := todoMixin[0].Fields()
-	_ = todoMixinFields0
-	todoMixinFields1 := todoMixin[1].Fields()
-	_ = todoMixinFields1
-	todoFields := schema.Todo{}.Fields()
-	_ = todoFields
-	// todoDescCreatedAt is the schema descriptor for created_at field.
-	todoDescCreatedAt := todoMixinFields1[0].Descriptor()
-	// todo.DefaultCreatedAt holds the default value on creation for the created_at field.
-	todo.DefaultCreatedAt = todoDescCreatedAt.Default.(func() time.Time)
-	// todoDescUpdatedAt is the schema descriptor for updated_at field.
-	todoDescUpdatedAt := todoMixinFields1[1].Descriptor()
-	// todo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	todo.DefaultUpdatedAt = todoDescUpdatedAt.Default.(func() time.Time)
-	// todo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	todo.UpdateDefaultUpdatedAt = todoDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// todoDescTitle is the schema descriptor for title field.
-	todoDescTitle := todoFields[0].Descriptor()
-	// todo.DefaultTitle holds the default value on creation for the title field.
-	todo.DefaultTitle = todoDescTitle.Default.(string)
-	// todoDescContent is the schema descriptor for content field.
-	todoDescContent := todoFields[1].Descriptor()
-	// todo.DefaultContent holds the default value on creation for the content field.
-	todo.DefaultContent = todoDescContent.Default.(string)
-	// todoDescCompleted is the schema descriptor for completed field.
-	todoDescCompleted := todoFields[2].Descriptor()
-	// todo.DefaultCompleted holds the default value on creation for the completed field.
-	todo.DefaultCompleted = todoDescCompleted.Default.(bool)
-	// todoDescStatus is the schema descriptor for status field.
-	todoDescStatus := todoFields[3].Descriptor()
-	// todo.DefaultStatus holds the default value on creation for the status field.
-	todo.DefaultStatus = biz.TodoStatus(todoDescStatus.Default.(int32))
-	// todoDescID is the schema descriptor for id field.
-	todoDescID := todoMixinFields0[0].Descriptor()
-	// todo.DefaultID holds the default value on creation for the id field.
-	todo.DefaultID = todoDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

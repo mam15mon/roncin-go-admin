@@ -6,8 +6,6 @@ import (
 	nethttp "net/http"
 
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
-	todov1 "github.com/roncin/roncin-go-admin/server/api/todo/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 
@@ -36,15 +34,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		authv1.OperationAuthServiceMe:                 {},
 		authv1.OperationAuthServiceSwitchOrganization: {},
 	}
-	permissionOperations := map[string]string{
-		todov1.OperationTodoServiceCreateTodo: access.PlatformAccess,
-		todov1.OperationTodoServiceListTodos:  access.PlatformAccess,
-		todov1.OperationTodoServiceGetTodo:    access.PlatformAccess,
-		todov1.OperationTodoServiceWatchTodos: access.PlatformAccess,
-		todov1.OperationTodoServiceUpdateTodo: access.PlatformAccess,
-		todov1.OperationTodoServiceDeleteTodo: access.PlatformAccess,
-		todov1.OperationTodoServiceSyncTodos:  access.PlatformAccess,
-	}
+	permissionOperations := map[string]string{}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {
 			tr, ok := transport.FromServerContext(ctx)
