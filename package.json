@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev:web": "pnpm --dir web dev",
-    "dev:server": "go -C server run ./cmd/server -conf configs",
+    "dev:server": "node --env-file=.env.local scripts/run-with-env.mjs go -C server run ./cmd/server -conf configs",
+    "bootstrap:admin": "node --env-file=.env.local scripts/run-with-env.mjs go -C server run ./cmd/bootstrap-admin",
     "generate:web-client": "pnpm --dir web openapi",
     "check:web": "pnpm --dir web lint && pnpm --dir web test",
     "check:server": "go -C server test ./... && go -C server vet ./...",
@@ -18,4 +19,3 @@
     "build": "pnpm run build:web && pnpm run build:server"
   }
 }
-
