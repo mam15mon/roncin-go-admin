@@ -35,6 +35,8 @@ const (
 	PartnerService_UpdatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
 	PartnerService_ListPartnerAttachments_FullMethodName      = "/partner.v1.PartnerService/ListPartnerAttachments"
 	PartnerService_RegisterPartnerAttachment_FullMethodName   = "/partner.v1.PartnerService/RegisterPartnerAttachment"
+	PartnerService_ImportPartners_FullMethodName              = "/partner.v1.PartnerService/ImportPartners"
+	PartnerService_ExportPartners_FullMethodName              = "/partner.v1.PartnerService/ExportPartners"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -57,6 +59,8 @@ type PartnerServiceClient interface {
 	UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
 	ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*PartnerAttachmentListReply, error)
 	RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error)
+	ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error)
+	ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error)
 }
 
 type partnerServiceClient struct {
@@ -227,6 +231,26 @@ func (c *partnerServiceClient) RegisterPartnerAttachment(ctx context.Context, in
 	return out, nil
 }
 
+func (c *partnerServiceClient) ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerImportReply)
+	err := c.cc.Invoke(ctx, PartnerService_ImportPartners_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerExportReply)
+	err := c.cc.Invoke(ctx, PartnerService_ExportPartners_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
@@ -247,6 +271,8 @@ type PartnerServiceServer interface {
 	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
 	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error)
 	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error)
+	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
+	ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -304,6 +330,12 @@ func (UnimplementedPartnerServiceServer) ListPartnerAttachments(context.Context,
 }
 func (UnimplementedPartnerServiceServer) RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterPartnerAttachment not implemented")
+}
+func (UnimplementedPartnerServiceServer) ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportPartners not implemented")
+}
+func (UnimplementedPartnerServiceServer) ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportPartners not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -614,6 +646,42 @@ func _PartnerService_RegisterPartnerAttachment_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ImportPartners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportPartnersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ImportPartners(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ImportPartners_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ImportPartners(ctx, req.(*ImportPartnersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_ExportPartners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportPartnersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ExportPartners(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ExportPartners_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ExportPartners(ctx, req.(*ExportPartnersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -684,6 +752,14 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterPartnerAttachment",
 			Handler:    _PartnerService_RegisterPartnerAttachment_Handler,
+		},
+		{
+			MethodName: "ImportPartners",
+			Handler:    _PartnerService_ImportPartners_Handler,
+		},
+		{
+			MethodName: "ExportPartners",
+			Handler:    _PartnerService_ExportPartners_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

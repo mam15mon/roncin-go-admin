@@ -710,6 +710,50 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerReply'
+    /api/v1/partners/export:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ExportPartners
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: role
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: enabled
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerExportReply'
+    /api/v1/partners/import:
+        post:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ImportPartners
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.ImportPartnersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerImportReply'
     /api/v1/partners/{id}:
         get:
             tags:
@@ -2197,6 +2241,22 @@ components:
                     format: enum
                 rule:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
+        partner.v1.ImportPartnersRequest:
+            required:
+                - source
+                - mode
+                - items
+            type: object
+            properties:
+                source:
+                    type: string
+                mode:
+                    type: integer
+                    format: enum
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerImportItemInput'
         partner.v1.Partner:
             type: object
             properties:
@@ -2491,6 +2551,84 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/partner.v1.PartnerContract'
+                traceId:
+                    type: string
+        partner.v1.PartnerExportItem:
+            type: object
+            properties:
+                code:
+                    type: string
+                legalName:
+                    type: string
+                unifiedSocialCreditCode:
+                    type: string
+                registeredAddress:
+                    type: string
+                enabled:
+                    type: boolean
+                roles:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+        partner.v1.PartnerExportReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerExportItem'
+                traceId:
+                    type: string
+        partner.v1.PartnerImportItemInput:
+            required:
+                - code
+                - legalName
+            type: object
+            properties:
+                code:
+                    type: string
+                legalName:
+                    type: string
+                unifiedSocialCreditCode:
+                    type: string
+                registeredAddress:
+                    type: string
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerRoleInput'
+                contacts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerContactInput'
+                aliases:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+        partner.v1.PartnerImportReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                createdCount:
+                    type: integer
+                    format: int32
+                updatedCount:
+                    type: integer
+                    format: int32
                 traceId:
                     type: string
         partner.v1.PartnerListReply:

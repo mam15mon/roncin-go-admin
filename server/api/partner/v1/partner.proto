@@ -101,6 +101,17 @@ service PartnerService {
       body: "*"
     };
   }
+
+  rpc ImportPartners(ImportPartnersRequest) returns (PartnerImportReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/import"
+      body: "*"
+    };
+  }
+
+  rpc ExportPartners(ExportPartnersRequest) returns (PartnerExportReply) {
+    option (google.api.http) = {get: "/api/v1/partners/export"};
+  }
 }
 
 enum PartnerRoleType {
@@ -203,6 +214,60 @@ message UpdatePartnerRequest {
   repeated PartnerRoleInput roles = 6;
   repeated PartnerContactInput contacts = 7;
   repeated PartnerAliasInput aliases = 8;
+}
+
+enum PartnerImportMode {
+  PARTNER_IMPORT_MODE_UNSPECIFIED = 0;
+  PARTNER_IMPORT_MODE_CREATE_ONLY = 1;
+  PARTNER_IMPORT_MODE_UPSERT = 2;
+}
+
+message PartnerImportItemInput {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string legal_name = 2 [(google.api.field_behavior) = REQUIRED];
+  string unified_social_credit_code = 3;
+  string registered_address = 4;
+  repeated PartnerRoleInput roles = 5;
+  repeated PartnerContactInput contacts = 6;
+  repeated PartnerAliasInput aliases = 7;
+}
+
+message ImportPartnersRequest {
+  string source = 1 [(google.api.field_behavior) = REQUIRED];
+  PartnerImportMode mode = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated PartnerImportItemInput items = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PartnerImportReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  int32 created_count = 4;
+  int32 updated_count = 5;
+  string trace_id = 6;
+}
+
+message ExportPartnersRequest {
+  string keyword = 1;
+  PartnerRoleType role = 2;
+  optional bool enabled = 3;
+}
+
+message PartnerExportItem {
+  string code = 1;
+  string legal_name = 2;
+  string unified_social_credit_code = 3;
+  string registered_address = 4;
+  bool enabled = 5;
+  repeated PartnerRoleType roles = 6;
+}
+
+message PartnerExportReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerExportItem data = 4;
+  string trace_id = 5;
 }
 
 message SetSupplierBlacklistRequest {
