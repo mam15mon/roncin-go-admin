@@ -1,0 +1,21 @@
+{
+  "name": "roncin-go-admin",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=24.14.1"
+  },
+  "scripts": {
+    "dev:web": "pnpm --dir web dev",
+    "dev:server": "go -C server run ./cmd/server -conf configs",
+    "generate:web-client": "pnpm --dir web openapi",
+    "check:web": "pnpm --dir web lint && pnpm --dir web test",
+    "check:server": "go -C server test ./... && go -C server vet ./...",
+    "check": "pnpm run check:web && pnpm run check:server",
+    "build:web": "pnpm --dir web build",
+    "build:server": "go -C server build -o bin/roncin-server ./cmd/server",
+    "build": "pnpm run build:web && pnpm run build:server"
+  }
+}
+

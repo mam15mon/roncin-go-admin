@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+node_modules/
+web/dist/
+web/.umi/
+web/.umi-production/
+server/bin/
+server/var/
+server/internal/webassets/dist/*
+!server/internal/webassets/dist/.gitkeep
+

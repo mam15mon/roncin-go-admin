@@ -1,6 +1,6 @@
 {
-  "name": "ant-design-pro",
-  "version": "6.0.3",
+  "name": "@roncin/web",
+  "version": "0.1.0",
   "private": true,
   "description": "An out-of-box UI solution for enterprise applications",
   "repository": "git@github.com:ant-design/ant-design-pro.git",
@@ -10,12 +10,12 @@
     "deploy": "cross-env CI=true max build && gh-pages -d dist",
     "dev": "cross-env UMI_ENV=dev MOCK=none max dev",
     "i18n-remove": "node scripts/i18n-remove.js",
-    "lint": "npm run biome:lint && npm run tsc",
+    "lint": "pnpm run biome:lint && pnpm run tsc",
     "lint-staged": "lint-staged",
     "biome:lint": "biome lint",
     "biome": "biome check --write",
     "openapi": "max openapi",
-    "prepare": "npx husky && max setup",
+    "prepare": "husky && max setup",
     "preview": "max preview --port 8000",
     "preview:build": "max build && max preview --port 8000",
     "record": "cross-env NODE_ENV=development UMI_ENV=test max record --scene=login",
@@ -91,6 +91,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "packageManager": "pnpm@10.33.4",
   "create-umi": {
     "ignoreScript": [
       "docker*",
