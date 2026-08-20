@@ -1,4 +1,9 @@
-import { EditOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  EditOutlined,
+  FlagOutlined,
+  PlusOutlined,
+  SwapOutlined,
+} from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -7,20 +12,26 @@ import type {
 import {
   ModalForm,
   ProFormDatePicker,
+  ProFormDateTimePicker,
   ProFormDigit,
   ProFormSelect,
+  ProFormSwitch,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Space, Tag } from 'antd';
+import { App, Button, Drawer, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   masterDataServiceListOptions,
   masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
+import {
+  orderMilestoneServiceListMilestones,
+  orderMilestoneServiceSetMilestone,
+} from '@/services/roncin/orderMilestoneService';
 import {
   orderServiceCreateOrder,
   orderServiceListOrders,
@@ -111,20 +122,33 @@ type TransitionFormValues = {
   reason?: string;
 };
 
+type MilestoneFormValues = {
+  type: string;
+  occurredAt?: string;
+  clearOccurredAt?: boolean;
+  note?: string;
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
   const editFormRef = useRef<ProFormInstance | undefined>(undefined);
   const transitionFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const milestoneActionRef = useRef<ActionType | undefined>(undefined);
+  const milestoneFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [transitionModalOpen, setTransitionModalOpen] = useState(false);
+  const [milestoneDrawerOpen, setMilestoneDrawerOpen] = useState(false);
+  const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
+  const [milestoneOrder, setMilestoneOrder] = useState<API.Order>();
+  const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -276,6 +300,82 @@ export default function Orders() {
     setTransitionModalOpen(true);
   };
 
+  const openMilestones = (record: API.Order) => {
+    setMilestoneOrder(record);
+    setMilestoneDrawerOpen(true);
+  };
+
+  const openCreateMilestone = () => {
+    setEditingMilestone(undefined);
+    milestoneFormRef.current?.resetFields();
+    setMilestoneModalOpen(true);
+  };
+
+  const openEditMilestone = (record: API.OrderMilestone) => {
+    setEditingMilestone(record);
+    milestoneFormRef.current?.setFieldsValue({
+      type: record.type,
+      occurredAt: record.occurredAt ? dayjs(record.occurredAt) : undefined,
+      clearOccurredAt: false,
+      note: record.note,
+    });
+    setMilestoneModalOpen(true);
+  };
+
+  const milestoneColumns: ProColumns<API.OrderMilestone>[] = [
+    {
+      title: '类型',
+      dataIndex: 'type',
+      width: 140,
+      render: (_, record) => record.type || '-',
+    },
+    {
+      title: '节点编码',
+      dataIndex: 'templateNodeCode',
+      width: 140,
+      render: (_, record) => record.templateNodeCode || '-',
+    },
+    {
+      title: '节点名称',
+      dataIndex: 'templateNodeLabel',
+      width: 140,
+      render: (_, record) => record.templateNodeLabel || '-',
+    },
+    {
+      title: '发生时间',
+      dataIndex: 'occurredAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.occurredAt
+          ? dayjs(record.occurredAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '备注',
+      dataIndex: 'note',
+      ellipsis: true,
+      render: (_, record) => record.note || '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => openEditMilestone(record)}
+          >
+            编辑
+          </Button>
+        );
+      },
+    },
+  ];
+
   const columns: ProColumns<API.Order>[] = [
     {
       title: '关键词',
@@ -350,12 +450,12 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 150,
+      width: 220,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
           <Space size="small">
-            {record.status === 'DRAFT' && (
+            {access.canManageOrders && record.status === 'DRAFT' && (
               <Button
                 type="link"
                 size="small"
@@ -365,13 +465,23 @@ export default function Orders() {
                 编辑
               </Button>
             )}
+            {access.canManageOrders && (
+              <Button
+                type="link"
+                size="small"
+                icon={<SwapOutlined />}
+                onClick={() => openTransition(record)}
+              >
+                状态流转
+              </Button>
+            )}
             <Button
               type="link"
               size="small"
-              icon={<SwapOutlined />}
-              onClick={() => openTransition(record)}
+              icon={<FlagOutlined />}
+              onClick={() => openMilestones(record)}
             >
-              状态流转
+              里程碑
             </Button>
           </Space>
         );
@@ -838,6 +948,119 @@ export default function Orders() {
           name="reason"
           label="流转原因"
           placeholder="请输入流转原因"
+          fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          milestoneOrder
+            ? `订单里程碑 - ${milestoneOrder.orderNo || milestoneOrder.id}`
+            : '订单里程碑'
+        }
+        open={milestoneDrawerOpen}
+        onClose={() => {
+          setMilestoneDrawerOpen(false);
+          setMilestoneOrder(undefined);
+        }}
+        width={800}
+        destroyOnHidden
+      >
+        {milestoneOrder?.id && (
+          <ProTable<API.OrderMilestone>
+            actionRef={milestoneActionRef}
+            rowKey={(record) => record.id || record.type || ''}
+            columns={milestoneColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderMilestoneServiceListMilestones({
+                orderId: milestoneOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateMilestone}
+                >
+                  设置里程碑
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<MilestoneFormValues>
+        title={editingMilestone ? '编辑里程碑' : '设置里程碑'}
+        open={milestoneModalOpen}
+        formRef={milestoneFormRef}
+        modalProps={{
+          destroyOnHidden: true,
+          width: 520,
+          onCancel: () => setMilestoneModalOpen(false),
+        }}
+        onOpenChange={setMilestoneModalOpen}
+        onFinish={async (values) => {
+          if (!milestoneOrder?.id || !milestoneOrder?.status) return false;
+          const milestoneType = (
+            editingMilestone?.type ||
+            values.type ||
+            ''
+          ).trim();
+          if (!milestoneType) return false;
+
+          await orderMilestoneServiceSetMilestone(
+            {
+              orderId: milestoneOrder.id,
+              type: milestoneType,
+            },
+            {
+              orderId: milestoneOrder.id,
+              type: milestoneType,
+              expectedOrderStatus: milestoneOrder.status,
+              occurredAt: values.clearOccurredAt
+                ? undefined
+                : values.occurredAt
+                  ? dayjs(values.occurredAt).toISOString()
+                  : undefined,
+              clearOccurredAt: Boolean(values.clearOccurredAt),
+              note: values.note,
+            },
+          );
+          message.success('里程碑设置成功');
+          setMilestoneModalOpen(false);
+          milestoneActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="type"
+          label="里程碑类型"
+          placeholder="请输入里程碑类型 (如 BOOKING_CONFIRMED)"
+          disabled={Boolean(editingMilestone?.type)}
+          rules={[{ required: true, message: '请输入里程碑类型' }]}
+        />
+        <ProFormDateTimePicker
+          name="occurredAt"
+          label="发生时间"
+          fieldProps={{ style: { width: '100%' } }}
+        />
+        <ProFormSwitch
+          name="clearOccurredAt"
+          label="清除发生时间"
+        />
+        <ProFormTextArea
+          name="note"
+          label="备注"
+          placeholder="请输入备注"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
       </ModalForm>
