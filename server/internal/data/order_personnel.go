@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -75,7 +76,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		SetRole(orderpersonnelent.Role(role)).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_personnel_order_id_user_id_role") {
 			return nil, biz.ErrOrderPersonnelExists
 		}
 		return nil, err
