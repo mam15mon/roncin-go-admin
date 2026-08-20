@@ -1,6 +1,8 @@
 import {
   EditOutlined,
+  ExportOutlined,
   FolderOpenOutlined,
+  ImportOutlined,
   PlusOutlined,
   ReloadOutlined,
   StopOutlined,
@@ -14,6 +16,7 @@ import {
   ModalForm,
   ProFormDigit,
   ProFormList,
+  ProFormRadio,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
@@ -25,6 +28,8 @@ import { App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartner,
+  partnerServiceExportPartners,
+  partnerServiceImportPartners,
   partnerServiceListPartners,
   partnerServiceSetSupplierBlacklist,
   partnerServiceUpdatePartner,
@@ -58,6 +63,12 @@ type BlacklistFormValues = {
   reason?: string;
 };
 
+type PartnerImportFormValues = {
+  source?: string;
+  mode?: number;
+  items?: string;
+};
+
 function roleTags(roles?: API.PartnerRole[]) {
   return (roles ?? []).map((role) => (
     <Tag key={role.type} color={role.blacklisted ? 'error' : undefined}>
@@ -72,10 +83,13 @@ export default function Partners() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const blacklistFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const importFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
   const [modalOpen, setModalOpen] = useState(false);
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [editing, setEditing] = useState<API.Partner>();
   const [blacklistPartner, setBlacklistPartner] = useState<API.Partner>();
   const [secondaryPartner, setSecondaryPartner] = useState<API.Partner>();
@@ -84,6 +98,69 @@ export default function Partners() {
     setEditing(undefined);
     formRef.current?.resetFields();
     setModalOpen(true);
+  };
+
+  const openImport = () => {
+    importFormRef.current?.resetFields();
+    setImportModalOpen(true);
+  };
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const response = await partnerServiceExportPartners({});
+      const data = response.data ?? [];
+      if (data.length === 0) {
+        message.warning('没有可导出的数据');
+        return;
+      }
+      const headers = [
+        'code',
+        'legal_name',
+        'unified_social_credit_code',
+        'registered_address',
+        'enabled',
+        'roles',
+      ];
+      const escapeCsvCell = (val: unknown): string => {
+        if (val === null || val === undefined) return '';
+        const str = Array.isArray(val) ? val.join(';') : String(val);
+        if (
+          str.includes(',') ||
+          str.includes('"') ||
+          str.includes('\n') ||
+          str.includes('\r')
+        ) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+      const rows = data.map((item) => [
+        escapeCsvCell(item.code ?? ''),
+        escapeCsvCell(item.legalName ?? ''),
+        escapeCsvCell(item.unifiedSocialCreditCode ?? ''),
+        escapeCsvCell(item.registeredAddress ?? ''),
+        escapeCsvCell(item.enabled ?? false),
+        escapeCsvCell(item.roles ?? []),
+      ]);
+      const csvContent =
+        '\uFEFF' +
+        [headers.join(','), ...rows.map((row) => row.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'partners.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      message.success(`成功导出 ${data.length} 条数据`);
+    } catch (err: any) {
+      message.error(err?.message || '导出失败');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const openEdit = (partner: API.Partner) => {
@@ -234,6 +311,23 @@ export default function Partners() {
           >
             刷新
           </Button>,
+          <Button
+            key="export"
+            icon={<ExportOutlined />}
+            loading={exporting}
+            onClick={handleExport}
+          >
+            导出
+          </Button>,
+          access.canManagePartners ? (
+            <Button
+              key="import"
+              icon={<ImportOutlined />}
+              onClick={openImport}
+            >
+              导入
+            </Button>
+          ) : null,
           access.canManagePartners ? (
             <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
               新增往来单位
@@ -359,6 +453,109 @@ export default function Partners() {
             <ProFormDigit name="sortOrder" label="排序" min={0} fieldProps={{ precision: 0 }} />
           </Space>
         </ProFormList>
+      </ModalForm>
+
+      <ModalForm<PartnerImportFormValues>
+        title="导入往来单位"
+        open={importModalOpen}
+        formRef={importFormRef}
+        modalProps={{
+          destroyOnClose: true,
+          width: 680,
+          onCancel: () => setImportModalOpen(false),
+        }}
+        initialValues={{
+          source: 'manual',
+          mode: 1,
+        }}
+        onOpenChange={setImportModalOpen}
+        onFinish={async (values) => {
+          const source = values.source?.trim();
+          if (!source) {
+            message.error('请输入数据来源');
+            return false;
+          }
+
+          let items: API.PartnerImportItemInput[];
+          try {
+            const raw = typeof values.items === 'string' ? values.items.trim() : '';
+            if (!raw) {
+              message.error('导入数据不能为空');
+              return false;
+            }
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+              message.error('导入数据格式错误: 必须为 JSON 数组');
+              return false;
+            }
+            if (parsed.length === 0) {
+              message.error('导入数据不能为空数组');
+              return false;
+            }
+            if (parsed.length > 500) {
+              message.error(
+                `导入数据超过限制: 最多支持 500 条，当前共 ${parsed.length} 条`,
+              );
+              return false;
+            }
+            items = parsed;
+          } catch (err: any) {
+            message.error(
+              `JSON 解析失败: ${err?.message || '请检查 JSON 格式'}`,
+            );
+            return false;
+          }
+
+          let modeNumber = 1;
+          if (values.mode === 2) {
+            modeNumber = 2;
+          }
+
+          const response = await partnerServiceImportPartners({
+            source,
+            mode: modeNumber,
+            items,
+          });
+
+          message.success(
+            `导入成功: 新增 ${response.createdCount ?? 0} 条，更新 ${response.updatedCount ?? 0} 条`,
+          );
+          setImportModalOpen(false);
+          actionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="source"
+          label="数据来源"
+          placeholder="请输入数据来源，例如 ERP / EXCEL"
+          rules={[{ required: true, message: '请输入数据来源' }]}
+        />
+        <ProFormRadio.Group
+          name="mode"
+          label="导入模式"
+          options={[
+            { label: '仅创建 (create_only)', value: 1 },
+            { label: '存在则更新 (upsert)', value: 2 },
+          ]}
+          rules={[{ required: true, message: '请选择导入模式' }]}
+        />
+        <ProFormTextArea
+          name="items"
+          label="导入数据 (JSON)"
+          placeholder={`请输入 JSON 数组，例如：
+[
+  {
+    "code": "CUST001",
+    "legalName": "示例客户有限公司",
+    "unifiedSocialCreditCode": "91310000XXXXXXXXXX",
+    "registeredAddress": "上海市浦东新区...",
+    "roles": [{ "type": 1, "enabled": true }]
+  }
+]`}
+          rules={[{ required: true, message: '请输入导入数据 JSON' }]}
+          fieldProps={{ rows: 10 }}
+        />
       </ModalForm>
 
       <ModalForm<BlacklistFormValues>
