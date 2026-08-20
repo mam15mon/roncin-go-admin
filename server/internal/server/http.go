@@ -12,13 +12,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 	"github.com/roncin/roncin-go-admin/server/internal/service"
+	"github.com/roncin/roncin-go-admin/server/internal/webassets"
 
 	"go.einride.tech/aip/fieldbehavior"
 	"google.golang.org/protobuf/proto"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -48,5 +49,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, authUsecase *biz.A
 	opts = append(opts, http.ErrorEncoder(encodeError))
 	srv := http.NewServer(opts...)
 	authv1.RegisterAuthServiceHTTPServer(srv, auth)
+	registerHealthHandlers(srv, readiness)
+	srv.HandlePrefix("/", webassets.Handler())
 	return srv
 }

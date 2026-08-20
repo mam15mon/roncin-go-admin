@@ -21,7 +21,13 @@ var ProviderSet = wire.NewSet(NewData, NewAuthRepo)
 
 // Data holds the long-lived storage clients shared by repos.
 type Data struct {
-	db *ent.Client
+	db    *ent.Client
+	sqlDB *sql.DB
+}
+
+// Ping verifies that the primary database is reachable.
+func (d *Data) Ping(ctx context.Context) error {
+	return d.sqlDB.PingContext(ctx)
 }
 
 // NewData opens the database client and returns it with a cleanup function.
@@ -70,5 +76,5 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 			log.Error("failed closing the database", "err", err)
 		}
 	}
-	return &Data{db: db}, cleanup, nil
+	return &Data{db: db, sqlDB: sqlDB}, cleanup, nil
 }
