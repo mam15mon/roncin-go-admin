@@ -226,6 +226,12 @@ declare namespace API {
     aliases?: PartnerAliasInput[];
   };
 
+  type CreatePartnerSettlementRuleRequest = {
+    partnerId: string;
+    roleType: number;
+    rule: PartnerSettlementRuleInput;
+  };
+
   type CreateRoleRequest = {
     code: string;
     name: string;
@@ -659,6 +665,11 @@ declare namespace API {
     partnerId: string;
   };
 
+  type PartnerServiceCreatePartnerSettlementRuleParams = {
+    partnerId: string;
+    roleType: number;
+  };
+
   type PartnerServiceGetPartnerParams = {
     id: string;
   };
@@ -671,6 +682,11 @@ declare namespace API {
   type PartnerServiceListPartnerContractsParams = {
     partnerId: string;
     status?: number;
+  };
+
+  type PartnerServiceListPartnerSettlementRulesParams = {
+    partnerId: string;
+    roleType: number;
   };
 
   type PartnerServiceListPartnersParams = {
@@ -697,6 +713,52 @@ declare namespace API {
 
   type PartnerServiceUpdatePartnerParams = {
     id: string;
+  };
+
+  type PartnerServiceUpdatePartnerSettlementRuleParams = {
+    partnerId: string;
+    roleType: number;
+    id: string;
+  };
+
+  type PartnerSettlementRule = {
+    id?: string;
+    partnerRoleId?: string;
+    statementMode?: number;
+    settlementMethod?: number;
+    settlementDay?: number;
+    settlementCycleDays?: number;
+    settlementBase?: number;
+    settlementCurrency?: string;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerSettlementRuleInput = {
+    statementMode: number;
+    settlementMethod: number;
+    settlementDay?: number;
+    settlementCycleDays?: number;
+    settlementBase?: number;
+    settlementCurrency: string;
+    isActive?: boolean;
+  };
+
+  type PartnerSettlementRuleListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerSettlementRule[];
+    traceId?: string;
+  };
+
+  type PartnerSettlementRuleReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerSettlementRule;
+    traceId?: string;
   };
 
   type PublishMilestoneTemplateRequest = {
@@ -846,6 +908,13 @@ declare namespace API {
     roles?: PartnerRoleInput[];
     contacts?: PartnerContactInput[];
     aliases?: PartnerAliasInput[];
+  };
+
+  type UpdatePartnerSettlementRuleRequest = {
+    partnerId: string;
+    roleType: number;
+    id: string;
+    rule: PartnerSettlementRuleInput;
   };
 
   type UpdateRoleRequest = {

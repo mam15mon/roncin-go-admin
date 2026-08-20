@@ -7,6 +7,7 @@ import type {
 import {
   ModalForm,
   ProFormDateRangePicker,
+  ProFormDigit,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
@@ -19,11 +20,59 @@ import { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceCreatePartnerContract,
+  partnerServiceCreatePartnerSettlementRule,
   partnerServiceListPartnerAccounts,
   partnerServiceListPartnerContracts,
+  partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartnerAccount,
   partnerServiceUpdatePartnerContract,
+  partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
+
+const roleOptions = [
+  { label: '客户', value: 1 },
+  { label: '供应商', value: 2 },
+  { label: '代理', value: 3 },
+  { label: '承运人', value: 4 },
+];
+
+const roleLabels: Record<number, string> = Object.fromEntries(
+  roleOptions.map((option) => [option.value, option.label]),
+);
+
+const statementModeOptions = [
+  { label: '单票对账', value: 1 },
+  { label: '汇总对账', value: 2 },
+];
+
+const statementModeLabels: Record<number, string> = Object.fromEntries(
+  statementModeOptions.map((option) => [option.value, option.label]),
+);
+
+const settlementMethodOptions = [
+  { label: '单票结算', value: 1 },
+  { label: '月结', value: 2 },
+  { label: '周结', value: 3 },
+  { label: '半月结', value: 4 },
+  { label: '双月结', value: 5 },
+  { label: '季结', value: 6 },
+  { label: '45天', value: 7 },
+  { label: '预付', value: 8 },
+];
+
+const settlementMethodLabels: Record<number, string> = Object.fromEntries(
+  settlementMethodOptions.map((option) => [option.value, option.label]),
+);
+
+const settlementBaseOptions = [
+  { label: '账单日', value: 1 },
+  { label: '开航日', value: 2 },
+  { label: '到港日', value: 3 },
+];
+
+const settlementBaseLabels: Record<number, string> = Object.fromEntries(
+  settlementBaseOptions.map((option) => [option.value, option.label]),
+);
 
 const accountStatusOptions = [
   { label: '启用', value: 1 },
@@ -60,6 +109,21 @@ type ContractFormValues = {
   otherNotes?: string;
 };
 
+type SettlementRuleItem = API.PartnerSettlementRule & {
+  roleType?: number;
+};
+
+type SettlementRuleFormValues = {
+  roleType?: number;
+  statementMode?: number;
+  settlementMethod?: number;
+  settlementBase?: number;
+  settlementDay?: number;
+  settlementCycleDays?: number;
+  settlementCurrency?: string;
+  isActive?: boolean;
+};
+
 type PartnerSecondaryProps = {
   partner?: API.Partner;
   open: boolean;
@@ -93,12 +157,17 @@ export default function PartnerSecondary({
   const { message } = App.useApp();
   const accountActionRef = useRef<ActionType | undefined>(undefined);
   const contractActionRef = useRef<ActionType | undefined>(undefined);
+  const settlementRuleActionRef = useRef<ActionType | undefined>(undefined);
   const accountFormRef = useRef<ProFormInstance | undefined>(undefined);
   const contractFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const settlementRuleFormRef = useRef<ProFormInstance | undefined>(undefined);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [contractModalOpen, setContractModalOpen] = useState(false);
+  const [settlementRuleModalOpen, setSettlementRuleModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
   const [editingContract, setEditingContract] = useState<API.PartnerContract>();
+  const [editingSettlementRule, setEditingSettlementRule] =
+    useState<SettlementRuleItem>();
   const hasCustomerRole =
     partner?.roles?.some((role) => role.type === 1) ?? false;
 
@@ -112,6 +181,12 @@ export default function PartnerSecondary({
     setEditingContract(contract);
     contractFormRef.current?.resetFields();
     setContractModalOpen(true);
+  };
+
+  const openSettlementRuleForm = (rule?: SettlementRuleItem) => {
+    setEditingSettlementRule(rule);
+    settlementRuleFormRef.current?.resetFields();
+    setSettlementRuleModalOpen(true);
   };
 
   const accountColumns: ProColumns<API.PartnerAccount>[] = [
@@ -266,6 +341,126 @@ export default function PartnerSecondary({
     />
   );
 
+  const settlementRuleColumns: ProColumns<SettlementRuleItem>[] = [
+    {
+      title: '角色',
+      dataIndex: 'roleType',
+      width: 90,
+      render: (_, record) => (
+        <Tag>{roleLabels[record.roleType ?? 0] ?? '未知'}</Tag>
+      ),
+    },
+    {
+      title: '对账模式',
+      dataIndex: 'statementMode',
+      width: 110,
+      render: (_, record) =>
+        statementModeLabels[record.statementMode ?? 0] ?? '-',
+    },
+    {
+      title: '结算方式',
+      dataIndex: 'settlementMethod',
+      width: 110,
+      render: (_, record) =>
+        settlementMethodLabels[record.settlementMethod ?? 0] ?? '-',
+    },
+    {
+      title: '结算基准',
+      dataIndex: 'settlementBase',
+      width: 110,
+      render: (_, record) =>
+        settlementBaseLabels[record.settlementBase ?? 0] ?? '-',
+    },
+    {
+      title: '结算日',
+      dataIndex: 'settlementDay',
+      width: 90,
+      render: (_, record) =>
+        record.settlementDay != null ? `${record.settlementDay}日` : '-',
+    },
+    {
+      title: '周期天数',
+      dataIndex: 'settlementCycleDays',
+      width: 100,
+      render: (_, record) =>
+        record.settlementCycleDays != null
+          ? `${record.settlementCycleDays}天`
+          : '-',
+    },
+    {
+      title: '结算币种',
+      dataIndex: 'settlementCurrency',
+      width: 90,
+    },
+    {
+      title: '启用',
+      dataIndex: 'isActive',
+      width: 80,
+      render: (_, record) =>
+        record.isActive ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      render: (_, record) =>
+        canManage ? (
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => openSettlementRuleForm(record)}
+          >
+            编辑
+          </Button>
+        ) : null,
+    },
+  ];
+
+  const settlementRulePanel = (
+    <ProTable<SettlementRuleItem>
+      rowKey="id"
+      actionRef={settlementRuleActionRef}
+      columns={settlementRuleColumns}
+      search={false}
+      pagination={false}
+      request={async () => {
+        if (!partner?.id) return { data: [], success: true };
+        const partnerId = partner.id;
+        const rolesToQuery = (partner.roles ?? [])
+          .map((r) => r.type)
+          .filter((t): t is number => typeof t === 'number');
+        const results = await Promise.all(
+          rolesToQuery.map(async (roleType) => {
+            const response = await partnerServiceListPartnerSettlementRules({
+              partnerId,
+              roleType,
+            });
+            return (response.data ?? []).map((item) => ({
+              ...item,
+              roleType,
+            }));
+          }),
+        );
+        return { data: results.flat(), success: true };
+      }}
+      toolBarRender={() =>
+        canManage
+          ? [
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => openSettlementRuleForm()}
+              >
+                新增结算规则
+              </Button>,
+            ]
+          : []
+      }
+    />
+  );
+
   return (
     <>
       <Drawer
@@ -279,6 +474,11 @@ export default function PartnerSecondary({
           items={[
             { key: 'accounts', label: '结算账户', children: accountPanel },
             { key: 'contracts', label: '合同', children: contractPanel },
+            {
+              key: 'settlement-rules',
+              label: '结算规则',
+              children: settlementRulePanel,
+            },
           ]}
         />
       </Drawer>
@@ -460,6 +660,138 @@ export default function PartnerSecondary({
           label="其他约定"
           fieldProps={{ rows: 3, maxLength: 2000, showCount: true }}
         />
+      </ModalForm>
+
+      <ModalForm<SettlementRuleFormValues>
+        title={editingSettlementRule ? '编辑结算规则' : '新增结算规则'}
+        open={settlementRuleModalOpen}
+        formRef={settlementRuleFormRef}
+        initialValues={
+          editingSettlementRule ?? {
+            roleType: partner?.roles?.[0]?.type ?? 1,
+            statementMode: 1,
+            settlementMethod: 1,
+            settlementCurrency: 'CNY',
+            isActive: true,
+          }
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 720,
+          onCancel: () => setSettlementRuleModalOpen(false),
+        }}
+        onOpenChange={setSettlementRuleModalOpen}
+        onFinish={async (values) => {
+          if (
+            !partner?.id ||
+            !values.roleType ||
+            !values.statementMode ||
+            !values.settlementMethod ||
+            !values.settlementCurrency
+          ) {
+            return false;
+          }
+          const rule: API.PartnerSettlementRuleInput = {
+            statementMode: values.statementMode,
+            settlementMethod: values.settlementMethod,
+            settlementBase: values.settlementBase,
+            settlementDay: values.settlementDay,
+            settlementCycleDays: values.settlementCycleDays,
+            settlementCurrency: values.settlementCurrency.trim().toUpperCase(),
+            isActive: values.isActive ?? false,
+          };
+          if (editingSettlementRule?.id) {
+            await partnerServiceUpdatePartnerSettlementRule(
+              {
+                partnerId: partner.id,
+                roleType: values.roleType,
+                id: editingSettlementRule.id,
+              },
+              {
+                partnerId: partner.id,
+                roleType: values.roleType,
+                id: editingSettlementRule.id,
+                rule,
+              },
+            );
+            message.success('结算规则已更新');
+          } else {
+            await partnerServiceCreatePartnerSettlementRule(
+              {
+                partnerId: partner.id,
+                roleType: values.roleType,
+              },
+              {
+                partnerId: partner.id,
+                roleType: values.roleType,
+                rule,
+              },
+            );
+            message.success('结算规则已创建');
+          }
+          setSettlementRuleModalOpen(false);
+          settlementRuleActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <Space align="start" wrap>
+          <ProFormSelect
+            name="roleType"
+            label="角色"
+            width="xs"
+            options={roleOptions.filter((option) =>
+              partner?.roles?.some((role) => role.type === option.value),
+            )}
+            disabled={Boolean(editingSettlementRule)}
+            rules={[{ required: true, message: '请选择角色' }]}
+          />
+          <ProFormSelect
+            name="statementMode"
+            label="对账模式"
+            width="xs"
+            options={statementModeOptions}
+            rules={[{ required: true, message: '请选择对账模式' }]}
+          />
+          <ProFormSelect
+            name="settlementMethod"
+            label="结算方式"
+            width="xs"
+            options={settlementMethodOptions}
+            rules={[{ required: true, message: '请选择结算方式' }]}
+          />
+          <ProFormSelect
+            name="settlementBase"
+            label="结算基准"
+            width="xs"
+            options={settlementBaseOptions}
+            allowClear
+          />
+        </Space>
+        <Space align="start" wrap>
+          <ProFormDigit
+            name="settlementDay"
+            label="结算日"
+            width="xs"
+            min={1}
+            max={31}
+            fieldProps={{ precision: 0 }}
+          />
+          <ProFormDigit
+            name="settlementCycleDays"
+            label="周期天数"
+            width="xs"
+            min={1}
+            max={365}
+            fieldProps={{ precision: 0 }}
+          />
+          <ProFormText
+            name="settlementCurrency"
+            label="结算币种"
+            width="xs"
+            rules={[{ required: true, len: 3, message: '请输入三位币种代码' }]}
+          />
+          <ProFormSwitch name="isActive" label="启用" />
+        </Space>
       </ModalForm>
     </>
   );

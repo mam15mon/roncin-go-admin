@@ -191,6 +191,72 @@ export async function partnerServiceUpdatePartnerContract(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/roles/${param1}/settlement-rules */
+export async function partnerServiceListPartnerSettlementRules(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceListPartnerSettlementRulesParams,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, roleType: param1, ...queryParams } = params;
+  return request<API.PartnerSettlementRuleListReply>(
+    `/api/v1/partners/${param0}/roles/${param1}/settlement-rules`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/roles/${param1}/settlement-rules */
+export async function partnerServiceCreatePartnerSettlementRule(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceCreatePartnerSettlementRuleParams,
+  body: API.CreatePartnerSettlementRuleRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, roleType: param1, ...queryParams } = params;
+  return request<API.PartnerSettlementRuleReply>(
+    `/api/v1/partners/${param0}/roles/${param1}/settlement-rules`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/roles/${param1}/settlement-rules/${param2} */
+export async function partnerServiceUpdatePartnerSettlementRule(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceUpdatePartnerSettlementRuleParams,
+  body: API.UpdatePartnerSettlementRuleRequest,
+  options?: { [key: string]: any }
+) {
+  const {
+    partnerId: param0,
+    roleType: param1,
+    id: param2,
+    ...queryParams
+  } = params;
+  return request<API.PartnerSettlementRuleReply>(
+    `/api/v1/partners/${param0}/roles/${param1}/settlement-rules/${param2}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/partners/${param0}/supplier-blacklist */
 export async function partnerServiceSetSupplierBlacklist(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
