@@ -11,7 +11,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	"github.com/google/uuid"
 )
@@ -57,7 +56,7 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, id uuid.UUID, name s
 
 func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
 	query := r.data.db.Membership.Query().
-		Where(membership.OrganizationIDEQ(organizationID), membership.HasUserWith(user.EnabledEQ(true))).
+		Where(membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).
 		WithUser().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
 	items, err := query.All(ctx)

@@ -1,4 +1,71 @@
 declare namespace API {
+  type AdminOrganization = {
+    id?: string;
+    code?: string;
+    name?: string;
+    parentId?: string;
+    enabled?: boolean;
+  };
+
+  type AdminOrganizationListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization[];
+    traceId?: string;
+  };
+
+  type AdminOrganizationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization;
+    traceId?: string;
+  };
+
+  type AdminPermission = {
+    key?: string;
+    name?: string;
+    group?: string;
+    description?: string;
+  };
+
+  type AdminPermissionListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminPermission[];
+    traceId?: string;
+  };
+
+  type AdminRole = {
+    id?: string;
+    organizationId?: string;
+    code?: string;
+    name?: string;
+    dataScope?: number;
+    enabled?: boolean;
+    permissionKeys?: string[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AdminRoleListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole[];
+    traceId?: string;
+  };
+
+  type AdminRoleReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole;
+    traceId?: string;
+  };
+
   type AdminServiceListUsersParams = {
     page?: number;
     pageSize?: number;
@@ -15,6 +82,37 @@ declare namespace API {
 
   type AdminServiceUpdateUserParams = {
     id: string;
+  };
+
+  type AdminUser = {
+    id?: string;
+    username?: string;
+    displayName?: string;
+    email?: string;
+    enabled?: boolean;
+    roleIds?: string[];
+    roleCodes?: string[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AdminUserListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type AdminUserReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser;
+    traceId?: string;
   };
 
   type CreateOrganizationRequest = {
@@ -90,30 +188,6 @@ declare namespace API {
     id?: string;
     code?: string;
     name?: string;
-    parentId?: string;
-    enabled?: boolean;
-  };
-
-  type Organization = {
-    id?: string;
-    code?: string;
-    name?: string;
-  };
-
-  type OrganizationListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Organization[];
-    traceId?: string;
-  };
-
-  type OrganizationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Organization;
-    traceId?: string;
   };
 
   type Partner = {
@@ -162,49 +236,6 @@ declare namespace API {
     id: string;
   };
 
-  type Permission = {
-    key?: string;
-    name?: string;
-    group?: string;
-    description?: string;
-  };
-
-  type PermissionListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Permission[];
-    traceId?: string;
-  };
-
-  type Role = {
-    id?: string;
-    organizationId?: string;
-    code?: string;
-    name?: string;
-    dataScope?: number;
-    enabled?: boolean;
-    permissionKeys?: string[];
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type RoleListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Role[];
-    traceId?: string;
-  };
-
-  type RoleReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Role;
-    traceId?: string;
-  };
-
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
@@ -245,36 +276,5 @@ declare namespace API {
     email?: string;
     enabled?: boolean;
     roleIds?: string[];
-  };
-
-  type User = {
-    id?: string;
-    username?: string;
-    displayName?: string;
-    email?: string;
-    enabled?: boolean;
-    roleIds?: string[];
-    roleCodes?: string[];
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type UserListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: User[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type UserReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: User;
-    traceId?: string;
   };
 }

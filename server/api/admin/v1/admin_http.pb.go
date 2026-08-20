@@ -29,16 +29,16 @@ const OperationAdminServiceUpdateRole = "/admin.v1.AdminService/UpdateRole"
 const OperationAdminServiceUpdateUser = "/admin.v1.AdminService/UpdateUser"
 
 type AdminServiceHTTPServer interface {
-	CreateOrganization(context.Context, *CreateOrganizationRequest) (*OrganizationReply, error)
-	CreateRole(context.Context, *CreateRoleRequest) (*RoleReply, error)
-	CreateUser(context.Context, *CreateUserRequest) (*UserReply, error)
-	ListOrganizations(context.Context, *ListOrganizationsRequest) (*OrganizationListReply, error)
-	ListPermissions(context.Context, *ListPermissionsRequest) (*PermissionListReply, error)
-	ListRoles(context.Context, *ListRolesRequest) (*RoleListReply, error)
-	ListUsers(context.Context, *ListUsersRequest) (*UserListReply, error)
-	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*OrganizationReply, error)
-	UpdateRole(context.Context, *UpdateRoleRequest) (*RoleReply, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*UserReply, error)
+	CreateOrganization(context.Context, *CreateOrganizationRequest) (*AdminOrganizationReply, error)
+	CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error)
+	CreateUser(context.Context, *CreateUserRequest) (*AdminUserReply, error)
+	ListOrganizations(context.Context, *ListOrganizationsRequest) (*AdminOrganizationListReply, error)
+	ListPermissions(context.Context, *ListPermissionsRequest) (*AdminPermissionListReply, error)
+	ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error)
+	ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error)
+	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*AdminOrganizationReply, error)
+	UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error)
 }
 
 func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) {
@@ -69,7 +69,7 @@ func _AdminService_ListOrganizations0_HTTP_Handler(srv AdminServiceHTTPServer) f
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrganizationListReply)
+		reply := out.(*AdminOrganizationListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -88,7 +88,7 @@ func _AdminService_CreateOrganization0_HTTP_Handler(srv AdminServiceHTTPServer) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrganizationReply)
+		reply := out.(*AdminOrganizationReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -110,7 +110,7 @@ func _AdminService_UpdateOrganization0_HTTP_Handler(srv AdminServiceHTTPServer) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrganizationReply)
+		reply := out.(*AdminOrganizationReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -129,7 +129,7 @@ func _AdminService_ListUsers0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx 
 		if err != nil {
 			return err
 		}
-		reply := out.(*UserListReply)
+		reply := out.(*AdminUserListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -148,7 +148,7 @@ func _AdminService_CreateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 		if err != nil {
 			return err
 		}
-		reply := out.(*UserReply)
+		reply := out.(*AdminUserReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -170,7 +170,7 @@ func _AdminService_UpdateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 		if err != nil {
 			return err
 		}
-		reply := out.(*UserReply)
+		reply := out.(*AdminUserReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -189,7 +189,7 @@ func _AdminService_ListRoles0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx 
 		if err != nil {
 			return err
 		}
-		reply := out.(*RoleListReply)
+		reply := out.(*AdminRoleListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -208,7 +208,7 @@ func _AdminService_CreateRole0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 		if err != nil {
 			return err
 		}
-		reply := out.(*RoleReply)
+		reply := out.(*AdminRoleReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -230,7 +230,7 @@ func _AdminService_UpdateRole0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 		if err != nil {
 			return err
 		}
-		reply := out.(*RoleReply)
+		reply := out.(*AdminRoleReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -249,22 +249,22 @@ func _AdminService_ListPermissions0_HTTP_Handler(srv AdminServiceHTTPServer) fun
 		if err != nil {
 			return err
 		}
-		reply := out.(*PermissionListReply)
+		reply := out.(*AdminPermissionListReply)
 		return ctx.Result(200, reply)
 	}
 }
 
 type AdminServiceHTTPClient interface {
-	CreateOrganization(ctx context.Context, req *CreateOrganizationRequest, opts ...http.CallOption) (rsp *OrganizationReply, err error)
-	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *RoleReply, err error)
-	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *UserReply, err error)
-	ListOrganizations(ctx context.Context, req *ListOrganizationsRequest, opts ...http.CallOption) (rsp *OrganizationListReply, err error)
-	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *PermissionListReply, err error)
-	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *RoleListReply, err error)
-	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *UserListReply, err error)
-	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *OrganizationReply, err error)
-	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *RoleReply, err error)
-	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UserReply, err error)
+	CreateOrganization(ctx context.Context, req *CreateOrganizationRequest, opts ...http.CallOption) (rsp *AdminOrganizationReply, err error)
+	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *AdminRoleReply, err error)
+	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *AdminUserReply, err error)
+	ListOrganizations(ctx context.Context, req *ListOrganizationsRequest, opts ...http.CallOption) (rsp *AdminOrganizationListReply, err error)
+	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *AdminPermissionListReply, err error)
+	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *AdminRoleListReply, err error)
+	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
+	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *AdminOrganizationReply, err error)
+	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *AdminRoleReply, err error)
+	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *AdminUserReply, err error)
 }
 
 type AdminServiceHTTPClientImpl struct {
@@ -275,8 +275,8 @@ func NewAdminServiceHTTPClient(client *http.Client) AdminServiceHTTPClient {
 	return &AdminServiceHTTPClientImpl{client}
 }
 
-func (c *AdminServiceHTTPClientImpl) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...http.CallOption) (*OrganizationReply, error) {
-	var out OrganizationReply
+func (c *AdminServiceHTTPClientImpl) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...http.CallOption) (*AdminOrganizationReply, error) {
+	var out AdminOrganizationReply
 	pattern := "/api/v1/admin/organizations"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -292,8 +292,8 @@ func (c *AdminServiceHTTPClientImpl) CreateOrganization(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...http.CallOption) (*RoleReply, error) {
-	var out RoleReply
+func (c *AdminServiceHTTPClientImpl) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...http.CallOption) (*AdminRoleReply, error) {
+	var out AdminRoleReply
 	pattern := "/api/v1/admin/roles"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -309,8 +309,8 @@ func (c *AdminServiceHTTPClientImpl) CreateRole(ctx context.Context, in *CreateR
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...http.CallOption) (*UserReply, error) {
-	var out UserReply
+func (c *AdminServiceHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...http.CallOption) (*AdminUserReply, error) {
+	var out AdminUserReply
 	pattern := "/api/v1/admin/users"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -326,8 +326,8 @@ func (c *AdminServiceHTTPClientImpl) CreateUser(ctx context.Context, in *CreateU
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...http.CallOption) (*OrganizationListReply, error) {
-	var out OrganizationListReply
+func (c *AdminServiceHTTPClientImpl) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...http.CallOption) (*AdminOrganizationListReply, error) {
+	var out AdminOrganizationListReply
 	pattern := "/api/v1/admin/organizations"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -342,8 +342,8 @@ func (c *AdminServiceHTTPClientImpl) ListOrganizations(ctx context.Context, in *
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...http.CallOption) (*PermissionListReply, error) {
-	var out PermissionListReply
+func (c *AdminServiceHTTPClientImpl) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...http.CallOption) (*AdminPermissionListReply, error) {
+	var out AdminPermissionListReply
 	pattern := "/api/v1/admin/permissions"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -358,8 +358,8 @@ func (c *AdminServiceHTTPClientImpl) ListPermissions(ctx context.Context, in *Li
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...http.CallOption) (*RoleListReply, error) {
-	var out RoleListReply
+func (c *AdminServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...http.CallOption) (*AdminRoleListReply, error) {
+	var out AdminRoleListReply
 	pattern := "/api/v1/admin/roles"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -374,8 +374,8 @@ func (c *AdminServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRole
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...http.CallOption) (*UserListReply, error) {
-	var out UserListReply
+func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...http.CallOption) (*AdminUserListReply, error) {
+	var out AdminUserListReply
 	pattern := "/api/v1/admin/users"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -390,8 +390,8 @@ func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUser
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...http.CallOption) (*OrganizationReply, error) {
-	var out OrganizationReply
+func (c *AdminServiceHTTPClientImpl) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...http.CallOption) (*AdminOrganizationReply, error) {
+	var out AdminOrganizationReply
 	pattern := "/api/v1/admin/organizations/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -407,8 +407,8 @@ func (c *AdminServiceHTTPClientImpl) UpdateOrganization(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...http.CallOption) (*RoleReply, error) {
-	var out RoleReply
+func (c *AdminServiceHTTPClientImpl) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...http.CallOption) (*AdminRoleReply, error) {
+	var out AdminRoleReply
 	pattern := "/api/v1/admin/roles/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -424,8 +424,8 @@ func (c *AdminServiceHTTPClientImpl) UpdateRole(ctx context.Context, in *UpdateR
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...http.CallOption) (*UserReply, error) {
-	var out UserReply
+func (c *AdminServiceHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...http.CallOption) (*AdminUserReply, error) {
+	var out AdminUserReply
 	pattern := "/api/v1/admin/users/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

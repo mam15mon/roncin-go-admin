@@ -20,19 +20,19 @@ func NewAdminService(usecase *biz.AdminUsecase) *AdminService {
 	return &AdminService{usecase: usecase}
 }
 
-func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganizationsRequest) (*v1.OrganizationListReply, error) {
+func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganizationsRequest) (*v1.AdminOrganizationListReply, error) {
 	items, err := s.usecase.ListOrganizations(ctx)
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.Organization, 0, len(items))
+	data := make([]*v1.AdminOrganization, 0, len(items))
 	for _, item := range items {
 		data = append(data, organizationToAPI(item))
 	}
-	return &v1.OrganizationListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminOrganizationListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.CreateOrganizationRequest) (*v1.OrganizationReply, error) {
+func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.CreateOrganizationRequest) (*v1.AdminOrganizationReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -41,10 +41,10 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OrganizationReply{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminOrganizationReply{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.UpdateOrganizationRequest) (*v1.OrganizationReply, error) {
+func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.UpdateOrganizationRequest) (*v1.AdminOrganizationReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -57,10 +57,10 @@ func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OrganizationReply{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminOrganizationReply{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersRequest) (*v1.UserListReply, error) {
+func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersRequest) (*v1.AdminUserListReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -73,14 +73,14 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.User, 0, len(list.Items))
+	data := make([]*v1.AdminUser, 0, len(list.Items))
 	for _, item := range list.Items {
 		data = append(data, userToAPI(item))
 	}
-	return &v1.UserListReply{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminUserListReply{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserRequest) (*v1.UserReply, error) {
+func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserRequest) (*v1.AdminUserReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -93,10 +93,10 @@ func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminUserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserRequest) (*v1.UserReply, error) {
+func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserRequest) (*v1.AdminUserReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -113,10 +113,10 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminUserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*v1.RoleListReply, error) {
+func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*v1.AdminRoleListReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -125,14 +125,14 @@ func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.Role, 0, len(items))
+	data := make([]*v1.AdminRole, 0, len(items))
 	for _, item := range items {
 		data = append(data, roleToAPI(item))
 	}
-	return &v1.RoleListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminRoleListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleRequest) (*v1.RoleReply, error) {
+func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleRequest) (*v1.AdminRoleReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -141,10 +141,10 @@ func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.RoleReply{Success: true, Code: 0, Message: "OK", Data: roleToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminRoleReply{Success: true, Code: 0, Message: "OK", Data: roleToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleRequest) (*v1.RoleReply, error) {
+func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleRequest) (*v1.AdminRoleReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -157,19 +157,19 @@ func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.RoleReply{Success: true, Code: 0, Message: "OK", Data: roleToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminRoleReply{Success: true, Code: 0, Message: "OK", Data: roleToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermissionsRequest) (*v1.PermissionListReply, error) {
+func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermissionsRequest) (*v1.AdminPermissionListReply, error) {
 	items, err := s.usecase.ListPermissions(ctx)
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.Permission, 0, len(items))
+	data := make([]*v1.AdminPermission, 0, len(items))
 	for _, item := range items {
-		data = append(data, &v1.Permission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
+		data = append(data, &v1.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
 	}
-	return &v1.PermissionListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.AdminPermissionListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func requirePrincipal(ctx context.Context) (*biz.Principal, error) {
@@ -249,16 +249,16 @@ func dataScopeToAPI(value biz.DataScope) v1.DataScope {
 	}
 }
 
-func organizationToAPI(value *biz.AdminOrganization) *v1.Organization {
-	return &v1.Organization{Id: value.ID.String(), Code: value.Code, Name: value.Name, ParentId: uuidString(value.ParentID), Enabled: value.Enabled}
+func organizationToAPI(value *biz.AdminOrganization) *v1.AdminOrganization {
+	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, ParentId: uuidString(value.ParentID), Enabled: value.Enabled}
 }
 
-func userToAPI(value *biz.AdminUser) *v1.User {
-	return &v1.User{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+func userToAPI(value *biz.AdminUser) *v1.AdminUser {
+	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
-func roleToAPI(value *biz.AdminRole) *v1.Role {
-	return &v1.Role{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+func roleToAPI(value *biz.AdminRole) *v1.AdminRole {
+	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func uuidString(value *uuid.UUID) *string {

@@ -8,61 +8,61 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/admin/v1;v1";
 
 service AdminService {
-  rpc ListOrganizations(ListOrganizationsRequest) returns (OrganizationListReply) {
+  rpc ListOrganizations(ListOrganizationsRequest) returns (AdminOrganizationListReply) {
     option (google.api.http) = {get: "/api/v1/admin/organizations"};
   }
 
-  rpc CreateOrganization(CreateOrganizationRequest) returns (OrganizationReply) {
+  rpc CreateOrganization(CreateOrganizationRequest) returns (AdminOrganizationReply) {
     option (google.api.http) = {
       post: "/api/v1/admin/organizations"
       body: "*"
     };
   }
 
-  rpc UpdateOrganization(UpdateOrganizationRequest) returns (OrganizationReply) {
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (AdminOrganizationReply) {
     option (google.api.http) = {
       put: "/api/v1/admin/organizations/{id}"
       body: "*"
     };
   }
 
-  rpc ListUsers(ListUsersRequest) returns (UserListReply) {
+  rpc ListUsers(ListUsersRequest) returns (AdminUserListReply) {
     option (google.api.http) = {get: "/api/v1/admin/users"};
   }
 
-  rpc CreateUser(CreateUserRequest) returns (UserReply) {
+  rpc CreateUser(CreateUserRequest) returns (AdminUserReply) {
     option (google.api.http) = {
       post: "/api/v1/admin/users"
       body: "*"
     };
   }
 
-  rpc UpdateUser(UpdateUserRequest) returns (UserReply) {
+  rpc UpdateUser(UpdateUserRequest) returns (AdminUserReply) {
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}"
       body: "*"
     };
   }
 
-  rpc ListRoles(ListRolesRequest) returns (RoleListReply) {
+  rpc ListRoles(ListRolesRequest) returns (AdminRoleListReply) {
     option (google.api.http) = {get: "/api/v1/admin/roles"};
   }
 
-  rpc CreateRole(CreateRoleRequest) returns (RoleReply) {
+  rpc CreateRole(CreateRoleRequest) returns (AdminRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/admin/roles"
       body: "*"
     };
   }
 
-  rpc UpdateRole(UpdateRoleRequest) returns (RoleReply) {
+  rpc UpdateRole(UpdateRoleRequest) returns (AdminRoleReply) {
     option (google.api.http) = {
       put: "/api/v1/admin/roles/{id}"
       body: "*"
     };
   }
 
-  rpc ListPermissions(ListPermissionsRequest) returns (PermissionListReply) {
+  rpc ListPermissions(ListPermissionsRequest) returns (AdminPermissionListReply) {
     option (google.api.http) = {get: "/api/v1/admin/permissions"};
   }
 }
@@ -88,7 +88,7 @@ message UpdateOrganizationRequest {
   bool enabled = 3;
 }
 
-message Organization {
+message AdminOrganization {
   string id = 1;
   string code = 2;
   string name = 3;
@@ -96,19 +96,19 @@ message Organization {
   bool enabled = 5;
 }
 
-message OrganizationListReply {
+message AdminOrganizationListReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  repeated Organization data = 4;
+  repeated AdminOrganization data = 4;
   string trace_id = 5;
 }
 
-message OrganizationReply {
+message AdminOrganizationReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  Organization data = 4;
+  AdminOrganization data = 4;
   string trace_id = 5;
 }
 
@@ -134,7 +134,7 @@ message UpdateUserRequest {
   repeated string role_ids = 5;
 }
 
-message User {
+message AdminUser {
   string id = 1;
   string username = 2;
   string display_name = 3;
@@ -146,22 +146,22 @@ message User {
   string updated_at = 9;
 }
 
-message UserListReply {
+message AdminUserListReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  repeated User data = 4;
+  repeated AdminUser data = 4;
   int32 total = 5;
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
 }
 
-message UserReply {
+message AdminUserReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  User data = 4;
+  AdminUser data = 4;
   string trace_id = 5;
 }
 
@@ -182,7 +182,7 @@ message UpdateRoleRequest {
   repeated string permission_keys = 5;
 }
 
-message Role {
+message AdminRole {
   string id = 1;
   string organization_id = 2;
   string code = 3;
@@ -194,35 +194,35 @@ message Role {
   string updated_at = 9;
 }
 
-message RoleListReply {
+message AdminRoleListReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  repeated Role data = 4;
+  repeated AdminRole data = 4;
   string trace_id = 5;
 }
 
-message RoleReply {
+message AdminRoleReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  Role data = 4;
+  AdminRole data = 4;
   string trace_id = 5;
 }
 
 message ListPermissionsRequest {}
 
-message Permission {
+message AdminPermission {
   string key = 1;
   string name = 2;
   string group = 3;
   string description = 4;
 }
 
-message PermissionListReply {
+message AdminPermissionListReply {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  repeated Permission data = 4;
+  repeated AdminPermission data = 4;
   string trace_id = 5;
 }
