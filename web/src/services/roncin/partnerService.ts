@@ -128,6 +128,45 @@ export async function partnerServiceUpdatePartnerAccount(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/attachments */
+export async function partnerServiceListPartnerAttachments(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceListPartnerAttachmentsParams,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.PartnerAttachmentListReply>(
+    `/api/v1/partners/${param0}/attachments`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/attachments */
+export async function partnerServiceRegisterPartnerAttachment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceRegisterPartnerAttachmentParams,
+  body: API.RegisterPartnerAttachmentRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.PartnerAttachmentReply>(
+    `/api/v1/partners/${param0}/attachments`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/${param0}/contracts */
 export async function partnerServiceListPartnerContracts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

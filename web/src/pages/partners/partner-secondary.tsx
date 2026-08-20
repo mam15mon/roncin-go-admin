@@ -14,7 +14,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { App, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
+import { Alert, App, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useRef, useState } from 'react';
 import {
@@ -22,8 +22,10 @@ import {
   partnerServiceCreatePartnerContract,
   partnerServiceCreatePartnerSettlementRule,
   partnerServiceListPartnerAccounts,
+  partnerServiceListPartnerAttachments,
   partnerServiceListPartnerContracts,
   partnerServiceListPartnerSettlementRules,
+  partnerServiceRegisterPartnerAttachment,
   partnerServiceUpdatePartnerAccount,
   partnerServiceUpdatePartnerContract,
   partnerServiceUpdatePartnerSettlementRule,
@@ -124,6 +126,15 @@ type SettlementRuleFormValues = {
   isActive?: boolean;
 };
 
+type AttachmentFormValues = {
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: string | number;
+  objectKey?: string;
+  checksum?: string;
+  idempotencyKey?: string;
+};
+
 type PartnerSecondaryProps = {
   partner?: API.Partner;
   open: boolean;
@@ -158,12 +169,15 @@ export default function PartnerSecondary({
   const accountActionRef = useRef<ActionType | undefined>(undefined);
   const contractActionRef = useRef<ActionType | undefined>(undefined);
   const settlementRuleActionRef = useRef<ActionType | undefined>(undefined);
+  const attachmentActionRef = useRef<ActionType | undefined>(undefined);
   const accountFormRef = useRef<ProFormInstance | undefined>(undefined);
   const contractFormRef = useRef<ProFormInstance | undefined>(undefined);
   const settlementRuleFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const attachmentFormRef = useRef<ProFormInstance | undefined>(undefined);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [settlementRuleModalOpen, setSettlementRuleModalOpen] = useState(false);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
   const [editingContract, setEditingContract] = useState<API.PartnerContract>();
   const [editingSettlementRule, setEditingSettlementRule] =
@@ -187,6 +201,11 @@ export default function PartnerSecondary({
     setEditingSettlementRule(rule);
     settlementRuleFormRef.current?.resetFields();
     setSettlementRuleModalOpen(true);
+  };
+
+  const openAttachmentForm = () => {
+    attachmentFormRef.current?.resetFields();
+    setAttachmentModalOpen(true);
   };
 
   const accountColumns: ProColumns<API.PartnerAccount>[] = [
@@ -461,6 +480,67 @@ export default function PartnerSecondary({
     />
   );
 
+  const attachmentColumns: ProColumns<API.PartnerAttachment>[] = [
+    { title: '文件名', dataIndex: 'fileName', ellipsis: true },
+    { title: 'MIME 类型', dataIndex: 'mimeType', width: 140, ellipsis: true },
+    { title: '文件大小', dataIndex: 'fileSize', width: 100 },
+    {
+      title: '对象键',
+      dataIndex: 'objectKey',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
+      title: '校验和',
+      dataIndex: 'checksum',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
+      title: '幂等键',
+      dataIndex: 'idempotencyKey',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 170,
+    },
+  ];
+
+  const attachmentPanel = (
+    <ProTable<API.PartnerAttachment>
+      rowKey="id"
+      actionRef={attachmentActionRef}
+      columns={attachmentColumns}
+      search={false}
+      pagination={false}
+      request={async () => {
+        if (!partner?.id) return { data: [], success: true };
+        const response = await partnerServiceListPartnerAttachments({
+          partnerId: partner.id,
+        });
+        return { data: response.data ?? [], success: response.success ?? true };
+      }}
+      toolBarRender={() =>
+        canManage
+          ? [
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => openAttachmentForm()}
+              >
+                登记附件
+              </Button>,
+            ]
+          : []
+      }
+    />
+  );
+
   return (
     <>
       <Drawer
@@ -478,6 +558,11 @@ export default function PartnerSecondary({
               key: 'settlement-rules',
               label: '结算规则',
               children: settlementRulePanel,
+            },
+            {
+              key: 'attachments',
+              label: '附件',
+              children: attachmentPanel,
             },
           ]}
         />
@@ -792,6 +877,86 @@ export default function PartnerSecondary({
           />
           <ProFormSwitch name="isActive" label="启用" />
         </Space>
+      </ModalForm>
+
+      <ModalForm<AttachmentFormValues>
+        title="登记附件"
+        open={attachmentModalOpen}
+        formRef={attachmentFormRef}
+        modalProps={{
+          destroyOnHidden: true,
+          width: 720,
+          onCancel: () => setAttachmentModalOpen(false),
+        }}
+        onOpenChange={setAttachmentModalOpen}
+        onFinish={async (values) => {
+          if (
+            !partner?.id ||
+            !values.fileName ||
+            !values.mimeType ||
+            values.fileSize === undefined ||
+            values.fileSize === null ||
+            !values.objectKey ||
+            !values.idempotencyKey
+          ) {
+            return false;
+          }
+          await partnerServiceRegisterPartnerAttachment(
+            { partnerId: partner.id },
+            {
+              partnerId: partner.id,
+              fileName: values.fileName.trim(),
+              mimeType: values.mimeType.trim(),
+              fileSize: String(values.fileSize),
+              objectKey: values.objectKey.trim(),
+              checksum: values.checksum?.trim() || undefined,
+              idempotencyKey: values.idempotencyKey.trim(),
+            },
+          );
+          message.success('附件已登记');
+          setAttachmentModalOpen(false);
+          attachmentActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          message="此处仅登记外部对象存储引用，不上传文件内容。"
+          style={{ marginBottom: 16 }}
+        />
+        <ProFormText
+          name="fileName"
+          label="文件名"
+          rules={[{ required: true, message: '请输入文件名' }]}
+        />
+        <ProFormText
+          name="mimeType"
+          label="MIME 类型"
+          rules={[{ required: true, message: '请输入 MIME 类型' }]}
+        />
+        <ProFormDigit
+          name="fileSize"
+          label="文件大小"
+          min={1}
+          max={104857600}
+          fieldProps={{ precision: 0 }}
+          rules={[{ required: true, message: '请输入文件大小' }]}
+        />
+        <ProFormText
+          name="objectKey"
+          label="对象键"
+          rules={[{ required: true, message: '请输入对象键' }]}
+        />
+        <ProFormText
+          name="checksum"
+          label="校验和"
+        />
+        <ProFormText
+          name="idempotencyKey"
+          label="幂等键"
+          rules={[{ required: true, message: '请输入幂等键' }]}
+        />
       </ModalForm>
     </>
   );

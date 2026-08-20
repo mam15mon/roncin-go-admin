@@ -574,6 +574,36 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type PartnerAttachment = {
+    id?: string;
+    partnerId?: string;
+    idempotencyKey?: string;
+    fileName?: string;
+    mimeType?: string;
+    fileSize?: string;
+    objectKey?: string;
+    checksum?: string;
+    uploadedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerAttachmentListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAttachment[];
+    traceId?: string;
+  };
+
+  type PartnerAttachmentReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAttachment;
+    traceId?: string;
+  };
+
   type PartnerContact = {
     id?: string;
     name?: string;
@@ -679,6 +709,10 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type PartnerServiceListPartnerAttachmentsParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceListPartnerContractsParams = {
     partnerId: string;
     status?: number;
@@ -695,6 +729,10 @@ declare namespace API {
     keyword?: string;
     role?: number;
     enabled?: boolean;
+  };
+
+  type PartnerServiceRegisterPartnerAttachmentParams = {
+    partnerId: string;
   };
 
   type PartnerServiceSetSupplierBlacklistParams = {
@@ -769,6 +807,16 @@ declare namespace API {
   type PublishStatusTemplateRequest = {
     id: string;
     isDefault?: boolean;
+  };
+
+  type RegisterPartnerAttachmentRequest = {
+    partnerId: string;
+    idempotencyKey: string;
+    fileName: string;
+    mimeType: string;
+    fileSize: string;
+    objectKey: string;
+    checksum?: string;
   };
 
   type ResetUserPasswordRequest = {
