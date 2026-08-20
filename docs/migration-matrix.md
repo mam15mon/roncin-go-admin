@@ -36,7 +36,7 @@
 | D08 | 对账单工作流：`05-finance-billing.prisma` | FinanceStatement、FinanceStatementLineItem、FinanceStatementAuditLog、StatementWorkflowStatus | 未开始 | P9 | 不将“财务工作台”作为默认覆盖；需明确对账单的创建、提交、审核、确认、关闭、撤销和审计流程。 |
 | D09 | 汇率：`06-fx.prisma` | ExchangeRateSetting、ExchangeRatePolicy、FxRateQuote、FxQuoteRevision、FxSnapshotRevision、BillFxSnapshotRevision、ChargeLineFxOverride、FxApproval | 未开始 | P8 前置 | 先完成币对、来源、日期规则、快照、锁定、容差和审批；费用/账单只能依赖已确定的汇率快照，不得在页面临时计算。 |
 | D10 | 通知与工作流：`07-workflow-notification.prisma` | NotificationMessage、NotificationPreference、NotificationDeliveryLog、OrderReminderRule、OrderReminderDispatch、OrderTrackingEvent | 未开始 | P10 | 区分消息记录、用户偏好、提醒规则、投递日志和跟踪事件；明确失败重试、重复投递和用户可见状态。 |
-| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、BillingUnit、ContainerSpec、FeeSetting、TaxableService、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 未开始 | P4 | 迁移币种、地区、机场、港口、服务/货物、编号、税务服务和状态/里程碑模板；页面模板是否属于 MVP 必须在 P0 决定。 |
+| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、BillingUnit、ContainerSpec、FeeSetting、TaxableService、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 已完成首批组织级主数据目录、编号规则/并发序列、状态模板版本发布和默认版本切换；待补计费单位、税务服务、里程碑模板和主数据导入。页面模板按固定表单决策后置。 |
 | D12 | 企业基础资源：`09-enterprise-resources.prisma` | BaseAddress、BaseConsignee、BaseShipper、BaseNotify、BaseResourcePartyRel、BaseNote、BaseTag、BaseBusinessCode、BaseImage、BaseTextSnippet | 未开始 | P4/P5 | 这是订单表单和往来单位的基础资源，不是普通字典；明确与 Party 的关系、文件存储、组织隔离、引用删除和权限。 |
 | D13 | 幂等：`10-idempotency.prisma` | IdempotencyKey | 未开始 | P1/P7 | API 写入幂等和后台任务幂等分别定义；明确键的作用域、请求摘要、过期、冲突响应和清理策略。 |
 | D14 | 数据维护作业：`11-data-maintenance-jobs.prisma` | RegionSyncJob、PortImportJob；另含 `UnlocodeImportBatch` | 未开始 | P4/P7/P10 | 主数据导入契约在 P4 定义，任务租约/重试/死信在 P7 建立，运维查询和回放在 P10 接入；不得与普通 IntegrationTask 混成无类型任务。 |
@@ -118,6 +118,9 @@
 | NextAuth 权限快照与后端实时权限语义不同 | `src/auth.ts` 明确说明 JWT permissions 只作 UI 提示 | 新系统后端每次请求以数据库会话、组织和权限为权威；前端只消费 `/api/v1/auth/me` 的结果 |
 | RoleGroup 与新 Role 结构不等价 | 旧有 RoleGroupPermission/UserRoleGroupAssignment，新有 Role/Permission/RoleAssignment | 先做 M-003 映射，不直接按表名迁移；用组织、角色和数据范围验收 |
 | 动态模板配置复杂，容易变成隐式协议 | 旧系统有 PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle 多层关系 | 模板必须版本化、发布态明确、输入结构有契约；订单运行时只使用已发布版本或明确的固定模板 |
+| 编号规则缺少组织边界且状态职责混杂 | 旧 `NumberRule.docType` 全局唯一并内置 `currentValue`，无法让各组织独立配置和发号 | 新系统按“组织 + 单据类型”唯一保存格式规则，把可变序列拆为独立实体；发号事务锁定规则后再按重置周期分配 |
+| 序列唯一键可能造成跨单据碰撞 | 旧 `SerialSequence` 唯一键只有 `scopeKey + dateKey`，虽保存 `docType`/`businessType` 却未纳入唯一性 | 新系统以“规则 ID + 周期”唯一，不允许不同单据规则共享计数行；序列耗尽时事务回滚，不写入越界值 |
+| 状态模板默认版本缺少数据库级唯一保障 | 旧 `StatusTemplate.isDefault` 只是普通布尔字段，并发发布可能留下多个默认版本 | 新系统对“组织 + 业务类型”的默认模板建立部分唯一索引；发布和恢复旧版本使用不同显式动作并分别审计 |
 | 财务规则分散且模型较多 | Fee、Bill、FinanceStatement、FX 快照、税务枚举跨多个文件 | 先冻结财务口径，再由 `biz` 持有金额和状态规则；页面不自行拼接金额 |
 | 数据维护作业与集成任务容易混淆 | 旧系统同时有 RegionSyncJob、PortImportJob、UnlocodeImportBatch 和 IntegrationTask | 新系统区分任务类型、幂等键、租约、重试和死信；主数据导入不伪装成普通业务集成 |
 | 登录限流曾由独立表和原始 SQL 支撑 | `src/lib/auth/login-rate-limit-service.ts` 直接操作 LoginRateLimitBucket | 新系统封装限流仓储/服务，统一错误、清理、指标和审计，业务层不散落 SQL |
