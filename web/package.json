@@ -14,7 +14,7 @@
     "lint-staged": "lint-staged",
     "biome:lint": "biome lint",
     "biome": "biome check --write",
-    "openapi": "max openapi",
+    "openapi": "node scripts/generate-openapi-input.mjs && max openapi",
     "prepare": "husky && max setup",
     "preview": "max preview --port 8000",
     "preview:build": "max build && max preview --port 8000",
@@ -82,6 +82,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^7.0.2",
     "vitest": "4.1.10"
+    ,"yaml": "^2.8.1"
   },
   "overrides": {
     "@umijs/plugins": {
