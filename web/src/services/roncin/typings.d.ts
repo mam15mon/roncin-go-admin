@@ -195,6 +195,27 @@ declare namespace API {
     name: string;
   };
 
+  type CreatePartnerAccountRequest = {
+    partnerId: string;
+    account: PartnerAccountInput;
+  };
+
+  type CreatePartnerContractInput = {
+    contractNo: string;
+    name: string;
+    status: number;
+    startDate: string;
+    endDate: string;
+    paymentTerms?: string;
+    disputeResolution?: string;
+    otherNotes?: string;
+  };
+
+  type CreatePartnerContractRequest = {
+    partnerId: string;
+    contract: CreatePartnerContractInput;
+  };
+
   type CreatePartnerRequest = {
     code: string;
     legalName: string;
@@ -485,6 +506,55 @@ declare namespace API {
     updatedAt?: string;
   };
 
+  type PartnerAccount = {
+    id?: string;
+    partnerRoleId?: string;
+    accountType?: string;
+    currency?: string;
+    invoiceTitle?: string;
+    unifiedSocialCreditCode?: string;
+    billingAddress?: string;
+    billingPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    swiftCode?: string;
+    isDefault?: boolean;
+    status?: number;
+    remark?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerAccountInput = {
+    currency: string;
+    invoiceTitle: string;
+    unifiedSocialCreditCode?: string;
+    billingAddress?: string;
+    billingPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    swiftCode?: string;
+    isDefault?: boolean;
+    status: number;
+    remark?: string;
+  };
+
+  type PartnerAccountListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAccount[];
+    traceId?: string;
+  };
+
+  type PartnerAccountReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAccount;
+    traceId?: string;
+  };
+
   type PartnerAlias = {
     id?: string;
     aliasName?: string;
@@ -515,6 +585,37 @@ declare namespace API {
     email?: string;
     note?: string;
     isPrimary?: boolean;
+  };
+
+  type PartnerContract = {
+    id?: string;
+    partnerId?: string;
+    contractNo?: string;
+    name?: string;
+    status?: number;
+    startDate?: string;
+    endDate?: string;
+    paymentTerms?: string;
+    disputeResolution?: string;
+    otherNotes?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerContractListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerContract[];
+    traceId?: string;
+  };
+
+  type PartnerContractReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerContract;
+    traceId?: string;
   };
 
   type PartnerListReply = {
@@ -550,8 +651,26 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type PartnerServiceCreatePartnerAccountParams = {
+    partnerId: string;
+  };
+
+  type PartnerServiceCreatePartnerContractParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceGetPartnerParams = {
     id: string;
+  };
+
+  type PartnerServiceListPartnerAccountsParams = {
+    partnerId: string;
+    enabled?: boolean;
+  };
+
+  type PartnerServiceListPartnerContractsParams = {
+    partnerId: string;
+    status?: number;
   };
 
   type PartnerServiceListPartnersParams = {
@@ -563,6 +682,16 @@ declare namespace API {
   };
 
   type PartnerServiceSetSupplierBlacklistParams = {
+    id: string;
+  };
+
+  type PartnerServiceUpdatePartnerAccountParams = {
+    partnerId: string;
+    id: string;
+  };
+
+  type PartnerServiceUpdatePartnerContractParams = {
+    partnerId: string;
     id: string;
   };
 
@@ -684,6 +813,28 @@ declare namespace API {
     id: string;
     name: string;
     enabled?: boolean;
+  };
+
+  type UpdatePartnerAccountRequest = {
+    partnerId: string;
+    id: string;
+    account: PartnerAccountInput;
+  };
+
+  type UpdatePartnerContractInput = {
+    name: string;
+    status: number;
+    startDate: string;
+    endDate: string;
+    paymentTerms?: string;
+    disputeResolution?: string;
+    otherNotes?: string;
+  };
+
+  type UpdatePartnerContractRequest = {
+    partnerId: string;
+    id: string;
+    contract: UpdatePartnerContractInput;
   };
 
   type UpdatePartnerRequest = {

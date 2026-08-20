@@ -1284,6 +1284,253 @@
           }
         }
       }
+    },
+    "/api/v1/partners/{partnerId}/accounts": {
+      "get": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_ListPartnerAccounts",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerAccountListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_CreatePartnerAccount",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/partner.v1.CreatePartnerAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerAccountReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partners/{partnerId}/accounts/{id}": {
+      "put": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_UpdatePartnerAccount",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/partner.v1.UpdatePartnerAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerAccountReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partners/{partnerId}/contracts": {
+      "get": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_ListPartnerContracts",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerContractListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_CreatePartnerContract",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/partner.v1.CreatePartnerContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerContractReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partners/{partnerId}/contracts/{id}": {
+      "put": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_UpdatePartnerContract",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/partner.v1.UpdatePartnerContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.PartnerContractReply"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2850,6 +3097,73 @@
           }
         }
       },
+      "partner.v1.CreatePartnerAccountRequest": {
+        "required": [
+          "partnerId",
+          "account"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "account": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAccountInput"
+          }
+        }
+      },
+      "partner.v1.CreatePartnerContractInput": {
+        "required": [
+          "contractNo",
+          "name",
+          "status",
+          "startDate",
+          "endDate"
+        ],
+        "type": "object",
+        "properties": {
+          "contractNo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "paymentTerms": {
+            "type": "string"
+          },
+          "disputeResolution": {
+            "type": "string"
+          },
+          "otherNotes": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.CreatePartnerContractRequest": {
+        "required": [
+          "partnerId",
+          "contract"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "contract": {
+            "$ref": "#/components/schemas/partner.v1.CreatePartnerContractInput"
+          }
+        }
+      },
       "partner.v1.CreatePartnerRequest": {
         "required": [
           "code",
@@ -2939,6 +3253,149 @@
           }
         }
       },
+      "partner.v1.PartnerAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "partnerRoleId": {
+            "type": "string"
+          },
+          "accountType": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "invoiceTitle": {
+            "type": "string"
+          },
+          "unifiedSocialCreditCode": {
+            "type": "string"
+          },
+          "billingAddress": {
+            "type": "string"
+          },
+          "billingPhone": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAccount": {
+            "type": "string"
+          },
+          "swiftCode": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "remark": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.PartnerAccountInput": {
+        "required": [
+          "currency",
+          "invoiceTitle",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "invoiceTitle": {
+            "type": "string"
+          },
+          "unifiedSocialCreditCode": {
+            "type": "string"
+          },
+          "billingAddress": {
+            "type": "string"
+          },
+          "billingPhone": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAccount": {
+            "type": "string"
+          },
+          "swiftCode": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "remark": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.PartnerAccountListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAccount"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.PartnerAccountReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAccount"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.PartnerAlias": {
         "type": "object",
         "properties": {
@@ -3018,6 +3475,93 @@
           },
           "isPrimary": {
             "type": "boolean"
+          }
+        }
+      },
+      "partner.v1.PartnerContract": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "partnerId": {
+            "type": "string"
+          },
+          "contractNo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "paymentTerms": {
+            "type": "string"
+          },
+          "disputeResolution": {
+            "type": "string"
+          },
+          "otherNotes": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.PartnerContractListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerContract"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.PartnerContractReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerContract"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -3129,6 +3673,77 @@
           },
           "reason": {
             "type": "string"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerAccountRequest": {
+        "required": [
+          "partnerId",
+          "id",
+          "account"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "account": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAccountInput"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerContractInput": {
+        "required": [
+          "name",
+          "status",
+          "startDate",
+          "endDate"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "paymentTerms": {
+            "type": "string"
+          },
+          "disputeResolution": {
+            "type": "string"
+          },
+          "otherNotes": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerContractRequest": {
+        "required": [
+          "partnerId",
+          "id",
+          "contract"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "contract": {
+            "$ref": "#/components/schemas/partner.v1.UpdatePartnerContractInput"
           }
         }
       },
