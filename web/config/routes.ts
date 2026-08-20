@@ -18,6 +18,13 @@ export default [
     component: './Welcome',
   },
   {
+    path: '/partners',
+    name: '客户与供应商',
+    icon: 'contacts',
+    access: 'canReadPartners',
+    component: './partners',
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

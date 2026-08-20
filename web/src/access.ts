@@ -4,6 +4,8 @@ const permissions = {
   userManage: 'system.user.manage',
   roleManage: 'system.role.manage',
   auditRead: 'system.audit.read',
+  partnerRead: 'business.partner.read',
+  partnerManage: 'business.partner.manage',
 } as const;
 
 export default function access(
@@ -19,5 +21,7 @@ export default function access(
     canManageUsers: has(permissions.userManage),
     canManageRoles: has(permissions.roleManage),
     canReadAudit: has(permissions.auditRead),
+    canReadPartners: has(permissions.partnerRead),
+    canManagePartners: has(permissions.partnerManage),
   };
 }
