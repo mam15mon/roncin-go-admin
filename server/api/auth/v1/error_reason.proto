@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/auth/v1;v1";
+
+enum ErrorReason {
+  AUTH_UNSPECIFIED = 0;
+  AUTH_INVALID_CREDENTIALS = 1;
+  AUTH_SESSION_REQUIRED = 2;
+  AUTH_SESSION_EXPIRED = 3;
+  AUTH_PERMISSION_DENIED = 4;
+  AUTH_ORGANIZATION_FORBIDDEN = 5;
+}

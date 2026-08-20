@@ -3,13 +3,73 @@
 
 openapi: 3.0.3
 info:
-    title: TodoService API
-    description: |-
-        TodoService provides a simple CRUD example for managing todo items.
-         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
-         together with AIP-style list filtering, ordering, and pagination.
+    title: ""
     version: 0.0.1
 paths:
+    /api/v1/auth/login:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/auth.v1.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.LoginReply'
+    /api/v1/auth/logout:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_Logout
+            requestBody:
+                content:
+                    application/json: {}
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.OperationReply'
+    /api/v1/auth/me:
+        get:
+            tags:
+                - AuthService
+            operationId: AuthService_Me
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.MeReply'
+    /api/v1/auth/switch-organization:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_SwitchOrganization
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/auth.v1.SwitchOrganizationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.MeReply'
     /v1/todos/create:
         post:
             tags:
@@ -227,6 +287,104 @@ paths:
                     content: {}
 components:
     schemas:
+        auth.v1.CurrentUser:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                displayName:
+                    type: string
+                email:
+                    type: string
+                currentOrganization:
+                    $ref: '#/components/schemas/auth.v1.Organization'
+                organizations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.Organization'
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                roleScopes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.RoleScope'
+        auth.v1.LoginReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/auth.v1.CurrentUser'
+                traceId:
+                    type: string
+        auth.v1.LoginRequest:
+            required:
+                - username
+                - password
+            type: object
+            properties:
+                username:
+                    type: string
+                password:
+                    type: string
+        auth.v1.MeReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/auth.v1.CurrentUser'
+                traceId:
+                    type: string
+        auth.v1.OperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+        auth.v1.Organization:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+        auth.v1.RoleScope:
+            type: object
+            properties:
+                roleCode:
+                    type: string
+                dataScope:
+                    type: string
+        auth.v1.SwitchOrganizationRequest:
+            required:
+                - organizationId
+            type: object
+            properties:
+                organizationId:
+                    type: string
         todo.v1.SyncTodoRequest:
             type: object
             properties:
@@ -313,4 +471,10 @@ components:
                          Empty when there are no more results.
             description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
+    - name: AuthService
+      description: AuthService owns the browser session boundary for the management console.
     - name: TodoService
+      description: |-
+        TodoService provides a simple CRUD example for managing todo items.
+         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+         together with AIP-style list filtering, ordering, and pagination.
