@@ -4,6 +4,7 @@ import {
   PaperClipOutlined,
   PlusOutlined,
   SwapOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import type {
   ActionType,
@@ -22,7 +23,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Alert, App, Button, Drawer, Space, Tag } from 'antd';
+import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -37,6 +38,11 @@ import {
   orderMilestoneServiceListMilestones,
   orderMilestoneServiceSetMilestone,
 } from '@/services/roncin/orderMilestoneService';
+import {
+  orderPersonnelServiceAssignPersonnel,
+  orderPersonnelServiceListPersonnel,
+  orderPersonnelServiceRemovePersonnel,
+} from '@/services/roncin/orderPersonnelService';
 import {
   orderServiceCreateOrder,
   orderServiceListOrders,
@@ -144,6 +150,26 @@ type AttachmentFormValues = {
   checksum?: string;
 };
 
+const orderPersonnelRoleOptions = [
+  { label: 'CREATOR', value: 1 },
+  { label: 'OPERATOR', value: 2 },
+  { label: 'SALES', value: 3 },
+  { label: 'CUSTOMER_SERVICE', value: 4 },
+  { label: 'DOCUMENT', value: 5 },
+  { label: 'COMMERCIAL', value: 6 },
+  { label: 'ASSOCIATE', value: 7 },
+  { label: 'ASSOCIATE2', value: 8 },
+];
+
+const orderPersonnelRoleValueEnum = Object.fromEntries(
+  orderPersonnelRoleOptions.map((opt) => [opt.value, { text: opt.label }]),
+);
+
+type PersonnelFormValues = {
+  userId: string;
+  role: number;
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -153,6 +179,8 @@ export default function Orders() {
   const milestoneFormRef = useRef<ProFormInstance | undefined>(undefined);
   const attachmentActionRef = useRef<ActionType | undefined>(undefined);
   const attachmentFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const personnelActionRef = useRef<ActionType | undefined>(undefined);
+  const personnelFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -163,11 +191,14 @@ export default function Orders() {
   const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
   const [attachmentDrawerOpen, setAttachmentDrawerOpen] = useState(false);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [personnelDrawerOpen, setPersonnelDrawerOpen] = useState(false);
+  const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
   const [milestoneOrder, setMilestoneOrder] = useState<API.Order>();
   const [attachmentOrder, setAttachmentOrder] = useState<API.Order>();
+  const [personnelOrder, setPersonnelOrder] = useState<API.Order>();
   const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
@@ -352,6 +383,72 @@ export default function Orders() {
     setAttachmentModalOpen(true);
   };
 
+  const openPersonnel = (record: API.Order) => {
+    setPersonnelOrder(record);
+    setPersonnelDrawerOpen(true);
+  };
+
+  const openAssignPersonnel = () => {
+    personnelFormRef.current?.resetFields();
+    setPersonnelModalOpen(true);
+  };
+
+  const personnelColumns: ProColumns<API.OrderPersonnel>[] = [
+    {
+      title: '用户 ID',
+      dataIndex: 'userId',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.userId || '-',
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      valueType: 'select',
+      valueEnum: orderPersonnelRoleValueEnum,
+      render: (_, record) =>
+        (record.role !== undefined &&
+          orderPersonnelRoleValueEnum[record.role]?.text) ||
+        '-',
+    },
+    {
+      title: '分配时间',
+      dataIndex: 'assignedAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.assignedAt
+          ? dayjs(record.assignedAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Popconfirm
+            title="确定移除该协作人员？"
+            onConfirm={async () => {
+              if (!personnelOrder?.id || !record.id) return;
+              await orderPersonnelServiceRemovePersonnel({
+                orderId: personnelOrder.id,
+                id: record.id,
+              });
+              message.success('移除协作人员成功');
+              personnelActionRef.current?.reload();
+            }}
+          >
+            <Button type="link" danger size="small">
+              删除
+            </Button>
+          </Popconfirm>
+        );
+      },
+    },
+  ];
+
   const attachmentColumns: ProColumns<API.OrderAttachment>[] = [
     {
       title: '文档类型',
@@ -523,7 +620,7 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 280,
+      width: 350,
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
@@ -563,6 +660,14 @@ export default function Orders() {
               onClick={() => openAttachments(record)}
             >
               附件
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<TeamOutlined />}
+              onClick={() => openPersonnel(record)}
+            >
+              人员
             </Button>
           </Space>
         );
@@ -1271,6 +1376,99 @@ export default function Orders() {
           name="checksum"
           label="校验和"
           placeholder="请输入校验和 (可选)"
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          personnelOrder
+            ? `订单协作人员 - ${personnelOrder.orderNo || personnelOrder.id}`
+            : '订单协作人员'
+        }
+        open={personnelDrawerOpen}
+        onClose={() => {
+          setPersonnelDrawerOpen(false);
+          setPersonnelOrder(undefined);
+        }}
+        width={800}
+        destroyOnHidden
+      >
+        {personnelOrder?.id && (
+          <ProTable<API.OrderPersonnel>
+            actionRef={personnelActionRef}
+            rowKey={(record) => record.id || `${record.userId}-${record.role}`}
+            columns={personnelColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderPersonnelServiceListPersonnel({
+                orderId: personnelOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openAssignPersonnel}
+                >
+                  分配人员
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<PersonnelFormValues>
+        title="分配协作人员"
+        open={personnelModalOpen}
+        formRef={personnelFormRef}
+        modalProps={{
+          destroyOnHidden: true,
+          width: 520,
+          onCancel: () => setPersonnelModalOpen(false),
+        }}
+        onOpenChange={setPersonnelModalOpen}
+        onFinish={async (values) => {
+          if (!personnelOrder?.id) return false;
+          await orderPersonnelServiceAssignPersonnel(
+            { orderId: personnelOrder.id },
+            {
+              orderId: personnelOrder.id,
+              userId: values.userId.trim(),
+              role: Number(values.role),
+            },
+          );
+          message.success('分配协作人员成功');
+          setPersonnelModalOpen(false);
+          personnelActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          message="当前录入的是组织内用户 UUID，后续可另建可分配用户目录。"
+          style={{ marginBottom: 16 }}
+        />
+        <ProFormText
+          name="userId"
+          label="用户 UUID"
+          placeholder="请输入组织内用户 UUID"
+          rules={[{ required: true, message: '请输入用户 UUID' }]}
+        />
+        <ProFormSelect
+          name="role"
+          label="角色"
+          rules={[{ required: true, message: '请选择角色' }]}
+          options={orderPersonnelRoleOptions}
+          placeholder="请选择角色"
         />
       </ModalForm>
     </>
