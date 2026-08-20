@@ -17,9 +17,9 @@
 | 旧系统技术栈 | Next.js App Router、React、Prisma、PostgreSQL |
 | 旧 Prisma 结构 | `prisma/models/` 下 12 个领域文件、143 个 `model`、81 个 `enum` |
 | 新系统技术栈 | Kratos v3、Go、Ent、PostgreSQL、Ant Design Pro |
-| 新 Ent Schema | User、Organization、Membership、Role、Permission、RoleAssignment、Session、AuditLog、Partner，共 10 个 schema 文件（含 mixin） |
-| 新 API | AuthService 4 个 RPC，PartnerService 3 个 RPC，共 7 个 RPC |
-| 新前端 | 登录、工作台、往来单位和通用错误页；业务管理页目前主要是往来单位 |
+| 新 Ent Schema | 已包含 admin、masterdata、partner、order、milestone 等领域，共 29 个 schema 文件（含 mixin） |
+| 新 API | 已包含 AuthService、AdminService、MasterDataService、PartnerService、OrderService、OrderMilestoneService 等 Proto 定义与 RPC |
+| 新前端 | 登录、工作台、管理后台（组织/用户/角色/权限/审计）、主数据管理、往来单位管理（含抽屉与次级页）、订单管理（含列表/创建/草稿编辑/状态流转/里程碑抽屉）及通用错误页 |
 | 当前迁移方式 | 没有旧数据迁移工具，也没有长期双写方案 |
 
 ## 领域迁移矩阵
@@ -29,14 +29,14 @@
 | D01 | 认证：`00-auth.prisma` | User、Account、Session、VerificationToken、LoginRateLimitBucket、AccessPolicyCacheEpoch | 部分完成 | P2 | 新会话已落到 Go/Ent；补齐用户管理、会话撤销和登录限流；明确旧密码哈希是否可复用；不复制 JWT 权限快照作为后端安全依据。 |
 | D02 | 组织与 RBAC：`01-org-rbac.prisma` | Organization、RoleGroup、RoleGroupPermission、UserOrganizationAssignment、UserRoleGroupAssignment、AccessImpactSnapshot | 部分完成 | P2/P3 | 新 `Role`/`Permission`/`RoleAssignment` 已有基础模型；必须先完成旧角色组、权限、组织成员和数据范围的映射决策；AccessImpactSnapshot 是否保留需单独判断。 |
 | D03 | 往来单位：`02-party-master.prisma` | Carrier、Party、PartyRole、CustomerProfile、SupplierProfile、AgentProfile、PartyContact、PartyRoleAccount、PartyContract、PartyRoleSettlementRule、PartyAttachment 及日志 | 部分完成 | P5/P6/P7 | Partner 核心、账户、合同、结算规则、附件元数据登记、固定导入导出已完成；默认账户有数据库条件唯一约束，停用账户不能设为默认，合同编号创建后不可变，结算规则组合键唯一且周期字段受领域校验，附件使用组织隔离和幂等键。真实对象存储能力仍留 P7，信用额度仍留 P8 金额模型；因此整体状态仍为‘部分完成’。订单、费用和财务继续只引用 Partner 聚合 ID。 |
-| D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 部分完成 | P6/P7/P8/P9 | 已完成首版固定 Order 聚合、组织级编号、Partner 角色校验、主数据/已发布状态模板校验、草稿编辑、状态流转、状态日志和审计；未迁移旧 JSON 快照、自定义字段、里程碑、佣金、利润和财务字段，分别留待契约评审后的 P7/P8/P9。 |
+| D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 部分完成 | P6/P7/P8/P9 | 订单核心和里程碑首版已完成；旧 JSON 快照、自定义字段、佣金、利润、财务字段不迁移到订单核心，执行扩展和报关/AE 按后续决策实现。 |
 | D05 | 订单扩展与执行：`04-order-extension.prisma` | OrderContainer、OrderCargoItem、OrderShippingDocument、OrderReleasePod、OrderCollaborator、OrderAbnormalCase、OrderAttachment、OrderAlertTask、OrderPersonnel 等 | 未开始 | P7 | 不能只按“订单执行”笼统迁移；需逐项覆盖集装箱、提单、附件、异常、人员、提醒和审计。 |
 | D06 | 报关与 AE 扩展：`04-order-extension.prisma` | OrderCustomsDeclaration、CustomsTaskStatus、OrderAeMonitor、OrderAeTransitInfo、OrderAeInsuranceDraft 及相关枚举 | 未开始 | P6/P7 | 这是独立业务范围，不得因通用订单模型存在而视为自动覆盖；P0 必须决定是否属于 MVP、支持哪些业务类型，以及数据是否迁移。 |
 | D07 | 费用与账单：`05-finance-billing.prisma`、`08-dictionaries.prisma` | BillingUnit、FeeSetting、TaxableService、Fee、Bill、BillFee、BillOrderLink、FinanceTag、VerificationRecord、PaymentRecord、InvoiceRecord、VerificationAllocation | 未开始 | P8/P9 | 计费单位、费用项和应税服务直接参与金额计算，随财务聚合一起设计；明确应收应付、含税/不含税、税务模式、账单生成后修改、核销和状态日志，金额规则必须在领域层统一。 |
 | D08 | 对账单工作流：`05-finance-billing.prisma` | FinanceStatement、FinanceStatementLineItem、FinanceStatementAuditLog、StatementWorkflowStatus | 未开始 | P9 | 不将“财务工作台”作为默认覆盖；需明确对账单的创建、提交、审核、确认、关闭、撤销和审计流程。 |
 | D09 | 汇率：`06-fx.prisma` | ExchangeRateSetting、ExchangeRatePolicy、FxRateQuote、FxQuoteRevision、FxSnapshotRevision、BillFxSnapshotRevision、ChargeLineFxOverride、FxApproval | 未开始 | P8 前置 | 先完成币对、来源、日期规则、快照、锁定、容差和审批；费用/账单只能依赖已确定的汇率快照，不得在页面临时计算。 |
 | D10 | 通知与工作流：`07-workflow-notification.prisma` | NotificationMessage、NotificationPreference、NotificationDeliveryLog、OrderReminderRule、OrderReminderDispatch、OrderTrackingEvent | 未开始 | P10 | 区分消息记录、用户偏好、提醒规则、投递日志和跟踪事件；明确失败重试、重复投递和用户可见状态。 |
-| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、ContainerSpec、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 已完成首批组织级主数据目录、编号规则/并发序列、状态与里程碑模板版本发布和默认版本切换；结构化批量导入契约已完成，外部文件解析和任务能力留 P7/P10。BillingUnit、FeeSetting、TaxableService 调整到 D07/P8，页面模板按固定表单决策后置。 |
+| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、ContainerSpec、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 里程碑模板基础与首批组织级主数据目录、编号规则/并发序列、状态模板版本发布和默认版本切换已完成，但运行时里程碑首版属于 P7；结构化批量导入契约已完成，外部文件解析和任务能力留 P7/P10。BillingUnit、FeeSetting、TaxableService 调整到 D07/P8，页面模板按固定表单决策后置。 |
 | D12 | 企业基础资源：`09-enterprise-resources.prisma` | BaseAddress、BaseConsignee、BaseShipper、BaseNotify、BaseResourcePartyRel、BaseNote、BaseTag、BaseBusinessCode、BaseImage、BaseTextSnippet | 未开始 | P4/P5 | 这是订单表单和往来单位的基础资源，不是普通字典；明确与 Party 的关系、文件存储、组织隔离、引用删除和权限。 |
 | D13 | 幂等：`10-idempotency.prisma` | IdempotencyKey | 未开始 | P1/P7 | API 写入幂等和后台任务幂等分别定义；明确键的作用域、请求摘要、过期、冲突响应和清理策略。 |
 | D14 | 数据维护作业：`11-data-maintenance-jobs.prisma` | RegionSyncJob、PortImportJob；另含 `UnlocodeImportBatch` | 部分完成 | P4/P7/P10 | P4 已提供最多 500 条、整批事务、显式 create-only/upsert 的结构化导入契约；外部文件解析、任务租约/重试/死信在 P7 建立，运维查询和回放在 P10 接入，不得与普通 IntegrationTask 混成无类型任务。 |
