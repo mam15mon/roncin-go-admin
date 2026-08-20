@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -32,6 +33,7 @@ type OrganizationQuery struct {
 	withMemberships *MembershipQuery
 	withRoles       *RoleQuery
 	withSessions    *SessionQuery
+	withPartners    *PartnerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -171,6 +173,28 @@ func (_q *OrganizationQuery) QuerySessions() *SessionQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(session.Table, session.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.SessionsTable, organization.SessionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartners chains the current query on the "partners" edge.
+func (_q *OrganizationQuery) QueryPartners() *PartnerQuery {
+	query := (&PartnerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PartnersTable, organization.PartnersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -375,6 +399,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withMemberships: _q.withMemberships.Clone(),
 		withRoles:       _q.withRoles.Clone(),
 		withSessions:    _q.withSessions.Clone(),
+		withPartners:    _q.withPartners.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -433,6 +458,17 @@ func (_q *OrganizationQuery) WithSessions(opts ...func(*SessionQuery)) *Organiza
 		opt(query)
 	}
 	_q.withSessions = query
+	return _q
+}
+
+// WithPartners tells the query-builder to eager-load the nodes that are connected to
+// the "partners" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithPartners(opts ...func(*PartnerQuery)) *OrganizationQuery {
+	query := (&PartnerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartners = query
 	return _q
 }
 
@@ -514,12 +550,13 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
 			_q.withRoles != nil,
 			_q.withSessions != nil,
+			_q.withPartners != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -571,6 +608,13 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadSessions(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Sessions = []*Session{} },
 			func(n *Organization, e *Session) { n.Edges.Sessions = append(n.Edges.Sessions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartners; query != nil {
+		if err := _q.loadPartners(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Partners = []*Partner{} },
+			func(n *Organization, e *Partner) { n.Edges.Partners = append(n.Edges.Partners, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -717,6 +761,36 @@ func (_q *OrganizationQuery) loadSessions(ctx context.Context, query *SessionQue
 	}
 	query.Where(predicate.Session(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.SessionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadPartners(ctx context.Context, query *PartnerQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Partner)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partner.FieldOrganizationID)
+	}
+	query.Where(predicate.Partner(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.PartnersColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

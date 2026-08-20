@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package partner.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/partner/v1;v1";
+
+service PartnerService {
+  rpc ListPartners(ListPartnersRequest) returns (PartnerListReply) {
+    option (google.api.http) = {get: "/api/v1/partners"};
+  }
+
+  rpc CreatePartner(CreatePartnerRequest) returns (PartnerReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePartner(UpdatePartnerRequest) returns (PartnerReply) {
+    option (google.api.http) = {
+      put: "/api/v1/partners/{id}"
+      body: "*"
+    };
+  }
+}
+
+enum PartnerType {
+  PARTNER_TYPE_UNSPECIFIED = 0;
+  PARTNER_TYPE_CUSTOMER = 1;
+  PARTNER_TYPE_SUPPLIER = 2;
+  PARTNER_TYPE_BOTH = 3;
+}
+
+message Partner {
+  string id = 1;
+  string organization_id = 2;
+  string code = 3;
+  string name = 4;
+  PartnerType type = 5;
+  string contact_name = 6;
+  string phone = 7;
+  string email = 8;
+  string address = 9;
+  bool enabled = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message ListPartnersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  PartnerType type = 4;
+  optional bool enabled = 5;
+}
+
+message CreatePartnerRequest {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  PartnerType type = 3 [(google.api.field_behavior) = REQUIRED];
+  string contact_name = 4;
+  string phone = 5;
+  string email = 6;
+  string address = 7;
+}
+
+message UpdatePartnerRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  PartnerType type = 3 [(google.api.field_behavior) = REQUIRED];
+  string contact_name = 4;
+  string phone = 5;
+  string email = 6;
+  string address = 7;
+  bool enabled = 8;
+}
+
+message PartnerReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Partner data = 4;
+  string trace_id = 5;
+}
+
+message PartnerListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Partner data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}

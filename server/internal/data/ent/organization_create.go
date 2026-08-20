@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 )
@@ -169,6 +170,21 @@ func (_c *OrganizationCreate) AddSessions(v ...*Session) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddSessionIDs(ids...)
+}
+
+// AddPartnerIDs adds the "partners" edge to the Partner entity by IDs.
+func (_c *OrganizationCreate) AddPartnerIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddPartnerIDs(ids...)
+	return _c
+}
+
+// AddPartners adds the "partners" edges to the Partner entity.
+func (_c *OrganizationCreate) AddPartners(v ...*Partner) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartnerIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -380,6 +396,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartnersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

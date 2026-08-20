@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -83,6 +84,7 @@ func checkColumn(t, c string) error {
 			auditlog.Table:       auditlog.ValidColumn,
 			membership.Table:     membership.ValidColumn,
 			organization.Table:   organization.ValidColumn,
+			partner.Table:        partner.ValidColumn,
 			permission.Table:     permission.ValidColumn,
 			role.Table:           role.ValidColumn,
 			roleassignment.Table: roleassignment.ValidColumn,

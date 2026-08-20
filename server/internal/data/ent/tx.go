@@ -18,6 +18,8 @@ type Tx struct {
 	Membership *MembershipClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
+	// Partner is the client for interacting with the Partner builders.
+	Partner *PartnerClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Role is the client for interacting with the Role builders.
@@ -162,6 +164,7 @@ func (tx *Tx) init() {
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
+	tx.Partner = NewPartnerClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)

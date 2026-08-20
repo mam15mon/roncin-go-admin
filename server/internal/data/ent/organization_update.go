@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -151,6 +152,21 @@ func (_u *OrganizationUpdate) AddSessions(v ...*Session) *OrganizationUpdate {
 	return _u.AddSessionIDs(ids...)
 }
 
+// AddPartnerIDs adds the "partners" edge to the Partner entity by IDs.
+func (_u *OrganizationUpdate) AddPartnerIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddPartnerIDs(ids...)
+	return _u
+}
+
+// AddPartners adds the "partners" edges to the Partner entity.
+func (_u *OrganizationUpdate) AddPartners(v ...*Partner) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -244,6 +260,27 @@ func (_u *OrganizationUpdate) RemoveSessions(v ...*Session) *OrganizationUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearPartners clears all "partners" edges to the Partner entity.
+func (_u *OrganizationUpdate) ClearPartners() *OrganizationUpdate {
+	_u.mutation.ClearPartners()
+	return _u
+}
+
+// RemovePartnerIDs removes the "partners" edge to Partner entities by IDs.
+func (_u *OrganizationUpdate) RemovePartnerIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemovePartnerIDs(ids...)
+	return _u
+}
+
+// RemovePartners removes "partners" edges to Partner entities.
+func (_u *OrganizationUpdate) RemovePartners(v ...*Partner) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -522,6 +559,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartnersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnersIDs(); len(nodes) > 0 && !_u.mutation.PartnersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -661,6 +743,21 @@ func (_u *OrganizationUpdateOne) AddSessions(v ...*Session) *OrganizationUpdateO
 	return _u.AddSessionIDs(ids...)
 }
 
+// AddPartnerIDs adds the "partners" edge to the Partner entity by IDs.
+func (_u *OrganizationUpdateOne) AddPartnerIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddPartnerIDs(ids...)
+	return _u
+}
+
+// AddPartners adds the "partners" edges to the Partner entity.
+func (_u *OrganizationUpdateOne) AddPartners(v ...*Partner) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -754,6 +851,27 @@ func (_u *OrganizationUpdateOne) RemoveSessions(v ...*Session) *OrganizationUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearPartners clears all "partners" edges to the Partner entity.
+func (_u *OrganizationUpdateOne) ClearPartners() *OrganizationUpdateOne {
+	_u.mutation.ClearPartners()
+	return _u
+}
+
+// RemovePartnerIDs removes the "partners" edge to Partner entities by IDs.
+func (_u *OrganizationUpdateOne) RemovePartnerIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemovePartnerIDs(ids...)
+	return _u
+}
+
+// RemovePartners removes "partners" edges to Partner entities.
+func (_u *OrganizationUpdateOne) RemovePartners(v ...*Partner) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -1055,6 +1173,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartnersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnersIDs(); len(nodes) > 0 && !_u.mutation.PartnersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnersTable,
+			Columns: []string{organization.PartnersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

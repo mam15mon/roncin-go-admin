@@ -15,6 +15,9 @@ type Membership func(*sql.Selector)
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
 
+// Partner is the predicate function for partner builders.
+type Partner func(*sql.Selector)
+
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 

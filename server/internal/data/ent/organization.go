@@ -48,9 +48,11 @@ type OrganizationEdges struct {
 	Roles []*Role `json:"roles,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
+	// Partners holds the value of the partners edge.
+	Partners []*Partner `json:"partners,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -98,6 +100,15 @@ func (e OrganizationEdges) SessionsOrErr() ([]*Session, error) {
 		return e.Sessions, nil
 	}
 	return nil, &NotLoadedError{edge: "sessions"}
+}
+
+// PartnersOrErr returns the Partners value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) PartnersOrErr() ([]*Partner, error) {
+	if e.loadedTypes[5] {
+		return e.Partners, nil
+	}
+	return nil, &NotLoadedError{edge: "partners"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -209,6 +220,11 @@ func (_m *Organization) QueryRoles() *RoleQuery {
 // QuerySessions queries the "sessions" edge of the Organization entity.
 func (_m *Organization) QuerySessions() *SessionQuery {
 	return NewOrganizationClient(_m.config).QuerySessions(_m)
+}
+
+// QueryPartners queries the "partners" edge of the Organization entity.
+func (_m *Organization) QueryPartners() *PartnerQuery {
+	return NewOrganizationClient(_m.config).QueryPartners(_m)
 }
 
 // Update returns a builder for updating this Organization.

@@ -37,6 +37,8 @@ const (
 	EdgeRoles = "roles"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgePartners holds the string denoting the partners edge name in mutations.
+	EdgePartners = "partners"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -68,6 +70,13 @@ const (
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
 	SessionsColumn = "organization_id"
+	// PartnersTable is the table that holds the partners relation/edge.
+	PartnersTable = "partners"
+	// PartnersInverseTable is the table name for the Partner entity.
+	// It exists in this package in order to avoid circular dependency with the "partner" package.
+	PartnersInverseTable = "partners"
+	// PartnersColumn is the table column denoting the partners relation/edge.
+	PartnersColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -208,6 +217,20 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPartnersCount orders the results by partners count.
+func ByPartnersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartnersStep(), opts...)
+	}
+}
+
+// ByPartners orders the results by partners terms.
+func ByPartners(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartnersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -241,5 +264,12 @@ func newSessionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+	)
+}
+func newPartnersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartnersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartnersTable, PartnersColumn),
 	)
 }

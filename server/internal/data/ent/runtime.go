@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -170,6 +171,83 @@ func init() {
 	organizationDescID := organizationMixinFields0[0].Descriptor()
 	// organization.DefaultID holds the default value on creation for the id field.
 	organization.DefaultID = organizationDescID.Default.(func() uuid.UUID)
+	partnerMixin := schema.Partner{}.Mixin()
+	partnerMixinFields0 := partnerMixin[0].Fields()
+	_ = partnerMixinFields0
+	partnerMixinFields1 := partnerMixin[1].Fields()
+	_ = partnerMixinFields1
+	partnerFields := schema.Partner{}.Fields()
+	_ = partnerFields
+	// partnerDescCreatedAt is the schema descriptor for created_at field.
+	partnerDescCreatedAt := partnerMixinFields1[0].Descriptor()
+	// partner.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partner.DefaultCreatedAt = partnerDescCreatedAt.Default.(func() time.Time)
+	// partnerDescUpdatedAt is the schema descriptor for updated_at field.
+	partnerDescUpdatedAt := partnerMixinFields1[1].Descriptor()
+	// partner.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partner.DefaultUpdatedAt = partnerDescUpdatedAt.Default.(func() time.Time)
+	// partner.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partner.UpdateDefaultUpdatedAt = partnerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnerDescCode is the schema descriptor for code field.
+	partnerDescCode := partnerFields[1].Descriptor()
+	// partner.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	partner.CodeValidator = func() func(string) error {
+		validators := partnerDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerDescName is the schema descriptor for name field.
+	partnerDescName := partnerFields[2].Descriptor()
+	// partner.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	partner.NameValidator = func() func(string) error {
+		validators := partnerDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerDescContactName is the schema descriptor for contact_name field.
+	partnerDescContactName := partnerFields[4].Descriptor()
+	// partner.ContactNameValidator is a validator for the "contact_name" field. It is called by the builders before save.
+	partner.ContactNameValidator = partnerDescContactName.Validators[0].(func(string) error)
+	// partnerDescPhone is the schema descriptor for phone field.
+	partnerDescPhone := partnerFields[5].Descriptor()
+	// partner.PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
+	partner.PhoneValidator = partnerDescPhone.Validators[0].(func(string) error)
+	// partnerDescEmail is the schema descriptor for email field.
+	partnerDescEmail := partnerFields[6].Descriptor()
+	// partner.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	partner.EmailValidator = partnerDescEmail.Validators[0].(func(string) error)
+	// partnerDescAddress is the schema descriptor for address field.
+	partnerDescAddress := partnerFields[7].Descriptor()
+	// partner.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	partner.AddressValidator = partnerDescAddress.Validators[0].(func(string) error)
+	// partnerDescEnabled is the schema descriptor for enabled field.
+	partnerDescEnabled := partnerFields[8].Descriptor()
+	// partner.DefaultEnabled holds the default value on creation for the enabled field.
+	partner.DefaultEnabled = partnerDescEnabled.Default.(bool)
+	// partnerDescID is the schema descriptor for id field.
+	partnerDescID := partnerMixinFields0[0].Descriptor()
+	// partner.DefaultID holds the default value on creation for the id field.
+	partner.DefaultID = partnerDescID.Default.(func() uuid.UUID)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0

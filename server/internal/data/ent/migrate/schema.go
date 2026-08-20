@@ -145,6 +145,57 @@ var (
 			},
 		},
 	}
+	// PartnersColumns holds the columns for the "partners" table.
+	PartnersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"customer", "supplier", "both"}},
+		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "phone", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// PartnersTable holds the schema information for the "partners" table.
+	PartnersTable = &schema.Table{
+		Name:       "partners",
+		Columns:    PartnersColumns,
+		PrimaryKey: []*schema.Column{PartnersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partners_organizations_partners",
+				Columns:    []*schema.Column{PartnersColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partner_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnersColumns[2]},
+			},
+			{
+				Name:    "partner_organization_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[3]},
+			},
+			{
+				Name:    "partner_organization_id_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[10]},
+			},
+			{
+				Name:    "partner_organization_id_type",
+				Unique:  false,
+				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[5]},
+			},
+		},
+	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -375,6 +426,7 @@ var (
 		AuditLogsTable,
 		MembershipsTable,
 		OrganizationsTable,
+		PartnersTable,
 		PermissionsTable,
 		RolesTable,
 		RoleAssignmentsTable,
@@ -388,6 +440,7 @@ func init() {
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
