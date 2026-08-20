@@ -18,6 +18,10 @@ type Tx struct {
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
+	// NumberRule is the client for interacting with the NumberRule builders.
+	NumberRule *NumberRuleClient
+	// NumberSequence is the client for interacting with the NumberSequence builders.
+	NumberSequence *NumberSequenceClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -30,6 +34,10 @@ type Tx struct {
 	RoleAssignment *RoleAssignmentClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// StatusTemplate is the client for interacting with the StatusTemplate builders.
+	StatusTemplate *StatusTemplateClient
+	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
+	StatusTemplateItem *StatusTemplateItemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -166,12 +174,16 @@ func (tx *Tx) init() {
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
+	tx.NumberRule = NewNumberRuleClient(tx.config)
+	tx.NumberSequence = NewNumberSequenceClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
 	tx.Partner = NewPartnerClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
+	tx.StatusTemplate = NewStatusTemplateClient(tx.config)
+	tx.StatusTemplateItem = NewStatusTemplateItemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

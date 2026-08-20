@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -154,6 +155,85 @@ var (
 				Name:    "membership_organization_id_enabled",
 				Unique:  false,
 				Columns: []*schema.Column{MembershipsColumns[5], MembershipsColumns[4]},
+			},
+		},
+	}
+	// NumberRulesColumns holds the columns for the "number_rules" table.
+	NumberRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "booking", "hbl", "mbl", "bill", "statement", "payment", "invoice"}},
+		{Name: "prefix", Type: field.TypeString, Size: 32},
+		{Name: "date_format", Type: field.TypeEnum, Enums: []string{"yyyyMMdd", "yyyyMM", "yyyy", "none"}, Default: "yyyyMMdd"},
+		{Name: "sequence_length", Type: field.TypeInt, Default: 4},
+		{Name: "reset_policy", Type: field.TypeEnum, Enums: []string{"daily", "monthly", "yearly", "never"}, Default: "daily"},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// NumberRulesTable holds the schema information for the "number_rules" table.
+	NumberRulesTable = &schema.Table{
+		Name:       "number_rules",
+		Columns:    NumberRulesColumns,
+		PrimaryKey: []*schema.Column{NumberRulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "number_rules_organizations_number_rules",
+				Columns:    []*schema.Column{NumberRulesColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "numberrule_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{NumberRulesColumns[2]},
+			},
+			{
+				Name:    "numberrule_organization_id_document_type",
+				Unique:  true,
+				Columns: []*schema.Column{NumberRulesColumns[9], NumberRulesColumns[3]},
+			},
+			{
+				Name:    "numberrule_organization_id_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{NumberRulesColumns[9], NumberRulesColumns[8]},
+			},
+		},
+	}
+	// NumberSequencesColumns holds the columns for the "number_sequences" table.
+	NumberSequencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "period_key", Type: field.TypeString, Size: 16},
+		{Name: "current_value", Type: field.TypeInt64, Default: 0},
+		{Name: "rule_id", Type: field.TypeUUID},
+	}
+	// NumberSequencesTable holds the schema information for the "number_sequences" table.
+	NumberSequencesTable = &schema.Table{
+		Name:       "number_sequences",
+		Columns:    NumberSequencesColumns,
+		PrimaryKey: []*schema.Column{NumberSequencesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "number_sequences_number_rules_sequences",
+				Columns:    []*schema.Column{NumberSequencesColumns[5]},
+				RefColumns: []*schema.Column{NumberRulesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "numbersequence_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{NumberSequencesColumns[2]},
+			},
+			{
+				Name:    "numbersequence_rule_id_period_key",
+				Unique:  true,
+				Columns: []*schema.Column{NumberSequencesColumns[5], NumberSequencesColumns[3]},
 			},
 		},
 	}
@@ -415,6 +495,103 @@ var (
 			},
 		},
 	}
+	// StatusTemplatesColumns holds the columns for the "status_templates" table.
+	StatusTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// StatusTemplatesTable holds the schema information for the "status_templates" table.
+	StatusTemplatesTable = &schema.Table{
+		Name:       "status_templates",
+		Columns:    StatusTemplatesColumns,
+		PrimaryKey: []*schema.Column{StatusTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "status_templates_organizations_status_templates",
+				Columns:    []*schema.Column{StatusTemplatesColumns[10]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "statustemplate_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{StatusTemplatesColumns[2]},
+			},
+			{
+				Name:    "statustemplate_organization_id_business_type_code_version",
+				Unique:  true,
+				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5], StatusTemplatesColumns[3], StatusTemplatesColumns[6]},
+			},
+			{
+				Name:    "statustemplate_organization_id_business_type",
+				Unique:  true,
+				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default",
+				},
+			},
+			{
+				Name:    "statustemplate_organization_id_business_type_published_at_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5], StatusTemplatesColumns[8], StatusTemplatesColumns[9]},
+			},
+		},
+	}
+	// StatusTemplateItemsColumns holds the columns for the "status_template_items" table.
+	StatusTemplateItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "label", Type: field.TypeString, Size: 100},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "color_token", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "system", Type: field.TypeBool, Default: false},
+		{Name: "template_id", Type: field.TypeUUID},
+	}
+	// StatusTemplateItemsTable holds the schema information for the "status_template_items" table.
+	StatusTemplateItemsTable = &schema.Table{
+		Name:       "status_template_items",
+		Columns:    StatusTemplateItemsColumns,
+		PrimaryKey: []*schema.Column{StatusTemplateItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "status_template_items_status_templates_items",
+				Columns:    []*schema.Column{StatusTemplateItemsColumns[9]},
+				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "statustemplateitem_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{StatusTemplateItemsColumns[2]},
+			},
+			{
+				Name:    "statustemplateitem_template_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{StatusTemplateItemsColumns[9], StatusTemplateItemsColumns[3]},
+			},
+			{
+				Name:    "statustemplateitem_template_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{StatusTemplateItemsColumns[9], StatusTemplateItemsColumns[5]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -479,12 +656,16 @@ var (
 		AuditLogsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
+		NumberRulesTable,
+		NumberSequencesTable,
 		OrganizationsTable,
 		PartnersTable,
 		PermissionsTable,
 		RolesTable,
 		RoleAssignmentsTable,
 		SessionsTable,
+		StatusTemplatesTable,
+		StatusTemplateItemsTable,
 		UsersTable,
 		RolePermissionsTable,
 	}
@@ -494,6 +675,8 @@ func init() {
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
+	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
@@ -501,6 +684,8 @@ func init() {
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
+	StatusTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	StatusTemplateItemsTable.ForeignKeys[0].RefTable = StatusTemplatesTable
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable
 	RolePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
 }

@@ -52,9 +52,13 @@ type OrganizationEdges struct {
 	Partners []*Partner `json:"partners,omitempty"`
 	// MasterDataItems holds the value of the master_data_items edge.
 	MasterDataItems []*MasterDataItem `json:"master_data_items,omitempty"`
+	// NumberRules holds the value of the number_rules edge.
+	NumberRules []*NumberRule `json:"number_rules,omitempty"`
+	// StatusTemplates holds the value of the status_templates edge.
+	StatusTemplates []*StatusTemplate `json:"status_templates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -120,6 +124,24 @@ func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
 		return e.MasterDataItems, nil
 	}
 	return nil, &NotLoadedError{edge: "master_data_items"}
+}
+
+// NumberRulesOrErr returns the NumberRules value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
+	if e.loadedTypes[7] {
+		return e.NumberRules, nil
+	}
+	return nil, &NotLoadedError{edge: "number_rules"}
+}
+
+// StatusTemplatesOrErr returns the StatusTemplates value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
+	if e.loadedTypes[8] {
+		return e.StatusTemplates, nil
+	}
+	return nil, &NotLoadedError{edge: "status_templates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -241,6 +263,16 @@ func (_m *Organization) QueryPartners() *PartnerQuery {
 // QueryMasterDataItems queries the "master_data_items" edge of the Organization entity.
 func (_m *Organization) QueryMasterDataItems() *MasterDataItemQuery {
 	return NewOrganizationClient(_m.config).QueryMasterDataItems(_m)
+}
+
+// QueryNumberRules queries the "number_rules" edge of the Organization entity.
+func (_m *Organization) QueryNumberRules() *NumberRuleQuery {
+	return NewOrganizationClient(_m.config).QueryNumberRules(_m)
+}
+
+// QueryStatusTemplates queries the "status_templates" edge of the Organization entity.
+func (_m *Organization) QueryStatusTemplates() *StatusTemplateQuery {
+	return NewOrganizationClient(_m.config).QueryStatusTemplates(_m)
 }
 
 // Update returns a builder for updating this Organization.

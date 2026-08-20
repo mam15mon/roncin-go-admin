@@ -24,28 +24,49 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_ERROR_REASON_UNSPECIFIED     ErrorReason = 0
-	ErrorReason_MASTER_DATA_INVALID_ARGUMENT ErrorReason = 1
-	ErrorReason_MASTER_DATA_NOT_FOUND        ErrorReason = 2
-	ErrorReason_MASTER_DATA_CODE_EXISTS      ErrorReason = 3
-	ErrorReason_MASTER_DATA_INVALID_KIND     ErrorReason = 4
+	ErrorReason_ERROR_REASON_UNSPECIFIED         ErrorReason = 0
+	ErrorReason_MASTER_DATA_INVALID_ARGUMENT     ErrorReason = 1
+	ErrorReason_MASTER_DATA_NOT_FOUND            ErrorReason = 2
+	ErrorReason_MASTER_DATA_CODE_EXISTS          ErrorReason = 3
+	ErrorReason_MASTER_DATA_INVALID_KIND         ErrorReason = 4
+	ErrorReason_NUMBER_RULE_NOT_FOUND            ErrorReason = 5
+	ErrorReason_NUMBER_RULE_EXISTS               ErrorReason = 6
+	ErrorReason_STATUS_TEMPLATE_NOT_FOUND        ErrorReason = 7
+	ErrorReason_STATUS_TEMPLATE_EXISTS           ErrorReason = 8
+	ErrorReason_STATUS_TEMPLATE_INVALID          ErrorReason = 9
+	ErrorReason_NUMBER_SEQUENCE_EXHAUSTED        ErrorReason = 10
+	ErrorReason_STATUS_TEMPLATE_DEFAULT_CONFLICT ErrorReason = 11
 )
 
 // Enum value maps for ErrorReason.
 var (
 	ErrorReason_name = map[int32]string{
-		0: "ERROR_REASON_UNSPECIFIED",
-		1: "MASTER_DATA_INVALID_ARGUMENT",
-		2: "MASTER_DATA_NOT_FOUND",
-		3: "MASTER_DATA_CODE_EXISTS",
-		4: "MASTER_DATA_INVALID_KIND",
+		0:  "ERROR_REASON_UNSPECIFIED",
+		1:  "MASTER_DATA_INVALID_ARGUMENT",
+		2:  "MASTER_DATA_NOT_FOUND",
+		3:  "MASTER_DATA_CODE_EXISTS",
+		4:  "MASTER_DATA_INVALID_KIND",
+		5:  "NUMBER_RULE_NOT_FOUND",
+		6:  "NUMBER_RULE_EXISTS",
+		7:  "STATUS_TEMPLATE_NOT_FOUND",
+		8:  "STATUS_TEMPLATE_EXISTS",
+		9:  "STATUS_TEMPLATE_INVALID",
+		10: "NUMBER_SEQUENCE_EXHAUSTED",
+		11: "STATUS_TEMPLATE_DEFAULT_CONFLICT",
 	}
 	ErrorReason_value = map[string]int32{
-		"ERROR_REASON_UNSPECIFIED":     0,
-		"MASTER_DATA_INVALID_ARGUMENT": 1,
-		"MASTER_DATA_NOT_FOUND":        2,
-		"MASTER_DATA_CODE_EXISTS":      3,
-		"MASTER_DATA_INVALID_KIND":     4,
+		"ERROR_REASON_UNSPECIFIED":         0,
+		"MASTER_DATA_INVALID_ARGUMENT":     1,
+		"MASTER_DATA_NOT_FOUND":            2,
+		"MASTER_DATA_CODE_EXISTS":          3,
+		"MASTER_DATA_INVALID_KIND":         4,
+		"NUMBER_RULE_NOT_FOUND":            5,
+		"NUMBER_RULE_EXISTS":               6,
+		"STATUS_TEMPLATE_NOT_FOUND":        7,
+		"STATUS_TEMPLATE_EXISTS":           8,
+		"STATUS_TEMPLATE_INVALID":          9,
+		"NUMBER_SEQUENCE_EXHAUSTED":        10,
+		"STATUS_TEMPLATE_DEFAULT_CONFLICT": 11,
 	}
 )
 
@@ -80,13 +101,21 @@ var File_masterdata_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xa3\x01\n" +
+	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xf3\x02\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cMASTER_DATA_INVALID_ARGUMENT\x10\x01\x12\x19\n" +
 	"\x15MASTER_DATA_NOT_FOUND\x10\x02\x12\x1b\n" +
 	"\x17MASTER_DATA_CODE_EXISTS\x10\x03\x12\x1c\n" +
-	"\x18MASTER_DATA_INVALID_KIND\x10\x04B?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"\x18MASTER_DATA_INVALID_KIND\x10\x04\x12\x19\n" +
+	"\x15NUMBER_RULE_NOT_FOUND\x10\x05\x12\x16\n" +
+	"\x12NUMBER_RULE_EXISTS\x10\x06\x12\x1d\n" +
+	"\x19STATUS_TEMPLATE_NOT_FOUND\x10\a\x12\x1a\n" +
+	"\x16STATUS_TEMPLATE_EXISTS\x10\b\x12\x1b\n" +
+	"\x17STATUS_TEMPLATE_INVALID\x10\t\x12\x1d\n" +
+	"\x19NUMBER_SEQUENCE_EXHAUSTED\x10\n" +
+	"\x12$\n" +
+	" STATUS_TEMPLATE_DEFAULT_CONFLICT\x10\vB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_error_reason_proto_rawDescOnce sync.Once

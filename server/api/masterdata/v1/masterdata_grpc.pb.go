@@ -19,10 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MasterDataService_ListItems_FullMethodName   = "/masterdata.v1.MasterDataService/ListItems"
-	MasterDataService_CreateItem_FullMethodName  = "/masterdata.v1.MasterDataService/CreateItem"
-	MasterDataService_UpdateItem_FullMethodName  = "/masterdata.v1.MasterDataService/UpdateItem"
-	MasterDataService_ListOptions_FullMethodName = "/masterdata.v1.MasterDataService/ListOptions"
+	MasterDataService_ListItems_FullMethodName                = "/masterdata.v1.MasterDataService/ListItems"
+	MasterDataService_CreateItem_FullMethodName               = "/masterdata.v1.MasterDataService/CreateItem"
+	MasterDataService_UpdateItem_FullMethodName               = "/masterdata.v1.MasterDataService/UpdateItem"
+	MasterDataService_ListOptions_FullMethodName              = "/masterdata.v1.MasterDataService/ListOptions"
+	MasterDataService_ListNumberRules_FullMethodName          = "/masterdata.v1.MasterDataService/ListNumberRules"
+	MasterDataService_CreateNumberRule_FullMethodName         = "/masterdata.v1.MasterDataService/CreateNumberRule"
+	MasterDataService_UpdateNumberRule_FullMethodName         = "/masterdata.v1.MasterDataService/UpdateNumberRule"
+	MasterDataService_ListStatusTemplates_FullMethodName      = "/masterdata.v1.MasterDataService/ListStatusTemplates"
+	MasterDataService_CreateStatusTemplate_FullMethodName     = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
+	MasterDataService_PublishStatusTemplate_FullMethodName    = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
+	MasterDataService_SetDefaultStatusTemplate_FullMethodName = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
 )
 
 // MasterDataServiceClient is the client API for MasterDataService service.
@@ -33,6 +40,13 @@ type MasterDataServiceClient interface {
 	CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
 	UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
 	ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...grpc.CallOption) (*MasterDataOptionsReply, error)
+	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error)
+	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error)
+	UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error)
+	ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*StatusTemplateListReply, error)
+	CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
+	PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
+	SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
 }
 
 type masterDataServiceClient struct {
@@ -83,6 +97,76 @@ func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListMaste
 	return out, nil
 }
 
+func (c *masterDataServiceClient) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NumberRuleListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListNumberRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NumberRuleReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreateNumberRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NumberRuleReply)
+	err := c.cc.Invoke(ctx, MasterDataService_UpdateNumberRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*StatusTemplateListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatusTemplateListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListStatusTemplates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatusTemplateReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreateStatusTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatusTemplateReply)
+	err := c.cc.Invoke(ctx, MasterDataService_PublishStatusTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatusTemplateReply)
+	err := c.cc.Invoke(ctx, MasterDataService_SetDefaultStatusTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterDataServiceServer is the server API for MasterDataService service.
 // All implementations must embed UnimplementedMasterDataServiceServer
 // for forward compatibility.
@@ -91,6 +175,13 @@ type MasterDataServiceServer interface {
 	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
 	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
 	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
+	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
+	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
+	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error)
+	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error)
+	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
+	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error)
+	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error)
 	mustEmbedUnimplementedMasterDataServiceServer()
 }
 
@@ -112,6 +203,27 @@ func (UnimplementedMasterDataServiceServer) UpdateItem(context.Context, *UpdateM
 }
 func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOptions not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNumberRules not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateNumberRule not implemented")
+}
+func (UnimplementedMasterDataServiceServer) UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateNumberRule not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListStatusTemplates not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateStatusTemplate not implemented")
+}
+func (UnimplementedMasterDataServiceServer) PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishStatusTemplate not implemented")
+}
+func (UnimplementedMasterDataServiceServer) SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetDefaultStatusTemplate not implemented")
 }
 func (UnimplementedMasterDataServiceServer) mustEmbedUnimplementedMasterDataServiceServer() {}
 func (UnimplementedMasterDataServiceServer) testEmbeddedByValue()                           {}
@@ -206,6 +318,132 @@ func _MasterDataService_ListOptions_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterDataService_ListNumberRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNumberRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListNumberRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListNumberRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListNumberRules(ctx, req.(*ListNumberRulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreateNumberRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNumberRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreateNumberRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreateNumberRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreateNumberRule(ctx, req.(*CreateNumberRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_UpdateNumberRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNumberRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).UpdateNumberRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_UpdateNumberRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).UpdateNumberRule(ctx, req.(*UpdateNumberRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListStatusTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStatusTemplatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListStatusTemplates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListStatusTemplates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListStatusTemplates(ctx, req.(*ListStatusTemplatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreateStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateStatusTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreateStatusTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreateStatusTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreateStatusTemplate(ctx, req.(*CreateStatusTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_PublishStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishStatusTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).PublishStatusTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_PublishStatusTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).PublishStatusTemplate(ctx, req.(*PublishStatusTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_SetDefaultStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDefaultStatusTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).SetDefaultStatusTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_SetDefaultStatusTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).SetDefaultStatusTemplate(ctx, req.(*SetDefaultStatusTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MasterDataService_ServiceDesc is the grpc.ServiceDesc for MasterDataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +466,34 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOptions",
 			Handler:    _MasterDataService_ListOptions_Handler,
+		},
+		{
+			MethodName: "ListNumberRules",
+			Handler:    _MasterDataService_ListNumberRules_Handler,
+		},
+		{
+			MethodName: "CreateNumberRule",
+			Handler:    _MasterDataService_CreateNumberRule_Handler,
+		},
+		{
+			MethodName: "UpdateNumberRule",
+			Handler:    _MasterDataService_UpdateNumberRule_Handler,
+		},
+		{
+			MethodName: "ListStatusTemplates",
+			Handler:    _MasterDataService_ListStatusTemplates_Handler,
+		},
+		{
+			MethodName: "CreateStatusTemplate",
+			Handler:    _MasterDataService_CreateStatusTemplate_Handler,
+		},
+		{
+			MethodName: "PublishStatusTemplate",
+			Handler:    _MasterDataService_PublishStatusTemplate_Handler,
+		},
+		{
+			MethodName: "SetDefaultStatusTemplate",
+			Handler:    _MasterDataService_SetDefaultStatusTemplate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

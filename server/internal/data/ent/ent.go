@@ -15,12 +15,16 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -82,16 +86,20 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			auditlog.Table:       auditlog.ValidColumn,
-			masterdataitem.Table: masterdataitem.ValidColumn,
-			membership.Table:     membership.ValidColumn,
-			organization.Table:   organization.ValidColumn,
-			partner.Table:        partner.ValidColumn,
-			permission.Table:     permission.ValidColumn,
-			role.Table:           role.ValidColumn,
-			roleassignment.Table: roleassignment.ValidColumn,
-			session.Table:        session.ValidColumn,
-			user.Table:           user.ValidColumn,
+			auditlog.Table:           auditlog.ValidColumn,
+			masterdataitem.Table:     masterdataitem.ValidColumn,
+			membership.Table:         membership.ValidColumn,
+			numberrule.Table:         numberrule.ValidColumn,
+			numbersequence.Table:     numbersequence.ValidColumn,
+			organization.Table:       organization.ValidColumn,
+			partner.Table:            partner.ValidColumn,
+			permission.Table:         permission.ValidColumn,
+			role.Table:               role.ValidColumn,
+			roleassignment.Table:     roleassignment.ValidColumn,
+			session.Table:            session.ValidColumn,
+			statustemplate.Table:     statustemplate.ValidColumn,
+			statustemplateitem.Table: statustemplateitem.ValidColumn,
+			user.Table:               user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

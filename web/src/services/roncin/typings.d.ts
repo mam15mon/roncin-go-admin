@@ -173,6 +173,14 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type CreateNumberRuleRequest = {
+    documentType: number;
+    prefix?: string;
+    dateFormat: number;
+    sequenceLength: number;
+    resetPolicy: number;
+  };
+
   type CreateOrganizationRequest = {
     code: string;
     name: string;
@@ -193,6 +201,14 @@ declare namespace API {
     name: string;
     dataScope: number;
     permissionKeys?: string[];
+  };
+
+  type CreateStatusTemplateRequest = {
+    code: string;
+    name: string;
+    businessType: number;
+    version: number;
+    items: StatusTemplateItemInput[];
   };
 
   type CreateUserRequest = {
@@ -279,7 +295,24 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type MasterDataServiceListStatusTemplatesParams = {
+    businessType?: number;
+    published?: boolean;
+  };
+
+  type MasterDataServicePublishStatusTemplateParams = {
+    id: string;
+  };
+
+  type MasterDataServiceSetDefaultStatusTemplateParams = {
+    id: string;
+  };
+
   type MasterDataServiceUpdateItemParams = {
+    id: string;
+  };
+
+  type MasterDataServiceUpdateNumberRuleParams = {
     id: string;
   };
 
@@ -288,6 +321,35 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type NumberRule = {
+    id?: string;
+    organizationId?: string;
+    documentType?: number;
+    prefix?: string;
+    dateFormat?: number;
+    sequenceLength?: number;
+    resetPolicy?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type NumberRuleListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NumberRule[];
+    traceId?: string;
+  };
+
+  type NumberRuleReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NumberRule;
     traceId?: string;
   };
 
@@ -350,6 +412,11 @@ declare namespace API {
     id: string;
   };
 
+  type PublishStatusTemplateRequest = {
+    id: string;
+    isDefault?: boolean;
+  };
+
   type ResetUserPasswordRequest = {
     id: string;
     password: string;
@@ -358,6 +425,60 @@ declare namespace API {
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
+  };
+
+  type SetDefaultStatusTemplateRequest = {
+    id: string;
+  };
+
+  type StatusTemplate = {
+    id?: string;
+    organizationId?: string;
+    code?: string;
+    name?: string;
+    businessType?: number;
+    version?: number;
+    isDefault?: boolean;
+    publishedAt?: string;
+    enabled?: boolean;
+    items?: StatusTemplateItem[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type StatusTemplateItem = {
+    id?: string;
+    code?: string;
+    label?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    colorToken?: string;
+    system?: boolean;
+  };
+
+  type StatusTemplateItemInput = {
+    code: string;
+    label: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    colorToken?: string;
+    system?: boolean;
+  };
+
+  type StatusTemplateListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate[];
+    traceId?: string;
+  };
+
+  type StatusTemplateReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate;
+    traceId?: string;
   };
 
   type SwitchOrganizationRequest = {
@@ -375,6 +496,15 @@ declare namespace API {
     sortOrder?: number;
     enabled?: boolean;
     kind: number;
+  };
+
+  type UpdateNumberRuleRequest = {
+    id: string;
+    prefix?: string;
+    dateFormat: number;
+    sequenceLength: number;
+    resetPolicy: number;
+    enabled?: boolean;
   };
 
   type UpdateOrganizationRequest = {

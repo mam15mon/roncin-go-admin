@@ -14,11 +14,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
 // OrganizationUpdate is the builder for updating Organization entities.
@@ -183,6 +185,36 @@ func (_u *OrganizationUpdate) AddMasterDataItems(v ...*MasterDataItem) *Organiza
 	return _u.AddMasterDataItemIDs(ids...)
 }
 
+// AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
+func (_u *OrganizationUpdate) AddNumberRuleIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddNumberRuleIDs(ids...)
+	return _u
+}
+
+// AddNumberRules adds the "number_rules" edges to the NumberRule entity.
+func (_u *OrganizationUpdate) AddNumberRules(v ...*NumberRule) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNumberRuleIDs(ids...)
+}
+
+// AddStatusTemplateIDs adds the "status_templates" edge to the StatusTemplate entity by IDs.
+func (_u *OrganizationUpdate) AddStatusTemplateIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddStatusTemplateIDs(ids...)
+	return _u
+}
+
+// AddStatusTemplates adds the "status_templates" edges to the StatusTemplate entity.
+func (_u *OrganizationUpdate) AddStatusTemplates(v ...*StatusTemplate) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStatusTemplateIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -318,6 +350,48 @@ func (_u *OrganizationUpdate) RemoveMasterDataItems(v ...*MasterDataItem) *Organ
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterDataItemIDs(ids...)
+}
+
+// ClearNumberRules clears all "number_rules" edges to the NumberRule entity.
+func (_u *OrganizationUpdate) ClearNumberRules() *OrganizationUpdate {
+	_u.mutation.ClearNumberRules()
+	return _u
+}
+
+// RemoveNumberRuleIDs removes the "number_rules" edge to NumberRule entities by IDs.
+func (_u *OrganizationUpdate) RemoveNumberRuleIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveNumberRuleIDs(ids...)
+	return _u
+}
+
+// RemoveNumberRules removes "number_rules" edges to NumberRule entities.
+func (_u *OrganizationUpdate) RemoveNumberRules(v ...*NumberRule) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNumberRuleIDs(ids...)
+}
+
+// ClearStatusTemplates clears all "status_templates" edges to the StatusTemplate entity.
+func (_u *OrganizationUpdate) ClearStatusTemplates() *OrganizationUpdate {
+	_u.mutation.ClearStatusTemplates()
+	return _u
+}
+
+// RemoveStatusTemplateIDs removes the "status_templates" edge to StatusTemplate entities by IDs.
+func (_u *OrganizationUpdate) RemoveStatusTemplateIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveStatusTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveStatusTemplates removes "status_templates" edges to StatusTemplate entities.
+func (_u *OrganizationUpdate) RemoveStatusTemplates(v ...*StatusTemplate) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStatusTemplateIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -686,6 +760,96 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.NumberRulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNumberRulesIDs(); len(nodes) > 0 && !_u.mutation.NumberRulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NumberRulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StatusTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStatusTemplatesIDs(); len(nodes) > 0 && !_u.mutation.StatusTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StatusTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -855,6 +1019,36 @@ func (_u *OrganizationUpdateOne) AddMasterDataItems(v ...*MasterDataItem) *Organ
 	return _u.AddMasterDataItemIDs(ids...)
 }
 
+// AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
+func (_u *OrganizationUpdateOne) AddNumberRuleIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddNumberRuleIDs(ids...)
+	return _u
+}
+
+// AddNumberRules adds the "number_rules" edges to the NumberRule entity.
+func (_u *OrganizationUpdateOne) AddNumberRules(v ...*NumberRule) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNumberRuleIDs(ids...)
+}
+
+// AddStatusTemplateIDs adds the "status_templates" edge to the StatusTemplate entity by IDs.
+func (_u *OrganizationUpdateOne) AddStatusTemplateIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddStatusTemplateIDs(ids...)
+	return _u
+}
+
+// AddStatusTemplates adds the "status_templates" edges to the StatusTemplate entity.
+func (_u *OrganizationUpdateOne) AddStatusTemplates(v ...*StatusTemplate) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStatusTemplateIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (_u *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return _u.mutation
@@ -990,6 +1184,48 @@ func (_u *OrganizationUpdateOne) RemoveMasterDataItems(v ...*MasterDataItem) *Or
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterDataItemIDs(ids...)
+}
+
+// ClearNumberRules clears all "number_rules" edges to the NumberRule entity.
+func (_u *OrganizationUpdateOne) ClearNumberRules() *OrganizationUpdateOne {
+	_u.mutation.ClearNumberRules()
+	return _u
+}
+
+// RemoveNumberRuleIDs removes the "number_rules" edge to NumberRule entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveNumberRuleIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveNumberRuleIDs(ids...)
+	return _u
+}
+
+// RemoveNumberRules removes "number_rules" edges to NumberRule entities.
+func (_u *OrganizationUpdateOne) RemoveNumberRules(v ...*NumberRule) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNumberRuleIDs(ids...)
+}
+
+// ClearStatusTemplates clears all "status_templates" edges to the StatusTemplate entity.
+func (_u *OrganizationUpdateOne) ClearStatusTemplates() *OrganizationUpdateOne {
+	_u.mutation.ClearStatusTemplates()
+	return _u
+}
+
+// RemoveStatusTemplateIDs removes the "status_templates" edge to StatusTemplate entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveStatusTemplateIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveStatusTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveStatusTemplates removes "status_templates" edges to StatusTemplate entities.
+func (_u *OrganizationUpdateOne) RemoveStatusTemplates(v ...*StatusTemplate) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStatusTemplateIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -1381,6 +1617,96 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NumberRulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNumberRulesIDs(); len(nodes) > 0 && !_u.mutation.NumberRulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NumberRulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.NumberRulesTable,
+			Columns: []string{organization.NumberRulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StatusTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStatusTemplatesIDs(); len(nodes) > 0 && !_u.mutation.StatusTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StatusTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.StatusTemplatesTable,
+			Columns: []string{organization.StatusTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

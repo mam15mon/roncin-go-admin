@@ -45,6 +45,30 @@ func (f MembershipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MembershipMutation", m)
 }
 
+// The NumberRuleFunc type is an adapter to allow the use of ordinary
+// function as NumberRule mutator.
+type NumberRuleFunc func(context.Context, *ent.NumberRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NumberRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NumberRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NumberRuleMutation", m)
+}
+
+// The NumberSequenceFunc type is an adapter to allow the use of ordinary
+// function as NumberSequence mutator.
+type NumberSequenceFunc func(context.Context, *ent.NumberSequenceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NumberSequenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NumberSequenceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NumberSequenceMutation", m)
+}
+
 // The OrganizationFunc type is an adapter to allow the use of ordinary
 // function as Organization mutator.
 type OrganizationFunc func(context.Context, *ent.OrganizationMutation) (ent.Value, error)
@@ -115,6 +139,30 @@ func (f SessionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SessionMutation", m)
+}
+
+// The StatusTemplateFunc type is an adapter to allow the use of ordinary
+// function as StatusTemplate mutator.
+type StatusTemplateFunc func(context.Context, *ent.StatusTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StatusTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StatusTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusTemplateMutation", m)
+}
+
+// The StatusTemplateItemFunc type is an adapter to allow the use of ordinary
+// function as StatusTemplateItem mutator.
+type StatusTemplateItemFunc func(context.Context, *ent.StatusTemplateItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StatusTemplateItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StatusTemplateItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusTemplateItemMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

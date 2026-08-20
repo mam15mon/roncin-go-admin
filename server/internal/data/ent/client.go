@@ -19,12 +19,16 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -39,6 +43,10 @@ type Client struct {
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
+	// NumberRule is the client for interacting with the NumberRule builders.
+	NumberRule *NumberRuleClient
+	// NumberSequence is the client for interacting with the NumberSequence builders.
+	NumberSequence *NumberSequenceClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -51,6 +59,10 @@ type Client struct {
 	RoleAssignment *RoleAssignmentClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// StatusTemplate is the client for interacting with the StatusTemplate builders.
+	StatusTemplate *StatusTemplateClient
+	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
+	StatusTemplateItem *StatusTemplateItemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -67,12 +79,16 @@ func (c *Client) init() {
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
+	c.NumberRule = NewNumberRuleClient(c.config)
+	c.NumberSequence = NewNumberSequenceClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.Session = NewSessionClient(c.config)
+	c.StatusTemplate = NewStatusTemplateClient(c.config)
+	c.StatusTemplateItem = NewStatusTemplateItemClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -164,18 +180,22 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		AuditLog:       NewAuditLogClient(cfg),
-		MasterDataItem: NewMasterDataItemClient(cfg),
-		Membership:     NewMembershipClient(cfg),
-		Organization:   NewOrganizationClient(cfg),
-		Partner:        NewPartnerClient(cfg),
-		Permission:     NewPermissionClient(cfg),
-		Role:           NewRoleClient(cfg),
-		RoleAssignment: NewRoleAssignmentClient(cfg),
-		Session:        NewSessionClient(cfg),
-		User:           NewUserClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		AuditLog:           NewAuditLogClient(cfg),
+		MasterDataItem:     NewMasterDataItemClient(cfg),
+		Membership:         NewMembershipClient(cfg),
+		NumberRule:         NewNumberRuleClient(cfg),
+		NumberSequence:     NewNumberSequenceClient(cfg),
+		Organization:       NewOrganizationClient(cfg),
+		Partner:            NewPartnerClient(cfg),
+		Permission:         NewPermissionClient(cfg),
+		Role:               NewRoleClient(cfg),
+		RoleAssignment:     NewRoleAssignmentClient(cfg),
+		Session:            NewSessionClient(cfg),
+		StatusTemplate:     NewStatusTemplateClient(cfg),
+		StatusTemplateItem: NewStatusTemplateItemClient(cfg),
+		User:               NewUserClient(cfg),
 	}, nil
 }
 
@@ -193,18 +213,22 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		AuditLog:       NewAuditLogClient(cfg),
-		MasterDataItem: NewMasterDataItemClient(cfg),
-		Membership:     NewMembershipClient(cfg),
-		Organization:   NewOrganizationClient(cfg),
-		Partner:        NewPartnerClient(cfg),
-		Permission:     NewPermissionClient(cfg),
-		Role:           NewRoleClient(cfg),
-		RoleAssignment: NewRoleAssignmentClient(cfg),
-		Session:        NewSessionClient(cfg),
-		User:           NewUserClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		AuditLog:           NewAuditLogClient(cfg),
+		MasterDataItem:     NewMasterDataItemClient(cfg),
+		Membership:         NewMembershipClient(cfg),
+		NumberRule:         NewNumberRuleClient(cfg),
+		NumberSequence:     NewNumberSequenceClient(cfg),
+		Organization:       NewOrganizationClient(cfg),
+		Partner:            NewPartnerClient(cfg),
+		Permission:         NewPermissionClient(cfg),
+		Role:               NewRoleClient(cfg),
+		RoleAssignment:     NewRoleAssignmentClient(cfg),
+		Session:            NewSessionClient(cfg),
+		StatusTemplate:     NewStatusTemplateClient(cfg),
+		StatusTemplateItem: NewStatusTemplateItemClient(cfg),
+		User:               NewUserClient(cfg),
 	}, nil
 }
 
@@ -234,8 +258,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.Organization, c.Partner,
-		c.Permission, c.Role, c.RoleAssignment, c.Session, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.NumberRule, c.NumberSequence,
+		c.Organization, c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session,
+		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -245,8 +270,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.Organization, c.Partner,
-		c.Permission, c.Role, c.RoleAssignment, c.Session, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.NumberRule, c.NumberSequence,
+		c.Organization, c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session,
+		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -261,6 +287,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
 		return c.Membership.mutate(ctx, m)
+	case *NumberRuleMutation:
+		return c.NumberRule.mutate(ctx, m)
+	case *NumberSequenceMutation:
+		return c.NumberSequence.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
 	case *PartnerMutation:
@@ -273,6 +303,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoleAssignment.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
+	case *StatusTemplateMutation:
+		return c.StatusTemplate.mutate(ctx, m)
+	case *StatusTemplateItemMutation:
+		return c.StatusTemplateItem.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -743,6 +777,320 @@ func (c *MembershipClient) mutate(ctx context.Context, m *MembershipMutation) (V
 	}
 }
 
+// NumberRuleClient is a client for the NumberRule schema.
+type NumberRuleClient struct {
+	config
+}
+
+// NewNumberRuleClient returns a client for the NumberRule from the given config.
+func NewNumberRuleClient(c config) *NumberRuleClient {
+	return &NumberRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `numberrule.Hooks(f(g(h())))`.
+func (c *NumberRuleClient) Use(hooks ...Hook) {
+	c.hooks.NumberRule = append(c.hooks.NumberRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `numberrule.Intercept(f(g(h())))`.
+func (c *NumberRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NumberRule = append(c.inters.NumberRule, interceptors...)
+}
+
+// Create returns a builder for creating a NumberRule entity.
+func (c *NumberRuleClient) Create() *NumberRuleCreate {
+	mutation := newNumberRuleMutation(c.config, OpCreate)
+	return &NumberRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NumberRule entities.
+func (c *NumberRuleClient) CreateBulk(builders ...*NumberRuleCreate) *NumberRuleCreateBulk {
+	return &NumberRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NumberRuleClient) MapCreateBulk(slice any, setFunc func(*NumberRuleCreate, int)) *NumberRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NumberRuleCreateBulk{err: fmt.Errorf("calling to NumberRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NumberRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NumberRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NumberRule.
+func (c *NumberRuleClient) Update() *NumberRuleUpdate {
+	mutation := newNumberRuleMutation(c.config, OpUpdate)
+	return &NumberRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NumberRuleClient) UpdateOne(_m *NumberRule) *NumberRuleUpdateOne {
+	mutation := newNumberRuleMutation(c.config, OpUpdateOne, withNumberRule(_m))
+	return &NumberRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NumberRuleClient) UpdateOneID(id uuid.UUID) *NumberRuleUpdateOne {
+	mutation := newNumberRuleMutation(c.config, OpUpdateOne, withNumberRuleID(id))
+	return &NumberRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NumberRule.
+func (c *NumberRuleClient) Delete() *NumberRuleDelete {
+	mutation := newNumberRuleMutation(c.config, OpDelete)
+	return &NumberRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NumberRuleClient) DeleteOne(_m *NumberRule) *NumberRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NumberRuleClient) DeleteOneID(id uuid.UUID) *NumberRuleDeleteOne {
+	builder := c.Delete().Where(numberrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NumberRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for NumberRule.
+func (c *NumberRuleClient) Query() *NumberRuleQuery {
+	return &NumberRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNumberRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NumberRule entity by its id.
+func (c *NumberRuleClient) Get(ctx context.Context, id uuid.UUID) (*NumberRule, error) {
+	return c.Query().Where(numberrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NumberRuleClient) GetX(ctx context.Context, id uuid.UUID) *NumberRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a NumberRule.
+func (c *NumberRuleClient) QueryOrganization(_m *NumberRule) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(numberrule.Table, numberrule.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, numberrule.OrganizationTable, numberrule.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySequences queries the sequences edge of a NumberRule.
+func (c *NumberRuleClient) QuerySequences(_m *NumberRule) *NumberSequenceQuery {
+	query := (&NumberSequenceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(numberrule.Table, numberrule.FieldID, id),
+			sqlgraph.To(numbersequence.Table, numbersequence.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, numberrule.SequencesTable, numberrule.SequencesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NumberRuleClient) Hooks() []Hook {
+	return c.hooks.NumberRule
+}
+
+// Interceptors returns the client interceptors.
+func (c *NumberRuleClient) Interceptors() []Interceptor {
+	return c.inters.NumberRule
+}
+
+func (c *NumberRuleClient) mutate(ctx context.Context, m *NumberRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NumberRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NumberRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NumberRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NumberRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NumberRule mutation op: %q", m.Op())
+	}
+}
+
+// NumberSequenceClient is a client for the NumberSequence schema.
+type NumberSequenceClient struct {
+	config
+}
+
+// NewNumberSequenceClient returns a client for the NumberSequence from the given config.
+func NewNumberSequenceClient(c config) *NumberSequenceClient {
+	return &NumberSequenceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `numbersequence.Hooks(f(g(h())))`.
+func (c *NumberSequenceClient) Use(hooks ...Hook) {
+	c.hooks.NumberSequence = append(c.hooks.NumberSequence, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `numbersequence.Intercept(f(g(h())))`.
+func (c *NumberSequenceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NumberSequence = append(c.inters.NumberSequence, interceptors...)
+}
+
+// Create returns a builder for creating a NumberSequence entity.
+func (c *NumberSequenceClient) Create() *NumberSequenceCreate {
+	mutation := newNumberSequenceMutation(c.config, OpCreate)
+	return &NumberSequenceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NumberSequence entities.
+func (c *NumberSequenceClient) CreateBulk(builders ...*NumberSequenceCreate) *NumberSequenceCreateBulk {
+	return &NumberSequenceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NumberSequenceClient) MapCreateBulk(slice any, setFunc func(*NumberSequenceCreate, int)) *NumberSequenceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NumberSequenceCreateBulk{err: fmt.Errorf("calling to NumberSequenceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NumberSequenceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NumberSequenceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NumberSequence.
+func (c *NumberSequenceClient) Update() *NumberSequenceUpdate {
+	mutation := newNumberSequenceMutation(c.config, OpUpdate)
+	return &NumberSequenceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NumberSequenceClient) UpdateOne(_m *NumberSequence) *NumberSequenceUpdateOne {
+	mutation := newNumberSequenceMutation(c.config, OpUpdateOne, withNumberSequence(_m))
+	return &NumberSequenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NumberSequenceClient) UpdateOneID(id uuid.UUID) *NumberSequenceUpdateOne {
+	mutation := newNumberSequenceMutation(c.config, OpUpdateOne, withNumberSequenceID(id))
+	return &NumberSequenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NumberSequence.
+func (c *NumberSequenceClient) Delete() *NumberSequenceDelete {
+	mutation := newNumberSequenceMutation(c.config, OpDelete)
+	return &NumberSequenceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NumberSequenceClient) DeleteOne(_m *NumberSequence) *NumberSequenceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NumberSequenceClient) DeleteOneID(id uuid.UUID) *NumberSequenceDeleteOne {
+	builder := c.Delete().Where(numbersequence.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NumberSequenceDeleteOne{builder}
+}
+
+// Query returns a query builder for NumberSequence.
+func (c *NumberSequenceClient) Query() *NumberSequenceQuery {
+	return &NumberSequenceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNumberSequence},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NumberSequence entity by its id.
+func (c *NumberSequenceClient) Get(ctx context.Context, id uuid.UUID) (*NumberSequence, error) {
+	return c.Query().Where(numbersequence.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NumberSequenceClient) GetX(ctx context.Context, id uuid.UUID) *NumberSequence {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRule queries the rule edge of a NumberSequence.
+func (c *NumberSequenceClient) QueryRule(_m *NumberSequence) *NumberRuleQuery {
+	query := (&NumberRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(numbersequence.Table, numbersequence.FieldID, id),
+			sqlgraph.To(numberrule.Table, numberrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, numbersequence.RuleTable, numbersequence.RuleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NumberSequenceClient) Hooks() []Hook {
+	return c.hooks.NumberSequence
+}
+
+// Interceptors returns the client interceptors.
+func (c *NumberSequenceClient) Interceptors() []Interceptor {
+	return c.inters.NumberSequence
+}
+
+func (c *NumberSequenceClient) mutate(ctx context.Context, m *NumberSequenceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NumberSequenceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NumberSequenceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NumberSequenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NumberSequenceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NumberSequence mutation op: %q", m.Op())
+	}
+}
+
 // OrganizationClient is a client for the Organization schema.
 type OrganizationClient struct {
 	config
@@ -956,6 +1304,38 @@ func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataI
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNumberRules queries the number_rules edge of a Organization.
+func (c *OrganizationClient) QueryNumberRules(_m *Organization) *NumberRuleQuery {
+	query := (&NumberRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(numberrule.Table, numberrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.NumberRulesTable, organization.NumberRulesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStatusTemplates queries the status_templates edge of a Organization.
+func (c *OrganizationClient) QueryStatusTemplates(_m *Organization) *StatusTemplateQuery {
+	query := (&StatusTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.StatusTemplatesTable, organization.StatusTemplatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1797,6 +2177,320 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 	}
 }
 
+// StatusTemplateClient is a client for the StatusTemplate schema.
+type StatusTemplateClient struct {
+	config
+}
+
+// NewStatusTemplateClient returns a client for the StatusTemplate from the given config.
+func NewStatusTemplateClient(c config) *StatusTemplateClient {
+	return &StatusTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `statustemplate.Hooks(f(g(h())))`.
+func (c *StatusTemplateClient) Use(hooks ...Hook) {
+	c.hooks.StatusTemplate = append(c.hooks.StatusTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `statustemplate.Intercept(f(g(h())))`.
+func (c *StatusTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.StatusTemplate = append(c.inters.StatusTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a StatusTemplate entity.
+func (c *StatusTemplateClient) Create() *StatusTemplateCreate {
+	mutation := newStatusTemplateMutation(c.config, OpCreate)
+	return &StatusTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of StatusTemplate entities.
+func (c *StatusTemplateClient) CreateBulk(builders ...*StatusTemplateCreate) *StatusTemplateCreateBulk {
+	return &StatusTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StatusTemplateClient) MapCreateBulk(slice any, setFunc func(*StatusTemplateCreate, int)) *StatusTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StatusTemplateCreateBulk{err: fmt.Errorf("calling to StatusTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StatusTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StatusTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for StatusTemplate.
+func (c *StatusTemplateClient) Update() *StatusTemplateUpdate {
+	mutation := newStatusTemplateMutation(c.config, OpUpdate)
+	return &StatusTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StatusTemplateClient) UpdateOne(_m *StatusTemplate) *StatusTemplateUpdateOne {
+	mutation := newStatusTemplateMutation(c.config, OpUpdateOne, withStatusTemplate(_m))
+	return &StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StatusTemplateClient) UpdateOneID(id uuid.UUID) *StatusTemplateUpdateOne {
+	mutation := newStatusTemplateMutation(c.config, OpUpdateOne, withStatusTemplateID(id))
+	return &StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for StatusTemplate.
+func (c *StatusTemplateClient) Delete() *StatusTemplateDelete {
+	mutation := newStatusTemplateMutation(c.config, OpDelete)
+	return &StatusTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StatusTemplateClient) DeleteOne(_m *StatusTemplate) *StatusTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StatusTemplateClient) DeleteOneID(id uuid.UUID) *StatusTemplateDeleteOne {
+	builder := c.Delete().Where(statustemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StatusTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for StatusTemplate.
+func (c *StatusTemplateClient) Query() *StatusTemplateQuery {
+	return &StatusTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStatusTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a StatusTemplate entity by its id.
+func (c *StatusTemplateClient) Get(ctx context.Context, id uuid.UUID) (*StatusTemplate, error) {
+	return c.Query().Where(statustemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StatusTemplateClient) GetX(ctx context.Context, id uuid.UUID) *StatusTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a StatusTemplate.
+func (c *StatusTemplateClient) QueryOrganization(_m *StatusTemplate) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, statustemplate.OrganizationTable, statustemplate.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryItems queries the items edge of a StatusTemplate.
+func (c *StatusTemplateClient) QueryItems(_m *StatusTemplate) *StatusTemplateItemQuery {
+	query := (&StatusTemplateItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
+			sqlgraph.To(statustemplateitem.Table, statustemplateitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.ItemsTable, statustemplate.ItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StatusTemplateClient) Hooks() []Hook {
+	return c.hooks.StatusTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *StatusTemplateClient) Interceptors() []Interceptor {
+	return c.inters.StatusTemplate
+}
+
+func (c *StatusTemplateClient) mutate(ctx context.Context, m *StatusTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StatusTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StatusTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StatusTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown StatusTemplate mutation op: %q", m.Op())
+	}
+}
+
+// StatusTemplateItemClient is a client for the StatusTemplateItem schema.
+type StatusTemplateItemClient struct {
+	config
+}
+
+// NewStatusTemplateItemClient returns a client for the StatusTemplateItem from the given config.
+func NewStatusTemplateItemClient(c config) *StatusTemplateItemClient {
+	return &StatusTemplateItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `statustemplateitem.Hooks(f(g(h())))`.
+func (c *StatusTemplateItemClient) Use(hooks ...Hook) {
+	c.hooks.StatusTemplateItem = append(c.hooks.StatusTemplateItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `statustemplateitem.Intercept(f(g(h())))`.
+func (c *StatusTemplateItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.StatusTemplateItem = append(c.inters.StatusTemplateItem, interceptors...)
+}
+
+// Create returns a builder for creating a StatusTemplateItem entity.
+func (c *StatusTemplateItemClient) Create() *StatusTemplateItemCreate {
+	mutation := newStatusTemplateItemMutation(c.config, OpCreate)
+	return &StatusTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of StatusTemplateItem entities.
+func (c *StatusTemplateItemClient) CreateBulk(builders ...*StatusTemplateItemCreate) *StatusTemplateItemCreateBulk {
+	return &StatusTemplateItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StatusTemplateItemClient) MapCreateBulk(slice any, setFunc func(*StatusTemplateItemCreate, int)) *StatusTemplateItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StatusTemplateItemCreateBulk{err: fmt.Errorf("calling to StatusTemplateItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StatusTemplateItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StatusTemplateItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for StatusTemplateItem.
+func (c *StatusTemplateItemClient) Update() *StatusTemplateItemUpdate {
+	mutation := newStatusTemplateItemMutation(c.config, OpUpdate)
+	return &StatusTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StatusTemplateItemClient) UpdateOne(_m *StatusTemplateItem) *StatusTemplateItemUpdateOne {
+	mutation := newStatusTemplateItemMutation(c.config, OpUpdateOne, withStatusTemplateItem(_m))
+	return &StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StatusTemplateItemClient) UpdateOneID(id uuid.UUID) *StatusTemplateItemUpdateOne {
+	mutation := newStatusTemplateItemMutation(c.config, OpUpdateOne, withStatusTemplateItemID(id))
+	return &StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for StatusTemplateItem.
+func (c *StatusTemplateItemClient) Delete() *StatusTemplateItemDelete {
+	mutation := newStatusTemplateItemMutation(c.config, OpDelete)
+	return &StatusTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StatusTemplateItemClient) DeleteOne(_m *StatusTemplateItem) *StatusTemplateItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StatusTemplateItemClient) DeleteOneID(id uuid.UUID) *StatusTemplateItemDeleteOne {
+	builder := c.Delete().Where(statustemplateitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StatusTemplateItemDeleteOne{builder}
+}
+
+// Query returns a query builder for StatusTemplateItem.
+func (c *StatusTemplateItemClient) Query() *StatusTemplateItemQuery {
+	return &StatusTemplateItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStatusTemplateItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a StatusTemplateItem entity by its id.
+func (c *StatusTemplateItemClient) Get(ctx context.Context, id uuid.UUID) (*StatusTemplateItem, error) {
+	return c.Query().Where(statustemplateitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StatusTemplateItemClient) GetX(ctx context.Context, id uuid.UUID) *StatusTemplateItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTemplate queries the template edge of a StatusTemplateItem.
+func (c *StatusTemplateItemClient) QueryTemplate(_m *StatusTemplateItem) *StatusTemplateQuery {
+	query := (&StatusTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statustemplateitem.Table, statustemplateitem.FieldID, id),
+			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, statustemplateitem.TemplateTable, statustemplateitem.TemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StatusTemplateItemClient) Hooks() []Hook {
+	return c.hooks.StatusTemplateItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *StatusTemplateItemClient) Interceptors() []Interceptor {
+	return c.inters.StatusTemplateItem
+}
+
+func (c *StatusTemplateItemClient) mutate(ctx context.Context, m *StatusTemplateItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StatusTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StatusTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StatusTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown StatusTemplateItem mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1965,11 +2659,13 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuditLog, MasterDataItem, Membership, Organization, Partner, Permission, Role,
-		RoleAssignment, Session, User []ent.Hook
+		AuditLog, MasterDataItem, Membership, NumberRule, NumberSequence, Organization,
+		Partner, Permission, Role, RoleAssignment, Session, StatusTemplate,
+		StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
-		AuditLog, MasterDataItem, Membership, Organization, Partner, Permission, Role,
-		RoleAssignment, Session, User []ent.Interceptor
+		AuditLog, MasterDataItem, Membership, NumberRule, NumberSequence, Organization,
+		Partner, Permission, Role, RoleAssignment, Session, StatusTemplate,
+		StatusTemplateItem, User []ent.Interceptor
 	}
 )

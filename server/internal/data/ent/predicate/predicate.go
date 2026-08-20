@@ -15,6 +15,12 @@ type MasterDataItem func(*sql.Selector)
 // Membership is the predicate function for membership builders.
 type Membership func(*sql.Selector)
 
+// NumberRule is the predicate function for numberrule builders.
+type NumberRule func(*sql.Selector)
+
+// NumberSequence is the predicate function for numbersequence builders.
+type NumberSequence func(*sql.Selector)
+
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
 
@@ -32,6 +38,12 @@ type RoleAssignment func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
+
+// StatusTemplate is the predicate function for statustemplate builders.
+type StatusTemplate func(*sql.Selector)
+
+// StatusTemplateItem is the predicate function for statustemplateitem builders.
+type StatusTemplateItem func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

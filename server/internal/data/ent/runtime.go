@@ -9,6 +9,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -16,6 +18,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -198,6 +202,100 @@ func init() {
 	membershipDescID := membershipMixinFields0[0].Descriptor()
 	// membership.DefaultID holds the default value on creation for the id field.
 	membership.DefaultID = membershipDescID.Default.(func() uuid.UUID)
+	numberruleMixin := schema.NumberRule{}.Mixin()
+	numberruleMixinFields0 := numberruleMixin[0].Fields()
+	_ = numberruleMixinFields0
+	numberruleMixinFields1 := numberruleMixin[1].Fields()
+	_ = numberruleMixinFields1
+	numberruleFields := schema.NumberRule{}.Fields()
+	_ = numberruleFields
+	// numberruleDescCreatedAt is the schema descriptor for created_at field.
+	numberruleDescCreatedAt := numberruleMixinFields1[0].Descriptor()
+	// numberrule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	numberrule.DefaultCreatedAt = numberruleDescCreatedAt.Default.(func() time.Time)
+	// numberruleDescUpdatedAt is the schema descriptor for updated_at field.
+	numberruleDescUpdatedAt := numberruleMixinFields1[1].Descriptor()
+	// numberrule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	numberrule.DefaultUpdatedAt = numberruleDescUpdatedAt.Default.(func() time.Time)
+	// numberrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	numberrule.UpdateDefaultUpdatedAt = numberruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// numberruleDescPrefix is the schema descriptor for prefix field.
+	numberruleDescPrefix := numberruleFields[2].Descriptor()
+	// numberrule.PrefixValidator is a validator for the "prefix" field. It is called by the builders before save.
+	numberrule.PrefixValidator = numberruleDescPrefix.Validators[0].(func(string) error)
+	// numberruleDescSequenceLength is the schema descriptor for sequence_length field.
+	numberruleDescSequenceLength := numberruleFields[4].Descriptor()
+	// numberrule.DefaultSequenceLength holds the default value on creation for the sequence_length field.
+	numberrule.DefaultSequenceLength = numberruleDescSequenceLength.Default.(int)
+	// numberrule.SequenceLengthValidator is a validator for the "sequence_length" field. It is called by the builders before save.
+	numberrule.SequenceLengthValidator = func() func(int) error {
+		validators := numberruleDescSequenceLength.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(sequence_length int) error {
+			for _, fn := range fns {
+				if err := fn(sequence_length); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// numberruleDescEnabled is the schema descriptor for enabled field.
+	numberruleDescEnabled := numberruleFields[6].Descriptor()
+	// numberrule.DefaultEnabled holds the default value on creation for the enabled field.
+	numberrule.DefaultEnabled = numberruleDescEnabled.Default.(bool)
+	// numberruleDescID is the schema descriptor for id field.
+	numberruleDescID := numberruleMixinFields0[0].Descriptor()
+	// numberrule.DefaultID holds the default value on creation for the id field.
+	numberrule.DefaultID = numberruleDescID.Default.(func() uuid.UUID)
+	numbersequenceMixin := schema.NumberSequence{}.Mixin()
+	numbersequenceMixinFields0 := numbersequenceMixin[0].Fields()
+	_ = numbersequenceMixinFields0
+	numbersequenceMixinFields1 := numbersequenceMixin[1].Fields()
+	_ = numbersequenceMixinFields1
+	numbersequenceFields := schema.NumberSequence{}.Fields()
+	_ = numbersequenceFields
+	// numbersequenceDescCreatedAt is the schema descriptor for created_at field.
+	numbersequenceDescCreatedAt := numbersequenceMixinFields1[0].Descriptor()
+	// numbersequence.DefaultCreatedAt holds the default value on creation for the created_at field.
+	numbersequence.DefaultCreatedAt = numbersequenceDescCreatedAt.Default.(func() time.Time)
+	// numbersequenceDescUpdatedAt is the schema descriptor for updated_at field.
+	numbersequenceDescUpdatedAt := numbersequenceMixinFields1[1].Descriptor()
+	// numbersequence.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	numbersequence.DefaultUpdatedAt = numbersequenceDescUpdatedAt.Default.(func() time.Time)
+	// numbersequence.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	numbersequence.UpdateDefaultUpdatedAt = numbersequenceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// numbersequenceDescPeriodKey is the schema descriptor for period_key field.
+	numbersequenceDescPeriodKey := numbersequenceFields[1].Descriptor()
+	// numbersequence.PeriodKeyValidator is a validator for the "period_key" field. It is called by the builders before save.
+	numbersequence.PeriodKeyValidator = func() func(string) error {
+		validators := numbersequenceDescPeriodKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(period_key string) error {
+			for _, fn := range fns {
+				if err := fn(period_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// numbersequenceDescCurrentValue is the schema descriptor for current_value field.
+	numbersequenceDescCurrentValue := numbersequenceFields[2].Descriptor()
+	// numbersequence.DefaultCurrentValue holds the default value on creation for the current_value field.
+	numbersequence.DefaultCurrentValue = numbersequenceDescCurrentValue.Default.(int64)
+	// numbersequence.CurrentValueValidator is a validator for the "current_value" field. It is called by the builders before save.
+	numbersequence.CurrentValueValidator = numbersequenceDescCurrentValue.Validators[0].(func(int64) error)
+	// numbersequenceDescID is the schema descriptor for id field.
+	numbersequenceDescID := numbersequenceMixinFields0[0].Descriptor()
+	// numbersequence.DefaultID holds the default value on creation for the id field.
+	numbersequence.DefaultID = numbersequenceDescID.Default.(func() uuid.UUID)
 	organizationMixin := schema.Organization{}.Mixin()
 	organizationMixinFields0 := organizationMixin[0].Fields()
 	_ = organizationMixinFields0
@@ -548,6 +646,148 @@ func init() {
 	sessionDescID := sessionMixinFields0[0].Descriptor()
 	// session.DefaultID holds the default value on creation for the id field.
 	session.DefaultID = sessionDescID.Default.(func() uuid.UUID)
+	statustemplateMixin := schema.StatusTemplate{}.Mixin()
+	statustemplateMixinFields0 := statustemplateMixin[0].Fields()
+	_ = statustemplateMixinFields0
+	statustemplateMixinFields1 := statustemplateMixin[1].Fields()
+	_ = statustemplateMixinFields1
+	statustemplateFields := schema.StatusTemplate{}.Fields()
+	_ = statustemplateFields
+	// statustemplateDescCreatedAt is the schema descriptor for created_at field.
+	statustemplateDescCreatedAt := statustemplateMixinFields1[0].Descriptor()
+	// statustemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	statustemplate.DefaultCreatedAt = statustemplateDescCreatedAt.Default.(func() time.Time)
+	// statustemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	statustemplateDescUpdatedAt := statustemplateMixinFields1[1].Descriptor()
+	// statustemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	statustemplate.DefaultUpdatedAt = statustemplateDescUpdatedAt.Default.(func() time.Time)
+	// statustemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	statustemplate.UpdateDefaultUpdatedAt = statustemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// statustemplateDescCode is the schema descriptor for code field.
+	statustemplateDescCode := statustemplateFields[1].Descriptor()
+	// statustemplate.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	statustemplate.CodeValidator = func() func(string) error {
+		validators := statustemplateDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// statustemplateDescName is the schema descriptor for name field.
+	statustemplateDescName := statustemplateFields[2].Descriptor()
+	// statustemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	statustemplate.NameValidator = func() func(string) error {
+		validators := statustemplateDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// statustemplateDescVersion is the schema descriptor for version field.
+	statustemplateDescVersion := statustemplateFields[4].Descriptor()
+	// statustemplate.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	statustemplate.VersionValidator = statustemplateDescVersion.Validators[0].(func(int) error)
+	// statustemplateDescIsDefault is the schema descriptor for is_default field.
+	statustemplateDescIsDefault := statustemplateFields[5].Descriptor()
+	// statustemplate.DefaultIsDefault holds the default value on creation for the is_default field.
+	statustemplate.DefaultIsDefault = statustemplateDescIsDefault.Default.(bool)
+	// statustemplateDescEnabled is the schema descriptor for enabled field.
+	statustemplateDescEnabled := statustemplateFields[7].Descriptor()
+	// statustemplate.DefaultEnabled holds the default value on creation for the enabled field.
+	statustemplate.DefaultEnabled = statustemplateDescEnabled.Default.(bool)
+	// statustemplateDescID is the schema descriptor for id field.
+	statustemplateDescID := statustemplateMixinFields0[0].Descriptor()
+	// statustemplate.DefaultID holds the default value on creation for the id field.
+	statustemplate.DefaultID = statustemplateDescID.Default.(func() uuid.UUID)
+	statustemplateitemMixin := schema.StatusTemplateItem{}.Mixin()
+	statustemplateitemMixinFields0 := statustemplateitemMixin[0].Fields()
+	_ = statustemplateitemMixinFields0
+	statustemplateitemMixinFields1 := statustemplateitemMixin[1].Fields()
+	_ = statustemplateitemMixinFields1
+	statustemplateitemFields := schema.StatusTemplateItem{}.Fields()
+	_ = statustemplateitemFields
+	// statustemplateitemDescCreatedAt is the schema descriptor for created_at field.
+	statustemplateitemDescCreatedAt := statustemplateitemMixinFields1[0].Descriptor()
+	// statustemplateitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	statustemplateitem.DefaultCreatedAt = statustemplateitemDescCreatedAt.Default.(func() time.Time)
+	// statustemplateitemDescUpdatedAt is the schema descriptor for updated_at field.
+	statustemplateitemDescUpdatedAt := statustemplateitemMixinFields1[1].Descriptor()
+	// statustemplateitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	statustemplateitem.DefaultUpdatedAt = statustemplateitemDescUpdatedAt.Default.(func() time.Time)
+	// statustemplateitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	statustemplateitem.UpdateDefaultUpdatedAt = statustemplateitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// statustemplateitemDescCode is the schema descriptor for code field.
+	statustemplateitemDescCode := statustemplateitemFields[1].Descriptor()
+	// statustemplateitem.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	statustemplateitem.CodeValidator = func() func(string) error {
+		validators := statustemplateitemDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// statustemplateitemDescLabel is the schema descriptor for label field.
+	statustemplateitemDescLabel := statustemplateitemFields[2].Descriptor()
+	// statustemplateitem.LabelValidator is a validator for the "label" field. It is called by the builders before save.
+	statustemplateitem.LabelValidator = func() func(string) error {
+		validators := statustemplateitemDescLabel.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(label string) error {
+			for _, fn := range fns {
+				if err := fn(label); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// statustemplateitemDescSortOrder is the schema descriptor for sort_order field.
+	statustemplateitemDescSortOrder := statustemplateitemFields[3].Descriptor()
+	// statustemplateitem.DefaultSortOrder holds the default value on creation for the sort_order field.
+	statustemplateitem.DefaultSortOrder = statustemplateitemDescSortOrder.Default.(int)
+	// statustemplateitemDescEnabled is the schema descriptor for enabled field.
+	statustemplateitemDescEnabled := statustemplateitemFields[4].Descriptor()
+	// statustemplateitem.DefaultEnabled holds the default value on creation for the enabled field.
+	statustemplateitem.DefaultEnabled = statustemplateitemDescEnabled.Default.(bool)
+	// statustemplateitemDescColorToken is the schema descriptor for color_token field.
+	statustemplateitemDescColorToken := statustemplateitemFields[5].Descriptor()
+	// statustemplateitem.ColorTokenValidator is a validator for the "color_token" field. It is called by the builders before save.
+	statustemplateitem.ColorTokenValidator = statustemplateitemDescColorToken.Validators[0].(func(string) error)
+	// statustemplateitemDescSystem is the schema descriptor for system field.
+	statustemplateitemDescSystem := statustemplateitemFields[6].Descriptor()
+	// statustemplateitem.DefaultSystem holds the default value on creation for the system field.
+	statustemplateitem.DefaultSystem = statustemplateitemDescSystem.Default.(bool)
+	// statustemplateitemDescID is the schema descriptor for id field.
+	statustemplateitemDescID := statustemplateitemMixinFields0[0].Descriptor()
+	// statustemplateitem.DefaultID holds the default value on creation for the id field.
+	statustemplateitem.DefaultID = statustemplateitemDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

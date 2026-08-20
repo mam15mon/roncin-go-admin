@@ -9,17 +9,20 @@ import (
 	"math"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
 // OrganizationQuery is the builder for querying Organization entities.
@@ -36,6 +39,9 @@ type OrganizationQuery struct {
 	withSessions        *SessionQuery
 	withPartners        *PartnerQuery
 	withMasterDataItems *MasterDataItemQuery
+	withNumberRules     *NumberRuleQuery
+	withStatusTemplates *StatusTemplateQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -219,6 +225,50 @@ func (_q *OrganizationQuery) QueryMasterDataItems() *MasterDataItemQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNumberRules chains the current query on the "number_rules" edge.
+func (_q *OrganizationQuery) QueryNumberRules() *NumberRuleQuery {
+	query := (&NumberRuleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(numberrule.Table, numberrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.NumberRulesTable, organization.NumberRulesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStatusTemplates chains the current query on the "status_templates" edge.
+func (_q *OrganizationQuery) QueryStatusTemplates() *StatusTemplateQuery {
+	query := (&StatusTemplateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.StatusTemplatesTable, organization.StatusTemplatesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -425,6 +475,8 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withSessions:        _q.withSessions.Clone(),
 		withPartners:        _q.withPartners.Clone(),
 		withMasterDataItems: _q.withMasterDataItems.Clone(),
+		withNumberRules:     _q.withNumberRules.Clone(),
+		withStatusTemplates: _q.withStatusTemplates.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -508,6 +560,28 @@ func (_q *OrganizationQuery) WithMasterDataItems(opts ...func(*MasterDataItemQue
 	return _q
 }
 
+// WithNumberRules tells the query-builder to eager-load the nodes that are connected to
+// the "number_rules" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithNumberRules(opts ...func(*NumberRuleQuery)) *OrganizationQuery {
+	query := (&NumberRuleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNumberRules = query
+	return _q
+}
+
+// WithStatusTemplates tells the query-builder to eager-load the nodes that are connected to
+// the "status_templates" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithStatusTemplates(opts ...func(*StatusTemplateQuery)) *OrganizationQuery {
+	query := (&StatusTemplateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStatusTemplates = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -586,7 +660,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -594,6 +668,8 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSessions != nil,
 			_q.withPartners != nil,
 			_q.withMasterDataItems != nil,
+			_q.withNumberRules != nil,
+			_q.withStatusTemplates != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -604,6 +680,9 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
@@ -659,6 +738,20 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadMasterDataItems(ctx, query, nodes,
 			func(n *Organization) { n.Edges.MasterDataItems = []*MasterDataItem{} },
 			func(n *Organization, e *MasterDataItem) { n.Edges.MasterDataItems = append(n.Edges.MasterDataItems, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNumberRules; query != nil {
+		if err := _q.loadNumberRules(ctx, query, nodes,
+			func(n *Organization) { n.Edges.NumberRules = []*NumberRule{} },
+			func(n *Organization, e *NumberRule) { n.Edges.NumberRules = append(n.Edges.NumberRules, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStatusTemplates; query != nil {
+		if err := _q.loadStatusTemplates(ctx, query, nodes,
+			func(n *Organization) { n.Edges.StatusTemplates = []*StatusTemplate{} },
+			func(n *Organization, e *StatusTemplate) { n.Edges.StatusTemplates = append(n.Edges.StatusTemplates, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -880,9 +973,72 @@ func (_q *OrganizationQuery) loadMasterDataItems(ctx context.Context, query *Mas
 	}
 	return nil
 }
+func (_q *OrganizationQuery) loadNumberRules(ctx context.Context, query *NumberRuleQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *NumberRule)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(numberrule.FieldOrganizationID)
+	}
+	query.Where(predicate.NumberRule(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.NumberRulesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadStatusTemplates(ctx context.Context, query *StatusTemplateQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *StatusTemplate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(statustemplate.FieldOrganizationID)
+	}
+	query.Where(predicate.StatusTemplate(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.StatusTemplatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (_q *OrganizationQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -948,6 +1104,9 @@ func (_q *OrganizationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range _q.modifiers {
+		m(selector)
+	}
 	for _, p := range _q.predicates {
 		p(selector)
 	}
@@ -963,6 +1122,32 @@ func (_q *OrganizationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// ForUpdate locks the selected rows against concurrent updates, and prevent them from being
+// updated, deleted or "selected ... for update" by other sessions, until the transaction is
+// either committed or rolled-back.
+func (_q *OrganizationQuery) ForUpdate(opts ...sql.LockOption) *OrganizationQuery {
+	if _q.driver.Dialect() == dialect.Postgres {
+		_q.Unique(false)
+	}
+	_q.modifiers = append(_q.modifiers, func(s *sql.Selector) {
+		s.ForUpdate(opts...)
+	})
+	return _q
+}
+
+// ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
+// on any rows that are read. Other sessions can read the rows, but cannot modify them
+// until your transaction commits.
+func (_q *OrganizationQuery) ForShare(opts ...sql.LockOption) *OrganizationQuery {
+	if _q.driver.Dialect() == dialect.Postgres {
+		_q.Unique(false)
+	}
+	_q.modifiers = append(_q.modifiers, func(s *sql.Selector) {
+		s.ForShare(opts...)
+	})
+	return _q
 }
 
 // OrganizationGroupBy is the group-by builder for Organization entities.

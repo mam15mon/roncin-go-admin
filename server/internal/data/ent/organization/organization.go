@@ -41,6 +41,10 @@ const (
 	EdgePartners = "partners"
 	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
 	EdgeMasterDataItems = "master_data_items"
+	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
+	EdgeNumberRules = "number_rules"
+	// EdgeStatusTemplates holds the string denoting the status_templates edge name in mutations.
+	EdgeStatusTemplates = "status_templates"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -86,6 +90,20 @@ const (
 	MasterDataItemsInverseTable = "master_data_items"
 	// MasterDataItemsColumn is the table column denoting the master_data_items relation/edge.
 	MasterDataItemsColumn = "organization_id"
+	// NumberRulesTable is the table that holds the number_rules relation/edge.
+	NumberRulesTable = "number_rules"
+	// NumberRulesInverseTable is the table name for the NumberRule entity.
+	// It exists in this package in order to avoid circular dependency with the "numberrule" package.
+	NumberRulesInverseTable = "number_rules"
+	// NumberRulesColumn is the table column denoting the number_rules relation/edge.
+	NumberRulesColumn = "organization_id"
+	// StatusTemplatesTable is the table that holds the status_templates relation/edge.
+	StatusTemplatesTable = "status_templates"
+	// StatusTemplatesInverseTable is the table name for the StatusTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "statustemplate" package.
+	StatusTemplatesInverseTable = "status_templates"
+	// StatusTemplatesColumn is the table column denoting the status_templates relation/edge.
+	StatusTemplatesColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -254,6 +272,34 @@ func ByMasterDataItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMasterDataItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNumberRulesCount orders the results by number_rules count.
+func ByNumberRulesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNumberRulesStep(), opts...)
+	}
+}
+
+// ByNumberRules orders the results by number_rules terms.
+func ByNumberRules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNumberRulesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByStatusTemplatesCount orders the results by status_templates count.
+func ByStatusTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStatusTemplatesStep(), opts...)
+	}
+}
+
+// ByStatusTemplates orders the results by status_templates terms.
+func ByStatusTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStatusTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -301,5 +347,19 @@ func newMasterDataItemsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MasterDataItemsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
+	)
+}
+func newNumberRulesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NumberRulesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NumberRulesTable, NumberRulesColumn),
+	)
+}
+func newStatusTemplatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StatusTemplatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StatusTemplatesTable, StatusTemplatesColumn),
 	)
 }

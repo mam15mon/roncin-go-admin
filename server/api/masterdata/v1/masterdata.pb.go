@@ -92,6 +92,244 @@ func (MasterDataKind) EnumDescriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{0}
 }
 
+type DocumentType int32
+
+const (
+	DocumentType_DOCUMENT_TYPE_UNSPECIFIED DocumentType = 0
+	DocumentType_DOCUMENT_TYPE_ORDER       DocumentType = 1
+	DocumentType_DOCUMENT_TYPE_BOOKING     DocumentType = 2
+	DocumentType_DOCUMENT_TYPE_HBL         DocumentType = 3
+	DocumentType_DOCUMENT_TYPE_MBL         DocumentType = 4
+	DocumentType_DOCUMENT_TYPE_BILL        DocumentType = 5
+	DocumentType_DOCUMENT_TYPE_STATEMENT   DocumentType = 6
+	DocumentType_DOCUMENT_TYPE_PAYMENT     DocumentType = 7
+	DocumentType_DOCUMENT_TYPE_INVOICE     DocumentType = 8
+)
+
+// Enum value maps for DocumentType.
+var (
+	DocumentType_name = map[int32]string{
+		0: "DOCUMENT_TYPE_UNSPECIFIED",
+		1: "DOCUMENT_TYPE_ORDER",
+		2: "DOCUMENT_TYPE_BOOKING",
+		3: "DOCUMENT_TYPE_HBL",
+		4: "DOCUMENT_TYPE_MBL",
+		5: "DOCUMENT_TYPE_BILL",
+		6: "DOCUMENT_TYPE_STATEMENT",
+		7: "DOCUMENT_TYPE_PAYMENT",
+		8: "DOCUMENT_TYPE_INVOICE",
+	}
+	DocumentType_value = map[string]int32{
+		"DOCUMENT_TYPE_UNSPECIFIED": 0,
+		"DOCUMENT_TYPE_ORDER":       1,
+		"DOCUMENT_TYPE_BOOKING":     2,
+		"DOCUMENT_TYPE_HBL":         3,
+		"DOCUMENT_TYPE_MBL":         4,
+		"DOCUMENT_TYPE_BILL":        5,
+		"DOCUMENT_TYPE_STATEMENT":   6,
+		"DOCUMENT_TYPE_PAYMENT":     7,
+		"DOCUMENT_TYPE_INVOICE":     8,
+	}
+)
+
+func (x DocumentType) Enum() *DocumentType {
+	p := new(DocumentType)
+	*p = x
+	return p
+}
+
+func (x DocumentType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DocumentType) Descriptor() protoreflect.EnumDescriptor {
+	return file_masterdata_v1_masterdata_proto_enumTypes[1].Descriptor()
+}
+
+func (DocumentType) Type() protoreflect.EnumType {
+	return &file_masterdata_v1_masterdata_proto_enumTypes[1]
+}
+
+func (x DocumentType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DocumentType.Descriptor instead.
+func (DocumentType) EnumDescriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{1}
+}
+
+type DateFormat int32
+
+const (
+	DateFormat_DATE_FORMAT_UNSPECIFIED DateFormat = 0
+	DateFormat_DATE_FORMAT_YYYYMMDD    DateFormat = 1
+	DateFormat_DATE_FORMAT_YYYYMM      DateFormat = 2
+	DateFormat_DATE_FORMAT_YYYY        DateFormat = 3
+	DateFormat_DATE_FORMAT_NONE        DateFormat = 4
+)
+
+// Enum value maps for DateFormat.
+var (
+	DateFormat_name = map[int32]string{
+		0: "DATE_FORMAT_UNSPECIFIED",
+		1: "DATE_FORMAT_YYYYMMDD",
+		2: "DATE_FORMAT_YYYYMM",
+		3: "DATE_FORMAT_YYYY",
+		4: "DATE_FORMAT_NONE",
+	}
+	DateFormat_value = map[string]int32{
+		"DATE_FORMAT_UNSPECIFIED": 0,
+		"DATE_FORMAT_YYYYMMDD":    1,
+		"DATE_FORMAT_YYYYMM":      2,
+		"DATE_FORMAT_YYYY":        3,
+		"DATE_FORMAT_NONE":        4,
+	}
+)
+
+func (x DateFormat) Enum() *DateFormat {
+	p := new(DateFormat)
+	*p = x
+	return p
+}
+
+func (x DateFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DateFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_masterdata_v1_masterdata_proto_enumTypes[2].Descriptor()
+}
+
+func (DateFormat) Type() protoreflect.EnumType {
+	return &file_masterdata_v1_masterdata_proto_enumTypes[2]
+}
+
+func (x DateFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DateFormat.Descriptor instead.
+func (DateFormat) EnumDescriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{2}
+}
+
+type ResetPolicy int32
+
+const (
+	ResetPolicy_RESET_POLICY_UNSPECIFIED ResetPolicy = 0
+	ResetPolicy_RESET_POLICY_DAILY       ResetPolicy = 1
+	ResetPolicy_RESET_POLICY_MONTHLY     ResetPolicy = 2
+	ResetPolicy_RESET_POLICY_YEARLY      ResetPolicy = 3
+	ResetPolicy_RESET_POLICY_NEVER       ResetPolicy = 4
+)
+
+// Enum value maps for ResetPolicy.
+var (
+	ResetPolicy_name = map[int32]string{
+		0: "RESET_POLICY_UNSPECIFIED",
+		1: "RESET_POLICY_DAILY",
+		2: "RESET_POLICY_MONTHLY",
+		3: "RESET_POLICY_YEARLY",
+		4: "RESET_POLICY_NEVER",
+	}
+	ResetPolicy_value = map[string]int32{
+		"RESET_POLICY_UNSPECIFIED": 0,
+		"RESET_POLICY_DAILY":       1,
+		"RESET_POLICY_MONTHLY":     2,
+		"RESET_POLICY_YEARLY":      3,
+		"RESET_POLICY_NEVER":       4,
+	}
+)
+
+func (x ResetPolicy) Enum() *ResetPolicy {
+	p := new(ResetPolicy)
+	*p = x
+	return p
+}
+
+func (x ResetPolicy) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ResetPolicy) Descriptor() protoreflect.EnumDescriptor {
+	return file_masterdata_v1_masterdata_proto_enumTypes[3].Descriptor()
+}
+
+func (ResetPolicy) Type() protoreflect.EnumType {
+	return &file_masterdata_v1_masterdata_proto_enumTypes[3]
+}
+
+func (x ResetPolicy) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ResetPolicy.Descriptor instead.
+func (ResetPolicy) EnumDescriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{3}
+}
+
+type BusinessType int32
+
+const (
+	BusinessType_BUSINESS_TYPE_UNSPECIFIED BusinessType = 0
+	BusinessType_BUSINESS_TYPE_SE          BusinessType = 1
+	BusinessType_BUSINESS_TYPE_SI          BusinessType = 2
+	BusinessType_BUSINESS_TYPE_AE          BusinessType = 3
+	BusinessType_BUSINESS_TYPE_AI          BusinessType = 4
+	BusinessType_BUSINESS_TYPE_LAND        BusinessType = 5
+	BusinessType_BUSINESS_TYPE_RAIL        BusinessType = 6
+)
+
+// Enum value maps for BusinessType.
+var (
+	BusinessType_name = map[int32]string{
+		0: "BUSINESS_TYPE_UNSPECIFIED",
+		1: "BUSINESS_TYPE_SE",
+		2: "BUSINESS_TYPE_SI",
+		3: "BUSINESS_TYPE_AE",
+		4: "BUSINESS_TYPE_AI",
+		5: "BUSINESS_TYPE_LAND",
+		6: "BUSINESS_TYPE_RAIL",
+	}
+	BusinessType_value = map[string]int32{
+		"BUSINESS_TYPE_UNSPECIFIED": 0,
+		"BUSINESS_TYPE_SE":          1,
+		"BUSINESS_TYPE_SI":          2,
+		"BUSINESS_TYPE_AE":          3,
+		"BUSINESS_TYPE_AI":          4,
+		"BUSINESS_TYPE_LAND":        5,
+		"BUSINESS_TYPE_RAIL":        6,
+	}
+)
+
+func (x BusinessType) Enum() *BusinessType {
+	p := new(BusinessType)
+	*p = x
+	return p
+}
+
+func (x BusinessType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BusinessType) Descriptor() protoreflect.EnumDescriptor {
+	return file_masterdata_v1_masterdata_proto_enumTypes[4].Descriptor()
+}
+
+func (BusinessType) Type() protoreflect.EnumType {
+	return &file_masterdata_v1_masterdata_proto_enumTypes[4]
+}
+
+func (x BusinessType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BusinessType.Descriptor instead.
+func (BusinessType) EnumDescriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{4}
+}
+
 type ListMasterDataItemsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -828,6 +1066,1154 @@ func (x *MasterDataOptionsReply) GetTraceId() string {
 	return ""
 }
 
+type ListNumberRulesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNumberRulesRequest) Reset() {
+	*x = ListNumberRulesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNumberRulesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNumberRulesRequest) ProtoMessage() {}
+
+func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNumberRulesRequest.ProtoReflect.Descriptor instead.
+func (*ListNumberRulesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{8}
+}
+
+type CreateNumberRuleRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DocumentType   DocumentType           `protobuf:"varint,1,opt,name=document_type,json=documentType,proto3,enum=masterdata.v1.DocumentType" json:"document_type,omitempty"`
+	Prefix         string                 `protobuf:"bytes,2,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	DateFormat     DateFormat             `protobuf:"varint,3,opt,name=date_format,json=dateFormat,proto3,enum=masterdata.v1.DateFormat" json:"date_format,omitempty"`
+	SequenceLength int32                  `protobuf:"varint,4,opt,name=sequence_length,json=sequenceLength,proto3" json:"sequence_length,omitempty"`
+	ResetPolicy    ResetPolicy            `protobuf:"varint,5,opt,name=reset_policy,json=resetPolicy,proto3,enum=masterdata.v1.ResetPolicy" json:"reset_policy,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateNumberRuleRequest) Reset() {
+	*x = CreateNumberRuleRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateNumberRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateNumberRuleRequest) ProtoMessage() {}
+
+func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateNumberRuleRequest.ProtoReflect.Descriptor instead.
+func (*CreateNumberRuleRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateNumberRuleRequest) GetDocumentType() DocumentType {
+	if x != nil {
+		return x.DocumentType
+	}
+	return DocumentType_DOCUMENT_TYPE_UNSPECIFIED
+}
+
+func (x *CreateNumberRuleRequest) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *CreateNumberRuleRequest) GetDateFormat() DateFormat {
+	if x != nil {
+		return x.DateFormat
+	}
+	return DateFormat_DATE_FORMAT_UNSPECIFIED
+}
+
+func (x *CreateNumberRuleRequest) GetSequenceLength() int32 {
+	if x != nil {
+		return x.SequenceLength
+	}
+	return 0
+}
+
+func (x *CreateNumberRuleRequest) GetResetPolicy() ResetPolicy {
+	if x != nil {
+		return x.ResetPolicy
+	}
+	return ResetPolicy_RESET_POLICY_UNSPECIFIED
+}
+
+type UpdateNumberRuleRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Prefix         string                 `protobuf:"bytes,2,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	DateFormat     DateFormat             `protobuf:"varint,3,opt,name=date_format,json=dateFormat,proto3,enum=masterdata.v1.DateFormat" json:"date_format,omitempty"`
+	SequenceLength int32                  `protobuf:"varint,4,opt,name=sequence_length,json=sequenceLength,proto3" json:"sequence_length,omitempty"`
+	ResetPolicy    ResetPolicy            `protobuf:"varint,5,opt,name=reset_policy,json=resetPolicy,proto3,enum=masterdata.v1.ResetPolicy" json:"reset_policy,omitempty"`
+	Enabled        bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UpdateNumberRuleRequest) Reset() {
+	*x = UpdateNumberRuleRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNumberRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNumberRuleRequest) ProtoMessage() {}
+
+func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNumberRuleRequest.ProtoReflect.Descriptor instead.
+func (*UpdateNumberRuleRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateNumberRuleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateNumberRuleRequest) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *UpdateNumberRuleRequest) GetDateFormat() DateFormat {
+	if x != nil {
+		return x.DateFormat
+	}
+	return DateFormat_DATE_FORMAT_UNSPECIFIED
+}
+
+func (x *UpdateNumberRuleRequest) GetSequenceLength() int32 {
+	if x != nil {
+		return x.SequenceLength
+	}
+	return 0
+}
+
+func (x *UpdateNumberRuleRequest) GetResetPolicy() ResetPolicy {
+	if x != nil {
+		return x.ResetPolicy
+	}
+	return ResetPolicy_RESET_POLICY_UNSPECIFIED
+}
+
+func (x *UpdateNumberRuleRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type NumberRule struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	DocumentType   DocumentType           `protobuf:"varint,3,opt,name=document_type,json=documentType,proto3,enum=masterdata.v1.DocumentType" json:"document_type,omitempty"`
+	Prefix         string                 `protobuf:"bytes,4,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	DateFormat     DateFormat             `protobuf:"varint,5,opt,name=date_format,json=dateFormat,proto3,enum=masterdata.v1.DateFormat" json:"date_format,omitempty"`
+	SequenceLength int32                  `protobuf:"varint,6,opt,name=sequence_length,json=sequenceLength,proto3" json:"sequence_length,omitempty"`
+	ResetPolicy    ResetPolicy            `protobuf:"varint,7,opt,name=reset_policy,json=resetPolicy,proto3,enum=masterdata.v1.ResetPolicy" json:"reset_policy,omitempty"`
+	Enabled        bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *NumberRule) Reset() {
+	*x = NumberRule{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NumberRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NumberRule) ProtoMessage() {}
+
+func (x *NumberRule) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NumberRule.ProtoReflect.Descriptor instead.
+func (*NumberRule) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *NumberRule) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *NumberRule) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *NumberRule) GetDocumentType() DocumentType {
+	if x != nil {
+		return x.DocumentType
+	}
+	return DocumentType_DOCUMENT_TYPE_UNSPECIFIED
+}
+
+func (x *NumberRule) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *NumberRule) GetDateFormat() DateFormat {
+	if x != nil {
+		return x.DateFormat
+	}
+	return DateFormat_DATE_FORMAT_UNSPECIFIED
+}
+
+func (x *NumberRule) GetSequenceLength() int32 {
+	if x != nil {
+		return x.SequenceLength
+	}
+	return 0
+}
+
+func (x *NumberRule) GetResetPolicy() ResetPolicy {
+	if x != nil {
+		return x.ResetPolicy
+	}
+	return ResetPolicy_RESET_POLICY_UNSPECIFIED
+}
+
+func (x *NumberRule) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *NumberRule) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *NumberRule) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type NumberRuleListReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*NumberRule          `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NumberRuleListReply) Reset() {
+	*x = NumberRuleListReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NumberRuleListReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NumberRuleListReply) ProtoMessage() {}
+
+func (x *NumberRuleListReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NumberRuleListReply.ProtoReflect.Descriptor instead.
+func (*NumberRuleListReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NumberRuleListReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *NumberRuleListReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NumberRuleListReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NumberRuleListReply) GetData() []*NumberRule {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *NumberRuleListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type NumberRuleReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *NumberRule            `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NumberRuleReply) Reset() {
+	*x = NumberRuleReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NumberRuleReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NumberRuleReply) ProtoMessage() {}
+
+func (x *NumberRuleReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NumberRuleReply.ProtoReflect.Descriptor instead.
+func (*NumberRuleReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *NumberRuleReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *NumberRuleReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NumberRuleReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NumberRuleReply) GetData() *NumberRule {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *NumberRuleReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type StatusTemplateItemInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	ColorToken    *string                `protobuf:"bytes,5,opt,name=color_token,json=colorToken,proto3,oneof" json:"color_token,omitempty"`
+	System        bool                   `protobuf:"varint,6,opt,name=system,proto3" json:"system,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusTemplateItemInput) Reset() {
+	*x = StatusTemplateItemInput{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusTemplateItemInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusTemplateItemInput) ProtoMessage() {}
+
+func (x *StatusTemplateItemInput) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusTemplateItemInput.ProtoReflect.Descriptor instead.
+func (*StatusTemplateItemInput) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *StatusTemplateItemInput) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *StatusTemplateItemInput) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *StatusTemplateItemInput) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *StatusTemplateItemInput) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+func (x *StatusTemplateItemInput) GetColorToken() string {
+	if x != nil && x.ColorToken != nil {
+		return *x.ColorToken
+	}
+	return ""
+}
+
+func (x *StatusTemplateItemInput) GetSystem() bool {
+	if x != nil {
+		return x.System
+	}
+	return false
+}
+
+type CreateStatusTemplateRequest struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Code          string                     `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	BusinessType  BusinessType               `protobuf:"varint,3,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	Version       int32                      `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
+	Items         []*StatusTemplateItemInput `protobuf:"bytes,5,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateStatusTemplateRequest) Reset() {
+	*x = CreateStatusTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateStatusTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateStatusTemplateRequest) ProtoMessage() {}
+
+func (x *CreateStatusTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateStatusTemplateRequest.ProtoReflect.Descriptor instead.
+func (*CreateStatusTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CreateStatusTemplateRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *CreateStatusTemplateRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateStatusTemplateRequest) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *CreateStatusTemplateRequest) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *CreateStatusTemplateRequest) GetItems() []*StatusTemplateItemInput {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type ListStatusTemplatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType  BusinessType           `protobuf:"varint,1,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	Published     *bool                  `protobuf:"varint,2,opt,name=published,proto3,oneof" json:"published,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStatusTemplatesRequest) Reset() {
+	*x = ListStatusTemplatesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStatusTemplatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStatusTemplatesRequest) ProtoMessage() {}
+
+func (x *ListStatusTemplatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStatusTemplatesRequest.ProtoReflect.Descriptor instead.
+func (*ListStatusTemplatesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ListStatusTemplatesRequest) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *ListStatusTemplatesRequest) GetPublished() bool {
+	if x != nil && x.Published != nil {
+		return *x.Published
+	}
+	return false
+}
+
+type PublishStatusTemplateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	IsDefault     bool                   `protobuf:"varint,2,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishStatusTemplateRequest) Reset() {
+	*x = PublishStatusTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishStatusTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishStatusTemplateRequest) ProtoMessage() {}
+
+func (x *PublishStatusTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishStatusTemplateRequest.ProtoReflect.Descriptor instead.
+func (*PublishStatusTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PublishStatusTemplateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PublishStatusTemplateRequest) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+type SetDefaultStatusTemplateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetDefaultStatusTemplateRequest) Reset() {
+	*x = SetDefaultStatusTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetDefaultStatusTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetDefaultStatusTemplateRequest) ProtoMessage() {}
+
+func (x *SetDefaultStatusTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetDefaultStatusTemplateRequest.ProtoReflect.Descriptor instead.
+func (*SetDefaultStatusTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *SetDefaultStatusTemplateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type StatusTemplateItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Label         string                 `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,4,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	ColorToken    *string                `protobuf:"bytes,6,opt,name=color_token,json=colorToken,proto3,oneof" json:"color_token,omitempty"`
+	System        bool                   `protobuf:"varint,7,opt,name=system,proto3" json:"system,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusTemplateItem) Reset() {
+	*x = StatusTemplateItem{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusTemplateItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusTemplateItem) ProtoMessage() {}
+
+func (x *StatusTemplateItem) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusTemplateItem.ProtoReflect.Descriptor instead.
+func (*StatusTemplateItem) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *StatusTemplateItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StatusTemplateItem) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *StatusTemplateItem) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *StatusTemplateItem) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *StatusTemplateItem) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *StatusTemplateItem) GetColorToken() string {
+	if x != nil && x.ColorToken != nil {
+		return *x.ColorToken
+	}
+	return ""
+}
+
+func (x *StatusTemplateItem) GetSystem() bool {
+	if x != nil {
+		return x.System
+	}
+	return false
+}
+
+type StatusTemplate struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Code           string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Name           string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	BusinessType   BusinessType           `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	Version        int32                  `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
+	IsDefault      bool                   `protobuf:"varint,7,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	PublishedAt    *string                `protobuf:"bytes,8,opt,name=published_at,json=publishedAt,proto3,oneof" json:"published_at,omitempty"`
+	Enabled        bool                   `protobuf:"varint,9,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Items          []*StatusTemplateItem  `protobuf:"bytes,10,rep,name=items,proto3" json:"items,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *StatusTemplate) Reset() {
+	*x = StatusTemplate{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusTemplate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusTemplate) ProtoMessage() {}
+
+func (x *StatusTemplate) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusTemplate.ProtoReflect.Descriptor instead.
+func (*StatusTemplate) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *StatusTemplate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *StatusTemplate) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *StatusTemplate) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+func (x *StatusTemplate) GetPublishedAt() string {
+	if x != nil && x.PublishedAt != nil {
+		return *x.PublishedAt
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *StatusTemplate) GetItems() []*StatusTemplateItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *StatusTemplate) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *StatusTemplate) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type StatusTemplateListReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*StatusTemplate      `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusTemplateListReply) Reset() {
+	*x = StatusTemplateListReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusTemplateListReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusTemplateListReply) ProtoMessage() {}
+
+func (x *StatusTemplateListReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusTemplateListReply.ProtoReflect.Descriptor instead.
+func (*StatusTemplateListReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *StatusTemplateListReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *StatusTemplateListReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *StatusTemplateListReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *StatusTemplateListReply) GetData() []*StatusTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *StatusTemplateListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type StatusTemplateReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *StatusTemplate        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusTemplateReply) Reset() {
+	*x = StatusTemplateReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusTemplateReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusTemplateReply) ProtoMessage() {}
+
+func (x *StatusTemplateReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusTemplateReply.ProtoReflect.Descriptor instead.
+func (*StatusTemplateReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *StatusTemplateReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *StatusTemplateReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *StatusTemplateReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *StatusTemplateReply) GetData() *StatusTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *StatusTemplateReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_masterdata_v1_masterdata_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_masterdata_proto_rawDesc = "" +
@@ -926,6 +2312,120 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x03(\v2\x1d.masterdata.v1.MasterDataItemR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x18\n" +
+	"\x16ListNumberRulesRequest\"\xab\x02\n" +
+	"\x17CreateNumberRuleRequest\x12E\n" +
+	"\rdocument_type\x18\x01 \x01(\x0e2\x1b.masterdata.v1.DocumentTypeB\x03\xe0A\x02R\fdocumentType\x12\x16\n" +
+	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12?\n" +
+	"\vdate_format\x18\x03 \x01(\x0e2\x19.masterdata.v1.DateFormatB\x03\xe0A\x02R\n" +
+	"dateFormat\x12,\n" +
+	"\x0fsequence_length\x18\x04 \x01(\x05B\x03\xe0A\x02R\x0esequenceLength\x12B\n" +
+	"\freset_policy\x18\x05 \x01(\x0e2\x1a.masterdata.v1.ResetPolicyB\x03\xe0A\x02R\vresetPolicy\"\x93\x02\n" +
+	"\x17UpdateNumberRuleRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x16\n" +
+	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12?\n" +
+	"\vdate_format\x18\x03 \x01(\x0e2\x19.masterdata.v1.DateFormatB\x03\xe0A\x02R\n" +
+	"dateFormat\x12,\n" +
+	"\x0fsequence_length\x18\x04 \x01(\x05B\x03\xe0A\x02R\x0esequenceLength\x12B\n" +
+	"\freset_policy\x18\x05 \x01(\x0e2\x1a.masterdata.v1.ResetPolicyB\x03\xe0A\x02R\vresetPolicy\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x9b\x03\n" +
+	"\n" +
+	"NumberRule\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12@\n" +
+	"\rdocument_type\x18\x03 \x01(\x0e2\x1b.masterdata.v1.DocumentTypeR\fdocumentType\x12\x16\n" +
+	"\x06prefix\x18\x04 \x01(\tR\x06prefix\x12:\n" +
+	"\vdate_format\x18\x05 \x01(\x0e2\x19.masterdata.v1.DateFormatR\n" +
+	"dateFormat\x12'\n" +
+	"\x0fsequence_length\x18\x06 \x01(\x05R\x0esequenceLength\x12=\n" +
+	"\freset_policy\x18\a \x01(\x0e2\x1a.masterdata.v1.ResetPolicyR\vresetPolicy\x12\x18\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\tR\tupdatedAt\"\xa7\x01\n" +
+	"\x13NumberRuleListReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
+	"\x04data\x18\x04 \x03(\v2\x19.masterdata.v1.NumberRuleR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa3\x01\n" +
+	"\x0fNumberRuleReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
+	"\x04data\x18\x04 \x01(\v2\x19.masterdata.v1.NumberRuleR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe5\x01\n" +
+	"\x17StatusTemplateItemInput\x12\x17\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x19\n" +
+	"\x05label\x18\x02 \x01(\tB\x03\xe0A\x02R\x05label\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x03 \x01(\x05R\tsortOrder\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01\x12$\n" +
+	"\vcolor_token\x18\x05 \x01(\tH\x01R\n" +
+	"colorToken\x88\x01\x01\x12\x16\n" +
+	"\x06system\x18\x06 \x01(\bR\x06systemB\n" +
+	"\n" +
+	"\b_enabledB\x0e\n" +
+	"\f_color_token\"\xf8\x01\n" +
+	"\x1bCreateStatusTemplateRequest\x12\x17\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12E\n" +
+	"\rbusiness_type\x18\x03 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeB\x03\xe0A\x02R\fbusinessType\x12\x1d\n" +
+	"\aversion\x18\x04 \x01(\x05B\x03\xe0A\x02R\aversion\x12A\n" +
+	"\x05items\x18\x05 \x03(\v2&.masterdata.v1.StatusTemplateItemInputB\x03\xe0A\x02R\x05items\"\x8f\x01\n" +
+	"\x1aListStatusTemplatesRequest\x12@\n" +
+	"\rbusiness_type\x18\x01 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeR\fbusinessType\x12!\n" +
+	"\tpublished\x18\x02 \x01(\bH\x00R\tpublished\x88\x01\x01B\f\n" +
+	"\n" +
+	"_published\"R\n" +
+	"\x1cPublishStatusTemplateRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\x02 \x01(\bR\tisDefault\"6\n" +
+	"\x1fSetDefaultStatusTemplateRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xd5\x01\n" +
+	"\x12StatusTemplateItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x04 \x01(\x05R\tsortOrder\x12\x18\n" +
+	"\aenabled\x18\x05 \x01(\bR\aenabled\x12$\n" +
+	"\vcolor_token\x18\x06 \x01(\tH\x00R\n" +
+	"colorToken\x88\x01\x01\x12\x16\n" +
+	"\x06system\x18\a \x01(\bR\x06systemB\x0e\n" +
+	"\f_color_token\"\xb6\x03\n" +
+	"\x0eStatusTemplate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12@\n" +
+	"\rbusiness_type\x18\x05 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeR\fbusinessType\x12\x18\n" +
+	"\aversion\x18\x06 \x01(\x05R\aversion\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\a \x01(\bR\tisDefault\x12&\n" +
+	"\fpublished_at\x18\b \x01(\tH\x00R\vpublishedAt\x88\x01\x01\x12\x18\n" +
+	"\aenabled\x18\t \x01(\bR\aenabled\x127\n" +
+	"\x05items\x18\n" +
+	" \x03(\v2!.masterdata.v1.StatusTemplateItemR\x05items\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAtB\x0f\n" +
+	"\r_published_at\"\xaf\x01\n" +
+	"\x17StatusTemplateListReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x03(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"\x13StatusTemplateReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xd0\x02\n" +
 	"\x0eMasterDataKind\x12 \n" +
 	"\x1cMASTER_DATA_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
@@ -937,14 +2437,52 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x18MASTER_DATA_KIND_CARRIER\x10\x06\x12#\n" +
 	"\x1fMASTER_DATA_KIND_CONTAINER_SPEC\x10\a\x12!\n" +
 	"\x1dMASTER_DATA_KIND_SERVICE_TYPE\x10\b\x12#\n" +
-	"\x1fMASTER_DATA_KIND_CARGO_CATEGORY\x10\t2\xaf\x04\n" +
+	"\x1fMASTER_DATA_KIND_CARGO_CATEGORY\x10\t*\xfa\x01\n" +
+	"\fDocumentType\x12\x1d\n" +
+	"\x19DOCUMENT_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13DOCUMENT_TYPE_ORDER\x10\x01\x12\x19\n" +
+	"\x15DOCUMENT_TYPE_BOOKING\x10\x02\x12\x15\n" +
+	"\x11DOCUMENT_TYPE_HBL\x10\x03\x12\x15\n" +
+	"\x11DOCUMENT_TYPE_MBL\x10\x04\x12\x16\n" +
+	"\x12DOCUMENT_TYPE_BILL\x10\x05\x12\x1b\n" +
+	"\x17DOCUMENT_TYPE_STATEMENT\x10\x06\x12\x19\n" +
+	"\x15DOCUMENT_TYPE_PAYMENT\x10\a\x12\x19\n" +
+	"\x15DOCUMENT_TYPE_INVOICE\x10\b*\x87\x01\n" +
+	"\n" +
+	"DateFormat\x12\x1b\n" +
+	"\x17DATE_FORMAT_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14DATE_FORMAT_YYYYMMDD\x10\x01\x12\x16\n" +
+	"\x12DATE_FORMAT_YYYYMM\x10\x02\x12\x14\n" +
+	"\x10DATE_FORMAT_YYYY\x10\x03\x12\x14\n" +
+	"\x10DATE_FORMAT_NONE\x10\x04*\x8e\x01\n" +
+	"\vResetPolicy\x12\x1c\n" +
+	"\x18RESET_POLICY_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12RESET_POLICY_DAILY\x10\x01\x12\x18\n" +
+	"\x14RESET_POLICY_MONTHLY\x10\x02\x12\x17\n" +
+	"\x13RESET_POLICY_YEARLY\x10\x03\x12\x16\n" +
+	"\x12RESET_POLICY_NEVER\x10\x04*\xb5\x01\n" +
+	"\fBusinessType\x12\x1d\n" +
+	"\x19BUSINESS_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10BUSINESS_TYPE_SE\x10\x01\x12\x14\n" +
+	"\x10BUSINESS_TYPE_SI\x10\x02\x12\x14\n" +
+	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
+	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
+	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\xe0\f\n" +
 	"\x11MasterDataService\x12\x81\x01\n" +
 	"\tListItems\x12).masterdata.v1.ListMasterDataItemsRequest\x1a&.masterdata.v1.MasterDataItemListReply\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x82\x01\n" +
 	"\n" +
 	"CreateItem\x12*.masterdata.v1.CreateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\x87\x01\n" +
 	"\n" +
 	"UpdateItem\x12*.masterdata.v1.UpdateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\x86\x01\n" +
-	"\vListOptions\x12+.masterdata.v1.ListMasterDataOptionsRequest\x1a%.masterdata.v1.MasterDataOptionsReply\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/optionsB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"\vListOptions\x12+.masterdata.v1.ListMasterDataOptionsRequest\x1a%.masterdata.v1.MasterDataOptionsReply\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12\x86\x01\n" +
+	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a\".masterdata.v1.NumberRuleListReply\"(\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\x87\x01\n" +
+	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\x8c\x01\n" +
+	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"0\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}\x12\x96\x01\n" +
+	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a&.masterdata.v1.StatusTemplateListReply\",\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\x97\x01\n" +
+	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xa6\x01\n" +
+	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"<\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xb0\x01\n" +
+	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_masterdata_proto_rawDescOnce sync.Once
@@ -958,40 +2496,90 @@ func file_masterdata_v1_masterdata_proto_rawDescGZIP() []byte {
 	return file_masterdata_v1_masterdata_proto_rawDescData
 }
 
-var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_masterdata_v1_masterdata_proto_goTypes = []any{
-	(MasterDataKind)(0),                  // 0: masterdata.v1.MasterDataKind
-	(*ListMasterDataItemsRequest)(nil),   // 1: masterdata.v1.ListMasterDataItemsRequest
-	(*CreateMasterDataItemRequest)(nil),  // 2: masterdata.v1.CreateMasterDataItemRequest
-	(*UpdateMasterDataItemRequest)(nil),  // 3: masterdata.v1.UpdateMasterDataItemRequest
-	(*ListMasterDataOptionsRequest)(nil), // 4: masterdata.v1.ListMasterDataOptionsRequest
-	(*MasterDataItem)(nil),               // 5: masterdata.v1.MasterDataItem
-	(*MasterDataItemListReply)(nil),      // 6: masterdata.v1.MasterDataItemListReply
-	(*MasterDataItemReply)(nil),          // 7: masterdata.v1.MasterDataItemReply
-	(*MasterDataOptionsReply)(nil),       // 8: masterdata.v1.MasterDataOptionsReply
+	(MasterDataKind)(0),                     // 0: masterdata.v1.MasterDataKind
+	(DocumentType)(0),                       // 1: masterdata.v1.DocumentType
+	(DateFormat)(0),                         // 2: masterdata.v1.DateFormat
+	(ResetPolicy)(0),                        // 3: masterdata.v1.ResetPolicy
+	(BusinessType)(0),                       // 4: masterdata.v1.BusinessType
+	(*ListMasterDataItemsRequest)(nil),      // 5: masterdata.v1.ListMasterDataItemsRequest
+	(*CreateMasterDataItemRequest)(nil),     // 6: masterdata.v1.CreateMasterDataItemRequest
+	(*UpdateMasterDataItemRequest)(nil),     // 7: masterdata.v1.UpdateMasterDataItemRequest
+	(*ListMasterDataOptionsRequest)(nil),    // 8: masterdata.v1.ListMasterDataOptionsRequest
+	(*MasterDataItem)(nil),                  // 9: masterdata.v1.MasterDataItem
+	(*MasterDataItemListReply)(nil),         // 10: masterdata.v1.MasterDataItemListReply
+	(*MasterDataItemReply)(nil),             // 11: masterdata.v1.MasterDataItemReply
+	(*MasterDataOptionsReply)(nil),          // 12: masterdata.v1.MasterDataOptionsReply
+	(*ListNumberRulesRequest)(nil),          // 13: masterdata.v1.ListNumberRulesRequest
+	(*CreateNumberRuleRequest)(nil),         // 14: masterdata.v1.CreateNumberRuleRequest
+	(*UpdateNumberRuleRequest)(nil),         // 15: masterdata.v1.UpdateNumberRuleRequest
+	(*NumberRule)(nil),                      // 16: masterdata.v1.NumberRule
+	(*NumberRuleListReply)(nil),             // 17: masterdata.v1.NumberRuleListReply
+	(*NumberRuleReply)(nil),                 // 18: masterdata.v1.NumberRuleReply
+	(*StatusTemplateItemInput)(nil),         // 19: masterdata.v1.StatusTemplateItemInput
+	(*CreateStatusTemplateRequest)(nil),     // 20: masterdata.v1.CreateStatusTemplateRequest
+	(*ListStatusTemplatesRequest)(nil),      // 21: masterdata.v1.ListStatusTemplatesRequest
+	(*PublishStatusTemplateRequest)(nil),    // 22: masterdata.v1.PublishStatusTemplateRequest
+	(*SetDefaultStatusTemplateRequest)(nil), // 23: masterdata.v1.SetDefaultStatusTemplateRequest
+	(*StatusTemplateItem)(nil),              // 24: masterdata.v1.StatusTemplateItem
+	(*StatusTemplate)(nil),                  // 25: masterdata.v1.StatusTemplate
+	(*StatusTemplateListReply)(nil),         // 26: masterdata.v1.StatusTemplateListReply
+	(*StatusTemplateReply)(nil),             // 27: masterdata.v1.StatusTemplateReply
 }
 var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	0,  // 0: masterdata.v1.ListMasterDataItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
 	0,  // 1: masterdata.v1.CreateMasterDataItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
 	0,  // 2: masterdata.v1.UpdateMasterDataItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
 	0,  // 3: masterdata.v1.MasterDataItem.kind:type_name -> masterdata.v1.MasterDataKind
-	5,  // 4: masterdata.v1.MasterDataItemListReply.data:type_name -> masterdata.v1.MasterDataItem
-	5,  // 5: masterdata.v1.MasterDataItemReply.data:type_name -> masterdata.v1.MasterDataItem
-	5,  // 6: masterdata.v1.MasterDataOptionsReply.data:type_name -> masterdata.v1.MasterDataItem
-	1,  // 7: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListMasterDataItemsRequest
-	2,  // 8: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateMasterDataItemRequest
-	3,  // 9: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateMasterDataItemRequest
-	4,  // 10: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListMasterDataOptionsRequest
-	6,  // 11: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.MasterDataItemListReply
-	7,  // 12: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.MasterDataItemReply
-	7,  // 13: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.MasterDataItemReply
-	8,  // 14: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.MasterDataOptionsReply
-	11, // [11:15] is the sub-list for method output_type
-	7,  // [7:11] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	9,  // 4: masterdata.v1.MasterDataItemListReply.data:type_name -> masterdata.v1.MasterDataItem
+	9,  // 5: masterdata.v1.MasterDataItemReply.data:type_name -> masterdata.v1.MasterDataItem
+	9,  // 6: masterdata.v1.MasterDataOptionsReply.data:type_name -> masterdata.v1.MasterDataItem
+	1,  // 7: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
+	2,  // 8: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	3,  // 9: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	2,  // 10: masterdata.v1.UpdateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	3,  // 11: masterdata.v1.UpdateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	1,  // 12: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
+	2,  // 13: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
+	3,  // 14: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	16, // 15: masterdata.v1.NumberRuleListReply.data:type_name -> masterdata.v1.NumberRule
+	16, // 16: masterdata.v1.NumberRuleReply.data:type_name -> masterdata.v1.NumberRule
+	4,  // 17: masterdata.v1.CreateStatusTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
+	19, // 18: masterdata.v1.CreateStatusTemplateRequest.items:type_name -> masterdata.v1.StatusTemplateItemInput
+	4,  // 19: masterdata.v1.ListStatusTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
+	4,  // 20: masterdata.v1.StatusTemplate.business_type:type_name -> masterdata.v1.BusinessType
+	24, // 21: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
+	25, // 22: masterdata.v1.StatusTemplateListReply.data:type_name -> masterdata.v1.StatusTemplate
+	25, // 23: masterdata.v1.StatusTemplateReply.data:type_name -> masterdata.v1.StatusTemplate
+	5,  // 24: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListMasterDataItemsRequest
+	6,  // 25: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateMasterDataItemRequest
+	7,  // 26: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateMasterDataItemRequest
+	8,  // 27: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListMasterDataOptionsRequest
+	13, // 28: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
+	14, // 29: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
+	15, // 30: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
+	21, // 31: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
+	20, // 32: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
+	22, // 33: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
+	23, // 34: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
+	10, // 35: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.MasterDataItemListReply
+	11, // 36: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.MasterDataItemReply
+	11, // 37: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.MasterDataItemReply
+	12, // 38: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.MasterDataOptionsReply
+	17, // 39: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.NumberRuleListReply
+	18, // 40: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.NumberRuleReply
+	18, // 41: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.NumberRuleReply
+	26, // 42: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.StatusTemplateListReply
+	27, // 43: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	27, // 44: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	27, // 45: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	35, // [35:46] is the sub-list for method output_type
+	24, // [24:35] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_masterdata_v1_masterdata_proto_init() }
@@ -1003,13 +2591,17 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[1].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[2].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[4].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[14].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[16].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[19].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[20].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_masterdata_v1_masterdata_proto_rawDesc), len(file_masterdata_v1_masterdata_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   8,
+			NumEnums:      5,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -396,6 +396,59 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.MasterDataItemReply'
+    /api/v1/master-data/number-rules:
+        get:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_ListNumberRules
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.NumberRuleListReply'
+        post:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_CreateNumberRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.CreateNumberRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.NumberRuleReply'
+    /api/v1/master-data/number-rules/{id}:
+        put:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_UpdateNumberRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.UpdateNumberRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.NumberRuleReply'
     /api/v1/master-data/options:
         get:
             tags:
@@ -408,6 +461,93 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.MasterDataOptionsReply'
+    /api/v1/master-data/status-templates:
+        get:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_ListStatusTemplates
+            parameters:
+                - name: businessType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: published
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.StatusTemplateListReply'
+        post:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_CreateStatusTemplate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.CreateStatusTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.StatusTemplateReply'
+    /api/v1/master-data/status-templates/{id}/publish:
+        post:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_PublishStatusTemplate
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.PublishStatusTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.StatusTemplateReply'
+    /api/v1/master-data/status-templates/{id}/set-default:
+        post:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_SetDefaultStatusTemplate
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/masterdata.v1.SetDefaultStatusTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.StatusTemplateReply'
     /api/v1/partners:
         get:
             tags:
@@ -973,6 +1113,51 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
+        masterdata.v1.CreateNumberRuleRequest:
+            required:
+                - documentType
+                - dateFormat
+                - sequenceLength
+                - resetPolicy
+            type: object
+            properties:
+                documentType:
+                    type: integer
+                    format: enum
+                prefix:
+                    type: string
+                dateFormat:
+                    type: integer
+                    format: enum
+                sequenceLength:
+                    type: integer
+                    format: int32
+                resetPolicy:
+                    type: integer
+                    format: enum
+        masterdata.v1.CreateStatusTemplateRequest:
+            required:
+                - code
+                - name
+                - businessType
+                - version
+                - items
+            type: object
+            properties:
+                code:
+                    type: string
+                name:
+                    type: string
+                businessType:
+                    type: integer
+                    format: enum
+                version:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.StatusTemplateItemInput'
         masterdata.v1.MasterDataItem:
             type: object
             properties:
@@ -1061,6 +1246,177 @@ components:
                         $ref: '#/components/schemas/masterdata.v1.MasterDataItem'
                 traceId:
                     type: string
+        masterdata.v1.NumberRule:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                documentType:
+                    type: integer
+                    format: enum
+                prefix:
+                    type: string
+                dateFormat:
+                    type: integer
+                    format: enum
+                sequenceLength:
+                    type: integer
+                    format: int32
+                resetPolicy:
+                    type: integer
+                    format: enum
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        masterdata.v1.NumberRuleListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.NumberRule'
+                traceId:
+                    type: string
+        masterdata.v1.NumberRuleReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/masterdata.v1.NumberRule'
+                traceId:
+                    type: string
+        masterdata.v1.PublishStatusTemplateRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+                isDefault:
+                    type: boolean
+        masterdata.v1.SetDefaultStatusTemplateRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        masterdata.v1.StatusTemplate:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                businessType:
+                    type: integer
+                    format: enum
+                version:
+                    type: integer
+                    format: int32
+                isDefault:
+                    type: boolean
+                publishedAt:
+                    type: string
+                enabled:
+                    type: boolean
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.StatusTemplateItem'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        masterdata.v1.StatusTemplateItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                label:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                enabled:
+                    type: boolean
+                colorToken:
+                    type: string
+                system:
+                    type: boolean
+        masterdata.v1.StatusTemplateItemInput:
+            required:
+                - code
+                - label
+            type: object
+            properties:
+                code:
+                    type: string
+                label:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                enabled:
+                    type: boolean
+                colorToken:
+                    type: string
+                system:
+                    type: boolean
+        masterdata.v1.StatusTemplateListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.StatusTemplate'
+                traceId:
+                    type: string
+        masterdata.v1.StatusTemplateReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/masterdata.v1.StatusTemplate'
+                traceId:
+                    type: string
         masterdata.v1.UpdateMasterDataItemRequest:
             required:
                 - id
@@ -1090,6 +1446,29 @@ components:
                 kind:
                     type: integer
                     format: enum
+        masterdata.v1.UpdateNumberRuleRequest:
+            required:
+                - id
+                - dateFormat
+                - sequenceLength
+                - resetPolicy
+            type: object
+            properties:
+                id:
+                    type: string
+                prefix:
+                    type: string
+                dateFormat:
+                    type: integer
+                    format: enum
+                sequenceLength:
+                    type: integer
+                    format: int32
+                resetPolicy:
+                    type: integer
+                    format: enum
+                enabled:
+                    type: boolean
         partner.v1.CreatePartnerRequest:
             required:
                 - code

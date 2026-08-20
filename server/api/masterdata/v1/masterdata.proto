@@ -29,6 +29,49 @@ service MasterDataService {
   rpc ListOptions(ListMasterDataOptionsRequest) returns (MasterDataOptionsReply) {
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
+
+  rpc ListNumberRules(ListNumberRulesRequest) returns (NumberRuleListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/number-rules"};
+  }
+
+  rpc CreateNumberRule(CreateNumberRuleRequest) returns (NumberRuleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/number-rules"
+      body: "*"
+    };
+  }
+
+  rpc UpdateNumberRule(UpdateNumberRuleRequest) returns (NumberRuleReply) {
+    option (google.api.http) = {
+      put: "/api/v1/master-data/number-rules/{id}"
+      body: "*"
+    };
+  }
+
+  rpc ListStatusTemplates(ListStatusTemplatesRequest) returns (StatusTemplateListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/status-templates"};
+  }
+
+  rpc CreateStatusTemplate(CreateStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/status-templates"
+      body: "*"
+    };
+  }
+
+  rpc PublishStatusTemplate(PublishStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/status-templates/{id}/publish"
+      body: "*"
+    };
+  }
+
+  rpc SetDefaultStatusTemplate(SetDefaultStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/master-data/status-templates/{id}/set-default"
+      body: "*"
+    };
+  }
 }
 
 enum MasterDataKind {
@@ -42,6 +85,44 @@ enum MasterDataKind {
   MASTER_DATA_KIND_CONTAINER_SPEC = 7;
   MASTER_DATA_KIND_SERVICE_TYPE = 8;
   MASTER_DATA_KIND_CARGO_CATEGORY = 9;
+}
+
+enum DocumentType {
+  DOCUMENT_TYPE_UNSPECIFIED = 0;
+  DOCUMENT_TYPE_ORDER = 1;
+  DOCUMENT_TYPE_BOOKING = 2;
+  DOCUMENT_TYPE_HBL = 3;
+  DOCUMENT_TYPE_MBL = 4;
+  DOCUMENT_TYPE_BILL = 5;
+  DOCUMENT_TYPE_STATEMENT = 6;
+  DOCUMENT_TYPE_PAYMENT = 7;
+  DOCUMENT_TYPE_INVOICE = 8;
+}
+
+enum DateFormat {
+  DATE_FORMAT_UNSPECIFIED = 0;
+  DATE_FORMAT_YYYYMMDD = 1;
+  DATE_FORMAT_YYYYMM = 2;
+  DATE_FORMAT_YYYY = 3;
+  DATE_FORMAT_NONE = 4;
+}
+
+enum ResetPolicy {
+  RESET_POLICY_UNSPECIFIED = 0;
+  RESET_POLICY_DAILY = 1;
+  RESET_POLICY_MONTHLY = 2;
+  RESET_POLICY_YEARLY = 3;
+  RESET_POLICY_NEVER = 4;
+}
+
+enum BusinessType {
+  BUSINESS_TYPE_UNSPECIFIED = 0;
+  BUSINESS_TYPE_SE = 1;
+  BUSINESS_TYPE_SI = 2;
+  BUSINESS_TYPE_AE = 3;
+  BUSINESS_TYPE_AI = 4;
+  BUSINESS_TYPE_LAND = 5;
+  BUSINESS_TYPE_RAIL = 6;
 }
 
 message ListMasterDataItemsRequest {
@@ -120,5 +201,125 @@ message MasterDataOptionsReply {
   int32 code = 2;
   string message = 3;
   repeated MasterDataItem data = 4;
+  string trace_id = 5;
+}
+
+message ListNumberRulesRequest {}
+
+message CreateNumberRuleRequest {
+  DocumentType document_type = 1 [(google.api.field_behavior) = REQUIRED];
+  string prefix = 2;
+  DateFormat date_format = 3 [(google.api.field_behavior) = REQUIRED];
+  int32 sequence_length = 4 [(google.api.field_behavior) = REQUIRED];
+  ResetPolicy reset_policy = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateNumberRuleRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string prefix = 2;
+  DateFormat date_format = 3 [(google.api.field_behavior) = REQUIRED];
+  int32 sequence_length = 4 [(google.api.field_behavior) = REQUIRED];
+  ResetPolicy reset_policy = 5 [(google.api.field_behavior) = REQUIRED];
+  bool enabled = 6;
+}
+
+message NumberRule {
+  string id = 1;
+  string organization_id = 2;
+  DocumentType document_type = 3;
+  string prefix = 4;
+  DateFormat date_format = 5;
+  int32 sequence_length = 6;
+  ResetPolicy reset_policy = 7;
+  bool enabled = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message NumberRuleListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated NumberRule data = 4;
+  string trace_id = 5;
+}
+
+message NumberRuleReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  NumberRule data = 4;
+  string trace_id = 5;
+}
+
+message StatusTemplateItemInput {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string label = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 sort_order = 3;
+  optional bool enabled = 4;
+  optional string color_token = 5;
+  bool system = 6;
+}
+
+message CreateStatusTemplateRequest {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  BusinessType business_type = 3 [(google.api.field_behavior) = REQUIRED];
+  int32 version = 4 [(google.api.field_behavior) = REQUIRED];
+  repeated StatusTemplateItemInput items = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListStatusTemplatesRequest {
+  BusinessType business_type = 1;
+  optional bool published = 2;
+}
+
+message PublishStatusTemplateRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  bool is_default = 2;
+}
+
+message SetDefaultStatusTemplateRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StatusTemplateItem {
+  string id = 1;
+  string code = 2;
+  string label = 3;
+  int32 sort_order = 4;
+  bool enabled = 5;
+  optional string color_token = 6;
+  bool system = 7;
+}
+
+message StatusTemplate {
+  string id = 1;
+  string organization_id = 2;
+  string code = 3;
+  string name = 4;
+  BusinessType business_type = 5;
+  int32 version = 6;
+  bool is_default = 7;
+  optional string published_at = 8;
+  bool enabled = 9;
+  repeated StatusTemplateItem items = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message StatusTemplateListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated StatusTemplate data = 4;
+  string trace_id = 5;
+}
+
+message StatusTemplateReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  StatusTemplate data = 4;
   string trace_id = 5;
 }

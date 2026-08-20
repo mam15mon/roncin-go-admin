@@ -13,11 +13,15 @@ import (
 
 type MasterDataService struct {
 	v1.UnimplementedMasterDataServiceServer
-	usecase *biz.MasterDataUsecase
+	usecase            *biz.MasterDataUsecase
+	orderConfigUsecase *biz.OrderConfigUsecase
 }
 
-func NewMasterDataService(usecase *biz.MasterDataUsecase) *MasterDataService {
-	return &MasterDataService{usecase: usecase}
+func NewMasterDataService(usecase *biz.MasterDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase) *MasterDataService {
+	return &MasterDataService{
+		usecase:            usecase,
+		orderConfigUsecase: orderConfigUsecase,
+	}
 }
 
 func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListMasterDataItemsRequest) (*v1.MasterDataItemListReply, error) {
@@ -81,6 +85,181 @@ func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListMasterDat
 	return &v1.MasterDataOptionsReply{Success: true, Code: 0, Message: "OK", Data: masterDataItemsToAPI(items), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *MasterDataService) ListNumberRules(ctx context.Context, _ *v1.ListNumberRulesRequest) (*v1.NumberRuleListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rules, err := s.orderConfigUsecase.ListNumberRules(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.NumberRuleListReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    numberRulesToAPI(rules),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) CreateNumberRule(ctx context.Context, request *v1.CreateNumberRuleRequest) (*v1.NumberRuleReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.orderConfigUsecase.CreateNumberRule(ctx, principal.Organization.ID, principal.UserID, &biz.NumberRule{
+		DocumentType:   documentTypeFromAPI(request.GetDocumentType()),
+		Prefix:         request.GetPrefix(),
+		DateFormat:     dateFormatFromAPI(request.GetDateFormat()),
+		SequenceLength: int(request.GetSequenceLength()),
+		ResetPolicy:    resetPolicyFromAPI(request.GetResetPolicy()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.NumberRuleReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    numberRuleToAPI(created),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) UpdateNumberRule(ctx context.Context, request *v1.UpdateNumberRuleRequest) (*v1.NumberRuleReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrMasterDataInvalidArgument
+	}
+	updated, err := s.orderConfigUsecase.UpdateNumberRule(ctx, principal.Organization.ID, principal.UserID, id, &biz.NumberRule{
+		Prefix:         request.GetPrefix(),
+		DateFormat:     dateFormatFromAPI(request.GetDateFormat()),
+		SequenceLength: int(request.GetSequenceLength()),
+		ResetPolicy:    resetPolicyFromAPI(request.GetResetPolicy()),
+		Enabled:        request.GetEnabled(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.NumberRuleReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    numberRuleToAPI(updated),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) ListStatusTemplates(ctx context.Context, request *v1.ListStatusTemplatesRequest) (*v1.StatusTemplateListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var published *bool
+	if request.Published != nil {
+		p := request.GetPublished()
+		published = &p
+	}
+	templates, err := s.orderConfigUsecase.ListStatusTemplates(ctx, principal.Organization.ID, businessTypeFromAPI(request.GetBusinessType()), published)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.StatusTemplateListReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    statusTemplatesToAPI(templates),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) CreateStatusTemplate(ctx context.Context, request *v1.CreateStatusTemplateRequest) (*v1.StatusTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*biz.StatusTemplateItem, 0, len(request.GetItems()))
+	for _, item := range request.GetItems() {
+		if item == nil {
+			return nil, biz.ErrStatusTemplateInvalid
+		}
+		items = append(items, &biz.StatusTemplateItem{
+			Code:       item.GetCode(),
+			Label:      item.GetLabel(),
+			SortOrder:  int(item.GetSortOrder()),
+			Enabled:    item.Enabled == nil || item.GetEnabled(),
+			ColorToken: optionalString(item.GetColorToken(), item.ColorToken != nil),
+			System:     item.GetSystem(),
+		})
+	}
+	created, err := s.orderConfigUsecase.CreateStatusTemplate(ctx, principal.Organization.ID, principal.UserID, &biz.StatusTemplate{
+		Code:         request.GetCode(),
+		Name:         request.GetName(),
+		BusinessType: businessTypeFromAPI(request.GetBusinessType()),
+		Version:      int(request.GetVersion()),
+		Items:        items,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.StatusTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    statusTemplateToAPI(created),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) PublishStatusTemplate(ctx context.Context, request *v1.PublishStatusTemplateRequest) (*v1.StatusTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrStatusTemplateInvalid
+	}
+	published, err := s.orderConfigUsecase.PublishStatusTemplate(ctx, principal.Organization.ID, principal.UserID, id, request.GetIsDefault())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.StatusTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    statusTemplateToAPI(published),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) SetDefaultStatusTemplate(ctx context.Context, request *v1.SetDefaultStatusTemplateRequest) (*v1.StatusTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrStatusTemplateInvalid
+	}
+	updated, err := s.orderConfigUsecase.SetDefaultStatusTemplate(ctx, principal.Organization.ID, principal.UserID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.StatusTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    statusTemplateToAPI(updated),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
 func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 	switch value {
 	case v1.MasterDataKind_MASTER_DATA_KIND_CURRENCY:
@@ -140,7 +319,239 @@ func masterDataItemsToAPI(items []*biz.MasterDataItem) []*v1.MasterDataItem {
 }
 
 func masterDataItemToAPI(item *biz.MasterDataItem) *v1.MasterDataItem {
-	return &v1.MasterDataItem{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), Kind: masterDataKindToAPI(item.Kind), Code: item.Code, Name: item.Name, NameEn: item.NameEN, ParentCode: item.ParentCode, TransportMode: item.TransportMode, TeuFactor: item.TEUFactor, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.Format(time.RFC3339), UpdatedAt: item.UpdatedAt.Format(time.RFC3339)}
+	return &v1.MasterDataItem{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		Kind:           masterDataKindToAPI(item.Kind),
+		Code:           item.Code,
+		Name:           item.Name,
+		NameEn:         item.NameEN,
+		ParentCode:     item.ParentCode,
+		TransportMode:  item.TransportMode,
+		TeuFactor:      item.TEUFactor,
+		Source:         item.Source,
+		SortOrder:      int32(item.SortOrder),
+		Enabled:        item.Enabled,
+		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
+	switch value {
+	case v1.DocumentType_DOCUMENT_TYPE_ORDER:
+		return biz.DocumentTypeOrder
+	case v1.DocumentType_DOCUMENT_TYPE_BOOKING:
+		return biz.DocumentTypeBooking
+	case v1.DocumentType_DOCUMENT_TYPE_HBL:
+		return biz.DocumentTypeHBL
+	case v1.DocumentType_DOCUMENT_TYPE_MBL:
+		return biz.DocumentTypeMBL
+	case v1.DocumentType_DOCUMENT_TYPE_BILL:
+		return biz.DocumentTypeBill
+	case v1.DocumentType_DOCUMENT_TYPE_STATEMENT:
+		return biz.DocumentTypeStatement
+	case v1.DocumentType_DOCUMENT_TYPE_PAYMENT:
+		return biz.DocumentTypePayment
+	case v1.DocumentType_DOCUMENT_TYPE_INVOICE:
+		return biz.DocumentTypeInvoice
+	default:
+		return ""
+	}
+}
+
+func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
+	switch value {
+	case biz.DocumentTypeOrder:
+		return v1.DocumentType_DOCUMENT_TYPE_ORDER
+	case biz.DocumentTypeBooking:
+		return v1.DocumentType_DOCUMENT_TYPE_BOOKING
+	case biz.DocumentTypeHBL:
+		return v1.DocumentType_DOCUMENT_TYPE_HBL
+	case biz.DocumentTypeMBL:
+		return v1.DocumentType_DOCUMENT_TYPE_MBL
+	case biz.DocumentTypeBill:
+		return v1.DocumentType_DOCUMENT_TYPE_BILL
+	case biz.DocumentTypeStatement:
+		return v1.DocumentType_DOCUMENT_TYPE_STATEMENT
+	case biz.DocumentTypePayment:
+		return v1.DocumentType_DOCUMENT_TYPE_PAYMENT
+	case biz.DocumentTypeInvoice:
+		return v1.DocumentType_DOCUMENT_TYPE_INVOICE
+	default:
+		return v1.DocumentType_DOCUMENT_TYPE_UNSPECIFIED
+	}
+}
+
+func dateFormatFromAPI(value v1.DateFormat) biz.DateFormat {
+	switch value {
+	case v1.DateFormat_DATE_FORMAT_YYYYMMDD:
+		return biz.DateFormatYYYYMMDD
+	case v1.DateFormat_DATE_FORMAT_YYYYMM:
+		return biz.DateFormatYYYYMM
+	case v1.DateFormat_DATE_FORMAT_YYYY:
+		return biz.DateFormatYYYY
+	case v1.DateFormat_DATE_FORMAT_NONE:
+		return biz.DateFormatNone
+	default:
+		return ""
+	}
+}
+
+func dateFormatToAPI(value biz.DateFormat) v1.DateFormat {
+	switch value {
+	case biz.DateFormatYYYYMMDD:
+		return v1.DateFormat_DATE_FORMAT_YYYYMMDD
+	case biz.DateFormatYYYYMM:
+		return v1.DateFormat_DATE_FORMAT_YYYYMM
+	case biz.DateFormatYYYY:
+		return v1.DateFormat_DATE_FORMAT_YYYY
+	case biz.DateFormatNone:
+		return v1.DateFormat_DATE_FORMAT_NONE
+	default:
+		return v1.DateFormat_DATE_FORMAT_UNSPECIFIED
+	}
+}
+
+func resetPolicyFromAPI(value v1.ResetPolicy) biz.ResetPolicy {
+	switch value {
+	case v1.ResetPolicy_RESET_POLICY_DAILY:
+		return biz.ResetPolicyDaily
+	case v1.ResetPolicy_RESET_POLICY_MONTHLY:
+		return biz.ResetPolicyMonthly
+	case v1.ResetPolicy_RESET_POLICY_YEARLY:
+		return biz.ResetPolicyYearly
+	case v1.ResetPolicy_RESET_POLICY_NEVER:
+		return biz.ResetPolicyNever
+	default:
+		return ""
+	}
+}
+
+func resetPolicyToAPI(value biz.ResetPolicy) v1.ResetPolicy {
+	switch value {
+	case biz.ResetPolicyDaily:
+		return v1.ResetPolicy_RESET_POLICY_DAILY
+	case biz.ResetPolicyMonthly:
+		return v1.ResetPolicy_RESET_POLICY_MONTHLY
+	case biz.ResetPolicyYearly:
+		return v1.ResetPolicy_RESET_POLICY_YEARLY
+	case biz.ResetPolicyNever:
+		return v1.ResetPolicy_RESET_POLICY_NEVER
+	default:
+		return v1.ResetPolicy_RESET_POLICY_UNSPECIFIED
+	}
+}
+
+func businessTypeFromAPI(value v1.BusinessType) biz.BusinessType {
+	switch value {
+	case v1.BusinessType_BUSINESS_TYPE_SE:
+		return biz.BusinessTypeSE
+	case v1.BusinessType_BUSINESS_TYPE_SI:
+		return biz.BusinessTypeSI
+	case v1.BusinessType_BUSINESS_TYPE_AE:
+		return biz.BusinessTypeAE
+	case v1.BusinessType_BUSINESS_TYPE_AI:
+		return biz.BusinessTypeAI
+	case v1.BusinessType_BUSINESS_TYPE_LAND:
+		return biz.BusinessTypeLand
+	case v1.BusinessType_BUSINESS_TYPE_RAIL:
+		return biz.BusinessTypeRail
+	default:
+		return ""
+	}
+}
+
+func businessTypeToAPI(value biz.BusinessType) v1.BusinessType {
+	switch value {
+	case biz.BusinessTypeSE:
+		return v1.BusinessType_BUSINESS_TYPE_SE
+	case biz.BusinessTypeSI:
+		return v1.BusinessType_BUSINESS_TYPE_SI
+	case biz.BusinessTypeAE:
+		return v1.BusinessType_BUSINESS_TYPE_AE
+	case biz.BusinessTypeAI:
+		return v1.BusinessType_BUSINESS_TYPE_AI
+	case biz.BusinessTypeLand:
+		return v1.BusinessType_BUSINESS_TYPE_LAND
+	case biz.BusinessTypeRail:
+		return v1.BusinessType_BUSINESS_TYPE_RAIL
+	default:
+		return v1.BusinessType_BUSINESS_TYPE_UNSPECIFIED
+	}
+}
+
+func numberRulesToAPI(items []*biz.NumberRule) []*v1.NumberRule {
+	result := make([]*v1.NumberRule, 0, len(items))
+	for _, item := range items {
+		result = append(result, numberRuleToAPI(item))
+	}
+	return result
+}
+
+func numberRuleToAPI(item *biz.NumberRule) *v1.NumberRule {
+	return &v1.NumberRule{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		DocumentType:   documentTypeToAPI(item.DocumentType),
+		Prefix:         item.Prefix,
+		DateFormat:     dateFormatToAPI(item.DateFormat),
+		SequenceLength: int32(item.SequenceLength),
+		ResetPolicy:    resetPolicyToAPI(item.ResetPolicy),
+		Enabled:        item.Enabled,
+		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func statusTemplatesToAPI(items []*biz.StatusTemplate) []*v1.StatusTemplate {
+	result := make([]*v1.StatusTemplate, 0, len(items))
+	for _, item := range items {
+		result = append(result, statusTemplateToAPI(item))
+	}
+	return result
+}
+
+func statusTemplateToAPI(item *biz.StatusTemplate) *v1.StatusTemplate {
+	var publishedAt *string
+	if item.PublishedAt != nil {
+		formatted := item.PublishedAt.Format(time.RFC3339)
+		publishedAt = &formatted
+	}
+	return &v1.StatusTemplate{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		Code:           item.Code,
+		Name:           item.Name,
+		BusinessType:   businessTypeToAPI(item.BusinessType),
+		Version:        int32(item.Version),
+		IsDefault:      item.IsDefault,
+		PublishedAt:    publishedAt,
+		Enabled:        item.Enabled,
+		Items:          statusTemplateItemsToAPI(item.Items),
+		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func statusTemplateItemsToAPI(items []*biz.StatusTemplateItem) []*v1.StatusTemplateItem {
+	result := make([]*v1.StatusTemplateItem, 0, len(items))
+	for _, item := range items {
+		result = append(result, statusTemplateItemToAPI(item))
+	}
+	return result
+}
+
+func statusTemplateItemToAPI(item *biz.StatusTemplateItem) *v1.StatusTemplateItem {
+	return &v1.StatusTemplateItem{
+		Id:         item.ID.String(),
+		Code:       item.Code,
+		Label:      item.Label,
+		SortOrder:  int32(item.SortOrder),
+		Enabled:    item.Enabled,
+		ColorToken: item.ColorToken,
+		System:     item.System,
+	}
 }
 
 var _ v1.MasterDataServiceServer = (*MasterDataService)(nil)

@@ -18,15 +18,29 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationMasterDataServiceCreateItem = "/masterdata.v1.MasterDataService/CreateItem"
+const OperationMasterDataServiceCreateNumberRule = "/masterdata.v1.MasterDataService/CreateNumberRule"
+const OperationMasterDataServiceCreateStatusTemplate = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
 const OperationMasterDataServiceListItems = "/masterdata.v1.MasterDataService/ListItems"
+const OperationMasterDataServiceListNumberRules = "/masterdata.v1.MasterDataService/ListNumberRules"
 const OperationMasterDataServiceListOptions = "/masterdata.v1.MasterDataService/ListOptions"
+const OperationMasterDataServiceListStatusTemplates = "/masterdata.v1.MasterDataService/ListStatusTemplates"
+const OperationMasterDataServicePublishStatusTemplate = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
+const OperationMasterDataServiceSetDefaultStatusTemplate = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
 const OperationMasterDataServiceUpdateItem = "/masterdata.v1.MasterDataService/UpdateItem"
+const OperationMasterDataServiceUpdateNumberRule = "/masterdata.v1.MasterDataService/UpdateNumberRule"
 
 type MasterDataServiceHTTPServer interface {
 	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
+	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
+	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
 	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
+	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
 	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
+	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error)
+	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error)
+	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error)
 	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
+	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error)
 }
 
 func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHTTPServer) {
@@ -35,6 +49,13 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("POST", "/api/v1/master-data/items", _MasterDataService_CreateItem0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/items/{id}", _MasterDataService_UpdateItem0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/options", _MasterDataService_ListOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/number-rules", _MasterDataService_CreateNumberRule0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/master-data/number-rules/{id}", _MasterDataService_UpdateNumberRule0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/status-templates", _MasterDataService_ListStatusTemplates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/status-templates", _MasterDataService_CreateStatusTemplate0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/status-templates/{id}/publish", _MasterDataService_PublishStatusTemplate0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/status-templates/{id}/set-default", _MasterDataService_SetDefaultStatusTemplate0_HTTP_Handler(srv))
 }
 
 func _MasterDataService_ListItems0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
@@ -116,11 +137,160 @@ func _MasterDataService_ListOptions0_HTTP_Handler(srv MasterDataServiceHTTPServe
 	}
 }
 
+func _MasterDataService_ListNumberRules0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNumberRulesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListNumberRules)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNumberRules(ctx, req.(*ListNumberRulesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*NumberRuleListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreateNumberRule0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNumberRuleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreateNumberRule)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNumberRule(ctx, req.(*CreateNumberRuleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*NumberRuleReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_UpdateNumberRule0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNumberRuleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceUpdateNumberRule)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNumberRule(ctx, req.(*UpdateNumberRuleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*NumberRuleReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListStatusTemplates0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListStatusTemplatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListStatusTemplates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListStatusTemplates(ctx, req.(*ListStatusTemplatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StatusTemplateListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreateStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateStatusTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreateStatusTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateStatusTemplate(ctx, req.(*CreateStatusTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StatusTemplateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_PublishStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PublishStatusTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServicePublishStatusTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PublishStatusTemplate(ctx, req.(*PublishStatusTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StatusTemplateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_SetDefaultStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetDefaultStatusTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceSetDefaultStatusTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetDefaultStatusTemplate(ctx, req.(*SetDefaultStatusTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StatusTemplateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type MasterDataServiceHTTPClient interface {
 	CreateItem(ctx context.Context, req *CreateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
+	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
+	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
 	ListItems(ctx context.Context, req *ListMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataItemListReply, err error)
+	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *NumberRuleListReply, err error)
 	ListOptions(ctx context.Context, req *ListMasterDataOptionsRequest, opts ...http.CallOption) (rsp *MasterDataOptionsReply, err error)
+	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *StatusTemplateListReply, err error)
+	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
+	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
 	UpdateItem(ctx context.Context, req *UpdateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
+	UpdateNumberRule(ctx context.Context, req *UpdateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
 }
 
 type MasterDataServiceHTTPClientImpl struct {
@@ -148,6 +318,40 @@ func (c *MasterDataServiceHTTPClientImpl) CreateItem(ctx context.Context, in *Cr
 	return &out, nil
 }
 
+func (c *MasterDataServiceHTTPClientImpl) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...http.CallOption) (*NumberRuleReply, error) {
+	var out NumberRuleReply
+	pattern := "/api/v1/master-data/number-rules"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreateNumberRule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
+	var out StatusTemplateReply
+	pattern := "/api/v1/master-data/status-templates"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreateStatusTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *MasterDataServiceHTTPClientImpl) ListItems(ctx context.Context, in *ListMasterDataItemsRequest, opts ...http.CallOption) (*MasterDataItemListReply, error) {
 	var out MasterDataItemListReply
 	pattern := "/api/v1/master-data/items"
@@ -155,6 +359,22 @@ func (c *MasterDataServiceHTTPClientImpl) ListItems(ctx context.Context, in *Lis
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationMasterDataServiceListItems),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...http.CallOption) (*NumberRuleListReply, error) {
+	var out NumberRuleListReply
+	pattern := "/api/v1/master-data/number-rules"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListNumberRules),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -180,6 +400,56 @@ func (c *MasterDataServiceHTTPClientImpl) ListOptions(ctx context.Context, in *L
 	return &out, nil
 }
 
+func (c *MasterDataServiceHTTPClientImpl) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...http.CallOption) (*StatusTemplateListReply, error) {
+	var out StatusTemplateListReply
+	pattern := "/api/v1/master-data/status-templates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListStatusTemplates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
+	var out StatusTemplateReply
+	pattern := "/api/v1/master-data/status-templates/{id}/publish"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServicePublishStatusTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
+	var out StatusTemplateReply
+	pattern := "/api/v1/master-data/status-templates/{id}/set-default"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceSetDefaultStatusTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...http.CallOption) (*MasterDataItemReply, error) {
 	var out MasterDataItemReply
 	pattern := "/api/v1/master-data/items/{id}"
@@ -188,6 +458,23 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *Up
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServiceUpdateItem),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...http.CallOption) (*NumberRuleReply, error) {
+	var out NumberRuleReply
+	pattern := "/api/v1/master-data/number-rules/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceUpdateNumberRule),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
