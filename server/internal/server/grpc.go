@@ -19,7 +19,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -45,5 +45,6 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	masterdatav1.RegisterMasterDataServiceServer(srv, masterData)
 	orderv1.RegisterOrderServiceServer(srv, order)
 	orderv1.RegisterOrderMilestoneServiceServer(srv, milestones)
+	orderv1.RegisterOrderAttachmentServiceServer(srv, orderAttachment)
 	return srv
 }
