@@ -25,37 +25,46 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_ORDER_UNSPECIFIED              ErrorReason = 0
-	ErrorReason_ORDER_NOT_FOUND                ErrorReason = 1
-	ErrorReason_ORDER_INVALID_ARGUMENT         ErrorReason = 2
-	ErrorReason_ORDER_NUMBER_EXISTS            ErrorReason = 3
-	ErrorReason_ORDER_CUSTOMER_INVALID         ErrorReason = 4
-	ErrorReason_ORDER_STATUS_INVALID           ErrorReason = 5
-	ErrorReason_ORDER_STATUS_CONFLICT          ErrorReason = 6
-	ErrorReason_ORDER_STATUS_TEMPLATE_REQUIRED ErrorReason = 7
+	ErrorReason_ORDER_UNSPECIFIED                 ErrorReason = 0
+	ErrorReason_ORDER_NOT_FOUND                   ErrorReason = 1
+	ErrorReason_ORDER_INVALID_ARGUMENT            ErrorReason = 2
+	ErrorReason_ORDER_NUMBER_EXISTS               ErrorReason = 3
+	ErrorReason_ORDER_CUSTOMER_INVALID            ErrorReason = 4
+	ErrorReason_ORDER_STATUS_INVALID              ErrorReason = 5
+	ErrorReason_ORDER_STATUS_CONFLICT             ErrorReason = 6
+	ErrorReason_ORDER_STATUS_TEMPLATE_REQUIRED    ErrorReason = 7
+	ErrorReason_ORDER_ATTACHMENT_NOT_FOUND        ErrorReason = 8
+	ErrorReason_ORDER_ATTACHMENT_EXISTS           ErrorReason = 9
+	ErrorReason_ORDER_ATTACHMENT_INVALID_ARGUMENT ErrorReason = 10
 )
 
 // Enum value maps for ErrorReason.
 var (
 	ErrorReason_name = map[int32]string{
-		0: "ORDER_UNSPECIFIED",
-		1: "ORDER_NOT_FOUND",
-		2: "ORDER_INVALID_ARGUMENT",
-		3: "ORDER_NUMBER_EXISTS",
-		4: "ORDER_CUSTOMER_INVALID",
-		5: "ORDER_STATUS_INVALID",
-		6: "ORDER_STATUS_CONFLICT",
-		7: "ORDER_STATUS_TEMPLATE_REQUIRED",
+		0:  "ORDER_UNSPECIFIED",
+		1:  "ORDER_NOT_FOUND",
+		2:  "ORDER_INVALID_ARGUMENT",
+		3:  "ORDER_NUMBER_EXISTS",
+		4:  "ORDER_CUSTOMER_INVALID",
+		5:  "ORDER_STATUS_INVALID",
+		6:  "ORDER_STATUS_CONFLICT",
+		7:  "ORDER_STATUS_TEMPLATE_REQUIRED",
+		8:  "ORDER_ATTACHMENT_NOT_FOUND",
+		9:  "ORDER_ATTACHMENT_EXISTS",
+		10: "ORDER_ATTACHMENT_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
-		"ORDER_UNSPECIFIED":              0,
-		"ORDER_NOT_FOUND":                1,
-		"ORDER_INVALID_ARGUMENT":         2,
-		"ORDER_NUMBER_EXISTS":            3,
-		"ORDER_CUSTOMER_INVALID":         4,
-		"ORDER_STATUS_INVALID":           5,
-		"ORDER_STATUS_CONFLICT":          6,
-		"ORDER_STATUS_TEMPLATE_REQUIRED": 7,
+		"ORDER_UNSPECIFIED":                 0,
+		"ORDER_NOT_FOUND":                   1,
+		"ORDER_INVALID_ARGUMENT":            2,
+		"ORDER_NUMBER_EXISTS":               3,
+		"ORDER_CUSTOMER_INVALID":            4,
+		"ORDER_STATUS_INVALID":              5,
+		"ORDER_STATUS_CONFLICT":             6,
+		"ORDER_STATUS_TEMPLATE_REQUIRED":    7,
+		"ORDER_ATTACHMENT_NOT_FOUND":        8,
+		"ORDER_ATTACHMENT_EXISTS":           9,
+		"ORDER_ATTACHMENT_INVALID_ARGUMENT": 10,
 	}
 )
 
@@ -90,7 +99,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xe3\x01\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xc7\x02\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -99,7 +108,11 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\x16ORDER_CUSTOMER_INVALID\x10\x04\x12\x18\n" +
 	"\x14ORDER_STATUS_INVALID\x10\x05\x12\x19\n" +
 	"\x15ORDER_STATUS_CONFLICT\x10\x06\x12\"\n" +
-	"\x1eORDER_STATUS_TEMPLATE_REQUIRED\x10\aB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x1eORDER_STATUS_TEMPLATE_REQUIRED\x10\a\x12\x1e\n" +
+	"\x1aORDER_ATTACHMENT_NOT_FOUND\x10\b\x12\x1b\n" +
+	"\x17ORDER_ATTACHMENT_EXISTS\x10\t\x12%\n" +
+	"!ORDER_ATTACHMENT_INVALID_ARGUMENT\x10\n" +
+	"B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once
