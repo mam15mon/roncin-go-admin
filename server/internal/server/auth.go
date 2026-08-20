@@ -37,20 +37,20 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		authv1.OperationAuthServiceMe:                 {},
 		authv1.OperationAuthServiceSwitchOrganization: {},
 	}
-	permissionOperations := map[string]string{
-		adminv1.OperationAdminServiceListOrganizations:  access.OrganizationManage,
-		adminv1.OperationAdminServiceCreateOrganization: access.OrganizationManage,
-		adminv1.OperationAdminServiceUpdateOrganization: access.OrganizationManage,
-		adminv1.OperationAdminServiceListUsers:          access.UserManage,
-		adminv1.OperationAdminServiceCreateUser:         access.UserManage,
-		adminv1.OperationAdminServiceUpdateUser:         access.UserManage,
-		adminv1.OperationAdminServiceListRoles:          access.RoleManage,
-		adminv1.OperationAdminServiceCreateRole:         access.RoleManage,
-		adminv1.OperationAdminServiceUpdateRole:         access.RoleManage,
-		adminv1.OperationAdminServiceListPermissions:    access.RoleManage,
-		partnerv1.OperationPartnerServiceListPartners:   access.PartnerRead,
-		partnerv1.OperationPartnerServiceCreatePartner:  access.PartnerManage,
-		partnerv1.OperationPartnerServiceUpdatePartner:  access.PartnerManage,
+	permissionOperations := map[string]permissionRule{
+		adminv1.OperationAdminServiceListOrganizations:  {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceCreateOrganization: {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceUpdateOrganization: {key: access.OrganizationManage, scope: biz.DataScopeAll},
+		adminv1.OperationAdminServiceListUsers:          {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceCreateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceUpdateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListRoles:          {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceCreateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceUpdateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceListPermissions:    {key: access.RoleManage, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceListPartners:   {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceCreatePartner:  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceUpdatePartner:  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {
@@ -63,7 +63,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 				return handler(ctx, request)
 			}
 			_, requiresSession := authenticatedOperations[operation]
-			requiredPermission, requiresPermission := permissionOperations[operation]
+			rule, requiresPermission := permissionOperations[operation]
 			if !requiresSession && !requiresPermission {
 				return nil, biz.ErrPermissionDenied
 			}
@@ -71,12 +71,17 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 			if err != nil {
 				return nil, err
 			}
-			if requiresPermission && !principal.HasPermission(requiredPermission) {
+			if requiresPermission && !principal.HasPermissionInScope(rule.key, rule.scope) {
 				return nil, biz.ErrPermissionDenied
 			}
 			return handler(biz.WithPrincipal(ctx, principal), request)
 		}
 	}
+}
+
+type permissionRule struct {
+	key   string
+	scope biz.DataScope
 }
 
 func cookieValue(rawHeader, name string) string {

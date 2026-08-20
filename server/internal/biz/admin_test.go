@@ -172,6 +172,42 @@ func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
 	}
 }
 
+func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
+	principal := &Principal{
+		Permissions: []string{"system.user.manage"},
+		RoleScopes:  []RoleScope{{RoleCode: "viewer", DataScope: DataScopeSelf}},
+		RolePermissions: map[string]map[string]struct{}{
+			"viewer": {"system.user.manage": {}},
+		},
+	}
+	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
+		t.Fatal("self-scoped role unexpectedly passed organization authorization")
+	}
+	principal.RoleScopes = []RoleScope{{RoleCode: "manager", DataScope: DataScopeOrganization}}
+	principal.RolePermissions = map[string]map[string]struct{}{
+		"manager": {"system.user.manage": {}},
+	}
+	if !principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
+		t.Fatal("organization-scoped role was denied organization authorization")
+	}
+	if principal.HasPermissionInScope("system.user.manage", DataScopeAll) {
+		t.Fatal("organization-scoped role unexpectedly passed global authorization")
+	}
+
+	principal.Permissions = []string{"system.platform.access", "system.user.manage"}
+	principal.RoleScopes = []RoleScope{
+		{RoleCode: "platform", DataScope: DataScopeAll},
+		{RoleCode: "operator", DataScope: DataScopeSelf},
+	}
+	principal.RolePermissions = map[string]map[string]struct{}{
+		"platform": {"system.platform.access": {}},
+		"operator": {"system.user.manage": {}},
+	}
+	if principal.HasPermissionInScope("system.user.manage", DataScopeOrganization) {
+		t.Fatal("permission from a self-scoped role was incorrectly widened by another role")
+	}
+}
+
 func stringPtr(value string) *string { return &value }
 
 var _ AdminRepo = (*adminRepoStub)(nil)

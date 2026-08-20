@@ -69,6 +69,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	}
 	organizations := make([]biz.Organization, 0, len(memberships))
 	permissionSet := make(map[string]struct{})
+	rolePermissions := make(map[string]map[string]struct{})
 	roleScopes := make([]biz.RoleScope, 0)
 	var current *biz.Organization
 	for _, member := range memberships {
@@ -88,9 +89,12 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 				continue
 			}
 			roleScopes = append(roleScopes, biz.RoleScope{RoleCode: role.Code, DataScope: biz.DataScope(role.DataScope)})
+			rolePermissionSet := make(map[string]struct{}, len(role.Edges.Permissions))
 			for _, permission := range role.Edges.Permissions {
 				permissionSet[permission.Key] = struct{}{}
+				rolePermissionSet[permission.Key] = struct{}{}
 			}
+			rolePermissions[role.Code] = rolePermissionSet
 		}
 	}
 	if current == nil {
@@ -103,7 +107,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	}
 	sort.Strings(permissions)
 	sort.Slice(roleScopes, func(i, j int) bool { return roleScopes[i].RoleCode < roleScopes[j].RoleCode })
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes}, nil
+	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions}, nil
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session) error {

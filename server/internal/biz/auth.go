@@ -64,6 +64,7 @@ type Principal struct {
 	Organizations    []Organization
 	Permissions      []string
 	RoleScopes       []RoleScope
+	RolePermissions  map[string]map[string]struct{}
 }
 
 func (p *Principal) HasPermission(key string) bool {
@@ -73,6 +74,40 @@ func (p *Principal) HasPermission(key string) bool {
 		}
 	}
 	return false
+}
+
+// HasPermissionInScope checks a permission together with the minimum data
+// scope required by the operation. A role with a broader scope satisfies a
+// narrower requirement, but a self-scoped role cannot manage organization
+// resources.
+func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
+	if !p.HasPermission(key) {
+		return false
+	}
+	for _, roleScope := range p.RoleScopes {
+		permissions, ok := p.RolePermissions[roleScope.RoleCode]
+		if ok && roleScope.DataScope.rank() >= required.rank() {
+			if _, hasPermission := permissions[key]; hasPermission {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (s DataScope) rank() int {
+	switch s {
+	case DataScopeAll:
+		return 4
+	case DataScopeOrganizationTree:
+		return 3
+	case DataScopeOrganization:
+		return 2
+	case DataScopeSelf:
+		return 1
+	default:
+		return 0
+	}
 }
 
 type Session struct {
