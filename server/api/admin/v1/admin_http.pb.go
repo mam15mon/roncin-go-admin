@@ -25,6 +25,7 @@ const OperationAdminServiceListOrganizations = "/admin.v1.AdminService/ListOrgan
 const OperationAdminServiceListPermissions = "/admin.v1.AdminService/ListPermissions"
 const OperationAdminServiceListRoles = "/admin.v1.AdminService/ListRoles"
 const OperationAdminServiceListUsers = "/admin.v1.AdminService/ListUsers"
+const OperationAdminServiceResetUserPassword = "/admin.v1.AdminService/ResetUserPassword"
 const OperationAdminServiceUpdateOrganization = "/admin.v1.AdminService/UpdateOrganization"
 const OperationAdminServiceUpdateRole = "/admin.v1.AdminService/UpdateRole"
 const OperationAdminServiceUpdateUser = "/admin.v1.AdminService/UpdateUser"
@@ -38,6 +39,7 @@ type AdminServiceHTTPServer interface {
 	ListPermissions(context.Context, *ListPermissionsRequest) (*AdminPermissionListReply, error)
 	ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error)
 	ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error)
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error)
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*AdminOrganizationReply, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error)
@@ -51,6 +53,7 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/admin/users", _AdminService_ListUsers0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users", _AdminService_CreateUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{id}", _AdminService_UpdateUser0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/admin/users/{id}/password", _AdminService_ResetUserPassword0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/roles", _AdminService_ListRoles0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/roles", _AdminService_CreateRole0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/roles/{id}", _AdminService_UpdateRole0_HTTP_Handler(srv))
@@ -178,6 +181,28 @@ func _AdminService_UpdateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 	}
 }
 
+func _AdminService_ResetUserPassword0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetUserPasswordRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceResetUserPassword)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetUserPassword(ctx, req.(*ResetUserPasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminOperationReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AdminService_ListRoles0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListRolesRequest
@@ -285,6 +310,7 @@ type AdminServiceHTTPClient interface {
 	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *AdminPermissionListReply, err error)
 	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *AdminRoleListReply, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
+	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *AdminOperationReply, err error)
 	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *AdminOrganizationReply, err error)
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *AdminRoleReply, err error)
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *AdminUserReply, err error)
@@ -423,6 +449,23 @@ func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUser
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AdminServiceHTTPClientImpl) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...http.CallOption) (*AdminOperationReply, error) {
+	var out AdminOperationReply
+	pattern := "/api/v1/admin/users/{id}/password"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceResetUserPassword),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

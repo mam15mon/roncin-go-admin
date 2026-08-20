@@ -1,4 +1,4 @@
-import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { EditOutlined, KeyOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -13,6 +13,7 @@ import {
   adminServiceCreateUser,
   adminServiceListRoles,
   adminServiceListUsers,
+  adminServiceResetUserPassword,
   adminServiceUpdateUser,
 } from '@/services/roncin/adminService';
 
@@ -31,6 +32,7 @@ export default function UsersPanel() {
   const { message } = App.useApp();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminUser>();
+  const [resetting, setResetting] = useState<API.AdminUser>();
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
 
   useEffect(() => {
@@ -71,7 +73,12 @@ export default function UsersPanel() {
       title: '操作',
       valueType: 'option',
       width: 100,
-      render: (_, record) => <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>,
+      render: (_, record) => (
+        <Space>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
+          <Button type="link" size="small" icon={<KeyOutlined />} onClick={() => setResetting(record)}>重置密码</Button>
+        </Space>
+      ),
     },
   ];
 
@@ -117,6 +124,21 @@ export default function UsersPanel() {
         <ProFormText name="email" label="邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
         <ProFormSelect name="roleIds" label="角色" mode="multiple" options={roles.map((role) => ({ label: `${role.name}（${role.code}）`, value: role.id }))} />
         {editing ? <ProFormSwitch name="enabled" label="启用状态" /> : null}
+      </ModalForm>
+      <ModalForm<{ password?: string }>
+        title={`重置密码：${resetting?.username ?? ''}`}
+        open={Boolean(resetting)}
+        modalProps={{ destroyOnClose: true, onCancel: () => setResetting(undefined) }}
+        onOpenChange={(open) => { if (!open) setResetting(undefined); }}
+        onFinish={async (values) => {
+          if (!resetting?.id) return false;
+          await adminServiceResetUserPassword({ id: resetting.id }, { id: resetting.id, password: values.password ?? '' });
+          message.success('密码已重置，用户现有会话已失效');
+          setResetting(undefined);
+          return true;
+        }}
+      >
+        <ProFormText name="password" label="新密码" fieldProps={{ type: 'password' }} rules={[{ required: true, min: 12, message: '新密码至少 12 位' }]} />
       </ModalForm>
     </>
   );

@@ -99,6 +99,7 @@ type AdminRepo interface {
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
@@ -183,6 +184,20 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 		return nil, err
 	}
 	return updated, uc.writeAudit(ctx, actorID, &id, "admin.user.update", updated.Username)
+}
+
+func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string) error {
+	if organizationID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
+		return ErrAdminInvalidArgument
+	}
+	hash, err := password.Hash(plainPassword)
+	if err != nil {
+		return fmt.Errorf("hash reset password: %w", err)
+	}
+	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash); err != nil {
+		return err
+	}
+	return uc.writeAudit(ctx, actorID, &id, "admin.user.password.reset", "")
 }
 
 func (uc *AdminUsecase) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*AdminRole, error) {

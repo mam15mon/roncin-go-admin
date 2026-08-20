@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -14,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -176,6 +178,32 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		return nil, err
 	}
 	return r.findUser(ctx, organizationID, id)
+}
+
+func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string) error {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	if exists, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID)).Exist(ctx); queryErr != nil {
+		_ = tx.Rollback()
+		return queryErr
+	} else if !exists {
+		_ = tx.Rollback()
+		return biz.ErrAdminUserNotFound
+	}
+	if _, err := tx.User.UpdateOneID(id).SetPasswordHash(passwordHash).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrAdminUserNotFound
+		}
+		return err
+	}
+	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {

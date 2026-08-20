@@ -13,6 +13,7 @@ type adminRepoStub struct {
 	roleKeys        []string
 	userPassword    string
 	userInput       *AdminUser
+	resetPassword   string
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error) {
@@ -40,6 +41,11 @@ func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminU
 
 func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	return input, nil
+}
+
+func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string) error {
+	s.resetPassword = passwordHash
+	return nil
 }
 
 func (s *adminRepoStub) ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error) {
@@ -169,6 +175,28 @@ func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 		t.Fatal("repository did not receive a password hash")
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.create" {
+		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
+	repo := &adminRepoStub{}
+	audit := &auditRepoStub{}
+	usecase := NewAdminUsecase(repo, audit)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	userID := uuid.New()
+
+	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "short"); err != ErrAdminInvalidArgument {
+		t.Fatalf("short reset password error = %v, want ErrAdminInvalidArgument", err)
+	}
+	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password"); err != nil {
+		t.Fatalf("ResetUserPassword() error = %v", err)
+	}
+	if repo.resetPassword == "" || repo.resetPassword == "new-strong-password" {
+		t.Fatal("reset password was not hashed")
+	}
+	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.password.reset" {
 		t.Fatalf("audit events = %#v", audit.events)
 	}
 }

@@ -121,6 +121,21 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	return &v1.AdminUserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetUserPasswordRequest) (*v1.AdminOperationReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	if err := s.usecase.ResetUserPassword(ctx, principal.Organization.ID, principal.UserID, userID, request.GetPassword()); err != nil {
+		return nil, err
+	}
+	return &v1.AdminOperationReply{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*v1.AdminRoleListReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {

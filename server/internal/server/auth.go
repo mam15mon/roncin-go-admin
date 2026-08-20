@@ -44,6 +44,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		adminv1.OperationAdminServiceListUsers:          {key: access.UserManage, scope: biz.DataScopeOrganization},
 		adminv1.OperationAdminServiceCreateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
 		adminv1.OperationAdminServiceUpdateUser:         {key: access.UserManage, scope: biz.DataScopeOrganization},
+		adminv1.OperationAdminServiceResetUserPassword:  {key: access.UserManage, scope: biz.DataScopeOrganization},
 		adminv1.OperationAdminServiceListRoles:          {key: access.RoleManage, scope: biz.DataScopeOrganization},
 		adminv1.OperationAdminServiceCreateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},
 		adminv1.OperationAdminServiceUpdateRole:         {key: access.RoleManage, scope: biz.DataScopeOrganization},

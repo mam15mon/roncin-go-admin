@@ -231,6 +231,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.AdminUserReply'
+    /api/v1/admin/users/{id}/password:
+        put:
+            tags:
+                - AdminService
+            operationId: AdminService_ResetUserPassword
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.ResetUserPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AdminOperationReply'
     /api/v1/auth/login:
         post:
             tags:
@@ -426,6 +450,18 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+                traceId:
+                    type: string
+        admin.v1.AdminOperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
                 traceId:
                     type: string
         admin.v1.AdminOrganization:
@@ -663,6 +699,16 @@ components:
                     type: array
                     items:
                         type: string
+        admin.v1.ResetUserPasswordRequest:
+            required:
+                - id
+                - password
+            type: object
+            properties:
+                id:
+                    type: string
+                password:
+                    type: string
         admin.v1.UpdateOrganizationRequest:
             required:
                 - id

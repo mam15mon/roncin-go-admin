@@ -25,6 +25,13 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AdminOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type AdminOrganization = {
     id?: string;
     code?: string;
@@ -105,6 +112,10 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+  };
+
+  type AdminServiceResetUserPasswordParams = {
+    id: string;
   };
 
   type AdminServiceUpdateOrganizationParams = {
@@ -269,6 +280,11 @@ declare namespace API {
 
   type PartnerServiceUpdatePartnerParams = {
     id: string;
+  };
+
+  type ResetUserPasswordRequest = {
+    id: string;
+    password: string;
   };
 
   type RoleScope = {

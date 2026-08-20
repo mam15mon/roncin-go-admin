@@ -25,6 +25,7 @@ const (
 	AdminService_ListUsers_FullMethodName          = "/admin.v1.AdminService/ListUsers"
 	AdminService_CreateUser_FullMethodName         = "/admin.v1.AdminService/CreateUser"
 	AdminService_UpdateUser_FullMethodName         = "/admin.v1.AdminService/UpdateUser"
+	AdminService_ResetUserPassword_FullMethodName  = "/admin.v1.AdminService/ResetUserPassword"
 	AdminService_ListRoles_FullMethodName          = "/admin.v1.AdminService/ListRoles"
 	AdminService_CreateRole_FullMethodName         = "/admin.v1.AdminService/CreateRole"
 	AdminService_UpdateRole_FullMethodName         = "/admin.v1.AdminService/UpdateRole"
@@ -42,6 +43,7 @@ type AdminServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
+	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
@@ -117,6 +119,16 @@ func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReque
 	return out, nil
 }
 
+func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminOperationReply)
+	err := c.cc.Invoke(ctx, AdminService_ResetUserPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AdminRoleListReply)
@@ -177,6 +189,7 @@ type AdminServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error)
 	CreateUser(context.Context, *CreateUserRequest) (*AdminUserReply, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error)
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error)
 	ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error)
@@ -209,6 +222,9 @@ func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRe
 }
 func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedAdminServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
 func (UnimplementedAdminServiceServer) ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
@@ -354,6 +370,24 @@ func _AdminService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ResetUserPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetUserPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ResetUserPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ResetUserPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ResetUserPassword(ctx, req.(*ResetUserPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ListRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListRolesRequest)
 	if err := dec(in); err != nil {
@@ -474,6 +508,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUser",
 			Handler:    _AdminService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "ResetUserPassword",
+			Handler:    _AdminService_ResetUserPassword_Handler,
 		},
 		{
 			MethodName: "ListRoles",

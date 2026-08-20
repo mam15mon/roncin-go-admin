@@ -44,6 +44,13 @@ service AdminService {
     };
   }
 
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (AdminOperationReply) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{id}/password"
+      body: "*"
+    };
+  }
+
   rpc ListRoles(ListRolesRequest) returns (AdminRoleListReply) {
     option (google.api.http) = {get: "/api/v1/admin/roles"};
   }
@@ -108,6 +115,13 @@ message AdminOrganizationListReply {
   string trace_id = 5;
 }
 
+message AdminOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}
+
 message AdminOrganizationReply {
   bool success = 1;
   int32 code = 2;
@@ -136,6 +150,11 @@ message UpdateUserRequest {
   optional string email = 3;
   bool enabled = 4;
   repeated string role_ids = 5;
+}
+
+message ResetUserPasswordRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string password = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message AdminUser {
