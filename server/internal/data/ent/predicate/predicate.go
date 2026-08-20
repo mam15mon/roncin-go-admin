@@ -15,6 +15,12 @@ type MasterDataItem func(*sql.Selector)
 // Membership is the predicate function for membership builders.
 type Membership func(*sql.Selector)
 
+// MilestoneTemplate is the predicate function for milestonetemplate builders.
+type MilestoneTemplate func(*sql.Selector)
+
+// MilestoneTemplateItem is the predicate function for milestonetemplateitem builders.
+type MilestoneTemplateItem func(*sql.Selector)
+
 // NumberRule is the predicate function for numberrule builders.
 type NumberRule func(*sql.Selector)
 

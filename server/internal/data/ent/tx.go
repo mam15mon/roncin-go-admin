@@ -18,6 +18,10 @@ type Tx struct {
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
+	// MilestoneTemplate is the client for interacting with the MilestoneTemplate builders.
+	MilestoneTemplate *MilestoneTemplateClient
+	// MilestoneTemplateItem is the client for interacting with the MilestoneTemplateItem builders.
+	MilestoneTemplateItem *MilestoneTemplateItemClient
 	// NumberRule is the client for interacting with the NumberRule builders.
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
@@ -174,6 +178,8 @@ func (tx *Tx) init() {
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
+	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)
+	tx.MilestoneTemplateItem = NewMilestoneTemplateItemClient(tx.config)
 	tx.NumberRule = NewNumberRuleClient(tx.config)
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)

@@ -2214,6 +2214,730 @@ func (x *StatusTemplateReply) GetTraceId() string {
 	return ""
 }
 
+type MilestoneTemplateItemInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Description   *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Category      *string                `protobuf:"bytes,4,opt,name=category,proto3,oneof" json:"category,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,6,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	DependsOn     []string               `protobuf:"bytes,7,rep,name=depends_on,json=dependsOn,proto3" json:"depends_on,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MilestoneTemplateItemInput) Reset() {
+	*x = MilestoneTemplateItemInput{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestoneTemplateItemInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestoneTemplateItemInput) ProtoMessage() {}
+
+func (x *MilestoneTemplateItemInput) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestoneTemplateItemInput.ProtoReflect.Descriptor instead.
+func (*MilestoneTemplateItemInput) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *MilestoneTemplateItemInput) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItemInput) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItemInput) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItemInput) GetCategory() string {
+	if x != nil && x.Category != nil {
+		return *x.Category
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItemInput) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *MilestoneTemplateItemInput) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+func (x *MilestoneTemplateItemInput) GetDependsOn() []string {
+	if x != nil {
+		return x.DependsOn
+	}
+	return nil
+}
+
+type CreateMilestoneTemplateRequest struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Code          string                        `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	BusinessType  BusinessType                  `protobuf:"varint,3,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	TradeTerm     string                        `protobuf:"bytes,4,opt,name=trade_term,json=tradeTerm,proto3" json:"trade_term,omitempty"`
+	Version       int32                         `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
+	Items         []*MilestoneTemplateItemInput `protobuf:"bytes,6,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateMilestoneTemplateRequest) Reset() {
+	*x = CreateMilestoneTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateMilestoneTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMilestoneTemplateRequest) ProtoMessage() {}
+
+func (x *CreateMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
+func (*CreateMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CreateMilestoneTemplateRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *CreateMilestoneTemplateRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateMilestoneTemplateRequest) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *CreateMilestoneTemplateRequest) GetTradeTerm() string {
+	if x != nil {
+		return x.TradeTerm
+	}
+	return ""
+}
+
+func (x *CreateMilestoneTemplateRequest) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *CreateMilestoneTemplateRequest) GetItems() []*MilestoneTemplateItemInput {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type ListMilestoneTemplatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType  BusinessType           `protobuf:"varint,1,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	TradeTerm     *string                `protobuf:"bytes,2,opt,name=trade_term,json=tradeTerm,proto3,oneof" json:"trade_term,omitempty"`
+	Published     *bool                  `protobuf:"varint,3,opt,name=published,proto3,oneof" json:"published,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMilestoneTemplatesRequest) Reset() {
+	*x = ListMilestoneTemplatesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMilestoneTemplatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMilestoneTemplatesRequest) ProtoMessage() {}
+
+func (x *ListMilestoneTemplatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMilestoneTemplatesRequest.ProtoReflect.Descriptor instead.
+func (*ListMilestoneTemplatesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListMilestoneTemplatesRequest) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *ListMilestoneTemplatesRequest) GetTradeTerm() string {
+	if x != nil && x.TradeTerm != nil {
+		return *x.TradeTerm
+	}
+	return ""
+}
+
+func (x *ListMilestoneTemplatesRequest) GetPublished() bool {
+	if x != nil && x.Published != nil {
+		return *x.Published
+	}
+	return false
+}
+
+type PublishMilestoneTemplateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	IsDefault     bool                   `protobuf:"varint,2,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishMilestoneTemplateRequest) Reset() {
+	*x = PublishMilestoneTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishMilestoneTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishMilestoneTemplateRequest) ProtoMessage() {}
+
+func (x *PublishMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
+func (*PublishMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *PublishMilestoneTemplateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PublishMilestoneTemplateRequest) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+type SetDefaultMilestoneTemplateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetDefaultMilestoneTemplateRequest) Reset() {
+	*x = SetDefaultMilestoneTemplateRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetDefaultMilestoneTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetDefaultMilestoneTemplateRequest) ProtoMessage() {}
+
+func (x *SetDefaultMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetDefaultMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
+func (*SetDefaultMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SetDefaultMilestoneTemplateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type MilestoneTemplateItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Label         string                 `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	Description   *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Category      *string                `protobuf:"bytes,5,opt,name=category,proto3,oneof" json:"category,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,6,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled       bool                   `protobuf:"varint,7,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	DependsOn     []string               `protobuf:"bytes,8,rep,name=depends_on,json=dependsOn,proto3" json:"depends_on,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MilestoneTemplateItem) Reset() {
+	*x = MilestoneTemplateItem{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestoneTemplateItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestoneTemplateItem) ProtoMessage() {}
+
+func (x *MilestoneTemplateItem) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestoneTemplateItem.ProtoReflect.Descriptor instead.
+func (*MilestoneTemplateItem) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *MilestoneTemplateItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItem) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItem) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItem) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItem) GetCategory() string {
+	if x != nil && x.Category != nil {
+		return *x.Category
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateItem) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *MilestoneTemplateItem) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *MilestoneTemplateItem) GetDependsOn() []string {
+	if x != nil {
+		return x.DependsOn
+	}
+	return nil
+}
+
+type MilestoneTemplate struct {
+	state          protoimpl.MessageState   `protogen:"open.v1"`
+	Id             string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Code           string                   `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Name           string                   `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	BusinessType   BusinessType             `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=masterdata.v1.BusinessType" json:"business_type,omitempty"`
+	TradeTerm      string                   `protobuf:"bytes,6,opt,name=trade_term,json=tradeTerm,proto3" json:"trade_term,omitempty"`
+	Version        int32                    `protobuf:"varint,7,opt,name=version,proto3" json:"version,omitempty"`
+	IsDefault      bool                     `protobuf:"varint,8,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	PublishedAt    *string                  `protobuf:"bytes,9,opt,name=published_at,json=publishedAt,proto3,oneof" json:"published_at,omitempty"`
+	Enabled        bool                     `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Items          []*MilestoneTemplateItem `protobuf:"bytes,11,rep,name=items,proto3" json:"items,omitempty"`
+	CreatedAt      string                   `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                   `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *MilestoneTemplate) Reset() {
+	*x = MilestoneTemplate{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestoneTemplate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestoneTemplate) ProtoMessage() {}
+
+func (x *MilestoneTemplate) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestoneTemplate.ProtoReflect.Descriptor instead.
+func (*MilestoneTemplate) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *MilestoneTemplate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetBusinessType() BusinessType {
+	if x != nil {
+		return x.BusinessType
+	}
+	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *MilestoneTemplate) GetTradeTerm() string {
+	if x != nil {
+		return x.TradeTerm
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *MilestoneTemplate) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+func (x *MilestoneTemplate) GetPublishedAt() string {
+	if x != nil && x.PublishedAt != nil {
+		return *x.PublishedAt
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *MilestoneTemplate) GetItems() []*MilestoneTemplateItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *MilestoneTemplate) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *MilestoneTemplate) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type MilestoneTemplateListReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*MilestoneTemplate   `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MilestoneTemplateListReply) Reset() {
+	*x = MilestoneTemplateListReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestoneTemplateListReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestoneTemplateListReply) ProtoMessage() {}
+
+func (x *MilestoneTemplateListReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestoneTemplateListReply.ProtoReflect.Descriptor instead.
+func (*MilestoneTemplateListReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *MilestoneTemplateListReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *MilestoneTemplateListReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *MilestoneTemplateListReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateListReply) GetData() []*MilestoneTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *MilestoneTemplateListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type MilestoneTemplateReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *MilestoneTemplate     `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MilestoneTemplateReply) Reset() {
+	*x = MilestoneTemplateReply{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestoneTemplateReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestoneTemplateReply) ProtoMessage() {}
+
+func (x *MilestoneTemplateReply) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestoneTemplateReply.ProtoReflect.Descriptor instead.
+func (*MilestoneTemplateReply) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *MilestoneTemplateReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *MilestoneTemplateReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *MilestoneTemplateReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *MilestoneTemplateReply) GetData() *MilestoneTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *MilestoneTemplateReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_masterdata_v1_masterdata_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_masterdata_proto_rawDesc = "" +
@@ -2426,6 +3150,87 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9e\x02\n" +
+	"\x1aMilestoneTemplateItemInput\x12\x17\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x19\n" +
+	"\x05label\x18\x02 \x01(\tB\x03\xe0A\x02R\x05label\x12%\n" +
+	"\vdescription\x18\x03 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
+	"\bcategory\x18\x04 \x01(\tH\x01R\bcategory\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x05 \x01(\x05R\tsortOrder\x12\x1d\n" +
+	"\aenabled\x18\x06 \x01(\bH\x02R\aenabled\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"depends_on\x18\a \x03(\tR\tdependsOnB\x0e\n" +
+	"\f_descriptionB\v\n" +
+	"\t_categoryB\n" +
+	"\n" +
+	"\b_enabled\"\x9d\x02\n" +
+	"\x1eCreateMilestoneTemplateRequest\x12\x17\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12E\n" +
+	"\rbusiness_type\x18\x03 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeB\x03\xe0A\x02R\fbusinessType\x12\x1d\n" +
+	"\n" +
+	"trade_term\x18\x04 \x01(\tR\ttradeTerm\x12\x1d\n" +
+	"\aversion\x18\x05 \x01(\x05B\x03\xe0A\x02R\aversion\x12D\n" +
+	"\x05items\x18\x06 \x03(\v2).masterdata.v1.MilestoneTemplateItemInputB\x03\xe0A\x02R\x05items\"\xc5\x01\n" +
+	"\x1dListMilestoneTemplatesRequest\x12@\n" +
+	"\rbusiness_type\x18\x01 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeR\fbusinessType\x12\"\n" +
+	"\n" +
+	"trade_term\x18\x02 \x01(\tH\x00R\ttradeTerm\x88\x01\x01\x12!\n" +
+	"\tpublished\x18\x03 \x01(\bH\x01R\tpublished\x88\x01\x01B\r\n" +
+	"\v_trade_termB\f\n" +
+	"\n" +
+	"_published\"U\n" +
+	"\x1fPublishMilestoneTemplateRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\x02 \x01(\bR\tisDefault\"9\n" +
+	"\"SetDefaultMilestoneTemplateRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x8e\x02\n" +
+	"\x15MilestoneTemplateItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\x12%\n" +
+	"\vdescription\x18\x04 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
+	"\bcategory\x18\x05 \x01(\tH\x01R\bcategory\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x06 \x01(\x05R\tsortOrder\x12\x18\n" +
+	"\aenabled\x18\a \x01(\bR\aenabled\x12\x1d\n" +
+	"\n" +
+	"depends_on\x18\b \x03(\tR\tdependsOnB\x0e\n" +
+	"\f_descriptionB\v\n" +
+	"\t_category\"\xdb\x03\n" +
+	"\x11MilestoneTemplate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12@\n" +
+	"\rbusiness_type\x18\x05 \x01(\x0e2\x1b.masterdata.v1.BusinessTypeR\fbusinessType\x12\x1d\n" +
+	"\n" +
+	"trade_term\x18\x06 \x01(\tR\ttradeTerm\x12\x18\n" +
+	"\aversion\x18\a \x01(\x05R\aversion\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\b \x01(\bR\tisDefault\x12&\n" +
+	"\fpublished_at\x18\t \x01(\tH\x00R\vpublishedAt\x88\x01\x01\x12\x18\n" +
+	"\aenabled\x18\n" +
+	" \x01(\bR\aenabled\x12:\n" +
+	"\x05items\x18\v \x03(\v2$.masterdata.v1.MilestoneTemplateItemR\x05items\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAtB\x0f\n" +
+	"\r_published_at\"\xb5\x01\n" +
+	"\x1aMilestoneTemplateListReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
+	"\x04data\x18\x04 \x03(\v2 .masterdata.v1.MilestoneTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb1\x01\n" +
+	"\x16MilestoneTemplateReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
+	"\x04data\x18\x04 \x01(\v2 .masterdata.v1.MilestoneTemplateR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xd0\x02\n" +
 	"\x0eMasterDataKind\x12 \n" +
 	"\x1cMASTER_DATA_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
@@ -2468,7 +3273,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
 	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
 	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
-	"\x12BUSINESS_TYPE_RAIL\x10\x062\xe0\f\n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\x9f\x12\n" +
 	"\x11MasterDataService\x12\x81\x01\n" +
 	"\tListItems\x12).masterdata.v1.ListMasterDataItemsRequest\x1a&.masterdata.v1.MasterDataItemListReply\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x82\x01\n" +
 	"\n" +
@@ -2482,7 +3287,11 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a&.masterdata.v1.StatusTemplateListReply\",\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\x97\x01\n" +
 	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xa6\x01\n" +
 	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"<\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xb0\x01\n" +
-	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-default\x12\xa2\x01\n" +
+	"\x16ListMilestoneTemplates\x12,.masterdata.v1.ListMilestoneTemplatesRequest\x1a).masterdata.v1.MilestoneTemplateListReply\"/\x82\xd3\xe4\x93\x02)\x12'/api/v1/master-data/milestone-templates\x12\xa3\x01\n" +
+	"\x17CreateMilestoneTemplate\x12-.masterdata.v1.CreateMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/master-data/milestone-templates\x12\xb2\x01\n" +
+	"\x18PublishMilestoneTemplate\x12..masterdata.v1.PublishMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/master-data/milestone-templates/{id}/publish\x12\xbc\x01\n" +
+	"\x1bSetDefaultMilestoneTemplate\x121.masterdata.v1.SetDefaultMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/master-data/milestone-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_masterdata_proto_rawDescOnce sync.Once
@@ -2497,36 +3306,45 @@ func file_masterdata_v1_masterdata_proto_rawDescGZIP() []byte {
 }
 
 var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_masterdata_v1_masterdata_proto_goTypes = []any{
-	(MasterDataKind)(0),                     // 0: masterdata.v1.MasterDataKind
-	(DocumentType)(0),                       // 1: masterdata.v1.DocumentType
-	(DateFormat)(0),                         // 2: masterdata.v1.DateFormat
-	(ResetPolicy)(0),                        // 3: masterdata.v1.ResetPolicy
-	(BusinessType)(0),                       // 4: masterdata.v1.BusinessType
-	(*ListMasterDataItemsRequest)(nil),      // 5: masterdata.v1.ListMasterDataItemsRequest
-	(*CreateMasterDataItemRequest)(nil),     // 6: masterdata.v1.CreateMasterDataItemRequest
-	(*UpdateMasterDataItemRequest)(nil),     // 7: masterdata.v1.UpdateMasterDataItemRequest
-	(*ListMasterDataOptionsRequest)(nil),    // 8: masterdata.v1.ListMasterDataOptionsRequest
-	(*MasterDataItem)(nil),                  // 9: masterdata.v1.MasterDataItem
-	(*MasterDataItemListReply)(nil),         // 10: masterdata.v1.MasterDataItemListReply
-	(*MasterDataItemReply)(nil),             // 11: masterdata.v1.MasterDataItemReply
-	(*MasterDataOptionsReply)(nil),          // 12: masterdata.v1.MasterDataOptionsReply
-	(*ListNumberRulesRequest)(nil),          // 13: masterdata.v1.ListNumberRulesRequest
-	(*CreateNumberRuleRequest)(nil),         // 14: masterdata.v1.CreateNumberRuleRequest
-	(*UpdateNumberRuleRequest)(nil),         // 15: masterdata.v1.UpdateNumberRuleRequest
-	(*NumberRule)(nil),                      // 16: masterdata.v1.NumberRule
-	(*NumberRuleListReply)(nil),             // 17: masterdata.v1.NumberRuleListReply
-	(*NumberRuleReply)(nil),                 // 18: masterdata.v1.NumberRuleReply
-	(*StatusTemplateItemInput)(nil),         // 19: masterdata.v1.StatusTemplateItemInput
-	(*CreateStatusTemplateRequest)(nil),     // 20: masterdata.v1.CreateStatusTemplateRequest
-	(*ListStatusTemplatesRequest)(nil),      // 21: masterdata.v1.ListStatusTemplatesRequest
-	(*PublishStatusTemplateRequest)(nil),    // 22: masterdata.v1.PublishStatusTemplateRequest
-	(*SetDefaultStatusTemplateRequest)(nil), // 23: masterdata.v1.SetDefaultStatusTemplateRequest
-	(*StatusTemplateItem)(nil),              // 24: masterdata.v1.StatusTemplateItem
-	(*StatusTemplate)(nil),                  // 25: masterdata.v1.StatusTemplate
-	(*StatusTemplateListReply)(nil),         // 26: masterdata.v1.StatusTemplateListReply
-	(*StatusTemplateReply)(nil),             // 27: masterdata.v1.StatusTemplateReply
+	(MasterDataKind)(0),                        // 0: masterdata.v1.MasterDataKind
+	(DocumentType)(0),                          // 1: masterdata.v1.DocumentType
+	(DateFormat)(0),                            // 2: masterdata.v1.DateFormat
+	(ResetPolicy)(0),                           // 3: masterdata.v1.ResetPolicy
+	(BusinessType)(0),                          // 4: masterdata.v1.BusinessType
+	(*ListMasterDataItemsRequest)(nil),         // 5: masterdata.v1.ListMasterDataItemsRequest
+	(*CreateMasterDataItemRequest)(nil),        // 6: masterdata.v1.CreateMasterDataItemRequest
+	(*UpdateMasterDataItemRequest)(nil),        // 7: masterdata.v1.UpdateMasterDataItemRequest
+	(*ListMasterDataOptionsRequest)(nil),       // 8: masterdata.v1.ListMasterDataOptionsRequest
+	(*MasterDataItem)(nil),                     // 9: masterdata.v1.MasterDataItem
+	(*MasterDataItemListReply)(nil),            // 10: masterdata.v1.MasterDataItemListReply
+	(*MasterDataItemReply)(nil),                // 11: masterdata.v1.MasterDataItemReply
+	(*MasterDataOptionsReply)(nil),             // 12: masterdata.v1.MasterDataOptionsReply
+	(*ListNumberRulesRequest)(nil),             // 13: masterdata.v1.ListNumberRulesRequest
+	(*CreateNumberRuleRequest)(nil),            // 14: masterdata.v1.CreateNumberRuleRequest
+	(*UpdateNumberRuleRequest)(nil),            // 15: masterdata.v1.UpdateNumberRuleRequest
+	(*NumberRule)(nil),                         // 16: masterdata.v1.NumberRule
+	(*NumberRuleListReply)(nil),                // 17: masterdata.v1.NumberRuleListReply
+	(*NumberRuleReply)(nil),                    // 18: masterdata.v1.NumberRuleReply
+	(*StatusTemplateItemInput)(nil),            // 19: masterdata.v1.StatusTemplateItemInput
+	(*CreateStatusTemplateRequest)(nil),        // 20: masterdata.v1.CreateStatusTemplateRequest
+	(*ListStatusTemplatesRequest)(nil),         // 21: masterdata.v1.ListStatusTemplatesRequest
+	(*PublishStatusTemplateRequest)(nil),       // 22: masterdata.v1.PublishStatusTemplateRequest
+	(*SetDefaultStatusTemplateRequest)(nil),    // 23: masterdata.v1.SetDefaultStatusTemplateRequest
+	(*StatusTemplateItem)(nil),                 // 24: masterdata.v1.StatusTemplateItem
+	(*StatusTemplate)(nil),                     // 25: masterdata.v1.StatusTemplate
+	(*StatusTemplateListReply)(nil),            // 26: masterdata.v1.StatusTemplateListReply
+	(*StatusTemplateReply)(nil),                // 27: masterdata.v1.StatusTemplateReply
+	(*MilestoneTemplateItemInput)(nil),         // 28: masterdata.v1.MilestoneTemplateItemInput
+	(*CreateMilestoneTemplateRequest)(nil),     // 29: masterdata.v1.CreateMilestoneTemplateRequest
+	(*ListMilestoneTemplatesRequest)(nil),      // 30: masterdata.v1.ListMilestoneTemplatesRequest
+	(*PublishMilestoneTemplateRequest)(nil),    // 31: masterdata.v1.PublishMilestoneTemplateRequest
+	(*SetDefaultMilestoneTemplateRequest)(nil), // 32: masterdata.v1.SetDefaultMilestoneTemplateRequest
+	(*MilestoneTemplateItem)(nil),              // 33: masterdata.v1.MilestoneTemplateItem
+	(*MilestoneTemplate)(nil),                  // 34: masterdata.v1.MilestoneTemplate
+	(*MilestoneTemplateListReply)(nil),         // 35: masterdata.v1.MilestoneTemplateListReply
+	(*MilestoneTemplateReply)(nil),             // 36: masterdata.v1.MilestoneTemplateReply
 }
 var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	0,  // 0: masterdata.v1.ListMasterDataItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
@@ -2553,33 +3371,48 @@ var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	24, // 21: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
 	25, // 22: masterdata.v1.StatusTemplateListReply.data:type_name -> masterdata.v1.StatusTemplate
 	25, // 23: masterdata.v1.StatusTemplateReply.data:type_name -> masterdata.v1.StatusTemplate
-	5,  // 24: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListMasterDataItemsRequest
-	6,  // 25: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateMasterDataItemRequest
-	7,  // 26: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateMasterDataItemRequest
-	8,  // 27: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListMasterDataOptionsRequest
-	13, // 28: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
-	14, // 29: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
-	15, // 30: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
-	21, // 31: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
-	20, // 32: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
-	22, // 33: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
-	23, // 34: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
-	10, // 35: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.MasterDataItemListReply
-	11, // 36: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.MasterDataItemReply
-	11, // 37: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.MasterDataItemReply
-	12, // 38: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.MasterDataOptionsReply
-	17, // 39: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.NumberRuleListReply
-	18, // 40: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.NumberRuleReply
-	18, // 41: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.NumberRuleReply
-	26, // 42: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.StatusTemplateListReply
-	27, // 43: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	27, // 44: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	27, // 45: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	35, // [35:46] is the sub-list for method output_type
-	24, // [24:35] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	4,  // 24: masterdata.v1.CreateMilestoneTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
+	28, // 25: masterdata.v1.CreateMilestoneTemplateRequest.items:type_name -> masterdata.v1.MilestoneTemplateItemInput
+	4,  // 26: masterdata.v1.ListMilestoneTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
+	4,  // 27: masterdata.v1.MilestoneTemplate.business_type:type_name -> masterdata.v1.BusinessType
+	33, // 28: masterdata.v1.MilestoneTemplate.items:type_name -> masterdata.v1.MilestoneTemplateItem
+	34, // 29: masterdata.v1.MilestoneTemplateListReply.data:type_name -> masterdata.v1.MilestoneTemplate
+	34, // 30: masterdata.v1.MilestoneTemplateReply.data:type_name -> masterdata.v1.MilestoneTemplate
+	5,  // 31: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListMasterDataItemsRequest
+	6,  // 32: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateMasterDataItemRequest
+	7,  // 33: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateMasterDataItemRequest
+	8,  // 34: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListMasterDataOptionsRequest
+	13, // 35: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
+	14, // 36: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
+	15, // 37: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
+	21, // 38: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
+	20, // 39: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
+	22, // 40: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
+	23, // 41: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
+	30, // 42: masterdata.v1.MasterDataService.ListMilestoneTemplates:input_type -> masterdata.v1.ListMilestoneTemplatesRequest
+	29, // 43: masterdata.v1.MasterDataService.CreateMilestoneTemplate:input_type -> masterdata.v1.CreateMilestoneTemplateRequest
+	31, // 44: masterdata.v1.MasterDataService.PublishMilestoneTemplate:input_type -> masterdata.v1.PublishMilestoneTemplateRequest
+	32, // 45: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:input_type -> masterdata.v1.SetDefaultMilestoneTemplateRequest
+	10, // 46: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.MasterDataItemListReply
+	11, // 47: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.MasterDataItemReply
+	11, // 48: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.MasterDataItemReply
+	12, // 49: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.MasterDataOptionsReply
+	17, // 50: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.NumberRuleListReply
+	18, // 51: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.NumberRuleReply
+	18, // 52: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.NumberRuleReply
+	26, // 53: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.StatusTemplateListReply
+	27, // 54: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	27, // 55: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	27, // 56: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
+	35, // 57: masterdata.v1.MasterDataService.ListMilestoneTemplates:output_type -> masterdata.v1.MilestoneTemplateListReply
+	36, // 58: masterdata.v1.MasterDataService.CreateMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
+	36, // 59: masterdata.v1.MasterDataService.PublishMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
+	36, // 60: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
+	46, // [46:61] is the sub-list for method output_type
+	31, // [31:46] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_masterdata_v1_masterdata_proto_init() }
@@ -2595,13 +3428,17 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[16].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[19].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[20].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[23].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[25].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[28].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[29].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_masterdata_v1_masterdata_proto_rawDesc), len(file_masterdata_v1_masterdata_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   23,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

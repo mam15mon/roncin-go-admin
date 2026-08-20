@@ -19,6 +19,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -43,6 +45,10 @@ type Client struct {
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
+	// MilestoneTemplate is the client for interacting with the MilestoneTemplate builders.
+	MilestoneTemplate *MilestoneTemplateClient
+	// MilestoneTemplateItem is the client for interacting with the MilestoneTemplateItem builders.
+	MilestoneTemplateItem *MilestoneTemplateItemClient
 	// NumberRule is the client for interacting with the NumberRule builders.
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
@@ -79,6 +85,8 @@ func (c *Client) init() {
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
+	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
+	c.MilestoneTemplateItem = NewMilestoneTemplateItemClient(c.config)
 	c.NumberRule = NewNumberRuleClient(c.config)
 	c.NumberSequence = NewNumberSequenceClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
@@ -180,22 +188,24 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		AuditLog:           NewAuditLogClient(cfg),
-		MasterDataItem:     NewMasterDataItemClient(cfg),
-		Membership:         NewMembershipClient(cfg),
-		NumberRule:         NewNumberRuleClient(cfg),
-		NumberSequence:     NewNumberSequenceClient(cfg),
-		Organization:       NewOrganizationClient(cfg),
-		Partner:            NewPartnerClient(cfg),
-		Permission:         NewPermissionClient(cfg),
-		Role:               NewRoleClient(cfg),
-		RoleAssignment:     NewRoleAssignmentClient(cfg),
-		Session:            NewSessionClient(cfg),
-		StatusTemplate:     NewStatusTemplateClient(cfg),
-		StatusTemplateItem: NewStatusTemplateItemClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		AuditLog:              NewAuditLogClient(cfg),
+		MasterDataItem:        NewMasterDataItemClient(cfg),
+		Membership:            NewMembershipClient(cfg),
+		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
+		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
+		NumberRule:            NewNumberRuleClient(cfg),
+		NumberSequence:        NewNumberSequenceClient(cfg),
+		Organization:          NewOrganizationClient(cfg),
+		Partner:               NewPartnerClient(cfg),
+		Permission:            NewPermissionClient(cfg),
+		Role:                  NewRoleClient(cfg),
+		RoleAssignment:        NewRoleAssignmentClient(cfg),
+		Session:               NewSessionClient(cfg),
+		StatusTemplate:        NewStatusTemplateClient(cfg),
+		StatusTemplateItem:    NewStatusTemplateItemClient(cfg),
+		User:                  NewUserClient(cfg),
 	}, nil
 }
 
@@ -213,22 +223,24 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		AuditLog:           NewAuditLogClient(cfg),
-		MasterDataItem:     NewMasterDataItemClient(cfg),
-		Membership:         NewMembershipClient(cfg),
-		NumberRule:         NewNumberRuleClient(cfg),
-		NumberSequence:     NewNumberSequenceClient(cfg),
-		Organization:       NewOrganizationClient(cfg),
-		Partner:            NewPartnerClient(cfg),
-		Permission:         NewPermissionClient(cfg),
-		Role:               NewRoleClient(cfg),
-		RoleAssignment:     NewRoleAssignmentClient(cfg),
-		Session:            NewSessionClient(cfg),
-		StatusTemplate:     NewStatusTemplateClient(cfg),
-		StatusTemplateItem: NewStatusTemplateItemClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		AuditLog:              NewAuditLogClient(cfg),
+		MasterDataItem:        NewMasterDataItemClient(cfg),
+		Membership:            NewMembershipClient(cfg),
+		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
+		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
+		NumberRule:            NewNumberRuleClient(cfg),
+		NumberSequence:        NewNumberSequenceClient(cfg),
+		Organization:          NewOrganizationClient(cfg),
+		Partner:               NewPartnerClient(cfg),
+		Permission:            NewPermissionClient(cfg),
+		Role:                  NewRoleClient(cfg),
+		RoleAssignment:        NewRoleAssignmentClient(cfg),
+		Session:               NewSessionClient(cfg),
+		StatusTemplate:        NewStatusTemplateClient(cfg),
+		StatusTemplateItem:    NewStatusTemplateItemClient(cfg),
+		User:                  NewUserClient(cfg),
 	}, nil
 }
 
@@ -258,9 +270,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.NumberRule, c.NumberSequence,
-		c.Organization, c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
+		c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -270,9 +283,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.NumberRule, c.NumberSequence,
-		c.Organization, c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
+		c.Partner, c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -287,6 +301,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
 		return c.Membership.mutate(ctx, m)
+	case *MilestoneTemplateMutation:
+		return c.MilestoneTemplate.mutate(ctx, m)
+	case *MilestoneTemplateItemMutation:
+		return c.MilestoneTemplateItem.mutate(ctx, m)
 	case *NumberRuleMutation:
 		return c.NumberRule.mutate(ctx, m)
 	case *NumberSequenceMutation:
@@ -774,6 +792,320 @@ func (c *MembershipClient) mutate(ctx context.Context, m *MembershipMutation) (V
 		return (&MembershipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Membership mutation op: %q", m.Op())
+	}
+}
+
+// MilestoneTemplateClient is a client for the MilestoneTemplate schema.
+type MilestoneTemplateClient struct {
+	config
+}
+
+// NewMilestoneTemplateClient returns a client for the MilestoneTemplate from the given config.
+func NewMilestoneTemplateClient(c config) *MilestoneTemplateClient {
+	return &MilestoneTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `milestonetemplate.Hooks(f(g(h())))`.
+func (c *MilestoneTemplateClient) Use(hooks ...Hook) {
+	c.hooks.MilestoneTemplate = append(c.hooks.MilestoneTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `milestonetemplate.Intercept(f(g(h())))`.
+func (c *MilestoneTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MilestoneTemplate = append(c.inters.MilestoneTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a MilestoneTemplate entity.
+func (c *MilestoneTemplateClient) Create() *MilestoneTemplateCreate {
+	mutation := newMilestoneTemplateMutation(c.config, OpCreate)
+	return &MilestoneTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MilestoneTemplate entities.
+func (c *MilestoneTemplateClient) CreateBulk(builders ...*MilestoneTemplateCreate) *MilestoneTemplateCreateBulk {
+	return &MilestoneTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MilestoneTemplateClient) MapCreateBulk(slice any, setFunc func(*MilestoneTemplateCreate, int)) *MilestoneTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MilestoneTemplateCreateBulk{err: fmt.Errorf("calling to MilestoneTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MilestoneTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MilestoneTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MilestoneTemplate.
+func (c *MilestoneTemplateClient) Update() *MilestoneTemplateUpdate {
+	mutation := newMilestoneTemplateMutation(c.config, OpUpdate)
+	return &MilestoneTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MilestoneTemplateClient) UpdateOne(_m *MilestoneTemplate) *MilestoneTemplateUpdateOne {
+	mutation := newMilestoneTemplateMutation(c.config, OpUpdateOne, withMilestoneTemplate(_m))
+	return &MilestoneTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MilestoneTemplateClient) UpdateOneID(id uuid.UUID) *MilestoneTemplateUpdateOne {
+	mutation := newMilestoneTemplateMutation(c.config, OpUpdateOne, withMilestoneTemplateID(id))
+	return &MilestoneTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MilestoneTemplate.
+func (c *MilestoneTemplateClient) Delete() *MilestoneTemplateDelete {
+	mutation := newMilestoneTemplateMutation(c.config, OpDelete)
+	return &MilestoneTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MilestoneTemplateClient) DeleteOne(_m *MilestoneTemplate) *MilestoneTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MilestoneTemplateClient) DeleteOneID(id uuid.UUID) *MilestoneTemplateDeleteOne {
+	builder := c.Delete().Where(milestonetemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MilestoneTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for MilestoneTemplate.
+func (c *MilestoneTemplateClient) Query() *MilestoneTemplateQuery {
+	return &MilestoneTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMilestoneTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MilestoneTemplate entity by its id.
+func (c *MilestoneTemplateClient) Get(ctx context.Context, id uuid.UUID) (*MilestoneTemplate, error) {
+	return c.Query().Where(milestonetemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MilestoneTemplateClient) GetX(ctx context.Context, id uuid.UUID) *MilestoneTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a MilestoneTemplate.
+func (c *MilestoneTemplateClient) QueryOrganization(_m *MilestoneTemplate) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(milestonetemplate.Table, milestonetemplate.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, milestonetemplate.OrganizationTable, milestonetemplate.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryItems queries the items edge of a MilestoneTemplate.
+func (c *MilestoneTemplateClient) QueryItems(_m *MilestoneTemplate) *MilestoneTemplateItemQuery {
+	query := (&MilestoneTemplateItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(milestonetemplate.Table, milestonetemplate.FieldID, id),
+			sqlgraph.To(milestonetemplateitem.Table, milestonetemplateitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, milestonetemplate.ItemsTable, milestonetemplate.ItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MilestoneTemplateClient) Hooks() []Hook {
+	return c.hooks.MilestoneTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *MilestoneTemplateClient) Interceptors() []Interceptor {
+	return c.inters.MilestoneTemplate
+}
+
+func (c *MilestoneTemplateClient) mutate(ctx context.Context, m *MilestoneTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MilestoneTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MilestoneTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MilestoneTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MilestoneTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MilestoneTemplate mutation op: %q", m.Op())
+	}
+}
+
+// MilestoneTemplateItemClient is a client for the MilestoneTemplateItem schema.
+type MilestoneTemplateItemClient struct {
+	config
+}
+
+// NewMilestoneTemplateItemClient returns a client for the MilestoneTemplateItem from the given config.
+func NewMilestoneTemplateItemClient(c config) *MilestoneTemplateItemClient {
+	return &MilestoneTemplateItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `milestonetemplateitem.Hooks(f(g(h())))`.
+func (c *MilestoneTemplateItemClient) Use(hooks ...Hook) {
+	c.hooks.MilestoneTemplateItem = append(c.hooks.MilestoneTemplateItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `milestonetemplateitem.Intercept(f(g(h())))`.
+func (c *MilestoneTemplateItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MilestoneTemplateItem = append(c.inters.MilestoneTemplateItem, interceptors...)
+}
+
+// Create returns a builder for creating a MilestoneTemplateItem entity.
+func (c *MilestoneTemplateItemClient) Create() *MilestoneTemplateItemCreate {
+	mutation := newMilestoneTemplateItemMutation(c.config, OpCreate)
+	return &MilestoneTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MilestoneTemplateItem entities.
+func (c *MilestoneTemplateItemClient) CreateBulk(builders ...*MilestoneTemplateItemCreate) *MilestoneTemplateItemCreateBulk {
+	return &MilestoneTemplateItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MilestoneTemplateItemClient) MapCreateBulk(slice any, setFunc func(*MilestoneTemplateItemCreate, int)) *MilestoneTemplateItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MilestoneTemplateItemCreateBulk{err: fmt.Errorf("calling to MilestoneTemplateItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MilestoneTemplateItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MilestoneTemplateItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MilestoneTemplateItem.
+func (c *MilestoneTemplateItemClient) Update() *MilestoneTemplateItemUpdate {
+	mutation := newMilestoneTemplateItemMutation(c.config, OpUpdate)
+	return &MilestoneTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MilestoneTemplateItemClient) UpdateOne(_m *MilestoneTemplateItem) *MilestoneTemplateItemUpdateOne {
+	mutation := newMilestoneTemplateItemMutation(c.config, OpUpdateOne, withMilestoneTemplateItem(_m))
+	return &MilestoneTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MilestoneTemplateItemClient) UpdateOneID(id uuid.UUID) *MilestoneTemplateItemUpdateOne {
+	mutation := newMilestoneTemplateItemMutation(c.config, OpUpdateOne, withMilestoneTemplateItemID(id))
+	return &MilestoneTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MilestoneTemplateItem.
+func (c *MilestoneTemplateItemClient) Delete() *MilestoneTemplateItemDelete {
+	mutation := newMilestoneTemplateItemMutation(c.config, OpDelete)
+	return &MilestoneTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MilestoneTemplateItemClient) DeleteOne(_m *MilestoneTemplateItem) *MilestoneTemplateItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MilestoneTemplateItemClient) DeleteOneID(id uuid.UUID) *MilestoneTemplateItemDeleteOne {
+	builder := c.Delete().Where(milestonetemplateitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MilestoneTemplateItemDeleteOne{builder}
+}
+
+// Query returns a query builder for MilestoneTemplateItem.
+func (c *MilestoneTemplateItemClient) Query() *MilestoneTemplateItemQuery {
+	return &MilestoneTemplateItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMilestoneTemplateItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MilestoneTemplateItem entity by its id.
+func (c *MilestoneTemplateItemClient) Get(ctx context.Context, id uuid.UUID) (*MilestoneTemplateItem, error) {
+	return c.Query().Where(milestonetemplateitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MilestoneTemplateItemClient) GetX(ctx context.Context, id uuid.UUID) *MilestoneTemplateItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTemplate queries the template edge of a MilestoneTemplateItem.
+func (c *MilestoneTemplateItemClient) QueryTemplate(_m *MilestoneTemplateItem) *MilestoneTemplateQuery {
+	query := (&MilestoneTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(milestonetemplateitem.Table, milestonetemplateitem.FieldID, id),
+			sqlgraph.To(milestonetemplate.Table, milestonetemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, milestonetemplateitem.TemplateTable, milestonetemplateitem.TemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MilestoneTemplateItemClient) Hooks() []Hook {
+	return c.hooks.MilestoneTemplateItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *MilestoneTemplateItemClient) Interceptors() []Interceptor {
+	return c.inters.MilestoneTemplateItem
+}
+
+func (c *MilestoneTemplateItemClient) mutate(ctx context.Context, m *MilestoneTemplateItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MilestoneTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MilestoneTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MilestoneTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MilestoneTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MilestoneTemplateItem mutation op: %q", m.Op())
 	}
 }
 
@@ -1336,6 +1668,22 @@ func (c *OrganizationClient) QueryStatusTemplates(_m *Organization) *StatusTempl
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.StatusTemplatesTable, organization.StatusTemplatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMilestoneTemplates queries the milestone_templates edge of a Organization.
+func (c *OrganizationClient) QueryMilestoneTemplates(_m *Organization) *MilestoneTemplateQuery {
+	query := (&MilestoneTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(milestonetemplate.Table, milestonetemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.MilestoneTemplatesTable, organization.MilestoneTemplatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2659,13 +3007,14 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuditLog, MasterDataItem, Membership, NumberRule, NumberSequence, Organization,
-		Partner, Permission, Role, RoleAssignment, Session, StatusTemplate,
-		StatusTemplateItem, User []ent.Hook
+		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Organization, Partner, Permission, Role,
+		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
-		AuditLog, MasterDataItem, Membership, NumberRule, NumberSequence, Organization,
-		Partner, Permission, Role, RoleAssignment, Session, StatusTemplate,
-		StatusTemplateItem, User []ent.Interceptor
+		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Organization, Partner, Permission, Role,
+		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
+		User []ent.Interceptor
 	}
 )

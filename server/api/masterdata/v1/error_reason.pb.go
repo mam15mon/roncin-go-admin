@@ -24,18 +24,22 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_ERROR_REASON_UNSPECIFIED         ErrorReason = 0
-	ErrorReason_MASTER_DATA_INVALID_ARGUMENT     ErrorReason = 1
-	ErrorReason_MASTER_DATA_NOT_FOUND            ErrorReason = 2
-	ErrorReason_MASTER_DATA_CODE_EXISTS          ErrorReason = 3
-	ErrorReason_MASTER_DATA_INVALID_KIND         ErrorReason = 4
-	ErrorReason_NUMBER_RULE_NOT_FOUND            ErrorReason = 5
-	ErrorReason_NUMBER_RULE_EXISTS               ErrorReason = 6
-	ErrorReason_STATUS_TEMPLATE_NOT_FOUND        ErrorReason = 7
-	ErrorReason_STATUS_TEMPLATE_EXISTS           ErrorReason = 8
-	ErrorReason_STATUS_TEMPLATE_INVALID          ErrorReason = 9
-	ErrorReason_NUMBER_SEQUENCE_EXHAUSTED        ErrorReason = 10
-	ErrorReason_STATUS_TEMPLATE_DEFAULT_CONFLICT ErrorReason = 11
+	ErrorReason_ERROR_REASON_UNSPECIFIED            ErrorReason = 0
+	ErrorReason_MASTER_DATA_INVALID_ARGUMENT        ErrorReason = 1
+	ErrorReason_MASTER_DATA_NOT_FOUND               ErrorReason = 2
+	ErrorReason_MASTER_DATA_CODE_EXISTS             ErrorReason = 3
+	ErrorReason_MASTER_DATA_INVALID_KIND            ErrorReason = 4
+	ErrorReason_NUMBER_RULE_NOT_FOUND               ErrorReason = 5
+	ErrorReason_NUMBER_RULE_EXISTS                  ErrorReason = 6
+	ErrorReason_STATUS_TEMPLATE_NOT_FOUND           ErrorReason = 7
+	ErrorReason_STATUS_TEMPLATE_EXISTS              ErrorReason = 8
+	ErrorReason_STATUS_TEMPLATE_INVALID             ErrorReason = 9
+	ErrorReason_NUMBER_SEQUENCE_EXHAUSTED           ErrorReason = 10
+	ErrorReason_STATUS_TEMPLATE_DEFAULT_CONFLICT    ErrorReason = 11
+	ErrorReason_MILESTONE_TEMPLATE_NOT_FOUND        ErrorReason = 12
+	ErrorReason_MILESTONE_TEMPLATE_EXISTS           ErrorReason = 13
+	ErrorReason_MILESTONE_TEMPLATE_INVALID          ErrorReason = 14
+	ErrorReason_MILESTONE_TEMPLATE_DEFAULT_CONFLICT ErrorReason = 15
 )
 
 // Enum value maps for ErrorReason.
@@ -53,20 +57,28 @@ var (
 		9:  "STATUS_TEMPLATE_INVALID",
 		10: "NUMBER_SEQUENCE_EXHAUSTED",
 		11: "STATUS_TEMPLATE_DEFAULT_CONFLICT",
+		12: "MILESTONE_TEMPLATE_NOT_FOUND",
+		13: "MILESTONE_TEMPLATE_EXISTS",
+		14: "MILESTONE_TEMPLATE_INVALID",
+		15: "MILESTONE_TEMPLATE_DEFAULT_CONFLICT",
 	}
 	ErrorReason_value = map[string]int32{
-		"ERROR_REASON_UNSPECIFIED":         0,
-		"MASTER_DATA_INVALID_ARGUMENT":     1,
-		"MASTER_DATA_NOT_FOUND":            2,
-		"MASTER_DATA_CODE_EXISTS":          3,
-		"MASTER_DATA_INVALID_KIND":         4,
-		"NUMBER_RULE_NOT_FOUND":            5,
-		"NUMBER_RULE_EXISTS":               6,
-		"STATUS_TEMPLATE_NOT_FOUND":        7,
-		"STATUS_TEMPLATE_EXISTS":           8,
-		"STATUS_TEMPLATE_INVALID":          9,
-		"NUMBER_SEQUENCE_EXHAUSTED":        10,
-		"STATUS_TEMPLATE_DEFAULT_CONFLICT": 11,
+		"ERROR_REASON_UNSPECIFIED":            0,
+		"MASTER_DATA_INVALID_ARGUMENT":        1,
+		"MASTER_DATA_NOT_FOUND":               2,
+		"MASTER_DATA_CODE_EXISTS":             3,
+		"MASTER_DATA_INVALID_KIND":            4,
+		"NUMBER_RULE_NOT_FOUND":               5,
+		"NUMBER_RULE_EXISTS":                  6,
+		"STATUS_TEMPLATE_NOT_FOUND":           7,
+		"STATUS_TEMPLATE_EXISTS":              8,
+		"STATUS_TEMPLATE_INVALID":             9,
+		"NUMBER_SEQUENCE_EXHAUSTED":           10,
+		"STATUS_TEMPLATE_DEFAULT_CONFLICT":    11,
+		"MILESTONE_TEMPLATE_NOT_FOUND":        12,
+		"MILESTONE_TEMPLATE_EXISTS":           13,
+		"MILESTONE_TEMPLATE_INVALID":          14,
+		"MILESTONE_TEMPLATE_DEFAULT_CONFLICT": 15,
 	}
 )
 
@@ -101,7 +113,7 @@ var File_masterdata_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xf3\x02\n" +
+	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xfd\x03\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cMASTER_DATA_INVALID_ARGUMENT\x10\x01\x12\x19\n" +
@@ -115,7 +127,11 @@ const file_masterdata_v1_error_reason_proto_rawDesc = "" +
 	"\x17STATUS_TEMPLATE_INVALID\x10\t\x12\x1d\n" +
 	"\x19NUMBER_SEQUENCE_EXHAUSTED\x10\n" +
 	"\x12$\n" +
-	" STATUS_TEMPLATE_DEFAULT_CONFLICT\x10\vB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	" STATUS_TEMPLATE_DEFAULT_CONFLICT\x10\v\x12 \n" +
+	"\x1cMILESTONE_TEMPLATE_NOT_FOUND\x10\f\x12\x1d\n" +
+	"\x19MILESTONE_TEMPLATE_EXISTS\x10\r\x12\x1e\n" +
+	"\x1aMILESTONE_TEMPLATE_INVALID\x10\x0e\x12'\n" +
+	"#MILESTONE_TEMPLATE_DEFAULT_CONFLICT\x10\x0fB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_error_reason_proto_rawDescOnce sync.Once

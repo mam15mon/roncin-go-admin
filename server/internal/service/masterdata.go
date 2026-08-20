@@ -13,14 +13,16 @@ import (
 
 type MasterDataService struct {
 	v1.UnimplementedMasterDataServiceServer
-	usecase            *biz.MasterDataUsecase
-	orderConfigUsecase *biz.OrderConfigUsecase
+	usecase                *biz.MasterDataUsecase
+	orderConfigUsecase     *biz.OrderConfigUsecase
+	milestoneConfigUsecase *biz.MilestoneConfigUsecase
 }
 
-func NewMasterDataService(usecase *biz.MasterDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase) *MasterDataService {
+func NewMasterDataService(usecase *biz.MasterDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase, milestoneConfigUsecase *biz.MilestoneConfigUsecase) *MasterDataService {
 	return &MasterDataService{
-		usecase:            usecase,
-		orderConfigUsecase: orderConfigUsecase,
+		usecase:                usecase,
+		orderConfigUsecase:     orderConfigUsecase,
+		milestoneConfigUsecase: milestoneConfigUsecase,
 	}
 }
 
@@ -256,6 +258,127 @@ func (s *MasterDataService) SetDefaultStatusTemplate(ctx context.Context, reques
 		Code:    0,
 		Message: "OK",
 		Data:    statusTemplateToAPI(updated),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) ListMilestoneTemplates(ctx context.Context, request *v1.ListMilestoneTemplatesRequest) (*v1.MilestoneTemplateListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var tradeTerm *string
+	if request.TradeTerm != nil {
+		t := request.GetTradeTerm()
+		tradeTerm = &t
+	}
+	var published *bool
+	if request.Published != nil {
+		p := request.GetPublished()
+		published = &p
+	}
+	templates, err := s.milestoneConfigUsecase.List(ctx, principal.Organization.ID, biz.MilestoneTemplateListOptions{
+		BusinessType: businessTypeFromAPI(request.GetBusinessType()),
+		TradeTerm:    tradeTerm,
+		Published:    published,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MilestoneTemplateListReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    milestoneTemplatesToAPI(templates),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) CreateMilestoneTemplate(ctx context.Context, request *v1.CreateMilestoneTemplateRequest) (*v1.MilestoneTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*biz.MilestoneTemplateItem, 0, len(request.GetItems()))
+	for _, item := range request.GetItems() {
+		if item == nil {
+			return nil, biz.ErrMilestoneTemplateInvalid
+		}
+		var dependsOn []string
+		if item.DependsOn != nil {
+			dependsOn = make([]string, len(item.DependsOn))
+			copy(dependsOn, item.DependsOn)
+		}
+		items = append(items, &biz.MilestoneTemplateItem{
+			Code:        item.GetCode(),
+			Label:       item.GetLabel(),
+			Description: optionalString(item.GetDescription(), item.Description != nil),
+			Category:    optionalString(item.GetCategory(), item.Category != nil),
+			SortOrder:   int(item.GetSortOrder()),
+			Enabled:     item.Enabled == nil || item.GetEnabled(),
+			DependsOn:   dependsOn,
+		})
+	}
+	created, err := s.milestoneConfigUsecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.MilestoneTemplate{
+		Code:         request.GetCode(),
+		Name:         request.GetName(),
+		BusinessType: businessTypeFromAPI(request.GetBusinessType()),
+		TradeTerm:    request.GetTradeTerm(),
+		Version:      int(request.GetVersion()),
+		Items:        items,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MilestoneTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    milestoneTemplateToAPI(created),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) PublishMilestoneTemplate(ctx context.Context, request *v1.PublishMilestoneTemplateRequest) (*v1.MilestoneTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrMilestoneTemplateInvalid
+	}
+	published, err := s.milestoneConfigUsecase.Publish(ctx, principal.Organization.ID, principal.UserID, id, request.GetIsDefault())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MilestoneTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    milestoneTemplateToAPI(published),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *MasterDataService) SetDefaultMilestoneTemplate(ctx context.Context, request *v1.SetDefaultMilestoneTemplateRequest) (*v1.MilestoneTemplateReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrMilestoneTemplateInvalid
+	}
+	updated, err := s.milestoneConfigUsecase.SetDefault(ctx, principal.Organization.ID, principal.UserID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.MilestoneTemplateReply{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    milestoneTemplateToAPI(updated),
 		TraceId: requestmeta.TraceID(ctx),
 	}, nil
 }
@@ -551,6 +674,63 @@ func statusTemplateItemToAPI(item *biz.StatusTemplateItem) *v1.StatusTemplateIte
 		Enabled:    item.Enabled,
 		ColorToken: item.ColorToken,
 		System:     item.System,
+	}
+}
+
+func milestoneTemplatesToAPI(items []*biz.MilestoneTemplate) []*v1.MilestoneTemplate {
+	result := make([]*v1.MilestoneTemplate, 0, len(items))
+	for _, item := range items {
+		result = append(result, milestoneTemplateToAPI(item))
+	}
+	return result
+}
+
+func milestoneTemplateToAPI(item *biz.MilestoneTemplate) *v1.MilestoneTemplate {
+	var publishedAt *string
+	if item.PublishedAt != nil {
+		formatted := item.PublishedAt.Format(time.RFC3339)
+		publishedAt = &formatted
+	}
+	return &v1.MilestoneTemplate{
+		Id:             item.ID.String(),
+		OrganizationId: item.OrganizationID.String(),
+		Code:           item.Code,
+		Name:           item.Name,
+		BusinessType:   businessTypeToAPI(item.BusinessType),
+		TradeTerm:      item.TradeTerm,
+		Version:        int32(item.Version),
+		IsDefault:      item.IsDefault,
+		PublishedAt:    publishedAt,
+		Enabled:        item.Enabled,
+		Items:          milestoneTemplateItemsToAPI(item.Items),
+		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func milestoneTemplateItemsToAPI(items []*biz.MilestoneTemplateItem) []*v1.MilestoneTemplateItem {
+	result := make([]*v1.MilestoneTemplateItem, 0, len(items))
+	for _, item := range items {
+		result = append(result, milestoneTemplateItemToAPI(item))
+	}
+	return result
+}
+
+func milestoneTemplateItemToAPI(item *biz.MilestoneTemplateItem) *v1.MilestoneTemplateItem {
+	var dependsOn []string
+	if item.DependsOn != nil {
+		dependsOn = make([]string, len(item.DependsOn))
+		copy(dependsOn, item.DependsOn)
+	}
+	return &v1.MilestoneTemplateItem{
+		Id:          item.ID.String(),
+		Code:        item.Code,
+		Label:       item.Label,
+		Description: item.Description,
+		Category:    item.Category,
+		SortOrder:   int32(item.SortOrder),
+		Enabled:     item.Enabled,
+		DependsOn:   dependsOn,
 	}
 }
 

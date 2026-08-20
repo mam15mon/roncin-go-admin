@@ -173,6 +173,15 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type CreateMilestoneTemplateRequest = {
+    code: string;
+    name: string;
+    businessType: number;
+    tradeTerm?: string;
+    version: number;
+    items: MilestoneTemplateItemInput[];
+  };
+
   type CreateNumberRuleRequest = {
     documentType: number;
     prefix?: string;
@@ -295,12 +304,26 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type MasterDataServiceListMilestoneTemplatesParams = {
+    businessType?: number;
+    tradeTerm?: string;
+    published?: boolean;
+  };
+
   type MasterDataServiceListStatusTemplatesParams = {
     businessType?: number;
     published?: boolean;
   };
 
+  type MasterDataServicePublishMilestoneTemplateParams = {
+    id: string;
+  };
+
   type MasterDataServicePublishStatusTemplateParams = {
+    id: string;
+  };
+
+  type MasterDataServiceSetDefaultMilestoneTemplateParams = {
     id: string;
   };
 
@@ -321,6 +344,59 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type MilestoneTemplate = {
+    id?: string;
+    organizationId?: string;
+    code?: string;
+    name?: string;
+    businessType?: number;
+    tradeTerm?: string;
+    version?: number;
+    isDefault?: boolean;
+    publishedAt?: string;
+    enabled?: boolean;
+    items?: MilestoneTemplateItem[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type MilestoneTemplateItem = {
+    id?: string;
+    code?: string;
+    label?: string;
+    description?: string;
+    category?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    dependsOn?: string[];
+  };
+
+  type MilestoneTemplateItemInput = {
+    code: string;
+    label: string;
+    description?: string;
+    category?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    dependsOn?: string[];
+  };
+
+  type MilestoneTemplateListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate[];
+    traceId?: string;
+  };
+
+  type MilestoneTemplateReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate;
     traceId?: string;
   };
 
@@ -412,6 +488,11 @@ declare namespace API {
     id: string;
   };
 
+  type PublishMilestoneTemplateRequest = {
+    id: string;
+    isDefault?: boolean;
+  };
+
   type PublishStatusTemplateRequest = {
     id: string;
     isDefault?: boolean;
@@ -425,6 +506,10 @@ declare namespace API {
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
+  };
+
+  type SetDefaultMilestoneTemplateRequest = {
+    id: string;
   };
 
   type SetDefaultStatusTemplateRequest = {

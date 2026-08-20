@@ -158,6 +158,105 @@ var (
 			},
 		},
 	}
+	// MilestoneTemplatesColumns holds the columns for the "milestone_templates" table.
+	MilestoneTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
+		{Name: "trade_term", Type: field.TypeString, Size: 16, Default: ""},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// MilestoneTemplatesTable holds the schema information for the "milestone_templates" table.
+	MilestoneTemplatesTable = &schema.Table{
+		Name:       "milestone_templates",
+		Columns:    MilestoneTemplatesColumns,
+		PrimaryKey: []*schema.Column{MilestoneTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "milestone_templates_organizations_milestone_templates",
+				Columns:    []*schema.Column{MilestoneTemplatesColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "milestonetemplate_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{MilestoneTemplatesColumns[2]},
+			},
+			{
+				Name:    "milestonetemplate_organization_id_business_type_trade_term_code_version",
+				Unique:  true,
+				Columns: []*schema.Column{MilestoneTemplatesColumns[11], MilestoneTemplatesColumns[5], MilestoneTemplatesColumns[6], MilestoneTemplatesColumns[3], MilestoneTemplatesColumns[7]},
+			},
+			{
+				Name:    "milestonetemplate_organization_id_business_type_trade_term",
+				Unique:  true,
+				Columns: []*schema.Column{MilestoneTemplatesColumns[11], MilestoneTemplatesColumns[5], MilestoneTemplatesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default",
+				},
+			},
+			{
+				Name:    "milestonetemplate_organization_id_business_type_trade_term_published_at_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{MilestoneTemplatesColumns[11], MilestoneTemplatesColumns[5], MilestoneTemplatesColumns[6], MilestoneTemplatesColumns[9], MilestoneTemplatesColumns[10]},
+			},
+		},
+	}
+	// MilestoneTemplateItemsColumns holds the columns for the "milestone_template_items" table.
+	MilestoneTemplateItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 64},
+		{Name: "label", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "category", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "depends_on", Type: field.TypeJSON, Nullable: true},
+		{Name: "template_id", Type: field.TypeUUID},
+	}
+	// MilestoneTemplateItemsTable holds the schema information for the "milestone_template_items" table.
+	MilestoneTemplateItemsTable = &schema.Table{
+		Name:       "milestone_template_items",
+		Columns:    MilestoneTemplateItemsColumns,
+		PrimaryKey: []*schema.Column{MilestoneTemplateItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "milestone_template_items_milestone_templates_items",
+				Columns:    []*schema.Column{MilestoneTemplateItemsColumns[10]},
+				RefColumns: []*schema.Column{MilestoneTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "milestonetemplateitem_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{MilestoneTemplateItemsColumns[2]},
+			},
+			{
+				Name:    "milestonetemplateitem_template_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{MilestoneTemplateItemsColumns[10], MilestoneTemplateItemsColumns[3]},
+			},
+			{
+				Name:    "milestonetemplateitem_template_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{MilestoneTemplateItemsColumns[10], MilestoneTemplateItemsColumns[7]},
+			},
+		},
+	}
 	// NumberRulesColumns holds the columns for the "number_rules" table.
 	NumberRulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -656,6 +755,8 @@ var (
 		AuditLogsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
+		MilestoneTemplatesTable,
+		MilestoneTemplateItemsTable,
 		NumberRulesTable,
 		NumberSequencesTable,
 		OrganizationsTable,
@@ -675,6 +776,8 @@ func init() {
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
+	MilestoneTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	MilestoneTemplateItemsTable.ForeignKeys[0].RefTable = MilestoneTemplatesTable
 	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable

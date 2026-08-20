@@ -32,6 +32,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("master_data_items", MasterDataItem.Type),
 		edge.To("number_rules", NumberRule.Type),
 		edge.To("status_templates", StatusTemplate.Type),
+		edge.To("milestone_templates", MilestoneTemplate.Type),
 	}
 }
 

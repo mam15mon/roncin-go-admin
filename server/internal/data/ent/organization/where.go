@@ -543,6 +543,29 @@ func HasStatusTemplatesWith(preds ...predicate.StatusTemplate) predicate.Organiz
 	})
 }
 
+// HasMilestoneTemplates applies the HasEdge predicate on the "milestone_templates" edge.
+func HasMilestoneTemplates() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MilestoneTemplatesTable, MilestoneTemplatesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMilestoneTemplatesWith applies the HasEdge predicate on the "milestone_templates" edge with a given conditions (other predicates).
+func HasMilestoneTemplatesWith(preds ...predicate.MilestoneTemplate) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newMilestoneTemplatesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

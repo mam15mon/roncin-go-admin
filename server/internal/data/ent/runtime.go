@@ -9,6 +9,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -202,6 +204,154 @@ func init() {
 	membershipDescID := membershipMixinFields0[0].Descriptor()
 	// membership.DefaultID holds the default value on creation for the id field.
 	membership.DefaultID = membershipDescID.Default.(func() uuid.UUID)
+	milestonetemplateMixin := schema.MilestoneTemplate{}.Mixin()
+	milestonetemplateMixinFields0 := milestonetemplateMixin[0].Fields()
+	_ = milestonetemplateMixinFields0
+	milestonetemplateMixinFields1 := milestonetemplateMixin[1].Fields()
+	_ = milestonetemplateMixinFields1
+	milestonetemplateFields := schema.MilestoneTemplate{}.Fields()
+	_ = milestonetemplateFields
+	// milestonetemplateDescCreatedAt is the schema descriptor for created_at field.
+	milestonetemplateDescCreatedAt := milestonetemplateMixinFields1[0].Descriptor()
+	// milestonetemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	milestonetemplate.DefaultCreatedAt = milestonetemplateDescCreatedAt.Default.(func() time.Time)
+	// milestonetemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	milestonetemplateDescUpdatedAt := milestonetemplateMixinFields1[1].Descriptor()
+	// milestonetemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	milestonetemplate.DefaultUpdatedAt = milestonetemplateDescUpdatedAt.Default.(func() time.Time)
+	// milestonetemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	milestonetemplate.UpdateDefaultUpdatedAt = milestonetemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// milestonetemplateDescCode is the schema descriptor for code field.
+	milestonetemplateDescCode := milestonetemplateFields[1].Descriptor()
+	// milestonetemplate.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	milestonetemplate.CodeValidator = func() func(string) error {
+		validators := milestonetemplateDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// milestonetemplateDescName is the schema descriptor for name field.
+	milestonetemplateDescName := milestonetemplateFields[2].Descriptor()
+	// milestonetemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	milestonetemplate.NameValidator = func() func(string) error {
+		validators := milestonetemplateDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// milestonetemplateDescTradeTerm is the schema descriptor for trade_term field.
+	milestonetemplateDescTradeTerm := milestonetemplateFields[4].Descriptor()
+	// milestonetemplate.DefaultTradeTerm holds the default value on creation for the trade_term field.
+	milestonetemplate.DefaultTradeTerm = milestonetemplateDescTradeTerm.Default.(string)
+	// milestonetemplate.TradeTermValidator is a validator for the "trade_term" field. It is called by the builders before save.
+	milestonetemplate.TradeTermValidator = milestonetemplateDescTradeTerm.Validators[0].(func(string) error)
+	// milestonetemplateDescVersion is the schema descriptor for version field.
+	milestonetemplateDescVersion := milestonetemplateFields[5].Descriptor()
+	// milestonetemplate.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	milestonetemplate.VersionValidator = milestonetemplateDescVersion.Validators[0].(func(int) error)
+	// milestonetemplateDescIsDefault is the schema descriptor for is_default field.
+	milestonetemplateDescIsDefault := milestonetemplateFields[6].Descriptor()
+	// milestonetemplate.DefaultIsDefault holds the default value on creation for the is_default field.
+	milestonetemplate.DefaultIsDefault = milestonetemplateDescIsDefault.Default.(bool)
+	// milestonetemplateDescEnabled is the schema descriptor for enabled field.
+	milestonetemplateDescEnabled := milestonetemplateFields[8].Descriptor()
+	// milestonetemplate.DefaultEnabled holds the default value on creation for the enabled field.
+	milestonetemplate.DefaultEnabled = milestonetemplateDescEnabled.Default.(bool)
+	// milestonetemplateDescID is the schema descriptor for id field.
+	milestonetemplateDescID := milestonetemplateMixinFields0[0].Descriptor()
+	// milestonetemplate.DefaultID holds the default value on creation for the id field.
+	milestonetemplate.DefaultID = milestonetemplateDescID.Default.(func() uuid.UUID)
+	milestonetemplateitemMixin := schema.MilestoneTemplateItem{}.Mixin()
+	milestonetemplateitemMixinFields0 := milestonetemplateitemMixin[0].Fields()
+	_ = milestonetemplateitemMixinFields0
+	milestonetemplateitemMixinFields1 := milestonetemplateitemMixin[1].Fields()
+	_ = milestonetemplateitemMixinFields1
+	milestonetemplateitemFields := schema.MilestoneTemplateItem{}.Fields()
+	_ = milestonetemplateitemFields
+	// milestonetemplateitemDescCreatedAt is the schema descriptor for created_at field.
+	milestonetemplateitemDescCreatedAt := milestonetemplateitemMixinFields1[0].Descriptor()
+	// milestonetemplateitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	milestonetemplateitem.DefaultCreatedAt = milestonetemplateitemDescCreatedAt.Default.(func() time.Time)
+	// milestonetemplateitemDescUpdatedAt is the schema descriptor for updated_at field.
+	milestonetemplateitemDescUpdatedAt := milestonetemplateitemMixinFields1[1].Descriptor()
+	// milestonetemplateitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	milestonetemplateitem.DefaultUpdatedAt = milestonetemplateitemDescUpdatedAt.Default.(func() time.Time)
+	// milestonetemplateitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	milestonetemplateitem.UpdateDefaultUpdatedAt = milestonetemplateitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// milestonetemplateitemDescCode is the schema descriptor for code field.
+	milestonetemplateitemDescCode := milestonetemplateitemFields[1].Descriptor()
+	// milestonetemplateitem.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	milestonetemplateitem.CodeValidator = func() func(string) error {
+		validators := milestonetemplateitemDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// milestonetemplateitemDescLabel is the schema descriptor for label field.
+	milestonetemplateitemDescLabel := milestonetemplateitemFields[2].Descriptor()
+	// milestonetemplateitem.LabelValidator is a validator for the "label" field. It is called by the builders before save.
+	milestonetemplateitem.LabelValidator = func() func(string) error {
+		validators := milestonetemplateitemDescLabel.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(label string) error {
+			for _, fn := range fns {
+				if err := fn(label); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// milestonetemplateitemDescDescription is the schema descriptor for description field.
+	milestonetemplateitemDescDescription := milestonetemplateitemFields[3].Descriptor()
+	// milestonetemplateitem.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	milestonetemplateitem.DescriptionValidator = milestonetemplateitemDescDescription.Validators[0].(func(string) error)
+	// milestonetemplateitemDescCategory is the schema descriptor for category field.
+	milestonetemplateitemDescCategory := milestonetemplateitemFields[4].Descriptor()
+	// milestonetemplateitem.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	milestonetemplateitem.CategoryValidator = milestonetemplateitemDescCategory.Validators[0].(func(string) error)
+	// milestonetemplateitemDescSortOrder is the schema descriptor for sort_order field.
+	milestonetemplateitemDescSortOrder := milestonetemplateitemFields[5].Descriptor()
+	// milestonetemplateitem.DefaultSortOrder holds the default value on creation for the sort_order field.
+	milestonetemplateitem.DefaultSortOrder = milestonetemplateitemDescSortOrder.Default.(int)
+	// milestonetemplateitemDescEnabled is the schema descriptor for enabled field.
+	milestonetemplateitemDescEnabled := milestonetemplateitemFields[6].Descriptor()
+	// milestonetemplateitem.DefaultEnabled holds the default value on creation for the enabled field.
+	milestonetemplateitem.DefaultEnabled = milestonetemplateitemDescEnabled.Default.(bool)
+	// milestonetemplateitemDescID is the schema descriptor for id field.
+	milestonetemplateitemDescID := milestonetemplateitemMixinFields0[0].Descriptor()
+	// milestonetemplateitem.DefaultID holds the default value on creation for the id field.
+	milestonetemplateitem.DefaultID = milestonetemplateitemDescID.Default.(func() uuid.UUID)
 	numberruleMixin := schema.NumberRule{}.Mixin()
 	numberruleMixinFields0 := numberruleMixin[0].Fields()
 	_ = numberruleMixinFields0

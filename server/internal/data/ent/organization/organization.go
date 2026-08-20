@@ -45,6 +45,8 @@ const (
 	EdgeNumberRules = "number_rules"
 	// EdgeStatusTemplates holds the string denoting the status_templates edge name in mutations.
 	EdgeStatusTemplates = "status_templates"
+	// EdgeMilestoneTemplates holds the string denoting the milestone_templates edge name in mutations.
+	EdgeMilestoneTemplates = "milestone_templates"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -104,6 +106,13 @@ const (
 	StatusTemplatesInverseTable = "status_templates"
 	// StatusTemplatesColumn is the table column denoting the status_templates relation/edge.
 	StatusTemplatesColumn = "organization_id"
+	// MilestoneTemplatesTable is the table that holds the milestone_templates relation/edge.
+	MilestoneTemplatesTable = "milestone_templates"
+	// MilestoneTemplatesInverseTable is the table name for the MilestoneTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "milestonetemplate" package.
+	MilestoneTemplatesInverseTable = "milestone_templates"
+	// MilestoneTemplatesColumn is the table column denoting the milestone_templates relation/edge.
+	MilestoneTemplatesColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -300,6 +309,20 @@ func ByStatusTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newStatusTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByMilestoneTemplatesCount orders the results by milestone_templates count.
+func ByMilestoneTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMilestoneTemplatesStep(), opts...)
+	}
+}
+
+// ByMilestoneTemplates orders the results by milestone_templates terms.
+func ByMilestoneTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMilestoneTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -361,5 +384,12 @@ func newStatusTemplatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StatusTemplatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, StatusTemplatesTable, StatusTemplatesColumn),
+	)
+}
+func newMilestoneTemplatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MilestoneTemplatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MilestoneTemplatesTable, MilestoneTemplatesColumn),
 	)
 }

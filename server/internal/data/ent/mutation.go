@@ -16,6 +16,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -39,20 +41,22 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAuditLog           = "AuditLog"
-	TypeMasterDataItem     = "MasterDataItem"
-	TypeMembership         = "Membership"
-	TypeNumberRule         = "NumberRule"
-	TypeNumberSequence     = "NumberSequence"
-	TypeOrganization       = "Organization"
-	TypePartner            = "Partner"
-	TypePermission         = "Permission"
-	TypeRole               = "Role"
-	TypeRoleAssignment     = "RoleAssignment"
-	TypeSession            = "Session"
-	TypeStatusTemplate     = "StatusTemplate"
-	TypeStatusTemplateItem = "StatusTemplateItem"
-	TypeUser               = "User"
+	TypeAuditLog              = "AuditLog"
+	TypeMasterDataItem        = "MasterDataItem"
+	TypeMembership            = "Membership"
+	TypeMilestoneTemplate     = "MilestoneTemplate"
+	TypeMilestoneTemplateItem = "MilestoneTemplateItem"
+	TypeNumberRule            = "NumberRule"
+	TypeNumberSequence        = "NumberSequence"
+	TypeOrganization          = "Organization"
+	TypePartner               = "Partner"
+	TypePermission            = "Permission"
+	TypeRole                  = "Role"
+	TypeRoleAssignment        = "RoleAssignment"
+	TypeSession               = "Session"
+	TypeStatusTemplate        = "StatusTemplate"
+	TypeStatusTemplateItem    = "StatusTemplateItem"
+	TypeUser                  = "User"
 )
 
 // AuditLogMutation represents an operation that mutates the AuditLog nodes in the graph.
@@ -3089,6 +3093,2060 @@ func (m *MembershipMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Membership edge %s", name)
 }
 
+// MilestoneTemplateMutation represents an operation that mutates the MilestoneTemplate nodes in the graph.
+type MilestoneTemplateMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	code                *string
+	name                *string
+	business_type       *milestonetemplate.BusinessType
+	trade_term          *string
+	version             *int
+	addversion          *int
+	is_default          *bool
+	published_at        *time.Time
+	enabled             *bool
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	items               map[uuid.UUID]struct{}
+	removeditems        map[uuid.UUID]struct{}
+	cleareditems        bool
+	done                bool
+	oldValue            func(context.Context) (*MilestoneTemplate, error)
+	predicates          []predicate.MilestoneTemplate
+}
+
+var _ ent.Mutation = (*MilestoneTemplateMutation)(nil)
+
+// milestonetemplateOption allows management of the mutation configuration using functional options.
+type milestonetemplateOption func(*MilestoneTemplateMutation)
+
+// newMilestoneTemplateMutation creates new mutation for the MilestoneTemplate entity.
+func newMilestoneTemplateMutation(c config, op Op, opts ...milestonetemplateOption) *MilestoneTemplateMutation {
+	m := &MilestoneTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMilestoneTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMilestoneTemplateID sets the ID field of the mutation.
+func withMilestoneTemplateID(id uuid.UUID) milestonetemplateOption {
+	return func(m *MilestoneTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MilestoneTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*MilestoneTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MilestoneTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMilestoneTemplate sets the old MilestoneTemplate of the mutation.
+func withMilestoneTemplate(node *MilestoneTemplate) milestonetemplateOption {
+	return func(m *MilestoneTemplateMutation) {
+		m.oldValue = func(context.Context) (*MilestoneTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MilestoneTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MilestoneTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MilestoneTemplate entities.
+func (m *MilestoneTemplateMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MilestoneTemplateMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MilestoneTemplateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MilestoneTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MilestoneTemplateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MilestoneTemplateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MilestoneTemplateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MilestoneTemplateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MilestoneTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MilestoneTemplateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *MilestoneTemplateMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *MilestoneTemplateMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *MilestoneTemplateMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetCode sets the "code" field.
+func (m *MilestoneTemplateMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *MilestoneTemplateMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *MilestoneTemplateMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetName sets the "name" field.
+func (m *MilestoneTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *MilestoneTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *MilestoneTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *MilestoneTemplateMutation) SetBusinessType(mt milestonetemplate.BusinessType) {
+	m.business_type = &mt
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *MilestoneTemplateMutation) BusinessType() (r milestonetemplate.BusinessType, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldBusinessType(ctx context.Context) (v milestonetemplate.BusinessType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *MilestoneTemplateMutation) ResetBusinessType() {
+	m.business_type = nil
+}
+
+// SetTradeTerm sets the "trade_term" field.
+func (m *MilestoneTemplateMutation) SetTradeTerm(s string) {
+	m.trade_term = &s
+}
+
+// TradeTerm returns the value of the "trade_term" field in the mutation.
+func (m *MilestoneTemplateMutation) TradeTerm() (r string, exists bool) {
+	v := m.trade_term
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTradeTerm returns the old "trade_term" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldTradeTerm(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTradeTerm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTradeTerm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTradeTerm: %w", err)
+	}
+	return oldValue.TradeTerm, nil
+}
+
+// ResetTradeTerm resets all changes to the "trade_term" field.
+func (m *MilestoneTemplateMutation) ResetTradeTerm() {
+	m.trade_term = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *MilestoneTemplateMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *MilestoneTemplateMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *MilestoneTemplateMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *MilestoneTemplateMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *MilestoneTemplateMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *MilestoneTemplateMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *MilestoneTemplateMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *MilestoneTemplateMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetPublishedAt sets the "published_at" field.
+func (m *MilestoneTemplateMutation) SetPublishedAt(t time.Time) {
+	m.published_at = &t
+}
+
+// PublishedAt returns the value of the "published_at" field in the mutation.
+func (m *MilestoneTemplateMutation) PublishedAt() (r time.Time, exists bool) {
+	v := m.published_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublishedAt returns the old "published_at" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublishedAt: %w", err)
+	}
+	return oldValue.PublishedAt, nil
+}
+
+// ClearPublishedAt clears the value of the "published_at" field.
+func (m *MilestoneTemplateMutation) ClearPublishedAt() {
+	m.published_at = nil
+	m.clearedFields[milestonetemplate.FieldPublishedAt] = struct{}{}
+}
+
+// PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
+func (m *MilestoneTemplateMutation) PublishedAtCleared() bool {
+	_, ok := m.clearedFields[milestonetemplate.FieldPublishedAt]
+	return ok
+}
+
+// ResetPublishedAt resets all changes to the "published_at" field.
+func (m *MilestoneTemplateMutation) ResetPublishedAt() {
+	m.published_at = nil
+	delete(m.clearedFields, milestonetemplate.FieldPublishedAt)
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *MilestoneTemplateMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *MilestoneTemplateMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the MilestoneTemplate entity.
+// If the MilestoneTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *MilestoneTemplateMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *MilestoneTemplateMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[milestonetemplate.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *MilestoneTemplateMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *MilestoneTemplateMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *MilestoneTemplateMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// AddItemIDs adds the "items" edge to the MilestoneTemplateItem entity by ids.
+func (m *MilestoneTemplateMutation) AddItemIDs(ids ...uuid.UUID) {
+	if m.items == nil {
+		m.items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.items[ids[i]] = struct{}{}
+	}
+}
+
+// ClearItems clears the "items" edge to the MilestoneTemplateItem entity.
+func (m *MilestoneTemplateMutation) ClearItems() {
+	m.cleareditems = true
+}
+
+// ItemsCleared reports if the "items" edge to the MilestoneTemplateItem entity was cleared.
+func (m *MilestoneTemplateMutation) ItemsCleared() bool {
+	return m.cleareditems
+}
+
+// RemoveItemIDs removes the "items" edge to the MilestoneTemplateItem entity by IDs.
+func (m *MilestoneTemplateMutation) RemoveItemIDs(ids ...uuid.UUID) {
+	if m.removeditems == nil {
+		m.removeditems = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.items, ids[i])
+		m.removeditems[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedItems returns the removed IDs of the "items" edge to the MilestoneTemplateItem entity.
+func (m *MilestoneTemplateMutation) RemovedItemsIDs() (ids []uuid.UUID) {
+	for id := range m.removeditems {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ItemsIDs returns the "items" edge IDs in the mutation.
+func (m *MilestoneTemplateMutation) ItemsIDs() (ids []uuid.UUID) {
+	for id := range m.items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetItems resets all changes to the "items" edge.
+func (m *MilestoneTemplateMutation) ResetItems() {
+	m.items = nil
+	m.cleareditems = false
+	m.removeditems = nil
+}
+
+// Where appends a list predicates to the MilestoneTemplateMutation builder.
+func (m *MilestoneTemplateMutation) Where(ps ...predicate.MilestoneTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MilestoneTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MilestoneTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MilestoneTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MilestoneTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MilestoneTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MilestoneTemplate).
+func (m *MilestoneTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MilestoneTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, milestonetemplate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, milestonetemplate.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, milestonetemplate.FieldOrganizationID)
+	}
+	if m.code != nil {
+		fields = append(fields, milestonetemplate.FieldCode)
+	}
+	if m.name != nil {
+		fields = append(fields, milestonetemplate.FieldName)
+	}
+	if m.business_type != nil {
+		fields = append(fields, milestonetemplate.FieldBusinessType)
+	}
+	if m.trade_term != nil {
+		fields = append(fields, milestonetemplate.FieldTradeTerm)
+	}
+	if m.version != nil {
+		fields = append(fields, milestonetemplate.FieldVersion)
+	}
+	if m.is_default != nil {
+		fields = append(fields, milestonetemplate.FieldIsDefault)
+	}
+	if m.published_at != nil {
+		fields = append(fields, milestonetemplate.FieldPublishedAt)
+	}
+	if m.enabled != nil {
+		fields = append(fields, milestonetemplate.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MilestoneTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case milestonetemplate.FieldCreatedAt:
+		return m.CreatedAt()
+	case milestonetemplate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case milestonetemplate.FieldOrganizationID:
+		return m.OrganizationID()
+	case milestonetemplate.FieldCode:
+		return m.Code()
+	case milestonetemplate.FieldName:
+		return m.Name()
+	case milestonetemplate.FieldBusinessType:
+		return m.BusinessType()
+	case milestonetemplate.FieldTradeTerm:
+		return m.TradeTerm()
+	case milestonetemplate.FieldVersion:
+		return m.Version()
+	case milestonetemplate.FieldIsDefault:
+		return m.IsDefault()
+	case milestonetemplate.FieldPublishedAt:
+		return m.PublishedAt()
+	case milestonetemplate.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MilestoneTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case milestonetemplate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case milestonetemplate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case milestonetemplate.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case milestonetemplate.FieldCode:
+		return m.OldCode(ctx)
+	case milestonetemplate.FieldName:
+		return m.OldName(ctx)
+	case milestonetemplate.FieldBusinessType:
+		return m.OldBusinessType(ctx)
+	case milestonetemplate.FieldTradeTerm:
+		return m.OldTradeTerm(ctx)
+	case milestonetemplate.FieldVersion:
+		return m.OldVersion(ctx)
+	case milestonetemplate.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case milestonetemplate.FieldPublishedAt:
+		return m.OldPublishedAt(ctx)
+	case milestonetemplate.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown MilestoneTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MilestoneTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case milestonetemplate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case milestonetemplate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case milestonetemplate.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case milestonetemplate.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case milestonetemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case milestonetemplate.FieldBusinessType:
+		v, ok := value.(milestonetemplate.BusinessType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
+		return nil
+	case milestonetemplate.FieldTradeTerm:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTradeTerm(v)
+		return nil
+	case milestonetemplate.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case milestonetemplate.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case milestonetemplate.FieldPublishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublishedAt(v)
+		return nil
+	case milestonetemplate.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MilestoneTemplateMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, milestonetemplate.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MilestoneTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case milestonetemplate.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MilestoneTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case milestonetemplate.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MilestoneTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(milestonetemplate.FieldPublishedAt) {
+		fields = append(fields, milestonetemplate.FieldPublishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MilestoneTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MilestoneTemplateMutation) ClearField(name string) error {
+	switch name {
+	case milestonetemplate.FieldPublishedAt:
+		m.ClearPublishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MilestoneTemplateMutation) ResetField(name string) error {
+	switch name {
+	case milestonetemplate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case milestonetemplate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case milestonetemplate.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case milestonetemplate.FieldCode:
+		m.ResetCode()
+		return nil
+	case milestonetemplate.FieldName:
+		m.ResetName()
+		return nil
+	case milestonetemplate.FieldBusinessType:
+		m.ResetBusinessType()
+		return nil
+	case milestonetemplate.FieldTradeTerm:
+		m.ResetTradeTerm()
+		return nil
+	case milestonetemplate.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case milestonetemplate.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case milestonetemplate.FieldPublishedAt:
+		m.ResetPublishedAt()
+		return nil
+	case milestonetemplate.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MilestoneTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, milestonetemplate.EdgeOrganization)
+	}
+	if m.items != nil {
+		edges = append(edges, milestonetemplate.EdgeItems)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MilestoneTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case milestonetemplate.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case milestonetemplate.EdgeItems:
+		ids := make([]ent.Value, 0, len(m.items))
+		for id := range m.items {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MilestoneTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removeditems != nil {
+		edges = append(edges, milestonetemplate.EdgeItems)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MilestoneTemplateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case milestonetemplate.EdgeItems:
+		ids := make([]ent.Value, 0, len(m.removeditems))
+		for id := range m.removeditems {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MilestoneTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, milestonetemplate.EdgeOrganization)
+	}
+	if m.cleareditems {
+		edges = append(edges, milestonetemplate.EdgeItems)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MilestoneTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case milestonetemplate.EdgeOrganization:
+		return m.clearedorganization
+	case milestonetemplate.EdgeItems:
+		return m.cleareditems
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MilestoneTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	case milestonetemplate.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MilestoneTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case milestonetemplate.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case milestonetemplate.EdgeItems:
+		m.ResetItems()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplate edge %s", name)
+}
+
+// MilestoneTemplateItemMutation represents an operation that mutates the MilestoneTemplateItem nodes in the graph.
+type MilestoneTemplateItemMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	updated_at       *time.Time
+	code             *string
+	label            *string
+	description      *string
+	category         *string
+	sort_order       *int
+	addsort_order    *int
+	enabled          *bool
+	depends_on       *[]string
+	appenddepends_on []string
+	clearedFields    map[string]struct{}
+	template         *uuid.UUID
+	clearedtemplate  bool
+	done             bool
+	oldValue         func(context.Context) (*MilestoneTemplateItem, error)
+	predicates       []predicate.MilestoneTemplateItem
+}
+
+var _ ent.Mutation = (*MilestoneTemplateItemMutation)(nil)
+
+// milestonetemplateitemOption allows management of the mutation configuration using functional options.
+type milestonetemplateitemOption func(*MilestoneTemplateItemMutation)
+
+// newMilestoneTemplateItemMutation creates new mutation for the MilestoneTemplateItem entity.
+func newMilestoneTemplateItemMutation(c config, op Op, opts ...milestonetemplateitemOption) *MilestoneTemplateItemMutation {
+	m := &MilestoneTemplateItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMilestoneTemplateItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMilestoneTemplateItemID sets the ID field of the mutation.
+func withMilestoneTemplateItemID(id uuid.UUID) milestonetemplateitemOption {
+	return func(m *MilestoneTemplateItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MilestoneTemplateItem
+		)
+		m.oldValue = func(ctx context.Context) (*MilestoneTemplateItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MilestoneTemplateItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMilestoneTemplateItem sets the old MilestoneTemplateItem of the mutation.
+func withMilestoneTemplateItem(node *MilestoneTemplateItem) milestonetemplateitemOption {
+	return func(m *MilestoneTemplateItemMutation) {
+		m.oldValue = func(context.Context) (*MilestoneTemplateItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MilestoneTemplateItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MilestoneTemplateItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MilestoneTemplateItem entities.
+func (m *MilestoneTemplateItemMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MilestoneTemplateItemMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MilestoneTemplateItemMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MilestoneTemplateItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MilestoneTemplateItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MilestoneTemplateItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MilestoneTemplateItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MilestoneTemplateItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MilestoneTemplateItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MilestoneTemplateItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetTemplateID sets the "template_id" field.
+func (m *MilestoneTemplateItemMutation) SetTemplateID(u uuid.UUID) {
+	m.template = &u
+}
+
+// TemplateID returns the value of the "template_id" field in the mutation.
+func (m *MilestoneTemplateItemMutation) TemplateID() (r uuid.UUID, exists bool) {
+	v := m.template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateID returns the old "template_id" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldTemplateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
+	}
+	return oldValue.TemplateID, nil
+}
+
+// ResetTemplateID resets all changes to the "template_id" field.
+func (m *MilestoneTemplateItemMutation) ResetTemplateID() {
+	m.template = nil
+}
+
+// SetCode sets the "code" field.
+func (m *MilestoneTemplateItemMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *MilestoneTemplateItemMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *MilestoneTemplateItemMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetLabel sets the "label" field.
+func (m *MilestoneTemplateItemMutation) SetLabel(s string) {
+	m.label = &s
+}
+
+// Label returns the value of the "label" field in the mutation.
+func (m *MilestoneTemplateItemMutation) Label() (r string, exists bool) {
+	v := m.label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabel returns the old "label" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldLabel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabel: %w", err)
+	}
+	return oldValue.Label, nil
+}
+
+// ResetLabel resets all changes to the "label" field.
+func (m *MilestoneTemplateItemMutation) ResetLabel() {
+	m.label = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *MilestoneTemplateItemMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *MilestoneTemplateItemMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldDescription(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *MilestoneTemplateItemMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[milestonetemplateitem.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[milestonetemplateitem.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *MilestoneTemplateItemMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, milestonetemplateitem.FieldDescription)
+}
+
+// SetCategory sets the "category" field.
+func (m *MilestoneTemplateItemMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *MilestoneTemplateItemMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldCategory(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ClearCategory clears the value of the "category" field.
+func (m *MilestoneTemplateItemMutation) ClearCategory() {
+	m.category = nil
+	m.clearedFields[milestonetemplateitem.FieldCategory] = struct{}{}
+}
+
+// CategoryCleared returns if the "category" field was cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) CategoryCleared() bool {
+	_, ok := m.clearedFields[milestonetemplateitem.FieldCategory]
+	return ok
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *MilestoneTemplateItemMutation) ResetCategory() {
+	m.category = nil
+	delete(m.clearedFields, milestonetemplateitem.FieldCategory)
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *MilestoneTemplateItemMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *MilestoneTemplateItemMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *MilestoneTemplateItemMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *MilestoneTemplateItemMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *MilestoneTemplateItemMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *MilestoneTemplateItemMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *MilestoneTemplateItemMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *MilestoneTemplateItemMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetDependsOn sets the "depends_on" field.
+func (m *MilestoneTemplateItemMutation) SetDependsOn(s []string) {
+	m.depends_on = &s
+	m.appenddepends_on = nil
+}
+
+// DependsOn returns the value of the "depends_on" field in the mutation.
+func (m *MilestoneTemplateItemMutation) DependsOn() (r []string, exists bool) {
+	v := m.depends_on
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependsOn returns the old "depends_on" field's value of the MilestoneTemplateItem entity.
+// If the MilestoneTemplateItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MilestoneTemplateItemMutation) OldDependsOn(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependsOn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependsOn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependsOn: %w", err)
+	}
+	return oldValue.DependsOn, nil
+}
+
+// AppendDependsOn adds s to the "depends_on" field.
+func (m *MilestoneTemplateItemMutation) AppendDependsOn(s []string) {
+	m.appenddepends_on = append(m.appenddepends_on, s...)
+}
+
+// AppendedDependsOn returns the list of values that were appended to the "depends_on" field in this mutation.
+func (m *MilestoneTemplateItemMutation) AppendedDependsOn() ([]string, bool) {
+	if len(m.appenddepends_on) == 0 {
+		return nil, false
+	}
+	return m.appenddepends_on, true
+}
+
+// ClearDependsOn clears the value of the "depends_on" field.
+func (m *MilestoneTemplateItemMutation) ClearDependsOn() {
+	m.depends_on = nil
+	m.appenddepends_on = nil
+	m.clearedFields[milestonetemplateitem.FieldDependsOn] = struct{}{}
+}
+
+// DependsOnCleared returns if the "depends_on" field was cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) DependsOnCleared() bool {
+	_, ok := m.clearedFields[milestonetemplateitem.FieldDependsOn]
+	return ok
+}
+
+// ResetDependsOn resets all changes to the "depends_on" field.
+func (m *MilestoneTemplateItemMutation) ResetDependsOn() {
+	m.depends_on = nil
+	m.appenddepends_on = nil
+	delete(m.clearedFields, milestonetemplateitem.FieldDependsOn)
+}
+
+// ClearTemplate clears the "template" edge to the MilestoneTemplate entity.
+func (m *MilestoneTemplateItemMutation) ClearTemplate() {
+	m.clearedtemplate = true
+	m.clearedFields[milestonetemplateitem.FieldTemplateID] = struct{}{}
+}
+
+// TemplateCleared reports if the "template" edge to the MilestoneTemplate entity was cleared.
+func (m *MilestoneTemplateItemMutation) TemplateCleared() bool {
+	return m.clearedtemplate
+}
+
+// TemplateIDs returns the "template" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TemplateID instead. It exists only for internal usage by the builders.
+func (m *MilestoneTemplateItemMutation) TemplateIDs() (ids []uuid.UUID) {
+	if id := m.template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTemplate resets all changes to the "template" edge.
+func (m *MilestoneTemplateItemMutation) ResetTemplate() {
+	m.template = nil
+	m.clearedtemplate = false
+}
+
+// Where appends a list predicates to the MilestoneTemplateItemMutation builder.
+func (m *MilestoneTemplateItemMutation) Where(ps ...predicate.MilestoneTemplateItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MilestoneTemplateItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MilestoneTemplateItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MilestoneTemplateItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MilestoneTemplateItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MilestoneTemplateItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MilestoneTemplateItem).
+func (m *MilestoneTemplateItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MilestoneTemplateItemMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, milestonetemplateitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, milestonetemplateitem.FieldUpdatedAt)
+	}
+	if m.template != nil {
+		fields = append(fields, milestonetemplateitem.FieldTemplateID)
+	}
+	if m.code != nil {
+		fields = append(fields, milestonetemplateitem.FieldCode)
+	}
+	if m.label != nil {
+		fields = append(fields, milestonetemplateitem.FieldLabel)
+	}
+	if m.description != nil {
+		fields = append(fields, milestonetemplateitem.FieldDescription)
+	}
+	if m.category != nil {
+		fields = append(fields, milestonetemplateitem.FieldCategory)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, milestonetemplateitem.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, milestonetemplateitem.FieldEnabled)
+	}
+	if m.depends_on != nil {
+		fields = append(fields, milestonetemplateitem.FieldDependsOn)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MilestoneTemplateItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case milestonetemplateitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case milestonetemplateitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case milestonetemplateitem.FieldTemplateID:
+		return m.TemplateID()
+	case milestonetemplateitem.FieldCode:
+		return m.Code()
+	case milestonetemplateitem.FieldLabel:
+		return m.Label()
+	case milestonetemplateitem.FieldDescription:
+		return m.Description()
+	case milestonetemplateitem.FieldCategory:
+		return m.Category()
+	case milestonetemplateitem.FieldSortOrder:
+		return m.SortOrder()
+	case milestonetemplateitem.FieldEnabled:
+		return m.Enabled()
+	case milestonetemplateitem.FieldDependsOn:
+		return m.DependsOn()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MilestoneTemplateItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case milestonetemplateitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case milestonetemplateitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case milestonetemplateitem.FieldTemplateID:
+		return m.OldTemplateID(ctx)
+	case milestonetemplateitem.FieldCode:
+		return m.OldCode(ctx)
+	case milestonetemplateitem.FieldLabel:
+		return m.OldLabel(ctx)
+	case milestonetemplateitem.FieldDescription:
+		return m.OldDescription(ctx)
+	case milestonetemplateitem.FieldCategory:
+		return m.OldCategory(ctx)
+	case milestonetemplateitem.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case milestonetemplateitem.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case milestonetemplateitem.FieldDependsOn:
+		return m.OldDependsOn(ctx)
+	}
+	return nil, fmt.Errorf("unknown MilestoneTemplateItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MilestoneTemplateItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case milestonetemplateitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case milestonetemplateitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case milestonetemplateitem.FieldTemplateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateID(v)
+		return nil
+	case milestonetemplateitem.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case milestonetemplateitem.FieldLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabel(v)
+		return nil
+	case milestonetemplateitem.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case milestonetemplateitem.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case milestonetemplateitem.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case milestonetemplateitem.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case milestonetemplateitem.FieldDependsOn:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependsOn(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MilestoneTemplateItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, milestonetemplateitem.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MilestoneTemplateItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case milestonetemplateitem.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MilestoneTemplateItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case milestonetemplateitem.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MilestoneTemplateItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(milestonetemplateitem.FieldDescription) {
+		fields = append(fields, milestonetemplateitem.FieldDescription)
+	}
+	if m.FieldCleared(milestonetemplateitem.FieldCategory) {
+		fields = append(fields, milestonetemplateitem.FieldCategory)
+	}
+	if m.FieldCleared(milestonetemplateitem.FieldDependsOn) {
+		fields = append(fields, milestonetemplateitem.FieldDependsOn)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MilestoneTemplateItemMutation) ClearField(name string) error {
+	switch name {
+	case milestonetemplateitem.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case milestonetemplateitem.FieldCategory:
+		m.ClearCategory()
+		return nil
+	case milestonetemplateitem.FieldDependsOn:
+		m.ClearDependsOn()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MilestoneTemplateItemMutation) ResetField(name string) error {
+	switch name {
+	case milestonetemplateitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case milestonetemplateitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case milestonetemplateitem.FieldTemplateID:
+		m.ResetTemplateID()
+		return nil
+	case milestonetemplateitem.FieldCode:
+		m.ResetCode()
+		return nil
+	case milestonetemplateitem.FieldLabel:
+		m.ResetLabel()
+		return nil
+	case milestonetemplateitem.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case milestonetemplateitem.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case milestonetemplateitem.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case milestonetemplateitem.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case milestonetemplateitem.FieldDependsOn:
+		m.ResetDependsOn()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MilestoneTemplateItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.template != nil {
+		edges = append(edges, milestonetemplateitem.EdgeTemplate)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MilestoneTemplateItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case milestonetemplateitem.EdgeTemplate:
+		if id := m.template; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MilestoneTemplateItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MilestoneTemplateItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtemplate {
+		edges = append(edges, milestonetemplateitem.EdgeTemplate)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MilestoneTemplateItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case milestonetemplateitem.EdgeTemplate:
+		return m.clearedtemplate
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MilestoneTemplateItemMutation) ClearEdge(name string) error {
+	switch name {
+	case milestonetemplateitem.EdgeTemplate:
+		m.ClearTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MilestoneTemplateItemMutation) ResetEdge(name string) error {
+	switch name {
+	case milestonetemplateitem.EdgeTemplate:
+		m.ResetTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown MilestoneTemplateItem edge %s", name)
+}
+
 // NumberRuleMutation represents an operation that mutates the NumberRule nodes in the graph.
 type NumberRuleMutation struct {
 	config
@@ -4669,44 +6727,47 @@ func (m *NumberSequenceMutation) ResetEdge(name string) error {
 // OrganizationMutation represents an operation that mutates the Organization nodes in the graph.
 type OrganizationMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	code                     *string
-	name                     *string
-	enabled                  *bool
-	clearedFields            map[string]struct{}
-	parent                   *uuid.UUID
-	clearedparent            bool
-	children                 map[uuid.UUID]struct{}
-	removedchildren          map[uuid.UUID]struct{}
-	clearedchildren          bool
-	memberships              map[uuid.UUID]struct{}
-	removedmemberships       map[uuid.UUID]struct{}
-	clearedmemberships       bool
-	roles                    map[uuid.UUID]struct{}
-	removedroles             map[uuid.UUID]struct{}
-	clearedroles             bool
-	sessions                 map[uuid.UUID]struct{}
-	removedsessions          map[uuid.UUID]struct{}
-	clearedsessions          bool
-	partners                 map[uuid.UUID]struct{}
-	removedpartners          map[uuid.UUID]struct{}
-	clearedpartners          bool
-	master_data_items        map[uuid.UUID]struct{}
-	removedmaster_data_items map[uuid.UUID]struct{}
-	clearedmaster_data_items bool
-	number_rules             map[uuid.UUID]struct{}
-	removednumber_rules      map[uuid.UUID]struct{}
-	clearednumber_rules      bool
-	status_templates         map[uuid.UUID]struct{}
-	removedstatus_templates  map[uuid.UUID]struct{}
-	clearedstatus_templates  bool
-	done                     bool
-	oldValue                 func(context.Context) (*Organization, error)
-	predicates               []predicate.Organization
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	code                       *string
+	name                       *string
+	enabled                    *bool
+	clearedFields              map[string]struct{}
+	parent                     *uuid.UUID
+	clearedparent              bool
+	children                   map[uuid.UUID]struct{}
+	removedchildren            map[uuid.UUID]struct{}
+	clearedchildren            bool
+	memberships                map[uuid.UUID]struct{}
+	removedmemberships         map[uuid.UUID]struct{}
+	clearedmemberships         bool
+	roles                      map[uuid.UUID]struct{}
+	removedroles               map[uuid.UUID]struct{}
+	clearedroles               bool
+	sessions                   map[uuid.UUID]struct{}
+	removedsessions            map[uuid.UUID]struct{}
+	clearedsessions            bool
+	partners                   map[uuid.UUID]struct{}
+	removedpartners            map[uuid.UUID]struct{}
+	clearedpartners            bool
+	master_data_items          map[uuid.UUID]struct{}
+	removedmaster_data_items   map[uuid.UUID]struct{}
+	clearedmaster_data_items   bool
+	number_rules               map[uuid.UUID]struct{}
+	removednumber_rules        map[uuid.UUID]struct{}
+	clearednumber_rules        bool
+	status_templates           map[uuid.UUID]struct{}
+	removedstatus_templates    map[uuid.UUID]struct{}
+	clearedstatus_templates    bool
+	milestone_templates        map[uuid.UUID]struct{}
+	removedmilestone_templates map[uuid.UUID]struct{}
+	clearedmilestone_templates bool
+	done                       bool
+	oldValue                   func(context.Context) (*Organization, error)
+	predicates                 []predicate.Organization
 }
 
 var _ ent.Mutation = (*OrganizationMutation)(nil)
@@ -5501,6 +7562,60 @@ func (m *OrganizationMutation) ResetStatusTemplates() {
 	m.removedstatus_templates = nil
 }
 
+// AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by ids.
+func (m *OrganizationMutation) AddMilestoneTemplateIDs(ids ...uuid.UUID) {
+	if m.milestone_templates == nil {
+		m.milestone_templates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.milestone_templates[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMilestoneTemplates clears the "milestone_templates" edge to the MilestoneTemplate entity.
+func (m *OrganizationMutation) ClearMilestoneTemplates() {
+	m.clearedmilestone_templates = true
+}
+
+// MilestoneTemplatesCleared reports if the "milestone_templates" edge to the MilestoneTemplate entity was cleared.
+func (m *OrganizationMutation) MilestoneTemplatesCleared() bool {
+	return m.clearedmilestone_templates
+}
+
+// RemoveMilestoneTemplateIDs removes the "milestone_templates" edge to the MilestoneTemplate entity by IDs.
+func (m *OrganizationMutation) RemoveMilestoneTemplateIDs(ids ...uuid.UUID) {
+	if m.removedmilestone_templates == nil {
+		m.removedmilestone_templates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.milestone_templates, ids[i])
+		m.removedmilestone_templates[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMilestoneTemplates returns the removed IDs of the "milestone_templates" edge to the MilestoneTemplate entity.
+func (m *OrganizationMutation) RemovedMilestoneTemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.removedmilestone_templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MilestoneTemplatesIDs returns the "milestone_templates" edge IDs in the mutation.
+func (m *OrganizationMutation) MilestoneTemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.milestone_templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMilestoneTemplates resets all changes to the "milestone_templates" edge.
+func (m *OrganizationMutation) ResetMilestoneTemplates() {
+	m.milestone_templates = nil
+	m.clearedmilestone_templates = false
+	m.removedmilestone_templates = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -5728,7 +7843,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -5755,6 +7870,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.status_templates != nil {
 		edges = append(edges, organization.EdgeStatusTemplates)
+	}
+	if m.milestone_templates != nil {
+		edges = append(edges, organization.EdgeMilestoneTemplates)
 	}
 	return edges
 }
@@ -5815,13 +7933,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeMilestoneTemplates:
+		ids := make([]ent.Value, 0, len(m.milestone_templates))
+		for id := range m.milestone_templates {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -5845,6 +7969,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedstatus_templates != nil {
 		edges = append(edges, organization.EdgeStatusTemplates)
+	}
+	if m.removedmilestone_templates != nil {
+		edges = append(edges, organization.EdgeMilestoneTemplates)
 	}
 	return edges
 }
@@ -5901,13 +8028,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeMilestoneTemplates:
+		ids := make([]ent.Value, 0, len(m.removedmilestone_templates))
+		for id := range m.removedmilestone_templates {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -5935,6 +8068,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedstatus_templates {
 		edges = append(edges, organization.EdgeStatusTemplates)
 	}
+	if m.clearedmilestone_templates {
+		edges = append(edges, organization.EdgeMilestoneTemplates)
+	}
 	return edges
 }
 
@@ -5960,6 +8096,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearednumber_rules
 	case organization.EdgeStatusTemplates:
 		return m.clearedstatus_templates
+	case organization.EdgeMilestoneTemplates:
+		return m.clearedmilestone_templates
 	}
 	return false
 }
@@ -6005,6 +8143,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeStatusTemplates:
 		m.ResetStatusTemplates()
+		return nil
+	case organization.EdgeMilestoneTemplates:
+		m.ResetMilestoneTemplates()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)

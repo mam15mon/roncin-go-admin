@@ -35,6 +35,7 @@ import {
   masterDataServiceUpdateItem,
   masterDataServiceUpdateNumberRule,
 } from '@/services/roncin/masterDataService';
+import MilestoneTemplatesPanel from './milestone-templates-panel';
 
 const kindOptions = [
   { label: '币种', value: 1 },
@@ -938,6 +939,11 @@ export default function MasterDataPage() {
       key: 'status-templates',
       label: '状态模板',
       children: <StatusTemplatesPanel />,
+    },
+    {
+      key: 'milestone-templates',
+      label: '里程碑模板',
+      children: <MilestoneTemplatesPanel />,
     },
   ];
 

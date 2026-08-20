@@ -54,6 +54,86 @@ export async function masterDataServiceUpdateItem(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/master-data/milestone-templates */
+export async function masterDataServiceListMilestoneTemplates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListMilestoneTemplatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.MilestoneTemplateListReply>(
+    "/api/v1/master-data/milestone-templates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/milestone-templates */
+export async function masterDataServiceCreateMilestoneTemplate(
+  body: API.CreateMilestoneTemplateRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.MilestoneTemplateReply>(
+    "/api/v1/master-data/milestone-templates",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/milestone-templates/${param0}/publish */
+export async function masterDataServicePublishMilestoneTemplate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServicePublishMilestoneTemplateParams,
+  body: API.PublishMilestoneTemplateRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.MilestoneTemplateReply>(
+    `/api/v1/master-data/milestone-templates/${param0}/publish`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/milestone-templates/${param0}/set-default */
+export async function masterDataServiceSetDefaultMilestoneTemplate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceSetDefaultMilestoneTemplateParams,
+  body: API.SetDefaultMilestoneTemplateRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.MilestoneTemplateReply>(
+    `/api/v1/master-data/milestone-templates/${param0}/set-default`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/master-data/number-rules */
 export async function masterDataServiceListNumberRules(options?: {
   [key: string]: any;

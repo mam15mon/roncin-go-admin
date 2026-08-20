@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -233,6 +234,21 @@ func (_c *OrganizationCreate) AddStatusTemplates(v ...*StatusTemplate) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddStatusTemplateIDs(ids...)
+}
+
+// AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by IDs.
+func (_c *OrganizationCreate) AddMilestoneTemplateIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddMilestoneTemplateIDs(ids...)
+	return _c
+}
+
+// AddMilestoneTemplates adds the "milestone_templates" edges to the MilestoneTemplate entity.
+func (_c *OrganizationCreate) AddMilestoneTemplates(v ...*MilestoneTemplate) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddMilestoneTemplateIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -508,6 +524,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MilestoneTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.MilestoneTemplatesTable,
+			Columns: []string{organization.MilestoneTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
