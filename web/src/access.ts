@@ -1,11 +1,23 @@
-/**
- * @see https://umijs.org/docs/max/access#access
- * */
+const permissions = {
+  platformAccess: 'system.platform.access',
+  organizationManage: 'system.organization.manage',
+  userManage: 'system.user.manage',
+  roleManage: 'system.role.manage',
+  auditRead: 'system.audit.read',
+} as const;
+
 export default function access(
   initialState: { currentUser?: API.CurrentUser } | undefined,
 ) {
-  const { currentUser } = initialState ?? {};
+  const granted = new Set(initialState?.currentUser?.permissions ?? []);
+  const has = (permission: string) => granted.has(permission);
+
   return {
-    canAdmin: currentUser && currentUser.access === 'admin',
+    isAuthenticated: Boolean(initialState?.currentUser),
+    canAccessPlatform: has(permissions.platformAccess),
+    canManageOrganizations: has(permissions.organizationManage),
+    canManageUsers: has(permissions.userManage),
+    canManageRoles: has(permissions.roleManage),
+    canReadAudit: has(permissions.auditRead),
   };
 }
