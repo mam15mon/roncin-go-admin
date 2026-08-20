@@ -569,6 +569,45 @@ declare namespace API {
     updatedAt?: string;
   };
 
+  type OrderAttachment = {
+    id?: string;
+    orderId?: string;
+    docType?: string;
+    idempotencyKey?: string;
+    fileName?: string;
+    mimeType?: string;
+    fileSize?: string;
+    objectKey?: string;
+    checksum?: string;
+    uploadedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderAttachmentListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAttachment[];
+    traceId?: string;
+  };
+
+  type OrderAttachmentReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAttachment;
+    traceId?: string;
+  };
+
+  type OrderAttachmentServiceListAttachmentsParams = {
+    orderId: string;
+  };
+
+  type OrderAttachmentServiceRegisterAttachmentParams = {
+    orderId: string;
+  };
+
   type OrderListReply = {
     success?: boolean;
     code?: number;
@@ -1005,6 +1044,17 @@ declare namespace API {
   type PublishStatusTemplateRequest = {
     id: string;
     isDefault?: boolean;
+  };
+
+  type RegisterAttachmentRequest = {
+    orderId: string;
+    docType: string;
+    idempotencyKey: string;
+    fileName: string;
+    mimeType: string;
+    fileSize: string;
+    objectKey: string;
+    checksum?: string;
   };
 
   type RegisterPartnerAttachmentRequest = {
