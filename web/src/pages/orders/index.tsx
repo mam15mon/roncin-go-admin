@@ -1,6 +1,7 @@
 import {
   EditOutlined,
   FlagOutlined,
+  PaperClipOutlined,
   PlusOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
@@ -21,13 +22,17 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Drawer, Space, Tag } from 'antd';
+import { Alert, App, Button, Drawer, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   masterDataServiceListOptions,
   masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
+import {
+  orderAttachmentServiceListAttachments,
+  orderAttachmentServiceRegisterAttachment,
+} from '@/services/roncin/orderAttachmentService';
 import {
   orderMilestoneServiceListMilestones,
   orderMilestoneServiceSetMilestone,
@@ -129,6 +134,16 @@ type MilestoneFormValues = {
   note?: string;
 };
 
+type AttachmentFormValues = {
+  docType: string;
+  idempotencyKey: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: string | number;
+  objectKey: string;
+  checksum?: string;
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -136,6 +151,8 @@ export default function Orders() {
   const transitionFormRef = useRef<ProFormInstance | undefined>(undefined);
   const milestoneActionRef = useRef<ActionType | undefined>(undefined);
   const milestoneFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const attachmentActionRef = useRef<ActionType | undefined>(undefined);
+  const attachmentFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -144,10 +161,13 @@ export default function Orders() {
   const [transitionModalOpen, setTransitionModalOpen] = useState(false);
   const [milestoneDrawerOpen, setMilestoneDrawerOpen] = useState(false);
   const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
+  const [attachmentDrawerOpen, setAttachmentDrawerOpen] = useState(false);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
   const [milestoneOrder, setMilestoneOrder] = useState<API.Order>();
+  const [attachmentOrder, setAttachmentOrder] = useState<API.Order>();
   const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
@@ -322,6 +342,59 @@ export default function Orders() {
     setMilestoneModalOpen(true);
   };
 
+  const openAttachments = (record: API.Order) => {
+    setAttachmentOrder(record);
+    setAttachmentDrawerOpen(true);
+  };
+
+  const openRegisterAttachment = () => {
+    attachmentFormRef.current?.resetFields();
+    setAttachmentModalOpen(true);
+  };
+
+  const attachmentColumns: ProColumns<API.OrderAttachment>[] = [
+    {
+      title: '文档类型',
+      dataIndex: 'docType',
+      width: 140,
+      ellipsis: true,
+    },
+    {
+      title: '文件名',
+      dataIndex: 'fileName',
+      ellipsis: true,
+    },
+    {
+      title: 'MIME 类型',
+      dataIndex: 'mimeType',
+      width: 140,
+      ellipsis: true,
+    },
+    {
+      title: '文件大小',
+      dataIndex: 'fileSize',
+      width: 120,
+    },
+    {
+      title: '对象键',
+      dataIndex: 'objectKey',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
+      title: '校验和',
+      dataIndex: 'checksum',
+      copyable: true,
+      ellipsis: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 180,
+    },
+  ];
+
   const milestoneColumns: ProColumns<API.OrderMilestone>[] = [
     {
       title: '类型',
@@ -450,7 +523,7 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 220,
+      width: 280,
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
@@ -482,6 +555,14 @@ export default function Orders() {
               onClick={() => openMilestones(record)}
             >
               里程碑
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<PaperClipOutlined />}
+              onClick={() => openAttachments(record)}
+            >
+              附件
             </Button>
           </Space>
         );
@@ -1062,6 +1143,134 @@ export default function Orders() {
           label="备注"
           placeholder="请输入备注"
           fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          attachmentOrder
+            ? `订单附件 - ${attachmentOrder.orderNo || attachmentOrder.id}`
+            : '订单附件'
+        }
+        open={attachmentDrawerOpen}
+        onClose={() => {
+          setAttachmentDrawerOpen(false);
+          setAttachmentOrder(undefined);
+        }}
+        width={900}
+        destroyOnHidden
+      >
+        {attachmentOrder?.id && (
+          <ProTable<API.OrderAttachment>
+            actionRef={attachmentActionRef}
+            rowKey={(record) => record.id || record.objectKey || ''}
+            columns={attachmentColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderAttachmentServiceListAttachments({
+                orderId: attachmentOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openRegisterAttachment}
+                >
+                  登记附件
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<AttachmentFormValues>
+        title="登记附件"
+        open={attachmentModalOpen}
+        formRef={attachmentFormRef}
+        modalProps={{
+          destroyOnHidden: true,
+          width: 560,
+          onCancel: () => setAttachmentModalOpen(false),
+        }}
+        onOpenChange={setAttachmentModalOpen}
+        onFinish={async (values) => {
+          if (!attachmentOrder?.id) return false;
+          await orderAttachmentServiceRegisterAttachment(
+            { orderId: attachmentOrder.id },
+            {
+              orderId: attachmentOrder.id,
+              docType: values.docType.trim(),
+              idempotencyKey: values.idempotencyKey.trim(),
+              fileName: values.fileName.trim(),
+              mimeType: values.mimeType.trim(),
+              fileSize: String(values.fileSize),
+              objectKey: values.objectKey.trim(),
+              checksum: values.checksum?.trim() || undefined,
+            },
+          );
+          message.success('登记附件成功');
+          setAttachmentModalOpen(false);
+          attachmentActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          message="此处仅登记外部对象存储引用，不上传文件内容。"
+          style={{ marginBottom: 16 }}
+        />
+        <ProFormText
+          name="docType"
+          label="文档类型"
+          placeholder="请输入文档类型 (如 BL, INVOICE, PACKING_LIST)"
+          rules={[{ required: true, message: '请输入文档类型' }]}
+        />
+        <ProFormText
+          name="idempotencyKey"
+          label="幂等键"
+          placeholder="请输入幂等键"
+          rules={[{ required: true, message: '请输入幂等键' }]}
+        />
+        <ProFormText
+          name="fileName"
+          label="文件名"
+          placeholder="请输入文件名"
+          rules={[{ required: true, message: '请输入文件名' }]}
+        />
+        <ProFormText
+          name="mimeType"
+          label="MIME 类型"
+          placeholder="请输入 MIME 类型 (如 application/pdf)"
+          rules={[{ required: true, message: '请输入 MIME 类型' }]}
+        />
+        <ProFormDigit
+          name="fileSize"
+          label="文件大小"
+          min={1}
+          fieldProps={{ precision: 0 }}
+          placeholder="请输入文件大小 (字节)"
+          rules={[{ required: true, message: '请输入文件大小' }]}
+        />
+        <ProFormText
+          name="objectKey"
+          label="对象键"
+          placeholder="请输入对象键"
+          rules={[{ required: true, message: '请输入对象键' }]}
+        />
+        <ProFormText
+          name="checksum"
+          label="校验和"
+          placeholder="请输入校验和 (可选)"
         />
       </ModalForm>
     </>
