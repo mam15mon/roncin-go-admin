@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -68,6 +69,8 @@ type Client struct {
 	Order *OrderClient
 	// OrderCargoCategory is the client for interacting with the OrderCargoCategory builders.
 	OrderCargoCategory *OrderCargoCategoryClient
+	// OrderMilestone is the client for interacting with the OrderMilestone builders.
+	OrderMilestone *OrderMilestoneClient
 	// OrderServiceType is the client for interacting with the OrderServiceType builders.
 	OrderServiceType *OrderServiceTypeClient
 	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
@@ -124,6 +127,7 @@ func (c *Client) init() {
 	c.NumberSequence = NewNumberSequenceClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
+	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderServiceType = NewOrderServiceTypeClient(c.config)
 	c.OrderStatusLog = NewOrderStatusLogClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
@@ -243,6 +247,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NumberSequence:        NewNumberSequenceClient(cfg),
 		Order:                 NewOrderClient(cfg),
 		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
+		OrderMilestone:        NewOrderMilestoneClient(cfg),
 		OrderServiceType:      NewOrderServiceTypeClient(cfg),
 		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
@@ -289,6 +294,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NumberSequence:        NewNumberSequenceClient(cfg),
 		Order:                 NewOrderClient(cfg),
 		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
+		OrderMilestone:        NewOrderMilestoneClient(cfg),
 		OrderServiceType:      NewOrderServiceTypeClient(cfg),
 		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
@@ -338,11 +344,11 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderCargoCategory, c.OrderServiceType, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
-		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
-		c.StatusTemplateItem, c.User,
+		c.OrderCargoCategory, c.OrderMilestone, c.OrderServiceType, c.OrderStatusLog,
+		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
+		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
+		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -354,11 +360,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderCargoCategory, c.OrderServiceType, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
-		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
-		c.StatusTemplateItem, c.User,
+		c.OrderCargoCategory, c.OrderMilestone, c.OrderServiceType, c.OrderStatusLog,
+		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
+		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
+		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -385,6 +391,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Order.mutate(ctx, m)
 	case *OrderCargoCategoryMutation:
 		return c.OrderCargoCategory.mutate(ctx, m)
+	case *OrderMilestoneMutation:
+		return c.OrderMilestone.mutate(ctx, m)
 	case *OrderServiceTypeMutation:
 		return c.OrderServiceType.mutate(ctx, m)
 	case *OrderStatusLogMutation:
@@ -1721,6 +1729,22 @@ func (c *OrderClient) QueryCargoCategories(_m *Order) *OrderCargoCategoryQuery {
 	return query
 }
 
+// QueryMilestones queries the milestones edge of a Order.
+func (c *OrderClient) QueryMilestones(_m *Order) *OrderMilestoneQuery {
+	query := (&OrderMilestoneClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(ordermilestone.Table, ordermilestone.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.MilestonesTable, order.MilestonesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -1892,6 +1916,155 @@ func (c *OrderCargoCategoryClient) mutate(ctx context.Context, m *OrderCargoCate
 		return (&OrderCargoCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderCargoCategory mutation op: %q", m.Op())
+	}
+}
+
+// OrderMilestoneClient is a client for the OrderMilestone schema.
+type OrderMilestoneClient struct {
+	config
+}
+
+// NewOrderMilestoneClient returns a client for the OrderMilestone from the given config.
+func NewOrderMilestoneClient(c config) *OrderMilestoneClient {
+	return &OrderMilestoneClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ordermilestone.Hooks(f(g(h())))`.
+func (c *OrderMilestoneClient) Use(hooks ...Hook) {
+	c.hooks.OrderMilestone = append(c.hooks.OrderMilestone, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ordermilestone.Intercept(f(g(h())))`.
+func (c *OrderMilestoneClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderMilestone = append(c.inters.OrderMilestone, interceptors...)
+}
+
+// Create returns a builder for creating a OrderMilestone entity.
+func (c *OrderMilestoneClient) Create() *OrderMilestoneCreate {
+	mutation := newOrderMilestoneMutation(c.config, OpCreate)
+	return &OrderMilestoneCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderMilestone entities.
+func (c *OrderMilestoneClient) CreateBulk(builders ...*OrderMilestoneCreate) *OrderMilestoneCreateBulk {
+	return &OrderMilestoneCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderMilestoneClient) MapCreateBulk(slice any, setFunc func(*OrderMilestoneCreate, int)) *OrderMilestoneCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderMilestoneCreateBulk{err: fmt.Errorf("calling to OrderMilestoneClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderMilestoneCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderMilestoneCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderMilestone.
+func (c *OrderMilestoneClient) Update() *OrderMilestoneUpdate {
+	mutation := newOrderMilestoneMutation(c.config, OpUpdate)
+	return &OrderMilestoneUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderMilestoneClient) UpdateOne(_m *OrderMilestone) *OrderMilestoneUpdateOne {
+	mutation := newOrderMilestoneMutation(c.config, OpUpdateOne, withOrderMilestone(_m))
+	return &OrderMilestoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderMilestoneClient) UpdateOneID(id uuid.UUID) *OrderMilestoneUpdateOne {
+	mutation := newOrderMilestoneMutation(c.config, OpUpdateOne, withOrderMilestoneID(id))
+	return &OrderMilestoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderMilestone.
+func (c *OrderMilestoneClient) Delete() *OrderMilestoneDelete {
+	mutation := newOrderMilestoneMutation(c.config, OpDelete)
+	return &OrderMilestoneDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderMilestoneClient) DeleteOne(_m *OrderMilestone) *OrderMilestoneDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderMilestoneClient) DeleteOneID(id uuid.UUID) *OrderMilestoneDeleteOne {
+	builder := c.Delete().Where(ordermilestone.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderMilestoneDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderMilestone.
+func (c *OrderMilestoneClient) Query() *OrderMilestoneQuery {
+	return &OrderMilestoneQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderMilestone},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderMilestone entity by its id.
+func (c *OrderMilestoneClient) Get(ctx context.Context, id uuid.UUID) (*OrderMilestone, error) {
+	return c.Query().Where(ordermilestone.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderMilestoneClient) GetX(ctx context.Context, id uuid.UUID) *OrderMilestone {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderMilestone.
+func (c *OrderMilestoneClient) QueryOrder(_m *OrderMilestone) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordermilestone.Table, ordermilestone.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordermilestone.OrderTable, ordermilestone.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderMilestoneClient) Hooks() []Hook {
+	return c.hooks.OrderMilestone
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderMilestoneClient) Interceptors() []Interceptor {
+	return c.inters.OrderMilestone
+}
+
+func (c *OrderMilestoneClient) mutate(ctx context.Context, m *OrderMilestoneMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderMilestoneCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderMilestoneUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderMilestoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderMilestoneDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderMilestone mutation op: %q", m.Op())
 	}
 }
 
@@ -4981,17 +5154,17 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderServiceType,
-		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderMilestone,
+		OrderServiceType, OrderStatusLog, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderServiceType,
-		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderMilestone,
+		OrderServiceType, OrderStatusLog, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}

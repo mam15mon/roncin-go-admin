@@ -1292,6 +1292,86 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/milestones": {
+      "get": {
+        "tags": [
+          "OrderMilestoneService"
+        ],
+        "description": "ListMilestones 获取指定订单的里程碑列表。",
+        "operationId": "OrderMilestoneService_ListMilestones",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderMilestoneListReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/milestones/{type}": {
+      "put": {
+        "tags": [
+          "OrderMilestoneService"
+        ],
+        "description": "SetMilestone 设置指定订单的单个里程碑。",
+        "operationId": "OrderMilestoneService_SetMilestone",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.SetMilestoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderMilestoneReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/partners": {
       "get": {
         "tags": [
@@ -3868,6 +3948,89 @@
         },
         "description": "OrderListReply 订单列表响应。"
       },
+      "order.v1.OrderMilestone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "templateNodeCode": {
+            "type": "string"
+          },
+          "templateNodeLabel": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "description": "OrderMilestone 订单里程碑信息。"
+      },
+      "order.v1.OrderMilestoneListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderMilestone"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderMilestoneListReply 订单里程碑列表响应。"
+      },
+      "order.v1.OrderMilestoneReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderMilestone"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderMilestoneReply 单条订单里程碑响应。"
+      },
       "order.v1.OrderReply": {
         "type": "object",
         "properties": {
@@ -3889,6 +4052,34 @@
           }
         },
         "description": "OrderReply 单条订单响应。"
+      },
+      "order.v1.SetMilestoneRequest": {
+        "required": [
+          "orderId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "expectedOrderStatus": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "clearOccurredAt": {
+            "type": "boolean"
+          }
+        },
+        "description": "SetMilestoneRequest 设置订单里程碑请求。"
       },
       "order.v1.TransitionOrderStatusRequest": {
         "required": [
@@ -5158,6 +5349,10 @@
     },
     {
       "name": "MasterDataService"
+    },
+    {
+      "name": "OrderMilestoneService",
+      "description": "OrderMilestoneService 订单里程碑服务。"
     },
     {
       "name": "OrderService",

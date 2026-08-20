@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -61,6 +62,7 @@ const (
 	TypeNumberSequence        = "NumberSequence"
 	TypeOrder                 = "Order"
 	TypeOrderCargoCategory    = "OrderCargoCategory"
+	TypeOrderMilestone        = "OrderMilestone"
 	TypeOrderServiceType      = "OrderServiceType"
 	TypeOrderStatusLog        = "OrderStatusLog"
 	TypeOrganization          = "Organization"
@@ -6799,6 +6801,9 @@ type OrderMutation struct {
 	cargo_categories        map[uuid.UUID]struct{}
 	removedcargo_categories map[uuid.UUID]struct{}
 	clearedcargo_categories bool
+	milestones              map[uuid.UUID]struct{}
+	removedmilestones       map[uuid.UUID]struct{}
+	clearedmilestones       bool
 	done                    bool
 	oldValue                func(context.Context) (*Order, error)
 	predicates              []predicate.Order
@@ -8646,6 +8651,60 @@ func (m *OrderMutation) ResetCargoCategories() {
 	m.removedcargo_categories = nil
 }
 
+// AddMilestoneIDs adds the "milestones" edge to the OrderMilestone entity by ids.
+func (m *OrderMutation) AddMilestoneIDs(ids ...uuid.UUID) {
+	if m.milestones == nil {
+		m.milestones = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.milestones[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMilestones clears the "milestones" edge to the OrderMilestone entity.
+func (m *OrderMutation) ClearMilestones() {
+	m.clearedmilestones = true
+}
+
+// MilestonesCleared reports if the "milestones" edge to the OrderMilestone entity was cleared.
+func (m *OrderMutation) MilestonesCleared() bool {
+	return m.clearedmilestones
+}
+
+// RemoveMilestoneIDs removes the "milestones" edge to the OrderMilestone entity by IDs.
+func (m *OrderMutation) RemoveMilestoneIDs(ids ...uuid.UUID) {
+	if m.removedmilestones == nil {
+		m.removedmilestones = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.milestones, ids[i])
+		m.removedmilestones[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMilestones returns the removed IDs of the "milestones" edge to the OrderMilestone entity.
+func (m *OrderMutation) RemovedMilestonesIDs() (ids []uuid.UUID) {
+	for id := range m.removedmilestones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MilestonesIDs returns the "milestones" edge IDs in the mutation.
+func (m *OrderMutation) MilestonesIDs() (ids []uuid.UUID) {
+	for id := range m.milestones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMilestones resets all changes to the "milestones" edge.
+func (m *OrderMutation) ResetMilestones() {
+	m.milestones = nil
+	m.clearedmilestones = false
+	m.removedmilestones = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -9473,7 +9532,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -9491,6 +9550,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.cargo_categories != nil {
 		edges = append(edges, order.EdgeCargoCategories)
+	}
+	if m.milestones != nil {
+		edges = append(edges, order.EdgeMilestones)
 	}
 	return edges
 }
@@ -9529,13 +9591,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeMilestones:
+		ids := make([]ent.Value, 0, len(m.milestones))
+		for id := range m.milestones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -9544,6 +9612,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedcargo_categories != nil {
 		edges = append(edges, order.EdgeCargoCategories)
+	}
+	if m.removedmilestones != nil {
+		edges = append(edges, order.EdgeMilestones)
 	}
 	return edges
 }
@@ -9570,13 +9641,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeMilestones:
+		ids := make([]ent.Value, 0, len(m.removedmilestones))
+		for id := range m.removedmilestones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -9594,6 +9671,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedcargo_categories {
 		edges = append(edges, order.EdgeCargoCategories)
+	}
+	if m.clearedmilestones {
+		edges = append(edges, order.EdgeMilestones)
 	}
 	return edges
 }
@@ -9614,6 +9694,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedservice_types
 	case order.EdgeCargoCategories:
 		return m.clearedcargo_categories
+	case order.EdgeMilestones:
+		return m.clearedmilestones
 	}
 	return false
 }
@@ -9656,6 +9738,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeCargoCategories:
 		m.ResetCargoCategories()
+		return nil
+	case order.EdgeMilestones:
+		m.ResetMilestones()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -10207,6 +10292,922 @@ func (m *OrderCargoCategoryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoCategory edge %s", name)
+}
+
+// OrderMilestoneMutation represents an operation that mutates the OrderMilestone nodes in the graph.
+type OrderMilestoneMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	_type               *string
+	template_node_code  *string
+	template_node_label *string
+	occurred_at         *time.Time
+	note                *string
+	updated_by          *uuid.UUID
+	clearedFields       map[string]struct{}
+	_order              *uuid.UUID
+	cleared_order       bool
+	done                bool
+	oldValue            func(context.Context) (*OrderMilestone, error)
+	predicates          []predicate.OrderMilestone
+}
+
+var _ ent.Mutation = (*OrderMilestoneMutation)(nil)
+
+// ordermilestoneOption allows management of the mutation configuration using functional options.
+type ordermilestoneOption func(*OrderMilestoneMutation)
+
+// newOrderMilestoneMutation creates new mutation for the OrderMilestone entity.
+func newOrderMilestoneMutation(c config, op Op, opts ...ordermilestoneOption) *OrderMilestoneMutation {
+	m := &OrderMilestoneMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderMilestone,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderMilestoneID sets the ID field of the mutation.
+func withOrderMilestoneID(id uuid.UUID) ordermilestoneOption {
+	return func(m *OrderMilestoneMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderMilestone
+		)
+		m.oldValue = func(ctx context.Context) (*OrderMilestone, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderMilestone.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderMilestone sets the old OrderMilestone of the mutation.
+func withOrderMilestone(node *OrderMilestone) ordermilestoneOption {
+	return func(m *OrderMilestoneMutation) {
+		m.oldValue = func(context.Context) (*OrderMilestone, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderMilestoneMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderMilestoneMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderMilestone entities.
+func (m *OrderMilestoneMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderMilestoneMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderMilestoneMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderMilestone.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderMilestoneMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderMilestoneMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderMilestoneMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderMilestoneMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderMilestoneMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderMilestoneMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderMilestoneMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderMilestoneMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderMilestoneMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetType sets the "type" field.
+func (m *OrderMilestoneMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *OrderMilestoneMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *OrderMilestoneMutation) ResetType() {
+	m._type = nil
+}
+
+// SetTemplateNodeCode sets the "template_node_code" field.
+func (m *OrderMilestoneMutation) SetTemplateNodeCode(s string) {
+	m.template_node_code = &s
+}
+
+// TemplateNodeCode returns the value of the "template_node_code" field in the mutation.
+func (m *OrderMilestoneMutation) TemplateNodeCode() (r string, exists bool) {
+	v := m.template_node_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateNodeCode returns the old "template_node_code" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldTemplateNodeCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateNodeCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateNodeCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateNodeCode: %w", err)
+	}
+	return oldValue.TemplateNodeCode, nil
+}
+
+// ClearTemplateNodeCode clears the value of the "template_node_code" field.
+func (m *OrderMilestoneMutation) ClearTemplateNodeCode() {
+	m.template_node_code = nil
+	m.clearedFields[ordermilestone.FieldTemplateNodeCode] = struct{}{}
+}
+
+// TemplateNodeCodeCleared returns if the "template_node_code" field was cleared in this mutation.
+func (m *OrderMilestoneMutation) TemplateNodeCodeCleared() bool {
+	_, ok := m.clearedFields[ordermilestone.FieldTemplateNodeCode]
+	return ok
+}
+
+// ResetTemplateNodeCode resets all changes to the "template_node_code" field.
+func (m *OrderMilestoneMutation) ResetTemplateNodeCode() {
+	m.template_node_code = nil
+	delete(m.clearedFields, ordermilestone.FieldTemplateNodeCode)
+}
+
+// SetTemplateNodeLabel sets the "template_node_label" field.
+func (m *OrderMilestoneMutation) SetTemplateNodeLabel(s string) {
+	m.template_node_label = &s
+}
+
+// TemplateNodeLabel returns the value of the "template_node_label" field in the mutation.
+func (m *OrderMilestoneMutation) TemplateNodeLabel() (r string, exists bool) {
+	v := m.template_node_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateNodeLabel returns the old "template_node_label" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldTemplateNodeLabel(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateNodeLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateNodeLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateNodeLabel: %w", err)
+	}
+	return oldValue.TemplateNodeLabel, nil
+}
+
+// ClearTemplateNodeLabel clears the value of the "template_node_label" field.
+func (m *OrderMilestoneMutation) ClearTemplateNodeLabel() {
+	m.template_node_label = nil
+	m.clearedFields[ordermilestone.FieldTemplateNodeLabel] = struct{}{}
+}
+
+// TemplateNodeLabelCleared returns if the "template_node_label" field was cleared in this mutation.
+func (m *OrderMilestoneMutation) TemplateNodeLabelCleared() bool {
+	_, ok := m.clearedFields[ordermilestone.FieldTemplateNodeLabel]
+	return ok
+}
+
+// ResetTemplateNodeLabel resets all changes to the "template_node_label" field.
+func (m *OrderMilestoneMutation) ResetTemplateNodeLabel() {
+	m.template_node_label = nil
+	delete(m.clearedFields, ordermilestone.FieldTemplateNodeLabel)
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (m *OrderMilestoneMutation) SetOccurredAt(t time.Time) {
+	m.occurred_at = &t
+}
+
+// OccurredAt returns the value of the "occurred_at" field in the mutation.
+func (m *OrderMilestoneMutation) OccurredAt() (r time.Time, exists bool) {
+	v := m.occurred_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOccurredAt returns the old "occurred_at" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldOccurredAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOccurredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOccurredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOccurredAt: %w", err)
+	}
+	return oldValue.OccurredAt, nil
+}
+
+// ClearOccurredAt clears the value of the "occurred_at" field.
+func (m *OrderMilestoneMutation) ClearOccurredAt() {
+	m.occurred_at = nil
+	m.clearedFields[ordermilestone.FieldOccurredAt] = struct{}{}
+}
+
+// OccurredAtCleared returns if the "occurred_at" field was cleared in this mutation.
+func (m *OrderMilestoneMutation) OccurredAtCleared() bool {
+	_, ok := m.clearedFields[ordermilestone.FieldOccurredAt]
+	return ok
+}
+
+// ResetOccurredAt resets all changes to the "occurred_at" field.
+func (m *OrderMilestoneMutation) ResetOccurredAt() {
+	m.occurred_at = nil
+	delete(m.clearedFields, ordermilestone.FieldOccurredAt)
+}
+
+// SetNote sets the "note" field.
+func (m *OrderMilestoneMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderMilestoneMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldNote(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderMilestoneMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[ordermilestone.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderMilestoneMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[ordermilestone.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderMilestoneMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, ordermilestone.FieldNote)
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *OrderMilestoneMutation) SetUpdatedBy(u uuid.UUID) {
+	m.updated_by = &u
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *OrderMilestoneMutation) UpdatedBy() (r uuid.UUID, exists bool) {
+	v := m.updated_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the OrderMilestone entity.
+// If the OrderMilestone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMilestoneMutation) OldUpdatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (m *OrderMilestoneMutation) ClearUpdatedBy() {
+	m.updated_by = nil
+	m.clearedFields[ordermilestone.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdatedByCleared returns if the "updated_by" field was cleared in this mutation.
+func (m *OrderMilestoneMutation) UpdatedByCleared() bool {
+	_, ok := m.clearedFields[ordermilestone.FieldUpdatedBy]
+	return ok
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *OrderMilestoneMutation) ResetUpdatedBy() {
+	m.updated_by = nil
+	delete(m.clearedFields, ordermilestone.FieldUpdatedBy)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderMilestoneMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[ordermilestone.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderMilestoneMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderMilestoneMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderMilestoneMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderMilestoneMutation builder.
+func (m *OrderMilestoneMutation) Where(ps ...predicate.OrderMilestone) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderMilestoneMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderMilestoneMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderMilestone, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderMilestoneMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderMilestoneMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderMilestone).
+func (m *OrderMilestoneMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderMilestoneMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, ordermilestone.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, ordermilestone.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, ordermilestone.FieldOrderID)
+	}
+	if m._type != nil {
+		fields = append(fields, ordermilestone.FieldType)
+	}
+	if m.template_node_code != nil {
+		fields = append(fields, ordermilestone.FieldTemplateNodeCode)
+	}
+	if m.template_node_label != nil {
+		fields = append(fields, ordermilestone.FieldTemplateNodeLabel)
+	}
+	if m.occurred_at != nil {
+		fields = append(fields, ordermilestone.FieldOccurredAt)
+	}
+	if m.note != nil {
+		fields = append(fields, ordermilestone.FieldNote)
+	}
+	if m.updated_by != nil {
+		fields = append(fields, ordermilestone.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderMilestoneMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case ordermilestone.FieldCreatedAt:
+		return m.CreatedAt()
+	case ordermilestone.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case ordermilestone.FieldOrderID:
+		return m.OrderID()
+	case ordermilestone.FieldType:
+		return m.GetType()
+	case ordermilestone.FieldTemplateNodeCode:
+		return m.TemplateNodeCode()
+	case ordermilestone.FieldTemplateNodeLabel:
+		return m.TemplateNodeLabel()
+	case ordermilestone.FieldOccurredAt:
+		return m.OccurredAt()
+	case ordermilestone.FieldNote:
+		return m.Note()
+	case ordermilestone.FieldUpdatedBy:
+		return m.UpdatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderMilestoneMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case ordermilestone.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case ordermilestone.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case ordermilestone.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case ordermilestone.FieldType:
+		return m.OldType(ctx)
+	case ordermilestone.FieldTemplateNodeCode:
+		return m.OldTemplateNodeCode(ctx)
+	case ordermilestone.FieldTemplateNodeLabel:
+		return m.OldTemplateNodeLabel(ctx)
+	case ordermilestone.FieldOccurredAt:
+		return m.OldOccurredAt(ctx)
+	case ordermilestone.FieldNote:
+		return m.OldNote(ctx)
+	case ordermilestone.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderMilestone field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderMilestoneMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case ordermilestone.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case ordermilestone.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case ordermilestone.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case ordermilestone.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case ordermilestone.FieldTemplateNodeCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateNodeCode(v)
+		return nil
+	case ordermilestone.FieldTemplateNodeLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateNodeLabel(v)
+		return nil
+	case ordermilestone.FieldOccurredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOccurredAt(v)
+		return nil
+	case ordermilestone.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case ordermilestone.FieldUpdatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderMilestone field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderMilestoneMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderMilestoneMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderMilestoneMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderMilestone numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderMilestoneMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(ordermilestone.FieldTemplateNodeCode) {
+		fields = append(fields, ordermilestone.FieldTemplateNodeCode)
+	}
+	if m.FieldCleared(ordermilestone.FieldTemplateNodeLabel) {
+		fields = append(fields, ordermilestone.FieldTemplateNodeLabel)
+	}
+	if m.FieldCleared(ordermilestone.FieldOccurredAt) {
+		fields = append(fields, ordermilestone.FieldOccurredAt)
+	}
+	if m.FieldCleared(ordermilestone.FieldNote) {
+		fields = append(fields, ordermilestone.FieldNote)
+	}
+	if m.FieldCleared(ordermilestone.FieldUpdatedBy) {
+		fields = append(fields, ordermilestone.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderMilestoneMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderMilestoneMutation) ClearField(name string) error {
+	switch name {
+	case ordermilestone.FieldTemplateNodeCode:
+		m.ClearTemplateNodeCode()
+		return nil
+	case ordermilestone.FieldTemplateNodeLabel:
+		m.ClearTemplateNodeLabel()
+		return nil
+	case ordermilestone.FieldOccurredAt:
+		m.ClearOccurredAt()
+		return nil
+	case ordermilestone.FieldNote:
+		m.ClearNote()
+		return nil
+	case ordermilestone.FieldUpdatedBy:
+		m.ClearUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderMilestone nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderMilestoneMutation) ResetField(name string) error {
+	switch name {
+	case ordermilestone.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case ordermilestone.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case ordermilestone.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case ordermilestone.FieldType:
+		m.ResetType()
+		return nil
+	case ordermilestone.FieldTemplateNodeCode:
+		m.ResetTemplateNodeCode()
+		return nil
+	case ordermilestone.FieldTemplateNodeLabel:
+		m.ResetTemplateNodeLabel()
+		return nil
+	case ordermilestone.FieldOccurredAt:
+		m.ResetOccurredAt()
+		return nil
+	case ordermilestone.FieldNote:
+		m.ResetNote()
+		return nil
+	case ordermilestone.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderMilestone field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderMilestoneMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, ordermilestone.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderMilestoneMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case ordermilestone.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderMilestoneMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderMilestoneMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderMilestoneMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, ordermilestone.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderMilestoneMutation) EdgeCleared(name string) bool {
+	switch name {
+	case ordermilestone.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderMilestoneMutation) ClearEdge(name string) error {
+	switch name {
+	case ordermilestone.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderMilestone unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderMilestoneMutation) ResetEdge(name string) error {
+	switch name {
+	case ordermilestone.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderMilestone edge %s", name)
 }
 
 // OrderServiceTypeMutation represents an operation that mutates the OrderServiceType nodes in the graph.

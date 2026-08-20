@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderMilestoneService 订单里程碑服务。
+service OrderMilestoneService {
+  // ListMilestones 获取指定订单的里程碑列表。
+  rpc ListMilestones(ListMilestonesRequest) returns (OrderMilestoneListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/milestones"};
+  }
+
+  // SetMilestone 设置指定订单的单个里程碑。
+  rpc SetMilestone(SetMilestoneRequest) returns (OrderMilestoneReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/milestones/{type}"
+      body: "*"
+    };
+  }
+}
+
+// OrderMilestone 订单里程碑信息。
+message OrderMilestone {
+  string id = 1;
+  string order_id = 2;
+  string type = 3;
+  optional string template_node_code = 4;
+  optional string template_node_label = 5;
+  optional string occurred_at = 6;
+  optional string note = 7;
+  optional string updated_by = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// ListMilestonesRequest 获取订单里程碑列表请求。
+message ListMilestonesRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SetMilestoneRequest 设置订单里程碑请求。
+message SetMilestoneRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string type = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string expected_order_status = 3;
+  optional string occurred_at = 4;
+  optional string note = 5;
+  optional bool clear_occurred_at = 6;
+}
+
+// OrderMilestoneReply 单条订单里程碑响应。
+message OrderMilestoneReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderMilestone data = 4;
+  string trace_id = 5;
+}
+
+// OrderMilestoneListReply 订单里程碑列表响应。
+message OrderMilestoneListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderMilestone data = 4;
+  string trace_id = 5;
+}

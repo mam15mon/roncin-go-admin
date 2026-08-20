@@ -460,6 +460,50 @@ var (
 			},
 		},
 	}
+	// OrderMilestonesColumns holds the columns for the "order_milestones" table.
+	OrderMilestonesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString, Size: 64},
+		{Name: "template_node_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "template_node_label", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "occurred_at", Type: field.TypeTime, Nullable: true},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "updated_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderMilestonesTable holds the schema information for the "order_milestones" table.
+	OrderMilestonesTable = &schema.Table{
+		Name:       "order_milestones",
+		Columns:    OrderMilestonesColumns,
+		PrimaryKey: []*schema.Column{OrderMilestonesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_milestones_orders_milestones",
+				Columns:    []*schema.Column{OrderMilestonesColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordermilestone_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderMilestonesColumns[2]},
+			},
+			{
+				Name:    "ordermilestone_order_id_type",
+				Unique:  true,
+				Columns: []*schema.Column{OrderMilestonesColumns[9], OrderMilestonesColumns[3]},
+			},
+			{
+				Name:    "ordermilestone_order_id_occurred_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderMilestonesColumns[9], OrderMilestonesColumns[6]},
+			},
+		},
+	}
 	// OrderServiceTypesColumns holds the columns for the "order_service_types" table.
 	OrderServiceTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1289,6 +1333,7 @@ var (
 		NumberSequencesTable,
 		OrdersTable,
 		OrderCargoCategoriesTable,
+		OrderMilestonesTable,
 		OrderServiceTypesTable,
 		OrderStatusLogsTable,
 		OrganizationsTable,
@@ -1323,6 +1368,7 @@ func init() {
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
 	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable

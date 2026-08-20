@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -585,6 +586,57 @@ func init() {
 	ordercargocategoryDescID := ordercargocategoryMixinFields0[0].Descriptor()
 	// ordercargocategory.DefaultID holds the default value on creation for the id field.
 	ordercargocategory.DefaultID = ordercargocategoryDescID.Default.(func() uuid.UUID)
+	ordermilestoneMixin := schema.OrderMilestone{}.Mixin()
+	ordermilestoneMixinFields0 := ordermilestoneMixin[0].Fields()
+	_ = ordermilestoneMixinFields0
+	ordermilestoneMixinFields1 := ordermilestoneMixin[1].Fields()
+	_ = ordermilestoneMixinFields1
+	ordermilestoneFields := schema.OrderMilestone{}.Fields()
+	_ = ordermilestoneFields
+	// ordermilestoneDescCreatedAt is the schema descriptor for created_at field.
+	ordermilestoneDescCreatedAt := ordermilestoneMixinFields1[0].Descriptor()
+	// ordermilestone.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordermilestone.DefaultCreatedAt = ordermilestoneDescCreatedAt.Default.(func() time.Time)
+	// ordermilestoneDescUpdatedAt is the schema descriptor for updated_at field.
+	ordermilestoneDescUpdatedAt := ordermilestoneMixinFields1[1].Descriptor()
+	// ordermilestone.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordermilestone.DefaultUpdatedAt = ordermilestoneDescUpdatedAt.Default.(func() time.Time)
+	// ordermilestone.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordermilestone.UpdateDefaultUpdatedAt = ordermilestoneDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordermilestoneDescType is the schema descriptor for type field.
+	ordermilestoneDescType := ordermilestoneFields[1].Descriptor()
+	// ordermilestone.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	ordermilestone.TypeValidator = func() func(string) error {
+		validators := ordermilestoneDescType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(_type string) error {
+			for _, fn := range fns {
+				if err := fn(_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordermilestoneDescTemplateNodeCode is the schema descriptor for template_node_code field.
+	ordermilestoneDescTemplateNodeCode := ordermilestoneFields[2].Descriptor()
+	// ordermilestone.TemplateNodeCodeValidator is a validator for the "template_node_code" field. It is called by the builders before save.
+	ordermilestone.TemplateNodeCodeValidator = ordermilestoneDescTemplateNodeCode.Validators[0].(func(string) error)
+	// ordermilestoneDescTemplateNodeLabel is the schema descriptor for template_node_label field.
+	ordermilestoneDescTemplateNodeLabel := ordermilestoneFields[3].Descriptor()
+	// ordermilestone.TemplateNodeLabelValidator is a validator for the "template_node_label" field. It is called by the builders before save.
+	ordermilestone.TemplateNodeLabelValidator = ordermilestoneDescTemplateNodeLabel.Validators[0].(func(string) error)
+	// ordermilestoneDescNote is the schema descriptor for note field.
+	ordermilestoneDescNote := ordermilestoneFields[5].Descriptor()
+	// ordermilestone.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	ordermilestone.NoteValidator = ordermilestoneDescNote.Validators[0].(func(string) error)
+	// ordermilestoneDescID is the schema descriptor for id field.
+	ordermilestoneDescID := ordermilestoneMixinFields0[0].Descriptor()
+	// ordermilestone.DefaultID holds the default value on creation for the id field.
+	ordermilestone.DefaultID = ordermilestoneDescID.Default.(func() uuid.UUID)
 	orderservicetypeMixin := schema.OrderServiceType{}.Mixin()
 	orderservicetypeMixinFields0 := orderservicetypeMixin[0].Fields()
 	_ = orderservicetypeMixinFields0

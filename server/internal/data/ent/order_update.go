@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -660,6 +661,21 @@ func (_u *OrderUpdate) AddCargoCategories(v ...*OrderCargoCategory) *OrderUpdate
 	return _u.AddCargoCategoryIDs(ids...)
 }
 
+// AddMilestoneIDs adds the "milestones" edge to the OrderMilestone entity by IDs.
+func (_u *OrderUpdate) AddMilestoneIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddMilestoneIDs(ids...)
+	return _u
+}
+
+// AddMilestones adds the "milestones" edges to the OrderMilestone entity.
+func (_u *OrderUpdate) AddMilestones(v ...*OrderMilestone) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMilestoneIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -744,6 +760,27 @@ func (_u *OrderUpdate) RemoveCargoCategories(v ...*OrderCargoCategory) *OrderUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCargoCategoryIDs(ids...)
+}
+
+// ClearMilestones clears all "milestones" edges to the OrderMilestone entity.
+func (_u *OrderUpdate) ClearMilestones() *OrderUpdate {
+	_u.mutation.ClearMilestones()
+	return _u
+}
+
+// RemoveMilestoneIDs removes the "milestones" edge to OrderMilestone entities by IDs.
+func (_u *OrderUpdate) RemoveMilestoneIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveMilestoneIDs(ids...)
+	return _u
+}
+
+// RemoveMilestones removes "milestones" edges to OrderMilestone entities.
+func (_u *OrderUpdate) RemoveMilestones(v ...*OrderMilestone) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMilestoneIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1276,6 +1313,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercargocategory.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MilestonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMilestonesIDs(); len(nodes) > 0 && !_u.mutation.MilestonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MilestonesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1928,6 +2010,21 @@ func (_u *OrderUpdateOne) AddCargoCategories(v ...*OrderCargoCategory) *OrderUpd
 	return _u.AddCargoCategoryIDs(ids...)
 }
 
+// AddMilestoneIDs adds the "milestones" edge to the OrderMilestone entity by IDs.
+func (_u *OrderUpdateOne) AddMilestoneIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddMilestoneIDs(ids...)
+	return _u
+}
+
+// AddMilestones adds the "milestones" edges to the OrderMilestone entity.
+func (_u *OrderUpdateOne) AddMilestones(v ...*OrderMilestone) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMilestoneIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2012,6 +2109,27 @@ func (_u *OrderUpdateOne) RemoveCargoCategories(v ...*OrderCargoCategory) *Order
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCargoCategoryIDs(ids...)
+}
+
+// ClearMilestones clears all "milestones" edges to the OrderMilestone entity.
+func (_u *OrderUpdateOne) ClearMilestones() *OrderUpdateOne {
+	_u.mutation.ClearMilestones()
+	return _u
+}
+
+// RemoveMilestoneIDs removes the "milestones" edge to OrderMilestone entities by IDs.
+func (_u *OrderUpdateOne) RemoveMilestoneIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveMilestoneIDs(ids...)
+	return _u
+}
+
+// RemoveMilestones removes "milestones" edges to OrderMilestone entities.
+func (_u *OrderUpdateOne) RemoveMilestones(v ...*OrderMilestone) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMilestoneIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -2574,6 +2692,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercargocategory.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MilestonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMilestonesIDs(); len(nodes) > 0 && !_u.mutation.MilestonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MilestonesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.MilestonesTable,
+			Columns: []string{order.MilestonesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

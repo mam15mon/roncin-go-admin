@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -108,6 +109,7 @@ func checkColumn(t, c string) error {
 			numbersequence.Table:        numbersequence.ValidColumn,
 			order.Table:                 order.ValidColumn,
 			ordercargocategory.Table:    ordercargocategory.ValidColumn,
+			ordermilestone.Table:        ordermilestone.ValidColumn,
 			orderservicetype.Table:      orderservicetype.ValidColumn,
 			orderstatuslog.Table:        orderstatuslog.ValidColumn,
 			organization.Table:          organization.ValidColumn,

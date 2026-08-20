@@ -580,6 +580,44 @@ declare namespace API {
     traceId?: string;
   };
 
+  type OrderMilestone = {
+    id?: string;
+    orderId?: string;
+    type?: string;
+    templateNodeCode?: string;
+    templateNodeLabel?: string;
+    occurredAt?: string;
+    note?: string;
+    updatedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderMilestoneListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderMilestone[];
+    traceId?: string;
+  };
+
+  type OrderMilestoneReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderMilestone;
+    traceId?: string;
+  };
+
+  type OrderMilestoneServiceListMilestonesParams = {
+    orderId: string;
+  };
+
+  type OrderMilestoneServiceSetMilestoneParams = {
+    orderId: string;
+    type: string;
+  };
+
   type OrderReply = {
     success?: boolean;
     code?: number;
@@ -995,6 +1033,15 @@ declare namespace API {
 
   type SetDefaultStatusTemplateRequest = {
     id: string;
+  };
+
+  type SetMilestoneRequest = {
+    orderId: string;
+    type: string;
+    expectedOrderStatus?: string;
+    occurredAt?: string;
+    note?: string;
+    clearOccurredAt?: boolean;
   };
 
   type SetSupplierBlacklistRequest = {

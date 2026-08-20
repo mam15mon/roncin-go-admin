@@ -91,6 +91,8 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		orderv1.OperationOrderServiceCreateOrder:                           {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceUpdateOrder:                           {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceTransitionOrderStatus:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderMilestoneServiceListMilestones:               {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderMilestoneServiceSetMilestone:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {

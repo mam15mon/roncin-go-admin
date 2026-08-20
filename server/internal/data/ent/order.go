@@ -107,9 +107,11 @@ type OrderEdges struct {
 	ServiceTypes []*OrderServiceType `json:"service_types,omitempty"`
 	// CargoCategories holds the value of the cargo_categories edge.
 	CargoCategories []*OrderCargoCategory `json:"cargo_categories,omitempty"`
+	// Milestones holds the value of the milestones edge.
+	Milestones []*OrderMilestone `json:"milestones,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -170,6 +172,15 @@ func (e OrderEdges) CargoCategoriesOrErr() ([]*OrderCargoCategory, error) {
 		return e.CargoCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "cargo_categories"}
+}
+
+// MilestonesOrErr returns the Milestones value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) MilestonesOrErr() ([]*OrderMilestone, error) {
+	if e.loadedTypes[6] {
+		return e.Milestones, nil
+	}
+	return nil, &NotLoadedError{edge: "milestones"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -457,6 +468,11 @@ func (_m *Order) QueryServiceTypes() *OrderServiceTypeQuery {
 // QueryCargoCategories queries the "cargo_categories" edge of the Order entity.
 func (_m *Order) QueryCargoCategories() *OrderCargoCategoryQuery {
 	return NewOrderClient(_m.config).QueryCargoCategories(_m)
+}
+
+// QueryMilestones queries the "milestones" edge of the Order entity.
+func (_m *Order) QueryMilestones() *OrderMilestoneQuery {
+	return NewOrderClient(_m.config).QueryMilestones(_m)
 }
 
 // Update returns a builder for updating this Order.

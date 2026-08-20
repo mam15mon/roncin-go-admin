@@ -23,7 +23,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -57,6 +57,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	adminv1.RegisterAdminServiceHTTPServer(srv, admin)
 	masterdatav1.RegisterMasterDataServiceHTTPServer(srv, masterData)
 	orderv1.RegisterOrderServiceHTTPServer(srv, order)
+	orderv1.RegisterOrderMilestoneServiceHTTPServer(srv, milestones)
 	registerHealthHandlers(srv, readiness)
 	srv.HandlePrefix("/", webassets.Handler())
 	return srv
