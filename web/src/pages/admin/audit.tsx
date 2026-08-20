@@ -9,6 +9,7 @@ import { adminServiceListAuditLogs } from '@/services/roncin/adminService';
 export default function AuditPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const columns: ProColumns<API.AdminAuditLog>[] = [
+    { title: '时间范围', dataIndex: 'timeRange', valueType: 'dateRange', hideInTable: true },
     { title: '时间', dataIndex: 'createdAt', valueType: 'dateTime', width: 180, search: false },
     { title: '动作', dataIndex: 'action', width: 220 },
     { title: '用户', dataIndex: 'userId', width: 240, copyable: true },
