@@ -1,4 +1,14 @@
 declare namespace API {
+  type CreatePartnerRequest = {
+    code: string;
+    name: string;
+    type: number;
+    contactName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  };
+
   type CurrentUser = {
     id?: string;
     username?: string;
@@ -44,6 +54,52 @@ declare namespace API {
     name?: string;
   };
 
+  type Partner = {
+    id?: string;
+    organizationId?: string;
+    code?: string;
+    name?: string;
+    type?: number;
+    contactName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type PartnerReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
+  };
+
+  type PartnerServiceListPartnersParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    type?: number;
+    enabled?: boolean;
+  };
+
+  type PartnerServiceUpdatePartnerParams = {
+    id: string;
+  };
+
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
@@ -51,5 +107,16 @@ declare namespace API {
 
   type SwitchOrganizationRequest = {
     organizationId: string;
+  };
+
+  type UpdatePartnerRequest = {
+    id: string;
+    name: string;
+    type: number;
+    contactName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    enabled?: boolean;
   };
 }
