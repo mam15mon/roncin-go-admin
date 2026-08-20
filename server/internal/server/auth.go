@@ -5,6 +5,7 @@ import (
 	"fmt"
 	nethttp "net/http"
 
+	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -37,9 +38,19 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		authv1.OperationAuthServiceSwitchOrganization: {},
 	}
 	permissionOperations := map[string]string{
-		partnerv1.OperationPartnerServiceListPartners:  access.PartnerRead,
-		partnerv1.OperationPartnerServiceCreatePartner: access.PartnerManage,
-		partnerv1.OperationPartnerServiceUpdatePartner: access.PartnerManage,
+		adminv1.OperationAdminServiceListOrganizations:  access.OrganizationManage,
+		adminv1.OperationAdminServiceCreateOrganization: access.OrganizationManage,
+		adminv1.OperationAdminServiceUpdateOrganization: access.OrganizationManage,
+		adminv1.OperationAdminServiceListUsers:          access.UserManage,
+		adminv1.OperationAdminServiceCreateUser:         access.UserManage,
+		adminv1.OperationAdminServiceUpdateUser:         access.UserManage,
+		adminv1.OperationAdminServiceListRoles:          access.RoleManage,
+		adminv1.OperationAdminServiceCreateRole:         access.RoleManage,
+		adminv1.OperationAdminServiceUpdateRole:         access.RoleManage,
+		adminv1.OperationAdminServiceListPermissions:    access.RoleManage,
+		partnerv1.OperationPartnerServiceListPartners:   access.PartnerRead,
+		partnerv1.OperationPartnerServiceCreatePartner:  access.PartnerManage,
+		partnerv1.OperationPartnerServiceUpdatePartner:  access.PartnerManage,
 	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {

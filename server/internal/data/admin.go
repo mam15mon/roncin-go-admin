@@ -1,0 +1,333 @@
+package data
+
+import (
+	"context"
+	"sort"
+	"strings"
+
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
+
+	"github.com/google/uuid"
+)
+
+type adminRepo struct{ data *Data }
+
+func NewAdminRepo(data *Data) biz.AdminRepo { return &adminRepo{data: data} }
+
+func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganization, error) {
+	items, err := r.data.db.Organization.Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].Code < items[j].Code })
+	result := make([]*biz.AdminOrganization, 0, len(items))
+	for _, item := range items {
+		result = append(result, organizationToBiz(item))
+	}
+	return result, nil
+}
+
+func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
+	created, err := r.data.db.Organization.Create().SetCode(input.Code).SetName(input.Name).Save(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, biz.ErrAdminOrganizationCodeExists
+		}
+		return nil, err
+	}
+	return organizationToBiz(created), nil
+}
+
+func (r *adminRepo) UpdateOrganization(ctx context.Context, id uuid.UUID, name string, enabled bool) (*biz.AdminOrganization, error) {
+	updated, err := r.data.db.Organization.UpdateOneID(id).SetName(name).SetEnabled(enabled).Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminOrganizationNotFound
+		}
+		return nil, err
+	}
+	return organizationToBiz(updated), nil
+}
+
+func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
+	query := r.data.db.Membership.Query().
+		Where(membership.OrganizationIDEQ(organizationID), membership.HasUserWith(user.EnabledEQ(true))).
+		WithUser().
+		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
+	items, err := query.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].Edges.User.Username < items[j].Edges.User.Username })
+	keyword := strings.ToLower(options.Keyword)
+	filtered := make([]*ent.Membership, 0, len(items))
+	for _, item := range items {
+		account, edgeErr := item.Edges.UserOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		if keyword != "" && !strings.Contains(strings.ToLower(account.Username), keyword) && !strings.Contains(strings.ToLower(account.DisplayName), keyword) {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	total := len(filtered)
+	start := (options.Page - 1) * options.PageSize
+	if start > total {
+		start = total
+	}
+	end := start + options.PageSize
+	if end > total {
+		end = total
+	}
+	result := make([]*biz.AdminUser, 0, end-start)
+	for _, item := range filtered[start:end] {
+		result = append(result, membershipToUser(item))
+	}
+	return &biz.AdminUserList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roles, err := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	create := tx.User.Create().SetUsername(input.Username).SetDisplayName(input.DisplayName).SetPasswordHash(passwordHash).SetEnabled(input.Enabled)
+	if input.Email != nil {
+		create.SetEmail(*input.Email)
+	}
+	account, err := create.Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsConstraintError(err) {
+			return nil, biz.ErrAdminUsernameExists
+		}
+		return nil, err
+	}
+	membershipRecord, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organizationID).SetPrimary(false).SetEnabled(true).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.findUser(ctx, organizationID, account.ID)
+}
+
+func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
+	roles, err := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	update := tx.User.UpdateOneID(id).SetDisplayName(input.DisplayName).SetEnabled(input.Enabled)
+	if input.Email == nil {
+		update.ClearEmail()
+	} else {
+		update.SetEmail(*input.Email)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
+	if err := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.findUser(ctx, organizationID, id)
+}
+
+func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {
+	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].Code < items[j].Code })
+	result := make([]*biz.AdminRole, 0, len(items))
+	for _, item := range items {
+		result = append(result, roleToBiz(item))
+	}
+	return result, nil
+}
+
+func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, input *biz.AdminRole, permissionKeys []string) (*biz.AdminRole, error) {
+	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
+	if err != nil {
+		return nil, err
+	}
+	created, err := r.data.db.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, biz.ErrAdminRoleCodeExists
+		}
+		return nil, err
+	}
+	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return roleToBiz(created), nil
+}
+
+func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminRole, permissionKeys []string) (*biz.AdminRole, error) {
+	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
+	if err != nil {
+		return nil, err
+	}
+	updated, err := r.data.db.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminRoleNotFound
+		}
+		return nil, err
+	}
+	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return roleToBiz(updated), nil
+}
+
+func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission, error) {
+	items, err := r.data.db.Permission.Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].Group == items[j].Group {
+			return items[i].Key < items[j].Key
+		}
+		return items[i].Group < items[j].Group
+	})
+	result := make([]*biz.AdminPermission, 0, len(items))
+	for _, item := range items {
+		result = append(result, &biz.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
+	}
+	return result, nil
+}
+
+func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {
+	item, err := r.data.db.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID)).WithUser().WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
+	return membershipToUser(item), nil
+}
+
+func rolesForOrganization(ctx context.Context, query *ent.RoleQuery, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*ent.Role, error) {
+	if len(roleIDs) == 0 {
+		return nil, nil
+	}
+	roles, err := query.Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(roles) != len(uniqueUUIDs(roleIDs)) {
+		return nil, biz.ErrAdminRoleNotFound
+	}
+	return roles, nil
+}
+
+func replaceRoleAssignments(ctx context.Context, tx *ent.Tx, membershipID uuid.UUID, roles []*ent.Role) error {
+	if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(membershipID)).Exec(ctx); err != nil {
+		return err
+	}
+	for _, assignedRole := range roles {
+		if _, err := tx.RoleAssignment.Create().SetMembershipID(membershipID).SetRoleID(assignedRole.ID).Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func permissionsByKeys(ctx context.Context, query *ent.PermissionQuery, keys []string) ([]*ent.Permission, error) {
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	items, err := query.Where(permission.KeyIn(keys...)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != len(keys) {
+		return nil, biz.ErrAdminPermissionInvalid
+	}
+	return items, nil
+}
+
+func uniqueUUIDs(values []uuid.UUID) []uuid.UUID {
+	seen := make(map[uuid.UUID]struct{}, len(values))
+	result := make([]uuid.UUID, 0, len(values))
+	for _, value := range values {
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
+}
+
+func organizationToBiz(item *ent.Organization) *biz.AdminOrganization {
+	return &biz.AdminOrganization{ID: item.ID, Code: item.Code, Name: item.Name, ParentID: item.ParentID, Enabled: item.Enabled}
+}
+
+func membershipToUser(item *ent.Membership) *biz.AdminUser {
+	account := item.Edges.User
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Enabled: account.Enabled, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	for _, assignment := range item.Edges.RoleAssignments {
+		if assignedRole := assignment.Edges.Role; assignedRole != nil {
+			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)
+			result.RoleCodes = append(result.RoleCodes, assignedRole.Code)
+		}
+	}
+	sort.Strings(result.RoleCodes)
+	return result
+}
+
+func roleToBiz(item *ent.Role) *biz.AdminRole {
+	result := &biz.AdminRole{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, DataScope: biz.DataScope(item.DataScope), Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	for _, permissionItem := range item.Edges.Permissions {
+		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
+	}
+	sort.Strings(result.PermissionKeys)
+	return result
+}
+
+var _ biz.AdminRepo = (*adminRepo)(nil)
