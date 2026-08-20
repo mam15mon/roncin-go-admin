@@ -22,6 +22,8 @@ type authRepo struct{ data *Data }
 
 func NewAuthRepo(data *Data) biz.AuthRepo { return &authRepo{data: data} }
 
+func NewAuditRepo(data *Data) biz.AuditRepo { return &authRepo{data: data} }
+
 func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Credential, error) {
 	account, err := r.data.db.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {

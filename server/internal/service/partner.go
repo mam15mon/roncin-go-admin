@@ -64,7 +64,7 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	created, err := s.usecase.Create(ctx, principal.Organization.ID, &biz.Partner{
+	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.Partner{
 		Code:        request.GetCode(),
 		Name:        request.GetName(),
 		Type:        partnerTypeFromAPI(request.GetType()),
@@ -88,7 +88,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	if err != nil {
 		return nil, biz.ErrPartnerNotFound
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, partnerID, &biz.Partner{
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.Partner{
 		Name:        request.GetName(),
 		Type:        partnerTypeFromAPI(request.GetType()),
 		ContactName: request.GetContactName(),

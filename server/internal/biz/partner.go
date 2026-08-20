@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -67,11 +68,12 @@ type PartnerRepo interface {
 }
 
 type PartnerUsecase struct {
-	repo PartnerRepo
+	repo  PartnerRepo
+	audit AuditRepo
 }
 
-func NewPartnerUsecase(repo PartnerRepo) *PartnerUsecase {
-	return &PartnerUsecase{repo: repo}
+func NewPartnerUsecase(repo PartnerRepo, audit AuditRepo) *PartnerUsecase {
+	return &PartnerUsecase{repo: repo, audit: audit}
 }
 
 func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
@@ -85,20 +87,46 @@ func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, op
 	return uc.repo.List(ctx, organizationID, options)
 }
 
-func (uc *PartnerUsecase) Create(ctx context.Context, organizationID uuid.UUID, input *Partner) (*Partner, error) {
+func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uuid.UUID, input *Partner) (*Partner, error) {
 	normalized, err := normalizePartner(input)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.Create(ctx, organizationID, normalized)
+	created, err := uc.repo.Create(ctx, organizationID, normalized)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &userID,
+		Action:         "partner.create",
+		Result:         "success",
+		Details:        map[string]string{"partner.id": created.ID.String(), "partner.code": created.Code},
+	}); err != nil {
+		return nil, fmt.Errorf("write partner create audit: %w", err)
+	}
+	return created, nil
 }
 
-func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, id uuid.UUID, input *Partner) (*Partner, error) {
+func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {
 	normalized, err := normalizePartner(input)
 	if err != nil {
 		return nil, err
 	}
-	return uc.repo.Update(ctx, organizationID, id, normalized)
+	updated, err := uc.repo.Update(ctx, organizationID, id, normalized)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &userID,
+		Action:         "partner.update",
+		Result:         "success",
+		Details:        map[string]string{"partner.id": updated.ID.String(), "partner.code": updated.Code},
+	}); err != nil {
+		return nil, fmt.Errorf("write partner update audit: %w", err)
+	}
+	return updated, nil
 }
 
 func normalizePartner(input *Partner) (*Partner, error) {

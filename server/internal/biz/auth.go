@@ -104,6 +104,10 @@ type AuthRepo interface {
 	WriteAudit(context.Context, *AuditEvent) error
 }
 
+type AuditRepo interface {
+	WriteAudit(context.Context, *AuditEvent) error
+}
+
 type SessionPolicy struct {
 	CookieName string
 	TTL        time.Duration
