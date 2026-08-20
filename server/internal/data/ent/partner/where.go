@@ -76,29 +76,24 @@ func Code(v string) predicate.Partner {
 	return predicate.Partner(sql.FieldEQ(FieldCode, v))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldName, v))
+// LegalName applies equality check predicate on the "legal_name" field. It's identical to LegalNameEQ.
+func LegalName(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldLegalName, v))
 }
 
-// ContactName applies equality check predicate on the "contact_name" field. It's identical to ContactNameEQ.
-func ContactName(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldContactName, v))
+// NormalizedName applies equality check predicate on the "normalized_name" field. It's identical to NormalizedNameEQ.
+func NormalizedName(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldNormalizedName, v))
 }
 
-// Phone applies equality check predicate on the "phone" field. It's identical to PhoneEQ.
-func Phone(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldPhone, v))
+// UnifiedSocialCreditCode applies equality check predicate on the "unified_social_credit_code" field. It's identical to UnifiedSocialCreditCodeEQ.
+func UnifiedSocialCreditCode(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldUnifiedSocialCreditCode, v))
 }
 
-// Email applies equality check predicate on the "email" field. It's identical to EmailEQ.
-func Email(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldEmail, v))
-}
-
-// Address applies equality check predicate on the "address" field. It's identical to AddressEQ.
-func Address(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldAddress, v))
+// RegisteredAddress applies equality check predicate on the "registered_address" field. It's identical to RegisteredAddressEQ.
+func RegisteredAddress(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldRegisteredAddress, v))
 }
 
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
@@ -271,389 +266,284 @@ func CodeContainsFold(v string) predicate.Partner {
 	return predicate.Partner(sql.FieldContainsFold(FieldCode, v))
 }
 
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldName, v))
+// LegalNameEQ applies the EQ predicate on the "legal_name" field.
+func LegalNameEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldLegalName, v))
 }
 
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldName, v))
+// LegalNameNEQ applies the NEQ predicate on the "legal_name" field.
+func LegalNameNEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldNEQ(FieldLegalName, v))
 }
 
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldName, vs...))
+// LegalNameIn applies the In predicate on the "legal_name" field.
+func LegalNameIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldIn(FieldLegalName, vs...))
 }
 
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldName, vs...))
+// LegalNameNotIn applies the NotIn predicate on the "legal_name" field.
+func LegalNameNotIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldNotIn(FieldLegalName, vs...))
 }
 
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGT(FieldName, v))
+// LegalNameGT applies the GT predicate on the "legal_name" field.
+func LegalNameGT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGT(FieldLegalName, v))
 }
 
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGTE(FieldName, v))
+// LegalNameGTE applies the GTE predicate on the "legal_name" field.
+func LegalNameGTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGTE(FieldLegalName, v))
 }
 
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLT(FieldName, v))
+// LegalNameLT applies the LT predicate on the "legal_name" field.
+func LegalNameLT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLT(FieldLegalName, v))
 }
 
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLTE(FieldName, v))
+// LegalNameLTE applies the LTE predicate on the "legal_name" field.
+func LegalNameLTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLTE(FieldLegalName, v))
 }
 
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContains(FieldName, v))
+// LegalNameContains applies the Contains predicate on the "legal_name" field.
+func LegalNameContains(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContains(FieldLegalName, v))
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasPrefix(FieldName, v))
+// LegalNameHasPrefix applies the HasPrefix predicate on the "legal_name" field.
+func LegalNameHasPrefix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasPrefix(FieldLegalName, v))
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasSuffix(FieldName, v))
+// LegalNameHasSuffix applies the HasSuffix predicate on the "legal_name" field.
+func LegalNameHasSuffix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasSuffix(FieldLegalName, v))
 }
 
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEqualFold(FieldName, v))
+// LegalNameEqualFold applies the EqualFold predicate on the "legal_name" field.
+func LegalNameEqualFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEqualFold(FieldLegalName, v))
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContainsFold(FieldName, v))
+// LegalNameContainsFold applies the ContainsFold predicate on the "legal_name" field.
+func LegalNameContainsFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContainsFold(FieldLegalName, v))
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v Type) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldType, v))
+// NormalizedNameEQ applies the EQ predicate on the "normalized_name" field.
+func NormalizedNameEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldNormalizedName, v))
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v Type) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldType, v))
+// NormalizedNameNEQ applies the NEQ predicate on the "normalized_name" field.
+func NormalizedNameNEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldNEQ(FieldNormalizedName, v))
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...Type) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldType, vs...))
+// NormalizedNameIn applies the In predicate on the "normalized_name" field.
+func NormalizedNameIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldIn(FieldNormalizedName, vs...))
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...Type) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldType, vs...))
+// NormalizedNameNotIn applies the NotIn predicate on the "normalized_name" field.
+func NormalizedNameNotIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldNotIn(FieldNormalizedName, vs...))
 }
 
-// ContactNameEQ applies the EQ predicate on the "contact_name" field.
-func ContactNameEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldContactName, v))
+// NormalizedNameGT applies the GT predicate on the "normalized_name" field.
+func NormalizedNameGT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGT(FieldNormalizedName, v))
 }
 
-// ContactNameNEQ applies the NEQ predicate on the "contact_name" field.
-func ContactNameNEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldContactName, v))
+// NormalizedNameGTE applies the GTE predicate on the "normalized_name" field.
+func NormalizedNameGTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGTE(FieldNormalizedName, v))
 }
 
-// ContactNameIn applies the In predicate on the "contact_name" field.
-func ContactNameIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldContactName, vs...))
+// NormalizedNameLT applies the LT predicate on the "normalized_name" field.
+func NormalizedNameLT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLT(FieldNormalizedName, v))
 }
 
-// ContactNameNotIn applies the NotIn predicate on the "contact_name" field.
-func ContactNameNotIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldContactName, vs...))
+// NormalizedNameLTE applies the LTE predicate on the "normalized_name" field.
+func NormalizedNameLTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLTE(FieldNormalizedName, v))
 }
 
-// ContactNameGT applies the GT predicate on the "contact_name" field.
-func ContactNameGT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGT(FieldContactName, v))
+// NormalizedNameContains applies the Contains predicate on the "normalized_name" field.
+func NormalizedNameContains(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContains(FieldNormalizedName, v))
 }
 
-// ContactNameGTE applies the GTE predicate on the "contact_name" field.
-func ContactNameGTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGTE(FieldContactName, v))
+// NormalizedNameHasPrefix applies the HasPrefix predicate on the "normalized_name" field.
+func NormalizedNameHasPrefix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasPrefix(FieldNormalizedName, v))
 }
 
-// ContactNameLT applies the LT predicate on the "contact_name" field.
-func ContactNameLT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLT(FieldContactName, v))
+// NormalizedNameHasSuffix applies the HasSuffix predicate on the "normalized_name" field.
+func NormalizedNameHasSuffix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasSuffix(FieldNormalizedName, v))
 }
 
-// ContactNameLTE applies the LTE predicate on the "contact_name" field.
-func ContactNameLTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLTE(FieldContactName, v))
+// NormalizedNameEqualFold applies the EqualFold predicate on the "normalized_name" field.
+func NormalizedNameEqualFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEqualFold(FieldNormalizedName, v))
 }
 
-// ContactNameContains applies the Contains predicate on the "contact_name" field.
-func ContactNameContains(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContains(FieldContactName, v))
+// NormalizedNameContainsFold applies the ContainsFold predicate on the "normalized_name" field.
+func NormalizedNameContainsFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContainsFold(FieldNormalizedName, v))
 }
 
-// ContactNameHasPrefix applies the HasPrefix predicate on the "contact_name" field.
-func ContactNameHasPrefix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasPrefix(FieldContactName, v))
+// UnifiedSocialCreditCodeEQ applies the EQ predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldUnifiedSocialCreditCode, v))
 }
 
-// ContactNameHasSuffix applies the HasSuffix predicate on the "contact_name" field.
-func ContactNameHasSuffix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasSuffix(FieldContactName, v))
+// UnifiedSocialCreditCodeNEQ applies the NEQ predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeNEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldNEQ(FieldUnifiedSocialCreditCode, v))
 }
 
-// ContactNameIsNil applies the IsNil predicate on the "contact_name" field.
-func ContactNameIsNil() predicate.Partner {
-	return predicate.Partner(sql.FieldIsNull(FieldContactName))
+// UnifiedSocialCreditCodeIn applies the In predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldIn(FieldUnifiedSocialCreditCode, vs...))
 }
 
-// ContactNameNotNil applies the NotNil predicate on the "contact_name" field.
-func ContactNameNotNil() predicate.Partner {
-	return predicate.Partner(sql.FieldNotNull(FieldContactName))
+// UnifiedSocialCreditCodeNotIn applies the NotIn predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeNotIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldNotIn(FieldUnifiedSocialCreditCode, vs...))
 }
 
-// ContactNameEqualFold applies the EqualFold predicate on the "contact_name" field.
-func ContactNameEqualFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEqualFold(FieldContactName, v))
+// UnifiedSocialCreditCodeGT applies the GT predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeGT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGT(FieldUnifiedSocialCreditCode, v))
 }
 
-// ContactNameContainsFold applies the ContainsFold predicate on the "contact_name" field.
-func ContactNameContainsFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContainsFold(FieldContactName, v))
+// UnifiedSocialCreditCodeGTE applies the GTE predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeGTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGTE(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneEQ applies the EQ predicate on the "phone" field.
-func PhoneEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldPhone, v))
+// UnifiedSocialCreditCodeLT applies the LT predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeLT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLT(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneNEQ applies the NEQ predicate on the "phone" field.
-func PhoneNEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldPhone, v))
+// UnifiedSocialCreditCodeLTE applies the LTE predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeLTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLTE(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneIn applies the In predicate on the "phone" field.
-func PhoneIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldPhone, vs...))
+// UnifiedSocialCreditCodeContains applies the Contains predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeContains(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContains(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneNotIn applies the NotIn predicate on the "phone" field.
-func PhoneNotIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldPhone, vs...))
+// UnifiedSocialCreditCodeHasPrefix applies the HasPrefix predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeHasPrefix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasPrefix(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneGT applies the GT predicate on the "phone" field.
-func PhoneGT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGT(FieldPhone, v))
+// UnifiedSocialCreditCodeHasSuffix applies the HasSuffix predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeHasSuffix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasSuffix(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneGTE applies the GTE predicate on the "phone" field.
-func PhoneGTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGTE(FieldPhone, v))
+// UnifiedSocialCreditCodeIsNil applies the IsNil predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeIsNil() predicate.Partner {
+	return predicate.Partner(sql.FieldIsNull(FieldUnifiedSocialCreditCode))
 }
 
-// PhoneLT applies the LT predicate on the "phone" field.
-func PhoneLT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLT(FieldPhone, v))
+// UnifiedSocialCreditCodeNotNil applies the NotNil predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeNotNil() predicate.Partner {
+	return predicate.Partner(sql.FieldNotNull(FieldUnifiedSocialCreditCode))
 }
 
-// PhoneLTE applies the LTE predicate on the "phone" field.
-func PhoneLTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLTE(FieldPhone, v))
+// UnifiedSocialCreditCodeEqualFold applies the EqualFold predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeEqualFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEqualFold(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneContains applies the Contains predicate on the "phone" field.
-func PhoneContains(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContains(FieldPhone, v))
+// UnifiedSocialCreditCodeContainsFold applies the ContainsFold predicate on the "unified_social_credit_code" field.
+func UnifiedSocialCreditCodeContainsFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContainsFold(FieldUnifiedSocialCreditCode, v))
 }
 
-// PhoneHasPrefix applies the HasPrefix predicate on the "phone" field.
-func PhoneHasPrefix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasPrefix(FieldPhone, v))
+// RegisteredAddressEQ applies the EQ predicate on the "registered_address" field.
+func RegisteredAddressEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEQ(FieldRegisteredAddress, v))
 }
 
-// PhoneHasSuffix applies the HasSuffix predicate on the "phone" field.
-func PhoneHasSuffix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasSuffix(FieldPhone, v))
+// RegisteredAddressNEQ applies the NEQ predicate on the "registered_address" field.
+func RegisteredAddressNEQ(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldNEQ(FieldRegisteredAddress, v))
 }
 
-// PhoneIsNil applies the IsNil predicate on the "phone" field.
-func PhoneIsNil() predicate.Partner {
-	return predicate.Partner(sql.FieldIsNull(FieldPhone))
+// RegisteredAddressIn applies the In predicate on the "registered_address" field.
+func RegisteredAddressIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldIn(FieldRegisteredAddress, vs...))
 }
 
-// PhoneNotNil applies the NotNil predicate on the "phone" field.
-func PhoneNotNil() predicate.Partner {
-	return predicate.Partner(sql.FieldNotNull(FieldPhone))
+// RegisteredAddressNotIn applies the NotIn predicate on the "registered_address" field.
+func RegisteredAddressNotIn(vs ...string) predicate.Partner {
+	return predicate.Partner(sql.FieldNotIn(FieldRegisteredAddress, vs...))
 }
 
-// PhoneEqualFold applies the EqualFold predicate on the "phone" field.
-func PhoneEqualFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEqualFold(FieldPhone, v))
+// RegisteredAddressGT applies the GT predicate on the "registered_address" field.
+func RegisteredAddressGT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGT(FieldRegisteredAddress, v))
 }
 
-// PhoneContainsFold applies the ContainsFold predicate on the "phone" field.
-func PhoneContainsFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContainsFold(FieldPhone, v))
+// RegisteredAddressGTE applies the GTE predicate on the "registered_address" field.
+func RegisteredAddressGTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldGTE(FieldRegisteredAddress, v))
 }
 
-// EmailEQ applies the EQ predicate on the "email" field.
-func EmailEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldEmail, v))
+// RegisteredAddressLT applies the LT predicate on the "registered_address" field.
+func RegisteredAddressLT(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLT(FieldRegisteredAddress, v))
 }
 
-// EmailNEQ applies the NEQ predicate on the "email" field.
-func EmailNEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldEmail, v))
+// RegisteredAddressLTE applies the LTE predicate on the "registered_address" field.
+func RegisteredAddressLTE(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldLTE(FieldRegisteredAddress, v))
 }
 
-// EmailIn applies the In predicate on the "email" field.
-func EmailIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldEmail, vs...))
+// RegisteredAddressContains applies the Contains predicate on the "registered_address" field.
+func RegisteredAddressContains(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContains(FieldRegisteredAddress, v))
 }
 
-// EmailNotIn applies the NotIn predicate on the "email" field.
-func EmailNotIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldEmail, vs...))
+// RegisteredAddressHasPrefix applies the HasPrefix predicate on the "registered_address" field.
+func RegisteredAddressHasPrefix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasPrefix(FieldRegisteredAddress, v))
 }
 
-// EmailGT applies the GT predicate on the "email" field.
-func EmailGT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGT(FieldEmail, v))
+// RegisteredAddressHasSuffix applies the HasSuffix predicate on the "registered_address" field.
+func RegisteredAddressHasSuffix(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldHasSuffix(FieldRegisteredAddress, v))
 }
 
-// EmailGTE applies the GTE predicate on the "email" field.
-func EmailGTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGTE(FieldEmail, v))
+// RegisteredAddressIsNil applies the IsNil predicate on the "registered_address" field.
+func RegisteredAddressIsNil() predicate.Partner {
+	return predicate.Partner(sql.FieldIsNull(FieldRegisteredAddress))
 }
 
-// EmailLT applies the LT predicate on the "email" field.
-func EmailLT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLT(FieldEmail, v))
+// RegisteredAddressNotNil applies the NotNil predicate on the "registered_address" field.
+func RegisteredAddressNotNil() predicate.Partner {
+	return predicate.Partner(sql.FieldNotNull(FieldRegisteredAddress))
 }
 
-// EmailLTE applies the LTE predicate on the "email" field.
-func EmailLTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLTE(FieldEmail, v))
+// RegisteredAddressEqualFold applies the EqualFold predicate on the "registered_address" field.
+func RegisteredAddressEqualFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldEqualFold(FieldRegisteredAddress, v))
 }
 
-// EmailContains applies the Contains predicate on the "email" field.
-func EmailContains(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContains(FieldEmail, v))
-}
-
-// EmailHasPrefix applies the HasPrefix predicate on the "email" field.
-func EmailHasPrefix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasPrefix(FieldEmail, v))
-}
-
-// EmailHasSuffix applies the HasSuffix predicate on the "email" field.
-func EmailHasSuffix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasSuffix(FieldEmail, v))
-}
-
-// EmailIsNil applies the IsNil predicate on the "email" field.
-func EmailIsNil() predicate.Partner {
-	return predicate.Partner(sql.FieldIsNull(FieldEmail))
-}
-
-// EmailNotNil applies the NotNil predicate on the "email" field.
-func EmailNotNil() predicate.Partner {
-	return predicate.Partner(sql.FieldNotNull(FieldEmail))
-}
-
-// EmailEqualFold applies the EqualFold predicate on the "email" field.
-func EmailEqualFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEqualFold(FieldEmail, v))
-}
-
-// EmailContainsFold applies the ContainsFold predicate on the "email" field.
-func EmailContainsFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContainsFold(FieldEmail, v))
-}
-
-// AddressEQ applies the EQ predicate on the "address" field.
-func AddressEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEQ(FieldAddress, v))
-}
-
-// AddressNEQ applies the NEQ predicate on the "address" field.
-func AddressNEQ(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldNEQ(FieldAddress, v))
-}
-
-// AddressIn applies the In predicate on the "address" field.
-func AddressIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldIn(FieldAddress, vs...))
-}
-
-// AddressNotIn applies the NotIn predicate on the "address" field.
-func AddressNotIn(vs ...string) predicate.Partner {
-	return predicate.Partner(sql.FieldNotIn(FieldAddress, vs...))
-}
-
-// AddressGT applies the GT predicate on the "address" field.
-func AddressGT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGT(FieldAddress, v))
-}
-
-// AddressGTE applies the GTE predicate on the "address" field.
-func AddressGTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldGTE(FieldAddress, v))
-}
-
-// AddressLT applies the LT predicate on the "address" field.
-func AddressLT(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLT(FieldAddress, v))
-}
-
-// AddressLTE applies the LTE predicate on the "address" field.
-func AddressLTE(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldLTE(FieldAddress, v))
-}
-
-// AddressContains applies the Contains predicate on the "address" field.
-func AddressContains(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContains(FieldAddress, v))
-}
-
-// AddressHasPrefix applies the HasPrefix predicate on the "address" field.
-func AddressHasPrefix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasPrefix(FieldAddress, v))
-}
-
-// AddressHasSuffix applies the HasSuffix predicate on the "address" field.
-func AddressHasSuffix(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldHasSuffix(FieldAddress, v))
-}
-
-// AddressIsNil applies the IsNil predicate on the "address" field.
-func AddressIsNil() predicate.Partner {
-	return predicate.Partner(sql.FieldIsNull(FieldAddress))
-}
-
-// AddressNotNil applies the NotNil predicate on the "address" field.
-func AddressNotNil() predicate.Partner {
-	return predicate.Partner(sql.FieldNotNull(FieldAddress))
-}
-
-// AddressEqualFold applies the EqualFold predicate on the "address" field.
-func AddressEqualFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldEqualFold(FieldAddress, v))
-}
-
-// AddressContainsFold applies the ContainsFold predicate on the "address" field.
-func AddressContainsFold(v string) predicate.Partner {
-	return predicate.Partner(sql.FieldContainsFold(FieldAddress, v))
+// RegisteredAddressContainsFold applies the ContainsFold predicate on the "registered_address" field.
+func RegisteredAddressContainsFold(v string) predicate.Partner {
+	return predicate.Partner(sql.FieldContainsFold(FieldRegisteredAddress, v))
 }
 
 // EnabledEQ applies the EQ predicate on the "enabled" field.
@@ -681,6 +571,75 @@ func HasOrganization() predicate.Partner {
 func HasOrganizationWith(preds ...predicate.Organization) predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {
 		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoles applies the HasEdge predicate on the "roles" edge.
+func HasRoles() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRolesWith applies the HasEdge predicate on the "roles" edge with a given conditions (other predicates).
+func HasRolesWith(preds ...predicate.PartnerRole) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newRolesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasContacts applies the HasEdge predicate on the "contacts" edge.
+func HasContacts() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContactsTable, ContactsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContactsWith applies the HasEdge predicate on the "contacts" edge with a given conditions (other predicates).
+func HasContactsWith(preds ...predicate.PartnerContact) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newContactsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAliases applies the HasEdge predicate on the "aliases" edge.
+func HasAliases() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AliasesTable, AliasesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAliasesWith applies the HasEdge predicate on the "aliases" edge with a given conditions (other predicates).
+func HasAliasesWith(preds ...predicate.PartnerAlias) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newAliasesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

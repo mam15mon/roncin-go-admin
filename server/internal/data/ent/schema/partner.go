@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Partner is a customer, supplier, or a business party serving both roles.
+// Partner 是组织内往来单位法人档案。
 type Partner struct{ ent.Schema }
 
 func (Partner) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -17,12 +17,10 @@ func (Partner) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
-		field.String("name").NotEmpty().MaxLen(200),
-		field.Enum("type").Values("customer", "supplier", "both"),
-		field.String("contact_name").MaxLen(100).Optional(),
-		field.String("phone").MaxLen(64).Optional(),
-		field.String("email").MaxLen(254).Optional(),
-		field.String("address").MaxLen(500).Optional(),
+		field.String("legal_name").NotEmpty().MaxLen(200),
+		field.String("normalized_name").NotEmpty().MaxLen(200),
+		field.String("unified_social_credit_code").Optional().Nillable().MaxLen(64),
+		field.String("registered_address").Optional().MaxLen(500),
 		field.Bool("enabled").Default(true),
 	}
 }
@@ -30,13 +28,17 @@ func (Partner) Fields() []ent.Field {
 func (Partner) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("partners").Field("organization_id").Unique().Required(),
+		edge.To("roles", PartnerRole.Type),
+		edge.To("contacts", PartnerContact.Type),
+		edge.To("aliases", PartnerAlias.Type),
 	}
 }
 
 func (Partner) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "code").Unique(),
+		index.Fields("organization_id", "code").Unique().StorageKey("partner_org_code_key"),
+		index.Fields("organization_id", "normalized_name").Unique().StorageKey("partner_org_name_key"),
+		index.Fields("organization_id", "unified_social_credit_code").Unique().StorageKey("partner_org_uscc_key"),
 		index.Fields("organization_id", "enabled"),
-		index.Fields("organization_id", "type"),
 	}
 }

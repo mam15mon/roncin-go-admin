@@ -19,18 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartnerService_ListPartners_FullMethodName  = "/partner.v1.PartnerService/ListPartners"
-	PartnerService_CreatePartner_FullMethodName = "/partner.v1.PartnerService/CreatePartner"
-	PartnerService_UpdatePartner_FullMethodName = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_GetPartner_FullMethodName           = "/partner.v1.PartnerService/GetPartner"
+	PartnerService_ListPartners_FullMethodName         = "/partner.v1.PartnerService/ListPartners"
+	PartnerService_CreatePartner_FullMethodName        = "/partner.v1.PartnerService/CreatePartner"
+	PartnerService_UpdatePartner_FullMethodName        = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_SetSupplierBlacklist_FullMethodName = "/partner.v1.PartnerService/SetSupplierBlacklist"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PartnerServiceClient interface {
+	GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*PartnerListReply, error)
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
+	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 }
 
 type partnerServiceClient struct {
@@ -39,6 +43,16 @@ type partnerServiceClient struct {
 
 func NewPartnerServiceClient(cc grpc.ClientConnInterface) PartnerServiceClient {
 	return &partnerServiceClient{cc}
+}
+
+func (c *partnerServiceClient) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerReply)
+	err := c.cc.Invoke(ctx, PartnerService_GetPartner_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *partnerServiceClient) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*PartnerListReply, error) {
@@ -71,13 +85,25 @@ func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePart
 	return out, nil
 }
 
+func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerReply)
+	err := c.cc.Invoke(ctx, PartnerService_SetSupplierBlacklist_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
 type PartnerServiceServer interface {
+	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
+	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -88,6 +114,9 @@ type PartnerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPartnerServiceServer struct{}
 
+func (UnimplementedPartnerServiceServer) GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPartner not implemented")
+}
 func (UnimplementedPartnerServiceServer) ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartners not implemented")
 }
@@ -96,6 +125,9 @@ func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreateP
 }
 func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartner not implemented")
+}
+func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetSupplierBlacklist not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -116,6 +148,24 @@ func RegisterPartnerServiceServer(s grpc.ServiceRegistrar, srv PartnerServiceSer
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&PartnerService_ServiceDesc, srv)
+}
+
+func _PartnerService_GetPartner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPartnerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).GetPartner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_GetPartner_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).GetPartner(ctx, req.(*GetPartnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _PartnerService_ListPartners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -172,6 +222,24 @@ func _PartnerService_UpdatePartner_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_SetSupplierBlacklist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSupplierBlacklistRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).SetSupplierBlacklist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_SetSupplierBlacklist_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).SetSupplierBlacklist(ctx, req.(*SetSupplierBlacklistRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -179,6 +247,10 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "partner.v1.PartnerService",
 	HandlerType: (*PartnerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPartner",
+			Handler:    _PartnerService_GetPartner_Handler,
+		},
 		{
 			MethodName: "ListPartners",
 			Handler:    _PartnerService_ListPartners_Handler,
@@ -190,6 +262,10 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartner",
 			Handler:    _PartnerService_UpdatePartner_Handler,
+		},
+		{
+			MethodName: "SetSupplierBlacklist",
+			Handler:    _PartnerService_SetSupplierBlacklist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

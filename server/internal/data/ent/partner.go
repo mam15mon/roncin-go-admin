@@ -27,18 +27,14 @@ type Partner struct {
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Type holds the value of the "type" field.
-	Type partner.Type `json:"type,omitempty"`
-	// ContactName holds the value of the "contact_name" field.
-	ContactName string `json:"contact_name,omitempty"`
-	// Phone holds the value of the "phone" field.
-	Phone string `json:"phone,omitempty"`
-	// Email holds the value of the "email" field.
-	Email string `json:"email,omitempty"`
-	// Address holds the value of the "address" field.
-	Address string `json:"address,omitempty"`
+	// LegalName holds the value of the "legal_name" field.
+	LegalName string `json:"legal_name,omitempty"`
+	// NormalizedName holds the value of the "normalized_name" field.
+	NormalizedName string `json:"normalized_name,omitempty"`
+	// UnifiedSocialCreditCode holds the value of the "unified_social_credit_code" field.
+	UnifiedSocialCreditCode *string `json:"unified_social_credit_code,omitempty"`
+	// RegisteredAddress holds the value of the "registered_address" field.
+	RegisteredAddress string `json:"registered_address,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -51,9 +47,15 @@ type Partner struct {
 type PartnerEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*PartnerRole `json:"roles,omitempty"`
+	// Contacts holds the value of the contacts edge.
+	Contacts []*PartnerContact `json:"contacts,omitempty"`
+	// Aliases holds the value of the aliases edge.
+	Aliases []*PartnerAlias `json:"aliases,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -67,6 +69,33 @@ func (e PartnerEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) RolesOrErr() ([]*PartnerRole, error) {
+	if e.loadedTypes[1] {
+		return e.Roles, nil
+	}
+	return nil, &NotLoadedError{edge: "roles"}
+}
+
+// ContactsOrErr returns the Contacts value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) ContactsOrErr() ([]*PartnerContact, error) {
+	if e.loadedTypes[2] {
+		return e.Contacts, nil
+	}
+	return nil, &NotLoadedError{edge: "contacts"}
+}
+
+// AliasesOrErr returns the Aliases value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) AliasesOrErr() ([]*PartnerAlias, error) {
+	if e.loadedTypes[3] {
+		return e.Aliases, nil
+	}
+	return nil, &NotLoadedError{edge: "aliases"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Partner) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -74,7 +103,7 @@ func (*Partner) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partner.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case partner.FieldCode, partner.FieldName, partner.FieldType, partner.FieldContactName, partner.FieldPhone, partner.FieldEmail, partner.FieldAddress:
+		case partner.FieldCode, partner.FieldLegalName, partner.FieldNormalizedName, partner.FieldUnifiedSocialCreditCode, partner.FieldRegisteredAddress:
 			values[i] = new(sql.NullString)
 		case partner.FieldCreatedAt, partner.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -125,41 +154,30 @@ func (_m *Partner) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Code = value.String
 			}
-		case partner.FieldName:
+		case partner.FieldLegalName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field legal_name", values[i])
 			} else if value.Valid {
-				_m.Name = value.String
+				_m.LegalName = value.String
 			}
-		case partner.FieldType:
+		case partner.FieldNormalizedName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field normalized_name", values[i])
 			} else if value.Valid {
-				_m.Type = partner.Type(value.String)
+				_m.NormalizedName = value.String
 			}
-		case partner.FieldContactName:
+		case partner.FieldUnifiedSocialCreditCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field contact_name", values[i])
+				return fmt.Errorf("unexpected type %T for field unified_social_credit_code", values[i])
 			} else if value.Valid {
-				_m.ContactName = value.String
+				_m.UnifiedSocialCreditCode = new(string)
+				*_m.UnifiedSocialCreditCode = value.String
 			}
-		case partner.FieldPhone:
+		case partner.FieldRegisteredAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field phone", values[i])
+				return fmt.Errorf("unexpected type %T for field registered_address", values[i])
 			} else if value.Valid {
-				_m.Phone = value.String
-			}
-		case partner.FieldEmail:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field email", values[i])
-			} else if value.Valid {
-				_m.Email = value.String
-			}
-		case partner.FieldAddress:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field address", values[i])
-			} else if value.Valid {
-				_m.Address = value.String
+				_m.RegisteredAddress = value.String
 			}
 		case partner.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -183,6 +201,21 @@ func (_m *Partner) Value(name string) (ent.Value, error) {
 // QueryOrganization queries the "organization" edge of the Partner entity.
 func (_m *Partner) QueryOrganization() *OrganizationQuery {
 	return NewPartnerClient(_m.config).QueryOrganization(_m)
+}
+
+// QueryRoles queries the "roles" edge of the Partner entity.
+func (_m *Partner) QueryRoles() *PartnerRoleQuery {
+	return NewPartnerClient(_m.config).QueryRoles(_m)
+}
+
+// QueryContacts queries the "contacts" edge of the Partner entity.
+func (_m *Partner) QueryContacts() *PartnerContactQuery {
+	return NewPartnerClient(_m.config).QueryContacts(_m)
+}
+
+// QueryAliases queries the "aliases" edge of the Partner entity.
+func (_m *Partner) QueryAliases() *PartnerAliasQuery {
+	return NewPartnerClient(_m.config).QueryAliases(_m)
 }
 
 // Update returns a builder for updating this Partner.
@@ -220,23 +253,19 @@ func (_m *Partner) String() string {
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)
 	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
+	builder.WriteString("legal_name=")
+	builder.WriteString(_m.LegalName)
 	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Type))
+	builder.WriteString("normalized_name=")
+	builder.WriteString(_m.NormalizedName)
 	builder.WriteString(", ")
-	builder.WriteString("contact_name=")
-	builder.WriteString(_m.ContactName)
+	if v := _m.UnifiedSocialCreditCode; v != nil {
+		builder.WriteString("unified_social_credit_code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("phone=")
-	builder.WriteString(_m.Phone)
-	builder.WriteString(", ")
-	builder.WriteString("email=")
-	builder.WriteString(_m.Email)
-	builder.WriteString(", ")
-	builder.WriteString("address=")
-	builder.WriteString(_m.Address)
+	builder.WriteString("registered_address=")
+	builder.WriteString(_m.RegisteredAddress)
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))

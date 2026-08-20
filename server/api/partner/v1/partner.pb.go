@@ -22,79 +22,342 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type PartnerType int32
+type PartnerRoleType int32
 
 const (
-	PartnerType_PARTNER_TYPE_UNSPECIFIED PartnerType = 0
-	PartnerType_PARTNER_TYPE_CUSTOMER    PartnerType = 1
-	PartnerType_PARTNER_TYPE_SUPPLIER    PartnerType = 2
-	PartnerType_PARTNER_TYPE_BOTH        PartnerType = 3
+	PartnerRoleType_PARTNER_ROLE_TYPE_UNSPECIFIED PartnerRoleType = 0
+	PartnerRoleType_PARTNER_ROLE_TYPE_CUSTOMER    PartnerRoleType = 1
+	PartnerRoleType_PARTNER_ROLE_TYPE_SUPPLIER    PartnerRoleType = 2
+	PartnerRoleType_PARTNER_ROLE_TYPE_AGENT       PartnerRoleType = 3
+	PartnerRoleType_PARTNER_ROLE_TYPE_CARRIER     PartnerRoleType = 4
 )
 
-// Enum value maps for PartnerType.
+// Enum value maps for PartnerRoleType.
 var (
-	PartnerType_name = map[int32]string{
-		0: "PARTNER_TYPE_UNSPECIFIED",
-		1: "PARTNER_TYPE_CUSTOMER",
-		2: "PARTNER_TYPE_SUPPLIER",
-		3: "PARTNER_TYPE_BOTH",
+	PartnerRoleType_name = map[int32]string{
+		0: "PARTNER_ROLE_TYPE_UNSPECIFIED",
+		1: "PARTNER_ROLE_TYPE_CUSTOMER",
+		2: "PARTNER_ROLE_TYPE_SUPPLIER",
+		3: "PARTNER_ROLE_TYPE_AGENT",
+		4: "PARTNER_ROLE_TYPE_CARRIER",
 	}
-	PartnerType_value = map[string]int32{
-		"PARTNER_TYPE_UNSPECIFIED": 0,
-		"PARTNER_TYPE_CUSTOMER":    1,
-		"PARTNER_TYPE_SUPPLIER":    2,
-		"PARTNER_TYPE_BOTH":        3,
+	PartnerRoleType_value = map[string]int32{
+		"PARTNER_ROLE_TYPE_UNSPECIFIED": 0,
+		"PARTNER_ROLE_TYPE_CUSTOMER":    1,
+		"PARTNER_ROLE_TYPE_SUPPLIER":    2,
+		"PARTNER_ROLE_TYPE_AGENT":       3,
+		"PARTNER_ROLE_TYPE_CARRIER":     4,
 	}
 )
 
-func (x PartnerType) Enum() *PartnerType {
-	p := new(PartnerType)
+func (x PartnerRoleType) Enum() *PartnerRoleType {
+	p := new(PartnerRoleType)
 	*p = x
 	return p
 }
 
-func (x PartnerType) String() string {
+func (x PartnerRoleType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (PartnerType) Descriptor() protoreflect.EnumDescriptor {
+func (PartnerRoleType) Descriptor() protoreflect.EnumDescriptor {
 	return file_partner_v1_partner_proto_enumTypes[0].Descriptor()
 }
 
-func (PartnerType) Type() protoreflect.EnumType {
+func (PartnerRoleType) Type() protoreflect.EnumType {
 	return &file_partner_v1_partner_proto_enumTypes[0]
 }
 
-func (x PartnerType) Number() protoreflect.EnumNumber {
+func (x PartnerRoleType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use PartnerType.Descriptor instead.
-func (PartnerType) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use PartnerRoleType.Descriptor instead.
+func (PartnerRoleType) EnumDescriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
 }
 
+type PartnerRole struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Type            PartnerRoleType        `protobuf:"varint,1,opt,name=type,proto3,enum=partner.v1.PartnerRoleType" json:"type,omitempty"`
+	Enabled         bool                   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Blacklisted     bool                   `protobuf:"varint,3,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
+	BlacklistReason string                 `protobuf:"bytes,4,opt,name=blacklist_reason,json=blacklistReason,proto3" json:"blacklist_reason,omitempty"`
+	BlacklistedAt   string                 `protobuf:"bytes,5,opt,name=blacklisted_at,json=blacklistedAt,proto3" json:"blacklisted_at,omitempty"`
+	BlacklistedBy   string                 `protobuf:"bytes,6,opt,name=blacklisted_by,json=blacklistedBy,proto3" json:"blacklisted_by,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *PartnerRole) Reset() {
+	*x = PartnerRole{}
+	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerRole) ProtoMessage() {}
+
+func (x *PartnerRole) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerRole.ProtoReflect.Descriptor instead.
+func (*PartnerRole) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *PartnerRole) GetType() PartnerRoleType {
+	if x != nil {
+		return x.Type
+	}
+	return PartnerRoleType_PARTNER_ROLE_TYPE_UNSPECIFIED
+}
+
+func (x *PartnerRole) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *PartnerRole) GetBlacklisted() bool {
+	if x != nil {
+		return x.Blacklisted
+	}
+	return false
+}
+
+func (x *PartnerRole) GetBlacklistReason() string {
+	if x != nil {
+		return x.BlacklistReason
+	}
+	return ""
+}
+
+func (x *PartnerRole) GetBlacklistedAt() string {
+	if x != nil {
+		return x.BlacklistedAt
+	}
+	return ""
+}
+
+func (x *PartnerRole) GetBlacklistedBy() string {
+	if x != nil {
+		return x.BlacklistedBy
+	}
+	return ""
+}
+
+type PartnerContact struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Phone         string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Note          string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
+	IsPrimary     bool                   `protobuf:"varint,6,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerContact) Reset() {
+	*x = PartnerContact{}
+	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerContact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerContact) ProtoMessage() {}
+
+func (x *PartnerContact) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerContact.ProtoReflect.Descriptor instead.
+func (*PartnerContact) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *PartnerContact) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetIsPrimary() bool {
+	if x != nil {
+		return x.IsPrimary
+	}
+	return false
+}
+
+func (x *PartnerContact) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *PartnerContact) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type PartnerAlias struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AliasName     string                 `protobuf:"bytes,2,opt,name=alias_name,json=aliasName,proto3" json:"alias_name,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerAlias) Reset() {
+	*x = PartnerAlias{}
+	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAlias) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAlias) ProtoMessage() {}
+
+func (x *PartnerAlias) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAlias.ProtoReflect.Descriptor instead.
+func (*PartnerAlias) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PartnerAlias) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PartnerAlias) GetAliasName() string {
+	if x != nil {
+		return x.AliasName
+	}
+	return ""
+}
+
+func (x *PartnerAlias) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *PartnerAlias) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *PartnerAlias) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 type Partner struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Code           string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Name           string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Type           PartnerType            `protobuf:"varint,5,opt,name=type,proto3,enum=partner.v1.PartnerType" json:"type,omitempty"`
-	ContactName    string                 `protobuf:"bytes,6,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	Phone          string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email          string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
-	Address        string                 `protobuf:"bytes,9,opt,name=address,proto3" json:"address,omitempty"`
-	Enabled        bool                   `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Id                      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId          string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Code                    string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	LegalName               string                 `protobuf:"bytes,4,opt,name=legal_name,json=legalName,proto3" json:"legal_name,omitempty"`
+	UnifiedSocialCreditCode string                 `protobuf:"bytes,5,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
+	RegisteredAddress       string                 `protobuf:"bytes,6,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
+	Enabled                 bool                   `protobuf:"varint,7,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Roles                   []*PartnerRole         `protobuf:"bytes,8,rep,name=roles,proto3" json:"roles,omitempty"`
+	Contacts                []*PartnerContact      `protobuf:"bytes,9,rep,name=contacts,proto3" json:"contacts,omitempty"`
+	Aliases                 []*PartnerAlias        `protobuf:"bytes,10,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	CreatedAt               string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt               string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Partner) Reset() {
 	*x = Partner{}
-	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	mi := &file_partner_v1_partner_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -106,7 +369,7 @@ func (x *Partner) String() string {
 func (*Partner) ProtoMessage() {}
 
 func (x *Partner) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	mi := &file_partner_v1_partner_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -119,7 +382,7 @@ func (x *Partner) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Partner.ProtoReflect.Descriptor instead.
 func (*Partner) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Partner) GetId() string {
@@ -143,44 +406,23 @@ func (x *Partner) GetCode() string {
 	return ""
 }
 
-func (x *Partner) GetName() string {
+func (x *Partner) GetLegalName() string {
 	if x != nil {
-		return x.Name
+		return x.LegalName
 	}
 	return ""
 }
 
-func (x *Partner) GetType() PartnerType {
+func (x *Partner) GetUnifiedSocialCreditCode() string {
 	if x != nil {
-		return x.Type
-	}
-	return PartnerType_PARTNER_TYPE_UNSPECIFIED
-}
-
-func (x *Partner) GetContactName() string {
-	if x != nil {
-		return x.ContactName
+		return x.UnifiedSocialCreditCode
 	}
 	return ""
 }
 
-func (x *Partner) GetPhone() string {
+func (x *Partner) GetRegisteredAddress() string {
 	if x != nil {
-		return x.Phone
-	}
-	return ""
-}
-
-func (x *Partner) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *Partner) GetAddress() string {
-	if x != nil {
-		return x.Address
+		return x.RegisteredAddress
 	}
 	return ""
 }
@@ -190,6 +432,27 @@ func (x *Partner) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *Partner) GetRoles() []*PartnerRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *Partner) GetContacts() []*PartnerContact {
+	if x != nil {
+		return x.Contacts
+	}
+	return nil
+}
+
+func (x *Partner) GetAliases() []*PartnerAlias {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
 }
 
 func (x *Partner) GetCreatedAt() string {
@@ -206,12 +469,236 @@ func (x *Partner) GetUpdatedAt() string {
 	return ""
 }
 
+type PartnerRoleInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          PartnerRoleType        `protobuf:"varint,1,opt,name=type,proto3,enum=partner.v1.PartnerRoleType" json:"type,omitempty"`
+	Enabled       bool                   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerRoleInput) Reset() {
+	*x = PartnerRoleInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerRoleInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerRoleInput) ProtoMessage() {}
+
+func (x *PartnerRoleInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerRoleInput.ProtoReflect.Descriptor instead.
+func (*PartnerRoleInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PartnerRoleInput) GetType() PartnerRoleType {
+	if x != nil {
+		return x.Type
+	}
+	return PartnerRoleType_PARTNER_ROLE_TYPE_UNSPECIFIED
+}
+
+func (x *PartnerRoleInput) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type PartnerContactInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Phone         string                 `protobuf:"bytes,2,opt,name=phone,proto3" json:"phone,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Note          string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	IsPrimary     bool                   `protobuf:"varint,5,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerContactInput) Reset() {
+	*x = PartnerContactInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerContactInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerContactInput) ProtoMessage() {}
+
+func (x *PartnerContactInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerContactInput.ProtoReflect.Descriptor instead.
+func (*PartnerContactInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PartnerContactInput) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PartnerContactInput) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *PartnerContactInput) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *PartnerContactInput) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *PartnerContactInput) GetIsPrimary() bool {
+	if x != nil {
+		return x.IsPrimary
+	}
+	return false
+}
+
+type PartnerAliasInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AliasName     string                 `protobuf:"bytes,1,opt,name=alias_name,json=aliasName,proto3" json:"alias_name,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,2,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PartnerAliasInput) Reset() {
+	*x = PartnerAliasInput{}
+	mi := &file_partner_v1_partner_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerAliasInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerAliasInput) ProtoMessage() {}
+
+func (x *PartnerAliasInput) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerAliasInput.ProtoReflect.Descriptor instead.
+func (*PartnerAliasInput) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PartnerAliasInput) GetAliasName() string {
+	if x != nil {
+		return x.AliasName
+	}
+	return ""
+}
+
+func (x *PartnerAliasInput) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+type GetPartnerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPartnerRequest) Reset() {
+	*x = GetPartnerRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPartnerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPartnerRequest) ProtoMessage() {}
+
+func (x *GetPartnerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPartnerRequest.ProtoReflect.Descriptor instead.
+func (*GetPartnerRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetPartnerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 type ListPartnersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	Type          PartnerType            `protobuf:"varint,4,opt,name=type,proto3,enum=partner.v1.PartnerType" json:"type,omitempty"`
+	Role          PartnerRoleType        `protobuf:"varint,4,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
 	Enabled       *bool                  `protobuf:"varint,5,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -219,7 +706,7 @@ type ListPartnersRequest struct {
 
 func (x *ListPartnersRequest) Reset() {
 	*x = ListPartnersRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	mi := &file_partner_v1_partner_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +718,7 @@ func (x *ListPartnersRequest) String() string {
 func (*ListPartnersRequest) ProtoMessage() {}
 
 func (x *ListPartnersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	mi := &file_partner_v1_partner_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +731,7 @@ func (x *ListPartnersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartnersRequest.ProtoReflect.Descriptor instead.
 func (*ListPartnersRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{1}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListPartnersRequest) GetPage() int32 {
@@ -268,11 +755,11 @@ func (x *ListPartnersRequest) GetKeyword() string {
 	return ""
 }
 
-func (x *ListPartnersRequest) GetType() PartnerType {
+func (x *ListPartnersRequest) GetRole() PartnerRoleType {
 	if x != nil {
-		return x.Type
+		return x.Role
 	}
-	return PartnerType_PARTNER_TYPE_UNSPECIFIED
+	return PartnerRoleType_PARTNER_ROLE_TYPE_UNSPECIFIED
 }
 
 func (x *ListPartnersRequest) GetEnabled() bool {
@@ -283,21 +770,21 @@ func (x *ListPartnersRequest) GetEnabled() bool {
 }
 
 type CreatePartnerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Type          PartnerType            `protobuf:"varint,3,opt,name=type,proto3,enum=partner.v1.PartnerType" json:"type,omitempty"`
-	ContactName   string                 `protobuf:"bytes,4,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
-	Address       string                 `protobuf:"bytes,7,opt,name=address,proto3" json:"address,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Code                    string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	LegalName               string                 `protobuf:"bytes,2,opt,name=legal_name,json=legalName,proto3" json:"legal_name,omitempty"`
+	UnifiedSocialCreditCode string                 `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
+	RegisteredAddress       string                 `protobuf:"bytes,4,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
+	Roles                   []*PartnerRoleInput    `protobuf:"bytes,5,rep,name=roles,proto3" json:"roles,omitempty"`
+	Contacts                []*PartnerContactInput `protobuf:"bytes,6,rep,name=contacts,proto3" json:"contacts,omitempty"`
+	Aliases                 []*PartnerAliasInput   `protobuf:"bytes,7,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *CreatePartnerRequest) Reset() {
 	*x = CreatePartnerRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	mi := &file_partner_v1_partner_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -309,7 +796,7 @@ func (x *CreatePartnerRequest) String() string {
 func (*CreatePartnerRequest) ProtoMessage() {}
 
 func (x *CreatePartnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	mi := &file_partner_v1_partner_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,7 +809,7 @@ func (x *CreatePartnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartnerRequest.ProtoReflect.Descriptor instead.
 func (*CreatePartnerRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{2}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreatePartnerRequest) GetCode() string {
@@ -332,65 +819,65 @@ func (x *CreatePartnerRequest) GetCode() string {
 	return ""
 }
 
-func (x *CreatePartnerRequest) GetName() string {
+func (x *CreatePartnerRequest) GetLegalName() string {
 	if x != nil {
-		return x.Name
+		return x.LegalName
 	}
 	return ""
 }
 
-func (x *CreatePartnerRequest) GetType() PartnerType {
+func (x *CreatePartnerRequest) GetUnifiedSocialCreditCode() string {
 	if x != nil {
-		return x.Type
-	}
-	return PartnerType_PARTNER_TYPE_UNSPECIFIED
-}
-
-func (x *CreatePartnerRequest) GetContactName() string {
-	if x != nil {
-		return x.ContactName
+		return x.UnifiedSocialCreditCode
 	}
 	return ""
 }
 
-func (x *CreatePartnerRequest) GetPhone() string {
+func (x *CreatePartnerRequest) GetRegisteredAddress() string {
 	if x != nil {
-		return x.Phone
+		return x.RegisteredAddress
 	}
 	return ""
 }
 
-func (x *CreatePartnerRequest) GetEmail() string {
+func (x *CreatePartnerRequest) GetRoles() []*PartnerRoleInput {
 	if x != nil {
-		return x.Email
+		return x.Roles
 	}
-	return ""
+	return nil
 }
 
-func (x *CreatePartnerRequest) GetAddress() string {
+func (x *CreatePartnerRequest) GetContacts() []*PartnerContactInput {
 	if x != nil {
-		return x.Address
+		return x.Contacts
 	}
-	return ""
+	return nil
+}
+
+func (x *CreatePartnerRequest) GetAliases() []*PartnerAliasInput {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
 }
 
 type UpdatePartnerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Type          PartnerType            `protobuf:"varint,3,opt,name=type,proto3,enum=partner.v1.PartnerType" json:"type,omitempty"`
-	ContactName   string                 `protobuf:"bytes,4,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
-	Address       string                 `protobuf:"bytes,7,opt,name=address,proto3" json:"address,omitempty"`
-	Enabled       bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Id                      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	LegalName               string                 `protobuf:"bytes,2,opt,name=legal_name,json=legalName,proto3" json:"legal_name,omitempty"`
+	UnifiedSocialCreditCode string                 `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
+	RegisteredAddress       string                 `protobuf:"bytes,4,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
+	Enabled                 bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Roles                   []*PartnerRoleInput    `protobuf:"bytes,6,rep,name=roles,proto3" json:"roles,omitempty"`
+	Contacts                []*PartnerContactInput `protobuf:"bytes,7,rep,name=contacts,proto3" json:"contacts,omitempty"`
+	Aliases                 []*PartnerAliasInput   `protobuf:"bytes,8,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *UpdatePartnerRequest) Reset() {
 	*x = UpdatePartnerRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[3]
+	mi := &file_partner_v1_partner_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +889,7 @@ func (x *UpdatePartnerRequest) String() string {
 func (*UpdatePartnerRequest) ProtoMessage() {}
 
 func (x *UpdatePartnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[3]
+	mi := &file_partner_v1_partner_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -415,7 +902,7 @@ func (x *UpdatePartnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartnerRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePartnerRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{3}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdatePartnerRequest) GetId() string {
@@ -425,44 +912,23 @@ func (x *UpdatePartnerRequest) GetId() string {
 	return ""
 }
 
-func (x *UpdatePartnerRequest) GetName() string {
+func (x *UpdatePartnerRequest) GetLegalName() string {
 	if x != nil {
-		return x.Name
+		return x.LegalName
 	}
 	return ""
 }
 
-func (x *UpdatePartnerRequest) GetType() PartnerType {
+func (x *UpdatePartnerRequest) GetUnifiedSocialCreditCode() string {
 	if x != nil {
-		return x.Type
-	}
-	return PartnerType_PARTNER_TYPE_UNSPECIFIED
-}
-
-func (x *UpdatePartnerRequest) GetContactName() string {
-	if x != nil {
-		return x.ContactName
+		return x.UnifiedSocialCreditCode
 	}
 	return ""
 }
 
-func (x *UpdatePartnerRequest) GetPhone() string {
+func (x *UpdatePartnerRequest) GetRegisteredAddress() string {
 	if x != nil {
-		return x.Phone
-	}
-	return ""
-}
-
-func (x *UpdatePartnerRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *UpdatePartnerRequest) GetAddress() string {
-	if x != nil {
-		return x.Address
+		return x.RegisteredAddress
 	}
 	return ""
 }
@@ -472,6 +938,87 @@ func (x *UpdatePartnerRequest) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *UpdatePartnerRequest) GetRoles() []*PartnerRoleInput {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *UpdatePartnerRequest) GetContacts() []*PartnerContactInput {
+	if x != nil {
+		return x.Contacts
+	}
+	return nil
+}
+
+func (x *UpdatePartnerRequest) GetAliases() []*PartnerAliasInput {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
+type SetSupplierBlacklistRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Blacklisted   bool                   `protobuf:"varint,2,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSupplierBlacklistRequest) Reset() {
+	*x = SetSupplierBlacklistRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSupplierBlacklistRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSupplierBlacklistRequest) ProtoMessage() {}
+
+func (x *SetSupplierBlacklistRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSupplierBlacklistRequest.ProtoReflect.Descriptor instead.
+func (*SetSupplierBlacklistRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SetSupplierBlacklistRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetSupplierBlacklistRequest) GetBlacklisted() bool {
+	if x != nil {
+		return x.Blacklisted
+	}
+	return false
+}
+
+func (x *SetSupplierBlacklistRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
 }
 
 type PartnerReply struct {
@@ -487,7 +1034,7 @@ type PartnerReply struct {
 
 func (x *PartnerReply) Reset() {
 	*x = PartnerReply{}
-	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	mi := &file_partner_v1_partner_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -499,7 +1046,7 @@ func (x *PartnerReply) String() string {
 func (*PartnerReply) ProtoMessage() {}
 
 func (x *PartnerReply) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	mi := &file_partner_v1_partner_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -512,7 +1059,7 @@ func (x *PartnerReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerReply.ProtoReflect.Descriptor instead.
 func (*PartnerReply) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{4}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PartnerReply) GetSuccess() bool {
@@ -566,7 +1113,7 @@ type PartnerListReply struct {
 
 func (x *PartnerListReply) Reset() {
 	*x = PartnerListReply{}
-	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	mi := &file_partner_v1_partner_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -578,7 +1125,7 @@ func (x *PartnerListReply) String() string {
 func (*PartnerListReply) ProtoMessage() {}
 
 func (x *PartnerListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	mi := &file_partner_v1_partner_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -591,7 +1138,7 @@ func (x *PartnerListReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerListReply.ProtoReflect.Descriptor instead.
 func (*PartnerListReply) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{5}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PartnerListReply) GetSuccess() bool {
@@ -655,48 +1202,101 @@ var File_partner_v1_partner_proto protoreflect.FileDescriptor
 const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"\x18partner/v1/partner.proto\x12\n" +
-	"partner.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xd8\x02\n" +
+	"partner.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xf3\x01\n" +
+	"\vPartnerRole\x12/\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04type\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12 \n" +
+	"\vblacklisted\x18\x03 \x01(\bR\vblacklisted\x12)\n" +
+	"\x10blacklist_reason\x18\x04 \x01(\tR\x0fblacklistReason\x12%\n" +
+	"\x0eblacklisted_at\x18\x05 \x01(\tR\rblacklistedAt\x12%\n" +
+	"\x0eblacklisted_by\x18\x06 \x01(\tR\rblacklistedBy\"\xd1\x01\n" +
+	"\x0ePartnerContact\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05phone\x18\x03 \x01(\tR\x05phone\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\x12\n" +
+	"\x04note\x18\x05 \x01(\tR\x04note\x12\x1d\n" +
+	"\n" +
+	"is_primary\x18\x06 \x01(\bR\tisPrimary\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\x9a\x01\n" +
+	"\fPartnerAlias\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"alias_name\x18\x02 \x01(\tR\taliasName\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x03 \x01(\x05R\tsortOrder\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\tR\tupdatedAt\"\xd4\x03\n" +
 	"\aPartner\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
-	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x12+\n" +
-	"\x04type\x18\x05 \x01(\x0e2\x17.partner.v1.PartnerTypeR\x04type\x12!\n" +
-	"\fcontact_name\x18\x06 \x01(\tR\vcontactName\x12\x14\n" +
-	"\x05phone\x18\a \x01(\tR\x05phone\x12\x14\n" +
-	"\x05email\x18\b \x01(\tR\x05email\x12\x18\n" +
-	"\aaddress\x18\t \x01(\tR\aaddress\x12\x18\n" +
-	"\aenabled\x18\n" +
-	" \x01(\bR\aenabled\x12\x1d\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12\x1d\n" +
+	"\n" +
+	"legal_name\x18\x04 \x01(\tR\tlegalName\x12;\n" +
+	"\x1aunified_social_credit_code\x18\x05 \x01(\tR\x17unifiedSocialCreditCode\x12-\n" +
+	"\x12registered_address\x18\x06 \x01(\tR\x11registeredAddress\x12\x18\n" +
+	"\aenabled\x18\a \x01(\bR\aenabled\x12-\n" +
+	"\x05roles\x18\b \x03(\v2\x17.partner.v1.PartnerRoleR\x05roles\x126\n" +
+	"\bcontacts\x18\t \x03(\v2\x1a.partner.v1.PartnerContactR\bcontacts\x122\n" +
+	"\aaliases\x18\n" +
+	" \x03(\v2\x18.partner.v1.PartnerAliasR\aaliases\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\tR\tupdatedAt\"\xb8\x01\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAt\"]\n" +
+	"\x10PartnerRoleInput\x12/\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04type\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\"\x88\x01\n" +
+	"\x13PartnerContactInput\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05phone\x18\x02 \x01(\tR\x05phone\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12\x1d\n" +
+	"\n" +
+	"is_primary\x18\x05 \x01(\bR\tisPrimary\"Q\n" +
+	"\x11PartnerAliasInput\x12\x1d\n" +
+	"\n" +
+	"alias_name\x18\x01 \x01(\tR\taliasName\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x02 \x01(\x05R\tsortOrder\"(\n" +
+	"\x11GetPartnerRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbc\x01\n" +
 	"\x13ListPartnersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
-	"\akeyword\x18\x03 \x01(\tR\akeyword\x12+\n" +
-	"\x04type\x18\x04 \x01(\x0e2\x17.partner.v1.PartnerTypeR\x04type\x12\x1d\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12/\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
 	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xe3\x01\n" +
+	"\b_enabled\"\xe9\x02\n" +
 	"\x14CreatePartnerRequest\x12\x17\n" +
-	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x120\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x17.partner.v1.PartnerTypeB\x03\xe0A\x02R\x04type\x12!\n" +
-	"\fcontact_name\x18\x04 \x01(\tR\vcontactName\x12\x14\n" +
-	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x14\n" +
-	"\x05email\x18\x06 \x01(\tR\x05email\x12\x18\n" +
-	"\aaddress\x18\a \x01(\tR\aaddress\"\xf9\x01\n" +
+	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\"\n" +
+	"\n" +
+	"legal_name\x18\x02 \x01(\tB\x03\xe0A\x02R\tlegalName\x12;\n" +
+	"\x1aunified_social_credit_code\x18\x03 \x01(\tR\x17unifiedSocialCreditCode\x12-\n" +
+	"\x12registered_address\x18\x04 \x01(\tR\x11registeredAddress\x122\n" +
+	"\x05roles\x18\x05 \x03(\v2\x1c.partner.v1.PartnerRoleInputR\x05roles\x12;\n" +
+	"\bcontacts\x18\x06 \x03(\v2\x1f.partner.v1.PartnerContactInputR\bcontacts\x127\n" +
+	"\aaliases\x18\a \x03(\v2\x1d.partner.v1.PartnerAliasInputR\aaliases\"\xff\x02\n" +
 	"\x14UpdatePartnerRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x120\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x17.partner.v1.PartnerTypeB\x03\xe0A\x02R\x04type\x12!\n" +
-	"\fcontact_name\x18\x04 \x01(\tR\vcontactName\x12\x14\n" +
-	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x14\n" +
-	"\x05email\x18\x06 \x01(\tR\x05email\x12\x18\n" +
-	"\aaddress\x18\a \x01(\tR\aaddress\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\x9a\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\"\n" +
+	"\n" +
+	"legal_name\x18\x02 \x01(\tB\x03\xe0A\x02R\tlegalName\x12;\n" +
+	"\x1aunified_social_credit_code\x18\x03 \x01(\tR\x17unifiedSocialCreditCode\x12-\n" +
+	"\x12registered_address\x18\x04 \x01(\tR\x11registeredAddress\x12\x18\n" +
+	"\aenabled\x18\x05 \x01(\bR\aenabled\x122\n" +
+	"\x05roles\x18\x06 \x03(\v2\x1c.partner.v1.PartnerRoleInputR\x05roles\x12;\n" +
+	"\bcontacts\x18\a \x03(\v2\x1f.partner.v1.PartnerContactInputR\bcontacts\x127\n" +
+	"\aaliases\x18\b \x03(\v2\x1d.partner.v1.PartnerAliasInputR\aaliases\"q\n" +
+	"\x1bSetSupplierBlacklistRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
+	"\vblacklisted\x18\x02 \x01(\bR\vblacklisted\x12\x1b\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\x9a\x01\n" +
 	"\fPartnerReply\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -711,16 +1311,20 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId*x\n" +
-	"\vPartnerType\x12\x1c\n" +
-	"\x18PARTNER_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
-	"\x15PARTNER_TYPE_CUSTOMER\x10\x01\x12\x19\n" +
-	"\x15PARTNER_TYPE_SUPPLIER\x10\x02\x12\x15\n" +
-	"\x11PARTNER_TYPE_BOTH\x10\x032\xd2\x02\n" +
-	"\x0ePartnerService\x12g\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId*\xb0\x01\n" +
+	"\x0fPartnerRoleType\x12!\n" +
+	"\x1dPARTNER_ROLE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aPARTNER_ROLE_TYPE_CUSTOMER\x10\x01\x12\x1e\n" +
+	"\x1aPARTNER_ROLE_TYPE_SUPPLIER\x10\x02\x12\x1b\n" +
+	"\x17PARTNER_ROLE_TYPE_AGENT\x10\x03\x12\x1d\n" +
+	"\x19PARTNER_ROLE_TYPE_CARRIER\x10\x042\xc9\x04\n" +
+	"\x0ePartnerService\x12d\n" +
+	"\n" +
+	"GetPartner\x12\x1d.partner.v1.GetPartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/partners/{id}\x12g\n" +
 	"\fListPartners\x12\x1f.partner.v1.ListPartnersRequest\x1a\x1c.partner.v1.PartnerListReply\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/partners\x12h\n" +
 	"\rCreatePartner\x12 .partner.v1.CreatePartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/partners\x12m\n" +
-	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a\x18.partner.v1.PartnerReply\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a\x18.partner.v1.PartnerReply\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\x8e\x01\n" +
+	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a\x18.partner.v1.PartnerReply\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklistB<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_partner_proto_rawDescOnce sync.Once
@@ -735,34 +1339,54 @@ func file_partner_v1_partner_proto_rawDescGZIP() []byte {
 }
 
 var file_partner_v1_partner_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_partner_v1_partner_proto_goTypes = []any{
-	(PartnerType)(0),             // 0: partner.v1.PartnerType
-	(*Partner)(nil),              // 1: partner.v1.Partner
-	(*ListPartnersRequest)(nil),  // 2: partner.v1.ListPartnersRequest
-	(*CreatePartnerRequest)(nil), // 3: partner.v1.CreatePartnerRequest
-	(*UpdatePartnerRequest)(nil), // 4: partner.v1.UpdatePartnerRequest
-	(*PartnerReply)(nil),         // 5: partner.v1.PartnerReply
-	(*PartnerListReply)(nil),     // 6: partner.v1.PartnerListReply
+	(PartnerRoleType)(0),                // 0: partner.v1.PartnerRoleType
+	(*PartnerRole)(nil),                 // 1: partner.v1.PartnerRole
+	(*PartnerContact)(nil),              // 2: partner.v1.PartnerContact
+	(*PartnerAlias)(nil),                // 3: partner.v1.PartnerAlias
+	(*Partner)(nil),                     // 4: partner.v1.Partner
+	(*PartnerRoleInput)(nil),            // 5: partner.v1.PartnerRoleInput
+	(*PartnerContactInput)(nil),         // 6: partner.v1.PartnerContactInput
+	(*PartnerAliasInput)(nil),           // 7: partner.v1.PartnerAliasInput
+	(*GetPartnerRequest)(nil),           // 8: partner.v1.GetPartnerRequest
+	(*ListPartnersRequest)(nil),         // 9: partner.v1.ListPartnersRequest
+	(*CreatePartnerRequest)(nil),        // 10: partner.v1.CreatePartnerRequest
+	(*UpdatePartnerRequest)(nil),        // 11: partner.v1.UpdatePartnerRequest
+	(*SetSupplierBlacklistRequest)(nil), // 12: partner.v1.SetSupplierBlacklistRequest
+	(*PartnerReply)(nil),                // 13: partner.v1.PartnerReply
+	(*PartnerListReply)(nil),            // 14: partner.v1.PartnerListReply
 }
 var file_partner_v1_partner_proto_depIdxs = []int32{
-	0, // 0: partner.v1.Partner.type:type_name -> partner.v1.PartnerType
-	0, // 1: partner.v1.ListPartnersRequest.type:type_name -> partner.v1.PartnerType
-	0, // 2: partner.v1.CreatePartnerRequest.type:type_name -> partner.v1.PartnerType
-	0, // 3: partner.v1.UpdatePartnerRequest.type:type_name -> partner.v1.PartnerType
-	1, // 4: partner.v1.PartnerReply.data:type_name -> partner.v1.Partner
-	1, // 5: partner.v1.PartnerListReply.data:type_name -> partner.v1.Partner
-	2, // 6: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
-	3, // 7: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
-	4, // 8: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
-	6, // 9: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.PartnerListReply
-	5, // 10: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.PartnerReply
-	5, // 11: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.PartnerReply
-	9, // [9:12] is the sub-list for method output_type
-	6, // [6:9] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0,  // 0: partner.v1.PartnerRole.type:type_name -> partner.v1.PartnerRoleType
+	1,  // 1: partner.v1.Partner.roles:type_name -> partner.v1.PartnerRole
+	2,  // 2: partner.v1.Partner.contacts:type_name -> partner.v1.PartnerContact
+	3,  // 3: partner.v1.Partner.aliases:type_name -> partner.v1.PartnerAlias
+	0,  // 4: partner.v1.PartnerRoleInput.type:type_name -> partner.v1.PartnerRoleType
+	0,  // 5: partner.v1.ListPartnersRequest.role:type_name -> partner.v1.PartnerRoleType
+	5,  // 6: partner.v1.CreatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
+	6,  // 7: partner.v1.CreatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
+	7,  // 8: partner.v1.CreatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
+	5,  // 9: partner.v1.UpdatePartnerRequest.roles:type_name -> partner.v1.PartnerRoleInput
+	6,  // 10: partner.v1.UpdatePartnerRequest.contacts:type_name -> partner.v1.PartnerContactInput
+	7,  // 11: partner.v1.UpdatePartnerRequest.aliases:type_name -> partner.v1.PartnerAliasInput
+	4,  // 12: partner.v1.PartnerReply.data:type_name -> partner.v1.Partner
+	4,  // 13: partner.v1.PartnerListReply.data:type_name -> partner.v1.Partner
+	8,  // 14: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
+	9,  // 15: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
+	10, // 16: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
+	11, // 17: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
+	12, // 18: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
+	13, // 19: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.PartnerReply
+	14, // 20: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.PartnerListReply
+	13, // 21: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.PartnerReply
+	13, // 22: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.PartnerReply
+	13, // 23: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.PartnerReply
+	19, // [19:24] is the sub-list for method output_type
+	14, // [14:19] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }
@@ -770,14 +1394,14 @@ func file_partner_v1_partner_proto_init() {
 	if File_partner_v1_partner_proto != nil {
 		return
 	}
-	file_partner_v1_partner_proto_msgTypes[1].OneofWrappers = []any{}
+	file_partner_v1_partner_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_partner_v1_partner_proto_rawDesc), len(file_partner_v1_partner_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

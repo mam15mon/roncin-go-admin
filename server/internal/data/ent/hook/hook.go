@@ -117,6 +117,42 @@ func (f PartnerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerMutation", m)
 }
 
+// The PartnerAliasFunc type is an adapter to allow the use of ordinary
+// function as PartnerAlias mutator.
+type PartnerAliasFunc func(context.Context, *ent.PartnerAliasMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerAliasFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerAliasMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerAliasMutation", m)
+}
+
+// The PartnerContactFunc type is an adapter to allow the use of ordinary
+// function as PartnerContact mutator.
+type PartnerContactFunc func(context.Context, *ent.PartnerContactMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerContactFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerContactMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerContactMutation", m)
+}
+
+// The PartnerRoleFunc type is an adapter to allow the use of ordinary
+// function as PartnerRole mutator.
+type PartnerRoleFunc func(context.Context, *ent.PartnerRoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerRoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerRoleMutation", m)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

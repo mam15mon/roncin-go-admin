@@ -18,20 +18,48 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationPartnerServiceCreatePartner = "/partner.v1.PartnerService/CreatePartner"
+const OperationPartnerServiceGetPartner = "/partner.v1.PartnerService/GetPartner"
 const OperationPartnerServiceListPartners = "/partner.v1.PartnerService/ListPartners"
+const OperationPartnerServiceSetSupplierBlacklist = "/partner.v1.PartnerService/SetSupplierBlacklist"
 const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdatePartner"
 
 type PartnerServiceHTTPServer interface {
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
+	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
+	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
 }
 
 func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("GET", "/api/v1/partners/{id}", _PartnerService_GetPartner0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners", _PartnerService_ListPartners0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/partners/{id}/supplier-blacklist", _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv))
+}
+
+func _PartnerService_GetPartner0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPartnerRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceGetPartner)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPartner(ctx, req.(*GetPartnerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerReply)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _PartnerService_ListPartners0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
@@ -94,9 +122,33 @@ func _PartnerService_UpdatePartner0_HTTP_Handler(srv PartnerServiceHTTPServer) f
 	}
 }
 
+func _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetSupplierBlacklistRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceSetSupplierBlacklist)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetSupplierBlacklist(ctx, req.(*SetSupplierBlacklistRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type PartnerServiceHTTPClient interface {
 	CreatePartner(ctx context.Context, req *CreatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
+	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *PartnerListReply, err error)
+	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 }
 
@@ -125,6 +177,22 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartner(ctx context.Context, in *Cr
 	return &out, nil
 }
 
+func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
+	var out PartnerReply
+	pattern := "/api/v1/partners/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceGetPartner),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *PartnerServiceHTTPClientImpl) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...http.CallOption) (*PartnerListReply, error) {
 	var out PartnerListReply
 	pattern := "/api/v1/partners"
@@ -135,6 +203,23 @@ func (c *PartnerServiceHTTPClientImpl) ListPartners(ctx context.Context, in *Lis
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...http.CallOption) (*PartnerReply, error) {
+	var out PartnerReply
+	pattern := "/api/v1/partners/{id}/supplier-blacklist"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceSetSupplierBlacklist),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

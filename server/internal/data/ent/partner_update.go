@@ -14,6 +14,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -50,111 +53,71 @@ func (_u *PartnerUpdate) SetNillableOrganizationID(v *uuid.UUID) *PartnerUpdate 
 	return _u
 }
 
-// SetName sets the "name" field.
-func (_u *PartnerUpdate) SetName(v string) *PartnerUpdate {
-	_u.mutation.SetName(v)
+// SetLegalName sets the "legal_name" field.
+func (_u *PartnerUpdate) SetLegalName(v string) *PartnerUpdate {
+	_u.mutation.SetLegalName(v)
 	return _u
 }
 
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableName(v *string) *PartnerUpdate {
+// SetNillableLegalName sets the "legal_name" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableLegalName(v *string) *PartnerUpdate {
 	if v != nil {
-		_u.SetName(*v)
+		_u.SetLegalName(*v)
 	}
 	return _u
 }
 
-// SetType sets the "type" field.
-func (_u *PartnerUpdate) SetType(v partner.Type) *PartnerUpdate {
-	_u.mutation.SetType(v)
+// SetNormalizedName sets the "normalized_name" field.
+func (_u *PartnerUpdate) SetNormalizedName(v string) *PartnerUpdate {
+	_u.mutation.SetNormalizedName(v)
 	return _u
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableType(v *partner.Type) *PartnerUpdate {
+// SetNillableNormalizedName sets the "normalized_name" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableNormalizedName(v *string) *PartnerUpdate {
 	if v != nil {
-		_u.SetType(*v)
+		_u.SetNormalizedName(*v)
 	}
 	return _u
 }
 
-// SetContactName sets the "contact_name" field.
-func (_u *PartnerUpdate) SetContactName(v string) *PartnerUpdate {
-	_u.mutation.SetContactName(v)
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (_u *PartnerUpdate) SetUnifiedSocialCreditCode(v string) *PartnerUpdate {
+	_u.mutation.SetUnifiedSocialCreditCode(v)
 	return _u
 }
 
-// SetNillableContactName sets the "contact_name" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableContactName(v *string) *PartnerUpdate {
+// SetNillableUnifiedSocialCreditCode sets the "unified_social_credit_code" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableUnifiedSocialCreditCode(v *string) *PartnerUpdate {
 	if v != nil {
-		_u.SetContactName(*v)
+		_u.SetUnifiedSocialCreditCode(*v)
 	}
 	return _u
 }
 
-// ClearContactName clears the value of the "contact_name" field.
-func (_u *PartnerUpdate) ClearContactName() *PartnerUpdate {
-	_u.mutation.ClearContactName()
+// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
+func (_u *PartnerUpdate) ClearUnifiedSocialCreditCode() *PartnerUpdate {
+	_u.mutation.ClearUnifiedSocialCreditCode()
 	return _u
 }
 
-// SetPhone sets the "phone" field.
-func (_u *PartnerUpdate) SetPhone(v string) *PartnerUpdate {
-	_u.mutation.SetPhone(v)
+// SetRegisteredAddress sets the "registered_address" field.
+func (_u *PartnerUpdate) SetRegisteredAddress(v string) *PartnerUpdate {
+	_u.mutation.SetRegisteredAddress(v)
 	return _u
 }
 
-// SetNillablePhone sets the "phone" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillablePhone(v *string) *PartnerUpdate {
+// SetNillableRegisteredAddress sets the "registered_address" field if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableRegisteredAddress(v *string) *PartnerUpdate {
 	if v != nil {
-		_u.SetPhone(*v)
+		_u.SetRegisteredAddress(*v)
 	}
 	return _u
 }
 
-// ClearPhone clears the value of the "phone" field.
-func (_u *PartnerUpdate) ClearPhone() *PartnerUpdate {
-	_u.mutation.ClearPhone()
-	return _u
-}
-
-// SetEmail sets the "email" field.
-func (_u *PartnerUpdate) SetEmail(v string) *PartnerUpdate {
-	_u.mutation.SetEmail(v)
-	return _u
-}
-
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableEmail(v *string) *PartnerUpdate {
-	if v != nil {
-		_u.SetEmail(*v)
-	}
-	return _u
-}
-
-// ClearEmail clears the value of the "email" field.
-func (_u *PartnerUpdate) ClearEmail() *PartnerUpdate {
-	_u.mutation.ClearEmail()
-	return _u
-}
-
-// SetAddress sets the "address" field.
-func (_u *PartnerUpdate) SetAddress(v string) *PartnerUpdate {
-	_u.mutation.SetAddress(v)
-	return _u
-}
-
-// SetNillableAddress sets the "address" field if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableAddress(v *string) *PartnerUpdate {
-	if v != nil {
-		_u.SetAddress(*v)
-	}
-	return _u
-}
-
-// ClearAddress clears the value of the "address" field.
-func (_u *PartnerUpdate) ClearAddress() *PartnerUpdate {
-	_u.mutation.ClearAddress()
+// ClearRegisteredAddress clears the value of the "registered_address" field.
+func (_u *PartnerUpdate) ClearRegisteredAddress() *PartnerUpdate {
+	_u.mutation.ClearRegisteredAddress()
 	return _u
 }
 
@@ -177,6 +140,51 @@ func (_u *PartnerUpdate) SetOrganization(v *Organization) *PartnerUpdate {
 	return _u.SetOrganizationID(v.ID)
 }
 
+// AddRoleIDs adds the "roles" edge to the PartnerRole entity by IDs.
+func (_u *PartnerUpdate) AddRoleIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddRoleIDs(ids...)
+	return _u
+}
+
+// AddRoles adds the "roles" edges to the PartnerRole entity.
+func (_u *PartnerUpdate) AddRoles(v ...*PartnerRole) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleIDs(ids...)
+}
+
+// AddContactIDs adds the "contacts" edge to the PartnerContact entity by IDs.
+func (_u *PartnerUpdate) AddContactIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddContactIDs(ids...)
+	return _u
+}
+
+// AddContacts adds the "contacts" edges to the PartnerContact entity.
+func (_u *PartnerUpdate) AddContacts(v ...*PartnerContact) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContactIDs(ids...)
+}
+
+// AddAliasIDs adds the "aliases" edge to the PartnerAlias entity by IDs.
+func (_u *PartnerUpdate) AddAliasIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddAliasIDs(ids...)
+	return _u
+}
+
+// AddAliases adds the "aliases" edges to the PartnerAlias entity.
+func (_u *PartnerUpdate) AddAliases(v ...*PartnerAlias) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAliasIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -186,6 +194,69 @@ func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 func (_u *PartnerUpdate) ClearOrganization() *PartnerUpdate {
 	_u.mutation.ClearOrganization()
 	return _u
+}
+
+// ClearRoles clears all "roles" edges to the PartnerRole entity.
+func (_u *PartnerUpdate) ClearRoles() *PartnerUpdate {
+	_u.mutation.ClearRoles()
+	return _u
+}
+
+// RemoveRoleIDs removes the "roles" edge to PartnerRole entities by IDs.
+func (_u *PartnerUpdate) RemoveRoleIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveRoleIDs(ids...)
+	return _u
+}
+
+// RemoveRoles removes "roles" edges to PartnerRole entities.
+func (_u *PartnerUpdate) RemoveRoles(v ...*PartnerRole) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleIDs(ids...)
+}
+
+// ClearContacts clears all "contacts" edges to the PartnerContact entity.
+func (_u *PartnerUpdate) ClearContacts() *PartnerUpdate {
+	_u.mutation.ClearContacts()
+	return _u
+}
+
+// RemoveContactIDs removes the "contacts" edge to PartnerContact entities by IDs.
+func (_u *PartnerUpdate) RemoveContactIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveContactIDs(ids...)
+	return _u
+}
+
+// RemoveContacts removes "contacts" edges to PartnerContact entities.
+func (_u *PartnerUpdate) RemoveContacts(v ...*PartnerContact) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContactIDs(ids...)
+}
+
+// ClearAliases clears all "aliases" edges to the PartnerAlias entity.
+func (_u *PartnerUpdate) ClearAliases() *PartnerUpdate {
+	_u.mutation.ClearAliases()
+	return _u
+}
+
+// RemoveAliasIDs removes the "aliases" edge to PartnerAlias entities by IDs.
+func (_u *PartnerUpdate) RemoveAliasIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveAliasIDs(ids...)
+	return _u
+}
+
+// RemoveAliases removes "aliases" edges to PartnerAlias entities.
+func (_u *PartnerUpdate) RemoveAliases(v ...*PartnerAlias) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAliasIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -226,34 +297,24 @@ func (_u *PartnerUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerUpdate) check() error {
-	if v, ok := _u.mutation.Name(); ok {
-		if err := partner.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Partner.name": %w`, err)}
+	if v, ok := _u.mutation.LegalName(); ok {
+		if err := partner.LegalNameValidator(v); err != nil {
+			return &ValidationError{Name: "legal_name", err: fmt.Errorf(`ent: validator failed for field "Partner.legal_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.GetType(); ok {
-		if err := partner.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Partner.type": %w`, err)}
+	if v, ok := _u.mutation.NormalizedName(); ok {
+		if err := partner.NormalizedNameValidator(v); err != nil {
+			return &ValidationError{Name: "normalized_name", err: fmt.Errorf(`ent: validator failed for field "Partner.normalized_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ContactName(); ok {
-		if err := partner.ContactNameValidator(v); err != nil {
-			return &ValidationError{Name: "contact_name", err: fmt.Errorf(`ent: validator failed for field "Partner.contact_name": %w`, err)}
+	if v, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
+		if err := partner.UnifiedSocialCreditCodeValidator(v); err != nil {
+			return &ValidationError{Name: "unified_social_credit_code", err: fmt.Errorf(`ent: validator failed for field "Partner.unified_social_credit_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Phone(); ok {
-		if err := partner.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Partner.phone": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Email(); ok {
-		if err := partner.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Partner.email": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Address(); ok {
-		if err := partner.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Partner.address": %w`, err)}
+	if v, ok := _u.mutation.RegisteredAddress(); ok {
+		if err := partner.RegisteredAddressValidator(v); err != nil {
+			return &ValidationError{Name: "registered_address", err: fmt.Errorf(`ent: validator failed for field "Partner.registered_address": %w`, err)}
 		}
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
@@ -277,35 +338,23 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(partner.FieldName, field.TypeString, value)
+	if value, ok := _u.mutation.LegalName(); ok {
+		_spec.SetField(partner.FieldLegalName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(partner.FieldType, field.TypeEnum, value)
+	if value, ok := _u.mutation.NormalizedName(); ok {
+		_spec.SetField(partner.FieldNormalizedName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.ContactName(); ok {
-		_spec.SetField(partner.FieldContactName, field.TypeString, value)
+	if value, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
+		_spec.SetField(partner.FieldUnifiedSocialCreditCode, field.TypeString, value)
 	}
-	if _u.mutation.ContactNameCleared() {
-		_spec.ClearField(partner.FieldContactName, field.TypeString)
+	if _u.mutation.UnifiedSocialCreditCodeCleared() {
+		_spec.ClearField(partner.FieldUnifiedSocialCreditCode, field.TypeString)
 	}
-	if value, ok := _u.mutation.Phone(); ok {
-		_spec.SetField(partner.FieldPhone, field.TypeString, value)
+	if value, ok := _u.mutation.RegisteredAddress(); ok {
+		_spec.SetField(partner.FieldRegisteredAddress, field.TypeString, value)
 	}
-	if _u.mutation.PhoneCleared() {
-		_spec.ClearField(partner.FieldPhone, field.TypeString)
-	}
-	if value, ok := _u.mutation.Email(); ok {
-		_spec.SetField(partner.FieldEmail, field.TypeString, value)
-	}
-	if _u.mutation.EmailCleared() {
-		_spec.ClearField(partner.FieldEmail, field.TypeString)
-	}
-	if value, ok := _u.mutation.Address(); ok {
-		_spec.SetField(partner.FieldAddress, field.TypeString, value)
-	}
-	if _u.mutation.AddressCleared() {
-		_spec.ClearField(partner.FieldAddress, field.TypeString)
+	if _u.mutation.RegisteredAddressCleared() {
+		_spec.ClearField(partner.FieldRegisteredAddress, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
@@ -332,6 +381,141 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ContactsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContactsIDs(); len(nodes) > 0 && !_u.mutation.ContactsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContactsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AliasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAliasesIDs(); len(nodes) > 0 && !_u.mutation.AliasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AliasesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -379,111 +563,71 @@ func (_u *PartnerUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *PartnerUpda
 	return _u
 }
 
-// SetName sets the "name" field.
-func (_u *PartnerUpdateOne) SetName(v string) *PartnerUpdateOne {
-	_u.mutation.SetName(v)
+// SetLegalName sets the "legal_name" field.
+func (_u *PartnerUpdateOne) SetLegalName(v string) *PartnerUpdateOne {
+	_u.mutation.SetLegalName(v)
 	return _u
 }
 
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableName(v *string) *PartnerUpdateOne {
+// SetNillableLegalName sets the "legal_name" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableLegalName(v *string) *PartnerUpdateOne {
 	if v != nil {
-		_u.SetName(*v)
+		_u.SetLegalName(*v)
 	}
 	return _u
 }
 
-// SetType sets the "type" field.
-func (_u *PartnerUpdateOne) SetType(v partner.Type) *PartnerUpdateOne {
-	_u.mutation.SetType(v)
+// SetNormalizedName sets the "normalized_name" field.
+func (_u *PartnerUpdateOne) SetNormalizedName(v string) *PartnerUpdateOne {
+	_u.mutation.SetNormalizedName(v)
 	return _u
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableType(v *partner.Type) *PartnerUpdateOne {
+// SetNillableNormalizedName sets the "normalized_name" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableNormalizedName(v *string) *PartnerUpdateOne {
 	if v != nil {
-		_u.SetType(*v)
+		_u.SetNormalizedName(*v)
 	}
 	return _u
 }
 
-// SetContactName sets the "contact_name" field.
-func (_u *PartnerUpdateOne) SetContactName(v string) *PartnerUpdateOne {
-	_u.mutation.SetContactName(v)
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (_u *PartnerUpdateOne) SetUnifiedSocialCreditCode(v string) *PartnerUpdateOne {
+	_u.mutation.SetUnifiedSocialCreditCode(v)
 	return _u
 }
 
-// SetNillableContactName sets the "contact_name" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableContactName(v *string) *PartnerUpdateOne {
+// SetNillableUnifiedSocialCreditCode sets the "unified_social_credit_code" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableUnifiedSocialCreditCode(v *string) *PartnerUpdateOne {
 	if v != nil {
-		_u.SetContactName(*v)
+		_u.SetUnifiedSocialCreditCode(*v)
 	}
 	return _u
 }
 
-// ClearContactName clears the value of the "contact_name" field.
-func (_u *PartnerUpdateOne) ClearContactName() *PartnerUpdateOne {
-	_u.mutation.ClearContactName()
+// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
+func (_u *PartnerUpdateOne) ClearUnifiedSocialCreditCode() *PartnerUpdateOne {
+	_u.mutation.ClearUnifiedSocialCreditCode()
 	return _u
 }
 
-// SetPhone sets the "phone" field.
-func (_u *PartnerUpdateOne) SetPhone(v string) *PartnerUpdateOne {
-	_u.mutation.SetPhone(v)
+// SetRegisteredAddress sets the "registered_address" field.
+func (_u *PartnerUpdateOne) SetRegisteredAddress(v string) *PartnerUpdateOne {
+	_u.mutation.SetRegisteredAddress(v)
 	return _u
 }
 
-// SetNillablePhone sets the "phone" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillablePhone(v *string) *PartnerUpdateOne {
+// SetNillableRegisteredAddress sets the "registered_address" field if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableRegisteredAddress(v *string) *PartnerUpdateOne {
 	if v != nil {
-		_u.SetPhone(*v)
+		_u.SetRegisteredAddress(*v)
 	}
 	return _u
 }
 
-// ClearPhone clears the value of the "phone" field.
-func (_u *PartnerUpdateOne) ClearPhone() *PartnerUpdateOne {
-	_u.mutation.ClearPhone()
-	return _u
-}
-
-// SetEmail sets the "email" field.
-func (_u *PartnerUpdateOne) SetEmail(v string) *PartnerUpdateOne {
-	_u.mutation.SetEmail(v)
-	return _u
-}
-
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableEmail(v *string) *PartnerUpdateOne {
-	if v != nil {
-		_u.SetEmail(*v)
-	}
-	return _u
-}
-
-// ClearEmail clears the value of the "email" field.
-func (_u *PartnerUpdateOne) ClearEmail() *PartnerUpdateOne {
-	_u.mutation.ClearEmail()
-	return _u
-}
-
-// SetAddress sets the "address" field.
-func (_u *PartnerUpdateOne) SetAddress(v string) *PartnerUpdateOne {
-	_u.mutation.SetAddress(v)
-	return _u
-}
-
-// SetNillableAddress sets the "address" field if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableAddress(v *string) *PartnerUpdateOne {
-	if v != nil {
-		_u.SetAddress(*v)
-	}
-	return _u
-}
-
-// ClearAddress clears the value of the "address" field.
-func (_u *PartnerUpdateOne) ClearAddress() *PartnerUpdateOne {
-	_u.mutation.ClearAddress()
+// ClearRegisteredAddress clears the value of the "registered_address" field.
+func (_u *PartnerUpdateOne) ClearRegisteredAddress() *PartnerUpdateOne {
+	_u.mutation.ClearRegisteredAddress()
 	return _u
 }
 
@@ -506,6 +650,51 @@ func (_u *PartnerUpdateOne) SetOrganization(v *Organization) *PartnerUpdateOne {
 	return _u.SetOrganizationID(v.ID)
 }
 
+// AddRoleIDs adds the "roles" edge to the PartnerRole entity by IDs.
+func (_u *PartnerUpdateOne) AddRoleIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddRoleIDs(ids...)
+	return _u
+}
+
+// AddRoles adds the "roles" edges to the PartnerRole entity.
+func (_u *PartnerUpdateOne) AddRoles(v ...*PartnerRole) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleIDs(ids...)
+}
+
+// AddContactIDs adds the "contacts" edge to the PartnerContact entity by IDs.
+func (_u *PartnerUpdateOne) AddContactIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddContactIDs(ids...)
+	return _u
+}
+
+// AddContacts adds the "contacts" edges to the PartnerContact entity.
+func (_u *PartnerUpdateOne) AddContacts(v ...*PartnerContact) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContactIDs(ids...)
+}
+
+// AddAliasIDs adds the "aliases" edge to the PartnerAlias entity by IDs.
+func (_u *PartnerUpdateOne) AddAliasIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddAliasIDs(ids...)
+	return _u
+}
+
+// AddAliases adds the "aliases" edges to the PartnerAlias entity.
+func (_u *PartnerUpdateOne) AddAliases(v ...*PartnerAlias) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAliasIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -515,6 +704,69 @@ func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 func (_u *PartnerUpdateOne) ClearOrganization() *PartnerUpdateOne {
 	_u.mutation.ClearOrganization()
 	return _u
+}
+
+// ClearRoles clears all "roles" edges to the PartnerRole entity.
+func (_u *PartnerUpdateOne) ClearRoles() *PartnerUpdateOne {
+	_u.mutation.ClearRoles()
+	return _u
+}
+
+// RemoveRoleIDs removes the "roles" edge to PartnerRole entities by IDs.
+func (_u *PartnerUpdateOne) RemoveRoleIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveRoleIDs(ids...)
+	return _u
+}
+
+// RemoveRoles removes "roles" edges to PartnerRole entities.
+func (_u *PartnerUpdateOne) RemoveRoles(v ...*PartnerRole) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleIDs(ids...)
+}
+
+// ClearContacts clears all "contacts" edges to the PartnerContact entity.
+func (_u *PartnerUpdateOne) ClearContacts() *PartnerUpdateOne {
+	_u.mutation.ClearContacts()
+	return _u
+}
+
+// RemoveContactIDs removes the "contacts" edge to PartnerContact entities by IDs.
+func (_u *PartnerUpdateOne) RemoveContactIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveContactIDs(ids...)
+	return _u
+}
+
+// RemoveContacts removes "contacts" edges to PartnerContact entities.
+func (_u *PartnerUpdateOne) RemoveContacts(v ...*PartnerContact) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContactIDs(ids...)
+}
+
+// ClearAliases clears all "aliases" edges to the PartnerAlias entity.
+func (_u *PartnerUpdateOne) ClearAliases() *PartnerUpdateOne {
+	_u.mutation.ClearAliases()
+	return _u
+}
+
+// RemoveAliasIDs removes the "aliases" edge to PartnerAlias entities by IDs.
+func (_u *PartnerUpdateOne) RemoveAliasIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveAliasIDs(ids...)
+	return _u
+}
+
+// RemoveAliases removes "aliases" edges to PartnerAlias entities.
+func (_u *PartnerUpdateOne) RemoveAliases(v ...*PartnerAlias) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAliasIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -568,34 +820,24 @@ func (_u *PartnerUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *PartnerUpdateOne) check() error {
-	if v, ok := _u.mutation.Name(); ok {
-		if err := partner.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Partner.name": %w`, err)}
+	if v, ok := _u.mutation.LegalName(); ok {
+		if err := partner.LegalNameValidator(v); err != nil {
+			return &ValidationError{Name: "legal_name", err: fmt.Errorf(`ent: validator failed for field "Partner.legal_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.GetType(); ok {
-		if err := partner.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Partner.type": %w`, err)}
+	if v, ok := _u.mutation.NormalizedName(); ok {
+		if err := partner.NormalizedNameValidator(v); err != nil {
+			return &ValidationError{Name: "normalized_name", err: fmt.Errorf(`ent: validator failed for field "Partner.normalized_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ContactName(); ok {
-		if err := partner.ContactNameValidator(v); err != nil {
-			return &ValidationError{Name: "contact_name", err: fmt.Errorf(`ent: validator failed for field "Partner.contact_name": %w`, err)}
+	if v, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
+		if err := partner.UnifiedSocialCreditCodeValidator(v); err != nil {
+			return &ValidationError{Name: "unified_social_credit_code", err: fmt.Errorf(`ent: validator failed for field "Partner.unified_social_credit_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Phone(); ok {
-		if err := partner.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Partner.phone": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Email(); ok {
-		if err := partner.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Partner.email": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Address(); ok {
-		if err := partner.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Partner.address": %w`, err)}
+	if v, ok := _u.mutation.RegisteredAddress(); ok {
+		if err := partner.RegisteredAddressValidator(v); err != nil {
+			return &ValidationError{Name: "registered_address", err: fmt.Errorf(`ent: validator failed for field "Partner.registered_address": %w`, err)}
 		}
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
@@ -636,35 +878,23 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partner.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(partner.FieldName, field.TypeString, value)
+	if value, ok := _u.mutation.LegalName(); ok {
+		_spec.SetField(partner.FieldLegalName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(partner.FieldType, field.TypeEnum, value)
+	if value, ok := _u.mutation.NormalizedName(); ok {
+		_spec.SetField(partner.FieldNormalizedName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.ContactName(); ok {
-		_spec.SetField(partner.FieldContactName, field.TypeString, value)
+	if value, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
+		_spec.SetField(partner.FieldUnifiedSocialCreditCode, field.TypeString, value)
 	}
-	if _u.mutation.ContactNameCleared() {
-		_spec.ClearField(partner.FieldContactName, field.TypeString)
+	if _u.mutation.UnifiedSocialCreditCodeCleared() {
+		_spec.ClearField(partner.FieldUnifiedSocialCreditCode, field.TypeString)
 	}
-	if value, ok := _u.mutation.Phone(); ok {
-		_spec.SetField(partner.FieldPhone, field.TypeString, value)
+	if value, ok := _u.mutation.RegisteredAddress(); ok {
+		_spec.SetField(partner.FieldRegisteredAddress, field.TypeString, value)
 	}
-	if _u.mutation.PhoneCleared() {
-		_spec.ClearField(partner.FieldPhone, field.TypeString)
-	}
-	if value, ok := _u.mutation.Email(); ok {
-		_spec.SetField(partner.FieldEmail, field.TypeString, value)
-	}
-	if _u.mutation.EmailCleared() {
-		_spec.ClearField(partner.FieldEmail, field.TypeString)
-	}
-	if value, ok := _u.mutation.Address(); ok {
-		_spec.SetField(partner.FieldAddress, field.TypeString, value)
-	}
-	if _u.mutation.AddressCleared() {
-		_spec.ClearField(partner.FieldAddress, field.TypeString)
+	if _u.mutation.RegisteredAddressCleared() {
+		_spec.ClearField(partner.FieldRegisteredAddress, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
@@ -691,6 +921,141 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ContactsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContactsIDs(); len(nodes) > 0 && !_u.mutation.ContactsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContactsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AliasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAliasesIDs(); len(nodes) > 0 && !_u.mutation.AliasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AliasesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

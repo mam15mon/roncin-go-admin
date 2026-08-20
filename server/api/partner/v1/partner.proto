@@ -8,6 +8,10 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/partner/v1;v1";
 
 service PartnerService {
+  rpc GetPartner(GetPartnerRequest) returns (PartnerReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{id}"};
+  }
+
   rpc ListPartners(ListPartnersRequest) returns (PartnerListReply) {
     option (google.api.http) = {get: "/api/v1/partners"};
   }
@@ -25,57 +29,121 @@ service PartnerService {
       body: "*"
     };
   }
+
+  rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (PartnerReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/{id}/supplier-blacklist"
+      body: "*"
+    };
+  }
 }
 
-enum PartnerType {
-  PARTNER_TYPE_UNSPECIFIED = 0;
-  PARTNER_TYPE_CUSTOMER = 1;
-  PARTNER_TYPE_SUPPLIER = 2;
-  PARTNER_TYPE_BOTH = 3;
+enum PartnerRoleType {
+  PARTNER_ROLE_TYPE_UNSPECIFIED = 0;
+  PARTNER_ROLE_TYPE_CUSTOMER = 1;
+  PARTNER_ROLE_TYPE_SUPPLIER = 2;
+  PARTNER_ROLE_TYPE_AGENT = 3;
+  PARTNER_ROLE_TYPE_CARRIER = 4;
+}
+
+message PartnerRole {
+  PartnerRoleType type = 1;
+  bool enabled = 2;
+  bool blacklisted = 3;
+  string blacklist_reason = 4;
+  string blacklisted_at = 5;
+  string blacklisted_by = 6;
+}
+
+message PartnerContact {
+  string id = 1;
+  string name = 2;
+  string phone = 3;
+  string email = 4;
+  string note = 5;
+  bool is_primary = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message PartnerAlias {
+  string id = 1;
+  string alias_name = 2;
+  int32 sort_order = 3;
+  string created_at = 4;
+  string updated_at = 5;
 }
 
 message Partner {
   string id = 1;
   string organization_id = 2;
   string code = 3;
-  string name = 4;
-  PartnerType type = 5;
-  string contact_name = 6;
-  string phone = 7;
-  string email = 8;
-  string address = 9;
-  bool enabled = 10;
+  string legal_name = 4;
+  string unified_social_credit_code = 5;
+  string registered_address = 6;
+  bool enabled = 7;
+  repeated PartnerRole roles = 8;
+  repeated PartnerContact contacts = 9;
+  repeated PartnerAlias aliases = 10;
   string created_at = 11;
   string updated_at = 12;
+}
+
+message PartnerRoleInput {
+  PartnerRoleType type = 1;
+  bool enabled = 2;
+}
+
+message PartnerContactInput {
+  string name = 1;
+  string phone = 2;
+  string email = 3;
+  string note = 4;
+  bool is_primary = 5;
+}
+
+message PartnerAliasInput {
+  string alias_name = 1;
+  int32 sort_order = 2;
+}
+
+message GetPartnerRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ListPartnersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string keyword = 3;
-  PartnerType type = 4;
+  PartnerRoleType role = 4;
   optional bool enabled = 5;
 }
 
 message CreatePartnerRequest {
   string code = 1 [(google.api.field_behavior) = REQUIRED];
-  string name = 2 [(google.api.field_behavior) = REQUIRED];
-  PartnerType type = 3 [(google.api.field_behavior) = REQUIRED];
-  string contact_name = 4;
-  string phone = 5;
-  string email = 6;
-  string address = 7;
+  string legal_name = 2 [(google.api.field_behavior) = REQUIRED];
+  string unified_social_credit_code = 3;
+  string registered_address = 4;
+  repeated PartnerRoleInput roles = 5;
+  repeated PartnerContactInput contacts = 6;
+  repeated PartnerAliasInput aliases = 7;
 }
 
 message UpdatePartnerRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string name = 2 [(google.api.field_behavior) = REQUIRED];
-  PartnerType type = 3 [(google.api.field_behavior) = REQUIRED];
-  string contact_name = 4;
-  string phone = 5;
-  string email = 6;
-  string address = 7;
-  bool enabled = 8;
+  string legal_name = 2 [(google.api.field_behavior) = REQUIRED];
+  string unified_social_credit_code = 3;
+  string registered_address = 4;
+  bool enabled = 5;
+  repeated PartnerRoleInput roles = 6;
+  repeated PartnerContactInput contacts = 7;
+  repeated PartnerAliasInput aliases = 8;
+}
+
+message SetSupplierBlacklistRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  bool blacklisted = 2;
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message PartnerReply {

@@ -3,7 +3,6 @@
 package partner
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,22 +23,24 @@ const (
 	FieldOrganizationID = "organization_id"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
-	// FieldContactName holds the string denoting the contact_name field in the database.
-	FieldContactName = "contact_name"
-	// FieldPhone holds the string denoting the phone field in the database.
-	FieldPhone = "phone"
-	// FieldEmail holds the string denoting the email field in the database.
-	FieldEmail = "email"
-	// FieldAddress holds the string denoting the address field in the database.
-	FieldAddress = "address"
+	// FieldLegalName holds the string denoting the legal_name field in the database.
+	FieldLegalName = "legal_name"
+	// FieldNormalizedName holds the string denoting the normalized_name field in the database.
+	FieldNormalizedName = "normalized_name"
+	// FieldUnifiedSocialCreditCode holds the string denoting the unified_social_credit_code field in the database.
+	FieldUnifiedSocialCreditCode = "unified_social_credit_code"
+	// FieldRegisteredAddress holds the string denoting the registered_address field in the database.
+	FieldRegisteredAddress = "registered_address"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
+	// EdgeContacts holds the string denoting the contacts edge name in mutations.
+	EdgeContacts = "contacts"
+	// EdgeAliases holds the string denoting the aliases edge name in mutations.
+	EdgeAliases = "aliases"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -49,6 +50,27 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// RolesTable is the table that holds the roles relation/edge.
+	RolesTable = "partner_roles"
+	// RolesInverseTable is the table name for the PartnerRole entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerrole" package.
+	RolesInverseTable = "partner_roles"
+	// RolesColumn is the table column denoting the roles relation/edge.
+	RolesColumn = "partner_id"
+	// ContactsTable is the table that holds the contacts relation/edge.
+	ContactsTable = "partner_contacts"
+	// ContactsInverseTable is the table name for the PartnerContact entity.
+	// It exists in this package in order to avoid circular dependency with the "partnercontact" package.
+	ContactsInverseTable = "partner_contacts"
+	// ContactsColumn is the table column denoting the contacts relation/edge.
+	ContactsColumn = "partner_id"
+	// AliasesTable is the table that holds the aliases relation/edge.
+	AliasesTable = "partner_alias"
+	// AliasesInverseTable is the table name for the PartnerAlias entity.
+	// It exists in this package in order to avoid circular dependency with the "partneralias" package.
+	AliasesInverseTable = "partner_alias"
+	// AliasesColumn is the table column denoting the aliases relation/edge.
+	AliasesColumn = "partner_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -58,12 +80,10 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrganizationID,
 	FieldCode,
-	FieldName,
-	FieldType,
-	FieldContactName,
-	FieldPhone,
-	FieldEmail,
-	FieldAddress,
+	FieldLegalName,
+	FieldNormalizedName,
+	FieldUnifiedSocialCreditCode,
+	FieldRegisteredAddress,
 	FieldEnabled,
 }
 
@@ -86,45 +106,19 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
-	// ContactNameValidator is a validator for the "contact_name" field. It is called by the builders before save.
-	ContactNameValidator func(string) error
-	// PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
-	PhoneValidator func(string) error
-	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	EmailValidator func(string) error
-	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	AddressValidator func(string) error
+	// LegalNameValidator is a validator for the "legal_name" field. It is called by the builders before save.
+	LegalNameValidator func(string) error
+	// NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
+	NormalizedNameValidator func(string) error
+	// UnifiedSocialCreditCodeValidator is a validator for the "unified_social_credit_code" field. It is called by the builders before save.
+	UnifiedSocialCreditCodeValidator func(string) error
+	// RegisteredAddressValidator is a validator for the "registered_address" field. It is called by the builders before save.
+	RegisteredAddressValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// Type defines the type for the "type" enum field.
-type Type string
-
-// Type values.
-const (
-	TypeCustomer Type = "customer"
-	TypeSupplier Type = "supplier"
-	TypeBoth     Type = "both"
-)
-
-func (_type Type) String() string {
-	return string(_type)
-}
-
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeCustomer, TypeSupplier, TypeBoth:
-		return nil
-	default:
-		return fmt.Errorf("partner: invalid enum value for type field: %q", _type)
-	}
-}
 
 // OrderOption defines the ordering options for the Partner queries.
 type OrderOption func(*sql.Selector)
@@ -154,34 +148,24 @@ func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
+// ByLegalName orders the results by the legal_name field.
+func ByLegalName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLegalName, opts...).ToFunc()
 }
 
-// ByType orders the results by the type field.
-func ByType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldType, opts...).ToFunc()
+// ByNormalizedName orders the results by the normalized_name field.
+func ByNormalizedName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNormalizedName, opts...).ToFunc()
 }
 
-// ByContactName orders the results by the contact_name field.
-func ByContactName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldContactName, opts...).ToFunc()
+// ByUnifiedSocialCreditCode orders the results by the unified_social_credit_code field.
+func ByUnifiedSocialCreditCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnifiedSocialCreditCode, opts...).ToFunc()
 }
 
-// ByPhone orders the results by the phone field.
-func ByPhone(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPhone, opts...).ToFunc()
-}
-
-// ByEmail orders the results by the email field.
-func ByEmail(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEmail, opts...).ToFunc()
-}
-
-// ByAddress orders the results by the address field.
-func ByAddress(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAddress, opts...).ToFunc()
+// ByRegisteredAddress orders the results by the registered_address field.
+func ByRegisteredAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegisteredAddress, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.
@@ -195,10 +179,73 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByRolesCount orders the results by roles count.
+func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRolesStep(), opts...)
+	}
+}
+
+// ByRoles orders the results by roles terms.
+func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByContactsCount orders the results by contacts count.
+func ByContactsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContactsStep(), opts...)
+	}
+}
+
+// ByContacts orders the results by contacts terms.
+func ByContacts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContactsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAliasesCount orders the results by aliases count.
+func ByAliasesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAliasesStep(), opts...)
+	}
+}
+
+// ByAliases orders the results by aliases terms.
+func ByAliases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAliasesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newRolesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+	)
+}
+func newContactsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContactsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContactsTable, ContactsColumn),
+	)
+}
+func newAliasesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AliasesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AliasesTable, AliasesColumn),
 	)
 }

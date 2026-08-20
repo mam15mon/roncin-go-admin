@@ -383,12 +383,10 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 64},
-		{Name: "name", Type: field.TypeString, Size: 200},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"customer", "supplier", "both"}},
-		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
-		{Name: "phone", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
-		{Name: "address", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "legal_name", Type: field.TypeString, Size: 200},
+		{Name: "normalized_name", Type: field.TypeString, Size: 200},
+		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "registered_address", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
@@ -400,7 +398,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partners_organizations_partners",
-				Columns:    []*schema.Column{PartnersColumns[11]},
+				Columns:    []*schema.Column{PartnersColumns[9]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -412,19 +410,160 @@ var (
 				Columns: []*schema.Column{PartnersColumns[2]},
 			},
 			{
-				Name:    "partner_organization_id_code",
+				Name:    "partner_org_code_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[3]},
+				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[3]},
+			},
+			{
+				Name:    "partner_org_name_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[5]},
+			},
+			{
+				Name:    "partner_org_uscc_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[6]},
 			},
 			{
 				Name:    "partner_organization_id_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[10]},
+				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[8]},
+			},
+		},
+	}
+	// PartnerAliasColumns holds the columns for the "partner_alias" table.
+	PartnerAliasColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "alias_name", Type: field.TypeString, Size: 200},
+		{Name: "normalized_alias_name", Type: field.TypeString, Size: 200},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// PartnerAliasTable holds the schema information for the "partner_alias" table.
+	PartnerAliasTable = &schema.Table{
+		Name:       "partner_alias",
+		Columns:    PartnerAliasColumns,
+		PrimaryKey: []*schema.Column{PartnerAliasColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_alias_partners_aliases",
+				Columns:    []*schema.Column{PartnerAliasColumns[6]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partneralias_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAliasColumns[2]},
 			},
 			{
-				Name:    "partner_organization_id_type",
+				Name:    "partner_alias_name_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerAliasColumns[6], PartnerAliasColumns[4]},
+			},
+			{
+				Name:    "partneralias_partner_id_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{PartnersColumns[11], PartnersColumns[5]},
+				Columns: []*schema.Column{PartnerAliasColumns[6], PartnerAliasColumns[5]},
+			},
+		},
+	}
+	// PartnerContactsColumns holds the columns for the "partner_contacts" table.
+	PartnerContactsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "phone", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// PartnerContactsTable holds the schema information for the "partner_contacts" table.
+	PartnerContactsTable = &schema.Table{
+		Name:       "partner_contacts",
+		Columns:    PartnerContactsColumns,
+		PrimaryKey: []*schema.Column{PartnerContactsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_contacts_partners_contacts",
+				Columns:    []*schema.Column{PartnerContactsColumns[8]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnercontact_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContactsColumns[2]},
+			},
+			{
+				Name:    "partnercontact_partner_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContactsColumns[8]},
+			},
+			{
+				Name:    "partner_primary_contact_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerContactsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary",
+				},
+			},
+		},
+	}
+	// PartnerRolesColumns holds the columns for the "partner_roles" table.
+	PartnerRolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "role_type", Type: field.TypeEnum, Enums: []string{"customer", "supplier", "agent", "carrier"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "blacklisted", Type: field.TypeBool, Default: false},
+		{Name: "blacklist_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "blacklisted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "blacklisted_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// PartnerRolesTable holds the schema information for the "partner_roles" table.
+	PartnerRolesTable = &schema.Table{
+		Name:       "partner_roles",
+		Columns:    PartnerRolesColumns,
+		PrimaryKey: []*schema.Column{PartnerRolesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_roles_partners_roles",
+				Columns:    []*schema.Column{PartnerRolesColumns[9]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnerrole_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerRolesColumns[2]},
+			},
+			{
+				Name:    "partner_role_type_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerRolesColumns[9], PartnerRolesColumns[3]},
+			},
+			{
+				Name:    "partnerrole_role_type_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerRolesColumns[3], PartnerRolesColumns[4]},
+			},
+			{
+				Name:    "partnerrole_partner_id_blacklisted",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerRolesColumns[9], PartnerRolesColumns[5]},
 			},
 		},
 	}
@@ -761,6 +900,9 @@ var (
 		NumberSequencesTable,
 		OrganizationsTable,
 		PartnersTable,
+		PartnerAliasTable,
+		PartnerContactsTable,
+		PartnerRolesTable,
 		PermissionsTable,
 		RolesTable,
 		RoleAssignmentsTable,
@@ -782,6 +924,9 @@ func init() {
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
+	PartnerAliasTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable

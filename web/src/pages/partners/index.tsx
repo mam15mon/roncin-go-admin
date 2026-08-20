@@ -2,6 +2,7 @@ import {
   EditOutlined,
   PlusOutlined,
   ReloadOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import type {
   ActionType,
@@ -10,7 +11,8 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ModalForm,
-  PageContainer,
+  ProFormDigit,
+  ProFormList,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
@@ -23,39 +25,57 @@ import React, { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartner,
   partnerServiceListPartners,
+  partnerServiceSetSupplierBlacklist,
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 
-const partnerTypeOptions = [
+const roleOptions = [
   { label: '客户', value: 1 },
   { label: '供应商', value: 2 },
-  { label: '客户与供应商', value: 3 },
+  { label: '代理', value: 3 },
+  { label: '承运人', value: 4 },
 ];
 
-const partnerTypeLabels: Record<number, string> = {
-  1: '客户',
-  2: '供应商',
-  3: '客户与供应商',
-};
+const roleLabels: Record<number, string> = Object.fromEntries(
+  roleOptions.map((option) => [option.value, option.label]),
+);
 
 type PartnerFormValues = {
   code?: string;
-  name?: string;
-  type?: number;
-  contactName?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
+  legalName?: string;
+  unifiedSocialCreditCode?: string;
+  registeredAddress?: string;
   enabled?: boolean;
+  roles?: API.PartnerRoleInput[];
+  contacts?: API.PartnerContactInput[];
+  aliases?: API.PartnerAliasInput[];
 };
+
+type BlacklistFormValues = {
+  blacklisted?: boolean;
+  reason?: string;
+};
+
+function roleTags(roles?: API.PartnerRole[]) {
+  return (roles ?? []).map((role) => (
+    <Tag key={role.type} color={role.blacklisted ? 'error' : undefined}>
+      {roleLabels[role.type ?? 0] ?? '未知'}
+      {!role.enabled ? '（停用）' : ''}
+      {role.blacklisted ? '（黑名单）' : ''}
+    </Tag>
+  ));
+}
 
 export default function Partners() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const blacklistFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
   const [modalOpen, setModalOpen] = useState(false);
+  const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.Partner>();
+  const [blacklistPartner, setBlacklistPartner] = useState<API.Partner>();
 
   const openCreate = () => {
     setEditing(undefined);
@@ -68,52 +88,61 @@ export default function Partners() {
     setModalOpen(true);
   };
 
+  const openBlacklist = (partner: API.Partner) => {
+    setBlacklistPartner(partner);
+    blacklistFormRef.current?.resetFields();
+    setBlacklistModalOpen(true);
+  };
+
   const columns: ProColumns<API.Partner>[] = [
     {
       title: '编码',
       dataIndex: 'code',
-      width: 120,
+      width: 130,
       fixed: 'left',
       copyable: true,
     },
     {
-      title: '名称',
-      dataIndex: 'name',
-      width: 220,
+      title: '法人名称',
+      dataIndex: 'legalName',
+      width: 240,
       ellipsis: true,
     },
     {
-      title: '类型',
-      dataIndex: 'type',
-      width: 140,
+      title: '角色',
+      dataIndex: 'role',
+      width: 260,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        partnerTypeOptions.map((option) => [option.value, { text: option.label }]),
+        roleOptions.map((option) => [option.value, { text: option.label }]),
       ),
-      render: (_, record) => (
-        <Tag>{partnerTypeLabels[record.type ?? 0] ?? '未设置'}</Tag>
-      ),
+      render: (_, record) => <Space wrap>{roleTags(record.roles)}</Space>,
     },
     {
       title: '联系人',
-      dataIndex: 'contactName',
-      width: 120,
+      dataIndex: 'contacts',
+      width: 90,
+      search: false,
+      render: (_, record) => record.contacts?.length ?? 0,
     },
     {
-      title: '电话',
-      dataIndex: 'phone',
-      width: 150,
+      title: '别名',
+      dataIndex: 'aliases',
+      width: 80,
+      search: false,
+      render: (_, record) => record.aliases?.length ?? 0,
     },
     {
-      title: '邮箱',
-      dataIndex: 'email',
-      width: 220,
-      ellipsis: true,
+      title: '统一社会信用代码',
+      dataIndex: 'unifiedSocialCreditCode',
+      width: 190,
+      search: false,
+      copyable: true,
     },
     {
       title: '状态',
       dataIndex: 'enabled',
-      width: 100,
+      width: 90,
       valueType: 'select',
       valueEnum: {
         true: { text: '启用', status: 'Success' },
@@ -132,54 +161,48 @@ export default function Partners() {
     {
       title: '操作',
       valueType: 'option',
-      width: 100,
+      width: 180,
       fixed: 'right',
       render: (_, record) =>
         access.canManagePartners ? (
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openEdit(record)}
-          >
-            编辑
-          </Button>
+          <Space size={0}>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => openEdit(record)}
+            >
+              编辑
+            </Button>
+            {record.roles?.some((role) => role.type === 2) ? (
+              <Button
+                type="link"
+                size="small"
+                icon={<StopOutlined />}
+                onClick={() => openBlacklist(record)}
+              >
+                黑名单
+              </Button>
+            ) : null}
+          </Space>
         ) : null,
     },
   ];
 
   return (
-    <PageContainer
-      title="客户与供应商"
-      subTitle="维护当前组织的业务往来单位档案"
-      extra={
-        <Space>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>
-          {access.canManagePartners ? (
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              新增往来单位
-            </Button>
-          ) : null}
-        </Space>
-      }
-    >
+    <>
       <ProTable<API.Partner>
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1400 }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,
             pageSize: params.pageSize,
             keyword: params.keyword,
-            type: params.type,
+            role: params.role,
             enabled: params.enabled,
           });
           return {
@@ -189,7 +212,20 @@ export default function Partners() {
           };
         }}
         search={{ labelWidth: 'auto', defaultCollapsed: false }}
-        toolBarRender={false}
+        toolBarRender={() => [
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
+          access.canManagePartners ? (
+            <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              新增往来单位
+            </Button>
+          ) : null,
+        ].filter(Boolean) as React.ReactNode[]}
       />
 
       <ModalForm<PartnerFormValues>
@@ -198,35 +234,53 @@ export default function Partners() {
         formRef={formRef}
         modalProps={{
           destroyOnClose: true,
+          width: 760,
           onCancel: () => setModalOpen(false),
         }}
-        initialValues={editing}
+        initialValues={
+          editing
+            ? {
+                ...editing,
+                roles: editing.roles?.map((role) => ({
+                  type: role.type,
+                  enabled: role.enabled,
+                })),
+              }
+            : {
+                roles: [{ type: 1, enabled: true }],
+                contacts: [],
+                aliases: [],
+              }
+        }
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
+          const roles = values.roles ?? [];
+          const contacts = values.contacts ?? [];
+          const aliases = values.aliases ?? [];
           if (editing?.id) {
             await partnerServiceUpdatePartner(
               { id: editing.id },
               {
                 id: editing.id,
-                name: values.name ?? '',
-                type: values.type ?? 0,
-                contactName: values.contactName,
-                phone: values.phone,
-                email: values.email,
-                address: values.address,
+                legalName: values.legalName ?? '',
+                unifiedSocialCreditCode: values.unifiedSocialCreditCode,
+                registeredAddress: values.registeredAddress,
                 enabled: values.enabled ?? true,
+                roles,
+                contacts,
+                aliases,
               },
             );
             message.success('往来单位已更新');
           } else {
             await partnerServiceCreatePartner({
               code: values.code ?? '',
-              name: values.name ?? '',
-              type: values.type ?? 0,
-              contactName: values.contactName,
-              phone: values.phone,
-              email: values.email,
-              address: values.address,
+              legalName: values.legalName ?? '',
+              unifiedSocialCreditCode: values.unifiedSocialCreditCode,
+              registeredAddress: values.registeredAddress,
+              roles,
+              contacts,
+              aliases,
             });
             message.success('往来单位已创建');
           }
@@ -238,38 +292,99 @@ export default function Partners() {
         <ProFormText
           name="code"
           label="编码"
-          placeholder="请输入唯一编码"
+          placeholder="请输入组织内唯一编码"
           disabled={Boolean(editing)}
           rules={[{ required: true, message: '请输入往来单位编码' }]}
         />
         <ProFormText
-          name="name"
-          label="名称"
-          placeholder="请输入客户或供应商名称"
-          rules={[{ required: true, message: '请输入往来单位名称' }]}
+          name="legalName"
+          label="法人名称"
+          placeholder="请输入完整法人名称"
+          rules={[{ required: true, message: '请输入法人名称' }]}
         />
-        <ProFormSelect
-          name="type"
-          label="类型"
-          options={partnerTypeOptions}
-          fieldProps={{
-            showSearch: true,
-            optionFilterProp: 'label',
-          }}
-          rules={[{ required: true, message: '请选择往来单位类型' }]}
-        />
-        <ProFormText name="contactName" label="联系人" />
-        <ProFormText name="phone" label="电话" />
-        <ProFormText
-          name="email"
-          label="邮箱"
-          rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]}
-        />
-        <ProFormTextArea name="address" label="地址" fieldProps={{ rows: 3 }} />
-        {editing ? (
-          <ProFormSwitch name="enabled" label="启用状态" />
-        ) : null}
+        <ProFormText name="unifiedSocialCreditCode" label="统一社会信用代码" />
+        <ProFormTextArea name="registeredAddress" label="注册地址" fieldProps={{ rows: 2 }} />
+        <ProFormSwitch name="enabled" label="启用状态" initialValue />
+        <ProFormList
+          name="roles"
+          label="业务角色"
+          creatorButtonProps={{ creatorButtonText: '添加角色' }}
+          min={1}
+        >
+          <Space align="start">
+            <ProFormSelect
+              name="type"
+              label="角色"
+              options={roleOptions}
+              width="sm"
+              rules={[{ required: true, message: '请选择角色' }]}
+            />
+            <ProFormSwitch name="enabled" label="启用" initialValue />
+          </Space>
+        </ProFormList>
+        <ProFormList
+          name="contacts"
+          label="联系人"
+          creatorButtonProps={{ creatorButtonText: '添加联系人' }}
+        >
+          <Space align="start" wrap>
+            <ProFormText name="name" label="姓名" rules={[{ required: true, message: '请输入联系人姓名' }]} />
+            <ProFormText name="phone" label="电话" />
+            <ProFormText name="email" label="邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
+            <ProFormSwitch name="isPrimary" label="主联系人" />
+            <ProFormText name="note" label="备注" />
+          </Space>
+        </ProFormList>
+        <ProFormList
+          name="aliases"
+          label="别名"
+          creatorButtonProps={{ creatorButtonText: '添加别名' }}
+        >
+          <Space align="start">
+            <ProFormText name="aliasName" label="别名" rules={[{ required: true, message: '请输入别名' }]} />
+            <ProFormDigit name="sortOrder" label="排序" min={0} fieldProps={{ precision: 0 }} />
+          </Space>
+        </ProFormList>
       </ModalForm>
-    </PageContainer>
+
+      <ModalForm<BlacklistFormValues>
+        title={`供应商黑名单 - ${blacklistPartner?.legalName ?? ''}`}
+        open={blacklistModalOpen}
+        formRef={blacklistFormRef}
+        initialValues={{
+          blacklisted: Boolean(
+            blacklistPartner?.roles?.find((role) => role.type === 2)?.blacklisted,
+          ),
+        }}
+        modalProps={{
+          destroyOnClose: true,
+          onCancel: () => setBlacklistModalOpen(false),
+        }}
+        onOpenChange={setBlacklistModalOpen}
+        onFinish={async (values) => {
+          if (!blacklistPartner?.id) return false;
+          await partnerServiceSetSupplierBlacklist(
+            { id: blacklistPartner.id },
+            {
+              id: blacklistPartner.id,
+              blacklisted: values.blacklisted ?? false,
+              reason: values.reason?.trim() ?? '',
+            },
+          );
+          message.success(values.blacklisted ? '已加入供应商黑名单' : '已移出供应商黑名单');
+          setBlacklistModalOpen(false);
+          actionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormSwitch name="blacklisted" label="列入黑名单" />
+        <ProFormTextArea
+          name="reason"
+          label="变更原因"
+          rules={[{ required: true, message: '请输入黑名单变更原因' }]}
+          fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+    </>
   );
 }

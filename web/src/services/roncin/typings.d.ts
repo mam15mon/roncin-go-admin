@@ -197,12 +197,12 @@ declare namespace API {
 
   type CreatePartnerRequest = {
     code: string;
-    name: string;
-    type: number;
-    contactName?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
+    legalName: string;
+    unifiedSocialCreditCode?: string;
+    registeredAddress?: string;
+    roles?: PartnerRoleInput[];
+    contacts?: PartnerContactInput[];
+    aliases?: PartnerAliasInput[];
   };
 
   type CreateRoleRequest = {
@@ -474,15 +474,47 @@ declare namespace API {
     id?: string;
     organizationId?: string;
     code?: string;
-    name?: string;
-    type?: number;
-    contactName?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
+    legalName?: string;
+    unifiedSocialCreditCode?: string;
+    registeredAddress?: string;
     enabled?: boolean;
+    roles?: PartnerRole[];
+    contacts?: PartnerContact[];
+    aliases?: PartnerAlias[];
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type PartnerAlias = {
+    id?: string;
+    aliasName?: string;
+    sortOrder?: number;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerAliasInput = {
+    aliasName?: string;
+    sortOrder?: number;
+  };
+
+  type PartnerContact = {
+    id?: string;
+    name?: string;
+    phone?: string;
+    email?: string;
+    note?: string;
+    isPrimary?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerContactInput = {
+    name?: string;
+    phone?: string;
+    email?: string;
+    note?: string;
+    isPrimary?: boolean;
   };
 
   type PartnerListReply = {
@@ -504,12 +536,34 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PartnerRole = {
+    type?: number;
+    enabled?: boolean;
+    blacklisted?: boolean;
+    blacklistReason?: string;
+    blacklistedAt?: string;
+    blacklistedBy?: string;
+  };
+
+  type PartnerRoleInput = {
+    type?: number;
+    enabled?: boolean;
+  };
+
+  type PartnerServiceGetPartnerParams = {
+    id: string;
+  };
+
   type PartnerServiceListPartnersParams = {
     page?: number;
     pageSize?: number;
     keyword?: string;
-    type?: number;
+    role?: number;
     enabled?: boolean;
+  };
+
+  type PartnerServiceSetSupplierBlacklistParams = {
+    id: string;
   };
 
   type PartnerServiceUpdatePartnerParams = {
@@ -542,6 +596,12 @@ declare namespace API {
 
   type SetDefaultStatusTemplateRequest = {
     id: string;
+  };
+
+  type SetSupplierBlacklistRequest = {
+    id: string;
+    blacklisted?: boolean;
+    reason: string;
   };
 
   type StatusTemplate = {
@@ -628,13 +688,13 @@ declare namespace API {
 
   type UpdatePartnerRequest = {
     id: string;
-    name: string;
-    type: number;
-    contactName?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
+    legalName: string;
+    unifiedSocialCreditCode?: string;
+    registeredAddress?: string;
     enabled?: boolean;
+    roles?: PartnerRoleInput[];
+    contacts?: PartnerContactInput[];
+    aliases?: PartnerAliasInput[];
   };
 
   type UpdateRoleRequest = {

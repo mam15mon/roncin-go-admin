@@ -24,28 +24,52 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_PARTNER_UNSPECIFIED      ErrorReason = 0
-	ErrorReason_PARTNER_NOT_FOUND        ErrorReason = 1
-	ErrorReason_PARTNER_CODE_EXISTS      ErrorReason = 2
-	ErrorReason_PARTNER_INVALID_TYPE     ErrorReason = 3
-	ErrorReason_PARTNER_INVALID_ARGUMENT ErrorReason = 4
+	ErrorReason_PARTNER_UNSPECIFIED               ErrorReason = 0
+	ErrorReason_PARTNER_NOT_FOUND                 ErrorReason = 1
+	ErrorReason_PARTNER_CODE_EXISTS               ErrorReason = 2
+	ErrorReason_PARTNER_NAME_EXISTS               ErrorReason = 3
+	ErrorReason_PARTNER_USCC_EXISTS               ErrorReason = 4
+	ErrorReason_PARTNER_ROLE_REQUIRED             ErrorReason = 5
+	ErrorReason_PARTNER_INVALID_ROLE              ErrorReason = 6
+	ErrorReason_PARTNER_INVALID_ARGUMENT          ErrorReason = 7
+	ErrorReason_PARTNER_PRIMARY_CONTACT_CONFLICT  ErrorReason = 8
+	ErrorReason_PARTNER_ALIAS_EXISTS              ErrorReason = 9
+	ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED    ErrorReason = 10
+	ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED ErrorReason = 11
+	ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE ErrorReason = 12
 )
 
 // Enum value maps for ErrorReason.
 var (
 	ErrorReason_name = map[int32]string{
-		0: "PARTNER_UNSPECIFIED",
-		1: "PARTNER_NOT_FOUND",
-		2: "PARTNER_CODE_EXISTS",
-		3: "PARTNER_INVALID_TYPE",
-		4: "PARTNER_INVALID_ARGUMENT",
+		0:  "PARTNER_UNSPECIFIED",
+		1:  "PARTNER_NOT_FOUND",
+		2:  "PARTNER_CODE_EXISTS",
+		3:  "PARTNER_NAME_EXISTS",
+		4:  "PARTNER_USCC_EXISTS",
+		5:  "PARTNER_ROLE_REQUIRED",
+		6:  "PARTNER_INVALID_ROLE",
+		7:  "PARTNER_INVALID_ARGUMENT",
+		8:  "PARTNER_PRIMARY_CONTACT_CONFLICT",
+		9:  "PARTNER_ALIAS_EXISTS",
+		10: "PARTNER_SUPPLIER_ROLE_REQUIRED",
+		11: "PARTNER_BLACKLIST_REASON_REQUIRED",
+		12: "PARTNER_BLACKLISTED_SUPPLIER_ROLE",
 	}
 	ErrorReason_value = map[string]int32{
-		"PARTNER_UNSPECIFIED":      0,
-		"PARTNER_NOT_FOUND":        1,
-		"PARTNER_CODE_EXISTS":      2,
-		"PARTNER_INVALID_TYPE":     3,
-		"PARTNER_INVALID_ARGUMENT": 4,
+		"PARTNER_UNSPECIFIED":               0,
+		"PARTNER_NOT_FOUND":                 1,
+		"PARTNER_CODE_EXISTS":               2,
+		"PARTNER_NAME_EXISTS":               3,
+		"PARTNER_USCC_EXISTS":               4,
+		"PARTNER_ROLE_REQUIRED":             5,
+		"PARTNER_INVALID_ROLE":              6,
+		"PARTNER_INVALID_ARGUMENT":          7,
+		"PARTNER_PRIMARY_CONTACT_CONFLICT":  8,
+		"PARTNER_ALIAS_EXISTS":              9,
+		"PARTNER_SUPPLIER_ROLE_REQUIRED":    10,
+		"PARTNER_BLACKLIST_REASON_REQUIRED": 11,
+		"PARTNER_BLACKLISTED_SUPPLIER_ROLE": 12,
 	}
 )
 
@@ -81,13 +105,22 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*\x8e\x01\n" +
+	"partner.v1*\x8d\x03\n" +
 	"\vErrorReason\x12\x17\n" +
 	"\x13PARTNER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PARTNER_NOT_FOUND\x10\x01\x12\x17\n" +
-	"\x13PARTNER_CODE_EXISTS\x10\x02\x12\x18\n" +
-	"\x14PARTNER_INVALID_TYPE\x10\x03\x12\x1c\n" +
-	"\x18PARTNER_INVALID_ARGUMENT\x10\x04B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"\x13PARTNER_CODE_EXISTS\x10\x02\x12\x17\n" +
+	"\x13PARTNER_NAME_EXISTS\x10\x03\x12\x17\n" +
+	"\x13PARTNER_USCC_EXISTS\x10\x04\x12\x19\n" +
+	"\x15PARTNER_ROLE_REQUIRED\x10\x05\x12\x18\n" +
+	"\x14PARTNER_INVALID_ROLE\x10\x06\x12\x1c\n" +
+	"\x18PARTNER_INVALID_ARGUMENT\x10\a\x12$\n" +
+	" PARTNER_PRIMARY_CONTACT_CONFLICT\x10\b\x12\x18\n" +
+	"\x14PARTNER_ALIAS_EXISTS\x10\t\x12\"\n" +
+	"\x1ePARTNER_SUPPLIER_ROLE_REQUIRED\x10\n" +
+	"\x12%\n" +
+	"!PARTNER_BLACKLIST_REASON_REQUIRED\x10\v\x12%\n" +
+	"!PARTNER_BLACKLISTED_SUPPLIER_ROLE\x10\fB<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once

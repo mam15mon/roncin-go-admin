@@ -13,6 +13,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 )
 
 // PartnerCreate is the builder for creating a Partner entity.
@@ -62,70 +65,42 @@ func (_c *PartnerCreate) SetCode(v string) *PartnerCreate {
 	return _c
 }
 
-// SetName sets the "name" field.
-func (_c *PartnerCreate) SetName(v string) *PartnerCreate {
-	_c.mutation.SetName(v)
+// SetLegalName sets the "legal_name" field.
+func (_c *PartnerCreate) SetLegalName(v string) *PartnerCreate {
+	_c.mutation.SetLegalName(v)
 	return _c
 }
 
-// SetType sets the "type" field.
-func (_c *PartnerCreate) SetType(v partner.Type) *PartnerCreate {
-	_c.mutation.SetType(v)
+// SetNormalizedName sets the "normalized_name" field.
+func (_c *PartnerCreate) SetNormalizedName(v string) *PartnerCreate {
+	_c.mutation.SetNormalizedName(v)
 	return _c
 }
 
-// SetContactName sets the "contact_name" field.
-func (_c *PartnerCreate) SetContactName(v string) *PartnerCreate {
-	_c.mutation.SetContactName(v)
+// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
+func (_c *PartnerCreate) SetUnifiedSocialCreditCode(v string) *PartnerCreate {
+	_c.mutation.SetUnifiedSocialCreditCode(v)
 	return _c
 }
 
-// SetNillableContactName sets the "contact_name" field if the given value is not nil.
-func (_c *PartnerCreate) SetNillableContactName(v *string) *PartnerCreate {
+// SetNillableUnifiedSocialCreditCode sets the "unified_social_credit_code" field if the given value is not nil.
+func (_c *PartnerCreate) SetNillableUnifiedSocialCreditCode(v *string) *PartnerCreate {
 	if v != nil {
-		_c.SetContactName(*v)
+		_c.SetUnifiedSocialCreditCode(*v)
 	}
 	return _c
 }
 
-// SetPhone sets the "phone" field.
-func (_c *PartnerCreate) SetPhone(v string) *PartnerCreate {
-	_c.mutation.SetPhone(v)
+// SetRegisteredAddress sets the "registered_address" field.
+func (_c *PartnerCreate) SetRegisteredAddress(v string) *PartnerCreate {
+	_c.mutation.SetRegisteredAddress(v)
 	return _c
 }
 
-// SetNillablePhone sets the "phone" field if the given value is not nil.
-func (_c *PartnerCreate) SetNillablePhone(v *string) *PartnerCreate {
+// SetNillableRegisteredAddress sets the "registered_address" field if the given value is not nil.
+func (_c *PartnerCreate) SetNillableRegisteredAddress(v *string) *PartnerCreate {
 	if v != nil {
-		_c.SetPhone(*v)
-	}
-	return _c
-}
-
-// SetEmail sets the "email" field.
-func (_c *PartnerCreate) SetEmail(v string) *PartnerCreate {
-	_c.mutation.SetEmail(v)
-	return _c
-}
-
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (_c *PartnerCreate) SetNillableEmail(v *string) *PartnerCreate {
-	if v != nil {
-		_c.SetEmail(*v)
-	}
-	return _c
-}
-
-// SetAddress sets the "address" field.
-func (_c *PartnerCreate) SetAddress(v string) *PartnerCreate {
-	_c.mutation.SetAddress(v)
-	return _c
-}
-
-// SetNillableAddress sets the "address" field if the given value is not nil.
-func (_c *PartnerCreate) SetNillableAddress(v *string) *PartnerCreate {
-	if v != nil {
-		_c.SetAddress(*v)
+		_c.SetRegisteredAddress(*v)
 	}
 	return _c
 }
@@ -161,6 +136,51 @@ func (_c *PartnerCreate) SetNillableID(v *uuid.UUID) *PartnerCreate {
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *PartnerCreate) SetOrganization(v *Organization) *PartnerCreate {
 	return _c.SetOrganizationID(v.ID)
+}
+
+// AddRoleIDs adds the "roles" edge to the PartnerRole entity by IDs.
+func (_c *PartnerCreate) AddRoleIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddRoleIDs(ids...)
+	return _c
+}
+
+// AddRoles adds the "roles" edges to the PartnerRole entity.
+func (_c *PartnerCreate) AddRoles(v ...*PartnerRole) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRoleIDs(ids...)
+}
+
+// AddContactIDs adds the "contacts" edge to the PartnerContact entity by IDs.
+func (_c *PartnerCreate) AddContactIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddContactIDs(ids...)
+	return _c
+}
+
+// AddContacts adds the "contacts" edges to the PartnerContact entity.
+func (_c *PartnerCreate) AddContacts(v ...*PartnerContact) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddContactIDs(ids...)
+}
+
+// AddAliasIDs adds the "aliases" edge to the PartnerAlias entity by IDs.
+func (_c *PartnerCreate) AddAliasIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddAliasIDs(ids...)
+	return _c
+}
+
+// AddAliases adds the "aliases" edges to the PartnerAlias entity.
+func (_c *PartnerCreate) AddAliases(v ...*PartnerAlias) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAliasIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -235,40 +255,30 @@ func (_c *PartnerCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Partner.code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Partner.name"`)}
+	if _, ok := _c.mutation.LegalName(); !ok {
+		return &ValidationError{Name: "legal_name", err: errors.New(`ent: missing required field "Partner.legal_name"`)}
 	}
-	if v, ok := _c.mutation.Name(); ok {
-		if err := partner.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Partner.name": %w`, err)}
+	if v, ok := _c.mutation.LegalName(); ok {
+		if err := partner.LegalNameValidator(v); err != nil {
+			return &ValidationError{Name: "legal_name", err: fmt.Errorf(`ent: validator failed for field "Partner.legal_name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Partner.type"`)}
+	if _, ok := _c.mutation.NormalizedName(); !ok {
+		return &ValidationError{Name: "normalized_name", err: errors.New(`ent: missing required field "Partner.normalized_name"`)}
 	}
-	if v, ok := _c.mutation.GetType(); ok {
-		if err := partner.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Partner.type": %w`, err)}
+	if v, ok := _c.mutation.NormalizedName(); ok {
+		if err := partner.NormalizedNameValidator(v); err != nil {
+			return &ValidationError{Name: "normalized_name", err: fmt.Errorf(`ent: validator failed for field "Partner.normalized_name": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ContactName(); ok {
-		if err := partner.ContactNameValidator(v); err != nil {
-			return &ValidationError{Name: "contact_name", err: fmt.Errorf(`ent: validator failed for field "Partner.contact_name": %w`, err)}
+	if v, ok := _c.mutation.UnifiedSocialCreditCode(); ok {
+		if err := partner.UnifiedSocialCreditCodeValidator(v); err != nil {
+			return &ValidationError{Name: "unified_social_credit_code", err: fmt.Errorf(`ent: validator failed for field "Partner.unified_social_credit_code": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.Phone(); ok {
-		if err := partner.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Partner.phone": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.Email(); ok {
-		if err := partner.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Partner.email": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.Address(); ok {
-		if err := partner.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Partner.address": %w`, err)}
+	if v, ok := _c.mutation.RegisteredAddress(); ok {
+		if err := partner.RegisteredAddressValidator(v); err != nil {
+			return &ValidationError{Name: "registered_address", err: fmt.Errorf(`ent: validator failed for field "Partner.registered_address": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
@@ -324,29 +334,21 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 		_spec.SetField(partner.FieldCode, field.TypeString, value)
 		_node.Code = value
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(partner.FieldName, field.TypeString, value)
-		_node.Name = value
+	if value, ok := _c.mutation.LegalName(); ok {
+		_spec.SetField(partner.FieldLegalName, field.TypeString, value)
+		_node.LegalName = value
 	}
-	if value, ok := _c.mutation.GetType(); ok {
-		_spec.SetField(partner.FieldType, field.TypeEnum, value)
-		_node.Type = value
+	if value, ok := _c.mutation.NormalizedName(); ok {
+		_spec.SetField(partner.FieldNormalizedName, field.TypeString, value)
+		_node.NormalizedName = value
 	}
-	if value, ok := _c.mutation.ContactName(); ok {
-		_spec.SetField(partner.FieldContactName, field.TypeString, value)
-		_node.ContactName = value
+	if value, ok := _c.mutation.UnifiedSocialCreditCode(); ok {
+		_spec.SetField(partner.FieldUnifiedSocialCreditCode, field.TypeString, value)
+		_node.UnifiedSocialCreditCode = &value
 	}
-	if value, ok := _c.mutation.Phone(); ok {
-		_spec.SetField(partner.FieldPhone, field.TypeString, value)
-		_node.Phone = value
-	}
-	if value, ok := _c.mutation.Email(); ok {
-		_spec.SetField(partner.FieldEmail, field.TypeString, value)
-		_node.Email = value
-	}
-	if value, ok := _c.mutation.Address(); ok {
-		_spec.SetField(partner.FieldAddress, field.TypeString, value)
-		_node.Address = value
+	if value, ok := _c.mutation.RegisteredAddress(); ok {
+		_spec.SetField(partner.FieldRegisteredAddress, field.TypeString, value)
+		_node.RegisteredAddress = value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
@@ -367,6 +369,54 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.RolesTable,
+			Columns: []string{partner.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerrole.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ContactsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ContactsTable,
+			Columns: []string{partner.ContactsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnercontact.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AliasesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AliasesTable,
+			Columns: []string{partner.AliasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -677,7 +677,7 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: type
+                - name: role
                   in: query
                   schema:
                     type: integer
@@ -711,6 +711,23 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerReply'
     /api/v1/partners/{id}:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_GetPartner
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerReply'
         put:
             tags:
                 - PartnerService
@@ -726,6 +743,30 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/partner.v1.UpdatePartnerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerReply'
+    /api/v1/partners/{id}/supplier-blacklist:
+        post:
+            tags:
+                - PartnerService
+            operationId: PartnerService_SetSupplierBlacklist
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.SetSupplierBlacklistRequest'
                 required: true
             responses:
                 "200":
@@ -1795,25 +1836,29 @@ components:
         partner.v1.CreatePartnerRequest:
             required:
                 - code
-                - name
-                - type
+                - legalName
             type: object
             properties:
                 code:
                     type: string
-                name:
+                legalName:
                     type: string
-                type:
-                    type: integer
-                    format: enum
-                contactName:
+                unifiedSocialCreditCode:
                     type: string
-                phone:
+                registeredAddress:
                     type: string
-                email:
-                    type: string
-                address:
-                    type: string
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerRoleInput'
+                contacts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerContactInput'
+                aliases:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
         partner.v1.Partner:
             type: object
             properties:
@@ -1823,25 +1868,84 @@ components:
                     type: string
                 code:
                     type: string
-                name:
+                legalName:
                     type: string
-                type:
+                unifiedSocialCreditCode:
+                    type: string
+                registeredAddress:
+                    type: string
+                enabled:
+                    type: boolean
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerRole'
+                contacts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerContact'
+                aliases:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAlias'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerAlias:
+            type: object
+            properties:
+                id:
+                    type: string
+                aliasName:
+                    type: string
+                sortOrder:
                     type: integer
-                    format: enum
-                contactName:
+                    format: int32
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerAliasInput:
+            type: object
+            properties:
+                aliasName:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+        partner.v1.PartnerContact:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
                     type: string
                 phone:
                     type: string
                 email:
                     type: string
-                address:
+                note:
                     type: string
-                enabled:
+                isPrimary:
                     type: boolean
                 createdAt:
                     type: string
                 updatedAt:
                     type: string
+        partner.v1.PartnerContactInput:
+            type: object
+            properties:
+                name:
+                    type: string
+                phone:
+                    type: string
+                email:
+                    type: string
+                note:
+                    type: string
+                isPrimary:
+                    type: boolean
         partner.v1.PartnerListReply:
             type: object
             properties:
@@ -1881,30 +1985,70 @@ components:
                     $ref: '#/components/schemas/partner.v1.Partner'
                 traceId:
                     type: string
-        partner.v1.UpdatePartnerRequest:
+        partner.v1.PartnerRole:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: enum
+                enabled:
+                    type: boolean
+                blacklisted:
+                    type: boolean
+                blacklistReason:
+                    type: string
+                blacklistedAt:
+                    type: string
+                blacklistedBy:
+                    type: string
+        partner.v1.PartnerRoleInput:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: enum
+                enabled:
+                    type: boolean
+        partner.v1.SetSupplierBlacklistRequest:
             required:
                 - id
-                - name
-                - type
+                - reason
             type: object
             properties:
                 id:
                     type: string
-                name:
+                blacklisted:
+                    type: boolean
+                reason:
                     type: string
-                type:
-                    type: integer
-                    format: enum
-                contactName:
+        partner.v1.UpdatePartnerRequest:
+            required:
+                - id
+                - legalName
+            type: object
+            properties:
+                id:
                     type: string
-                phone:
+                legalName:
                     type: string
-                email:
+                unifiedSocialCreditCode:
                     type: string
-                address:
+                registeredAddress:
                     type: string
                 enabled:
                     type: boolean
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerRoleInput'
+                contacts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerContactInput'
+                aliases:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
 tags:
     - name: AdminService
     - name: AuthService
