@@ -32,11 +32,11 @@
 | D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 未开始 | P6 | 先确定订单聚合边界、业务类型、服务类型、货物类别、编号规则、模板选择和状态机；自定义字段必须有权限和版本策略。 |
 | D05 | 订单扩展与执行：`04-order-extension.prisma` | OrderContainer、OrderCargoItem、OrderShippingDocument、OrderReleasePod、OrderCollaborator、OrderAbnormalCase、OrderAttachment、OrderAlertTask、OrderPersonnel 等 | 未开始 | P7 | 不能只按“订单执行”笼统迁移；需逐项覆盖集装箱、提单、附件、异常、人员、提醒和审计。 |
 | D06 | 报关与 AE 扩展：`04-order-extension.prisma` | OrderCustomsDeclaration、CustomsTaskStatus、OrderAeMonitor、OrderAeTransitInfo、OrderAeInsuranceDraft 及相关枚举 | 未开始 | P6/P7 | 这是独立业务范围，不得因通用订单模型存在而视为自动覆盖；P0 必须决定是否属于 MVP、支持哪些业务类型，以及数据是否迁移。 |
-| D07 | 费用与账单：`05-finance-billing.prisma` | Fee、Bill、BillFee、BillOrderLink、FinanceTag、VerificationRecord、PaymentRecord、InvoiceRecord、VerificationAllocation | 未开始 | P8/P9 | 明确应收应付、含税/不含税、税务模式、账单生成后修改、核销和状态日志；金额规则必须在领域层统一。 |
+| D07 | 费用与账单：`05-finance-billing.prisma`、`08-dictionaries.prisma` | BillingUnit、FeeSetting、TaxableService、Fee、Bill、BillFee、BillOrderLink、FinanceTag、VerificationRecord、PaymentRecord、InvoiceRecord、VerificationAllocation | 未开始 | P8/P9 | 计费单位、费用项和应税服务直接参与金额计算，随财务聚合一起设计；明确应收应付、含税/不含税、税务模式、账单生成后修改、核销和状态日志，金额规则必须在领域层统一。 |
 | D08 | 对账单工作流：`05-finance-billing.prisma` | FinanceStatement、FinanceStatementLineItem、FinanceStatementAuditLog、StatementWorkflowStatus | 未开始 | P9 | 不将“财务工作台”作为默认覆盖；需明确对账单的创建、提交、审核、确认、关闭、撤销和审计流程。 |
 | D09 | 汇率：`06-fx.prisma` | ExchangeRateSetting、ExchangeRatePolicy、FxRateQuote、FxQuoteRevision、FxSnapshotRevision、BillFxSnapshotRevision、ChargeLineFxOverride、FxApproval | 未开始 | P8 前置 | 先完成币对、来源、日期规则、快照、锁定、容差和审批；费用/账单只能依赖已确定的汇率快照，不得在页面临时计算。 |
 | D10 | 通知与工作流：`07-workflow-notification.prisma` | NotificationMessage、NotificationPreference、NotificationDeliveryLog、OrderReminderRule、OrderReminderDispatch、OrderTrackingEvent | 未开始 | P10 | 区分消息记录、用户偏好、提醒规则、投递日志和跟踪事件；明确失败重试、重复投递和用户可见状态。 |
-| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、BillingUnit、ContainerSpec、FeeSetting、TaxableService、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 已完成首批组织级主数据目录、编号规则/并发序列、状态与里程碑模板版本发布和默认版本切换；待补计费单位、税务服务和主数据导入。页面模板按固定表单决策后置。 |
+| D11 | 主数据、参数与模板：`08-dictionaries.prisma` | CurrencyDictionary、CountryDictionary、Region、ContainerSpec、NumberRule、SerialSequence、PageTemplate、StatusTemplate、BusinessRuleTemplate、TemplateBundle、MilestoneTemplate、AirportDictionary、Unlocode* 等 | 部分完成 | P4 | 已完成首批组织级主数据目录、编号规则/并发序列、状态与里程碑模板版本发布和默认版本切换；待补主数据导入契约。BillingUnit、FeeSetting、TaxableService 调整到 D07/P8，页面模板按固定表单决策后置。 |
 | D12 | 企业基础资源：`09-enterprise-resources.prisma` | BaseAddress、BaseConsignee、BaseShipper、BaseNotify、BaseResourcePartyRel、BaseNote、BaseTag、BaseBusinessCode、BaseImage、BaseTextSnippet | 未开始 | P4/P5 | 这是订单表单和往来单位的基础资源，不是普通字典；明确与 Party 的关系、文件存储、组织隔离、引用删除和权限。 |
 | D13 | 幂等：`10-idempotency.prisma` | IdempotencyKey | 未开始 | P1/P7 | API 写入幂等和后台任务幂等分别定义；明确键的作用域、请求摘要、过期、冲突响应和清理策略。 |
 | D14 | 数据维护作业：`11-data-maintenance-jobs.prisma` | RegionSyncJob、PortImportJob；另含 `UnlocodeImportBatch` | 未开始 | P4/P7/P10 | 主数据导入契约在 P4 定义，任务租约/重试/死信在 P7 建立，运维查询和回放在 P10 接入；不得与普通 IntegrationTask 混成无类型任务。 |
@@ -123,6 +123,7 @@
 | 状态模板默认版本缺少数据库级唯一保障 | 旧 `StatusTemplate.isDefault` 只是普通布尔字段，并发发布可能留下多个默认版本 | 新系统对“组织 + 业务类型”的默认模板建立部分唯一索引；发布和恢复旧版本使用不同显式动作并分别审计 |
 | 里程碑模板存在多源读取和静默回退 | 旧订单会依次读取 `MilestoneTemplate`、`BusinessSwitchSetting` JSON，再回退到代码内默认模板；配置缺失和存储不可用可能表现成同一套默认流程 | 新系统只使用组织级、版本化且已发布的里程碑模板；节点依赖在创建时校验存在性、启用状态和无环，不内置默认流程或静默回退 |
 | 财务规则分散且模型较多 | Fee、Bill、FinanceStatement、FX 快照、税务枚举跨多个文件 | 先冻结财务口径，再由 `biz` 持有金额和状态规则；页面不自行拼接金额 |
+| 财务参数被包装成普通字典 | `BillingUnit`、`FeeSetting`、`TaxableService` 位于 dictionaries 文件，但默认税率和费用关联会直接改变金额结果 | 不按文件位置将它们塞入通用主数据；在 P8 与含税/未税、税种、精度、舍入和快照规则共同建模 |
 | 数据维护作业与集成任务容易混淆 | 旧系统同时有 RegionSyncJob、PortImportJob、UnlocodeImportBatch 和 IntegrationTask | 新系统区分任务类型、幂等键、租约、重试和死信；主数据导入不伪装成普通业务集成 |
 | 登录限流曾由独立表和原始 SQL 支撑 | `src/lib/auth/login-rate-limit-service.ts` 直接操作 LoginRateLimitBucket | 新系统封装限流仓储/服务，统一错误、清理、指标和审计，业务层不散落 SQL |
 | 泛化审计不能替代领域审计 | 旧系统同时存在操作日志、状态日志、财务/模板审计等 | 新系统保留通用安全审计，同时为金额、状态和模板发布保留必要的领域审计，不把所有细节压成一条 JSON |
