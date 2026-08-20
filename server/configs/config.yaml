@@ -15,7 +15,7 @@ data:
     auto_migrate: true
     max_open_connections: 30
     max_idle_connections: 10
-    connection_max_lifetime: 30m
+    connection_max_lifetime: 1800s
   redis:
     addr: ${REDIS_ADDR:127.0.0.1:6379}
     read_timeout: 0.2s
@@ -23,7 +23,7 @@ data:
 security:
   session:
     cookie_name: roncin_session
-    ttl: 12h
+    ttl: 43200s
     secure: false
     same_site: lax
 telemetry:

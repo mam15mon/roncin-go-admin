@@ -70,6 +70,7 @@ func main() {
 			file.NewSource(flagconf),
 			env.NewSource("KRATOS"),
 		),
+		config.WithResolveActualTypes(true),
 	)
 	defer c.Close()
 

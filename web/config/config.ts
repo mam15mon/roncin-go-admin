@@ -222,6 +222,5 @@ export default defineConfig({
     'process.env.COMMIT_HASH': commitHash,
     __APP_VERSION__: require('./../package.json').version,
     __UMI_VERSION__: require('@umijs/max/package.json').version,
-    __UTOO_VERSION__: require('@utoo/pack/package.json').version,
   },
 });
