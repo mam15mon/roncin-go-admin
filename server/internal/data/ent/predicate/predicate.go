@@ -9,6 +9,9 @@ import (
 // AuditLog is the predicate function for auditlog builders.
 type AuditLog func(*sql.Selector)
 
+// BackgroundTask is the predicate function for backgroundtask builders.
+type BackgroundTask func(*sql.Selector)
+
 // MasterDataItem is the predicate function for masterdataitem builders.
 type MasterDataItem func(*sql.Selector)
 

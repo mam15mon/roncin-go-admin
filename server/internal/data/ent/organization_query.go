@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -45,6 +46,7 @@ type OrganizationQuery struct {
 	withStatusTemplates    *StatusTemplateQuery
 	withMilestoneTemplates *MilestoneTemplateQuery
 	withOrders             *OrderQuery
+	withBackgroundTasks    *BackgroundTaskQuery
 	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -324,6 +326,28 @@ func (_q *OrganizationQuery) QueryOrders() *OrderQuery {
 	return query
 }
 
+// QueryBackgroundTasks chains the current query on the "background_tasks" edge.
+func (_q *OrganizationQuery) QueryBackgroundTasks() *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.BackgroundTasksTable, organization.BackgroundTasksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -527,6 +551,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withStatusTemplates:    _q.withStatusTemplates.Clone(),
 		withMilestoneTemplates: _q.withMilestoneTemplates.Clone(),
 		withOrders:             _q.withOrders.Clone(),
+		withBackgroundTasks:    _q.withBackgroundTasks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -654,6 +679,17 @@ func (_q *OrganizationQuery) WithOrders(opts ...func(*OrderQuery)) *Organization
 	return _q
 }
 
+// WithBackgroundTasks tells the query-builder to eager-load the nodes that are connected to
+// the "background_tasks" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithBackgroundTasks(opts ...func(*BackgroundTaskQuery)) *OrganizationQuery {
+	query := (&BackgroundTaskClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBackgroundTasks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -732,7 +768,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [12]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -744,6 +780,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withStatusTemplates != nil,
 			_q.withMilestoneTemplates != nil,
 			_q.withOrders != nil,
+			_q.withBackgroundTasks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -842,6 +879,13 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadOrders(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Orders = []*Order{} },
 			func(n *Organization, e *Order) { n.Edges.Orders = append(n.Edges.Orders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBackgroundTasks; query != nil {
+		if err := _q.loadBackgroundTasks(ctx, query, nodes,
+			func(n *Organization) { n.Edges.BackgroundTasks = []*BackgroundTask{} },
+			func(n *Organization, e *BackgroundTask) { n.Edges.BackgroundTasks = append(n.Edges.BackgroundTasks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1168,6 +1212,36 @@ func (_q *OrganizationQuery) loadOrders(ctx context.Context, query *OrderQuery, 
 	}
 	query.Where(predicate.Order(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.OrdersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadBackgroundTasks(ctx context.Context, query *BackgroundTaskQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *BackgroundTask)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(backgroundtask.FieldOrganizationID)
+	}
+	query.Where(predicate.BackgroundTask(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.BackgroundTasksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

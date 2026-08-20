@@ -49,6 +49,8 @@ const (
 	EdgeMilestoneTemplates = "milestone_templates"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
+	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
+	EdgeBackgroundTasks = "background_tasks"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -122,6 +124,13 @@ const (
 	OrdersInverseTable = "orders"
 	// OrdersColumn is the table column denoting the orders relation/edge.
 	OrdersColumn = "organization_id"
+	// BackgroundTasksTable is the table that holds the background_tasks relation/edge.
+	BackgroundTasksTable = "background_tasks"
+	// BackgroundTasksInverseTable is the table name for the BackgroundTask entity.
+	// It exists in this package in order to avoid circular dependency with the "backgroundtask" package.
+	BackgroundTasksInverseTable = "background_tasks"
+	// BackgroundTasksColumn is the table column denoting the background_tasks relation/edge.
+	BackgroundTasksColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -346,6 +355,20 @@ func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrdersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByBackgroundTasksCount orders the results by background_tasks count.
+func ByBackgroundTasksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBackgroundTasksStep(), opts...)
+	}
+}
+
+// ByBackgroundTasks orders the results by background_tasks terms.
+func ByBackgroundTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBackgroundTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -421,5 +444,12 @@ func newOrdersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrdersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+	)
+}
+func newBackgroundTasksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BackgroundTasksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BackgroundTasksTable, BackgroundTasksColumn),
 	)
 }

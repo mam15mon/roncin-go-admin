@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -56,6 +57,7 @@ const (
 
 	// Node types.
 	TypeAuditLog              = "AuditLog"
+	TypeBackgroundTask        = "BackgroundTask"
 	TypeMasterDataItem        = "MasterDataItem"
 	TypeMembership            = "Membership"
 	TypeMilestoneTemplate     = "MilestoneTemplate"
@@ -1183,6 +1185,1115 @@ func (m *AuditLogMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AuditLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AuditLog edge %s", name)
+}
+
+// BackgroundTaskMutation represents an operation that mutates the BackgroundTask nodes in the graph.
+type BackgroundTaskMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	kind                *backgroundtask.Kind
+	idempotency_key     *string
+	status              *backgroundtask.Status
+	attempts            *int
+	addattempts         *int
+	max_attempts        *int
+	addmax_attempts     *int
+	next_run_at         *time.Time
+	lease_token         *string
+	lease_expires_at    *time.Time
+	last_error          *string
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*BackgroundTask, error)
+	predicates          []predicate.BackgroundTask
+}
+
+var _ ent.Mutation = (*BackgroundTaskMutation)(nil)
+
+// backgroundtaskOption allows management of the mutation configuration using functional options.
+type backgroundtaskOption func(*BackgroundTaskMutation)
+
+// newBackgroundTaskMutation creates new mutation for the BackgroundTask entity.
+func newBackgroundTaskMutation(c config, op Op, opts ...backgroundtaskOption) *BackgroundTaskMutation {
+	m := &BackgroundTaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBackgroundTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBackgroundTaskID sets the ID field of the mutation.
+func withBackgroundTaskID(id uuid.UUID) backgroundtaskOption {
+	return func(m *BackgroundTaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BackgroundTask
+		)
+		m.oldValue = func(ctx context.Context) (*BackgroundTask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BackgroundTask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBackgroundTask sets the old BackgroundTask of the mutation.
+func withBackgroundTask(node *BackgroundTask) backgroundtaskOption {
+	return func(m *BackgroundTaskMutation) {
+		m.oldValue = func(context.Context) (*BackgroundTask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BackgroundTaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BackgroundTaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of BackgroundTask entities.
+func (m *BackgroundTaskMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BackgroundTaskMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BackgroundTaskMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BackgroundTask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *BackgroundTaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *BackgroundTaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *BackgroundTaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *BackgroundTaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *BackgroundTaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *BackgroundTaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *BackgroundTaskMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *BackgroundTaskMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *BackgroundTaskMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *BackgroundTaskMutation) SetKind(b backgroundtask.Kind) {
+	m.kind = &b
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *BackgroundTaskMutation) Kind() (r backgroundtask.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldKind(ctx context.Context) (v backgroundtask.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *BackgroundTaskMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *BackgroundTaskMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *BackgroundTaskMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *BackgroundTaskMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *BackgroundTaskMutation) SetStatus(b backgroundtask.Status) {
+	m.status = &b
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *BackgroundTaskMutation) Status() (r backgroundtask.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldStatus(ctx context.Context) (v backgroundtask.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *BackgroundTaskMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetAttempts sets the "attempts" field.
+func (m *BackgroundTaskMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *BackgroundTaskMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *BackgroundTaskMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *BackgroundTaskMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *BackgroundTaskMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
+// SetMaxAttempts sets the "max_attempts" field.
+func (m *BackgroundTaskMutation) SetMaxAttempts(i int) {
+	m.max_attempts = &i
+	m.addmax_attempts = nil
+}
+
+// MaxAttempts returns the value of the "max_attempts" field in the mutation.
+func (m *BackgroundTaskMutation) MaxAttempts() (r int, exists bool) {
+	v := m.max_attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxAttempts returns the old "max_attempts" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldMaxAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxAttempts: %w", err)
+	}
+	return oldValue.MaxAttempts, nil
+}
+
+// AddMaxAttempts adds i to the "max_attempts" field.
+func (m *BackgroundTaskMutation) AddMaxAttempts(i int) {
+	if m.addmax_attempts != nil {
+		*m.addmax_attempts += i
+	} else {
+		m.addmax_attempts = &i
+	}
+}
+
+// AddedMaxAttempts returns the value that was added to the "max_attempts" field in this mutation.
+func (m *BackgroundTaskMutation) AddedMaxAttempts() (r int, exists bool) {
+	v := m.addmax_attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxAttempts resets all changes to the "max_attempts" field.
+func (m *BackgroundTaskMutation) ResetMaxAttempts() {
+	m.max_attempts = nil
+	m.addmax_attempts = nil
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (m *BackgroundTaskMutation) SetNextRunAt(t time.Time) {
+	m.next_run_at = &t
+}
+
+// NextRunAt returns the value of the "next_run_at" field in the mutation.
+func (m *BackgroundTaskMutation) NextRunAt() (r time.Time, exists bool) {
+	v := m.next_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextRunAt returns the old "next_run_at" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldNextRunAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextRunAt: %w", err)
+	}
+	return oldValue.NextRunAt, nil
+}
+
+// ResetNextRunAt resets all changes to the "next_run_at" field.
+func (m *BackgroundTaskMutation) ResetNextRunAt() {
+	m.next_run_at = nil
+}
+
+// SetLeaseToken sets the "lease_token" field.
+func (m *BackgroundTaskMutation) SetLeaseToken(s string) {
+	m.lease_token = &s
+}
+
+// LeaseToken returns the value of the "lease_token" field in the mutation.
+func (m *BackgroundTaskMutation) LeaseToken() (r string, exists bool) {
+	v := m.lease_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaseToken returns the old "lease_token" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldLeaseToken(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaseToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaseToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaseToken: %w", err)
+	}
+	return oldValue.LeaseToken, nil
+}
+
+// ClearLeaseToken clears the value of the "lease_token" field.
+func (m *BackgroundTaskMutation) ClearLeaseToken() {
+	m.lease_token = nil
+	m.clearedFields[backgroundtask.FieldLeaseToken] = struct{}{}
+}
+
+// LeaseTokenCleared returns if the "lease_token" field was cleared in this mutation.
+func (m *BackgroundTaskMutation) LeaseTokenCleared() bool {
+	_, ok := m.clearedFields[backgroundtask.FieldLeaseToken]
+	return ok
+}
+
+// ResetLeaseToken resets all changes to the "lease_token" field.
+func (m *BackgroundTaskMutation) ResetLeaseToken() {
+	m.lease_token = nil
+	delete(m.clearedFields, backgroundtask.FieldLeaseToken)
+}
+
+// SetLeaseExpiresAt sets the "lease_expires_at" field.
+func (m *BackgroundTaskMutation) SetLeaseExpiresAt(t time.Time) {
+	m.lease_expires_at = &t
+}
+
+// LeaseExpiresAt returns the value of the "lease_expires_at" field in the mutation.
+func (m *BackgroundTaskMutation) LeaseExpiresAt() (r time.Time, exists bool) {
+	v := m.lease_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaseExpiresAt returns the old "lease_expires_at" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldLeaseExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaseExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaseExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaseExpiresAt: %w", err)
+	}
+	return oldValue.LeaseExpiresAt, nil
+}
+
+// ClearLeaseExpiresAt clears the value of the "lease_expires_at" field.
+func (m *BackgroundTaskMutation) ClearLeaseExpiresAt() {
+	m.lease_expires_at = nil
+	m.clearedFields[backgroundtask.FieldLeaseExpiresAt] = struct{}{}
+}
+
+// LeaseExpiresAtCleared returns if the "lease_expires_at" field was cleared in this mutation.
+func (m *BackgroundTaskMutation) LeaseExpiresAtCleared() bool {
+	_, ok := m.clearedFields[backgroundtask.FieldLeaseExpiresAt]
+	return ok
+}
+
+// ResetLeaseExpiresAt resets all changes to the "lease_expires_at" field.
+func (m *BackgroundTaskMutation) ResetLeaseExpiresAt() {
+	m.lease_expires_at = nil
+	delete(m.clearedFields, backgroundtask.FieldLeaseExpiresAt)
+}
+
+// SetLastError sets the "last_error" field.
+func (m *BackgroundTaskMutation) SetLastError(s string) {
+	m.last_error = &s
+}
+
+// LastError returns the value of the "last_error" field in the mutation.
+func (m *BackgroundTaskMutation) LastError() (r string, exists bool) {
+	v := m.last_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastError returns the old "last_error" field's value of the BackgroundTask entity.
+// If the BackgroundTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BackgroundTaskMutation) OldLastError(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastError: %w", err)
+	}
+	return oldValue.LastError, nil
+}
+
+// ClearLastError clears the value of the "last_error" field.
+func (m *BackgroundTaskMutation) ClearLastError() {
+	m.last_error = nil
+	m.clearedFields[backgroundtask.FieldLastError] = struct{}{}
+}
+
+// LastErrorCleared returns if the "last_error" field was cleared in this mutation.
+func (m *BackgroundTaskMutation) LastErrorCleared() bool {
+	_, ok := m.clearedFields[backgroundtask.FieldLastError]
+	return ok
+}
+
+// ResetLastError resets all changes to the "last_error" field.
+func (m *BackgroundTaskMutation) ResetLastError() {
+	m.last_error = nil
+	delete(m.clearedFields, backgroundtask.FieldLastError)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *BackgroundTaskMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[backgroundtask.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *BackgroundTaskMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *BackgroundTaskMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *BackgroundTaskMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the BackgroundTaskMutation builder.
+func (m *BackgroundTaskMutation) Where(ps ...predicate.BackgroundTask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BackgroundTaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BackgroundTaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BackgroundTask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BackgroundTaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BackgroundTaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (BackgroundTask).
+func (m *BackgroundTaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BackgroundTaskMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, backgroundtask.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, backgroundtask.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, backgroundtask.FieldOrganizationID)
+	}
+	if m.kind != nil {
+		fields = append(fields, backgroundtask.FieldKind)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, backgroundtask.FieldIdempotencyKey)
+	}
+	if m.status != nil {
+		fields = append(fields, backgroundtask.FieldStatus)
+	}
+	if m.attempts != nil {
+		fields = append(fields, backgroundtask.FieldAttempts)
+	}
+	if m.max_attempts != nil {
+		fields = append(fields, backgroundtask.FieldMaxAttempts)
+	}
+	if m.next_run_at != nil {
+		fields = append(fields, backgroundtask.FieldNextRunAt)
+	}
+	if m.lease_token != nil {
+		fields = append(fields, backgroundtask.FieldLeaseToken)
+	}
+	if m.lease_expires_at != nil {
+		fields = append(fields, backgroundtask.FieldLeaseExpiresAt)
+	}
+	if m.last_error != nil {
+		fields = append(fields, backgroundtask.FieldLastError)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BackgroundTaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case backgroundtask.FieldCreatedAt:
+		return m.CreatedAt()
+	case backgroundtask.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case backgroundtask.FieldOrganizationID:
+		return m.OrganizationID()
+	case backgroundtask.FieldKind:
+		return m.Kind()
+	case backgroundtask.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case backgroundtask.FieldStatus:
+		return m.Status()
+	case backgroundtask.FieldAttempts:
+		return m.Attempts()
+	case backgroundtask.FieldMaxAttempts:
+		return m.MaxAttempts()
+	case backgroundtask.FieldNextRunAt:
+		return m.NextRunAt()
+	case backgroundtask.FieldLeaseToken:
+		return m.LeaseToken()
+	case backgroundtask.FieldLeaseExpiresAt:
+		return m.LeaseExpiresAt()
+	case backgroundtask.FieldLastError:
+		return m.LastError()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BackgroundTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case backgroundtask.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case backgroundtask.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case backgroundtask.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case backgroundtask.FieldKind:
+		return m.OldKind(ctx)
+	case backgroundtask.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case backgroundtask.FieldStatus:
+		return m.OldStatus(ctx)
+	case backgroundtask.FieldAttempts:
+		return m.OldAttempts(ctx)
+	case backgroundtask.FieldMaxAttempts:
+		return m.OldMaxAttempts(ctx)
+	case backgroundtask.FieldNextRunAt:
+		return m.OldNextRunAt(ctx)
+	case backgroundtask.FieldLeaseToken:
+		return m.OldLeaseToken(ctx)
+	case backgroundtask.FieldLeaseExpiresAt:
+		return m.OldLeaseExpiresAt(ctx)
+	case backgroundtask.FieldLastError:
+		return m.OldLastError(ctx)
+	}
+	return nil, fmt.Errorf("unknown BackgroundTask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BackgroundTaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case backgroundtask.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case backgroundtask.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case backgroundtask.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case backgroundtask.FieldKind:
+		v, ok := value.(backgroundtask.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case backgroundtask.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case backgroundtask.FieldStatus:
+		v, ok := value.(backgroundtask.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case backgroundtask.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
+	case backgroundtask.FieldMaxAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxAttempts(v)
+		return nil
+	case backgroundtask.FieldNextRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextRunAt(v)
+		return nil
+	case backgroundtask.FieldLeaseToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaseToken(v)
+		return nil
+	case backgroundtask.FieldLeaseExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaseExpiresAt(v)
+		return nil
+	case backgroundtask.FieldLastError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastError(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BackgroundTaskMutation) AddedFields() []string {
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, backgroundtask.FieldAttempts)
+	}
+	if m.addmax_attempts != nil {
+		fields = append(fields, backgroundtask.FieldMaxAttempts)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BackgroundTaskMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case backgroundtask.FieldAttempts:
+		return m.AddedAttempts()
+	case backgroundtask.FieldMaxAttempts:
+		return m.AddedMaxAttempts()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BackgroundTaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case backgroundtask.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
+	case backgroundtask.FieldMaxAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BackgroundTaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(backgroundtask.FieldLeaseToken) {
+		fields = append(fields, backgroundtask.FieldLeaseToken)
+	}
+	if m.FieldCleared(backgroundtask.FieldLeaseExpiresAt) {
+		fields = append(fields, backgroundtask.FieldLeaseExpiresAt)
+	}
+	if m.FieldCleared(backgroundtask.FieldLastError) {
+		fields = append(fields, backgroundtask.FieldLastError)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BackgroundTaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BackgroundTaskMutation) ClearField(name string) error {
+	switch name {
+	case backgroundtask.FieldLeaseToken:
+		m.ClearLeaseToken()
+		return nil
+	case backgroundtask.FieldLeaseExpiresAt:
+		m.ClearLeaseExpiresAt()
+		return nil
+	case backgroundtask.FieldLastError:
+		m.ClearLastError()
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BackgroundTaskMutation) ResetField(name string) error {
+	switch name {
+	case backgroundtask.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case backgroundtask.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case backgroundtask.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case backgroundtask.FieldKind:
+		m.ResetKind()
+		return nil
+	case backgroundtask.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case backgroundtask.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case backgroundtask.FieldAttempts:
+		m.ResetAttempts()
+		return nil
+	case backgroundtask.FieldMaxAttempts:
+		m.ResetMaxAttempts()
+		return nil
+	case backgroundtask.FieldNextRunAt:
+		m.ResetNextRunAt()
+		return nil
+	case backgroundtask.FieldLeaseToken:
+		m.ResetLeaseToken()
+		return nil
+	case backgroundtask.FieldLeaseExpiresAt:
+		m.ResetLeaseExpiresAt()
+		return nil
+	case backgroundtask.FieldLastError:
+		m.ResetLastError()
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BackgroundTaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.organization != nil {
+		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BackgroundTaskMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case backgroundtask.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BackgroundTaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BackgroundTaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BackgroundTaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedorganization {
+		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BackgroundTaskMutation) EdgeCleared(name string) bool {
+	switch name {
+	case backgroundtask.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BackgroundTaskMutation) ClearEdge(name string) error {
+	switch name {
+	case backgroundtask.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BackgroundTaskMutation) ResetEdge(name string) error {
+	switch name {
+	case backgroundtask.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown BackgroundTask edge %s", name)
 }
 
 // MasterDataItemMutation represents an operation that mutates the MasterDataItem nodes in the graph.
@@ -14466,6 +15577,9 @@ type OrganizationMutation struct {
 	orders                     map[uuid.UUID]struct{}
 	removedorders              map[uuid.UUID]struct{}
 	clearedorders              bool
+	background_tasks           map[uuid.UUID]struct{}
+	removedbackground_tasks    map[uuid.UUID]struct{}
+	clearedbackground_tasks    bool
 	done                       bool
 	oldValue                   func(context.Context) (*Organization, error)
 	predicates                 []predicate.Organization
@@ -15371,6 +16485,60 @@ func (m *OrganizationMutation) ResetOrders() {
 	m.removedorders = nil
 }
 
+// AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by ids.
+func (m *OrganizationMutation) AddBackgroundTaskIDs(ids ...uuid.UUID) {
+	if m.background_tasks == nil {
+		m.background_tasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.background_tasks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBackgroundTasks clears the "background_tasks" edge to the BackgroundTask entity.
+func (m *OrganizationMutation) ClearBackgroundTasks() {
+	m.clearedbackground_tasks = true
+}
+
+// BackgroundTasksCleared reports if the "background_tasks" edge to the BackgroundTask entity was cleared.
+func (m *OrganizationMutation) BackgroundTasksCleared() bool {
+	return m.clearedbackground_tasks
+}
+
+// RemoveBackgroundTaskIDs removes the "background_tasks" edge to the BackgroundTask entity by IDs.
+func (m *OrganizationMutation) RemoveBackgroundTaskIDs(ids ...uuid.UUID) {
+	if m.removedbackground_tasks == nil {
+		m.removedbackground_tasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.background_tasks, ids[i])
+		m.removedbackground_tasks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBackgroundTasks returns the removed IDs of the "background_tasks" edge to the BackgroundTask entity.
+func (m *OrganizationMutation) RemovedBackgroundTasksIDs() (ids []uuid.UUID) {
+	for id := range m.removedbackground_tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BackgroundTasksIDs returns the "background_tasks" edge IDs in the mutation.
+func (m *OrganizationMutation) BackgroundTasksIDs() (ids []uuid.UUID) {
+	for id := range m.background_tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBackgroundTasks resets all changes to the "background_tasks" edge.
+func (m *OrganizationMutation) ResetBackgroundTasks() {
+	m.background_tasks = nil
+	m.clearedbackground_tasks = false
+	m.removedbackground_tasks = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -15598,7 +16766,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -15631,6 +16799,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.orders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.background_tasks != nil {
+		edges = append(edges, organization.EdgeBackgroundTasks)
 	}
 	return edges
 }
@@ -15703,13 +16874,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeBackgroundTasks:
+		ids := make([]ent.Value, 0, len(m.background_tasks))
+		for id := range m.background_tasks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -15739,6 +16916,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedorders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.removedbackground_tasks != nil {
+		edges = append(edges, organization.EdgeBackgroundTasks)
 	}
 	return edges
 }
@@ -15807,13 +16987,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeBackgroundTasks:
+		ids := make([]ent.Value, 0, len(m.removedbackground_tasks))
+		for id := range m.removedbackground_tasks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -15847,6 +17033,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedorders {
 		edges = append(edges, organization.EdgeOrders)
 	}
+	if m.clearedbackground_tasks {
+		edges = append(edges, organization.EdgeBackgroundTasks)
+	}
 	return edges
 }
 
@@ -15876,6 +17065,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedmilestone_templates
 	case organization.EdgeOrders:
 		return m.clearedorders
+	case organization.EdgeBackgroundTasks:
+		return m.clearedbackground_tasks
 	}
 	return false
 }
@@ -15927,6 +17118,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeOrders:
 		m.ResetOrders()
+		return nil
+	case organization.EdgeBackgroundTasks:
+		m.ResetBackgroundTasks()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)

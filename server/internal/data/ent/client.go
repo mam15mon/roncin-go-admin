@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -55,6 +56,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
+	// BackgroundTask is the client for interacting with the BackgroundTask builders.
+	BackgroundTask *BackgroundTaskClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -125,6 +128,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AuditLog = NewAuditLogClient(c.config)
+	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
@@ -247,6 +251,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                   ctx,
 		config:                cfg,
 		AuditLog:              NewAuditLogClient(cfg),
+		BackgroundTask:        NewBackgroundTaskClient(cfg),
 		MasterDataItem:        NewMasterDataItemClient(cfg),
 		Membership:            NewMembershipClient(cfg),
 		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
@@ -296,6 +301,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                   ctx,
 		config:                cfg,
 		AuditLog:              NewAuditLogClient(cfg),
+		BackgroundTask:        NewBackgroundTaskClient(cfg),
 		MasterDataItem:        NewMasterDataItemClient(cfg),
 		Membership:            NewMembershipClient(cfg),
 		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
@@ -354,14 +360,14 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderServiceType, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
+		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
+		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderServiceType, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -371,14 +377,14 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderServiceType, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
+		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
+		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderServiceType, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -389,6 +395,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AuditLogMutation:
 		return c.AuditLog.mutate(ctx, m)
+	case *BackgroundTaskMutation:
+		return c.BackgroundTask.mutate(ctx, m)
 	case *MasterDataItemMutation:
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
@@ -582,6 +590,155 @@ func (c *AuditLogClient) mutate(ctx context.Context, m *AuditLogMutation) (Value
 		return (&AuditLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AuditLog mutation op: %q", m.Op())
+	}
+}
+
+// BackgroundTaskClient is a client for the BackgroundTask schema.
+type BackgroundTaskClient struct {
+	config
+}
+
+// NewBackgroundTaskClient returns a client for the BackgroundTask from the given config.
+func NewBackgroundTaskClient(c config) *BackgroundTaskClient {
+	return &BackgroundTaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `backgroundtask.Hooks(f(g(h())))`.
+func (c *BackgroundTaskClient) Use(hooks ...Hook) {
+	c.hooks.BackgroundTask = append(c.hooks.BackgroundTask, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `backgroundtask.Intercept(f(g(h())))`.
+func (c *BackgroundTaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BackgroundTask = append(c.inters.BackgroundTask, interceptors...)
+}
+
+// Create returns a builder for creating a BackgroundTask entity.
+func (c *BackgroundTaskClient) Create() *BackgroundTaskCreate {
+	mutation := newBackgroundTaskMutation(c.config, OpCreate)
+	return &BackgroundTaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BackgroundTask entities.
+func (c *BackgroundTaskClient) CreateBulk(builders ...*BackgroundTaskCreate) *BackgroundTaskCreateBulk {
+	return &BackgroundTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BackgroundTaskClient) MapCreateBulk(slice any, setFunc func(*BackgroundTaskCreate, int)) *BackgroundTaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BackgroundTaskCreateBulk{err: fmt.Errorf("calling to BackgroundTaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BackgroundTaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BackgroundTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BackgroundTask.
+func (c *BackgroundTaskClient) Update() *BackgroundTaskUpdate {
+	mutation := newBackgroundTaskMutation(c.config, OpUpdate)
+	return &BackgroundTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BackgroundTaskClient) UpdateOne(_m *BackgroundTask) *BackgroundTaskUpdateOne {
+	mutation := newBackgroundTaskMutation(c.config, OpUpdateOne, withBackgroundTask(_m))
+	return &BackgroundTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BackgroundTaskClient) UpdateOneID(id uuid.UUID) *BackgroundTaskUpdateOne {
+	mutation := newBackgroundTaskMutation(c.config, OpUpdateOne, withBackgroundTaskID(id))
+	return &BackgroundTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BackgroundTask.
+func (c *BackgroundTaskClient) Delete() *BackgroundTaskDelete {
+	mutation := newBackgroundTaskMutation(c.config, OpDelete)
+	return &BackgroundTaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BackgroundTaskClient) DeleteOne(_m *BackgroundTask) *BackgroundTaskDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BackgroundTaskClient) DeleteOneID(id uuid.UUID) *BackgroundTaskDeleteOne {
+	builder := c.Delete().Where(backgroundtask.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BackgroundTaskDeleteOne{builder}
+}
+
+// Query returns a query builder for BackgroundTask.
+func (c *BackgroundTaskClient) Query() *BackgroundTaskQuery {
+	return &BackgroundTaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBackgroundTask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BackgroundTask entity by its id.
+func (c *BackgroundTaskClient) Get(ctx context.Context, id uuid.UUID) (*BackgroundTask, error) {
+	return c.Query().Where(backgroundtask.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BackgroundTaskClient) GetX(ctx context.Context, id uuid.UUID) *BackgroundTask {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a BackgroundTask.
+func (c *BackgroundTaskClient) QueryOrganization(_m *BackgroundTask) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, backgroundtask.OrganizationTable, backgroundtask.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BackgroundTaskClient) Hooks() []Hook {
+	return c.hooks.BackgroundTask
+}
+
+// Interceptors returns the client interceptors.
+func (c *BackgroundTaskClient) Interceptors() []Interceptor {
+	return c.inters.BackgroundTask
+}
+
+func (c *BackgroundTaskClient) mutate(ctx context.Context, m *BackgroundTaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BackgroundTaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BackgroundTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BackgroundTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BackgroundTaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BackgroundTask mutation op: %q", m.Op())
 	}
 }
 
@@ -3007,6 +3164,22 @@ func (c *OrganizationClient) QueryOrders(_m *Organization) *OrderQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrdersTable, organization.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBackgroundTasks queries the background_tasks edge of a Organization.
+func (c *OrganizationClient) QueryBackgroundTasks(_m *Organization) *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.BackgroundTasksTable, organization.BackgroundTasksColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -5533,20 +5706,21 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAttachment, OrderCargoCategory,
-		OrderMilestone, OrderPersonnel, OrderServiceType, OrderStatusLog, Organization,
-		Partner, PartnerAccount, PartnerAlias, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerRole, PartnerSettlementRule, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
+		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
+		OrderCargoCategory, OrderMilestone, OrderPersonnel, OrderServiceType,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
-		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAttachment, OrderCargoCategory,
-		OrderMilestone, OrderPersonnel, OrderServiceType, OrderStatusLog, Organization,
-		Partner, PartnerAccount, PartnerAlias, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerRole, PartnerSettlementRule, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
-		User []ent.Interceptor
+		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
+		OrderCargoCategory, OrderMilestone, OrderPersonnel, OrderServiceType,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}
 )

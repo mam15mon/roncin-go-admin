@@ -58,6 +58,63 @@ var (
 			},
 		},
 	}
+	// BackgroundTasksColumns holds the columns for the "background_tasks" table.
+	BackgroundTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION"}},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER"}, Default: "PENDING"},
+		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "max_attempts", Type: field.TypeInt, Default: 3},
+		{Name: "next_run_at", Type: field.TypeTime},
+		{Name: "lease_token", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "lease_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_error", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// BackgroundTasksTable holds the schema information for the "background_tasks" table.
+	BackgroundTasksTable = &schema.Table{
+		Name:       "background_tasks",
+		Columns:    BackgroundTasksColumns,
+		PrimaryKey: []*schema.Column{BackgroundTasksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "background_tasks_organizations_background_tasks",
+				Columns:    []*schema.Column{BackgroundTasksColumns[12]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "backgroundtask_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{BackgroundTasksColumns[2]},
+			},
+			{
+				Name:    "backgroundtask_organization_id_kind_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{BackgroundTasksColumns[12], BackgroundTasksColumns[3], BackgroundTasksColumns[4]},
+			},
+			{
+				Name:    "backgroundtask_status_next_run_at",
+				Unique:  false,
+				Columns: []*schema.Column{BackgroundTasksColumns[5], BackgroundTasksColumns[8]},
+			},
+			{
+				Name:    "backgroundtask_status_lease_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{BackgroundTasksColumns[5], BackgroundTasksColumns[10]},
+			},
+			{
+				Name:    "backgroundtask_organization_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{BackgroundTasksColumns[12], BackgroundTasksColumns[1]},
+			},
+		},
+	}
 	// MasterDataItemsColumns holds the columns for the "master_data_items" table.
 	MasterDataItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1428,6 +1485,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuditLogsTable,
+		BackgroundTasksTable,
 		MasterDataItemsTable,
 		MembershipsTable,
 		MilestoneTemplatesTable,
@@ -1462,6 +1520,7 @@ var (
 )
 
 func init() {
+	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable

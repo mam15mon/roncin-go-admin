@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -102,6 +103,83 @@ func init() {
 	auditlogDescID := auditlogMixinFields0[0].Descriptor()
 	// auditlog.DefaultID holds the default value on creation for the id field.
 	auditlog.DefaultID = auditlogDescID.Default.(func() uuid.UUID)
+	backgroundtaskMixin := schema.BackgroundTask{}.Mixin()
+	backgroundtaskMixinFields0 := backgroundtaskMixin[0].Fields()
+	_ = backgroundtaskMixinFields0
+	backgroundtaskMixinFields1 := backgroundtaskMixin[1].Fields()
+	_ = backgroundtaskMixinFields1
+	backgroundtaskFields := schema.BackgroundTask{}.Fields()
+	_ = backgroundtaskFields
+	// backgroundtaskDescCreatedAt is the schema descriptor for created_at field.
+	backgroundtaskDescCreatedAt := backgroundtaskMixinFields1[0].Descriptor()
+	// backgroundtask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	backgroundtask.DefaultCreatedAt = backgroundtaskDescCreatedAt.Default.(func() time.Time)
+	// backgroundtaskDescUpdatedAt is the schema descriptor for updated_at field.
+	backgroundtaskDescUpdatedAt := backgroundtaskMixinFields1[1].Descriptor()
+	// backgroundtask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	backgroundtask.DefaultUpdatedAt = backgroundtaskDescUpdatedAt.Default.(func() time.Time)
+	// backgroundtask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	backgroundtask.UpdateDefaultUpdatedAt = backgroundtaskDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// backgroundtaskDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	backgroundtaskDescIdempotencyKey := backgroundtaskFields[2].Descriptor()
+	// backgroundtask.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	backgroundtask.IdempotencyKeyValidator = func() func(string) error {
+		validators := backgroundtaskDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// backgroundtaskDescAttempts is the schema descriptor for attempts field.
+	backgroundtaskDescAttempts := backgroundtaskFields[4].Descriptor()
+	// backgroundtask.DefaultAttempts holds the default value on creation for the attempts field.
+	backgroundtask.DefaultAttempts = backgroundtaskDescAttempts.Default.(int)
+	// backgroundtask.AttemptsValidator is a validator for the "attempts" field. It is called by the builders before save.
+	backgroundtask.AttemptsValidator = backgroundtaskDescAttempts.Validators[0].(func(int) error)
+	// backgroundtaskDescMaxAttempts is the schema descriptor for max_attempts field.
+	backgroundtaskDescMaxAttempts := backgroundtaskFields[5].Descriptor()
+	// backgroundtask.DefaultMaxAttempts holds the default value on creation for the max_attempts field.
+	backgroundtask.DefaultMaxAttempts = backgroundtaskDescMaxAttempts.Default.(int)
+	// backgroundtask.MaxAttemptsValidator is a validator for the "max_attempts" field. It is called by the builders before save.
+	backgroundtask.MaxAttemptsValidator = func() func(int) error {
+		validators := backgroundtaskDescMaxAttempts.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(max_attempts int) error {
+			for _, fn := range fns {
+				if err := fn(max_attempts); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// backgroundtaskDescNextRunAt is the schema descriptor for next_run_at field.
+	backgroundtaskDescNextRunAt := backgroundtaskFields[6].Descriptor()
+	// backgroundtask.DefaultNextRunAt holds the default value on creation for the next_run_at field.
+	backgroundtask.DefaultNextRunAt = backgroundtaskDescNextRunAt.Default.(func() time.Time)
+	// backgroundtaskDescLeaseToken is the schema descriptor for lease_token field.
+	backgroundtaskDescLeaseToken := backgroundtaskFields[7].Descriptor()
+	// backgroundtask.LeaseTokenValidator is a validator for the "lease_token" field. It is called by the builders before save.
+	backgroundtask.LeaseTokenValidator = backgroundtaskDescLeaseToken.Validators[0].(func(string) error)
+	// backgroundtaskDescLastError is the schema descriptor for last_error field.
+	backgroundtaskDescLastError := backgroundtaskFields[9].Descriptor()
+	// backgroundtask.LastErrorValidator is a validator for the "last_error" field. It is called by the builders before save.
+	backgroundtask.LastErrorValidator = backgroundtaskDescLastError.Validators[0].(func(string) error)
+	// backgroundtaskDescID is the schema descriptor for id field.
+	backgroundtaskDescID := backgroundtaskMixinFields0[0].Descriptor()
+	// backgroundtask.DefaultID holds the default value on creation for the id field.
+	backgroundtask.DefaultID = backgroundtaskDescID.Default.(func() uuid.UUID)
 	masterdataitemMixin := schema.MasterDataItem{}.Mixin()
 	masterdataitemMixinFields0 := masterdataitemMixin[0].Fields()
 	_ = masterdataitemMixinFields0

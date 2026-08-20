@@ -34,6 +34,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("status_templates", StatusTemplate.Type),
 		edge.To("milestone_templates", MilestoneTemplate.Type),
 		edge.To("orders", Order.Type),
+		edge.To("background_tasks", BackgroundTask.Type),
 	}
 }
 

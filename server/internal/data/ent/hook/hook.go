@@ -21,6 +21,18 @@ func (f AuditLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuditLogMutation", m)
 }
 
+// The BackgroundTaskFunc type is an adapter to allow the use of ordinary
+// function as BackgroundTask mutator.
+type BackgroundTaskFunc func(context.Context, *ent.BackgroundTaskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BackgroundTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BackgroundTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BackgroundTaskMutation", m)
+}
+
 // The MasterDataItemFunc type is an adapter to allow the use of ordinary
 // function as MasterDataItem mutator.
 type MasterDataItemFunc func(context.Context, *ent.MasterDataItemMutation) (ent.Value, error)

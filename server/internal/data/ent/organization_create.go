@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -265,6 +266,21 @@ func (_c *OrganizationCreate) AddOrders(v ...*Order) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderIDs(ids...)
+}
+
+// AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by IDs.
+func (_c *OrganizationCreate) AddBackgroundTaskIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddBackgroundTaskIDs(ids...)
+	return _c
+}
+
+// AddBackgroundTasks adds the "background_tasks" edges to the BackgroundTask entity.
+func (_c *OrganizationCreate) AddBackgroundTasks(v ...*BackgroundTask) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBackgroundTaskIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -572,6 +588,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BackgroundTasksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BackgroundTasksTable,
+			Columns: []string{organization.BackgroundTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(backgroundtask.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
