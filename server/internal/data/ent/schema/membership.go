@@ -15,8 +15,8 @@ func (Membership) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{
 
 func (Membership) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("user_id", uuid.Nil).Immutable(),
-		field.UUID("organization_id", uuid.Nil).Immutable(),
+		field.UUID("user_id", uuid.Nil),
+		field.UUID("organization_id", uuid.Nil),
 		field.Bool("primary").Default(false),
 		field.Bool("enabled").Default(true),
 	}

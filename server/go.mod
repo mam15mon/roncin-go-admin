@@ -5,7 +5,7 @@ go 1.25.7
 require (
 	entgo.io/ent v0.14.6
 	github.com/go-kratos/aip-go/ents v0.0.0-20260815143928-41e753c0455d
-	github.com/google/wire v0.6.0
+	github.com/google/wire v0.7.0
 	github.com/jackc/pgx/v5 v5.7.1
 	go.einride.tech/aip v0.86.3
 	go.uber.org/automaxprocs v1.6.0

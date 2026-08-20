@@ -15,8 +15,8 @@ func (RoleAssignment) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (RoleAssignment) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("membership_id", uuid.Nil).Immutable(),
-		field.UUID("role_id", uuid.Nil).Immutable(),
+		field.UUID("membership_id", uuid.Nil),
+		field.UUID("role_id", uuid.Nil),
 	}
 }
 

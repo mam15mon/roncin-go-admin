@@ -6,5 +6,29 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AuditLog is the predicate function for auditlog builders.
+type AuditLog func(*sql.Selector)
+
+// Membership is the predicate function for membership builders.
+type Membership func(*sql.Selector)
+
+// Organization is the predicate function for organization builders.
+type Organization func(*sql.Selector)
+
+// Permission is the predicate function for permission builders.
+type Permission func(*sql.Selector)
+
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
+
+// RoleAssignment is the predicate function for roleassignment builders.
+type RoleAssignment func(*sql.Selector)
+
+// Session is the predicate function for session builders.
+type Session func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
+
+// User is the predicate function for user builders.
+type User func(*sql.Selector)

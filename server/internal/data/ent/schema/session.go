@@ -17,7 +17,7 @@ func (Session) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} 
 
 func (Session) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("user_id", uuid.Nil).Immutable(),
+		field.UUID("user_id", uuid.Nil),
 		field.UUID("organization_id", uuid.Nil),
 		field.String("token_hash").NotEmpty().MaxLen(64).Unique().Sensitive(),
 		field.Time("expires_at"),

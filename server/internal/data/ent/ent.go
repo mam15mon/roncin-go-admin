@@ -12,7 +12,15 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/todo"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -73,7 +81,15 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			todo.Table: todo.ValidColumn,
+			auditlog.Table:       auditlog.ValidColumn,
+			membership.Table:     membership.ValidColumn,
+			organization.Table:   organization.ValidColumn,
+			permission.Table:     permission.ValidColumn,
+			role.Table:           role.ValidColumn,
+			roleassignment.Table: roleassignment.ValidColumn,
+			session.Table:        session.ValidColumn,
+			todo.Table:           todo.ValidColumn,
+			user.Table:           user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

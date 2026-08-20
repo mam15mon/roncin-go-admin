@@ -26,6 +26,7 @@ type Bootstrap struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Server        *Server                `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
 	Data          *Data                  `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Security      *Security              `protobuf:"bytes,3,opt,name=security,proto3" json:"security,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,6 +71,13 @@ func (x *Bootstrap) GetServer() *Server {
 func (x *Bootstrap) GetData() *Data {
 	if x != nil {
 		return x.Data
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetSecurity() *Security {
+	if x != nil {
+		return x.Security
 	}
 	return nil
 }
@@ -178,6 +186,50 @@ func (x *Data) GetRedis() *Data_Redis {
 	return nil
 }
 
+type Security struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Security_Session      `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Security) Reset() {
+	*x = Security{}
+	mi := &file_conf_conf_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security) ProtoMessage() {}
+
+func (x *Security) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Security.ProtoReflect.Descriptor instead.
+func (*Security) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Security) GetSession() *Security_Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Network       string                 `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
@@ -189,7 +241,7 @@ type Server_HTTP struct {
 
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
-	mi := &file_conf_conf_proto_msgTypes[3]
+	mi := &file_conf_conf_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -201,7 +253,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[3]
+	mi := &file_conf_conf_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -249,7 +301,7 @@ type Server_GRPC struct {
 
 func (x *Server_GRPC) Reset() {
 	*x = Server_GRPC{}
-	mi := &file_conf_conf_proto_msgTypes[4]
+	mi := &file_conf_conf_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -261,7 +313,7 @@ func (x *Server_GRPC) String() string {
 func (*Server_GRPC) ProtoMessage() {}
 
 func (x *Server_GRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[4]
+	mi := &file_conf_conf_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -300,7 +352,7 @@ func (x *Server_GRPC) GetTimeout() *durationpb.Duration {
 
 type Data_Database struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Driver name registered with database/sql, e.g. "mysql".
+	// The platform database dialect. Roncin requires "postgres".
 	Driver string `protobuf:"bytes,1,opt,name=driver,proto3" json:"driver,omitempty"`
 	// Driver-specific DSN. Keep credentials out of version control.
 	Source string `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
@@ -308,14 +360,17 @@ type Data_Database struct {
 	Debug bool `protobuf:"varint,3,opt,name=debug,proto3" json:"debug,omitempty"`
 	// Create or update tables from the ent schema on startup. Leave false in
 	// production and apply migrations as a separate, reviewed step.
-	AutoMigrate   bool `protobuf:"varint,4,opt,name=auto_migrate,json=autoMigrate,proto3" json:"auto_migrate,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AutoMigrate           bool                 `protobuf:"varint,4,opt,name=auto_migrate,json=autoMigrate,proto3" json:"auto_migrate,omitempty"`
+	MaxOpenConnections    int32                `protobuf:"varint,5,opt,name=max_open_connections,json=maxOpenConnections,proto3" json:"max_open_connections,omitempty"`
+	MaxIdleConnections    int32                `protobuf:"varint,6,opt,name=max_idle_connections,json=maxIdleConnections,proto3" json:"max_idle_connections,omitempty"`
+	ConnectionMaxLifetime *durationpb.Duration `protobuf:"bytes,7,opt,name=connection_max_lifetime,json=connectionMaxLifetime,proto3" json:"connection_max_lifetime,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Data_Database) Reset() {
 	*x = Data_Database{}
-	mi := &file_conf_conf_proto_msgTypes[5]
+	mi := &file_conf_conf_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +382,7 @@ func (x *Data_Database) String() string {
 func (*Data_Database) ProtoMessage() {}
 
 func (x *Data_Database) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[5]
+	mi := &file_conf_conf_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,6 +426,27 @@ func (x *Data_Database) GetAutoMigrate() bool {
 	return false
 }
 
+func (x *Data_Database) GetMaxOpenConnections() int32 {
+	if x != nil {
+		return x.MaxOpenConnections
+	}
+	return 0
+}
+
+func (x *Data_Database) GetMaxIdleConnections() int32 {
+	if x != nil {
+		return x.MaxIdleConnections
+	}
+	return 0
+}
+
+func (x *Data_Database) GetConnectionMaxLifetime() *durationpb.Duration {
+	if x != nil {
+		return x.ConnectionMaxLifetime
+	}
+	return nil
+}
+
 type Data_Redis struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Network       string                 `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
@@ -383,7 +459,7 @@ type Data_Redis struct {
 
 func (x *Data_Redis) Reset() {
 	*x = Data_Redis{}
-	mi := &file_conf_conf_proto_msgTypes[6]
+	mi := &file_conf_conf_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +471,7 @@ func (x *Data_Redis) String() string {
 func (*Data_Redis) ProtoMessage() {}
 
 func (x *Data_Redis) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[6]
+	mi := &file_conf_conf_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -439,15 +515,84 @@ func (x *Data_Redis) GetWriteTimeout() *durationpb.Duration {
 	return nil
 }
 
+type Security_Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CookieName    string                 `protobuf:"bytes,1,opt,name=cookie_name,json=cookieName,proto3" json:"cookie_name,omitempty"`
+	Ttl           *durationpb.Duration   `protobuf:"bytes,2,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	Secure        bool                   `protobuf:"varint,3,opt,name=secure,proto3" json:"secure,omitempty"`
+	SameSite      string                 `protobuf:"bytes,4,opt,name=same_site,json=sameSite,proto3" json:"same_site,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Security_Session) Reset() {
+	*x = Security_Session{}
+	mi := &file_conf_conf_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security_Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security_Session) ProtoMessage() {}
+
+func (x *Security_Session) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Security_Session.ProtoReflect.Descriptor instead.
+func (*Security_Session) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{3, 0}
+}
+
+func (x *Security_Session) GetCookieName() string {
+	if x != nil {
+		return x.CookieName
+	}
+	return ""
+}
+
+func (x *Security_Session) GetTtl() *durationpb.Duration {
+	if x != nil {
+		return x.Ttl
+	}
+	return nil
+}
+
+func (x *Security_Session) GetSecure() bool {
+	if x != nil {
+		return x.Secure
+	}
+	return false
+}
+
+func (x *Security_Session) GetSameSite() string {
+	if x != nil {
+		return x.SameSite
+	}
+	return ""
+}
+
 var File_conf_conf_proto protoreflect.FileDescriptor
 
 const file_conf_conf_proto_rawDesc = "" +
 	"\n" +
 	"\x0fconf/conf.proto\x12\n" +
-	"kratos.api\x1a\x1egoogle/protobuf/duration.proto\"]\n" +
+	"kratos.api\x1a\x1egoogle/protobuf/duration.proto\"\x8f\x01\n" +
 	"\tBootstrap\x12*\n" +
 	"\x06server\x18\x01 \x01(\v2\x12.kratos.api.ServerR\x06server\x12$\n" +
-	"\x04data\x18\x02 \x01(\v2\x10.kratos.api.DataR\x04data\"\xb8\x02\n" +
+	"\x04data\x18\x02 \x01(\v2\x10.kratos.api.DataR\x04data\x120\n" +
+	"\bsecurity\x18\x03 \x01(\v2\x14.kratos.api.SecurityR\bsecurity\"\xb8\x02\n" +
 	"\x06Server\x12+\n" +
 	"\x04http\x18\x01 \x01(\v2\x17.kratos.api.Server.HTTPR\x04http\x12+\n" +
 	"\x04grpc\x18\x02 \x01(\v2\x17.kratos.api.Server.GRPCR\x04grpc\x1ai\n" +
@@ -458,20 +603,31 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04GRPC\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x96\x03\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xce\x04\n" +
 	"\x04Data\x125\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x19.kratos.api.Data.DatabaseR\bdatabase\x12,\n" +
-	"\x05redis\x18\x02 \x01(\v2\x16.kratos.api.Data.RedisR\x05redis\x1as\n" +
+	"\x05redis\x18\x02 \x01(\v2\x16.kratos.api.Data.RedisR\x05redis\x1a\xaa\x02\n" +
 	"\bDatabase\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x12\x14\n" +
 	"\x05debug\x18\x03 \x01(\bR\x05debug\x12!\n" +
-	"\fauto_migrate\x18\x04 \x01(\bR\vautoMigrate\x1a\xb3\x01\n" +
+	"\fauto_migrate\x18\x04 \x01(\bR\vautoMigrate\x120\n" +
+	"\x14max_open_connections\x18\x05 \x01(\x05R\x12maxOpenConnections\x120\n" +
+	"\x14max_idle_connections\x18\x06 \x01(\x05R\x12maxIdleConnections\x12Q\n" +
+	"\x17connection_max_lifetime\x18\a \x01(\v2\x19.google.protobuf.DurationR\x15connectionMaxLifetime\x1a\xb3\x01\n" +
 	"\x05Redis\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeoutB7Z5github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xd1\x01\n" +
+	"\bSecurity\x126\n" +
+	"\asession\x18\x01 \x01(\v2\x1c.kratos.api.Security.SessionR\asession\x1a\x8c\x01\n" +
+	"\aSession\x12\x1f\n" +
+	"\vcookie_name\x18\x01 \x01(\tR\n" +
+	"cookieName\x12+\n" +
+	"\x03ttl\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x03ttl\x12\x16\n" +
+	"\x06secure\x18\x03 \x01(\bR\x06secure\x12\x1b\n" +
+	"\tsame_site\x18\x04 \x01(\tR\bsameSiteB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -485,33 +641,39 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: kratos.api.Bootstrap
 	(*Server)(nil),              // 1: kratos.api.Server
 	(*Data)(nil),                // 2: kratos.api.Data
-	(*Server_HTTP)(nil),         // 3: kratos.api.Server.HTTP
-	(*Server_GRPC)(nil),         // 4: kratos.api.Server.GRPC
-	(*Data_Database)(nil),       // 5: kratos.api.Data.Database
-	(*Data_Redis)(nil),          // 6: kratos.api.Data.Redis
-	(*durationpb.Duration)(nil), // 7: google.protobuf.Duration
+	(*Security)(nil),            // 3: kratos.api.Security
+	(*Server_HTTP)(nil),         // 4: kratos.api.Server.HTTP
+	(*Server_GRPC)(nil),         // 5: kratos.api.Server.GRPC
+	(*Data_Database)(nil),       // 6: kratos.api.Data.Database
+	(*Data_Redis)(nil),          // 7: kratos.api.Data.Redis
+	(*Security_Session)(nil),    // 8: kratos.api.Security.Session
+	(*durationpb.Duration)(nil), // 9: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
 	1,  // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
 	2,  // 1: kratos.api.Bootstrap.data:type_name -> kratos.api.Data
-	3,  // 2: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
-	4,  // 3: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
-	5,  // 4: kratos.api.Data.database:type_name -> kratos.api.Data.Database
-	6,  // 5: kratos.api.Data.redis:type_name -> kratos.api.Data.Redis
-	7,  // 6: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	7,  // 7: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	7,  // 8: kratos.api.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
-	7,  // 9: kratos.api.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	3,  // 2: kratos.api.Bootstrap.security:type_name -> kratos.api.Security
+	4,  // 3: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
+	5,  // 4: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
+	6,  // 5: kratos.api.Data.database:type_name -> kratos.api.Data.Database
+	7,  // 6: kratos.api.Data.redis:type_name -> kratos.api.Data.Redis
+	8,  // 7: kratos.api.Security.session:type_name -> kratos.api.Security.Session
+	9,  // 8: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	9,  // 9: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	9,  // 10: kratos.api.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	9,  // 11: kratos.api.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
+	9,  // 12: kratos.api.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
+	9,  // 13: kratos.api.Security.Session.ttl:type_name -> google.protobuf.Duration
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -525,7 +687,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_conf_proto_rawDesc), len(file_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

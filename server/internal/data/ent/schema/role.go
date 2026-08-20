@@ -15,7 +15,7 @@ func (Role) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("organization_id", uuid.Nil).Immutable(),
+		field.UUID("organization_id", uuid.Nil),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(100),
 		field.Enum("data_scope").Values("all", "organization", "organization_tree", "self").Default("organization"),

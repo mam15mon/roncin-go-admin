@@ -12,8 +12,24 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AuditLog is the client for interacting with the AuditLog builders.
+	AuditLog *AuditLogClient
+	// Membership is the client for interacting with the Membership builders.
+	Membership *MembershipClient
+	// Organization is the client for interacting with the Organization builders.
+	Organization *OrganizationClient
+	// Permission is the client for interacting with the Permission builders.
+	Permission *PermissionClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// RoleAssignment is the client for interacting with the RoleAssignment builders.
+	RoleAssignment *RoleAssignmentClient
+	// Session is the client for interacting with the Session builders.
+	Session *SessionClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -145,7 +161,15 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AuditLog = NewAuditLogClient(tx.config)
+	tx.Membership = NewMembershipClient(tx.config)
+	tx.Organization = NewOrganizationClient(tx.config)
+	tx.Permission = NewPermissionClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
+	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
+	tx.Session = NewSessionClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -155,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Todo.QueryXXX(), the query will be executed
+// applies a query, for example: AuditLog.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
