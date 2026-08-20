@@ -25,6 +25,13 @@ export default [
     component: './partners',
   },
   {
+    path: '/admin',
+    name: '系统管理',
+    icon: 'setting',
+    access: 'canAccessPlatform',
+    component: './admin',
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },
