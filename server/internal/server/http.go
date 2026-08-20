@@ -10,6 +10,7 @@ import (
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
+	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
@@ -22,7 +23,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -55,6 +56,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	partnerv1.RegisterPartnerServiceHTTPServer(srv, partner)
 	adminv1.RegisterAdminServiceHTTPServer(srv, admin)
 	masterdatav1.RegisterMasterDataServiceHTTPServer(srv, masterData)
+	orderv1.RegisterOrderServiceHTTPServer(srv, order)
 	registerHealthHandlers(srv, readiness)
 	srv.HandlePrefix("/", webassets.Handler())
 	return srv

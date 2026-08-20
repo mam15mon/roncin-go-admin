@@ -8,6 +8,7 @@ import (
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
+	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -85,6 +86,11 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		masterdatav1.OperationMasterDataServiceCreateMilestoneTemplate:     {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServicePublishMilestoneTemplate:    {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceSetDefaultMilestoneTemplate: {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceGetOrder:                              {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceListOrders:                            {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceCreateOrder:                           {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceUpdateOrder:                           {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceTransitionOrderStatus:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {
