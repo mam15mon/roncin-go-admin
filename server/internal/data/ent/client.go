@@ -27,6 +27,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -67,6 +68,8 @@ type Client struct {
 	PartnerAccount *PartnerAccountClient
 	// PartnerAlias is the client for interacting with the PartnerAlias builders.
 	PartnerAlias *PartnerAliasClient
+	// PartnerAttachment is the client for interacting with the PartnerAttachment builders.
+	PartnerAttachment *PartnerAttachmentClient
 	// PartnerContact is the client for interacting with the PartnerContact builders.
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
@@ -111,6 +114,7 @@ func (c *Client) init() {
 	c.Partner = NewPartnerClient(c.config)
 	c.PartnerAccount = NewPartnerAccountClient(c.config)
 	c.PartnerAlias = NewPartnerAliasClient(c.config)
+	c.PartnerAttachment = NewPartnerAttachmentClient(c.config)
 	c.PartnerContact = NewPartnerContactClient(c.config)
 	c.PartnerContract = NewPartnerContractClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
@@ -225,6 +229,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
 		PartnerAlias:          NewPartnerAliasClient(cfg),
+		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
@@ -266,6 +271,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
 		PartnerAlias:          NewPartnerAliasClient(cfg),
+		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
@@ -308,10 +314,10 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -323,10 +329,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -357,6 +363,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerAccount.mutate(ctx, m)
 	case *PartnerAliasMutation:
 		return c.PartnerAlias.mutate(ctx, m)
+	case *PartnerAttachmentMutation:
+		return c.PartnerAttachment.mutate(ctx, m)
 	case *PartnerContactMutation:
 		return c.PartnerContact.mutate(ctx, m)
 	case *PartnerContractMutation:
@@ -1956,6 +1964,22 @@ func (c *PartnerClient) QueryContracts(_m *Partner) *PartnerContractQuery {
 	return query
 }
 
+// QueryAttachments queries the attachments edge of a Partner.
+func (c *PartnerClient) QueryAttachments(_m *Partner) *PartnerAttachmentQuery {
+	query := (&PartnerAttachmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partnerattachment.Table, partnerattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AttachmentsTable, partner.AttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PartnerClient) Hooks() []Hook {
 	return c.hooks.Partner
@@ -2276,6 +2300,155 @@ func (c *PartnerAliasClient) mutate(ctx context.Context, m *PartnerAliasMutation
 		return (&PartnerAliasDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown PartnerAlias mutation op: %q", m.Op())
+	}
+}
+
+// PartnerAttachmentClient is a client for the PartnerAttachment schema.
+type PartnerAttachmentClient struct {
+	config
+}
+
+// NewPartnerAttachmentClient returns a client for the PartnerAttachment from the given config.
+func NewPartnerAttachmentClient(c config) *PartnerAttachmentClient {
+	return &PartnerAttachmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnerattachment.Hooks(f(g(h())))`.
+func (c *PartnerAttachmentClient) Use(hooks ...Hook) {
+	c.hooks.PartnerAttachment = append(c.hooks.PartnerAttachment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnerattachment.Intercept(f(g(h())))`.
+func (c *PartnerAttachmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerAttachment = append(c.inters.PartnerAttachment, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerAttachment entity.
+func (c *PartnerAttachmentClient) Create() *PartnerAttachmentCreate {
+	mutation := newPartnerAttachmentMutation(c.config, OpCreate)
+	return &PartnerAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerAttachment entities.
+func (c *PartnerAttachmentClient) CreateBulk(builders ...*PartnerAttachmentCreate) *PartnerAttachmentCreateBulk {
+	return &PartnerAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerAttachmentClient) MapCreateBulk(slice any, setFunc func(*PartnerAttachmentCreate, int)) *PartnerAttachmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerAttachmentCreateBulk{err: fmt.Errorf("calling to PartnerAttachmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerAttachmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerAttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerAttachment.
+func (c *PartnerAttachmentClient) Update() *PartnerAttachmentUpdate {
+	mutation := newPartnerAttachmentMutation(c.config, OpUpdate)
+	return &PartnerAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerAttachmentClient) UpdateOne(_m *PartnerAttachment) *PartnerAttachmentUpdateOne {
+	mutation := newPartnerAttachmentMutation(c.config, OpUpdateOne, withPartnerAttachment(_m))
+	return &PartnerAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerAttachmentClient) UpdateOneID(id uuid.UUID) *PartnerAttachmentUpdateOne {
+	mutation := newPartnerAttachmentMutation(c.config, OpUpdateOne, withPartnerAttachmentID(id))
+	return &PartnerAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerAttachment.
+func (c *PartnerAttachmentClient) Delete() *PartnerAttachmentDelete {
+	mutation := newPartnerAttachmentMutation(c.config, OpDelete)
+	return &PartnerAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerAttachmentClient) DeleteOne(_m *PartnerAttachment) *PartnerAttachmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerAttachmentClient) DeleteOneID(id uuid.UUID) *PartnerAttachmentDeleteOne {
+	builder := c.Delete().Where(partnerattachment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerAttachmentDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerAttachment.
+func (c *PartnerAttachmentClient) Query() *PartnerAttachmentQuery {
+	return &PartnerAttachmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerAttachment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerAttachment entity by its id.
+func (c *PartnerAttachmentClient) Get(ctx context.Context, id uuid.UUID) (*PartnerAttachment, error) {
+	return c.Query().Where(partnerattachment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerAttachmentClient) GetX(ctx context.Context, id uuid.UUID) *PartnerAttachment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPartner queries the partner edge of a PartnerAttachment.
+func (c *PartnerAttachmentClient) QueryPartner(_m *PartnerAttachment) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerattachment.Table, partnerattachment.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerattachment.PartnerTable, partnerattachment.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerAttachmentClient) Hooks() []Hook {
+	return c.hooks.PartnerAttachment
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerAttachmentClient) Interceptors() []Interceptor {
+	return c.inters.PartnerAttachment
+}
+
+func (c *PartnerAttachmentClient) mutate(ctx context.Context, m *PartnerAttachmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerAttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerAttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerAttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerAttachment mutation op: %q", m.Op())
 	}
 }
 
@@ -4051,14 +4224,14 @@ type (
 	hooks struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerContact, PartnerContract, PartnerRole,
+		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerContact, PartnerContract, PartnerRole,
+		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}

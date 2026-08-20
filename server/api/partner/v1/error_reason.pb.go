@@ -47,6 +47,9 @@ const (
 	ErrorReason_PARTNER_SETTLEMENT_RULE_NOT_FOUND        ErrorReason = 20
 	ErrorReason_PARTNER_SETTLEMENT_RULE_EXISTS           ErrorReason = 21
 	ErrorReason_PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT ErrorReason = 22
+	ErrorReason_PARTNER_ATTACHMENT_NOT_FOUND             ErrorReason = 23
+	ErrorReason_PARTNER_ATTACHMENT_EXISTS                ErrorReason = 24
+	ErrorReason_PARTNER_ATTACHMENT_INVALID_ARGUMENT      ErrorReason = 25
 )
 
 // Enum value maps for ErrorReason.
@@ -75,6 +78,9 @@ var (
 		20: "PARTNER_SETTLEMENT_RULE_NOT_FOUND",
 		21: "PARTNER_SETTLEMENT_RULE_EXISTS",
 		22: "PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT",
+		23: "PARTNER_ATTACHMENT_NOT_FOUND",
+		24: "PARTNER_ATTACHMENT_EXISTS",
+		25: "PARTNER_ATTACHMENT_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
 		"PARTNER_UNSPECIFIED":                      0,
@@ -100,6 +106,9 @@ var (
 		"PARTNER_SETTLEMENT_RULE_NOT_FOUND":        20,
 		"PARTNER_SETTLEMENT_RULE_EXISTS":           21,
 		"PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT": 22,
+		"PARTNER_ATTACHMENT_NOT_FOUND":             23,
+		"PARTNER_ATTACHMENT_EXISTS":                24,
+		"PARTNER_ATTACHMENT_INVALID_ARGUMENT":      25,
 	}
 )
 
@@ -135,7 +144,7 @@ var File_partner_v1_error_reason_proto protoreflect.FileDescriptor
 const file_partner_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dpartner/v1/error_reason.proto\x12\n" +
-	"partner.v1*\xfe\x05\n" +
+	"partner.v1*\xe8\x06\n" +
 	"\vErrorReason\x12\x17\n" +
 	"\x13PARTNER_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PARTNER_NOT_FOUND\x10\x01\x12\x17\n" +
@@ -160,7 +169,10 @@ const file_partner_v1_error_reason_proto_rawDesc = "" +
 	" PARTNER_CONTRACT_STATUS_CONFLICT\x10\x13\x12%\n" +
 	"!PARTNER_SETTLEMENT_RULE_NOT_FOUND\x10\x14\x12\"\n" +
 	"\x1ePARTNER_SETTLEMENT_RULE_EXISTS\x10\x15\x12,\n" +
-	"(PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT\x10\x16B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"(PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT\x10\x16\x12 \n" +
+	"\x1cPARTNER_ATTACHMENT_NOT_FOUND\x10\x17\x12\x1d\n" +
+	"\x19PARTNER_ATTACHMENT_EXISTS\x10\x18\x12'\n" +
+	"#PARTNER_ATTACHMENT_INVALID_ARGUMENT\x10\x19B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_error_reason_proto_rawDescOnce sync.Once

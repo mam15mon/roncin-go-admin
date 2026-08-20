@@ -34,6 +34,8 @@ type Tx struct {
 	PartnerAccount *PartnerAccountClient
 	// PartnerAlias is the client for interacting with the PartnerAlias builders.
 	PartnerAlias *PartnerAliasClient
+	// PartnerAttachment is the client for interacting with the PartnerAttachment builders.
+	PartnerAttachment *PartnerAttachmentClient
 	// PartnerContact is the client for interacting with the PartnerContact builders.
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
@@ -198,6 +200,7 @@ func (tx *Tx) init() {
 	tx.Partner = NewPartnerClient(tx.config)
 	tx.PartnerAccount = NewPartnerAccountClient(tx.config)
 	tx.PartnerAlias = NewPartnerAliasClient(tx.config)
+	tx.PartnerAttachment = NewPartnerAttachmentClient(tx.config)
 	tx.PartnerContact = NewPartnerContactClient(tx.config)
 	tx.PartnerContract = NewPartnerContractClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)

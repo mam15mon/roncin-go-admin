@@ -33,6 +33,8 @@ const (
 	PartnerService_ListPartnerSettlementRules_FullMethodName  = "/partner.v1.PartnerService/ListPartnerSettlementRules"
 	PartnerService_CreatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/CreatePartnerSettlementRule"
 	PartnerService_UpdatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
+	PartnerService_ListPartnerAttachments_FullMethodName      = "/partner.v1.PartnerService/ListPartnerAttachments"
+	PartnerService_RegisterPartnerAttachment_FullMethodName   = "/partner.v1.PartnerService/RegisterPartnerAttachment"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -53,6 +55,8 @@ type PartnerServiceClient interface {
 	ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleListReply, error)
 	CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
 	UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
+	ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*PartnerAttachmentListReply, error)
+	RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error)
 }
 
 type partnerServiceClient struct {
@@ -203,6 +207,26 @@ func (c *partnerServiceClient) UpdatePartnerSettlementRule(ctx context.Context, 
 	return out, nil
 }
 
+func (c *partnerServiceClient) ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*PartnerAttachmentListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAttachmentListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAttachments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAttachmentReply)
+	err := c.cc.Invoke(ctx, PartnerService_RegisterPartnerAttachment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
@@ -221,6 +245,8 @@ type PartnerServiceServer interface {
 	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
 	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
 	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
+	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error)
+	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -272,6 +298,12 @@ func (UnimplementedPartnerServiceServer) CreatePartnerSettlementRule(context.Con
 }
 func (UnimplementedPartnerServiceServer) UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerSettlementRule not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerAttachments not implemented")
+}
+func (UnimplementedPartnerServiceServer) RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterPartnerAttachment not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -546,6 +578,42 @@ func _PartnerService_UpdatePartnerSettlementRule_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ListPartnerAttachments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerAttachmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerAttachments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerAttachments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerAttachments(ctx, req.(*ListPartnerAttachmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_RegisterPartnerAttachment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterPartnerAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).RegisterPartnerAttachment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_RegisterPartnerAttachment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).RegisterPartnerAttachment(ctx, req.(*RegisterPartnerAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -608,6 +676,14 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartnerSettlementRule",
 			Handler:    _PartnerService_UpdatePartnerSettlementRule_Handler,
+		},
+		{
+			MethodName: "ListPartnerAttachments",
+			Handler:    _PartnerService_ListPartnerAttachments_Handler,
+		},
+		{
+			MethodName: "RegisterPartnerAttachment",
+			Handler:    _PartnerService_RegisterPartnerAttachment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

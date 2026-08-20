@@ -65,6 +65,8 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		partnerv1.OperationPartnerServiceListPartnerSettlementRules:        {key: access.PartnerRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceCreatePartnerSettlementRule:       {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceUpdatePartnerSettlementRule:       {key: access.PartnerManage, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceListPartnerAttachments:            {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceRegisterPartnerAttachment:         {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListItems:                   {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListOptions:                 {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceCreateItem:                  {key: access.MasterDataManage, scope: biz.DataScopeOrganization},

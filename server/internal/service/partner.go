@@ -17,10 +17,11 @@ type PartnerService struct {
 	accountUsecase        *biz.PartnerAccountUsecase
 	contractUsecase       *biz.PartnerContractUsecase
 	settlementRuleUsecase *biz.PartnerSettlementRuleUsecase
+	attachmentUsecase     *biz.PartnerAttachmentUsecase
 }
 
-func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerAccountUsecase, contractUsecase *biz.PartnerContractUsecase, settlementRuleUsecase *biz.PartnerSettlementRuleUsecase) *PartnerService {
-	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase}
+func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerAccountUsecase, contractUsecase *biz.PartnerContractUsecase, settlementRuleUsecase *biz.PartnerSettlementRuleUsecase, attachmentUsecase *biz.PartnerAttachmentUsecase) *PartnerService {
+	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase, attachmentUsecase: attachmentUsecase}
 }
 
 func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.PartnerReply, error) {
@@ -310,6 +311,44 @@ func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, reques
 		return nil, err
 	}
 	return partnerSettlementRuleReply(ctx, updated), nil
+}
+
+func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1.ListPartnerAttachmentsRequest) (*v1.PartnerAttachmentListReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerAttachmentInvalidArgument
+	}
+	items, err := s.attachmentUsecase.List(ctx, principal.Organization.ID, partnerID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.PartnerAttachment, 0, len(items))
+	for _, item := range items {
+		data = append(data, partnerAttachmentToAPI(item))
+	}
+	return &v1.PartnerAttachmentListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request *v1.RegisterPartnerAttachmentRequest) (*v1.PartnerAttachmentReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerAttachmentInvalidArgument
+	}
+	created, err := s.attachmentUsecase.Register(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.PartnerAttachment{
+		IdempotencyKey: request.GetIdempotencyKey(), FileName: request.GetFileName(), MIMEType: request.GetMimeType(), FileSize: request.GetFileSize(), ObjectKey: request.GetObjectKey(), Checksum: request.GetChecksum(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return partnerAttachmentReply(ctx, created), nil
 }
 
 func parseContractDates(start, end string) (time.Time, time.Time, error) {
@@ -661,6 +700,22 @@ func partnerSettlementRuleToAPI(value *biz.PartnerSettlementRule) *v1.PartnerSet
 
 func partnerSettlementRuleReply(ctx context.Context, value *biz.PartnerSettlementRule) *v1.PartnerSettlementRuleReply {
 	return &v1.PartnerSettlementRuleReply{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+}
+
+func partnerAttachmentToAPI(value *biz.PartnerAttachment) *v1.PartnerAttachment {
+	result := &v1.PartnerAttachment{
+		Id: value.ID.String(), PartnerId: value.PartnerID.String(), IdempotencyKey: value.IdempotencyKey, FileName: value.FileName,
+		MimeType: value.MIMEType, FileSize: value.FileSize, ObjectKey: value.ObjectKey, Checksum: value.Checksum,
+		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
+	}
+	if value.UploadedBy != nil {
+		result.UploadedBy = value.UploadedBy.String()
+	}
+	return result
+}
+
+func partnerAttachmentReply(ctx context.Context, value *biz.PartnerAttachment) *v1.PartnerAttachmentReply {
+	return &v1.PartnerAttachmentReply{Success: true, Code: 0, Message: "OK", Data: partnerAttachmentToAPI(value), TraceId: requestmeta.TraceID(ctx)}
 }
 
 func formatOptionalTime(value *time.Time) string {

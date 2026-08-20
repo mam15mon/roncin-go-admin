@@ -849,6 +849,47 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerAccountReply'
+    /api/v1/partners/{partnerId}/attachments:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerAttachments
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerAttachmentListReply'
+        post:
+            tags:
+                - PartnerService
+            operationId: PartnerService_RegisterPartnerAttachment
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.RegisterPartnerAttachmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerAttachmentReply'
     /api/v1/partners/{partnerId}/contracts:
         get:
             tags:
@@ -2307,6 +2348,61 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
+        partner.v1.PartnerAttachment:
+            type: object
+            properties:
+                id:
+                    type: string
+                partnerId:
+                    type: string
+                idempotencyKey:
+                    type: string
+                fileName:
+                    type: string
+                mimeType:
+                    type: string
+                fileSize:
+                    type: string
+                objectKey:
+                    type: string
+                checksum:
+                    type: string
+                uploadedBy:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerAttachmentListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAttachment'
+                traceId:
+                    type: string
+        partner.v1.PartnerAttachmentReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.PartnerAttachment'
+                traceId:
+                    type: string
         partner.v1.PartnerContact:
             type: object
             properties:
@@ -2545,6 +2641,30 @@ components:
                 data:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRule'
                 traceId:
+                    type: string
+        partner.v1.RegisterPartnerAttachmentRequest:
+            required:
+                - partnerId
+                - idempotencyKey
+                - fileName
+                - mimeType
+                - fileSize
+                - objectKey
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                idempotencyKey:
+                    type: string
+                fileName:
+                    type: string
+                mimeType:
+                    type: string
+                fileSize:
+                    type: string
+                objectKey:
+                    type: string
+                checksum:
                     type: string
         partner.v1.SetSupplierBlacklistRequest:
             required:

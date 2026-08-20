@@ -39,6 +39,9 @@ type PartnerAccount func(*sql.Selector)
 // PartnerAlias is the predicate function for partneralias builders.
 type PartnerAlias func(*sql.Selector)
 
+// PartnerAttachment is the predicate function for partnerattachment builders.
+type PartnerAttachment func(*sql.Selector)
+
 // PartnerContact is the predicate function for partnercontact builders.
 type PartnerContact func(*sql.Selector)
 

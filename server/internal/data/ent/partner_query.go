@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -35,6 +36,7 @@ type PartnerQuery struct {
 	withContacts     *PartnerContactQuery
 	withAliases      *PartnerAliasQuery
 	withContracts    *PartnerContractQuery
+	withAttachments  *PartnerAttachmentQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -175,6 +177,28 @@ func (_q *PartnerQuery) QueryContracts() *PartnerContractQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partnercontract.Table, partnercontract.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.ContractsTable, partner.ContractsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAttachments chains the current query on the "attachments" edge.
+func (_q *PartnerQuery) QueryAttachments() *PartnerAttachmentQuery {
+	query := (&PartnerAttachmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partnerattachment.Table, partnerattachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AttachmentsTable, partner.AttachmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -379,6 +403,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withContacts:     _q.withContacts.Clone(),
 		withAliases:      _q.withAliases.Clone(),
 		withContracts:    _q.withContracts.Clone(),
+		withAttachments:  _q.withAttachments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -437,6 +462,17 @@ func (_q *PartnerQuery) WithContracts(opts ...func(*PartnerContractQuery)) *Part
 		opt(query)
 	}
 	_q.withContracts = query
+	return _q
+}
+
+// WithAttachments tells the query-builder to eager-load the nodes that are connected to
+// the "attachments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithAttachments(opts ...func(*PartnerAttachmentQuery)) *PartnerQuery {
+	query := (&PartnerAttachmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAttachments = query
 	return _q
 }
 
@@ -518,12 +554,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
 			_q.withAliases != nil,
 			_q.withContracts != nil,
+			_q.withAttachments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -578,6 +615,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadContracts(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Contracts = []*PartnerContract{} },
 			func(n *Partner, e *PartnerContract) { n.Edges.Contracts = append(n.Edges.Contracts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAttachments; query != nil {
+		if err := _q.loadAttachments(ctx, query, nodes,
+			func(n *Partner) { n.Edges.Attachments = []*PartnerAttachment{} },
+			func(n *Partner, e *PartnerAttachment) { n.Edges.Attachments = append(n.Edges.Attachments, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -718,6 +762,36 @@ func (_q *PartnerQuery) loadContracts(ctx context.Context, query *PartnerContrac
 	}
 	query.Where(predicate.PartnerContract(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.ContractsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadAttachments(ctx context.Context, query *PartnerAttachmentQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerAttachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerattachment.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerAttachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.AttachmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -141,6 +141,18 @@ func (f PartnerAliasFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerAliasMutation", m)
 }
 
+// The PartnerAttachmentFunc type is an adapter to allow the use of ordinary
+// function as PartnerAttachment mutator.
+type PartnerAttachmentFunc func(context.Context, *ent.PartnerAttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerAttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerAttachmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerAttachmentMutation", m)
+}
+
 // The PartnerContactFunc type is an adapter to allow the use of ordinary
 // function as PartnerContact mutator.
 type PartnerContactFunc func(context.Context, *ent.PartnerContactMutation) (ent.Value, error)

@@ -530,6 +530,51 @@ var (
 			},
 		},
 	}
+	// PartnerAttachmentsColumns holds the columns for the "partner_attachments" table.
+	PartnerAttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "file_name", Type: field.TypeString, Size: 255},
+		{Name: "mime_type", Type: field.TypeString, Size: 127},
+		{Name: "file_size", Type: field.TypeInt64},
+		{Name: "object_key", Type: field.TypeString, Size: 1024},
+		{Name: "checksum", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "uploaded_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// PartnerAttachmentsTable holds the schema information for the "partner_attachments" table.
+	PartnerAttachmentsTable = &schema.Table{
+		Name:       "partner_attachments",
+		Columns:    PartnerAttachmentsColumns,
+		PrimaryKey: []*schema.Column{PartnerAttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_attachments_partners_attachments",
+				Columns:    []*schema.Column{PartnerAttachmentsColumns[10]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnerattachment_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAttachmentsColumns[2]},
+			},
+			{
+				Name:    "partner_attachment_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerAttachmentsColumns[10], PartnerAttachmentsColumns[3]},
+			},
+			{
+				Name:    "partnerattachment_partner_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAttachmentsColumns[10], PartnerAttachmentsColumns[1]},
+			},
+		},
+	}
 	// PartnerContactsColumns holds the columns for the "partner_contacts" table.
 	PartnerContactsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1056,6 +1101,7 @@ var (
 		PartnersTable,
 		PartnerAccountsTable,
 		PartnerAliasTable,
+		PartnerAttachmentsTable,
 		PartnerContactsTable,
 		PartnerContractsTable,
 		PartnerRolesTable,
@@ -1083,6 +1129,7 @@ func init() {
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	PartnerAliasTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerAttachmentsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContractsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable

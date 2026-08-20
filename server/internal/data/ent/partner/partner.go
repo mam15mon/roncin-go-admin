@@ -43,6 +43,8 @@ const (
 	EdgeAliases = "aliases"
 	// EdgeContracts holds the string denoting the contracts edge name in mutations.
 	EdgeContracts = "contracts"
+	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
+	EdgeAttachments = "attachments"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -80,6 +82,13 @@ const (
 	ContractsInverseTable = "partner_contracts"
 	// ContractsColumn is the table column denoting the contracts relation/edge.
 	ContractsColumn = "partner_id"
+	// AttachmentsTable is the table that holds the attachments relation/edge.
+	AttachmentsTable = "partner_attachments"
+	// AttachmentsInverseTable is the table name for the PartnerAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerattachment" package.
+	AttachmentsInverseTable = "partner_attachments"
+	// AttachmentsColumn is the table column denoting the attachments relation/edge.
+	AttachmentsColumn = "partner_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -244,6 +253,20 @@ func ByContracts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newContractsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttachmentsCount orders the results by attachments count.
+func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachmentsStep(), opts...)
+	}
+}
+
+// ByAttachments orders the results by attachments terms.
+func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -277,5 +300,12 @@ func newContractsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ContractsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ContractsTable, ContractsColumn),
+	)
+}
+func newAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
 	)
 }

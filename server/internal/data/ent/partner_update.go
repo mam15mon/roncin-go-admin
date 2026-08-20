@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -201,6 +202,21 @@ func (_u *PartnerUpdate) AddContracts(v ...*PartnerContract) *PartnerUpdate {
 	return _u.AddContractIDs(ids...)
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the PartnerAttachment entity by IDs.
+func (_u *PartnerUpdate) AddAttachmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddAttachmentIDs(ids...)
+	return _u
+}
+
+// AddAttachments adds the "attachments" edges to the PartnerAttachment entity.
+func (_u *PartnerUpdate) AddAttachments(v ...*PartnerAttachment) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -294,6 +310,27 @@ func (_u *PartnerUpdate) RemoveContracts(v ...*PartnerContract) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveContractIDs(ids...)
+}
+
+// ClearAttachments clears all "attachments" edges to the PartnerAttachment entity.
+func (_u *PartnerUpdate) ClearAttachments() *PartnerUpdate {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to PartnerAttachment entities by IDs.
+func (_u *PartnerUpdate) RemoveAttachmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveAttachmentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachments removes "attachments" edges to PartnerAttachment entities.
+func (_u *PartnerUpdate) RemoveAttachments(v ...*PartnerAttachment) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -605,6 +642,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partner.Label}
@@ -792,6 +874,21 @@ func (_u *PartnerUpdateOne) AddContracts(v ...*PartnerContract) *PartnerUpdateOn
 	return _u.AddContractIDs(ids...)
 }
 
+// AddAttachmentIDs adds the "attachments" edge to the PartnerAttachment entity by IDs.
+func (_u *PartnerUpdateOne) AddAttachmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddAttachmentIDs(ids...)
+	return _u
+}
+
+// AddAttachments adds the "attachments" edges to the PartnerAttachment entity.
+func (_u *PartnerUpdateOne) AddAttachments(v ...*PartnerAttachment) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -885,6 +982,27 @@ func (_u *PartnerUpdateOne) RemoveContracts(v ...*PartnerContract) *PartnerUpdat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveContractIDs(ids...)
+}
+
+// ClearAttachments clears all "attachments" edges to the PartnerAttachment entity.
+func (_u *PartnerUpdateOne) ClearAttachments() *PartnerUpdateOne {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to PartnerAttachment entities by IDs.
+func (_u *PartnerUpdateOne) RemoveAttachmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveAttachmentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachments removes "attachments" edges to PartnerAttachment entities.
+func (_u *PartnerUpdateOne) RemoveAttachments(v ...*PartnerAttachment) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachmentIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -1219,6 +1337,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnercontract.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !_u.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AttachmentsTable,
+			Columns: []string{partner.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerattachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

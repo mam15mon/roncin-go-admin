@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -752,6 +753,107 @@ func init() {
 	partneraliasDescID := partneraliasMixinFields0[0].Descriptor()
 	// partneralias.DefaultID holds the default value on creation for the id field.
 	partneralias.DefaultID = partneraliasDescID.Default.(func() uuid.UUID)
+	partnerattachmentMixin := schema.PartnerAttachment{}.Mixin()
+	partnerattachmentMixinFields0 := partnerattachmentMixin[0].Fields()
+	_ = partnerattachmentMixinFields0
+	partnerattachmentMixinFields1 := partnerattachmentMixin[1].Fields()
+	_ = partnerattachmentMixinFields1
+	partnerattachmentFields := schema.PartnerAttachment{}.Fields()
+	_ = partnerattachmentFields
+	// partnerattachmentDescCreatedAt is the schema descriptor for created_at field.
+	partnerattachmentDescCreatedAt := partnerattachmentMixinFields1[0].Descriptor()
+	// partnerattachment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partnerattachment.DefaultCreatedAt = partnerattachmentDescCreatedAt.Default.(func() time.Time)
+	// partnerattachmentDescUpdatedAt is the schema descriptor for updated_at field.
+	partnerattachmentDescUpdatedAt := partnerattachmentMixinFields1[1].Descriptor()
+	// partnerattachment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partnerattachment.DefaultUpdatedAt = partnerattachmentDescUpdatedAt.Default.(func() time.Time)
+	// partnerattachment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partnerattachment.UpdateDefaultUpdatedAt = partnerattachmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnerattachmentDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	partnerattachmentDescIdempotencyKey := partnerattachmentFields[1].Descriptor()
+	// partnerattachment.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	partnerattachment.IdempotencyKeyValidator = func() func(string) error {
+		validators := partnerattachmentDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerattachmentDescFileName is the schema descriptor for file_name field.
+	partnerattachmentDescFileName := partnerattachmentFields[2].Descriptor()
+	// partnerattachment.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	partnerattachment.FileNameValidator = func() func(string) error {
+		validators := partnerattachmentDescFileName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_name string) error {
+			for _, fn := range fns {
+				if err := fn(file_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerattachmentDescMimeType is the schema descriptor for mime_type field.
+	partnerattachmentDescMimeType := partnerattachmentFields[3].Descriptor()
+	// partnerattachment.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	partnerattachment.MimeTypeValidator = func() func(string) error {
+		validators := partnerattachmentDescMimeType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mime_type string) error {
+			for _, fn := range fns {
+				if err := fn(mime_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerattachmentDescFileSize is the schema descriptor for file_size field.
+	partnerattachmentDescFileSize := partnerattachmentFields[4].Descriptor()
+	// partnerattachment.FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
+	partnerattachment.FileSizeValidator = partnerattachmentDescFileSize.Validators[0].(func(int64) error)
+	// partnerattachmentDescObjectKey is the schema descriptor for object_key field.
+	partnerattachmentDescObjectKey := partnerattachmentFields[5].Descriptor()
+	// partnerattachment.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	partnerattachment.ObjectKeyValidator = func() func(string) error {
+		validators := partnerattachmentDescObjectKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(object_key string) error {
+			for _, fn := range fns {
+				if err := fn(object_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerattachmentDescChecksum is the schema descriptor for checksum field.
+	partnerattachmentDescChecksum := partnerattachmentFields[6].Descriptor()
+	// partnerattachment.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
+	partnerattachment.ChecksumValidator = partnerattachmentDescChecksum.Validators[0].(func(string) error)
+	// partnerattachmentDescID is the schema descriptor for id field.
+	partnerattachmentDescID := partnerattachmentMixinFields0[0].Descriptor()
+	// partnerattachment.DefaultID holds the default value on creation for the id field.
+	partnerattachment.DefaultID = partnerattachmentDescID.Default.(func() uuid.UUID)
 	partnercontactMixin := schema.PartnerContact{}.Mixin()
 	partnercontactMixinFields0 := partnercontactMixin[0].Fields()
 	_ = partnercontactMixinFields0

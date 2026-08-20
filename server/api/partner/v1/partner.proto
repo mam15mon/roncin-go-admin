@@ -90,6 +90,17 @@ service PartnerService {
       body: "*"
     };
   }
+
+  rpc ListPartnerAttachments(ListPartnerAttachmentsRequest) returns (PartnerAttachmentListReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/attachments"};
+  }
+
+  rpc RegisterPartnerAttachment(RegisterPartnerAttachmentRequest) returns (PartnerAttachmentReply) {
+    option (google.api.http) = {
+      post: "/api/v1/partners/{partner_id}/attachments"
+      body: "*"
+    };
+  }
 }
 
 enum PartnerRoleType {
@@ -427,6 +438,50 @@ message PartnerSettlementRuleListReply {
   int32 code = 2;
   string message = 3;
   repeated PartnerSettlementRule data = 4;
+  string trace_id = 5;
+}
+
+message PartnerAttachment {
+  string id = 1;
+  string partner_id = 2;
+  string idempotency_key = 3;
+  string file_name = 4;
+  string mime_type = 5;
+  int64 file_size = 6;
+  string object_key = 7;
+  string checksum = 8;
+  string uploaded_by = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message RegisterPartnerAttachmentRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 2 [(google.api.field_behavior) = REQUIRED];
+  string file_name = 3 [(google.api.field_behavior) = REQUIRED];
+  string mime_type = 4 [(google.api.field_behavior) = REQUIRED];
+  int64 file_size = 5 [(google.api.field_behavior) = REQUIRED];
+  string object_key = 6 [(google.api.field_behavior) = REQUIRED];
+  string checksum = 7;
+}
+
+message ListPartnerAttachmentsRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PartnerAttachmentReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerAttachment data = 4;
+  string trace_id = 5;
+}
+
+message PartnerAttachmentListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerAttachment data = 4;
   string trace_id = 5;
 }
 
