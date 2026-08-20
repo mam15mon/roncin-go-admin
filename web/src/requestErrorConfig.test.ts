@@ -2,7 +2,7 @@ import { message, notification } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { errorConfig } from './requestErrorConfig';
 
-const replace = vi.fn();
+const replace = vi.hoisted(() => vi.fn());
 
 vi.mock('antd', () => ({
   message: {
@@ -57,7 +57,7 @@ describe('requestErrorConfig', () => {
   });
 
   it('should redirect unauthorized requests to login', () => {
-    errorHandler({ response: { status: 401 } }, {});
+    errorHandler({ response: { status: 401 } } as any, {});
 
     expect(replace).toHaveBeenCalledWith('/user/login?redirect=%2Fwelcome');
     expect(message.error).not.toHaveBeenCalled();
@@ -71,7 +71,7 @@ describe('requestErrorConfig', () => {
           status: 403,
           data: { success: false, code: 403, message: '无权执行此操作' },
         },
-      },
+      } as any,
       {},
     );
 
@@ -91,7 +91,7 @@ describe('requestErrorConfig', () => {
             traceId: 'trace-123',
           },
         },
-      },
+      } as any,
       {},
     );
 
