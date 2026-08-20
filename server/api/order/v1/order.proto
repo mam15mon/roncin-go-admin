@@ -1,0 +1,285 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderService 订单核心服务。
+service OrderService {
+  rpc GetOrder(GetOrderRequest) returns (OrderReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{id}"};
+  }
+
+  rpc ListOrders(ListOrdersRequest) returns (OrderListReply) {
+    option (google.api.http) = {get: "/api/v1/orders"};
+  }
+
+  rpc CreateOrder(CreateOrderRequest) returns (OrderReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders"
+      body: "*"
+    };
+  }
+
+  rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{id}"
+      body: "*"
+    };
+  }
+
+  rpc TransitionOrderStatus(TransitionOrderStatusRequest) returns (OrderReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{id}/status"
+      body: "*"
+    };
+  }
+}
+
+// BusinessType 业务类型。
+enum BusinessType {
+  BUSINESS_TYPE_UNSPECIFIED = 0;
+  BUSINESS_TYPE_SE = 1;
+  BUSINESS_TYPE_SI = 2;
+  BUSINESS_TYPE_AE = 3;
+  BUSINESS_TYPE_AI = 4;
+  BUSINESS_TYPE_LAND = 5;
+  BUSINESS_TYPE_RAIL = 6;
+}
+
+// TradeDirection 贸易进出口方向。
+enum TradeDirection {
+  TRADE_DIRECTION_UNSPECIFIED = 0;
+  TRADE_DIRECTION_EXPORT = 1;
+  TRADE_DIRECTION_IMPORT = 2;
+}
+
+// TradeTerm 国际贸易术语。
+enum TradeTerm {
+  TRADE_TERM_UNSPECIFIED = 0;
+  TRADE_TERM_EXW = 1;
+  TRADE_TERM_FCA = 2;
+  TRADE_TERM_FOB = 3;
+  TRADE_TERM_CFR = 4;
+  TRADE_TERM_CIF = 5;
+  TRADE_TERM_CPT = 6;
+  TRADE_TERM_CIP = 7;
+  TRADE_TERM_DAP = 8;
+  TRADE_TERM_DPU = 9;
+  TRADE_TERM_DDU = 10;
+  TRADE_TERM_DDP = 11;
+  TRADE_TERM_LDP = 12;
+}
+
+// PaymentTerm 付款方式条款。
+enum PaymentTerm {
+  PAYMENT_TERM_UNSPECIFIED = 0;
+  PAYMENT_TERM_PREPAID = 1;
+  PAYMENT_TERM_COLLECT = 2;
+}
+
+// ShipmentType 装载类型。
+enum ShipmentType {
+  SHIPMENT_TYPE_UNSPECIFIED = 0;
+  SHIPMENT_TYPE_FCL = 1;
+  SHIPMENT_TYPE_LCL = 2;
+  SHIPMENT_TYPE_BREAK_BULK = 3;
+}
+
+// ContainerOwnership 集装箱箱源归属。
+enum ContainerOwnership {
+  CONTAINER_OWNERSHIP_UNSPECIFIED = 0;
+  CONTAINER_OWNERSHIP_COC = 1;
+  CONTAINER_OWNERSHIP_SOC = 2;
+}
+
+// ShipmentMode 运输模式。
+enum ShipmentMode {
+  SHIPMENT_MODE_UNSPECIFIED = 0;
+  SHIPMENT_MODE_CONSOLIDATION = 1;
+  SHIPMENT_MODE_CROSS_BORDER = 2;
+}
+
+// Order 订单核心信息。
+message Order {
+  string id = 1;
+  string organization_id = 2;
+  string order_no = 3;
+  string customer_id = 4;
+  optional string carrier_id = 5;
+  optional string booking_agent_id = 6;
+  BusinessType business_type = 7;
+  TradeDirection trade_direction = 8;
+  TradeTerm trade_term = 9;
+  PaymentTerm payment_term = 10;
+  optional ShipmentType shipment_type = 11;
+  optional ContainerOwnership container_ownership = 12;
+  optional ShipmentMode shipment_mode = 13;
+  string status = 14;
+  string status_template_id = 15;
+  repeated string service_type_ids = 16;
+  repeated string cargo_category_ids = 17;
+  optional string origin_location_id = 18;
+  optional string destination_location_id = 19;
+  optional string discharge_location_id = 20;
+  optional string transit_location_id = 21;
+  optional string vessel_voyage = 22;
+  optional string etd = 23;
+  optional string eta = 24;
+  optional string si_cutoff = 25;
+  optional string doc_cutoff = 26;
+  optional string customs_cutoff = 27;
+  optional string vgm_cutoff = 28;
+  optional string goods_description = 29;
+  optional int32 total_packages = 30;
+  optional string total_package_unit = 31;
+  optional string special_requirements = 32;
+  optional string order_date = 33;
+  optional string notes = 34;
+  string created_at = 35;
+  string updated_at = 36;
+}
+
+// OrderServiceSelection 订单服务类型选择。
+message OrderServiceSelection {
+  string id = 1;
+  string order_id = 2;
+  string master_data_item_id = 3;
+  string created_at = 4;
+}
+
+// OrderCargoSelection 订单货物类别选择。
+message OrderCargoSelection {
+  string id = 1;
+  string order_id = 2;
+  string master_data_item_id = 3;
+  string created_at = 4;
+}
+
+// OrderStatusLog 订单状态流转记录。
+message OrderStatusLog {
+  string id = 1;
+  string order_id = 2;
+  string from_status = 3;
+  string to_status = 4;
+  optional string action = 5;
+  optional string reason = 6;
+  optional string operator_id = 7;
+  string changed_at = 8;
+}
+
+// GetOrderRequest 获取订单详情请求。
+message GetOrderRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListOrdersRequest 获取订单列表请求。
+message ListOrdersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  string status = 4;
+  optional BusinessType business_type = 5;
+  string customer_id = 6;
+}
+
+// CreateOrderRequest 创建订单请求。
+message CreateOrderRequest {
+  string customer_id = 1 [(google.api.field_behavior) = REQUIRED];
+  BusinessType business_type = 2 [(google.api.field_behavior) = REQUIRED];
+  TradeDirection trade_direction = 3 [(google.api.field_behavior) = REQUIRED];
+  TradeTerm trade_term = 4 [(google.api.field_behavior) = REQUIRED];
+  PaymentTerm payment_term = 5 [(google.api.field_behavior) = REQUIRED];
+  string status_template_id = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string carrier_id = 7;
+  optional string booking_agent_id = 8;
+  optional ShipmentType shipment_type = 9;
+  optional ContainerOwnership container_ownership = 10;
+  optional ShipmentMode shipment_mode = 11;
+  repeated string service_type_ids = 12;
+  repeated string cargo_category_ids = 13;
+  optional string origin_location_id = 14;
+  optional string destination_location_id = 15;
+  optional string discharge_location_id = 16;
+  optional string transit_location_id = 17;
+  optional string vessel_voyage = 18;
+  optional string etd = 19;
+  optional string eta = 20;
+  optional string si_cutoff = 21;
+  optional string doc_cutoff = 22;
+  optional string customs_cutoff = 23;
+  optional string vgm_cutoff = 24;
+  optional string goods_description = 25;
+  optional int32 total_packages = 26;
+  optional string total_package_unit = 27;
+  optional string special_requirements = 28;
+  optional string order_date = 29;
+  optional string notes = 30;
+}
+
+// UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
+message UpdateOrderRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string expected_status = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string customer_id = 3;
+  optional BusinessType business_type = 4;
+  optional TradeDirection trade_direction = 5;
+  optional TradeTerm trade_term = 6;
+  optional PaymentTerm payment_term = 7;
+  optional string carrier_id = 8;
+  optional string booking_agent_id = 9;
+  optional ShipmentType shipment_type = 10;
+  optional ContainerOwnership container_ownership = 11;
+  optional ShipmentMode shipment_mode = 12;
+  repeated string service_type_ids = 13;
+  repeated string cargo_category_ids = 14;
+  optional string origin_location_id = 15;
+  optional string destination_location_id = 16;
+  optional string discharge_location_id = 17;
+  optional string transit_location_id = 18;
+  optional string vessel_voyage = 19;
+  optional string etd = 20;
+  optional string eta = 21;
+  optional string si_cutoff = 22;
+  optional string doc_cutoff = 23;
+  optional string customs_cutoff = 24;
+  optional string vgm_cutoff = 25;
+  optional string goods_description = 26;
+  optional int32 total_packages = 27;
+  optional string total_package_unit = 28;
+  optional string special_requirements = 29;
+  optional string order_date = 30;
+  optional string notes = 31;
+}
+
+// TransitionOrderStatusRequest 流转订单状态请求。
+message TransitionOrderStatusRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string expected_status = 2 [(google.api.field_behavior) = REQUIRED];
+  string target_status = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string reason = 4;
+}
+
+// OrderReply 单条订单响应。
+message OrderReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+// OrderListReply 订单列表响应。
+message OrderListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Order data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}

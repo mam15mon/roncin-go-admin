@@ -336,6 +336,196 @@ var (
 			},
 		},
 	}
+	// OrdersColumns holds the columns for the "orders" table.
+	OrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "carrier_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "booking_agent_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
+		{Name: "trade_direction", Type: field.TypeEnum, Enums: []string{"export", "import"}},
+		{Name: "trade_term", Type: field.TypeEnum, Enums: []string{"EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"}},
+		{Name: "payment_term", Type: field.TypeEnum, Enums: []string{"PREPAID", "COLLECT"}},
+		{Name: "shipment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"FCL", "LCL", "BREAK_BULK"}},
+		{Name: "container_ownership", Type: field.TypeEnum, Nullable: true, Enums: []string{"COC", "SOC"}},
+		{Name: "shipment_mode", Type: field.TypeEnum, Nullable: true, Enums: []string{"CONSOLIDATION", "CROSS_BORDER"}},
+		{Name: "status", Type: field.TypeString, Size: 64, Default: "DRAFT"},
+		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "discharge_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transit_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "vessel_voyage", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "etd", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "eta", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "si_cutoff", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "doc_cutoff", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "customs_cutoff", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "vgm_cutoff", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "goods_description", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "total_packages", Type: field.TypeInt, Nullable: true},
+		{Name: "total_package_unit", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "special_requirements", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "order_date", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "customer_id", Type: field.TypeUUID},
+		{Name: "status_template_id", Type: field.TypeUUID},
+	}
+	// OrdersTable holds the schema information for the "orders" table.
+	OrdersTable = &schema.Table{
+		Name:       "orders",
+		Columns:    OrdersColumns,
+		PrimaryKey: []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "orders_organizations_orders",
+				Columns:    []*schema.Column{OrdersColumns[31]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "orders_partners_orders",
+				Columns:    []*schema.Column{OrdersColumns[32]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "orders_status_templates_orders",
+				Columns:    []*schema.Column{OrdersColumns[33]},
+				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "order_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[2]},
+			},
+			{
+				Name:    "order_organization_id_order_no",
+				Unique:  true,
+				Columns: []*schema.Column{OrdersColumns[31], OrdersColumns[3]},
+			},
+			{
+				Name:    "order_organization_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[31], OrdersColumns[13]},
+			},
+			{
+				Name:    "order_organization_id_business_type",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[31], OrdersColumns[6]},
+			},
+			{
+				Name:    "order_organization_id_customer_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[31], OrdersColumns[32]},
+			},
+		},
+	}
+	// OrderCargoCategoriesColumns holds the columns for the "order_cargo_categories" table.
+	OrderCargoCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "master_data_item_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderCargoCategoriesTable holds the schema information for the "order_cargo_categories" table.
+	OrderCargoCategoriesTable = &schema.Table{
+		Name:       "order_cargo_categories",
+		Columns:    OrderCargoCategoriesColumns,
+		PrimaryKey: []*schema.Column{OrderCargoCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_cargo_categories_orders_cargo_categories",
+				Columns:    []*schema.Column{OrderCargoCategoriesColumns[4]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordercargocategory_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCargoCategoriesColumns[2]},
+			},
+			{
+				Name:    "ordercargocategory_order_id_master_data_item_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderCargoCategoriesColumns[4], OrderCargoCategoriesColumns[3]},
+			},
+		},
+	}
+	// OrderServiceTypesColumns holds the columns for the "order_service_types" table.
+	OrderServiceTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "master_data_item_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderServiceTypesTable holds the schema information for the "order_service_types" table.
+	OrderServiceTypesTable = &schema.Table{
+		Name:       "order_service_types",
+		Columns:    OrderServiceTypesColumns,
+		PrimaryKey: []*schema.Column{OrderServiceTypesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_service_types_orders_service_types",
+				Columns:    []*schema.Column{OrderServiceTypesColumns[4]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderservicetype_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderServiceTypesColumns[2]},
+			},
+			{
+				Name:    "orderservicetype_order_id_master_data_item_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderServiceTypesColumns[4], OrderServiceTypesColumns[3]},
+			},
+		},
+	}
+	// OrderStatusLogsColumns holds the columns for the "order_status_logs" table.
+	OrderStatusLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "from_status", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "to_status", Type: field.TypeString, Size: 64},
+		{Name: "action", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "operator_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "changed_at", Type: field.TypeTime},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderStatusLogsTable holds the schema information for the "order_status_logs" table.
+	OrderStatusLogsTable = &schema.Table{
+		Name:       "order_status_logs",
+		Columns:    OrderStatusLogsColumns,
+		PrimaryKey: []*schema.Column{OrderStatusLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_status_logs_orders_status_logs",
+				Columns:    []*schema.Column{OrderStatusLogsColumns[7]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderstatuslog_order_id_changed_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderStatusLogsColumns[7], OrderStatusLogsColumns[6]},
+			},
+		},
+	}
 	// OrganizationsColumns holds the columns for the "organizations" table.
 	OrganizationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1097,6 +1287,10 @@ var (
 		MilestoneTemplateItemsTable,
 		NumberRulesTable,
 		NumberSequencesTable,
+		OrdersTable,
+		OrderCargoCategoriesTable,
+		OrderServiceTypesTable,
+		OrderStatusLogsTable,
 		OrganizationsTable,
 		PartnersTable,
 		PartnerAccountsTable,
@@ -1125,6 +1319,12 @@ func init() {
 	MilestoneTemplateItemsTable.ForeignKeys[0].RefTable = MilestoneTemplatesTable
 	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
+	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable
+	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
+	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
+	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable

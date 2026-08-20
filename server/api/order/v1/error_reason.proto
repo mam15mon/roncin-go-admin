@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package order.v1;
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// ErrorReason 定义订单业务错误原因。
+enum ErrorReason {
+  ORDER_UNSPECIFIED = 0;
+  ORDER_NOT_FOUND = 1;
+  ORDER_INVALID_ARGUMENT = 2;
+  ORDER_NUMBER_EXISTS = 3;
+  ORDER_CUSTOMER_INVALID = 4;
+  ORDER_STATUS_INVALID = 5;
+  ORDER_STATUS_CONFLICT = 6;
+  ORDER_STATUS_TEMPLATE_REQUIRED = 7;
+}

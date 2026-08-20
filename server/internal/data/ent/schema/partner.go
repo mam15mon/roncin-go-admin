@@ -33,6 +33,7 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("aliases", PartnerAlias.Type),
 		edge.To("contracts", PartnerContract.Type),
 		edge.To("attachments", PartnerAttachment.Type),
+		edge.To("orders", Order.Type),
 	}
 }
 

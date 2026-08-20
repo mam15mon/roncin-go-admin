@@ -58,9 +58,11 @@ type OrganizationEdges struct {
 	StatusTemplates []*StatusTemplate `json:"status_templates,omitempty"`
 	// MilestoneTemplates holds the value of the milestone_templates edge.
 	MilestoneTemplates []*MilestoneTemplate `json:"milestone_templates,omitempty"`
+	// Orders holds the value of the orders edge.
+	Orders []*Order `json:"orders,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -153,6 +155,15 @@ func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, erro
 		return e.MilestoneTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "milestone_templates"}
+}
+
+// OrdersOrErr returns the Orders value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
+	if e.loadedTypes[10] {
+		return e.Orders, nil
+	}
+	return nil, &NotLoadedError{edge: "orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -289,6 +300,11 @@ func (_m *Organization) QueryStatusTemplates() *StatusTemplateQuery {
 // QueryMilestoneTemplates queries the "milestone_templates" edge of the Organization entity.
 func (_m *Organization) QueryMilestoneTemplates() *MilestoneTemplateQuery {
 	return NewOrganizationClient(_m.config).QueryMilestoneTemplates(_m)
+}
+
+// QueryOrders queries the "orders" edge of the Organization entity.
+func (_m *Organization) QueryOrders() *OrderQuery {
+	return NewOrganizationClient(_m.config).QueryOrders(_m)
 }
 
 // Update returns a builder for updating this Organization.

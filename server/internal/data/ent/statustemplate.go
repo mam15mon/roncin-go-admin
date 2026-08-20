@@ -51,9 +51,11 @@ type StatusTemplateEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// Items holds the value of the items edge.
 	Items []*StatusTemplateItem `json:"items,omitempty"`
+	// Orders holds the value of the orders edge.
+	Orders []*Order `json:"orders,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -74,6 +76,15 @@ func (e StatusTemplateEdges) ItemsOrErr() ([]*StatusTemplateItem, error) {
 		return e.Items, nil
 	}
 	return nil, &NotLoadedError{edge: "items"}
+}
+
+// OrdersOrErr returns the Orders value or an error if the edge
+// was not loaded in eager-loading.
+func (e StatusTemplateEdges) OrdersOrErr() ([]*Order, error) {
+	if e.loadedTypes[2] {
+		return e.Orders, nil
+	}
+	return nil, &NotLoadedError{edge: "orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -194,6 +205,11 @@ func (_m *StatusTemplate) QueryOrganization() *OrganizationQuery {
 // QueryItems queries the "items" edge of the StatusTemplate entity.
 func (_m *StatusTemplate) QueryItems() *StatusTemplateItemQuery {
 	return NewStatusTemplateClient(_m.config).QueryItems(_m)
+}
+
+// QueryOrders queries the "orders" edge of the StatusTemplate entity.
+func (_m *StatusTemplate) QueryOrders() *OrderQuery {
+	return NewStatusTemplateClient(_m.config).QueryOrders(_m)
 }
 
 // Update returns a builder for updating this StatusTemplate.

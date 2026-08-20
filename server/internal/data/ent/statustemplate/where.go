@@ -507,6 +507,29 @@ func HasItemsWith(preds ...predicate.StatusTemplateItem) predicate.StatusTemplat
 	})
 }
 
+// HasOrders applies the HasEdge predicate on the "orders" edge.
+func HasOrders() predicate.StatusTemplate {
+	return predicate.StatusTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrdersWith applies the HasEdge predicate on the "orders" edge with a given conditions (other predicates).
+func HasOrdersWith(preds ...predicate.Order) predicate.StatusTemplate {
+	return predicate.StatusTemplate(func(s *sql.Selector) {
+		step := newOrdersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.StatusTemplate) predicate.StatusTemplate {
 	return predicate.StatusTemplate(sql.AndPredicates(predicates...))

@@ -23,6 +23,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -60,6 +64,14 @@ type Client struct {
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
 	NumberSequence *NumberSequenceClient
+	// Order is the client for interacting with the Order builders.
+	Order *OrderClient
+	// OrderCargoCategory is the client for interacting with the OrderCargoCategory builders.
+	OrderCargoCategory *OrderCargoCategoryClient
+	// OrderServiceType is the client for interacting with the OrderServiceType builders.
+	OrderServiceType *OrderServiceTypeClient
+	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
+	OrderStatusLog *OrderStatusLogClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -110,6 +122,10 @@ func (c *Client) init() {
 	c.MilestoneTemplateItem = NewMilestoneTemplateItemClient(c.config)
 	c.NumberRule = NewNumberRuleClient(c.config)
 	c.NumberSequence = NewNumberSequenceClient(c.config)
+	c.Order = NewOrderClient(c.config)
+	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
+	c.OrderServiceType = NewOrderServiceTypeClient(c.config)
+	c.OrderStatusLog = NewOrderStatusLogClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
 	c.PartnerAccount = NewPartnerAccountClient(c.config)
@@ -225,6 +241,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
 		NumberRule:            NewNumberRuleClient(cfg),
 		NumberSequence:        NewNumberSequenceClient(cfg),
+		Order:                 NewOrderClient(cfg),
+		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
+		OrderServiceType:      NewOrderServiceTypeClient(cfg),
+		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
@@ -267,6 +287,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
 		NumberRule:            NewNumberRuleClient(cfg),
 		NumberSequence:        NewNumberSequenceClient(cfg),
+		Order:                 NewOrderClient(cfg),
+		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
+		OrderServiceType:      NewOrderServiceTypeClient(cfg),
+		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
@@ -313,7 +337,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderCargoCategory, c.OrderServiceType, c.OrderStatusLog, c.Organization,
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
 		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
@@ -328,7 +353,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuditLog, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Organization,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderCargoCategory, c.OrderServiceType, c.OrderStatusLog, c.Organization,
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
 		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
@@ -355,6 +381,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NumberRule.mutate(ctx, m)
 	case *NumberSequenceMutation:
 		return c.NumberSequence.mutate(ctx, m)
+	case *OrderMutation:
+		return c.Order.mutate(ctx, m)
+	case *OrderCargoCategoryMutation:
+		return c.OrderCargoCategory.mutate(ctx, m)
+	case *OrderServiceTypeMutation:
+		return c.OrderServiceType.mutate(ctx, m)
+	case *OrderStatusLogMutation:
+		return c.OrderStatusLog.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
 	case *PartnerMutation:
@@ -1483,6 +1517,682 @@ func (c *NumberSequenceClient) mutate(ctx context.Context, m *NumberSequenceMuta
 	}
 }
 
+// OrderClient is a client for the Order schema.
+type OrderClient struct {
+	config
+}
+
+// NewOrderClient returns a client for the Order from the given config.
+func NewOrderClient(c config) *OrderClient {
+	return &OrderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `order.Hooks(f(g(h())))`.
+func (c *OrderClient) Use(hooks ...Hook) {
+	c.hooks.Order = append(c.hooks.Order, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `order.Intercept(f(g(h())))`.
+func (c *OrderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Order = append(c.inters.Order, interceptors...)
+}
+
+// Create returns a builder for creating a Order entity.
+func (c *OrderClient) Create() *OrderCreate {
+	mutation := newOrderMutation(c.config, OpCreate)
+	return &OrderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Order entities.
+func (c *OrderClient) CreateBulk(builders ...*OrderCreate) *OrderCreateBulk {
+	return &OrderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderClient) MapCreateBulk(slice any, setFunc func(*OrderCreate, int)) *OrderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderCreateBulk{err: fmt.Errorf("calling to OrderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Order.
+func (c *OrderClient) Update() *OrderUpdate {
+	mutation := newOrderMutation(c.config, OpUpdate)
+	return &OrderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderClient) UpdateOne(_m *Order) *OrderUpdateOne {
+	mutation := newOrderMutation(c.config, OpUpdateOne, withOrder(_m))
+	return &OrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderClient) UpdateOneID(id uuid.UUID) *OrderUpdateOne {
+	mutation := newOrderMutation(c.config, OpUpdateOne, withOrderID(id))
+	return &OrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Order.
+func (c *OrderClient) Delete() *OrderDelete {
+	mutation := newOrderMutation(c.config, OpDelete)
+	return &OrderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderClient) DeleteOne(_m *Order) *OrderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderClient) DeleteOneID(id uuid.UUID) *OrderDeleteOne {
+	builder := c.Delete().Where(order.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderDeleteOne{builder}
+}
+
+// Query returns a query builder for Order.
+func (c *OrderClient) Query() *OrderQuery {
+	return &OrderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrder},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Order entity by its id.
+func (c *OrderClient) Get(ctx context.Context, id uuid.UUID) (*Order, error) {
+	return c.Query().Where(order.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderClient) GetX(ctx context.Context, id uuid.UUID) *Order {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a Order.
+func (c *OrderClient) QueryOrganization(_m *Order) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.OrganizationTable, order.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCustomer queries the customer edge of a Order.
+func (c *OrderClient) QueryCustomer(_m *Order) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.CustomerTable, order.CustomerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStatusTemplate queries the status_template edge of a Order.
+func (c *OrderClient) QueryStatusTemplate(_m *Order) *StatusTemplateQuery {
+	query := (&StatusTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.StatusTemplateTable, order.StatusTemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStatusLogs queries the status_logs edge of a Order.
+func (c *OrderClient) QueryStatusLogs(_m *Order) *OrderStatusLogQuery {
+	query := (&OrderStatusLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderstatuslog.Table, orderstatuslog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.StatusLogsTable, order.StatusLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceTypes queries the service_types edge of a Order.
+func (c *OrderClient) QueryServiceTypes(_m *Order) *OrderServiceTypeQuery {
+	query := (&OrderServiceTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderservicetype.Table, orderservicetype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.ServiceTypesTable, order.ServiceTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCargoCategories queries the cargo_categories edge of a Order.
+func (c *OrderClient) QueryCargoCategories(_m *Order) *OrderCargoCategoryQuery {
+	query := (&OrderCargoCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(ordercargocategory.Table, ordercargocategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.CargoCategoriesTable, order.CargoCategoriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderClient) Hooks() []Hook {
+	return c.hooks.Order
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderClient) Interceptors() []Interceptor {
+	return c.inters.Order
+}
+
+func (c *OrderClient) mutate(ctx context.Context, m *OrderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Order mutation op: %q", m.Op())
+	}
+}
+
+// OrderCargoCategoryClient is a client for the OrderCargoCategory schema.
+type OrderCargoCategoryClient struct {
+	config
+}
+
+// NewOrderCargoCategoryClient returns a client for the OrderCargoCategory from the given config.
+func NewOrderCargoCategoryClient(c config) *OrderCargoCategoryClient {
+	return &OrderCargoCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ordercargocategory.Hooks(f(g(h())))`.
+func (c *OrderCargoCategoryClient) Use(hooks ...Hook) {
+	c.hooks.OrderCargoCategory = append(c.hooks.OrderCargoCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ordercargocategory.Intercept(f(g(h())))`.
+func (c *OrderCargoCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderCargoCategory = append(c.inters.OrderCargoCategory, interceptors...)
+}
+
+// Create returns a builder for creating a OrderCargoCategory entity.
+func (c *OrderCargoCategoryClient) Create() *OrderCargoCategoryCreate {
+	mutation := newOrderCargoCategoryMutation(c.config, OpCreate)
+	return &OrderCargoCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderCargoCategory entities.
+func (c *OrderCargoCategoryClient) CreateBulk(builders ...*OrderCargoCategoryCreate) *OrderCargoCategoryCreateBulk {
+	return &OrderCargoCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderCargoCategoryClient) MapCreateBulk(slice any, setFunc func(*OrderCargoCategoryCreate, int)) *OrderCargoCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderCargoCategoryCreateBulk{err: fmt.Errorf("calling to OrderCargoCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderCargoCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderCargoCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderCargoCategory.
+func (c *OrderCargoCategoryClient) Update() *OrderCargoCategoryUpdate {
+	mutation := newOrderCargoCategoryMutation(c.config, OpUpdate)
+	return &OrderCargoCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderCargoCategoryClient) UpdateOne(_m *OrderCargoCategory) *OrderCargoCategoryUpdateOne {
+	mutation := newOrderCargoCategoryMutation(c.config, OpUpdateOne, withOrderCargoCategory(_m))
+	return &OrderCargoCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderCargoCategoryClient) UpdateOneID(id uuid.UUID) *OrderCargoCategoryUpdateOne {
+	mutation := newOrderCargoCategoryMutation(c.config, OpUpdateOne, withOrderCargoCategoryID(id))
+	return &OrderCargoCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderCargoCategory.
+func (c *OrderCargoCategoryClient) Delete() *OrderCargoCategoryDelete {
+	mutation := newOrderCargoCategoryMutation(c.config, OpDelete)
+	return &OrderCargoCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderCargoCategoryClient) DeleteOne(_m *OrderCargoCategory) *OrderCargoCategoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderCargoCategoryClient) DeleteOneID(id uuid.UUID) *OrderCargoCategoryDeleteOne {
+	builder := c.Delete().Where(ordercargocategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderCargoCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderCargoCategory.
+func (c *OrderCargoCategoryClient) Query() *OrderCargoCategoryQuery {
+	return &OrderCargoCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderCargoCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderCargoCategory entity by its id.
+func (c *OrderCargoCategoryClient) Get(ctx context.Context, id uuid.UUID) (*OrderCargoCategory, error) {
+	return c.Query().Where(ordercargocategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderCargoCategoryClient) GetX(ctx context.Context, id uuid.UUID) *OrderCargoCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderCargoCategory.
+func (c *OrderCargoCategoryClient) QueryOrder(_m *OrderCargoCategory) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercargocategory.Table, ordercargocategory.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercargocategory.OrderTable, ordercargocategory.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderCargoCategoryClient) Hooks() []Hook {
+	return c.hooks.OrderCargoCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderCargoCategoryClient) Interceptors() []Interceptor {
+	return c.inters.OrderCargoCategory
+}
+
+func (c *OrderCargoCategoryClient) mutate(ctx context.Context, m *OrderCargoCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderCargoCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderCargoCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderCargoCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderCargoCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderCargoCategory mutation op: %q", m.Op())
+	}
+}
+
+// OrderServiceTypeClient is a client for the OrderServiceType schema.
+type OrderServiceTypeClient struct {
+	config
+}
+
+// NewOrderServiceTypeClient returns a client for the OrderServiceType from the given config.
+func NewOrderServiceTypeClient(c config) *OrderServiceTypeClient {
+	return &OrderServiceTypeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderservicetype.Hooks(f(g(h())))`.
+func (c *OrderServiceTypeClient) Use(hooks ...Hook) {
+	c.hooks.OrderServiceType = append(c.hooks.OrderServiceType, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderservicetype.Intercept(f(g(h())))`.
+func (c *OrderServiceTypeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderServiceType = append(c.inters.OrderServiceType, interceptors...)
+}
+
+// Create returns a builder for creating a OrderServiceType entity.
+func (c *OrderServiceTypeClient) Create() *OrderServiceTypeCreate {
+	mutation := newOrderServiceTypeMutation(c.config, OpCreate)
+	return &OrderServiceTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderServiceType entities.
+func (c *OrderServiceTypeClient) CreateBulk(builders ...*OrderServiceTypeCreate) *OrderServiceTypeCreateBulk {
+	return &OrderServiceTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderServiceTypeClient) MapCreateBulk(slice any, setFunc func(*OrderServiceTypeCreate, int)) *OrderServiceTypeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderServiceTypeCreateBulk{err: fmt.Errorf("calling to OrderServiceTypeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderServiceTypeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderServiceTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderServiceType.
+func (c *OrderServiceTypeClient) Update() *OrderServiceTypeUpdate {
+	mutation := newOrderServiceTypeMutation(c.config, OpUpdate)
+	return &OrderServiceTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderServiceTypeClient) UpdateOne(_m *OrderServiceType) *OrderServiceTypeUpdateOne {
+	mutation := newOrderServiceTypeMutation(c.config, OpUpdateOne, withOrderServiceType(_m))
+	return &OrderServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderServiceTypeClient) UpdateOneID(id uuid.UUID) *OrderServiceTypeUpdateOne {
+	mutation := newOrderServiceTypeMutation(c.config, OpUpdateOne, withOrderServiceTypeID(id))
+	return &OrderServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderServiceType.
+func (c *OrderServiceTypeClient) Delete() *OrderServiceTypeDelete {
+	mutation := newOrderServiceTypeMutation(c.config, OpDelete)
+	return &OrderServiceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderServiceTypeClient) DeleteOne(_m *OrderServiceType) *OrderServiceTypeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderServiceTypeClient) DeleteOneID(id uuid.UUID) *OrderServiceTypeDeleteOne {
+	builder := c.Delete().Where(orderservicetype.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderServiceTypeDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderServiceType.
+func (c *OrderServiceTypeClient) Query() *OrderServiceTypeQuery {
+	return &OrderServiceTypeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderServiceType},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderServiceType entity by its id.
+func (c *OrderServiceTypeClient) Get(ctx context.Context, id uuid.UUID) (*OrderServiceType, error) {
+	return c.Query().Where(orderservicetype.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderServiceTypeClient) GetX(ctx context.Context, id uuid.UUID) *OrderServiceType {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderServiceType.
+func (c *OrderServiceTypeClient) QueryOrder(_m *OrderServiceType) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderservicetype.Table, orderservicetype.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderservicetype.OrderTable, orderservicetype.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderServiceTypeClient) Hooks() []Hook {
+	return c.hooks.OrderServiceType
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderServiceTypeClient) Interceptors() []Interceptor {
+	return c.inters.OrderServiceType
+}
+
+func (c *OrderServiceTypeClient) mutate(ctx context.Context, m *OrderServiceTypeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderServiceTypeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderServiceTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderServiceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderServiceType mutation op: %q", m.Op())
+	}
+}
+
+// OrderStatusLogClient is a client for the OrderStatusLog schema.
+type OrderStatusLogClient struct {
+	config
+}
+
+// NewOrderStatusLogClient returns a client for the OrderStatusLog from the given config.
+func NewOrderStatusLogClient(c config) *OrderStatusLogClient {
+	return &OrderStatusLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderstatuslog.Hooks(f(g(h())))`.
+func (c *OrderStatusLogClient) Use(hooks ...Hook) {
+	c.hooks.OrderStatusLog = append(c.hooks.OrderStatusLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderstatuslog.Intercept(f(g(h())))`.
+func (c *OrderStatusLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderStatusLog = append(c.inters.OrderStatusLog, interceptors...)
+}
+
+// Create returns a builder for creating a OrderStatusLog entity.
+func (c *OrderStatusLogClient) Create() *OrderStatusLogCreate {
+	mutation := newOrderStatusLogMutation(c.config, OpCreate)
+	return &OrderStatusLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderStatusLog entities.
+func (c *OrderStatusLogClient) CreateBulk(builders ...*OrderStatusLogCreate) *OrderStatusLogCreateBulk {
+	return &OrderStatusLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderStatusLogClient) MapCreateBulk(slice any, setFunc func(*OrderStatusLogCreate, int)) *OrderStatusLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderStatusLogCreateBulk{err: fmt.Errorf("calling to OrderStatusLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderStatusLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderStatusLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderStatusLog.
+func (c *OrderStatusLogClient) Update() *OrderStatusLogUpdate {
+	mutation := newOrderStatusLogMutation(c.config, OpUpdate)
+	return &OrderStatusLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderStatusLogClient) UpdateOne(_m *OrderStatusLog) *OrderStatusLogUpdateOne {
+	mutation := newOrderStatusLogMutation(c.config, OpUpdateOne, withOrderStatusLog(_m))
+	return &OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderStatusLogClient) UpdateOneID(id uuid.UUID) *OrderStatusLogUpdateOne {
+	mutation := newOrderStatusLogMutation(c.config, OpUpdateOne, withOrderStatusLogID(id))
+	return &OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderStatusLog.
+func (c *OrderStatusLogClient) Delete() *OrderStatusLogDelete {
+	mutation := newOrderStatusLogMutation(c.config, OpDelete)
+	return &OrderStatusLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderStatusLogClient) DeleteOne(_m *OrderStatusLog) *OrderStatusLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderStatusLogClient) DeleteOneID(id uuid.UUID) *OrderStatusLogDeleteOne {
+	builder := c.Delete().Where(orderstatuslog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderStatusLogDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderStatusLog.
+func (c *OrderStatusLogClient) Query() *OrderStatusLogQuery {
+	return &OrderStatusLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderStatusLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderStatusLog entity by its id.
+func (c *OrderStatusLogClient) Get(ctx context.Context, id uuid.UUID) (*OrderStatusLog, error) {
+	return c.Query().Where(orderstatuslog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderStatusLogClient) GetX(ctx context.Context, id uuid.UUID) *OrderStatusLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderStatusLog.
+func (c *OrderStatusLogClient) QueryOrder(_m *OrderStatusLog) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderstatuslog.Table, orderstatuslog.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderstatuslog.OrderTable, orderstatuslog.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderStatusLogClient) Hooks() []Hook {
+	return c.hooks.OrderStatusLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderStatusLogClient) Interceptors() []Interceptor {
+	return c.inters.OrderStatusLog
+}
+
+func (c *OrderStatusLogClient) mutate(ctx context.Context, m *OrderStatusLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderStatusLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderStatusLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderStatusLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderStatusLog mutation op: %q", m.Op())
+	}
+}
+
 // OrganizationClient is a client for the Organization schema.
 type OrganizationClient struct {
 	config
@@ -1751,6 +2461,22 @@ func (c *OrganizationClient) QueryMilestoneTemplates(_m *Organization) *Mileston
 	return query
 }
 
+// QueryOrders queries the orders edge of a Organization.
+func (c *OrganizationClient) QueryOrders(_m *Organization) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrdersTable, organization.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	return c.hooks.Organization
@@ -1973,6 +2699,22 @@ func (c *PartnerClient) QueryAttachments(_m *Partner) *PartnerAttachmentQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partnerattachment.Table, partnerattachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.AttachmentsTable, partner.AttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrders queries the orders edge of a Partner.
+func (c *PartnerClient) QueryOrders(_m *Partner) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrdersTable, partner.OrdersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3880,6 +4622,22 @@ func (c *StatusTemplateClient) QueryItems(_m *StatusTemplate) *StatusTemplateIte
 	return query
 }
 
+// QueryOrders queries the orders edge of a StatusTemplate.
+func (c *StatusTemplateClient) QueryOrders(_m *StatusTemplate) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.OrdersTable, statustemplate.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *StatusTemplateClient) Hooks() []Hook {
 	return c.hooks.StatusTemplate
@@ -4223,15 +4981,17 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderServiceType,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AuditLog, MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		NumberRule, NumberSequence, Order, OrderCargoCategory, OrderServiceType,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
 		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}

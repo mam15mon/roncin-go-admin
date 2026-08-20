@@ -93,6 +93,54 @@ func (f NumberSequenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NumberSequenceMutation", m)
 }
 
+// The OrderFunc type is an adapter to allow the use of ordinary
+// function as Order mutator.
+type OrderFunc func(context.Context, *ent.OrderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderMutation", m)
+}
+
+// The OrderCargoCategoryFunc type is an adapter to allow the use of ordinary
+// function as OrderCargoCategory mutator.
+type OrderCargoCategoryFunc func(context.Context, *ent.OrderCargoCategoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderCargoCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderCargoCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderCargoCategoryMutation", m)
+}
+
+// The OrderServiceTypeFunc type is an adapter to allow the use of ordinary
+// function as OrderServiceType mutator.
+type OrderServiceTypeFunc func(context.Context, *ent.OrderServiceTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderServiceTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderServiceTypeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderServiceTypeMutation", m)
+}
+
+// The OrderStatusLogFunc type is an adapter to allow the use of ordinary
+// function as OrderStatusLog mutator.
+type OrderStatusLogFunc func(context.Context, *ent.OrderStatusLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderStatusLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderStatusLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderStatusLogMutation", m)
+}
+
 // The OrganizationFunc type is an adapter to allow the use of ordinary
 // function as Organization mutator.
 type OrganizationFunc func(context.Context, *ent.OrganizationMutation) (ent.Value, error)

@@ -657,6 +657,128 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.StatusTemplateReply'
+    /api/v1/orders:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_ListOrders
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: businessType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: customerId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderListReply'
+        post:
+            tags:
+                - OrderService
+            operationId: OrderService_CreateOrder
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.CreateOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReply'
+    /api/v1/orders/{id}:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_GetOrder
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReply'
+        put:
+            tags:
+                - OrderService
+            operationId: OrderService_UpdateOrder
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.UpdateOrderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReply'
+    /api/v1/orders/{id}/status:
+        post:
+            tags:
+                - OrderService
+            operationId: OrderService_TransitionOrderStatus
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.TransitionOrderStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReply'
     /api/v1/partners:
         get:
             tags:
@@ -2155,6 +2277,315 @@ components:
                     format: enum
                 enabled:
                     type: boolean
+        order.v1.CreateOrderRequest:
+            required:
+                - customerId
+                - businessType
+                - tradeDirection
+                - tradeTerm
+                - paymentTerm
+                - statusTemplateId
+            type: object
+            properties:
+                customerId:
+                    type: string
+                businessType:
+                    type: integer
+                    format: enum
+                tradeDirection:
+                    type: integer
+                    format: enum
+                tradeTerm:
+                    type: integer
+                    format: enum
+                paymentTerm:
+                    type: integer
+                    format: enum
+                statusTemplateId:
+                    type: string
+                carrierId:
+                    type: string
+                bookingAgentId:
+                    type: string
+                shipmentType:
+                    type: integer
+                    format: enum
+                containerOwnership:
+                    type: integer
+                    format: enum
+                shipmentMode:
+                    type: integer
+                    format: enum
+                serviceTypeIds:
+                    type: array
+                    items:
+                        type: string
+                cargoCategoryIds:
+                    type: array
+                    items:
+                        type: string
+                originLocationId:
+                    type: string
+                destinationLocationId:
+                    type: string
+                dischargeLocationId:
+                    type: string
+                transitLocationId:
+                    type: string
+                vesselVoyage:
+                    type: string
+                etd:
+                    type: string
+                eta:
+                    type: string
+                siCutoff:
+                    type: string
+                docCutoff:
+                    type: string
+                customsCutoff:
+                    type: string
+                vgmCutoff:
+                    type: string
+                goodsDescription:
+                    type: string
+                totalPackages:
+                    type: integer
+                    format: int32
+                totalPackageUnit:
+                    type: string
+                specialRequirements:
+                    type: string
+                orderDate:
+                    type: string
+                notes:
+                    type: string
+            description: CreateOrderRequest 创建订单请求。
+        order.v1.Order:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                orderNo:
+                    type: string
+                customerId:
+                    type: string
+                carrierId:
+                    type: string
+                bookingAgentId:
+                    type: string
+                businessType:
+                    type: integer
+                    format: enum
+                tradeDirection:
+                    type: integer
+                    format: enum
+                tradeTerm:
+                    type: integer
+                    format: enum
+                paymentTerm:
+                    type: integer
+                    format: enum
+                shipmentType:
+                    type: integer
+                    format: enum
+                containerOwnership:
+                    type: integer
+                    format: enum
+                shipmentMode:
+                    type: integer
+                    format: enum
+                status:
+                    type: string
+                statusTemplateId:
+                    type: string
+                serviceTypeIds:
+                    type: array
+                    items:
+                        type: string
+                cargoCategoryIds:
+                    type: array
+                    items:
+                        type: string
+                originLocationId:
+                    type: string
+                destinationLocationId:
+                    type: string
+                dischargeLocationId:
+                    type: string
+                transitLocationId:
+                    type: string
+                vesselVoyage:
+                    type: string
+                etd:
+                    type: string
+                eta:
+                    type: string
+                siCutoff:
+                    type: string
+                docCutoff:
+                    type: string
+                customsCutoff:
+                    type: string
+                vgmCutoff:
+                    type: string
+                goodsDescription:
+                    type: string
+                totalPackages:
+                    type: integer
+                    format: int32
+                totalPackageUnit:
+                    type: string
+                specialRequirements:
+                    type: string
+                orderDate:
+                    type: string
+                notes:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: Order 订单核心信息。
+        order.v1.OrderListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.Order'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+            description: OrderListReply 订单列表响应。
+        order.v1.OrderReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.Order'
+                traceId:
+                    type: string
+            description: OrderReply 单条订单响应。
+        order.v1.TransitionOrderStatusRequest:
+            required:
+                - id
+                - expectedStatus
+                - targetStatus
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedStatus:
+                    type: string
+                targetStatus:
+                    type: string
+                reason:
+                    type: string
+            description: TransitionOrderStatusRequest 流转订单状态请求。
+        order.v1.UpdateOrderRequest:
+            required:
+                - id
+                - expectedStatus
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedStatus:
+                    type: string
+                customerId:
+                    type: string
+                businessType:
+                    type: integer
+                    format: enum
+                tradeDirection:
+                    type: integer
+                    format: enum
+                tradeTerm:
+                    type: integer
+                    format: enum
+                paymentTerm:
+                    type: integer
+                    format: enum
+                carrierId:
+                    type: string
+                bookingAgentId:
+                    type: string
+                shipmentType:
+                    type: integer
+                    format: enum
+                containerOwnership:
+                    type: integer
+                    format: enum
+                shipmentMode:
+                    type: integer
+                    format: enum
+                serviceTypeIds:
+                    type: array
+                    items:
+                        type: string
+                cargoCategoryIds:
+                    type: array
+                    items:
+                        type: string
+                originLocationId:
+                    type: string
+                destinationLocationId:
+                    type: string
+                dischargeLocationId:
+                    type: string
+                transitLocationId:
+                    type: string
+                vesselVoyage:
+                    type: string
+                etd:
+                    type: string
+                eta:
+                    type: string
+                siCutoff:
+                    type: string
+                docCutoff:
+                    type: string
+                customsCutoff:
+                    type: string
+                vgmCutoff:
+                    type: string
+                goodsDescription:
+                    type: string
+                totalPackages:
+                    type: integer
+                    format: int32
+                totalPackageUnit:
+                    type: string
+                specialRequirements:
+                    type: string
+                orderDate:
+                    type: string
+                notes:
+                    type: string
+            description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
         partner.v1.CreatePartnerAccountRequest:
             required:
                 - partnerId
@@ -2915,4 +3346,6 @@ tags:
     - name: AuthService
       description: AuthService owns the browser session boundary for the management console.
     - name: MasterDataService
+    - name: OrderService
+      description: OrderService 订单核心服务。
     - name: PartnerService

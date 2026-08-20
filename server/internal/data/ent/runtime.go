@@ -13,6 +13,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -453,6 +457,198 @@ func init() {
 	numbersequenceDescID := numbersequenceMixinFields0[0].Descriptor()
 	// numbersequence.DefaultID holds the default value on creation for the id field.
 	numbersequence.DefaultID = numbersequenceDescID.Default.(func() uuid.UUID)
+	orderMixin := schema.Order{}.Mixin()
+	orderMixinFields0 := orderMixin[0].Fields()
+	_ = orderMixinFields0
+	orderMixinFields1 := orderMixin[1].Fields()
+	_ = orderMixinFields1
+	orderFields := schema.Order{}.Fields()
+	_ = orderFields
+	// orderDescCreatedAt is the schema descriptor for created_at field.
+	orderDescCreatedAt := orderMixinFields1[0].Descriptor()
+	// order.DefaultCreatedAt holds the default value on creation for the created_at field.
+	order.DefaultCreatedAt = orderDescCreatedAt.Default.(func() time.Time)
+	// orderDescUpdatedAt is the schema descriptor for updated_at field.
+	orderDescUpdatedAt := orderMixinFields1[1].Descriptor()
+	// order.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	order.DefaultUpdatedAt = orderDescUpdatedAt.Default.(func() time.Time)
+	// order.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	order.UpdateDefaultUpdatedAt = orderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderDescOrderNo is the schema descriptor for order_no field.
+	orderDescOrderNo := orderFields[1].Descriptor()
+	// order.OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
+	order.OrderNoValidator = func() func(string) error {
+		validators := orderDescOrderNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(order_no string) error {
+			for _, fn := range fns {
+				if err := fn(order_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderDescStatus is the schema descriptor for status field.
+	orderDescStatus := orderFields[12].Descriptor()
+	// order.DefaultStatus holds the default value on creation for the status field.
+	order.DefaultStatus = orderDescStatus.Default.(string)
+	// order.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	order.StatusValidator = func() func(string) error {
+		validators := orderDescStatus.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(status string) error {
+			for _, fn := range fns {
+				if err := fn(status); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderDescVesselVoyage is the schema descriptor for vessel_voyage field.
+	orderDescVesselVoyage := orderFields[18].Descriptor()
+	// order.VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
+	order.VesselVoyageValidator = orderDescVesselVoyage.Validators[0].(func(string) error)
+	// orderDescEtd is the schema descriptor for etd field.
+	orderDescEtd := orderFields[19].Descriptor()
+	// order.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
+	order.EtdValidator = orderDescEtd.Validators[0].(func(string) error)
+	// orderDescEta is the schema descriptor for eta field.
+	orderDescEta := orderFields[20].Descriptor()
+	// order.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
+	order.EtaValidator = orderDescEta.Validators[0].(func(string) error)
+	// orderDescSiCutoff is the schema descriptor for si_cutoff field.
+	orderDescSiCutoff := orderFields[21].Descriptor()
+	// order.SiCutoffValidator is a validator for the "si_cutoff" field. It is called by the builders before save.
+	order.SiCutoffValidator = orderDescSiCutoff.Validators[0].(func(string) error)
+	// orderDescDocCutoff is the schema descriptor for doc_cutoff field.
+	orderDescDocCutoff := orderFields[22].Descriptor()
+	// order.DocCutoffValidator is a validator for the "doc_cutoff" field. It is called by the builders before save.
+	order.DocCutoffValidator = orderDescDocCutoff.Validators[0].(func(string) error)
+	// orderDescCustomsCutoff is the schema descriptor for customs_cutoff field.
+	orderDescCustomsCutoff := orderFields[23].Descriptor()
+	// order.CustomsCutoffValidator is a validator for the "customs_cutoff" field. It is called by the builders before save.
+	order.CustomsCutoffValidator = orderDescCustomsCutoff.Validators[0].(func(string) error)
+	// orderDescVgmCutoff is the schema descriptor for vgm_cutoff field.
+	orderDescVgmCutoff := orderFields[24].Descriptor()
+	// order.VgmCutoffValidator is a validator for the "vgm_cutoff" field. It is called by the builders before save.
+	order.VgmCutoffValidator = orderDescVgmCutoff.Validators[0].(func(string) error)
+	// orderDescGoodsDescription is the schema descriptor for goods_description field.
+	orderDescGoodsDescription := orderFields[25].Descriptor()
+	// order.GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
+	order.GoodsDescriptionValidator = orderDescGoodsDescription.Validators[0].(func(string) error)
+	// orderDescTotalPackageUnit is the schema descriptor for total_package_unit field.
+	orderDescTotalPackageUnit := orderFields[27].Descriptor()
+	// order.TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
+	order.TotalPackageUnitValidator = orderDescTotalPackageUnit.Validators[0].(func(string) error)
+	// orderDescSpecialRequirements is the schema descriptor for special_requirements field.
+	orderDescSpecialRequirements := orderFields[28].Descriptor()
+	// order.SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
+	order.SpecialRequirementsValidator = orderDescSpecialRequirements.Validators[0].(func(string) error)
+	// orderDescOrderDate is the schema descriptor for order_date field.
+	orderDescOrderDate := orderFields[29].Descriptor()
+	// order.OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
+	order.OrderDateValidator = orderDescOrderDate.Validators[0].(func(string) error)
+	// orderDescNotes is the schema descriptor for notes field.
+	orderDescNotes := orderFields[30].Descriptor()
+	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
+	order.NotesValidator = orderDescNotes.Validators[0].(func(string) error)
+	// orderDescID is the schema descriptor for id field.
+	orderDescID := orderMixinFields0[0].Descriptor()
+	// order.DefaultID holds the default value on creation for the id field.
+	order.DefaultID = orderDescID.Default.(func() uuid.UUID)
+	ordercargocategoryMixin := schema.OrderCargoCategory{}.Mixin()
+	ordercargocategoryMixinFields0 := ordercargocategoryMixin[0].Fields()
+	_ = ordercargocategoryMixinFields0
+	ordercargocategoryMixinFields1 := ordercargocategoryMixin[1].Fields()
+	_ = ordercargocategoryMixinFields1
+	ordercargocategoryFields := schema.OrderCargoCategory{}.Fields()
+	_ = ordercargocategoryFields
+	// ordercargocategoryDescCreatedAt is the schema descriptor for created_at field.
+	ordercargocategoryDescCreatedAt := ordercargocategoryMixinFields1[0].Descriptor()
+	// ordercargocategory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordercargocategory.DefaultCreatedAt = ordercargocategoryDescCreatedAt.Default.(func() time.Time)
+	// ordercargocategoryDescUpdatedAt is the schema descriptor for updated_at field.
+	ordercargocategoryDescUpdatedAt := ordercargocategoryMixinFields1[1].Descriptor()
+	// ordercargocategory.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordercargocategory.DefaultUpdatedAt = ordercargocategoryDescUpdatedAt.Default.(func() time.Time)
+	// ordercargocategory.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordercargocategory.UpdateDefaultUpdatedAt = ordercargocategoryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordercargocategoryDescID is the schema descriptor for id field.
+	ordercargocategoryDescID := ordercargocategoryMixinFields0[0].Descriptor()
+	// ordercargocategory.DefaultID holds the default value on creation for the id field.
+	ordercargocategory.DefaultID = ordercargocategoryDescID.Default.(func() uuid.UUID)
+	orderservicetypeMixin := schema.OrderServiceType{}.Mixin()
+	orderservicetypeMixinFields0 := orderservicetypeMixin[0].Fields()
+	_ = orderservicetypeMixinFields0
+	orderservicetypeMixinFields1 := orderservicetypeMixin[1].Fields()
+	_ = orderservicetypeMixinFields1
+	orderservicetypeFields := schema.OrderServiceType{}.Fields()
+	_ = orderservicetypeFields
+	// orderservicetypeDescCreatedAt is the schema descriptor for created_at field.
+	orderservicetypeDescCreatedAt := orderservicetypeMixinFields1[0].Descriptor()
+	// orderservicetype.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderservicetype.DefaultCreatedAt = orderservicetypeDescCreatedAt.Default.(func() time.Time)
+	// orderservicetypeDescUpdatedAt is the schema descriptor for updated_at field.
+	orderservicetypeDescUpdatedAt := orderservicetypeMixinFields1[1].Descriptor()
+	// orderservicetype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderservicetype.DefaultUpdatedAt = orderservicetypeDescUpdatedAt.Default.(func() time.Time)
+	// orderservicetype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderservicetype.UpdateDefaultUpdatedAt = orderservicetypeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderservicetypeDescID is the schema descriptor for id field.
+	orderservicetypeDescID := orderservicetypeMixinFields0[0].Descriptor()
+	// orderservicetype.DefaultID holds the default value on creation for the id field.
+	orderservicetype.DefaultID = orderservicetypeDescID.Default.(func() uuid.UUID)
+	orderstatuslogMixin := schema.OrderStatusLog{}.Mixin()
+	orderstatuslogMixinFields0 := orderstatuslogMixin[0].Fields()
+	_ = orderstatuslogMixinFields0
+	orderstatuslogFields := schema.OrderStatusLog{}.Fields()
+	_ = orderstatuslogFields
+	// orderstatuslogDescFromStatus is the schema descriptor for from_status field.
+	orderstatuslogDescFromStatus := orderstatuslogFields[1].Descriptor()
+	// orderstatuslog.FromStatusValidator is a validator for the "from_status" field. It is called by the builders before save.
+	orderstatuslog.FromStatusValidator = orderstatuslogDescFromStatus.Validators[0].(func(string) error)
+	// orderstatuslogDescToStatus is the schema descriptor for to_status field.
+	orderstatuslogDescToStatus := orderstatuslogFields[2].Descriptor()
+	// orderstatuslog.ToStatusValidator is a validator for the "to_status" field. It is called by the builders before save.
+	orderstatuslog.ToStatusValidator = func() func(string) error {
+		validators := orderstatuslogDescToStatus.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(to_status string) error {
+			for _, fn := range fns {
+				if err := fn(to_status); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderstatuslogDescAction is the schema descriptor for action field.
+	orderstatuslogDescAction := orderstatuslogFields[3].Descriptor()
+	// orderstatuslog.ActionValidator is a validator for the "action" field. It is called by the builders before save.
+	orderstatuslog.ActionValidator = orderstatuslogDescAction.Validators[0].(func(string) error)
+	// orderstatuslogDescReason is the schema descriptor for reason field.
+	orderstatuslogDescReason := orderstatuslogFields[4].Descriptor()
+	// orderstatuslog.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	orderstatuslog.ReasonValidator = orderstatuslogDescReason.Validators[0].(func(string) error)
+	// orderstatuslogDescChangedAt is the schema descriptor for changed_at field.
+	orderstatuslogDescChangedAt := orderstatuslogFields[6].Descriptor()
+	// orderstatuslog.DefaultChangedAt holds the default value on creation for the changed_at field.
+	orderstatuslog.DefaultChangedAt = orderstatuslogDescChangedAt.Default.(func() time.Time)
+	// orderstatuslogDescID is the schema descriptor for id field.
+	orderstatuslogDescID := orderstatuslogMixinFields0[0].Descriptor()
+	// orderstatuslog.DefaultID holds the default value on creation for the id field.
+	orderstatuslog.DefaultID = orderstatuslogDescID.Default.(func() uuid.UUID)
 	organizationMixin := schema.Organization{}.Mixin()
 	organizationMixinFields0 := organizationMixin[0].Fields()
 	_ = organizationMixinFields0

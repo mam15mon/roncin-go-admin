@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
@@ -29,6 +30,7 @@ type StatusTemplateQuery struct {
 	predicates       []predicate.StatusTemplate
 	withOrganization *OrganizationQuery
 	withItems        *StatusTemplateItemQuery
+	withOrders       *OrderQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -103,6 +105,28 @@ func (_q *StatusTemplateQuery) QueryItems() *StatusTemplateItemQuery {
 			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, selector),
 			sqlgraph.To(statustemplateitem.Table, statustemplateitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.ItemsTable, statustemplate.ItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrders chains the current query on the "orders" edge.
+func (_q *StatusTemplateQuery) QueryOrders() *OrderQuery {
+	query := (&OrderClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, selector),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.OrdersTable, statustemplate.OrdersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -304,6 +328,7 @@ func (_q *StatusTemplateQuery) Clone() *StatusTemplateQuery {
 		predicates:       append([]predicate.StatusTemplate{}, _q.predicates...),
 		withOrganization: _q.withOrganization.Clone(),
 		withItems:        _q.withItems.Clone(),
+		withOrders:       _q.withOrders.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *StatusTemplateQuery) WithItems(opts ...func(*StatusTemplateItemQuery))
 		opt(query)
 	}
 	_q.withItems = query
+	return _q
+}
+
+// WithOrders tells the query-builder to eager-load the nodes that are connected to
+// the "orders" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StatusTemplateQuery) WithOrders(opts ...func(*OrderQuery)) *StatusTemplateQuery {
+	query := (&OrderClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrders = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *StatusTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*StatusTemplate{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withItems != nil,
+			_q.withOrders != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -446,6 +483,13 @@ func (_q *StatusTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		if err := _q.loadItems(ctx, query, nodes,
 			func(n *StatusTemplate) { n.Edges.Items = []*StatusTemplateItem{} },
 			func(n *StatusTemplate, e *StatusTemplateItem) { n.Edges.Items = append(n.Edges.Items, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrders; query != nil {
+		if err := _q.loadOrders(ctx, query, nodes,
+			func(n *StatusTemplate) { n.Edges.Orders = []*Order{} },
+			func(n *StatusTemplate, e *Order) { n.Edges.Orders = append(n.Edges.Orders, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +550,36 @@ func (_q *StatusTemplateQuery) loadItems(ctx context.Context, query *StatusTempl
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "template_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *StatusTemplateQuery) loadOrders(ctx context.Context, query *OrderQuery, nodes []*StatusTemplate, init func(*StatusTemplate), assign func(*StatusTemplate, *Order)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*StatusTemplate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(order.FieldStatusTemplateID)
+	}
+	query.Where(predicate.Order(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(statustemplate.OrdersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.StatusTemplateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "status_template_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

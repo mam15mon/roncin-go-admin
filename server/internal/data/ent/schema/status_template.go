@@ -31,6 +31,7 @@ func (StatusTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("status_templates").Field("organization_id").Unique().Required(),
 		edge.To("items", StatusTemplateItem.Type),
+		edge.To("orders", Order.Type),
 	}
 }
 
