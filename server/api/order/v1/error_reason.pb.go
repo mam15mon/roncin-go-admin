@@ -36,6 +36,10 @@ const (
 	ErrorReason_ORDER_ATTACHMENT_NOT_FOUND        ErrorReason = 8
 	ErrorReason_ORDER_ATTACHMENT_EXISTS           ErrorReason = 9
 	ErrorReason_ORDER_ATTACHMENT_INVALID_ARGUMENT ErrorReason = 10
+	ErrorReason_ORDER_PERSONNEL_NOT_FOUND         ErrorReason = 11
+	ErrorReason_ORDER_PERSONNEL_EXISTS            ErrorReason = 12
+	ErrorReason_ORDER_PERSONNEL_INVALID_ARGUMENT  ErrorReason = 13
+	ErrorReason_ORDER_PERSONNEL_USER_INVALID      ErrorReason = 14
 )
 
 // Enum value maps for ErrorReason.
@@ -52,6 +56,10 @@ var (
 		8:  "ORDER_ATTACHMENT_NOT_FOUND",
 		9:  "ORDER_ATTACHMENT_EXISTS",
 		10: "ORDER_ATTACHMENT_INVALID_ARGUMENT",
+		11: "ORDER_PERSONNEL_NOT_FOUND",
+		12: "ORDER_PERSONNEL_EXISTS",
+		13: "ORDER_PERSONNEL_INVALID_ARGUMENT",
+		14: "ORDER_PERSONNEL_USER_INVALID",
 	}
 	ErrorReason_value = map[string]int32{
 		"ORDER_UNSPECIFIED":                 0,
@@ -65,6 +73,10 @@ var (
 		"ORDER_ATTACHMENT_NOT_FOUND":        8,
 		"ORDER_ATTACHMENT_EXISTS":           9,
 		"ORDER_ATTACHMENT_INVALID_ARGUMENT": 10,
+		"ORDER_PERSONNEL_NOT_FOUND":         11,
+		"ORDER_PERSONNEL_EXISTS":            12,
+		"ORDER_PERSONNEL_INVALID_ARGUMENT":  13,
+		"ORDER_PERSONNEL_USER_INVALID":      14,
 	}
 )
 
@@ -99,7 +111,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xc7\x02\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xca\x03\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -112,7 +124,11 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\x1aORDER_ATTACHMENT_NOT_FOUND\x10\b\x12\x1b\n" +
 	"\x17ORDER_ATTACHMENT_EXISTS\x10\t\x12%\n" +
 	"!ORDER_ATTACHMENT_INVALID_ARGUMENT\x10\n" +
-	"B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x12\x1d\n" +
+	"\x19ORDER_PERSONNEL_NOT_FOUND\x10\v\x12\x1a\n" +
+	"\x16ORDER_PERSONNEL_EXISTS\x10\f\x12$\n" +
+	" ORDER_PERSONNEL_INVALID_ARGUMENT\x10\r\x12 \n" +
+	"\x1cORDER_PERSONNEL_USER_INVALID\x10\x0eB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once
