@@ -351,6 +351,64 @@ func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request 
 	return partnerAttachmentReply(ctx, created), nil
 }
 
+func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.PartnerImportReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	items := make([]*biz.Partner, 0, len(request.GetItems()))
+	for _, item := range request.GetItems() {
+		if item == nil {
+			return nil, biz.ErrPartnerImportInvalidArgument
+		}
+		items = append(items, &biz.Partner{
+			Code: item.GetCode(), LegalName: item.GetLegalName(),
+			UnifiedSocialCreditCode: item.GetUnifiedSocialCreditCode(), RegisteredAddress: item.GetRegisteredAddress(),
+			Roles: partnerRolesFromAPI(item.GetRoles()), Contacts: partnerContactsFromAPI(item.GetContacts()), Aliases: partnerAliasesFromAPI(item.GetAliases()),
+		})
+	}
+	result, err := s.usecase.Import(ctx, principal.Organization.ID, principal.UserID, biz.PartnerImportInput{
+		Source: request.GetSource(), Mode: partnerImportModeFromAPI(request.GetMode()), Items: items,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PartnerImportReply{Success: true, Code: 0, Message: "OK", CreatedCount: int32(result.CreatedCount), UpdatedCount: int32(result.UpdatedCount), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportPartnersRequest) (*v1.PartnerExportReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	options := biz.PartnerListOptions{Page: 1, PageSize: 100, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole())}
+	if request.Enabled != nil {
+		enabled := request.GetEnabled()
+		options.Enabled = &enabled
+	}
+	items := make([]*v1.PartnerExportItem, 0)
+	for {
+		result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range result.Items {
+			roles := make([]v1.PartnerRoleType, 0, len(item.Roles))
+			for _, role := range item.Roles {
+				if role.Enabled {
+					roles = append(roles, partnerRoleTypeToAPI(role.Type))
+				}
+			}
+			items = append(items, &v1.PartnerExportItem{Code: item.Code, LegalName: item.LegalName, UnifiedSocialCreditCode: item.UnifiedSocialCreditCode, RegisteredAddress: item.RegisteredAddress, Enabled: item.Enabled, Roles: roles})
+		}
+		if len(result.Items) == 0 || len(items) >= result.Total {
+			break
+		}
+		options.Page++
+	}
+	return &v1.PartnerExportReply{Success: true, Code: 0, Message: "OK", Data: items, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func parseContractDates(start, end string) (time.Time, time.Time, error) {
 	startDate, err := time.Parse(time.RFC3339, start)
 	if err != nil {
@@ -361,6 +419,17 @@ func parseContractDates(start, end string) (time.Time, time.Time, error) {
 		return time.Time{}, time.Time{}, biz.ErrPartnerContractInvalidArgument
 	}
 	return startDate, endDate, nil
+}
+
+func partnerImportModeFromAPI(value v1.PartnerImportMode) biz.PartnerImportMode {
+	switch value {
+	case v1.PartnerImportMode_PARTNER_IMPORT_MODE_CREATE_ONLY:
+		return biz.PartnerImportCreateOnly
+	case v1.PartnerImportMode_PARTNER_IMPORT_MODE_UPSERT:
+		return biz.PartnerImportUpsert
+	default:
+		return ""
+	}
 }
 
 func partnerAccountFromAPI(value *v1.PartnerAccountInput) *biz.PartnerAccount {

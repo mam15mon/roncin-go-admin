@@ -206,6 +206,95 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 	return &biz.PartnerBlacklistResult{Partner: updated, PreviouslyBlacklisted: previouslyBlacklisted}, nil
 }
 
+func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner) (*biz.PartnerImportResult, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.PartnerImportResult{}
+	for _, input := range inputs {
+		existing, queryErr := tx.Partner.Query().
+			Where(partnerent.OrganizationIDEQ(organizationID), partnerent.CodeEQ(input.Code)).
+			WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
+			WithContacts(func(query *ent.PartnerContactQuery) {
+				query.Order(partnercontactent.ByIsPrimary(entsql.OrderDesc()), partnercontactent.ByName())
+			}).
+			WithAliases(func(query *ent.PartnerAliasQuery) {
+				query.Order(partneraliasent.BySortOrder(), partneraliasent.ByAliasName())
+			}).
+			Only(ctx)
+		if queryErr != nil && !ent.IsNotFound(queryErr) {
+			_ = tx.Rollback()
+			return nil, queryErr
+		}
+		if ent.IsNotFound(queryErr) {
+			create := tx.Partner.Create().
+				SetOrganizationID(organizationID).
+				SetCode(input.Code).
+				SetLegalName(input.LegalName).
+				SetNormalizedName(input.NormalizedName).
+				SetRegisteredAddress(input.RegisteredAddress).
+				SetEnabled(true)
+			if input.UnifiedSocialCreditCode != "" {
+				create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+			}
+			created, saveErr := create.Save(ctx)
+			if saveErr != nil {
+				_ = tx.Rollback()
+				return nil, mapPartnerConstraint(saveErr)
+			}
+			if childErr := createPartnerChildren(ctx, tx, created.ID, input); childErr != nil {
+				_ = tx.Rollback()
+				return nil, childErr
+			}
+			result.CreatedCount++
+			continue
+		}
+		if mode == biz.PartnerImportCreateOnly {
+			_ = tx.Rollback()
+			return nil, biz.ErrPartnerCodeExists
+		}
+		if updateErr := updatePartnerInTx(ctx, tx, existing, input); updateErr != nil {
+			_ = tx.Rollback()
+			return nil, updateErr
+		}
+		result.UpdatedCount++
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func updatePartnerInTx(ctx context.Context, tx *ent.Tx, existing *ent.Partner, input *biz.Partner) error {
+	update := existing.Update().
+		SetLegalName(input.LegalName).
+		SetNormalizedName(input.NormalizedName).
+		SetRegisteredAddress(input.RegisteredAddress).
+		SetEnabled(true)
+	if input.UnifiedSocialCreditCode == "" {
+		update.ClearUnifiedSocialCreditCode()
+	} else {
+		update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		return mapPartnerConstraint(err)
+	}
+	if err := replacePartnerRoles(ctx, tx, existing.ID, existing.Edges.Roles, input.Roles); err != nil {
+		return err
+	}
+	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(existing.ID)).Exec(ctx); err != nil {
+		return err
+	}
+	if _, err := tx.PartnerAlias.Delete().Where(partneraliasent.PartnerIDEQ(existing.ID)).Exec(ctx); err != nil {
+		return err
+	}
+	if err := createPartnerContacts(ctx, tx, existing.ID, input.Contacts); err != nil {
+		return err
+	}
+	return createPartnerAliases(ctx, tx, existing.ID, input.Aliases)
+}
+
 func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
 	return query.
 		WithRoles(func(roleQuery *ent.PartnerRoleQuery) {

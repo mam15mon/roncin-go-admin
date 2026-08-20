@@ -317,3 +317,33 @@ export async function partnerServiceSetSupplierBlacklist(
     }
   );
 }
+
+/** 此处后端没有提供注释 GET /api/v1/partners/export */
+export async function partnerServiceExportPartners(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceExportPartnersParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.PartnerExportReply>("/api/v1/partners/export", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/partners/import */
+export async function partnerServiceImportPartners(
+  body: API.ImportPartnersRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.PartnerImportReply>("/api/v1/partners/import", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}

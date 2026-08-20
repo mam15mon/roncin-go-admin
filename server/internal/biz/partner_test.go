@@ -49,6 +49,10 @@ func (s *partnerRepoStub) SetSupplierBlacklist(_ context.Context, organizationID
 	return &PartnerBlacklistResult{Partner: &Partner{ID: id, OrganizationID: organizationID}}, nil
 }
 
+func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, _ PartnerImportMode, items []*Partner) (*PartnerImportResult, error) {
+	return &PartnerImportResult{CreatedCount: len(items)}, nil
+}
+
 func TestPartnerCreateNormalizesAggregateAndAudits(t *testing.T) {
 	repo := &partnerRepoStub{}
 	audit := &auditRepoStub{}

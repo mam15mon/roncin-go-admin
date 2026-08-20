@@ -273,6 +273,12 @@ declare namespace API {
     items: MasterDataImportItemInput[];
   };
 
+  type ImportPartnersRequest = {
+    source: string;
+    mode: number;
+    items: PartnerImportItemInput[];
+  };
+
   type LoginReply = {
     success?: boolean;
     code?: number;
@@ -654,6 +660,42 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PartnerExportItem = {
+    code?: string;
+    legalName?: string;
+    unifiedSocialCreditCode?: string;
+    registeredAddress?: string;
+    enabled?: boolean;
+    roles?: number[];
+  };
+
+  type PartnerExportReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerExportItem[];
+    traceId?: string;
+  };
+
+  type PartnerImportItemInput = {
+    code: string;
+    legalName: string;
+    unifiedSocialCreditCode?: string;
+    registeredAddress?: string;
+    roles?: PartnerRoleInput[];
+    contacts?: PartnerContactInput[];
+    aliases?: PartnerAliasInput[];
+  };
+
+  type PartnerImportReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    createdCount?: number;
+    updatedCount?: number;
+    traceId?: string;
+  };
+
   type PartnerListReply = {
     success?: boolean;
     code?: number;
@@ -698,6 +740,12 @@ declare namespace API {
   type PartnerServiceCreatePartnerSettlementRuleParams = {
     partnerId: string;
     roleType: number;
+  };
+
+  type PartnerServiceExportPartnersParams = {
+    keyword?: string;
+    role?: number;
+    enabled?: boolean;
   };
 
   type PartnerServiceGetPartnerParams = {

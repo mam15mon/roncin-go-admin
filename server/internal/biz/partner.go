@@ -28,6 +28,7 @@ var (
 	ErrPartnerSupplierRoleRequired    = errors.BadRequest(v1.ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED.String(), "往来单位没有供应商角色")
 	ErrPartnerBlacklistReasonRequired = errors.BadRequest(v1.ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED.String(), "黑名单变更原因不能为空")
 	ErrPartnerBlacklistedSupplierRole = errors.BadRequest(v1.ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE.String(), "清除黑名单前不能移除供应商角色")
+	ErrPartnerImportInvalidArgument   = errors.BadRequest(v1.ErrorReason_PARTNER_INVALID_ARGUMENT.String(), "往来单位导入参数不合法")
 )
 
 type PartnerRoleType string
@@ -103,6 +104,28 @@ type PartnerList struct {
 	PageSize int
 }
 
+type PartnerImportMode string
+
+const (
+	PartnerImportCreateOnly PartnerImportMode = "create_only"
+	PartnerImportUpsert     PartnerImportMode = "upsert"
+)
+
+func (mode PartnerImportMode) Valid() bool {
+	return mode == PartnerImportCreateOnly || mode == PartnerImportUpsert
+}
+
+type PartnerImportInput struct {
+	Source string
+	Mode   PartnerImportMode
+	Items  []*Partner
+}
+
+type PartnerImportResult struct {
+	CreatedCount int
+	UpdatedCount int
+}
+
 type PartnerUpdateResult struct {
 	Partner       *Partner
 	PreviousRoles []*PartnerRole
@@ -126,6 +149,7 @@ type PartnerRepo interface {
 	Create(context.Context, uuid.UUID, *Partner) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner) (*PartnerUpdateResult, error)
 	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate) (*PartnerBlacklistResult, error)
+	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner) (*PartnerImportResult, error)
 }
 
 type PartnerUsecase struct {
@@ -154,6 +178,44 @@ func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, op
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
 	return uc.repo.List(ctx, organizationID, options)
+}
+
+func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uuid.UUID, input PartnerImportInput) (*PartnerImportResult, error) {
+	if organizationID == uuid.Nil || userID == uuid.Nil || strings.TrimSpace(input.Source) == "" || !input.Mode.Valid() || len(input.Items) == 0 || len(input.Items) > 500 {
+		return nil, ErrPartnerImportInvalidArgument
+	}
+	normalized := make([]*Partner, 0, len(input.Items))
+	seenCodes := make(map[string]struct{}, len(input.Items))
+	for _, item := range input.Items {
+		value, err := normalizePartner(item, true)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := seenCodes[value.Code]; exists {
+			return nil, ErrPartnerImportInvalidArgument
+		}
+		seenCodes[value.Code] = struct{}{}
+		normalized = append(normalized, value)
+	}
+	result, err := uc.repo.Import(ctx, organizationID, input.Mode, normalized)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &userID,
+		Action:         "partner.import",
+		Result:         "success",
+		Details: map[string]string{
+			"source":        input.Source,
+			"mode":          string(input.Mode),
+			"created_count": fmt.Sprintf("%d", result.CreatedCount),
+			"updated_count": fmt.Sprintf("%d", result.UpdatedCount),
+		},
+	}); err != nil {
+		return nil, fmt.Errorf("write partner import audit: %w", err)
+	}
+	return result, nil
 }
 
 func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uuid.UUID, input *Partner) (*Partner, error) {
