@@ -26,3 +26,8 @@ security:
     ttl: 12h
     secure: false
     same_site: lax
+telemetry:
+  enabled: ${OTEL_ENABLED:false}
+  endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:127.0.0.1:4317}
+  insecure: ${OTEL_EXPORTER_OTLP_INSECURE:true}
+  sample_ratio: ${OTEL_TRACES_SAMPLER_ARG:1}

@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -149,7 +150,19 @@ func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time
 }
 
 func (r *authRepo) WriteAudit(ctx context.Context, event *biz.AuditEvent) error {
-	create := r.data.db.AuditLog.Create().SetNillableOrganizationID(event.OrganizationID).SetNillableUserID(event.UserID).SetAction(event.Action).SetResult(auditlog.Result(event.Result)).SetRequestID(event.RequestID).SetTraceID(event.TraceID).SetIPAddress(event.IPAddress)
+	requestID := event.RequestID
+	if requestID == "" {
+		requestID = requestmeta.FromContext(ctx)
+	}
+	traceID := event.TraceID
+	if traceID == "" {
+		traceID = requestmeta.TraceID(ctx)
+	}
+	ipAddress := event.IPAddress
+	if ipAddress == "" {
+		ipAddress = requestmeta.IPAddress(ctx)
+	}
+	create := r.data.db.AuditLog.Create().SetNillableOrganizationID(event.OrganizationID).SetNillableUserID(event.UserID).SetAction(event.Action).SetResult(auditlog.Result(event.Result)).SetRequestID(requestID).SetTraceID(traceID).SetIPAddress(ipAddress)
 	if len(event.Details) > 0 {
 		details, err := json.Marshal(event.Details)
 		if err != nil {

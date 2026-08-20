@@ -3,6 +3,8 @@ package requestmeta
 import (
 	"context"
 	"log/slog"
+	"net"
+	nethttp "net/http"
 	"regexp"
 	"time"
 
@@ -12,12 +14,22 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type contextKey struct{}
+type requestIDKey struct{}
+type ipAddressKey struct{}
+
+type requestCarrier interface {
+	Request() *nethttp.Request
+}
 
 var validRequestID = regexp.MustCompile(`^[A-Za-z0-9._-]{1,64}$`)
 
 func FromContext(ctx context.Context) string {
-	value, _ := ctx.Value(contextKey{}).(string)
+	value, _ := ctx.Value(requestIDKey{}).(string)
+	return value
+}
+
+func IPAddress(ctx context.Context) string {
+	value, _ := ctx.Value(ipAddressKey{}).(string)
 	return value
 }
 
@@ -43,13 +55,25 @@ func Middleware() middleware.Middleware {
 			if requestID == "" {
 				requestID = uuid.NewString()
 			}
-			ctx = context.WithValue(ctx, contextKey{}, requestID)
+			ctx = context.WithValue(ctx, requestIDKey{}, requestID)
+			if tr, ok := transport.FromServerContext(ctx); ok {
+				if requestTransport, ok := tr.(requestCarrier); ok && requestTransport.Request() != nil {
+					ctx = context.WithValue(ctx, ipAddressKey{}, remoteIPAddress(requestTransport.Request().RemoteAddr))
+				}
+			}
 			if tr, ok := transport.FromServerContext(ctx); ok {
 				tr.ReplyHeader().Set("X-Request-ID", requestID)
 			}
 			return handler(ctx, req)
 		}
 	}
+}
+
+func remoteIPAddress(remoteAddr string) string {
+	if host, _, err := net.SplitHostPort(remoteAddr); err == nil {
+		return host
+	}
+	return remoteAddr
 }
 
 // Logging writes one structured completion event per RPC without request bodies.

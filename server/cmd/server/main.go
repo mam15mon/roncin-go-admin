@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"os"
 
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/telemetry"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	"github.com/go-kratos/kratos/v3"
@@ -79,6 +81,15 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
+	shutdownTelemetry, err := telemetry.Setup(context.Background(), bc.Telemetry, Name, Version)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := shutdownTelemetry(context.Background()); err != nil {
+			logger.Error("shutdown telemetry", slog.Any("error", err))
+		}
+	}()
 
 	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Security, logger)
 	if err != nil {

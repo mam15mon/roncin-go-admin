@@ -9,6 +9,18 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Security security = 3;
+  Telemetry telemetry = 4;
+}
+
+message Telemetry {
+  // Export traces through OTLP when enabled. Disabled means no exporter is
+  // created and the Kratos tracing middleware remains a no-op.
+  bool enabled = 1;
+  // OTLP gRPC endpoint in host:port form.
+  string endpoint = 2;
+  bool insecure = 3;
+  // Must be between 0 and 1 when telemetry is enabled.
+  double sample_ratio = 4;
 }
 
 message Server {
