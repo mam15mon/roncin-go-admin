@@ -67,8 +67,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderAttachmentRepo := data.NewOrderAttachmentRepo(dataData)
 	orderAttachmentUsecase := biz.NewOrderAttachmentUsecase(orderAttachmentRepo, auditRepo)
 	orderAttachmentService := service.NewOrderAttachmentService(orderAttachmentUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, authUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, authUsecase, sessionPolicy, dataData, logger)
+	orderPersonnelRepo := data.NewOrderPersonnelRepo(dataData)
+	orderPersonnelUsecase := biz.NewOrderPersonnelUsecase(orderPersonnelRepo, auditRepo)
+	orderPersonnelService := service.NewOrderPersonnelService(orderPersonnelUsecase)
+	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, authUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, authUsecase, sessionPolicy, dataData, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

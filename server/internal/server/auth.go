@@ -95,7 +95,11 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		orderv1.OperationOrderMilestoneServiceSetMilestone:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderAttachmentServiceListAttachments:             {key: access.OrderRead, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderAttachmentServiceRegisterAttachment:          {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderPersonnelServiceListPersonnel:                {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderPersonnelServiceAssignPersonnel:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderPersonnelServiceRemovePersonnel:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
+
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {
 			tr, ok := transport.FromServerContext(ctx)
