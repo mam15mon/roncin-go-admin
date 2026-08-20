@@ -8,6 +8,7 @@ import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderMilestoneService from "./orderMilestoneService";
+import * as orderPersonnelService from "./orderPersonnelService";
 import * as partnerService from "./partnerService";
 export default {
   adminService,
@@ -16,5 +17,6 @@ export default {
   orderService,
   orderAttachmentService,
   orderMilestoneService,
+  orderPersonnelService,
   partnerService,
 };

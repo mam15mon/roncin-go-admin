@@ -161,6 +161,12 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AssignPersonnelRequest = {
+    orderId: string;
+    userId: string;
+    role: number;
+  };
+
   type CreateMasterDataItemRequest = {
     kind: number;
     code: string;
@@ -655,6 +661,52 @@ declare namespace API {
   type OrderMilestoneServiceSetMilestoneParams = {
     orderId: string;
     type: string;
+  };
+
+  type OrderPersonnel = {
+    id?: string;
+    orderId?: string;
+    userId?: string;
+    role?: number;
+    assignedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderPersonnelListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderPersonnel[];
+    traceId?: string;
+  };
+
+  type OrderPersonnelOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderPersonnelReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderPersonnel;
+    traceId?: string;
+  };
+
+  type OrderPersonnelServiceAssignPersonnelParams = {
+    orderId: string;
+  };
+
+  type OrderPersonnelServiceListPersonnelParams = {
+    orderId: string;
+  };
+
+  type OrderPersonnelServiceRemovePersonnelParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderReply = {
