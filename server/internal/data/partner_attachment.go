@@ -46,18 +46,18 @@ func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, acto
 	if err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	created, err := r.data.db.PartnerAttachment.Create().
+	create := r.data.db.PartnerAttachment.Create().
 		SetPartnerID(partnerID).
 		SetIdempotencyKey(input.IdempotencyKey).
 		SetFileName(input.FileName).
 		SetMimeType(input.MIMEType).
 		SetFileSize(input.FileSize).
 		SetObjectKey(input.ObjectKey).
-		SetUploadedBy(actorID).
-		Save(ctx)
+		SetUploadedBy(actorID)
 	if input.Checksum != "" {
-		created, err = created.Update().SetChecksum(input.Checksum).Save(ctx)
+		create.SetChecksum(input.Checksum)
 	}
+	created, err := create.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "partner_attachment_idempotency_key") {
 			return nil, biz.ErrPartnerAttachmentExists
