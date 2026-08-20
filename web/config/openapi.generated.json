@@ -4056,7 +4056,8 @@
       "order.v1.SetMilestoneRequest": {
         "required": [
           "orderId",
-          "type"
+          "type",
+          "expectedOrderStatus"
         ],
         "type": "object",
         "properties": {

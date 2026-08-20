@@ -2598,6 +2598,7 @@ components:
             required:
                 - orderId
                 - type
+                - expectedOrderStatus
             type: object
             properties:
                 orderId:

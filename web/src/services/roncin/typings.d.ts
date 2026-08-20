@@ -1038,7 +1038,7 @@ declare namespace API {
   type SetMilestoneRequest = {
     orderId: string;
     type: string;
-    expectedOrderStatus?: string;
+    expectedOrderStatus: string;
     occurredAt?: string;
     note?: string;
     clearOccurredAt?: boolean;

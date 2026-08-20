@@ -189,7 +189,7 @@ type SetMilestoneRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Type                string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	ExpectedOrderStatus *string                `protobuf:"bytes,3,opt,name=expected_order_status,json=expectedOrderStatus,proto3,oneof" json:"expected_order_status,omitempty"`
+	ExpectedOrderStatus string                 `protobuf:"bytes,3,opt,name=expected_order_status,json=expectedOrderStatus,proto3" json:"expected_order_status,omitempty"`
 	OccurredAt          *string                `protobuf:"bytes,4,opt,name=occurred_at,json=occurredAt,proto3,oneof" json:"occurred_at,omitempty"`
 	Note                *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ClearOccurredAt     *bool                  `protobuf:"varint,6,opt,name=clear_occurred_at,json=clearOccurredAt,proto3,oneof" json:"clear_occurred_at,omitempty"`
@@ -242,8 +242,8 @@ func (x *SetMilestoneRequest) GetType() string {
 }
 
 func (x *SetMilestoneRequest) GetExpectedOrderStatus() string {
-	if x != nil && x.ExpectedOrderStatus != nil {
-		return *x.ExpectedOrderStatus
+	if x != nil {
+		return x.ExpectedOrderStatus
 	}
 	return ""
 }
@@ -450,16 +450,15 @@ const file_order_v1_milestone_proto_rawDesc = "" +
 	"\x05_noteB\r\n" +
 	"\v_updated_by\"7\n" +
 	"\x15ListMilestonesRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xc0\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xa6\x02\n" +
 	"\x13SetMilestoneRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x17\n" +
 	"\x04type\x18\x02 \x01(\tB\x03\xe0A\x02R\x04type\x127\n" +
-	"\x15expected_order_status\x18\x03 \x01(\tH\x00R\x13expectedOrderStatus\x88\x01\x01\x12$\n" +
-	"\voccurred_at\x18\x04 \x01(\tH\x01R\n" +
+	"\x15expected_order_status\x18\x03 \x01(\tB\x03\xe0A\x02R\x13expectedOrderStatus\x12$\n" +
+	"\voccurred_at\x18\x04 \x01(\tH\x00R\n" +
 	"occurredAt\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x05 \x01(\tH\x02R\x04note\x88\x01\x01\x12/\n" +
-	"\x11clear_occurred_at\x18\x06 \x01(\bH\x03R\x0fclearOccurredAt\x88\x01\x01B\x18\n" +
-	"\x16_expected_order_statusB\x0e\n" +
+	"\x04note\x18\x05 \x01(\tH\x01R\x04note\x88\x01\x01\x12/\n" +
+	"\x11clear_occurred_at\x18\x06 \x01(\bH\x02R\x0fclearOccurredAt\x88\x01\x01B\x0e\n" +
 	"\f_occurred_atB\a\n" +
 	"\x05_noteB\x14\n" +
 	"\x12_clear_occurred_at\"\xa6\x01\n" +
