@@ -1313,6 +1313,134 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.OrderPersonnelOperationReply'
+    /api/v1/orders/{orderId}/release-pods:
+        get:
+            tags:
+                - OrderReleasePodService
+            description: ListReleasePods 获取指定订单的放货凭证列表。
+            operationId: OrderReleasePodService_ListReleasePods
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReleasePodListReply'
+        post:
+            tags:
+                - OrderReleasePodService
+            description: AddReleasePod 添加放货凭证，初始状态为待签收。
+            operationId: OrderReleasePodService_AddReleasePod
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.AddReleasePodRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReleasePodReply'
+    /api/v1/orders/{orderId}/release-pods/{id}:
+        put:
+            tags:
+                - OrderReleasePodService
+            description: UpdateReleasePod 更新凭证字段，已回单后不可修改。
+            operationId: OrderReleasePodService_UpdateReleasePod
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.UpdateReleasePodRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReleasePodReply'
+        delete:
+            tags:
+                - OrderReleasePodService
+            description: RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
+            operationId: OrderReleasePodService_RemoveReleasePod
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReleasePodOperationReply'
+    /api/v1/orders/{orderId}/release-pods/{id}/transition:
+        post:
+            tags:
+                - OrderReleasePodService
+            description: |-
+                TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
+                 流转到已签收时由服务端记录签收人与签收时间。
+            operationId: OrderReleasePodService_TransitionReleasePodStatus
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.TransitionReleasePodStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderReleasePodReply'
     /api/v1/orders/{orderId}/shipping-documents:
         get:
             tags:
@@ -2993,6 +3121,22 @@ components:
                 note:
                     type: string
             description: AddContainerRequest 添加订单集装箱请求。
+        order.v1.AddReleasePodRequest:
+            required:
+                - orderId
+            type: object
+            properties:
+                orderId:
+                    type: string
+                shippingDocumentId:
+                    type: string
+                releaseNo:
+                    type: string
+                podNo:
+                    type: string
+                note:
+                    type: string
+            description: AddReleasePodRequest 添加放货凭证请求。
         order.v1.AddShippingDocumentRequest:
             required:
                 - orderId
@@ -3630,6 +3774,78 @@ components:
                 traceId:
                     type: string
             description: OrderPersonnelReply 单条订单协作人员响应。
+        order.v1.OrderReleasePod:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                shippingDocumentId:
+                    type: string
+                releaseNo:
+                    type: string
+                podNo:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                signedAt:
+                    type: string
+                signedBy:
+                    type: string
+                note:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderReleasePod 放货凭证信息。
+        order.v1.OrderReleasePodListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderReleasePod'
+                traceId:
+                    type: string
+            description: OrderReleasePodListReply 放货凭证列表响应。
+        order.v1.OrderReleasePodOperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+            description: OrderReleasePodOperationReply 放货凭证操作响应。
+        order.v1.OrderReleasePodReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderReleasePod'
+                traceId:
+                    type: string
+            description: OrderReleasePodReply 单条放货凭证响应。
         order.v1.OrderReply:
             type: object
             properties:
@@ -3788,6 +4004,25 @@ components:
                 reason:
                     type: string
             description: TransitionOrderStatusRequest 流转订单状态请求。
+        order.v1.TransitionReleasePodStatusRequest:
+            required:
+                - orderId
+                - id
+                - expectedStatus
+                - toStatus
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                expectedStatus:
+                    type: integer
+                    format: enum
+                toStatus:
+                    type: integer
+                    format: enum
+            description: TransitionReleasePodStatusRequest 流转凭证状态请求。
         order.v1.TransitionShippingDocumentStatusRequest:
             required:
                 - orderId
@@ -3950,6 +4185,25 @@ components:
                 notes:
                     type: string
             description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
+        order.v1.UpdateReleasePodRequest:
+            required:
+                - orderId
+                - id
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                shippingDocumentId:
+                    type: string
+                releaseNo:
+                    type: string
+                podNo:
+                    type: string
+                note:
+                    type: string
+            description: UpdateReleasePodRequest 更新放货凭证字段请求。
         order.v1.UpdateShippingDocumentRequest:
             required:
                 - orderId
@@ -4830,6 +5084,11 @@ tags:
       description: OrderMilestoneService 订单里程碑服务。
     - name: OrderPersonnelService
       description: OrderPersonnelService 订单协作人员服务。
+    - name: OrderReleasePodService
+      description: |-
+        OrderReleasePodService 订单放货凭证服务。
+         新建凭证固定为待签收；字段编辑在未回单前可用；状态仅允许
+         PENDING→SIGNED→RETURNED 向前单步流转，签收时记录签收人与时间。
     - name: OrderService
       description: OrderService 订单核心服务。
     - name: OrderShippingDocumentService

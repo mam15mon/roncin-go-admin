@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderReleasePodService 订单放货凭证服务。
+// 新建凭证固定为待签收；字段编辑在未回单前可用；状态仅允许
+// PENDING→SIGNED→RETURNED 向前单步流转，签收时记录签收人与时间。
+service OrderReleasePodService {
+  // ListReleasePods 获取指定订单的放货凭证列表。
+  rpc ListReleasePods(ListReleasePodsRequest) returns (OrderReleasePodListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/release-pods"};
+  }
+
+  // AddReleasePod 添加放货凭证，初始状态为待签收。
+  rpc AddReleasePod(AddReleasePodRequest) returns (OrderReleasePodReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/release-pods"
+      body: "*"
+    };
+  }
+
+  // UpdateReleasePod 更新凭证字段，已回单后不可修改。
+  rpc UpdateReleasePod(UpdateReleasePodRequest) returns (OrderReleasePodReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/release-pods/{id}"
+      body: "*"
+    };
+  }
+
+  // TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
+  // 流转到已签收时由服务端记录签收人与签收时间。
+  rpc TransitionReleasePodStatus(TransitionReleasePodStatusRequest) returns (OrderReleasePodReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/release-pods/{id}/transition"
+      body: "*"
+    };
+  }
+
+  // RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
+  rpc RemoveReleasePod(RemoveReleasePodRequest) returns (OrderReleasePodOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/release-pods/{id}"};
+  }
+}
+
+// OrderReleasePodStatus 放货凭证状态枚举。
+enum OrderReleasePodStatus {
+  ORDER_RELEASE_POD_STATUS_UNSPECIFIED = 0;
+  ORDER_RELEASE_POD_STATUS_PENDING = 1;
+  ORDER_RELEASE_POD_STATUS_SIGNED = 2;
+  ORDER_RELEASE_POD_STATUS_RETURNED = 3;
+}
+
+// OrderReleasePod 放货凭证信息。
+message OrderReleasePod {
+  string id = 1;
+  string order_id = 2;
+  optional string shipping_document_id = 3;
+  optional string release_no = 4;
+  optional string pod_no = 5;
+  OrderReleasePodStatus status = 6;
+  optional string signed_at = 7;
+  optional string signed_by = 8;
+  optional string note = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// ListReleasePodsRequest 获取放货凭证列表请求。
+message ListReleasePodsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AddReleasePodRequest 添加放货凭证请求。
+message AddReleasePodRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string shipping_document_id = 2;
+  optional string release_no = 3;
+  optional string pod_no = 4;
+  optional string note = 5;
+}
+
+// UpdateReleasePodRequest 更新放货凭证字段请求。
+message UpdateReleasePodRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string shipping_document_id = 3;
+  optional string release_no = 4;
+  optional string pod_no = 5;
+  optional string note = 6;
+}
+
+// TransitionReleasePodStatusRequest 流转凭证状态请求。
+message TransitionReleasePodStatusRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderReleasePodStatus expected_status = 3 [(google.api.field_behavior) = REQUIRED];
+  OrderReleasePodStatus to_status = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemoveReleasePodRequest 移除放货凭证请求。
+message RemoveReleasePodRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderReleasePodReply 单条放货凭证响应。
+message OrderReleasePodReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderReleasePod data = 4;
+  string trace_id = 5;
+}
+
+// OrderReleasePodListReply 放货凭证列表响应。
+message OrderReleasePodListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderReleasePod data = 4;
+  string trace_id = 5;
+}
+
+// OrderReleasePodOperationReply 放货凭证操作响应。
+message OrderReleasePodOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

@@ -56,6 +56,11 @@ const (
 	ErrorReason_ORDER_ABNORMAL_CASE_INVALID_ARGUMENT     ErrorReason = 28
 	ErrorReason_ORDER_ABNORMAL_CASE_KIND_INVALID         ErrorReason = 29
 	ErrorReason_ORDER_ABNORMAL_CASE_STATUS_CONFLICT      ErrorReason = 30
+	ErrorReason_ORDER_RELEASE_POD_NOT_FOUND              ErrorReason = 31
+	ErrorReason_ORDER_RELEASE_POD_INVALID_ARGUMENT       ErrorReason = 32
+	ErrorReason_ORDER_RELEASE_POD_INVALID_STATUS         ErrorReason = 33
+	ErrorReason_ORDER_RELEASE_POD_STATUS_CONFLICT        ErrorReason = 34
+	ErrorReason_ORDER_RELEASE_POD_DOCUMENT_INVALID       ErrorReason = 35
 )
 
 // Enum value maps for ErrorReason.
@@ -92,6 +97,11 @@ var (
 		28: "ORDER_ABNORMAL_CASE_INVALID_ARGUMENT",
 		29: "ORDER_ABNORMAL_CASE_KIND_INVALID",
 		30: "ORDER_ABNORMAL_CASE_STATUS_CONFLICT",
+		31: "ORDER_RELEASE_POD_NOT_FOUND",
+		32: "ORDER_RELEASE_POD_INVALID_ARGUMENT",
+		33: "ORDER_RELEASE_POD_INVALID_STATUS",
+		34: "ORDER_RELEASE_POD_STATUS_CONFLICT",
+		35: "ORDER_RELEASE_POD_DOCUMENT_INVALID",
 	}
 	ErrorReason_value = map[string]int32{
 		"ORDER_UNSPECIFIED":                        0,
@@ -125,6 +135,11 @@ var (
 		"ORDER_ABNORMAL_CASE_INVALID_ARGUMENT":     28,
 		"ORDER_ABNORMAL_CASE_KIND_INVALID":         29,
 		"ORDER_ABNORMAL_CASE_STATUS_CONFLICT":      30,
+		"ORDER_RELEASE_POD_NOT_FOUND":              31,
+		"ORDER_RELEASE_POD_INVALID_ARGUMENT":       32,
+		"ORDER_RELEASE_POD_INVALID_STATUS":         33,
+		"ORDER_RELEASE_POD_STATUS_CONFLICT":        34,
+		"ORDER_RELEASE_POD_DOCUMENT_INVALID":       35,
 	}
 )
 
@@ -159,7 +174,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xa2\b\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xe0\t\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -192,7 +207,12 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\x1aORDER_ABNORMAL_CASE_EXISTS\x10\x1b\x12(\n" +
 	"$ORDER_ABNORMAL_CASE_INVALID_ARGUMENT\x10\x1c\x12$\n" +
 	" ORDER_ABNORMAL_CASE_KIND_INVALID\x10\x1d\x12'\n" +
-	"#ORDER_ABNORMAL_CASE_STATUS_CONFLICT\x10\x1eB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"#ORDER_ABNORMAL_CASE_STATUS_CONFLICT\x10\x1e\x12\x1f\n" +
+	"\x1bORDER_RELEASE_POD_NOT_FOUND\x10\x1f\x12&\n" +
+	"\"ORDER_RELEASE_POD_INVALID_ARGUMENT\x10 \x12$\n" +
+	" ORDER_RELEASE_POD_INVALID_STATUS\x10!\x12%\n" +
+	"!ORDER_RELEASE_POD_STATUS_CONFLICT\x10\"\x12&\n" +
+	"\"ORDER_RELEASE_POD_DOCUMENT_INVALID\x10#B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once

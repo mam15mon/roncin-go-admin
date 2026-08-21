@@ -20,6 +20,14 @@ declare namespace API {
     note?: string;
   };
 
+  type AddReleasePodRequest = {
+    orderId: string;
+    shippingDocumentId?: string;
+    releaseNo?: string;
+    podNo?: string;
+    note?: string;
+  };
+
   type AddShippingDocumentRequest = {
     orderId: string;
     masterNo: string;
@@ -955,6 +963,66 @@ declare namespace API {
     id: string;
   };
 
+  type OrderReleasePod = {
+    id?: string;
+    orderId?: string;
+    shippingDocumentId?: string;
+    releaseNo?: string;
+    podNo?: string;
+    status?: number;
+    signedAt?: string;
+    signedBy?: string;
+    note?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderReleasePodListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod[];
+    traceId?: string;
+  };
+
+  type OrderReleasePodOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderReleasePodReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod;
+    traceId?: string;
+  };
+
+  type OrderReleasePodServiceAddReleasePodParams = {
+    orderId: string;
+  };
+
+  type OrderReleasePodServiceListReleasePodsParams = {
+    orderId: string;
+  };
+
+  type OrderReleasePodServiceRemoveReleasePodParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderReleasePodServiceTransitionReleasePodStatusParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderReleasePodServiceUpdateReleasePodParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderReply = {
     success?: boolean;
     code?: number;
@@ -1526,6 +1594,13 @@ declare namespace API {
     reason?: string;
   };
 
+  type TransitionReleasePodStatusRequest = {
+    orderId: string;
+    id: string;
+    expectedStatus: number;
+    toStatus: number;
+  };
+
   type TransitionShippingDocumentStatusRequest = {
     orderId: string;
     id: string;
@@ -1656,6 +1731,15 @@ declare namespace API {
     roleType: number;
     id: string;
     rule: PartnerSettlementRuleInput;
+  };
+
+  type UpdateReleasePodRequest = {
+    orderId: string;
+    id: string;
+    shippingDocumentId?: string;
+    releaseNo?: string;
+    podNo?: string;
+    note?: string;
   };
 
   type UpdateRoleRequest = {
