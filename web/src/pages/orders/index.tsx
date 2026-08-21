@@ -36,12 +36,6 @@ import {
   masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
 import {
-  orderAbnormalCaseServiceListAbnormalCases,
-  orderAbnormalCaseServiceMarkAbnormalCase,
-  orderAbnormalCaseServiceRemoveAbnormalCase,
-  orderAbnormalCaseServiceResolveAbnormalCase,
-} from '@/services/roncin/orderAbnormalCaseService';
-import {
   orderAttachmentServiceListAttachments,
   orderAttachmentServiceRegisterAttachment,
 } from '@/services/roncin/orderAttachmentService';
@@ -67,13 +61,6 @@ import {
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
 import {
-  orderReleasePodServiceAddReleasePod,
-  orderReleasePodServiceListReleasePods,
-  orderReleasePodServiceRemoveReleasePod,
-  orderReleasePodServiceTransitionReleasePodStatus,
-  orderReleasePodServiceUpdateReleasePod,
-} from '@/services/roncin/orderReleasePodService';
-import {
   orderServiceCreateOrder,
   orderServiceListOrders,
   orderServiceTransitionOrderStatus,
@@ -87,6 +74,10 @@ import {
   orderShippingDocumentServiceUpdateShippingDocument,
 } from '@/services/roncin/orderShippingDocumentService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import AbnormalCasePanel, {
+  type AbnormalCasePanelRef,
+} from './abnormal-case-panel';
+import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 const businessTypeOptions = [
   { label: '海运出口', value: 1 },
@@ -143,7 +134,6 @@ const MASTER_DATA_KINDS = {
   CONTAINER_SPEC: 7,
   SERVICE_TYPE: 8,
   CARGO_CATEGORY: 9,
-  ABNORMAL_CASE: 10,
 } as const;
 
 type OrderFormValues = {
@@ -244,34 +234,6 @@ const shippingDocumentStatusValueEnum: Record<
   3: { text: '已放货', status: 'Success' },
 };
 
-type ReleasePodFormValues = {
-  releaseNo?: string;
-  podNo?: string;
-  shippingDocumentId?: string;
-  note?: string;
-};
-
-const releasePodStatusValueEnum: Record<
-  number,
-  { text: string; status: 'Default' | 'Processing' | 'Success' }
-> = {
-  1: { text: '待签收', status: 'Default' },
-  2: { text: '已签收', status: 'Processing' },
-  3: { text: '已回单', status: 'Success' },
-};
-
-type AbnormalCaseFormValues = {
-  abnormalCaseId: string;
-};
-
-const abnormalCaseStatusValueEnum: Record<
-  number,
-  { text: string; status: 'Error' | 'Success' }
-> = {
-  1: { text: '进行中', status: 'Error' },
-  2: { text: '已解决', status: 'Success' },
-};
-
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -288,11 +250,11 @@ export default function Orders() {
   const cargoActionRef = useRef<ActionType | undefined>(undefined);
   const cargoFormRef = useRef<ProFormInstance | undefined>(undefined);
   const shippingDocumentActionRef = useRef<ActionType | undefined>(undefined);
-  const shippingDocumentFormRef = useRef<ProFormInstance | undefined>(undefined);
-  const releasePodActionRef = useRef<ActionType | undefined>(undefined);
-  const releasePodFormRef = useRef<ProFormInstance | undefined>(undefined);
-  const abnormalCaseActionRef = useRef<ActionType | undefined>(undefined);
-  const abnormalCaseFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const shippingDocumentFormRef = useRef<ProFormInstance | undefined>(
+    undefined,
+  );
+  const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
+  const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -313,10 +275,6 @@ export default function Orders() {
     useState(false);
   const [shippingDocumentModalOpen, setShippingDocumentModalOpen] =
     useState(false);
-  const [releasePodDrawerOpen, setReleasePodDrawerOpen] = useState(false);
-  const [releasePodModalOpen, setReleasePodModalOpen] = useState(false);
-  const [abnormalCaseDrawerOpen, setAbnormalCaseDrawerOpen] = useState(false);
-  const [abnormalCaseModalOpen, setAbnormalCaseModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
@@ -330,18 +288,14 @@ export default function Orders() {
   const [cargoOrder, setCargoOrder] = useState<API.Order>();
   const [shippingDocumentOrder, setShippingDocumentOrder] =
     useState<API.Order>();
-  const [releasePodOrder, setReleasePodOrder] = useState<API.Order>();
-  const [releasePodDocuments, setReleasePodDocuments] = useState<
-    API.OrderShippingDocument[]
-  >([]);
-  const [abnormalCaseOrder, setAbnormalCaseOrder] = useState<API.Order>();
-  const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
-  const [editingContainer, setEditingContainer] = useState<API.OrderContainer>();
-  const [editingCargoItem, setEditingCargoItem] = useState<API.OrderCargoItem>();
+  const [editingMilestone, setEditingMilestone] =
+    useState<API.OrderMilestone>();
+  const [editingContainer, setEditingContainer] =
+    useState<API.OrderContainer>();
+  const [editingCargoItem, setEditingCargoItem] =
+    useState<API.OrderCargoItem>();
   const [editingShippingDocument, setEditingShippingDocument] =
     useState<API.OrderShippingDocument>();
-  const [editingReleasePod, setEditingReleasePod] =
-    useState<API.OrderReleasePod>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -358,7 +312,8 @@ export default function Orders() {
   const containerSpecOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.enabled !== false,
+        item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC &&
+        item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -369,27 +324,6 @@ export default function Orders() {
     masterOptions
       .filter(
         (item) => item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.id,
-      )
-      .map((item) => [
-        item.id as string,
-        item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
-      ]),
-  );
-
-  const abnormalCaseOptions = masterOptions
-    .filter(
-      (item) =>
-        item.kind === MASTER_DATA_KINDS.ABNORMAL_CASE && item.enabled !== false,
-    )
-    .map((item) => ({
-      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
-      value: item.id ?? '',
-    }));
-
-  const abnormalCaseMap = Object.fromEntries(
-    masterOptions
-      .filter(
-        (item) => item.kind === MASTER_DATA_KINDS.ABNORMAL_CASE && item.id,
       )
       .map((item) => [
         item.id as string,
@@ -410,7 +344,8 @@ export default function Orders() {
   const cargoCategoryOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.CARGO_CATEGORY && item.enabled !== false,
+        item.kind === MASTER_DATA_KINDS.CARGO_CATEGORY &&
+        item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -664,166 +599,6 @@ export default function Orders() {
     setShippingDocumentModalOpen(true);
   };
 
-  const openReleasePods = (record: API.Order) => {
-    setReleasePodOrder(record);
-    setReleasePodDrawerOpen(true);
-    orderShippingDocumentServiceListShippingDocuments({
-      orderId: record.id as string,
-    }).then((res) => {
-      setReleasePodDocuments(res.data ?? []);
-    });
-  };
-
-  const releasePodDocumentOptions = releasePodDocuments.map((doc) => ({
-    label: `${doc.masterNo} / ${doc.houseNo}`,
-    value: doc.id ?? '',
-  }));
-
-  const releasePodDocumentMap = Object.fromEntries(
-    releasePodDocuments
-      .filter((doc) => doc.id)
-      .map((doc) => [doc.id as string, `${doc.masterNo} / ${doc.houseNo}`]),
-  );
-
-  const openCreateReleasePod = () => {
-    setEditingReleasePod(undefined);
-    releasePodFormRef.current?.resetFields();
-    setReleasePodModalOpen(true);
-  };
-
-  const openEditReleasePod = (record: API.OrderReleasePod) => {
-    setEditingReleasePod(record);
-    releasePodFormRef.current?.setFieldsValue({
-      releaseNo: record.releaseNo,
-      podNo: record.podNo,
-      shippingDocumentId: record.shippingDocumentId,
-      note: record.note,
-    });
-    setReleasePodModalOpen(true);
-  };
-
-  const openAbnormalCases = (record: API.Order) => {
-    setAbnormalCaseOrder(record);
-    setAbnormalCaseDrawerOpen(true);
-  };
-
-  const openMarkAbnormalCase = () => {
-    abnormalCaseFormRef.current?.resetFields();
-    setAbnormalCaseModalOpen(true);
-  };
-
-  const abnormalCaseColumns: ProColumns<API.OrderAbnormalCase>[] = [
-    {
-      title: '异常类型',
-      dataIndex: 'abnormalCaseId',
-      ellipsis: true,
-      render: (_, record) =>
-        (record.abnormalCaseId && abnormalCaseMap[record.abnormalCaseId]) || '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      valueType: 'select',
-      valueEnum: abnormalCaseStatusValueEnum,
-      render: (_, record) => {
-        if (record.status === 1) {
-          return <Tag color="error">进行中</Tag>;
-        }
-        if (record.status === 2) {
-          return <Tag color="success">已解决</Tag>;
-        }
-        return '-';
-      },
-    },
-    {
-      title: '标记时间',
-      dataIndex: 'markedAt',
-      valueType: 'dateTime',
-      width: 180,
-      render: (_, record) =>
-        record.markedAt
-          ? dayjs(record.markedAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
-    },
-    {
-      title: '标记人',
-      dataIndex: 'markedBy',
-      copyable: true,
-      ellipsis: true,
-      render: (_, record) => record.markedBy || '-',
-    },
-    {
-      title: '解决时间',
-      dataIndex: 'resolvedAt',
-      valueType: 'dateTime',
-      width: 180,
-      render: (_, record) =>
-        record.resolvedAt
-          ? dayjs(record.resolvedAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
-    },
-    {
-      title: '解决人',
-      dataIndex: 'resolvedBy',
-      copyable: true,
-      ellipsis: true,
-      render: (_, record) => record.resolvedBy || '-',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      search: false,
-      width: 140,
-      render: (_, record) => {
-        if (!access.canManageOrders) return null;
-        return (
-          <Space size="small">
-            {record.status === 1 && (
-              <Popconfirm
-                title="确定解决该异常？"
-                onConfirm={async () => {
-                  if (!abnormalCaseOrder?.id || !record.id) return;
-                  await orderAbnormalCaseServiceResolveAbnormalCase(
-                    {
-                      orderId: abnormalCaseOrder.id,
-                      id: record.id,
-                    },
-                    {
-                      orderId: abnormalCaseOrder.id,
-                      id: record.id,
-                    },
-                  );
-                  message.success('解决异常成功');
-                  abnormalCaseActionRef.current?.reload();
-                }}
-              >
-                <Button type="link" size="small">
-                  解决
-                </Button>
-              </Popconfirm>
-            )}
-            <Popconfirm
-              title="确定移除该异常？"
-              onConfirm={async () => {
-                if (!abnormalCaseOrder?.id || !record.id) return;
-                await orderAbnormalCaseServiceRemoveAbnormalCase({
-                  orderId: abnormalCaseOrder.id,
-                  id: record.id,
-                });
-                message.success('移除异常成功');
-                abnormalCaseActionRef.current?.reload();
-              }}
-            >
-              <Button type="link" danger size="small">
-                移除
-              </Button>
-            </Popconfirm>
-          </Space>
-        );
-      },
-    },
-  ];
-
   const shippingDocumentColumns: ProColumns<API.OrderShippingDocument>[] = [
     {
       title: '主单号',
@@ -934,148 +709,6 @@ export default function Orders() {
                 });
                 message.success('移除提单成功');
                 shippingDocumentActionRef.current?.reload();
-              }}
-            >
-              <Button type="link" danger size="small">
-                删除
-              </Button>
-            </Popconfirm>
-          </Space>
-        );
-      },
-    },
-  ];
-
-  const releasePodColumns: ProColumns<API.OrderReleasePod>[] = [
-    {
-      title: '放货编号',
-      dataIndex: 'releaseNo',
-      copyable: true,
-      ellipsis: true,
-      render: (_, record) => record.releaseNo || '-',
-    },
-    {
-      title: '回单编号',
-      dataIndex: 'podNo',
-      copyable: true,
-      ellipsis: true,
-      render: (_, record) => record.podNo || '-',
-    },
-    {
-      title: '关联提单',
-      dataIndex: 'shippingDocumentId',
-      ellipsis: true,
-      render: (_, record) =>
-        (record.shippingDocumentId &&
-          releasePodDocumentMap[record.shippingDocumentId]) ||
-        '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      valueType: 'select',
-      valueEnum: releasePodStatusValueEnum,
-      render: (_, record) => {
-        if (record.status === 1) {
-          return <Tag color="default">待签收</Tag>;
-        }
-        if (record.status === 2) {
-          return <Tag color="processing">已签收</Tag>;
-        }
-        if (record.status === 3) {
-          return <Tag color="success">已回单</Tag>;
-        }
-        return '-';
-      },
-    },
-    {
-      title: '签收时间',
-      dataIndex: 'signedAt',
-      valueType: 'dateTime',
-      width: 180,
-      render: (_, record) =>
-        record.signedAt
-          ? dayjs(record.signedAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
-    },
-    {
-      title: '签收人',
-      dataIndex: 'signedBy',
-      copyable: true,
-      ellipsis: true,
-      render: (_, record) => record.signedBy || '-',
-    },
-    {
-      title: '备注',
-      dataIndex: 'note',
-      ellipsis: true,
-      render: (_, record) => record.note || '-',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      valueType: 'dateTime',
-      width: 180,
-      render: (_, record) =>
-        record.createdAt
-          ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      search: false,
-      width: 180,
-      render: (_, record) => {
-        if (!access.canManageOrders) return null;
-        if (record.status !== 1 && record.status !== 2) return null;
-        const currentText = record.status === 1 ? '待签收' : '已签收';
-        const nextText = record.status === 1 ? '已签收' : '已回单';
-        return (
-          <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              onClick={() => openEditReleasePod(record)}
-            >
-              编辑
-            </Button>
-            <Popconfirm
-              title={`确定将放货凭证状态从「${currentText}」流转为「${nextText}」？`}
-              onConfirm={async () => {
-                if (!releasePodOrder?.id || !record.id || !record.status)
-                  return;
-                const toStatus = record.status === 1 ? 2 : 3;
-                await orderReleasePodServiceTransitionReleasePodStatus(
-                  {
-                    orderId: releasePodOrder.id,
-                    id: record.id,
-                  },
-                  {
-                    orderId: releasePodOrder.id,
-                    id: record.id,
-                    expectedStatus: record.status,
-                    toStatus,
-                  },
-                );
-                message.success('流转放货凭证状态成功');
-                releasePodActionRef.current?.reload();
-              }}
-            >
-              <Button type="link" size="small">
-                流转
-              </Button>
-            </Popconfirm>
-            <Popconfirm
-              title="确定移除该放货凭证？"
-              onConfirm={async () => {
-                if (!releasePodOrder?.id || !record.id) return;
-                await orderReleasePodServiceRemoveReleasePod({
-                  orderId: releasePodOrder.id,
-                  id: record.id,
-                });
-                message.success('移除放货凭证成功');
-                releasePodActionRef.current?.reload();
               }}
             >
               <Button type="link" danger size="small">
@@ -1590,7 +1223,7 @@ export default function Orders() {
               type="link"
               size="small"
               icon={<FileDoneOutlined />}
-              onClick={() => openReleasePods(record)}
+              onClick={() => releasePodPanelRef.current?.open(record)}
             >
               放货凭证
             </Button>
@@ -1598,7 +1231,7 @@ export default function Orders() {
               type="link"
               size="small"
               icon={<WarningOutlined />}
-              onClick={() => openAbnormalCases(record)}
+              onClick={() => abnormalCasePanelRef.current?.open(record)}
             >
               异常
             </Button>
@@ -2172,10 +1805,7 @@ export default function Orders() {
           label="发生时间"
           fieldProps={{ style: { width: '100%' } }}
         />
-        <ProFormSwitch
-          name="clearOccurredAt"
-          label="清除发生时间"
-        />
+        <ProFormSwitch name="clearOccurredAt" label="清除发生时间" />
         <ProFormTextArea
           name="note"
           label="备注"
@@ -2648,7 +2278,8 @@ export default function Orders() {
                 grossWeightKg: Number(values.grossWeightKg),
                 volumeCbm: Number(values.volumeCbm),
                 netWeightKg:
-                  values.netWeightKg !== undefined && values.netWeightKg !== null
+                  values.netWeightKg !== undefined &&
+                  values.netWeightKg !== null
                     ? Number(values.netWeightKg)
                     : undefined,
                 note: values.note?.trim() || undefined,
@@ -2667,7 +2298,8 @@ export default function Orders() {
                 grossWeightKg: Number(values.grossWeightKg),
                 volumeCbm: Number(values.volumeCbm),
                 netWeightKg:
-                  values.netWeightKg !== undefined && values.netWeightKg !== null
+                  values.netWeightKg !== undefined &&
+                  values.netWeightKg !== null
                     ? Number(values.netWeightKg)
                     : undefined,
                 note: values.note?.trim() || undefined,
@@ -2852,218 +2484,15 @@ export default function Orders() {
         />
       </ModalForm>
 
-      <Drawer
-        title={
-          releasePodOrder
-            ? `订单放货凭证 - ${releasePodOrder.orderNo || releasePodOrder.id}`
-            : '订单放货凭证'
-        }
-        open={releasePodDrawerOpen}
-        onClose={() => {
-          setReleasePodDrawerOpen(false);
-          setReleasePodOrder(undefined);
-          setReleasePodDocuments([]);
-        }}
-        width={900}
-        destroyOnHidden
-      >
-        {releasePodOrder?.id && (
-          <ProTable<API.OrderReleasePod>
-            actionRef={releasePodActionRef}
-            rowKey="id"
-            columns={releasePodColumns}
-            search={false}
-            pagination={false}
-            request={async () => {
-              const response =
-                await orderReleasePodServiceListReleasePods({
-                  orderId: releasePodOrder.id as string,
-                });
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
-            }}
-            toolBarRender={() => [
-              access.canManageOrders && (
-                <Button
-                  key="create"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openCreateReleasePod}
-                >
-                  添加放货凭证
-                </Button>
-              ),
-            ]}
-          />
-        )}
-      </Drawer>
-
-      <ModalForm<ReleasePodFormValues>
-        title={editingReleasePod ? '编辑放货凭证' : '添加放货凭证'}
-        open={releasePodModalOpen}
-        formRef={releasePodFormRef}
-        initialValues={
-          editingReleasePod
-            ? {
-                releaseNo: editingReleasePod.releaseNo,
-                podNo: editingReleasePod.podNo,
-                shippingDocumentId: editingReleasePod.shippingDocumentId,
-                note: editingReleasePod.note,
-              }
-            : undefined
-        }
-        modalProps={{
-          destroyOnHidden: true,
-          width: 560,
-          onCancel: () => setReleasePodModalOpen(false),
-        }}
-        onOpenChange={setReleasePodModalOpen}
-        onFinish={async (values) => {
-          if (!releasePodOrder?.id) return false;
-          if (editingReleasePod?.id) {
-            await orderReleasePodServiceUpdateReleasePod(
-              {
-                orderId: releasePodOrder.id,
-                id: editingReleasePod.id,
-              },
-              {
-                orderId: releasePodOrder.id,
-                id: editingReleasePod.id,
-                releaseNo: values.releaseNo?.trim() || undefined,
-                podNo: values.podNo?.trim() || undefined,
-                shippingDocumentId: values.shippingDocumentId || undefined,
-                note: values.note?.trim() || undefined,
-              },
-            );
-            message.success('更新放货凭证成功');
-          } else {
-            await orderReleasePodServiceAddReleasePod(
-              {
-                orderId: releasePodOrder.id,
-              },
-              {
-                orderId: releasePodOrder.id,
-                releaseNo: values.releaseNo?.trim() || undefined,
-                podNo: values.podNo?.trim() || undefined,
-                shippingDocumentId: values.shippingDocumentId || undefined,
-                note: values.note?.trim() || undefined,
-              },
-            );
-            message.success('添加放货凭证成功');
-          }
-          setReleasePodModalOpen(false);
-          releasePodActionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormText
-          name="releaseNo"
-          label="放货编号"
-          placeholder="请输入放货编号 (可选)"
-        />
-        <ProFormText
-          name="podNo"
-          label="回单编号"
-          placeholder="请输入回单编号 (可选)"
-        />
-        <ProFormSelect
-          name="shippingDocumentId"
-          label="关联提单"
-          options={releasePodDocumentOptions}
-          placeholder="请选择关联提单 (可选)"
-        />
-        <ProFormTextArea
-          name="note"
-          label="备注"
-          placeholder="请输入备注 (可选)"
-          fieldProps={{ maxLength: 500, showCount: true }}
-        />
-      </ModalForm>
-
-      <Drawer
-        title={
-          abnormalCaseOrder
-            ? `订单异常 - ${abnormalCaseOrder.orderNo || abnormalCaseOrder.id}`
-            : '订单异常'
-        }
-        open={abnormalCaseDrawerOpen}
-        onClose={() => {
-          setAbnormalCaseDrawerOpen(false);
-          setAbnormalCaseOrder(undefined);
-        }}
-        width={900}
-        destroyOnHidden
-      >
-        {abnormalCaseOrder?.id && (
-          <ProTable<API.OrderAbnormalCase>
-            actionRef={abnormalCaseActionRef}
-            rowKey="id"
-            columns={abnormalCaseColumns}
-            search={false}
-            pagination={false}
-            request={async () => {
-              const response =
-                await orderAbnormalCaseServiceListAbnormalCases({
-                  orderId: abnormalCaseOrder.id as string,
-                });
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
-            }}
-            toolBarRender={() => [
-              access.canManageOrders && (
-                <Button
-                  key="create"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openMarkAbnormalCase}
-                >
-                  标记异常
-                </Button>
-              ),
-            ]}
-          />
-        )}
-      </Drawer>
-
-      <ModalForm<AbnormalCaseFormValues>
-        title="标记异常"
-        open={abnormalCaseModalOpen}
-        formRef={abnormalCaseFormRef}
-        modalProps={{
-          destroyOnHidden: true,
-          width: 520,
-          onCancel: () => setAbnormalCaseModalOpen(false),
-        }}
-        onOpenChange={setAbnormalCaseModalOpen}
-        onFinish={async (values) => {
-          if (!abnormalCaseOrder?.id) return false;
-          await orderAbnormalCaseServiceMarkAbnormalCase(
-            {
-              orderId: abnormalCaseOrder.id,
-            },
-            {
-              orderId: abnormalCaseOrder.id,
-              abnormalCaseId: values.abnormalCaseId,
-            },
-          );
-          message.success('标记异常成功');
-          setAbnormalCaseModalOpen(false);
-          abnormalCaseActionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormSelect
-          name="abnormalCaseId"
-          label="异常类型"
-          rules={[{ required: true, message: '请选择异常类型' }]}
-          options={abnormalCaseOptions}
-          placeholder="请选择异常类型"
-        />
-      </ModalForm>
+      <ReleasePodPanel
+        ref={releasePodPanelRef}
+        canManage={access.canManageOrders}
+      />
+      <AbnormalCasePanel
+        ref={abnormalCasePanelRef}
+        canManage={access.canManageOrders}
+        masterOptions={masterOptions}
+      />
     </>
   );
 }
