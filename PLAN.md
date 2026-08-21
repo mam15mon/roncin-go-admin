@@ -134,6 +134,7 @@ Partner/Party 决策 + 往来单位
   - 订单附件元数据登记闭环：ListAttachments/RegisterAttachment 接口、组织隔离、订单内幂等键唯一、对象键全局唯一、固定字段校验、审计与读写权限接入；前端订单页提供固定附件 Drawer 与登记表单，明确提示不上传文件内容，使用生成 OpenAPI 客户端。
   - 订单协作人员闭环：OrderPersonnelService 三个接口（ListPersonnel/AssignPersonnel/RemovePersonnel）、固定角色枚举、组织内启用用户校验、订单内唯一约束、分配/移除审计记录与读写权限接入；前端订单页提供固定协作人员 Drawer/表单，使用生成 OpenAPI 客户端。
   - 后台任务追踪基础设施：Ent 实体（幂等键组织内唯一、Kind/Status 枚举、attempts/max_attempts、next_run_at、租约字段）+ biz 用例（Enqueue/Claim/Complete/Fail/Get/List/Requeue 校验与审计）+ data 仓储（行锁事务、租约领取、条件回放）+ BackgroundTaskService 追踪接口（组织隔离、分页筛选、回放仅限 FAILED/DEAD_LETTER、不暴露租约凭据）+ 权限码 system.task.read/manage + 前端系统管理后台任务面板；biz/data 层有单元测试。
+  - 订单集装箱与货物明细首版：OrderContainerService/OrderCargoItemService 各四个接口（List/Add/Update/Remove，全量替换更新语义），具备组织隔离、订单所有权校验、(order_id, container_no) 唯一约束、箱型必须为组织级启用的 container_spec 主数据、正数重量/体积校验、可选字段空白归一化、增删改审计与 OrderRead/OrderManage 权限映射；biz/data 层有单元测试；前端订单页提供固定集装箱与货物明细抽屉（箱型下拉取自主数据选项）。旧模型的装载状态枚举（PLANNED/LOADED/GATE_IN）与提单关联留待跟踪事件/提单建模；cargoType、仓储执行字段、hsCode、申报状态、计费重按 M-006/P8 决策后置，不设空列。
 - 剩余执行能力与后台基础设施（未完成）：
   - 迁移执行附件真实对象存储上传、下载授权/签名、删除和后台清理。
   - 迁移集装箱、提单、货物明细、异常处理和跟踪事件。
