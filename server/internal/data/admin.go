@@ -38,6 +38,17 @@ func (r *adminRepo) ListOrganizations(ctx context.Context, organizationID uuid.U
 	return result, nil
 }
 
+func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.AdminOrganization, error) {
+	item, err := r.data.db.Organization.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminOrganizationNotFound
+		}
+		return nil, err
+	}
+	return organizationToBiz(item), nil
+}
+
 func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
 	create := r.data.db.Organization.Create().SetCode(input.Code).SetName(input.Name)
 	if input.ParentID != nil {

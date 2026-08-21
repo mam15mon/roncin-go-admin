@@ -9,18 +9,30 @@ import (
 )
 
 type adminRepoStub struct {
-	userListOptions AdminUserListOptions
-	roleKeys        []string
-	userPassword    string
-	userInput       *AdminUser
-	resetPassword   string
+	organization      *AdminOrganization
+	organizationID    uuid.UUID
+	organizationInput *AdminOrganization
+	userListOptions   AdminUserListOptions
+	roleKeys          []string
+	userPassword      string
+	userInput         *AdminUser
+	resetPassword     string
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error) {
 	return nil, nil
 }
 
+func (s *adminRepoStub) GetOrganization(_ context.Context, id uuid.UUID) (*AdminOrganization, error) {
+	s.organizationID = id
+	if s.organization == nil || s.organization.ID != id {
+		return nil, ErrAdminOrganizationNotFound
+	}
+	return s.organization, nil
+}
+
 func (s *adminRepoStub) CreateOrganization(_ context.Context, input *AdminOrganization) (*AdminOrganization, error) {
+	s.organizationInput = input
 	return input, nil
 }
 
@@ -104,6 +116,41 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
 	if _, err := usecase.ListOrganizations(context.Background(), uuid.Nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("ListOrganizations() error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
+	parentID := uuid.New()
+	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID}}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", ParentID: &parentID})
+	if err != nil {
+		t.Fatalf("CreateOrganization() error = %v", err)
+	}
+	if repo.organizationID != parentID || created.ParentID == nil || *created.ParentID != parentID {
+		t.Fatalf("created organization = %#v, looked up parent = %s", created, repo.organizationID)
+	}
+
+	missingParentID := uuid.New()
+	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: "missing", Name: "缺失父组织", ParentID: &missingParentID}); err != ErrAdminOrganizationNotFound {
+		t.Fatalf("missing parent error = %v, want ErrAdminOrganizationNotFound", err)
+	}
+	if repo.organizationInput.Code != "BRANCH" {
+		t.Fatalf("unexpected organization created after missing parent: %#v", repo.organizationInput)
+	}
+}
+
+func TestAdminUsecaseCreateRootOrganizationDoesNotResolveParent(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 "})
+	if err != nil {
+		t.Fatalf("CreateOrganization() error = %v", err)
+	}
+	if repo.organizationID != uuid.Nil || created.ParentID != nil || created.Code != "ROOT" || created.Name != "根组织" {
+		t.Fatalf("created root organization = %#v, looked up parent = %s", created, repo.organizationID)
 	}
 }
 
