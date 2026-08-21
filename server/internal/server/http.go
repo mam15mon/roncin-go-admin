@@ -24,7 +24,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -64,6 +64,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	taskv1.RegisterBackgroundTaskServiceHTTPServer(srv, backgroundTask)
 	orderv1.RegisterOrderContainerServiceHTTPServer(srv, orderContainer)
 	orderv1.RegisterOrderCargoItemServiceHTTPServer(srv, orderCargoItem)
+	orderv1.RegisterOrderShippingDocumentServiceHTTPServer(srv, shippingDocument)
 	registerHealthHandlers(srv, readiness)
 	srv.HandlePrefix("/", webassets.Handler())
 	return srv

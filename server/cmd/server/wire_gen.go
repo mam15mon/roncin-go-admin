@@ -79,8 +79,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderCargoItemRepo := data.NewOrderCargoItemRepo(dataData)
 	orderCargoItemUsecase := biz.NewOrderCargoItemUsecase(orderCargoItemRepo, auditRepo)
 	orderCargoItemService := service.NewOrderCargoItemService(orderCargoItemUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, authUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, authUsecase, sessionPolicy, dataData, logger)
+	orderShippingDocumentRepo := data.NewOrderShippingDocumentRepo(dataData)
+	orderShippingDocumentUsecase := biz.NewOrderShippingDocumentUsecase(orderShippingDocumentRepo, auditRepo)
+	orderShippingDocumentService := service.NewOrderShippingDocumentService(orderShippingDocumentUsecase)
+	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, authUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, authUsecase, sessionPolicy, dataData, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
