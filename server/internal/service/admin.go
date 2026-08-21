@@ -41,15 +41,14 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	var parentID *uuid.UUID
-	if request.ParentId != nil {
-		parsedParentID, err := uuid.Parse(request.GetParentId())
-		if err != nil {
-			return nil, biz.ErrAdminInvalidArgument
-		}
-		parentID = &parsedParentID
+	if request.GetParentId() == "" {
+		return nil, biz.ErrAdminOrganizationParentRequired
 	}
-	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), ParentID: parentID, Enabled: true})
+	parentID, err := uuid.Parse(request.GetParentId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), ParentID: &parentID, Enabled: true})
 	if err != nil {
 		return nil, err
 	}

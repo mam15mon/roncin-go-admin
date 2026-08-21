@@ -2267,6 +2267,7 @@ components:
             required:
                 - code
                 - name
+                - parentId
             type: object
             properties:
                 code:

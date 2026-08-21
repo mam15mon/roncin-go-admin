@@ -141,16 +141,12 @@ func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	}
 }
 
-func TestAdminUsecaseCreateRootOrganizationDoesNotResolveParent(t *testing.T) {
+func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 	repo := &adminRepoStub{}
 	usecase := NewAdminUsecase(repo, &auditRepoStub{})
 
-	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 "})
-	if err != nil {
-		t.Fatalf("CreateOrganization() error = %v", err)
-	}
-	if repo.organizationID != uuid.Nil || created.ParentID != nil || created.Code != "ROOT" || created.Name != "根组织" {
-		t.Fatalf("created root organization = %#v, looked up parent = %s", created, repo.organizationID)
+	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 "}); err != ErrAdminOrganizationParentRequired {
+		t.Fatalf("root organization error = %v, want ErrAdminOrganizationParentRequired", err)
 	}
 }
 

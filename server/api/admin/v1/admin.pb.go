@@ -117,7 +117,7 @@ type CreateOrganizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	ParentId      *string                `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -167,8 +167,8 @@ func (x *CreateOrganizationRequest) GetName() string {
 }
 
 func (x *CreateOrganizationRequest) GetParentId() string {
-	if x != nil && x.ParentId != nil {
-		return *x.ParentId
+	if x != nil {
+		return x.ParentId
 	}
 	return ""
 }
@@ -2018,13 +2018,11 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
-	"\x18ListOrganizationsRequest\"}\n" +
+	"\x18ListOrganizationsRequest\"o\n" +
 	"\x19CreateOrganizationRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
-	"\tparent_id\x18\x03 \x01(\tH\x00R\bparentId\x88\x01\x01B\f\n" +
-	"\n" +
-	"_parent_id\"c\n" +
+	"\tparent_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bparentId\"c\n" +
 	"\x19UpdateOrganizationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x18\n" +
@@ -2315,7 +2313,6 @@ func file_admin_v1_admin_proto_init() {
 	if File_admin_v1_admin_proto != nil {
 		return
 	}
-	file_admin_v1_admin_proto_msgTypes[1].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[3].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[8].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[9].OneofWrappers = []any{}

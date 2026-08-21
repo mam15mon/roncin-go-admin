@@ -12,14 +12,15 @@ import (
 )
 
 var (
-	ErrAdminOrganizationNotFound   = errors.NotFound("ADMIN_ORGANIZATION_NOT_FOUND", "组织不存在")
-	ErrAdminOrganizationCodeExists = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
-	ErrAdminUserNotFound           = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
-	ErrAdminUsernameExists         = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
-	ErrAdminRoleNotFound           = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
-	ErrAdminRoleCodeExists         = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
-	ErrAdminPermissionInvalid      = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
-	ErrAdminInvalidArgument        = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "管理参数不合法")
+	ErrAdminOrganizationNotFound       = errors.NotFound("ADMIN_ORGANIZATION_NOT_FOUND", "组织不存在")
+	ErrAdminOrganizationCodeExists     = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
+	ErrAdminOrganizationParentRequired = errors.BadRequest("ADMIN_ORGANIZATION_PARENT_REQUIRED", "新建组织必须指定上级组织")
+	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
+	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
+	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
+	ErrAdminRoleCodeExists             = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
+	ErrAdminPermissionInvalid          = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
+	ErrAdminInvalidArgument            = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "管理参数不合法")
 )
 
 type AdminOrganization struct {
@@ -127,13 +128,14 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 	if err != nil {
 		return nil, err
 	}
-	if normalized.ParentID != nil {
-		if *normalized.ParentID == uuid.Nil {
-			return nil, ErrAdminInvalidArgument
-		}
-		if _, err := uc.repo.GetOrganization(ctx, *normalized.ParentID); err != nil {
-			return nil, err
-		}
+	if normalized.ParentID == nil {
+		return nil, ErrAdminOrganizationParentRequired
+	}
+	if *normalized.ParentID == uuid.Nil {
+		return nil, ErrAdminInvalidArgument
+	}
+	if _, err := uc.repo.GetOrganization(ctx, *normalized.ParentID); err != nil {
+		return nil, err
 	}
 	created, err := uc.repo.CreateOrganization(ctx, normalized)
 	if err != nil {

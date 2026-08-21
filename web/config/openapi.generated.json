@@ -3686,7 +3686,8 @@
       "admin.v1.CreateOrganizationRequest": {
         "required": [
           "code",
-          "name"
+          "name",
+          "parentId"
         ],
         "type": "object",
         "properties": {
