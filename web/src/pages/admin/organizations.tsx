@@ -224,12 +224,6 @@ export default function OrganizationsPanel() {
     );
   };
 
-  const openCreateRoot = () => {
-    setParentForCreate(null);
-    createFormRef.current?.resetFields();
-    setCreateModalOpen(true);
-  };
-
   const openCreateChild = () => {
     if (!selectedOrg) return;
     setParentForCreate(selectedOrg);
@@ -272,14 +266,6 @@ export default function OrganizationsPanel() {
                 loading={loading}
                 title="刷新组织树"
               />
-              <Button
-                type="primary"
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={openCreateRoot}
-              >
-                新建根组织
-              </Button>
             </Space>
           }
         >
@@ -556,15 +542,7 @@ export default function OrganizationsPanel() {
                 justifyContent: 'center',
               }}
             >
-              <Empty description="请从左侧组织架构树选择一个节点查看详细信息，或点击上方按钮新增根组织">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openCreateRoot}
-                >
-                  新增根组织
-                </Button>
-              </Empty>
+              <Empty description="请从左侧组织架构树选择一个节点查看详细信息" />
             </div>
           )}
         </ProCard>
@@ -573,9 +551,7 @@ export default function OrganizationsPanel() {
       {/* Modal: Create Organization */}
       <ModalForm<CreateFormValues>
         title={
-          parentForCreate
-            ? `新增下级组织（所属上级：${parentForCreate.name}）`
-            : '新增根组织'
+          `新增下级组织（所属上级：${parentForCreate?.name ?? ''}）`
         }
         open={createModalOpen}
         formRef={createFormRef}
@@ -586,11 +562,12 @@ export default function OrganizationsPanel() {
         }}
         onOpenChange={setCreateModalOpen}
         onFinish={async (values) => {
+          if (!parentForCreate?.id) return false;
           try {
             const response = await adminServiceCreateOrganization({
               code: values.code?.trim() ?? '',
               name: values.name?.trim() ?? '',
-              parentId: parentForCreate?.id,
+              parentId: parentForCreate.id,
             });
             message.success('组织已成功创建');
             setCreateModalOpen(false);

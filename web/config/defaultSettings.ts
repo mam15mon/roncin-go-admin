@@ -7,7 +7,7 @@ import type { ProLayoutProps } from '@ant-design/pro-components';
 const Settings: ProLayoutProps & {
   logo?: string;
 } = {
-  navTheme: 'realDark',
+  navTheme: 'light',
   colorPrimary: '#1677ff',
   layout: 'mix',
   contentWidth: 'Fluid',
@@ -21,17 +21,17 @@ const Settings: ProLayoutProps & {
   splitMenus: false,
   token: {
     sider: {
-      colorBgCollapsedButton: '#001529',
-      colorTextCollapsedButton: 'rgba(255, 255, 255, 0.65)',
-      colorTextCollapsedButtonHover: '#ffffff',
-      colorBgMenuItemCollapsedElevated: '#001529',
-      colorBgMenuItemHover: 'rgba(255, 255, 255, 0.08)',
-      colorBgMenuItemSelected: '#1677ff',
-      colorTextMenu: 'rgba(255, 255, 255, 0.65)',
-      colorTextMenuSelected: '#ffffff',
-      colorTextMenuItemHover: '#ffffff',
-      colorTextMenuTitle: '#ffffff',
-      colorMenuBackground: '#001529',
+      colorBgCollapsedButton: '#ffffff',
+      colorTextCollapsedButton: 'rgba(0, 0, 0, 0.45)',
+      colorTextCollapsedButtonHover: '#1677ff',
+      colorBgMenuItemCollapsedElevated: '#ffffff',
+      colorBgMenuItemHover: 'rgba(0, 0, 0, 0.04)',
+      colorBgMenuItemSelected: '#e6f4ff',
+      colorTextMenu: 'rgba(0, 0, 0, 0.65)',
+      colorTextMenuSelected: '#1677ff',
+      colorTextMenuItemHover: 'rgba(0, 0, 0, 0.88)',
+      colorTextMenuTitle: 'rgba(0, 0, 0, 0.88)',
+      colorMenuBackground: '#ffffff',
     },
     header: {
       colorBgHeader: '#ffffff',
