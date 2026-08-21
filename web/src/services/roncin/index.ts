@@ -4,6 +4,7 @@
 // API 唯一标识：
 import * as adminService from "./adminService";
 import * as authService from "./authService";
+import * as backgroundTaskService from "./backgroundTaskService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as orderAttachmentService from "./orderAttachmentService";
@@ -13,6 +14,7 @@ import * as partnerService from "./partnerService";
 export default {
   adminService,
   authService,
+  backgroundTaskService,
   masterDataService,
   orderService,
   orderAttachmentService,

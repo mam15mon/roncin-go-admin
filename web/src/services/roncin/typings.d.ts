@@ -167,6 +167,55 @@ declare namespace API {
     role: number;
   };
 
+  type BackgroundTask = {
+    id?: string;
+    kind?: number;
+    idempotencyKey?: string;
+    status?: number;
+    attempts?: number;
+    maxAttempts?: number;
+    nextRunAt?: string;
+    lastError?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type BackgroundTaskListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BackgroundTask[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type BackgroundTaskReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BackgroundTask;
+    traceId?: string;
+  };
+
+  type BackgroundTaskServiceGetBackgroundTaskParams = {
+    id: string;
+  };
+
+  type BackgroundTaskServiceListBackgroundTasksParams = {
+    page?: number;
+    pageSize?: number;
+    status?: number;
+    kind?: number;
+    startTime?: string;
+    endTime?: string;
+  };
+
+  type BackgroundTaskServiceRequeueBackgroundTaskParams = {
+    id: string;
+  };
+
   type CreateMasterDataItemRequest = {
     kind: number;
     code: string;
@@ -1117,6 +1166,10 @@ declare namespace API {
     fileSize: string;
     objectKey: string;
     checksum?: string;
+  };
+
+  type RequeueBackgroundTaskRequest = {
+    id: string;
   };
 
   type ResetUserPasswordRequest = {

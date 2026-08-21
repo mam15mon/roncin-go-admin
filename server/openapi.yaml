@@ -319,6 +319,92 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/auth.v1.MeReply'
+    /api/v1/background-tasks:
+        get:
+            tags:
+                - BackgroundTaskService
+            description: ListBackgroundTasks 查询当前组织的后台任务。
+            operationId: BackgroundTaskService_ListBackgroundTasks
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: kind
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: startTime
+                  in: query
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task.v1.BackgroundTaskListReply'
+    /api/v1/background-tasks/{id}:
+        get:
+            tags:
+                - BackgroundTaskService
+            description: GetBackgroundTask 查询单个后台任务。
+            operationId: BackgroundTaskService_GetBackgroundTask
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task.v1.BackgroundTaskReply'
+    /api/v1/background-tasks/{id}/requeue:
+        post:
+            tags:
+                - BackgroundTaskService
+            description: RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
+            operationId: BackgroundTaskService_RequeueBackgroundTask
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/task.v1.RequeueBackgroundTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task.v1.BackgroundTaskReply'
     /api/v1/master-data/import:
         post:
             tags:
@@ -3743,10 +3829,91 @@ components:
                     type: string
                 rule:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
+        task.v1.BackgroundTask:
+            type: object
+            properties:
+                id:
+                    type: string
+                kind:
+                    type: integer
+                    format: enum
+                idempotencyKey:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                attempts:
+                    type: integer
+                    format: int32
+                maxAttempts:
+                    type: integer
+                    format: int32
+                nextRunAt:
+                    type: string
+                lastError:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。
+        task.v1.BackgroundTaskListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/task.v1.BackgroundTask'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+            description: BackgroundTaskListReply 后台任务列表响应。
+        task.v1.BackgroundTaskReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/task.v1.BackgroundTask'
+                traceId:
+                    type: string
+            description: BackgroundTaskReply 单条后台任务响应。
+        task.v1.RequeueBackgroundTaskRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+            description: RequeueBackgroundTaskRequest 回放后台任务请求。
 tags:
     - name: AdminService
     - name: AuthService
       description: AuthService owns the browser session boundary for the management console.
+    - name: BackgroundTaskService
+      description: |-
+        BackgroundTaskService 后台任务追踪服务，只暴露查询与回放，
+         不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
     - name: MasterDataService
     - name: OrderAttachmentService
       description: OrderAttachmentService 订单附件服务。
