@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -112,6 +113,39 @@ func TestOrderTransitionNormalizesStatusAndAudits(t *testing.T) {
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "order.status.transition" || audit.events[0].Details["to_status"] != "BOOKED" {
 		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestOrderStatusChangedEventFields(t *testing.T) {
+	repo := &orderRepoStub{}
+	audit := &auditRepoStub{}
+	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(&orderConfigRepoStub{}, audit), audit)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	id := uuid.New()
+
+	event := &OrderStatusChangedEvent{
+		OrganizationID: organizationID,
+		OrderID:        id,
+		ActorID:        actorID,
+		FromStatus:     "BOOKED",
+		ToStatus:       "SHIPPED",
+		OccurredAt:     time.Now().UTC(),
+	}
+	if err := usecase.handleOrderStatusChanged(context.Background(), event); err != nil {
+		t.Fatalf("handleOrderStatusChanged() error = %v", err)
+	}
+	if len(audit.events) != 1 {
+		t.Fatalf("expected one audit event, got %d", len(audit.events))
+	}
+	auditEvent := audit.events[0]
+	if auditEvent.Action != "order.status.transition" ||
+		auditEvent.OrganizationID == nil || *auditEvent.OrganizationID != organizationID ||
+		auditEvent.UserID == nil || *auditEvent.UserID != actorID ||
+		auditEvent.Details["order.id"] != id.String() ||
+		auditEvent.Details["from_status"] != "BOOKED" ||
+		auditEvent.Details["to_status"] != "SHIPPED" {
+		t.Fatalf("audit event = %#v", auditEvent)
 	}
 }
 

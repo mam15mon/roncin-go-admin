@@ -241,22 +241,6 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 	return updated, nil
 }
 
-func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedStatus, targetStatus, reason string) (*Order, error) {
-	expectedStatus = strings.ToUpper(strings.TrimSpace(expectedStatus))
-	targetStatus = strings.ToUpper(strings.TrimSpace(targetStatus))
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedStatus == "" || targetStatus == "" || targetStatus == "DRAFT" || expectedStatus == targetStatus || utf8.RuneCountInString(targetStatus) > 64 || utf8.RuneCountInString(reason) > 500 {
-		return nil, ErrOrderStatusInvalid
-	}
-	updated, err := uc.repo.TransitionStatus(ctx, organizationID, id, expectedStatus, targetStatus, strings.TrimSpace(reason), actorID)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.status.transition", Result: "success", Details: map[string]string{"order.id": updated.ID.String(), "from_status": expectedStatus, "to_status": targetStatus}}); err != nil {
-		return nil, fmt.Errorf("write order status audit: %w", err)
-	}
-	return updated, nil
-}
-
 func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || !input.TradeTerm.Valid() || !input.PaymentTerm.Valid() || input.StatusTemplateID == uuid.Nil {
 		return nil, ErrOrderInvalidArgument
@@ -312,5 +296,3 @@ func validateUUIDSet(values []uuid.UUID) error {
 	}
 	return nil
 }
-
-var _ OrderRepo = (OrderRepo)(nil)
