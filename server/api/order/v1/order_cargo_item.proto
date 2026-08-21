@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderCargoItemService 订单货物明细服务。
+// 计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。
+service OrderCargoItemService {
+  // ListCargoItems 获取指定订单的货物明细列表。
+  rpc ListCargoItems(ListCargoItemsRequest) returns (OrderCargoItemListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/cargo-items"};
+  }
+
+  // AddCargoItem 添加订单货物明细。
+  rpc AddCargoItem(AddCargoItemRequest) returns (OrderCargoItemReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/cargo-items"
+      body: "*"
+    };
+  }
+
+  // UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
+  rpc UpdateCargoItem(UpdateCargoItemRequest) returns (OrderCargoItemReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/cargo-items/{id}"
+      body: "*"
+    };
+  }
+
+  // RemoveCargoItem 移除订单货物明细。
+  rpc RemoveCargoItem(RemoveCargoItemRequest) returns (OrderCargoItemOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/cargo-items/{id}"};
+  }
+}
+
+// OrderCargoItem 订单货物明细信息。
+message OrderCargoItem {
+  string id = 1;
+  string order_id = 2;
+  string cargo_name = 3;
+  int32 package_count = 4;
+  double gross_weight_kg = 5;
+  double volume_cbm = 6;
+  optional double net_weight_kg = 7;
+  optional string note = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// ListCargoItemsRequest 获取订单货物明细列表请求。
+message ListCargoItemsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AddCargoItemRequest 添加订单货物明细请求。
+message AddCargoItemRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string cargo_name = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 3 [(google.api.field_behavior) = REQUIRED];
+  double gross_weight_kg = 4 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 5 [(google.api.field_behavior) = REQUIRED];
+  optional double net_weight_kg = 6;
+  optional string note = 7;
+}
+
+// UpdateCargoItemRequest 更新订单货物明细请求。
+message UpdateCargoItemRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  string cargo_name = 3 [(google.api.field_behavior) = REQUIRED];
+  int32 package_count = 4 [(google.api.field_behavior) = REQUIRED];
+  double gross_weight_kg = 5 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 6 [(google.api.field_behavior) = REQUIRED];
+  optional double net_weight_kg = 7;
+  optional string note = 8;
+}
+
+// RemoveCargoItemRequest 移除订单货物明细请求。
+message RemoveCargoItemRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderCargoItemReply 单条订单货物明细响应。
+message OrderCargoItemReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderCargoItem data = 4;
+  string trace_id = 5;
+}
+
+// OrderCargoItemListReply 订单货物明细列表响应。
+message OrderCargoItemListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderCargoItem data = 4;
+  string trace_id = 5;
+}
+
+// OrderCargoItemOperationReply 订单货物明细操作响应。
+message OrderCargoItemOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

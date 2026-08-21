@@ -1,4 +1,24 @@
 declare namespace API {
+  type AddCargoItemRequest = {
+    orderId: string;
+    cargoName: string;
+    packageCount: number;
+    grossWeightKg: number;
+    volumeCbm: number;
+    netWeightKg?: number;
+    note?: string;
+  };
+
+  type AddContainerRequest = {
+    orderId: string;
+    containerNo: string;
+    containerSpecId: string;
+    sealNo?: string;
+    grossWeightKg: number;
+    volumeCbm: number;
+    note?: string;
+  };
+
   type AdminAuditLog = {
     id?: string;
     organizationId?: string;
@@ -663,6 +683,114 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderCargoItem = {
+    id?: string;
+    orderId?: string;
+    cargoName?: string;
+    packageCount?: number;
+    grossWeightKg?: number;
+    volumeCbm?: number;
+    netWeightKg?: number;
+    note?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderCargoItemListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderCargoItem[];
+    traceId?: string;
+  };
+
+  type OrderCargoItemOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderCargoItemReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderCargoItem;
+    traceId?: string;
+  };
+
+  type OrderCargoItemServiceAddCargoItemParams = {
+    orderId: string;
+  };
+
+  type OrderCargoItemServiceListCargoItemsParams = {
+    orderId: string;
+  };
+
+  type OrderCargoItemServiceRemoveCargoItemParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderCargoItemServiceUpdateCargoItemParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderContainer = {
+    id?: string;
+    orderId?: string;
+    containerNo?: string;
+    containerSpecId?: string;
+    sealNo?: string;
+    grossWeightKg?: number;
+    volumeCbm?: number;
+    note?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderContainerListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderContainer[];
+    traceId?: string;
+  };
+
+  type OrderContainerOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderContainerReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderContainer;
+    traceId?: string;
+  };
+
+  type OrderContainerServiceAddContainerParams = {
+    orderId: string;
+  };
+
+  type OrderContainerServiceListContainersParams = {
+    orderId: string;
+  };
+
+  type OrderContainerServiceRemoveContainerParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderContainerServiceUpdateContainerParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderListReply = {
     success?: boolean;
     code?: number;
@@ -1264,6 +1392,28 @@ declare namespace API {
     expectedStatus: string;
     targetStatus: string;
     reason?: string;
+  };
+
+  type UpdateCargoItemRequest = {
+    orderId: string;
+    id: string;
+    cargoName: string;
+    packageCount: number;
+    grossWeightKg: number;
+    volumeCbm: number;
+    netWeightKg?: number;
+    note?: string;
+  };
+
+  type UpdateContainerRequest = {
+    orderId: string;
+    id: string;
+    containerNo: string;
+    containerSpecId: string;
+    sealNo?: string;
+    grossWeightKg: number;
+    volumeCbm: number;
+    note?: string;
   };
 
   type UpdateMasterDataItemRequest = {

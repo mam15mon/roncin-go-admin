@@ -908,6 +908,198 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.OrderAttachmentReply'
+    /api/v1/orders/{orderId}/cargo-items:
+        get:
+            tags:
+                - OrderCargoItemService
+            description: ListCargoItems 获取指定订单的货物明细列表。
+            operationId: OrderCargoItemService_ListCargoItems
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderCargoItemListReply'
+        post:
+            tags:
+                - OrderCargoItemService
+            description: AddCargoItem 添加订单货物明细。
+            operationId: OrderCargoItemService_AddCargoItem
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.AddCargoItemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderCargoItemReply'
+    /api/v1/orders/{orderId}/cargo-items/{id}:
+        put:
+            tags:
+                - OrderCargoItemService
+            description: UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
+            operationId: OrderCargoItemService_UpdateCargoItem
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.UpdateCargoItemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderCargoItemReply'
+        delete:
+            tags:
+                - OrderCargoItemService
+            description: RemoveCargoItem 移除订单货物明细。
+            operationId: OrderCargoItemService_RemoveCargoItem
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderCargoItemOperationReply'
+    /api/v1/orders/{orderId}/containers:
+        get:
+            tags:
+                - OrderContainerService
+            description: ListContainers 获取指定订单的集装箱列表。
+            operationId: OrderContainerService_ListContainers
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderContainerListReply'
+        post:
+            tags:
+                - OrderContainerService
+            description: AddContainer 添加订单集装箱。
+            operationId: OrderContainerService_AddContainer
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.AddContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderContainerReply'
+    /api/v1/orders/{orderId}/containers/{id}:
+        put:
+            tags:
+                - OrderContainerService
+            description: UpdateContainer 更新订单集装箱，采用全量字段替换语义。
+            operationId: OrderContainerService_UpdateContainer
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.UpdateContainerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderContainerReply'
+        delete:
+            tags:
+                - OrderContainerService
+            description: RemoveContainer 移除订单集装箱。
+            operationId: OrderContainerService_RemoveContainer
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.OrderContainerOperationReply'
     /api/v1/orders/{orderId}/milestones:
         get:
             tags:
@@ -2522,6 +2714,60 @@ components:
                     format: enum
                 enabled:
                     type: boolean
+        order.v1.AddCargoItemRequest:
+            required:
+                - orderId
+                - cargoName
+                - packageCount
+                - grossWeightKg
+                - volumeCbm
+            type: object
+            properties:
+                orderId:
+                    type: string
+                cargoName:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                netWeightKg:
+                    type: number
+                    format: double
+                note:
+                    type: string
+            description: AddCargoItemRequest 添加订单货物明细请求。
+        order.v1.AddContainerRequest:
+            required:
+                - orderId
+                - containerNo
+                - containerSpecId
+                - grossWeightKg
+                - volumeCbm
+            type: object
+            properties:
+                orderId:
+                    type: string
+                containerNo:
+                    type: string
+                containerSpecId:
+                    type: string
+                sealNo:
+                    type: string
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                note:
+                    type: string
+            description: AddContainerRequest 添加订单集装箱请求。
         order.v1.AssignPersonnelRequest:
             required:
                 - orderId
@@ -2768,6 +3014,150 @@ components:
                 traceId:
                     type: string
             description: OrderAttachmentReply 单条订单附件响应。
+        order.v1.OrderCargoItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                cargoName:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                netWeightKg:
+                    type: number
+                    format: double
+                note:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderCargoItem 订单货物明细信息。
+        order.v1.OrderCargoItemListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderCargoItem'
+                traceId:
+                    type: string
+            description: OrderCargoItemListReply 订单货物明细列表响应。
+        order.v1.OrderCargoItemOperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+            description: OrderCargoItemOperationReply 订单货物明细操作响应。
+        order.v1.OrderCargoItemReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderCargoItem'
+                traceId:
+                    type: string
+            description: OrderCargoItemReply 单条订单货物明细响应。
+        order.v1.OrderContainer:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                containerNo:
+                    type: string
+                containerSpecId:
+                    type: string
+                sealNo:
+                    type: string
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                note:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderContainer 订单集装箱信息。
+        order.v1.OrderContainerListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderContainer'
+                traceId:
+                    type: string
+            description: OrderContainerListReply 订单集装箱列表响应。
+        order.v1.OrderContainerOperationReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+            description: OrderContainerOperationReply 订单集装箱操作响应。
+        order.v1.OrderContainerReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderContainer'
+                traceId:
+                    type: string
+            description: OrderContainerReply 单条订单集装箱响应。
         order.v1.OrderListReply:
             type: object
             properties:
@@ -2993,6 +3383,66 @@ components:
                 reason:
                     type: string
             description: TransitionOrderStatusRequest 流转订单状态请求。
+        order.v1.UpdateCargoItemRequest:
+            required:
+                - orderId
+                - id
+                - cargoName
+                - packageCount
+                - grossWeightKg
+                - volumeCbm
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                cargoName:
+                    type: string
+                packageCount:
+                    type: integer
+                    format: int32
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                netWeightKg:
+                    type: number
+                    format: double
+                note:
+                    type: string
+            description: UpdateCargoItemRequest 更新订单货物明细请求。
+        order.v1.UpdateContainerRequest:
+            required:
+                - orderId
+                - id
+                - containerNo
+                - containerSpecId
+                - grossWeightKg
+                - volumeCbm
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                containerNo:
+                    type: string
+                containerSpecId:
+                    type: string
+                sealNo:
+                    type: string
+                grossWeightKg:
+                    type: number
+                    format: double
+                volumeCbm:
+                    type: number
+                    format: double
+                note:
+                    type: string
+            description: UpdateContainerRequest 更新订单集装箱请求。
         order.v1.UpdateOrderRequest:
             required:
                 - id
@@ -3917,6 +4367,14 @@ tags:
     - name: MasterDataService
     - name: OrderAttachmentService
       description: OrderAttachmentService 订单附件服务。
+    - name: OrderCargoItemService
+      description: |-
+        OrderCargoItemService 订单货物明细服务。
+         计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。
+    - name: OrderContainerService
+      description: |-
+        OrderContainerService 订单集装箱服务。
+         箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。
     - name: OrderMilestoneService
       description: OrderMilestoneService 订单里程碑服务。
     - name: OrderPersonnelService

@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderContainerService 订单集装箱服务。
+// 箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。
+service OrderContainerService {
+  // ListContainers 获取指定订单的集装箱列表。
+  rpc ListContainers(ListContainersRequest) returns (OrderContainerListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/containers"};
+  }
+
+  // AddContainer 添加订单集装箱。
+  rpc AddContainer(AddContainerRequest) returns (OrderContainerReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/containers"
+      body: "*"
+    };
+  }
+
+  // UpdateContainer 更新订单集装箱，采用全量字段替换语义。
+  rpc UpdateContainer(UpdateContainerRequest) returns (OrderContainerReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/containers/{id}"
+      body: "*"
+    };
+  }
+
+  // RemoveContainer 移除订单集装箱。
+  rpc RemoveContainer(RemoveContainerRequest) returns (OrderContainerOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/containers/{id}"};
+  }
+}
+
+// OrderContainer 订单集装箱信息。
+message OrderContainer {
+  string id = 1;
+  string order_id = 2;
+  string container_no = 3;
+  string container_spec_id = 4;
+  optional string seal_no = 5;
+  double gross_weight_kg = 6;
+  double volume_cbm = 7;
+  optional string note = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// ListContainersRequest 获取订单集装箱列表请求。
+message ListContainersRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AddContainerRequest 添加订单集装箱请求。
+message AddContainerRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string container_no = 2 [(google.api.field_behavior) = REQUIRED];
+  string container_spec_id = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string seal_no = 4;
+  double gross_weight_kg = 5 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 7;
+}
+
+// UpdateContainerRequest 更新订单集装箱请求。
+message UpdateContainerRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  string container_no = 3 [(google.api.field_behavior) = REQUIRED];
+  string container_spec_id = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string seal_no = 5;
+  double gross_weight_kg = 6 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 7 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 8;
+}
+
+// RemoveContainerRequest 移除订单集装箱请求。
+message RemoveContainerRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderContainerReply 单条订单集装箱响应。
+message OrderContainerReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderContainer data = 4;
+  string trace_id = 5;
+}
+
+// OrderContainerListReply 订单集装箱列表响应。
+message OrderContainerListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderContainer data = 4;
+  string trace_id = 5;
+}
+
+// OrderContainerOperationReply 订单集装箱操作响应。
+message OrderContainerOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

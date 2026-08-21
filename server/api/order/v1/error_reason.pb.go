@@ -40,6 +40,12 @@ const (
 	ErrorReason_ORDER_PERSONNEL_EXISTS            ErrorReason = 12
 	ErrorReason_ORDER_PERSONNEL_INVALID_ARGUMENT  ErrorReason = 13
 	ErrorReason_ORDER_PERSONNEL_USER_INVALID      ErrorReason = 14
+	ErrorReason_ORDER_CONTAINER_NOT_FOUND         ErrorReason = 15
+	ErrorReason_ORDER_CONTAINER_EXISTS            ErrorReason = 16
+	ErrorReason_ORDER_CONTAINER_INVALID_ARGUMENT  ErrorReason = 17
+	ErrorReason_ORDER_CONTAINER_SPEC_INVALID      ErrorReason = 18
+	ErrorReason_ORDER_CARGO_ITEM_NOT_FOUND        ErrorReason = 19
+	ErrorReason_ORDER_CARGO_ITEM_INVALID_ARGUMENT ErrorReason = 20
 )
 
 // Enum value maps for ErrorReason.
@@ -60,6 +66,12 @@ var (
 		12: "ORDER_PERSONNEL_EXISTS",
 		13: "ORDER_PERSONNEL_INVALID_ARGUMENT",
 		14: "ORDER_PERSONNEL_USER_INVALID",
+		15: "ORDER_CONTAINER_NOT_FOUND",
+		16: "ORDER_CONTAINER_EXISTS",
+		17: "ORDER_CONTAINER_INVALID_ARGUMENT",
+		18: "ORDER_CONTAINER_SPEC_INVALID",
+		19: "ORDER_CARGO_ITEM_NOT_FOUND",
+		20: "ORDER_CARGO_ITEM_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
 		"ORDER_UNSPECIFIED":                 0,
@@ -77,6 +89,12 @@ var (
 		"ORDER_PERSONNEL_EXISTS":            12,
 		"ORDER_PERSONNEL_INVALID_ARGUMENT":  13,
 		"ORDER_PERSONNEL_USER_INVALID":      14,
+		"ORDER_CONTAINER_NOT_FOUND":         15,
+		"ORDER_CONTAINER_EXISTS":            16,
+		"ORDER_CONTAINER_INVALID_ARGUMENT":  17,
+		"ORDER_CONTAINER_SPEC_INVALID":      18,
+		"ORDER_CARGO_ITEM_NOT_FOUND":        19,
+		"ORDER_CARGO_ITEM_INVALID_ARGUMENT": 20,
 	}
 )
 
@@ -111,7 +129,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xca\x03\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\x94\x05\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -128,7 +146,13 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\x19ORDER_PERSONNEL_NOT_FOUND\x10\v\x12\x1a\n" +
 	"\x16ORDER_PERSONNEL_EXISTS\x10\f\x12$\n" +
 	" ORDER_PERSONNEL_INVALID_ARGUMENT\x10\r\x12 \n" +
-	"\x1cORDER_PERSONNEL_USER_INVALID\x10\x0eB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x1cORDER_PERSONNEL_USER_INVALID\x10\x0e\x12\x1d\n" +
+	"\x19ORDER_CONTAINER_NOT_FOUND\x10\x0f\x12\x1a\n" +
+	"\x16ORDER_CONTAINER_EXISTS\x10\x10\x12$\n" +
+	" ORDER_CONTAINER_INVALID_ARGUMENT\x10\x11\x12 \n" +
+	"\x1cORDER_CONTAINER_SPEC_INVALID\x10\x12\x12\x1e\n" +
+	"\x1aORDER_CARGO_ITEM_NOT_FOUND\x10\x13\x12%\n" +
+	"!ORDER_CARGO_ITEM_INVALID_ARGUMENT\x10\x14B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once

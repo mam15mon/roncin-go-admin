@@ -8,6 +8,8 @@ import * as backgroundTaskService from "./backgroundTaskService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as orderAttachmentService from "./orderAttachmentService";
+import * as orderCargoItemService from "./orderCargoItemService";
+import * as orderContainerService from "./orderContainerService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
 import * as partnerService from "./partnerService";
@@ -18,6 +20,8 @@ export default {
   masterDataService,
   orderService,
   orderAttachmentService,
+  orderCargoItemService,
+  orderContainerService,
   orderMilestoneService,
   orderPersonnelService,
   partnerService,
