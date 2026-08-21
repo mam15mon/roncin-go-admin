@@ -1,10 +1,11 @@
-import { LockOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, LockOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { Alert, Card, Tabs } from 'antd';
 import React from 'react';
 import OrganizationsPanel from './organizations';
 import AuditPanel from './audit';
+import BackgroundTasksPanel from './background-tasks';
 import PermissionsPanel from './permissions';
 import RolesPanel from './roles';
 import UsersPanel from './users';
@@ -42,6 +43,14 @@ export default function Admin() {
           label: '审计日志',
           icon: <LockOutlined />,
           children: <AuditPanel />,
+        }
+      : null,
+    access.canReadTasks
+      ? {
+          key: 'background-tasks',
+          label: '后台任务',
+          icon: <ClockCircleOutlined />,
+          children: <BackgroundTasksPanel />,
         }
       : null,
     access.canManageRoles

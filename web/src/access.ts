@@ -10,6 +10,8 @@ const permissions = {
   orderManage: 'business.order.manage',
   masterDataRead: 'system.master_data.read',
   masterDataManage: 'system.master_data.manage',
+  taskRead: 'system.task.read',
+  taskManage: 'system.task.manage',
 } as const;
 
 export default function access(
@@ -41,5 +43,7 @@ export default function access(
     canManageOrders: has(permissions.orderManage) && hasScope('organization'),
     canReadMasterData: has(permissions.masterDataRead) && hasScope('organization'),
     canManageMasterData: has(permissions.masterDataManage) && hasScope('organization'),
+    canReadTasks: has(permissions.taskRead) && hasScope('organization'),
+    canManageTasks: has(permissions.taskManage) && hasScope('organization'),
   };
 }
