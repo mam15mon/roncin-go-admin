@@ -137,12 +137,12 @@ Partner/Party 决策 + 往来单位
   - 订单集装箱与货物明细首版：OrderContainerService/OrderCargoItemService 各四个接口（List/Add/Update/Remove，全量替换更新语义），具备组织隔离、订单所有权校验、(order_id, container_no) 唯一约束、箱型必须为组织级启用的 container_spec 主数据、正数重量/体积校验、可选字段空白归一化、增删改审计与 OrderRead/OrderManage 权限映射；biz/data 层有单元测试；前端订单页提供固定集装箱与货物明细抽屉（箱型下拉取自主数据选项）。旧模型的装载状态枚举（PLANNED/LOADED/GATE_IN）与提单关联留待跟踪事件/提单建模；cargoType、仓储执行字段、hsCode、申报状态、计费重按 M-006/P8 决策后置，不设空列。
   - 订单提单首版：OrderShippingDocumentService 五个接口（List/Add/Update/TransitionStatus/Remove），新增固定草稿态，字段编辑仅限草稿/已确认（已放货不可改），状态仅允许 DRAFT→CONFIRMED→RELEASED 向前单步流转并携带 expected_status 行锁并发条件（修正旧系统任意跳转且同订单主单号可重复的问题），(order_id, master_no) 唯一约束，已放货提单禁止删除，全操作审计与 OrderRead/OrderManage 权限映射；biz/data 层有单元测试；前端订单页提供固定提单抽屉（状态流转与按状态隐藏操作）。放货类型保持可选文本（旧系统即自由文本，枚举化留待业务确认）；放货凭证（ReleasePod）后续建模。集装箱已支持可选关联同订单提单（FK + 同订单校验 + 前端下拉）。
   - 订单异常标记首版：主数据新增组织级 abnormal_case 类型（替代旧系统全局 ParameterAbnormalCase 字典，不复制 isDefault/isSystem/isLocked 杂项标志）；OrderAbnormalCaseService 四个接口（List/Mark/Resolve/Remove），异常类型必须为组织级启用的 abnormal_case 主数据，(order_id, abnormal_case_id) 唯一，进行中的重复标记返回冲突、已解决标记可重新激活（同类异常可复发），解决走行锁条件更新并记录解决人与时间，标记/解决人取会话主体不接受客户端输入，全操作审计与 OrderRead/OrderManage 权限映射；biz/data 层有单元测试；前端订单页提供固定异常抽屉（类型下拉取自主数据）。异常与费用项的关联（旧 FeeSetting 挂钩）留 P8。
+  - 订单放货凭证首版：OrderReleasePodService 五个接口（List/Add/Update/TransitionStatus/Remove），新增固定待签收，字段编辑在未回单前可用，状态仅允许 PENDING→SIGNED→RETURNED 向前单步流转并携带 expected_status 行锁并发条件，流转到已签收时由服务端记录签收人与签收时间（不接受客户端输入），可选关联同订单提单，已回单凭证禁改禁删，全操作审计与 OrderRead/OrderManage 权限映射；biz/data 层有单元测试；前端订单页提供固定放货凭证抽屉（关联提单下拉、状态流转）。旧模型的全局幂等键不迁移。
+  - 订单状态机副作用集中封装：biz 层新增 OrderStatusChangedEvent 领域事件与 handleOrderStatusChanged 唯一副作用挂载点，状态流转提交后的业务审计经此触发；P10 提醒任务入队、通知分发等跨模块副作用后续统一在此挂载，禁止散落到 service/data 层；附带单元测试断言事件到审计的映射。
 - 剩余执行能力与后台基础设施（未完成）：
   - 迁移执行附件真实对象存储上传、下载授权/签名、删除和后台清理（需先确定存储服务选型）。
-  - 迁移放货凭证（ReleasePod，PodStatus 为 PENDING/SIGNED/RETURNED 标准流转）。
   - 迁移跟踪事件与提醒、告警：属 D10 通知域，依赖集成输入源和事件/载荷契约设计，旧模型的无契约 JSON payload 不原样迁移；订单操作日志以及报关和 AE 扩展同待业务确认。
   - 接入实际任务执行循环：worker 消费 Claim/Complete/Fail，业务用例（主数据导入、提醒、集成）接入 Enqueue（需先有可执行任务类型）。
-  - 对订单状态机和跨模块副作用进行集中封装，避免业务规则落入传输层。
 
 完成标准：订单执行链路能够独立闭环，状态变更和异常处理可追溯、可重试；后台任务失败不会静默丢失。
 
