@@ -3,10 +3,9 @@ tmp_dir = "tmp"
 
 [build]
 cmd = "go build -o ./tmp/roncin-server.exe ./cmd/server"
-bin = "./tmp/roncin-server.exe"
-args_bin = ["-conf", "configs"]
+entrypoint = ["./tmp/roncin-server.exe", "-conf", "configs"]
 include_ext = ["go", "yaml", "yml"]
-exclude_dir = ["api", "bin", "tmp", "var", "internal/data/ent", "internal/webassets/dist"]
+exclude_dir = ["bin", "tmp", "var"]
 delay = 500
 stop_on_error = true
 send_interrupt = true
