@@ -444,6 +444,8 @@ func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 		return biz.MasterDataKindServiceType
 	case v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY:
 		return biz.MasterDataKindCargoCategory
+	case v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE:
+		return biz.MasterDataKindAbnormalCase
 	default:
 		return ""
 	}
@@ -469,6 +471,8 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_SERVICE_TYPE
 	case biz.MasterDataKindCargoCategory:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY
+	case biz.MasterDataKindAbnormalCase:
+		return v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE
 	default:
 		return v1.MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
 	}

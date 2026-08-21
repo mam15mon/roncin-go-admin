@@ -33,11 +33,12 @@ const (
 	MasterDataKindContainerSpec MasterDataKind = "container_spec"
 	MasterDataKindServiceType   MasterDataKind = "service_type"
 	MasterDataKindCargoCategory MasterDataKind = "cargo_category"
+	MasterDataKindAbnormalCase  MasterDataKind = "abnormal_case"
 )
 
 func (kind MasterDataKind) Valid() bool {
 	switch kind {
-	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindPort, MasterDataKindAirport, MasterDataKindCarrier, MasterDataKindContainerSpec, MasterDataKindServiceType, MasterDataKindCargoCategory:
+	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindPort, MasterDataKindAirport, MasterDataKindCarrier, MasterDataKindContainerSpec, MasterDataKindServiceType, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
 		return true
 	default:
 		return false
