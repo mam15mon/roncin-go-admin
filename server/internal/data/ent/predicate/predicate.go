@@ -39,6 +39,12 @@ type OrderAttachment func(*sql.Selector)
 // OrderCargoCategory is the predicate function for ordercargocategory builders.
 type OrderCargoCategory func(*sql.Selector)
 
+// OrderCargoItem is the predicate function for ordercargoitem builders.
+type OrderCargoItem func(*sql.Selector)
+
+// OrderContainer is the predicate function for ordercontainer builders.
+type OrderContainer func(*sql.Selector)
+
 // OrderMilestone is the predicate function for ordermilestone builders.
 type OrderMilestone func(*sql.Selector)
 

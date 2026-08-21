@@ -17,6 +17,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -785,6 +787,120 @@ func init() {
 	ordercargocategoryDescID := ordercargocategoryMixinFields0[0].Descriptor()
 	// ordercargocategory.DefaultID holds the default value on creation for the id field.
 	ordercargocategory.DefaultID = ordercargocategoryDescID.Default.(func() uuid.UUID)
+	ordercargoitemMixin := schema.OrderCargoItem{}.Mixin()
+	ordercargoitemMixinFields0 := ordercargoitemMixin[0].Fields()
+	_ = ordercargoitemMixinFields0
+	ordercargoitemMixinFields1 := ordercargoitemMixin[1].Fields()
+	_ = ordercargoitemMixinFields1
+	ordercargoitemFields := schema.OrderCargoItem{}.Fields()
+	_ = ordercargoitemFields
+	// ordercargoitemDescCreatedAt is the schema descriptor for created_at field.
+	ordercargoitemDescCreatedAt := ordercargoitemMixinFields1[0].Descriptor()
+	// ordercargoitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordercargoitem.DefaultCreatedAt = ordercargoitemDescCreatedAt.Default.(func() time.Time)
+	// ordercargoitemDescUpdatedAt is the schema descriptor for updated_at field.
+	ordercargoitemDescUpdatedAt := ordercargoitemMixinFields1[1].Descriptor()
+	// ordercargoitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordercargoitem.DefaultUpdatedAt = ordercargoitemDescUpdatedAt.Default.(func() time.Time)
+	// ordercargoitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordercargoitem.UpdateDefaultUpdatedAt = ordercargoitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordercargoitemDescCargoName is the schema descriptor for cargo_name field.
+	ordercargoitemDescCargoName := ordercargoitemFields[1].Descriptor()
+	// ordercargoitem.CargoNameValidator is a validator for the "cargo_name" field. It is called by the builders before save.
+	ordercargoitem.CargoNameValidator = func() func(string) error {
+		validators := ordercargoitemDescCargoName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(cargo_name string) error {
+			for _, fn := range fns {
+				if err := fn(cargo_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordercargoitemDescPackageCount is the schema descriptor for package_count field.
+	ordercargoitemDescPackageCount := ordercargoitemFields[2].Descriptor()
+	// ordercargoitem.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	ordercargoitem.PackageCountValidator = ordercargoitemDescPackageCount.Validators[0].(func(int) error)
+	// ordercargoitemDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
+	ordercargoitemDescGrossWeightKg := ordercargoitemFields[3].Descriptor()
+	// ordercargoitem.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
+	ordercargoitem.GrossWeightKgValidator = ordercargoitemDescGrossWeightKg.Validators[0].(func(float64) error)
+	// ordercargoitemDescVolumeCbm is the schema descriptor for volume_cbm field.
+	ordercargoitemDescVolumeCbm := ordercargoitemFields[4].Descriptor()
+	// ordercargoitem.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
+	ordercargoitem.VolumeCbmValidator = ordercargoitemDescVolumeCbm.Validators[0].(func(float64) error)
+	// ordercargoitemDescNetWeightKg is the schema descriptor for net_weight_kg field.
+	ordercargoitemDescNetWeightKg := ordercargoitemFields[5].Descriptor()
+	// ordercargoitem.NetWeightKgValidator is a validator for the "net_weight_kg" field. It is called by the builders before save.
+	ordercargoitem.NetWeightKgValidator = ordercargoitemDescNetWeightKg.Validators[0].(func(float64) error)
+	// ordercargoitemDescNote is the schema descriptor for note field.
+	ordercargoitemDescNote := ordercargoitemFields[6].Descriptor()
+	// ordercargoitem.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	ordercargoitem.NoteValidator = ordercargoitemDescNote.Validators[0].(func(string) error)
+	// ordercargoitemDescID is the schema descriptor for id field.
+	ordercargoitemDescID := ordercargoitemMixinFields0[0].Descriptor()
+	// ordercargoitem.DefaultID holds the default value on creation for the id field.
+	ordercargoitem.DefaultID = ordercargoitemDescID.Default.(func() uuid.UUID)
+	ordercontainerMixin := schema.OrderContainer{}.Mixin()
+	ordercontainerMixinFields0 := ordercontainerMixin[0].Fields()
+	_ = ordercontainerMixinFields0
+	ordercontainerMixinFields1 := ordercontainerMixin[1].Fields()
+	_ = ordercontainerMixinFields1
+	ordercontainerFields := schema.OrderContainer{}.Fields()
+	_ = ordercontainerFields
+	// ordercontainerDescCreatedAt is the schema descriptor for created_at field.
+	ordercontainerDescCreatedAt := ordercontainerMixinFields1[0].Descriptor()
+	// ordercontainer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordercontainer.DefaultCreatedAt = ordercontainerDescCreatedAt.Default.(func() time.Time)
+	// ordercontainerDescUpdatedAt is the schema descriptor for updated_at field.
+	ordercontainerDescUpdatedAt := ordercontainerMixinFields1[1].Descriptor()
+	// ordercontainer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordercontainer.DefaultUpdatedAt = ordercontainerDescUpdatedAt.Default.(func() time.Time)
+	// ordercontainer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordercontainer.UpdateDefaultUpdatedAt = ordercontainerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordercontainerDescContainerNo is the schema descriptor for container_no field.
+	ordercontainerDescContainerNo := ordercontainerFields[1].Descriptor()
+	// ordercontainer.ContainerNoValidator is a validator for the "container_no" field. It is called by the builders before save.
+	ordercontainer.ContainerNoValidator = func() func(string) error {
+		validators := ordercontainerDescContainerNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(container_no string) error {
+			for _, fn := range fns {
+				if err := fn(container_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordercontainerDescSealNo is the schema descriptor for seal_no field.
+	ordercontainerDescSealNo := ordercontainerFields[3].Descriptor()
+	// ordercontainer.SealNoValidator is a validator for the "seal_no" field. It is called by the builders before save.
+	ordercontainer.SealNoValidator = ordercontainerDescSealNo.Validators[0].(func(string) error)
+	// ordercontainerDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
+	ordercontainerDescGrossWeightKg := ordercontainerFields[4].Descriptor()
+	// ordercontainer.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
+	ordercontainer.GrossWeightKgValidator = ordercontainerDescGrossWeightKg.Validators[0].(func(float64) error)
+	// ordercontainerDescVolumeCbm is the schema descriptor for volume_cbm field.
+	ordercontainerDescVolumeCbm := ordercontainerFields[5].Descriptor()
+	// ordercontainer.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
+	ordercontainer.VolumeCbmValidator = ordercontainerDescVolumeCbm.Validators[0].(func(float64) error)
+	// ordercontainerDescNote is the schema descriptor for note field.
+	ordercontainerDescNote := ordercontainerFields[6].Descriptor()
+	// ordercontainer.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	ordercontainer.NoteValidator = ordercontainerDescNote.Validators[0].(func(string) error)
+	// ordercontainerDescID is the schema descriptor for id field.
+	ordercontainerDescID := ordercontainerMixinFields0[0].Descriptor()
+	// ordercontainer.DefaultID holds the default value on creation for the id field.
+	ordercontainer.DefaultID = ordercontainerDescID.Default.(func() uuid.UUID)
 	ordermilestoneMixin := schema.OrderMilestone{}.Mixin()
 	ordermilestoneMixinFields0 := ordermilestoneMixin[0].Fields()
 	_ = ordermilestoneMixinFields0

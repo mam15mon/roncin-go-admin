@@ -100,6 +100,10 @@ const (
 	EdgeAttachments = "attachments"
 	// EdgePersonnel holds the string denoting the personnel edge name in mutations.
 	EdgePersonnel = "personnel"
+	// EdgeContainers holds the string denoting the containers edge name in mutations.
+	EdgeContainers = "containers"
+	// EdgeCargoItems holds the string denoting the cargo_items edge name in mutations.
+	EdgeCargoItems = "cargo_items"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -165,6 +169,20 @@ const (
 	PersonnelInverseTable = "order_personnels"
 	// PersonnelColumn is the table column denoting the personnel relation/edge.
 	PersonnelColumn = "order_id"
+	// ContainersTable is the table that holds the containers relation/edge.
+	ContainersTable = "order_containers"
+	// ContainersInverseTable is the table name for the OrderContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercontainer" package.
+	ContainersInverseTable = "order_containers"
+	// ContainersColumn is the table column denoting the containers relation/edge.
+	ContainersColumn = "order_id"
+	// CargoItemsTable is the table that holds the cargo_items relation/edge.
+	CargoItemsTable = "order_cargo_items"
+	// CargoItemsInverseTable is the table name for the OrderCargoItem entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercargoitem" package.
+	CargoItemsInverseTable = "order_cargo_items"
+	// CargoItemsColumn is the table column denoting the cargo_items relation/edge.
+	CargoItemsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -709,6 +727,34 @@ func ByPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByContainersCount orders the results by containers count.
+func ByContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContainersStep(), opts...)
+	}
+}
+
+// ByContainers orders the results by containers terms.
+func ByContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCargoItemsCount orders the results by cargo_items count.
+func ByCargoItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCargoItemsStep(), opts...)
+	}
+}
+
+// ByCargoItems orders the results by cargo_items terms.
+func ByCargoItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCargoItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -770,5 +816,19 @@ func newPersonnelStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PersonnelInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PersonnelTable, PersonnelColumn),
+	)
+}
+func newContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
+	)
+}
+func newCargoItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CargoItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CargoItemsTable, CargoItemsColumn),
 	)
 }

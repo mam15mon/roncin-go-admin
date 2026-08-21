@@ -24,6 +24,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -67,6 +69,8 @@ const (
 	TypeOrder                 = "Order"
 	TypeOrderAttachment       = "OrderAttachment"
 	TypeOrderCargoCategory    = "OrderCargoCategory"
+	TypeOrderCargoItem        = "OrderCargoItem"
+	TypeOrderContainer        = "OrderContainer"
 	TypeOrderMilestone        = "OrderMilestone"
 	TypeOrderPersonnel        = "OrderPersonnel"
 	TypeOrderServiceType      = "OrderServiceType"
@@ -7925,6 +7929,12 @@ type OrderMutation struct {
 	personnel               map[uuid.UUID]struct{}
 	removedpersonnel        map[uuid.UUID]struct{}
 	clearedpersonnel        bool
+	containers              map[uuid.UUID]struct{}
+	removedcontainers       map[uuid.UUID]struct{}
+	clearedcontainers       bool
+	cargo_items             map[uuid.UUID]struct{}
+	removedcargo_items      map[uuid.UUID]struct{}
+	clearedcargo_items      bool
 	done                    bool
 	oldValue                func(context.Context) (*Order, error)
 	predicates              []predicate.Order
@@ -9934,6 +9944,114 @@ func (m *OrderMutation) ResetPersonnel() {
 	m.removedpersonnel = nil
 }
 
+// AddContainerIDs adds the "containers" edge to the OrderContainer entity by ids.
+func (m *OrderMutation) AddContainerIDs(ids ...uuid.UUID) {
+	if m.containers == nil {
+		m.containers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.containers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearContainers clears the "containers" edge to the OrderContainer entity.
+func (m *OrderMutation) ClearContainers() {
+	m.clearedcontainers = true
+}
+
+// ContainersCleared reports if the "containers" edge to the OrderContainer entity was cleared.
+func (m *OrderMutation) ContainersCleared() bool {
+	return m.clearedcontainers
+}
+
+// RemoveContainerIDs removes the "containers" edge to the OrderContainer entity by IDs.
+func (m *OrderMutation) RemoveContainerIDs(ids ...uuid.UUID) {
+	if m.removedcontainers == nil {
+		m.removedcontainers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.containers, ids[i])
+		m.removedcontainers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContainers returns the removed IDs of the "containers" edge to the OrderContainer entity.
+func (m *OrderMutation) RemovedContainersIDs() (ids []uuid.UUID) {
+	for id := range m.removedcontainers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ContainersIDs returns the "containers" edge IDs in the mutation.
+func (m *OrderMutation) ContainersIDs() (ids []uuid.UUID) {
+	for id := range m.containers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetContainers resets all changes to the "containers" edge.
+func (m *OrderMutation) ResetContainers() {
+	m.containers = nil
+	m.clearedcontainers = false
+	m.removedcontainers = nil
+}
+
+// AddCargoItemIDs adds the "cargo_items" edge to the OrderCargoItem entity by ids.
+func (m *OrderMutation) AddCargoItemIDs(ids ...uuid.UUID) {
+	if m.cargo_items == nil {
+		m.cargo_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.cargo_items[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCargoItems clears the "cargo_items" edge to the OrderCargoItem entity.
+func (m *OrderMutation) ClearCargoItems() {
+	m.clearedcargo_items = true
+}
+
+// CargoItemsCleared reports if the "cargo_items" edge to the OrderCargoItem entity was cleared.
+func (m *OrderMutation) CargoItemsCleared() bool {
+	return m.clearedcargo_items
+}
+
+// RemoveCargoItemIDs removes the "cargo_items" edge to the OrderCargoItem entity by IDs.
+func (m *OrderMutation) RemoveCargoItemIDs(ids ...uuid.UUID) {
+	if m.removedcargo_items == nil {
+		m.removedcargo_items = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.cargo_items, ids[i])
+		m.removedcargo_items[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCargoItems returns the removed IDs of the "cargo_items" edge to the OrderCargoItem entity.
+func (m *OrderMutation) RemovedCargoItemsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcargo_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CargoItemsIDs returns the "cargo_items" edge IDs in the mutation.
+func (m *OrderMutation) CargoItemsIDs() (ids []uuid.UUID) {
+	for id := range m.cargo_items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCargoItems resets all changes to the "cargo_items" edge.
+func (m *OrderMutation) ResetCargoItems() {
+	m.cargo_items = nil
+	m.clearedcargo_items = false
+	m.removedcargo_items = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -10761,7 +10879,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -10788,6 +10906,12 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.personnel != nil {
 		edges = append(edges, order.EdgePersonnel)
+	}
+	if m.containers != nil {
+		edges = append(edges, order.EdgeContainers)
+	}
+	if m.cargo_items != nil {
+		edges = append(edges, order.EdgeCargoItems)
 	}
 	return edges
 }
@@ -10844,13 +10968,25 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeContainers:
+		ids := make([]ent.Value, 0, len(m.containers))
+		for id := range m.containers {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeCargoItems:
+		ids := make([]ent.Value, 0, len(m.cargo_items))
+		for id := range m.cargo_items {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -10868,6 +11004,12 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedpersonnel != nil {
 		edges = append(edges, order.EdgePersonnel)
+	}
+	if m.removedcontainers != nil {
+		edges = append(edges, order.EdgeContainers)
+	}
+	if m.removedcargo_items != nil {
+		edges = append(edges, order.EdgeCargoItems)
 	}
 	return edges
 }
@@ -10912,13 +11054,25 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeContainers:
+		ids := make([]ent.Value, 0, len(m.removedcontainers))
+		for id := range m.removedcontainers {
+			ids = append(ids, id)
+		}
+		return ids
+	case order.EdgeCargoItems:
+		ids := make([]ent.Value, 0, len(m.removedcargo_items))
+		for id := range m.removedcargo_items {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -10946,6 +11100,12 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedpersonnel {
 		edges = append(edges, order.EdgePersonnel)
 	}
+	if m.clearedcontainers {
+		edges = append(edges, order.EdgeContainers)
+	}
+	if m.clearedcargo_items {
+		edges = append(edges, order.EdgeCargoItems)
+	}
 	return edges
 }
 
@@ -10971,6 +11131,10 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedattachments
 	case order.EdgePersonnel:
 		return m.clearedpersonnel
+	case order.EdgeContainers:
+		return m.clearedcontainers
+	case order.EdgeCargoItems:
+		return m.clearedcargo_items
 	}
 	return false
 }
@@ -11022,6 +11186,12 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgePersonnel:
 		m.ResetPersonnel()
+		return nil
+	case order.EdgeContainers:
+		m.ResetContainers()
+		return nil
+	case order.EdgeCargoItems:
+		m.ResetCargoItems()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -12576,6 +12746,1929 @@ func (m *OrderCargoCategoryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderCargoCategory edge %s", name)
+}
+
+// OrderCargoItemMutation represents an operation that mutates the OrderCargoItem nodes in the graph.
+type OrderCargoItemMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	created_at         *time.Time
+	updated_at         *time.Time
+	cargo_name         *string
+	package_count      *int
+	addpackage_count   *int
+	gross_weight_kg    *float64
+	addgross_weight_kg *float64
+	volume_cbm         *float64
+	addvolume_cbm      *float64
+	net_weight_kg      *float64
+	addnet_weight_kg   *float64
+	note               *string
+	clearedFields      map[string]struct{}
+	_order             *uuid.UUID
+	cleared_order      bool
+	done               bool
+	oldValue           func(context.Context) (*OrderCargoItem, error)
+	predicates         []predicate.OrderCargoItem
+}
+
+var _ ent.Mutation = (*OrderCargoItemMutation)(nil)
+
+// ordercargoitemOption allows management of the mutation configuration using functional options.
+type ordercargoitemOption func(*OrderCargoItemMutation)
+
+// newOrderCargoItemMutation creates new mutation for the OrderCargoItem entity.
+func newOrderCargoItemMutation(c config, op Op, opts ...ordercargoitemOption) *OrderCargoItemMutation {
+	m := &OrderCargoItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderCargoItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderCargoItemID sets the ID field of the mutation.
+func withOrderCargoItemID(id uuid.UUID) ordercargoitemOption {
+	return func(m *OrderCargoItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderCargoItem
+		)
+		m.oldValue = func(ctx context.Context) (*OrderCargoItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderCargoItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderCargoItem sets the old OrderCargoItem of the mutation.
+func withOrderCargoItem(node *OrderCargoItem) ordercargoitemOption {
+	return func(m *OrderCargoItemMutation) {
+		m.oldValue = func(context.Context) (*OrderCargoItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderCargoItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderCargoItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderCargoItem entities.
+func (m *OrderCargoItemMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderCargoItemMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderCargoItemMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderCargoItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderCargoItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderCargoItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderCargoItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderCargoItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderCargoItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderCargoItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderCargoItemMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderCargoItemMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderCargoItemMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetCargoName sets the "cargo_name" field.
+func (m *OrderCargoItemMutation) SetCargoName(s string) {
+	m.cargo_name = &s
+}
+
+// CargoName returns the value of the "cargo_name" field in the mutation.
+func (m *OrderCargoItemMutation) CargoName() (r string, exists bool) {
+	v := m.cargo_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoName returns the old "cargo_name" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldCargoName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoName: %w", err)
+	}
+	return oldValue.CargoName, nil
+}
+
+// ResetCargoName resets all changes to the "cargo_name" field.
+func (m *OrderCargoItemMutation) ResetCargoName() {
+	m.cargo_name = nil
+}
+
+// SetPackageCount sets the "package_count" field.
+func (m *OrderCargoItemMutation) SetPackageCount(i int) {
+	m.package_count = &i
+	m.addpackage_count = nil
+}
+
+// PackageCount returns the value of the "package_count" field in the mutation.
+func (m *OrderCargoItemMutation) PackageCount() (r int, exists bool) {
+	v := m.package_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageCount returns the old "package_count" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldPackageCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageCount: %w", err)
+	}
+	return oldValue.PackageCount, nil
+}
+
+// AddPackageCount adds i to the "package_count" field.
+func (m *OrderCargoItemMutation) AddPackageCount(i int) {
+	if m.addpackage_count != nil {
+		*m.addpackage_count += i
+	} else {
+		m.addpackage_count = &i
+	}
+}
+
+// AddedPackageCount returns the value that was added to the "package_count" field in this mutation.
+func (m *OrderCargoItemMutation) AddedPackageCount() (r int, exists bool) {
+	v := m.addpackage_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPackageCount resets all changes to the "package_count" field.
+func (m *OrderCargoItemMutation) ResetPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (m *OrderCargoItemMutation) SetGrossWeightKg(f float64) {
+	m.gross_weight_kg = &f
+	m.addgross_weight_kg = nil
+}
+
+// GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
+func (m *OrderCargoItemMutation) GrossWeightKg() (r float64, exists bool) {
+	v := m.gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGrossWeightKg returns the old "gross_weight_kg" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldGrossWeightKg(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGrossWeightKg: %w", err)
+	}
+	return oldValue.GrossWeightKg, nil
+}
+
+// AddGrossWeightKg adds f to the "gross_weight_kg" field.
+func (m *OrderCargoItemMutation) AddGrossWeightKg(f float64) {
+	if m.addgross_weight_kg != nil {
+		*m.addgross_weight_kg += f
+	} else {
+		m.addgross_weight_kg = &f
+	}
+}
+
+// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
+func (m *OrderCargoItemMutation) AddedGrossWeightKg() (r float64, exists bool) {
+	v := m.addgross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
+func (m *OrderCargoItemMutation) ResetGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (m *OrderCargoItemMutation) SetVolumeCbm(f float64) {
+	m.volume_cbm = &f
+	m.addvolume_cbm = nil
+}
+
+// VolumeCbm returns the value of the "volume_cbm" field in the mutation.
+func (m *OrderCargoItemMutation) VolumeCbm() (r float64, exists bool) {
+	v := m.volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVolumeCbm returns the old "volume_cbm" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldVolumeCbm(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVolumeCbm: %w", err)
+	}
+	return oldValue.VolumeCbm, nil
+}
+
+// AddVolumeCbm adds f to the "volume_cbm" field.
+func (m *OrderCargoItemMutation) AddVolumeCbm(f float64) {
+	if m.addvolume_cbm != nil {
+		*m.addvolume_cbm += f
+	} else {
+		m.addvolume_cbm = &f
+	}
+}
+
+// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
+func (m *OrderCargoItemMutation) AddedVolumeCbm() (r float64, exists bool) {
+	v := m.addvolume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVolumeCbm resets all changes to the "volume_cbm" field.
+func (m *OrderCargoItemMutation) ResetVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+}
+
+// SetNetWeightKg sets the "net_weight_kg" field.
+func (m *OrderCargoItemMutation) SetNetWeightKg(f float64) {
+	m.net_weight_kg = &f
+	m.addnet_weight_kg = nil
+}
+
+// NetWeightKg returns the value of the "net_weight_kg" field in the mutation.
+func (m *OrderCargoItemMutation) NetWeightKg() (r float64, exists bool) {
+	v := m.net_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNetWeightKg returns the old "net_weight_kg" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldNetWeightKg(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNetWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNetWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNetWeightKg: %w", err)
+	}
+	return oldValue.NetWeightKg, nil
+}
+
+// AddNetWeightKg adds f to the "net_weight_kg" field.
+func (m *OrderCargoItemMutation) AddNetWeightKg(f float64) {
+	if m.addnet_weight_kg != nil {
+		*m.addnet_weight_kg += f
+	} else {
+		m.addnet_weight_kg = &f
+	}
+}
+
+// AddedNetWeightKg returns the value that was added to the "net_weight_kg" field in this mutation.
+func (m *OrderCargoItemMutation) AddedNetWeightKg() (r float64, exists bool) {
+	v := m.addnet_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearNetWeightKg clears the value of the "net_weight_kg" field.
+func (m *OrderCargoItemMutation) ClearNetWeightKg() {
+	m.net_weight_kg = nil
+	m.addnet_weight_kg = nil
+	m.clearedFields[ordercargoitem.FieldNetWeightKg] = struct{}{}
+}
+
+// NetWeightKgCleared returns if the "net_weight_kg" field was cleared in this mutation.
+func (m *OrderCargoItemMutation) NetWeightKgCleared() bool {
+	_, ok := m.clearedFields[ordercargoitem.FieldNetWeightKg]
+	return ok
+}
+
+// ResetNetWeightKg resets all changes to the "net_weight_kg" field.
+func (m *OrderCargoItemMutation) ResetNetWeightKg() {
+	m.net_weight_kg = nil
+	m.addnet_weight_kg = nil
+	delete(m.clearedFields, ordercargoitem.FieldNetWeightKg)
+}
+
+// SetNote sets the "note" field.
+func (m *OrderCargoItemMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderCargoItemMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderCargoItem entity.
+// If the OrderCargoItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderCargoItemMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderCargoItemMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[ordercargoitem.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderCargoItemMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[ordercargoitem.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderCargoItemMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, ordercargoitem.FieldNote)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderCargoItemMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[ordercargoitem.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderCargoItemMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderCargoItemMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderCargoItemMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderCargoItemMutation builder.
+func (m *OrderCargoItemMutation) Where(ps ...predicate.OrderCargoItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderCargoItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderCargoItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderCargoItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderCargoItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderCargoItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderCargoItem).
+func (m *OrderCargoItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderCargoItemMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, ordercargoitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, ordercargoitem.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, ordercargoitem.FieldOrderID)
+	}
+	if m.cargo_name != nil {
+		fields = append(fields, ordercargoitem.FieldCargoName)
+	}
+	if m.package_count != nil {
+		fields = append(fields, ordercargoitem.FieldPackageCount)
+	}
+	if m.gross_weight_kg != nil {
+		fields = append(fields, ordercargoitem.FieldGrossWeightKg)
+	}
+	if m.volume_cbm != nil {
+		fields = append(fields, ordercargoitem.FieldVolumeCbm)
+	}
+	if m.net_weight_kg != nil {
+		fields = append(fields, ordercargoitem.FieldNetWeightKg)
+	}
+	if m.note != nil {
+		fields = append(fields, ordercargoitem.FieldNote)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderCargoItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case ordercargoitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case ordercargoitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case ordercargoitem.FieldOrderID:
+		return m.OrderID()
+	case ordercargoitem.FieldCargoName:
+		return m.CargoName()
+	case ordercargoitem.FieldPackageCount:
+		return m.PackageCount()
+	case ordercargoitem.FieldGrossWeightKg:
+		return m.GrossWeightKg()
+	case ordercargoitem.FieldVolumeCbm:
+		return m.VolumeCbm()
+	case ordercargoitem.FieldNetWeightKg:
+		return m.NetWeightKg()
+	case ordercargoitem.FieldNote:
+		return m.Note()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderCargoItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case ordercargoitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case ordercargoitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case ordercargoitem.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case ordercargoitem.FieldCargoName:
+		return m.OldCargoName(ctx)
+	case ordercargoitem.FieldPackageCount:
+		return m.OldPackageCount(ctx)
+	case ordercargoitem.FieldGrossWeightKg:
+		return m.OldGrossWeightKg(ctx)
+	case ordercargoitem.FieldVolumeCbm:
+		return m.OldVolumeCbm(ctx)
+	case ordercargoitem.FieldNetWeightKg:
+		return m.OldNetWeightKg(ctx)
+	case ordercargoitem.FieldNote:
+		return m.OldNote(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderCargoItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderCargoItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case ordercargoitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case ordercargoitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case ordercargoitem.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case ordercargoitem.FieldCargoName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoName(v)
+		return nil
+	case ordercargoitem.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageCount(v)
+		return nil
+	case ordercargoitem.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGrossWeightKg(v)
+		return nil
+	case ordercargoitem.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVolumeCbm(v)
+		return nil
+	case ordercargoitem.FieldNetWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNetWeightKg(v)
+		return nil
+	case ordercargoitem.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderCargoItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addpackage_count != nil {
+		fields = append(fields, ordercargoitem.FieldPackageCount)
+	}
+	if m.addgross_weight_kg != nil {
+		fields = append(fields, ordercargoitem.FieldGrossWeightKg)
+	}
+	if m.addvolume_cbm != nil {
+		fields = append(fields, ordercargoitem.FieldVolumeCbm)
+	}
+	if m.addnet_weight_kg != nil {
+		fields = append(fields, ordercargoitem.FieldNetWeightKg)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderCargoItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case ordercargoitem.FieldPackageCount:
+		return m.AddedPackageCount()
+	case ordercargoitem.FieldGrossWeightKg:
+		return m.AddedGrossWeightKg()
+	case ordercargoitem.FieldVolumeCbm:
+		return m.AddedVolumeCbm()
+	case ordercargoitem.FieldNetWeightKg:
+		return m.AddedNetWeightKg()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderCargoItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case ordercargoitem.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPackageCount(v)
+		return nil
+	case ordercargoitem.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGrossWeightKg(v)
+		return nil
+	case ordercargoitem.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVolumeCbm(v)
+		return nil
+	case ordercargoitem.FieldNetWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNetWeightKg(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderCargoItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(ordercargoitem.FieldNetWeightKg) {
+		fields = append(fields, ordercargoitem.FieldNetWeightKg)
+	}
+	if m.FieldCleared(ordercargoitem.FieldNote) {
+		fields = append(fields, ordercargoitem.FieldNote)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderCargoItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderCargoItemMutation) ClearField(name string) error {
+	switch name {
+	case ordercargoitem.FieldNetWeightKg:
+		m.ClearNetWeightKg()
+		return nil
+	case ordercargoitem.FieldNote:
+		m.ClearNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderCargoItemMutation) ResetField(name string) error {
+	switch name {
+	case ordercargoitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case ordercargoitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case ordercargoitem.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case ordercargoitem.FieldCargoName:
+		m.ResetCargoName()
+		return nil
+	case ordercargoitem.FieldPackageCount:
+		m.ResetPackageCount()
+		return nil
+	case ordercargoitem.FieldGrossWeightKg:
+		m.ResetGrossWeightKg()
+		return nil
+	case ordercargoitem.FieldVolumeCbm:
+		m.ResetVolumeCbm()
+		return nil
+	case ordercargoitem.FieldNetWeightKg:
+		m.ResetNetWeightKg()
+		return nil
+	case ordercargoitem.FieldNote:
+		m.ResetNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderCargoItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, ordercargoitem.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderCargoItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case ordercargoitem.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderCargoItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderCargoItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderCargoItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, ordercargoitem.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderCargoItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case ordercargoitem.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderCargoItemMutation) ClearEdge(name string) error {
+	switch name {
+	case ordercargoitem.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderCargoItemMutation) ResetEdge(name string) error {
+	switch name {
+	case ordercargoitem.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderCargoItem edge %s", name)
+}
+
+// OrderContainerMutation represents an operation that mutates the OrderContainer nodes in the graph.
+type OrderContainerMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	created_at         *time.Time
+	updated_at         *time.Time
+	container_no       *string
+	container_spec_id  *uuid.UUID
+	seal_no            *string
+	gross_weight_kg    *float64
+	addgross_weight_kg *float64
+	volume_cbm         *float64
+	addvolume_cbm      *float64
+	note               *string
+	clearedFields      map[string]struct{}
+	_order             *uuid.UUID
+	cleared_order      bool
+	done               bool
+	oldValue           func(context.Context) (*OrderContainer, error)
+	predicates         []predicate.OrderContainer
+}
+
+var _ ent.Mutation = (*OrderContainerMutation)(nil)
+
+// ordercontainerOption allows management of the mutation configuration using functional options.
+type ordercontainerOption func(*OrderContainerMutation)
+
+// newOrderContainerMutation creates new mutation for the OrderContainer entity.
+func newOrderContainerMutation(c config, op Op, opts ...ordercontainerOption) *OrderContainerMutation {
+	m := &OrderContainerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderContainer,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderContainerID sets the ID field of the mutation.
+func withOrderContainerID(id uuid.UUID) ordercontainerOption {
+	return func(m *OrderContainerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderContainer
+		)
+		m.oldValue = func(ctx context.Context) (*OrderContainer, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderContainer.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderContainer sets the old OrderContainer of the mutation.
+func withOrderContainer(node *OrderContainer) ordercontainerOption {
+	return func(m *OrderContainerMutation) {
+		m.oldValue = func(context.Context) (*OrderContainer, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderContainerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderContainerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderContainer entities.
+func (m *OrderContainerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderContainerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderContainerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderContainer.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderContainerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderContainerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderContainerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderContainerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderContainerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderContainerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderContainerMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderContainerMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderContainerMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetContainerNo sets the "container_no" field.
+func (m *OrderContainerMutation) SetContainerNo(s string) {
+	m.container_no = &s
+}
+
+// ContainerNo returns the value of the "container_no" field in the mutation.
+func (m *OrderContainerMutation) ContainerNo() (r string, exists bool) {
+	v := m.container_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerNo returns the old "container_no" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldContainerNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerNo: %w", err)
+	}
+	return oldValue.ContainerNo, nil
+}
+
+// ResetContainerNo resets all changes to the "container_no" field.
+func (m *OrderContainerMutation) ResetContainerNo() {
+	m.container_no = nil
+}
+
+// SetContainerSpecID sets the "container_spec_id" field.
+func (m *OrderContainerMutation) SetContainerSpecID(u uuid.UUID) {
+	m.container_spec_id = &u
+}
+
+// ContainerSpecID returns the value of the "container_spec_id" field in the mutation.
+func (m *OrderContainerMutation) ContainerSpecID() (r uuid.UUID, exists bool) {
+	v := m.container_spec_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerSpecID returns the old "container_spec_id" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldContainerSpecID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerSpecID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerSpecID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerSpecID: %w", err)
+	}
+	return oldValue.ContainerSpecID, nil
+}
+
+// ResetContainerSpecID resets all changes to the "container_spec_id" field.
+func (m *OrderContainerMutation) ResetContainerSpecID() {
+	m.container_spec_id = nil
+}
+
+// SetSealNo sets the "seal_no" field.
+func (m *OrderContainerMutation) SetSealNo(s string) {
+	m.seal_no = &s
+}
+
+// SealNo returns the value of the "seal_no" field in the mutation.
+func (m *OrderContainerMutation) SealNo() (r string, exists bool) {
+	v := m.seal_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSealNo returns the old "seal_no" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldSealNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSealNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSealNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSealNo: %w", err)
+	}
+	return oldValue.SealNo, nil
+}
+
+// ClearSealNo clears the value of the "seal_no" field.
+func (m *OrderContainerMutation) ClearSealNo() {
+	m.seal_no = nil
+	m.clearedFields[ordercontainer.FieldSealNo] = struct{}{}
+}
+
+// SealNoCleared returns if the "seal_no" field was cleared in this mutation.
+func (m *OrderContainerMutation) SealNoCleared() bool {
+	_, ok := m.clearedFields[ordercontainer.FieldSealNo]
+	return ok
+}
+
+// ResetSealNo resets all changes to the "seal_no" field.
+func (m *OrderContainerMutation) ResetSealNo() {
+	m.seal_no = nil
+	delete(m.clearedFields, ordercontainer.FieldSealNo)
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (m *OrderContainerMutation) SetGrossWeightKg(f float64) {
+	m.gross_weight_kg = &f
+	m.addgross_weight_kg = nil
+}
+
+// GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
+func (m *OrderContainerMutation) GrossWeightKg() (r float64, exists bool) {
+	v := m.gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGrossWeightKg returns the old "gross_weight_kg" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldGrossWeightKg(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGrossWeightKg: %w", err)
+	}
+	return oldValue.GrossWeightKg, nil
+}
+
+// AddGrossWeightKg adds f to the "gross_weight_kg" field.
+func (m *OrderContainerMutation) AddGrossWeightKg(f float64) {
+	if m.addgross_weight_kg != nil {
+		*m.addgross_weight_kg += f
+	} else {
+		m.addgross_weight_kg = &f
+	}
+}
+
+// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
+func (m *OrderContainerMutation) AddedGrossWeightKg() (r float64, exists bool) {
+	v := m.addgross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
+func (m *OrderContainerMutation) ResetGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (m *OrderContainerMutation) SetVolumeCbm(f float64) {
+	m.volume_cbm = &f
+	m.addvolume_cbm = nil
+}
+
+// VolumeCbm returns the value of the "volume_cbm" field in the mutation.
+func (m *OrderContainerMutation) VolumeCbm() (r float64, exists bool) {
+	v := m.volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVolumeCbm returns the old "volume_cbm" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldVolumeCbm(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVolumeCbm: %w", err)
+	}
+	return oldValue.VolumeCbm, nil
+}
+
+// AddVolumeCbm adds f to the "volume_cbm" field.
+func (m *OrderContainerMutation) AddVolumeCbm(f float64) {
+	if m.addvolume_cbm != nil {
+		*m.addvolume_cbm += f
+	} else {
+		m.addvolume_cbm = &f
+	}
+}
+
+// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
+func (m *OrderContainerMutation) AddedVolumeCbm() (r float64, exists bool) {
+	v := m.addvolume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVolumeCbm resets all changes to the "volume_cbm" field.
+func (m *OrderContainerMutation) ResetVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+}
+
+// SetNote sets the "note" field.
+func (m *OrderContainerMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderContainerMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderContainerMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[ordercontainer.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderContainerMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[ordercontainer.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderContainerMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, ordercontainer.FieldNote)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderContainerMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[ordercontainer.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderContainerMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderContainerMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderContainerMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderContainerMutation builder.
+func (m *OrderContainerMutation) Where(ps ...predicate.OrderContainer) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderContainerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderContainerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderContainer, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderContainerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderContainerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderContainer).
+func (m *OrderContainerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderContainerMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, ordercontainer.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, ordercontainer.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, ordercontainer.FieldOrderID)
+	}
+	if m.container_no != nil {
+		fields = append(fields, ordercontainer.FieldContainerNo)
+	}
+	if m.container_spec_id != nil {
+		fields = append(fields, ordercontainer.FieldContainerSpecID)
+	}
+	if m.seal_no != nil {
+		fields = append(fields, ordercontainer.FieldSealNo)
+	}
+	if m.gross_weight_kg != nil {
+		fields = append(fields, ordercontainer.FieldGrossWeightKg)
+	}
+	if m.volume_cbm != nil {
+		fields = append(fields, ordercontainer.FieldVolumeCbm)
+	}
+	if m.note != nil {
+		fields = append(fields, ordercontainer.FieldNote)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderContainerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case ordercontainer.FieldCreatedAt:
+		return m.CreatedAt()
+	case ordercontainer.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case ordercontainer.FieldOrderID:
+		return m.OrderID()
+	case ordercontainer.FieldContainerNo:
+		return m.ContainerNo()
+	case ordercontainer.FieldContainerSpecID:
+		return m.ContainerSpecID()
+	case ordercontainer.FieldSealNo:
+		return m.SealNo()
+	case ordercontainer.FieldGrossWeightKg:
+		return m.GrossWeightKg()
+	case ordercontainer.FieldVolumeCbm:
+		return m.VolumeCbm()
+	case ordercontainer.FieldNote:
+		return m.Note()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderContainerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case ordercontainer.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case ordercontainer.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case ordercontainer.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case ordercontainer.FieldContainerNo:
+		return m.OldContainerNo(ctx)
+	case ordercontainer.FieldContainerSpecID:
+		return m.OldContainerSpecID(ctx)
+	case ordercontainer.FieldSealNo:
+		return m.OldSealNo(ctx)
+	case ordercontainer.FieldGrossWeightKg:
+		return m.OldGrossWeightKg(ctx)
+	case ordercontainer.FieldVolumeCbm:
+		return m.OldVolumeCbm(ctx)
+	case ordercontainer.FieldNote:
+		return m.OldNote(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderContainer field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case ordercontainer.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case ordercontainer.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case ordercontainer.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case ordercontainer.FieldContainerNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerNo(v)
+		return nil
+	case ordercontainer.FieldContainerSpecID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerSpecID(v)
+		return nil
+	case ordercontainer.FieldSealNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSealNo(v)
+		return nil
+	case ordercontainer.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGrossWeightKg(v)
+		return nil
+	case ordercontainer.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVolumeCbm(v)
+		return nil
+	case ordercontainer.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderContainerMutation) AddedFields() []string {
+	var fields []string
+	if m.addgross_weight_kg != nil {
+		fields = append(fields, ordercontainer.FieldGrossWeightKg)
+	}
+	if m.addvolume_cbm != nil {
+		fields = append(fields, ordercontainer.FieldVolumeCbm)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderContainerMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case ordercontainer.FieldGrossWeightKg:
+		return m.AddedGrossWeightKg()
+	case ordercontainer.FieldVolumeCbm:
+		return m.AddedVolumeCbm()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderContainerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case ordercontainer.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGrossWeightKg(v)
+		return nil
+	case ordercontainer.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVolumeCbm(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderContainerMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(ordercontainer.FieldSealNo) {
+		fields = append(fields, ordercontainer.FieldSealNo)
+	}
+	if m.FieldCleared(ordercontainer.FieldNote) {
+		fields = append(fields, ordercontainer.FieldNote)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderContainerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderContainerMutation) ClearField(name string) error {
+	switch name {
+	case ordercontainer.FieldSealNo:
+		m.ClearSealNo()
+		return nil
+	case ordercontainer.FieldNote:
+		m.ClearNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderContainerMutation) ResetField(name string) error {
+	switch name {
+	case ordercontainer.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case ordercontainer.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case ordercontainer.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case ordercontainer.FieldContainerNo:
+		m.ResetContainerNo()
+		return nil
+	case ordercontainer.FieldContainerSpecID:
+		m.ResetContainerSpecID()
+		return nil
+	case ordercontainer.FieldSealNo:
+		m.ResetSealNo()
+		return nil
+	case ordercontainer.FieldGrossWeightKg:
+		m.ResetGrossWeightKg()
+		return nil
+	case ordercontainer.FieldVolumeCbm:
+		m.ResetVolumeCbm()
+		return nil
+	case ordercontainer.FieldNote:
+		m.ResetNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderContainerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, ordercontainer.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderContainerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case ordercontainer.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderContainerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderContainerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderContainerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, ordercontainer.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderContainerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case ordercontainer.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderContainerMutation) ClearEdge(name string) error {
+	switch name {
+	case ordercontainer.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderContainerMutation) ResetEdge(name string) error {
+	switch name {
+	case ordercontainer.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderContainer edge %s", name)
 }
 
 // OrderMilestoneMutation represents an operation that mutates the OrderMilestone nodes in the graph.

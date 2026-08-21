@@ -15,6 +15,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
@@ -708,6 +710,36 @@ func (_u *OrderUpdate) AddPersonnel(v ...*OrderPersonnel) *OrderUpdate {
 	return _u.AddPersonnelIDs(ids...)
 }
 
+// AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
+func (_u *OrderUpdate) AddContainerIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddContainerIDs(ids...)
+	return _u
+}
+
+// AddContainers adds the "containers" edges to the OrderContainer entity.
+func (_u *OrderUpdate) AddContainers(v ...*OrderContainer) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContainerIDs(ids...)
+}
+
+// AddCargoItemIDs adds the "cargo_items" edge to the OrderCargoItem entity by IDs.
+func (_u *OrderUpdate) AddCargoItemIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddCargoItemIDs(ids...)
+	return _u
+}
+
+// AddCargoItems adds the "cargo_items" edges to the OrderCargoItem entity.
+func (_u *OrderUpdate) AddCargoItems(v ...*OrderCargoItem) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoItemIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -855,6 +887,48 @@ func (_u *OrderUpdate) RemovePersonnel(v ...*OrderPersonnel) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePersonnelIDs(ids...)
+}
+
+// ClearContainers clears all "containers" edges to the OrderContainer entity.
+func (_u *OrderUpdate) ClearContainers() *OrderUpdate {
+	_u.mutation.ClearContainers()
+	return _u
+}
+
+// RemoveContainerIDs removes the "containers" edge to OrderContainer entities by IDs.
+func (_u *OrderUpdate) RemoveContainerIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveContainerIDs(ids...)
+	return _u
+}
+
+// RemoveContainers removes "containers" edges to OrderContainer entities.
+func (_u *OrderUpdate) RemoveContainers(v ...*OrderContainer) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContainerIDs(ids...)
+}
+
+// ClearCargoItems clears all "cargo_items" edges to the OrderCargoItem entity.
+func (_u *OrderUpdate) ClearCargoItems() *OrderUpdate {
+	_u.mutation.ClearCargoItems()
+	return _u
+}
+
+// RemoveCargoItemIDs removes the "cargo_items" edge to OrderCargoItem entities by IDs.
+func (_u *OrderUpdate) RemoveCargoItemIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveCargoItemIDs(ids...)
+	return _u
+}
+
+// RemoveCargoItems removes "cargo_items" edges to OrderCargoItem entities.
+func (_u *OrderUpdate) RemoveCargoItems(v ...*OrderCargoItem) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoItemIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1522,6 +1596,96 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ContainersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContainersIDs(); len(nodes) > 0 && !_u.mutation.ContainersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoItemsIDs(); len(nodes) > 0 && !_u.mutation.CargoItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2219,6 +2383,36 @@ func (_u *OrderUpdateOne) AddPersonnel(v ...*OrderPersonnel) *OrderUpdateOne {
 	return _u.AddPersonnelIDs(ids...)
 }
 
+// AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
+func (_u *OrderUpdateOne) AddContainerIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddContainerIDs(ids...)
+	return _u
+}
+
+// AddContainers adds the "containers" edges to the OrderContainer entity.
+func (_u *OrderUpdateOne) AddContainers(v ...*OrderContainer) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddContainerIDs(ids...)
+}
+
+// AddCargoItemIDs adds the "cargo_items" edge to the OrderCargoItem entity by IDs.
+func (_u *OrderUpdateOne) AddCargoItemIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddCargoItemIDs(ids...)
+	return _u
+}
+
+// AddCargoItems adds the "cargo_items" edges to the OrderCargoItem entity.
+func (_u *OrderUpdateOne) AddCargoItems(v ...*OrderCargoItem) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCargoItemIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2366,6 +2560,48 @@ func (_u *OrderUpdateOne) RemovePersonnel(v ...*OrderPersonnel) *OrderUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePersonnelIDs(ids...)
+}
+
+// ClearContainers clears all "containers" edges to the OrderContainer entity.
+func (_u *OrderUpdateOne) ClearContainers() *OrderUpdateOne {
+	_u.mutation.ClearContainers()
+	return _u
+}
+
+// RemoveContainerIDs removes the "containers" edge to OrderContainer entities by IDs.
+func (_u *OrderUpdateOne) RemoveContainerIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveContainerIDs(ids...)
+	return _u
+}
+
+// RemoveContainers removes "containers" edges to OrderContainer entities.
+func (_u *OrderUpdateOne) RemoveContainers(v ...*OrderContainer) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveContainerIDs(ids...)
+}
+
+// ClearCargoItems clears all "cargo_items" edges to the OrderCargoItem entity.
+func (_u *OrderUpdateOne) ClearCargoItems() *OrderUpdateOne {
+	_u.mutation.ClearCargoItems()
+	return _u
+}
+
+// RemoveCargoItemIDs removes the "cargo_items" edge to OrderCargoItem entities by IDs.
+func (_u *OrderUpdateOne) RemoveCargoItemIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveCargoItemIDs(ids...)
+	return _u
+}
+
+// RemoveCargoItems removes "cargo_items" edges to OrderCargoItem entities.
+func (_u *OrderUpdateOne) RemoveCargoItems(v ...*OrderCargoItem) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCargoItemIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -3063,6 +3299,96 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ContainersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedContainersIDs(); len(nodes) > 0 && !_u.mutation.ContainersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainersTable,
+			Columns: []string{order.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CargoItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCargoItemsIDs(); len(nodes) > 0 && !_u.mutation.CargoItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CargoItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.CargoItemsTable,
+			Columns: []string{order.CargoItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -113,9 +113,13 @@ type OrderEdges struct {
 	Attachments []*OrderAttachment `json:"attachments,omitempty"`
 	// Personnel holds the value of the personnel edge.
 	Personnel []*OrderPersonnel `json:"personnel,omitempty"`
+	// Containers holds the value of the containers edge.
+	Containers []*OrderContainer `json:"containers,omitempty"`
+	// CargoItems holds the value of the cargo_items edge.
+	CargoItems []*OrderCargoItem `json:"cargo_items,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [11]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -203,6 +207,24 @@ func (e OrderEdges) PersonnelOrErr() ([]*OrderPersonnel, error) {
 		return e.Personnel, nil
 	}
 	return nil, &NotLoadedError{edge: "personnel"}
+}
+
+// ContainersOrErr returns the Containers value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) ContainersOrErr() ([]*OrderContainer, error) {
+	if e.loadedTypes[9] {
+		return e.Containers, nil
+	}
+	return nil, &NotLoadedError{edge: "containers"}
+}
+
+// CargoItemsOrErr returns the CargoItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) CargoItemsOrErr() ([]*OrderCargoItem, error) {
+	if e.loadedTypes[10] {
+		return e.CargoItems, nil
+	}
+	return nil, &NotLoadedError{edge: "cargo_items"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -505,6 +527,16 @@ func (_m *Order) QueryAttachments() *OrderAttachmentQuery {
 // QueryPersonnel queries the "personnel" edge of the Order entity.
 func (_m *Order) QueryPersonnel() *OrderPersonnelQuery {
 	return NewOrderClient(_m.config).QueryPersonnel(_m)
+}
+
+// QueryContainers queries the "containers" edge of the Order entity.
+func (_m *Order) QueryContainers() *OrderContainerQuery {
+	return NewOrderClient(_m.config).QueryContainers(_m)
+}
+
+// QueryCargoItems queries the "cargo_items" edge of the Order entity.
+func (_m *Order) QueryCargoItems() *OrderCargoItemQuery {
+	return NewOrderClient(_m.config).QueryCargoItems(_m)
 }
 
 // Update returns a builder for updating this Order.

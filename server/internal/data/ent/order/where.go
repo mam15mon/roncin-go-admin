@@ -2083,6 +2083,52 @@ func HasPersonnelWith(preds ...predicate.OrderPersonnel) predicate.Order {
 	})
 }
 
+// HasContainers applies the HasEdge predicate on the "containers" edge.
+func HasContainers() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContainersWith applies the HasEdge predicate on the "containers" edge with a given conditions (other predicates).
+func HasContainersWith(preds ...predicate.OrderContainer) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newContainersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCargoItems applies the HasEdge predicate on the "cargo_items" edge.
+func HasCargoItems() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CargoItemsTable, CargoItemsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCargoItemsWith applies the HasEdge predicate on the "cargo_items" edge with a given conditions (other predicates).
+func HasCargoItemsWith(preds ...predicate.OrderCargoItem) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newCargoItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Order) predicate.Order {
 	return predicate.Order(sql.AndPredicates(predicates...))

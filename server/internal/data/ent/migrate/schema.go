@@ -568,6 +568,94 @@ var (
 			},
 		},
 	}
+	// OrderCargoItemsColumns holds the columns for the "order_cargo_items" table.
+	OrderCargoItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "cargo_name", Type: field.TypeString, Size: 200},
+		{Name: "package_count", Type: field.TypeInt},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64},
+		{Name: "volume_cbm", Type: field.TypeFloat64},
+		{Name: "net_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderCargoItemsTable holds the schema information for the "order_cargo_items" table.
+	OrderCargoItemsTable = &schema.Table{
+		Name:       "order_cargo_items",
+		Columns:    OrderCargoItemsColumns,
+		PrimaryKey: []*schema.Column{OrderCargoItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_cargo_items_orders_cargo_items",
+				Columns:    []*schema.Column{OrderCargoItemsColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordercargoitem_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCargoItemsColumns[2]},
+			},
+			{
+				Name:    "ordercargoitem_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCargoItemsColumns[9]},
+			},
+		},
+	}
+	// OrderContainersColumns holds the columns for the "order_containers" table.
+	OrderContainersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "container_no", Type: field.TypeString, Size: 64},
+		{Name: "container_spec_id", Type: field.TypeUUID},
+		{Name: "seal_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64},
+		{Name: "volume_cbm", Type: field.TypeFloat64},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderContainersTable holds the schema information for the "order_containers" table.
+	OrderContainersTable = &schema.Table{
+		Name:       "order_containers",
+		Columns:    OrderContainersColumns,
+		PrimaryKey: []*schema.Column{OrderContainersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_containers_orders_containers",
+				Columns:    []*schema.Column{OrderContainersColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordercontainer_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainersColumns[2]},
+			},
+			{
+				Name:    "ordercontainer_order_id_container_no",
+				Unique:  true,
+				Columns: []*schema.Column{OrderContainersColumns[9], OrderContainersColumns[3]},
+			},
+			{
+				Name:    "ordercontainer_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainersColumns[9]},
+			},
+			{
+				Name:    "ordercontainer_container_spec_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainersColumns[4]},
+			},
+		},
+	}
 	// OrderMilestonesColumns holds the columns for the "order_milestones" table.
 	OrderMilestonesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1495,6 +1583,8 @@ var (
 		OrdersTable,
 		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
+		OrderCargoItemsTable,
+		OrderContainersTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
 		OrderServiceTypesTable,
@@ -1533,6 +1623,8 @@ func init() {
 	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable
