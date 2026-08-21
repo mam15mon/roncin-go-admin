@@ -119,6 +119,11 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		orderv1.OperationOrderAbnormalCaseServiceMarkAbnormalCase:                     {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderAbnormalCaseServiceResolveAbnormalCase:                  {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderAbnormalCaseServiceRemoveAbnormalCase:                   {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderReleasePodServiceListReleasePods:                        {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderReleasePodServiceAddReleasePod:                          {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderReleasePodServiceUpdateReleasePod:                       {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderReleasePodServiceTransitionReleasePodStatus:             {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderReleasePodServiceRemoveReleasePod:                       {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
 
 	return func(handler middleware.Handler) middleware.Handler {

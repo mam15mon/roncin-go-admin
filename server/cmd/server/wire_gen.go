@@ -85,8 +85,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderAbnormalCaseRepo := data.NewOrderAbnormalCaseRepo(dataData)
 	orderAbnormalCaseUsecase := biz.NewOrderAbnormalCaseUsecase(orderAbnormalCaseRepo, auditRepo)
 	orderAbnormalCaseService := service.NewOrderAbnormalCaseService(orderAbnormalCaseUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, authUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, authUsecase, sessionPolicy, dataData, logger)
+	orderReleasePodRepo := data.NewOrderReleasePodRepo(dataData)
+	orderReleasePodUsecase := biz.NewOrderReleasePodUsecase(orderReleasePodRepo, auditRepo)
+	orderReleasePodService := service.NewOrderReleasePodService(orderReleasePodUsecase)
+	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, sessionPolicy, dataData, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
