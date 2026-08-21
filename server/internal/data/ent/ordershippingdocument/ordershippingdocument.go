@@ -36,6 +36,8 @@ const (
 	EdgeOrder = "order"
 	// EdgeContainers holds the string denoting the containers edge name in mutations.
 	EdgeContainers = "containers"
+	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
+	EdgeReleasePods = "release_pods"
 	// Table holds the table name of the ordershippingdocument in the database.
 	Table = "order_shipping_documents"
 	// OrderTable is the table that holds the order relation/edge.
@@ -52,6 +54,13 @@ const (
 	ContainersInverseTable = "order_containers"
 	// ContainersColumn is the table column denoting the containers relation/edge.
 	ContainersColumn = "shipping_document_id"
+	// ReleasePodsTable is the table that holds the release_pods relation/edge.
+	ReleasePodsTable = "order_release_pods"
+	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
+	// It exists in this package in order to avoid circular dependency with the "orderreleasepod" package.
+	ReleasePodsInverseTable = "order_release_pods"
+	// ReleasePodsColumn is the table column denoting the release_pods relation/edge.
+	ReleasePodsColumn = "shipping_document_id"
 )
 
 // Columns holds all SQL columns for ordershippingdocument fields.
@@ -191,6 +200,20 @@ func ByContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByReleasePodsCount orders the results by release_pods count.
+func ByReleasePodsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReleasePodsStep(), opts...)
+	}
+}
+
+// ByReleasePods orders the results by release_pods terms.
+func ByReleasePods(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReleasePodsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -203,5 +226,12 @@ func newContainersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ContainersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
+	)
+}
+func newReleasePodsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReleasePodsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReleasePodsTable, ReleasePodsColumn),
 	)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
@@ -143,6 +144,21 @@ func (_c *OrderShippingDocumentCreate) AddContainers(v ...*OrderContainer) *Orde
 		ids[i] = v[i].ID
 	}
 	return _c.AddContainerIDs(ids...)
+}
+
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_c *OrderShippingDocumentCreate) AddReleasePodIDs(ids ...uuid.UUID) *OrderShippingDocumentCreate {
+	_c.mutation.AddReleasePodIDs(ids...)
+	return _c
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_c *OrderShippingDocumentCreate) AddReleasePods(v ...*OrderReleasePod) *OrderShippingDocumentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReleasePodIDs(ids...)
 }
 
 // Mutation returns the OrderShippingDocumentMutation object of the builder.
@@ -335,6 +351,22 @@ func (_c *OrderShippingDocumentCreate) createSpec() (*OrderShippingDocument, *sq
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ordershippingdocument.ReleasePodsTable,
+			Columns: []string{ordershippingdocument.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -808,6 +808,57 @@ var (
 			},
 		},
 	}
+	// OrderReleasePodsColumns holds the columns for the "order_release_pods" table.
+	OrderReleasePodsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "release_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "pod_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SIGNED", "RETURNED"}, Default: "PENDING"},
+		{Name: "signed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "signed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "shipping_document_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderReleasePodsTable holds the schema information for the "order_release_pods" table.
+	OrderReleasePodsTable = &schema.Table{
+		Name:       "order_release_pods",
+		Columns:    OrderReleasePodsColumns,
+		PrimaryKey: []*schema.Column{OrderReleasePodsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_release_pods_orders_release_pods",
+				Columns:    []*schema.Column{OrderReleasePodsColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_release_pods_order_shipping_documents_release_pods",
+				Columns:    []*schema.Column{OrderReleasePodsColumns[10]},
+				RefColumns: []*schema.Column{OrderShippingDocumentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderreleasepod_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderReleasePodsColumns[2]},
+			},
+			{
+				Name:    "orderreleasepod_order_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrderReleasePodsColumns[9], OrderReleasePodsColumns[5]},
+			},
+			{
+				Name:    "orderreleasepod_shipping_document_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderReleasePodsColumns[10]},
+			},
+		},
+	}
 	// OrderServiceTypesColumns holds the columns for the "order_service_types" table.
 	OrderServiceTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1687,6 +1738,7 @@ var (
 		OrderContainersTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
+		OrderReleasePodsTable,
 		OrderServiceTypesTable,
 		OrderShippingDocumentsTable,
 		OrderStatusLogsTable,
@@ -1731,6 +1783,8 @@ func init() {
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable
+	OrderReleasePodsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderReleasePodsTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable

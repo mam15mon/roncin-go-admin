@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
@@ -596,6 +597,21 @@ func (_c *OrderCreate) AddShippingDocuments(v ...*OrderShippingDocument) *OrderC
 	return _c.AddShippingDocumentIDs(ids...)
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (_c *OrderCreate) AddReleasePodIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddReleasePodIDs(ids...)
+	return _c
+}
+
+// AddReleasePods adds the "release_pods" edges to the OrderReleasePod entity.
+func (_c *OrderCreate) AddReleasePods(v ...*OrderReleasePod) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReleasePodIDs(ids...)
+}
+
 // AddAbnormalCaseIDs adds the "abnormal_cases" edge to the OrderAbnormalCase entity by IDs.
 func (_c *OrderCreate) AddAbnormalCaseIDs(ids ...uuid.UUID) *OrderCreate {
 	_c.mutation.AddAbnormalCaseIDs(ids...)
@@ -1156,6 +1172,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReleasePodsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ReleasePodsTable,
+			Columns: []string{order.ReleasePodsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderreleasepod.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

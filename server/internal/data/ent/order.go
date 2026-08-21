@@ -119,11 +119,13 @@ type OrderEdges struct {
 	CargoItems []*OrderCargoItem `json:"cargo_items,omitempty"`
 	// ShippingDocuments holds the value of the shipping_documents edge.
 	ShippingDocuments []*OrderShippingDocument `json:"shipping_documents,omitempty"`
+	// ReleasePods holds the value of the release_pods edge.
+	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// AbnormalCases holds the value of the abnormal_cases edge.
 	AbnormalCases []*OrderAbnormalCase `json:"abnormal_cases,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [13]bool
+	loadedTypes [14]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -240,10 +242,19 @@ func (e OrderEdges) ShippingDocumentsOrErr() ([]*OrderShippingDocument, error) {
 	return nil, &NotLoadedError{edge: "shipping_documents"}
 }
 
+// ReleasePodsOrErr returns the ReleasePods value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
+	if e.loadedTypes[12] {
+		return e.ReleasePods, nil
+	}
+	return nil, &NotLoadedError{edge: "release_pods"}
+}
+
 // AbnormalCasesOrErr returns the AbnormalCases value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.AbnormalCases, nil
 	}
 	return nil, &NotLoadedError{edge: "abnormal_cases"}
@@ -564,6 +575,11 @@ func (_m *Order) QueryCargoItems() *OrderCargoItemQuery {
 // QueryShippingDocuments queries the "shipping_documents" edge of the Order entity.
 func (_m *Order) QueryShippingDocuments() *OrderShippingDocumentQuery {
 	return NewOrderClient(_m.config).QueryShippingDocuments(_m)
+}
+
+// QueryReleasePods queries the "release_pods" edge of the Order entity.
+func (_m *Order) QueryReleasePods() *OrderReleasePodQuery {
+	return NewOrderClient(_m.config).QueryReleasePods(_m)
 }
 
 // QueryAbnormalCases queries the "abnormal_cases" edge of the Order entity.

@@ -47,9 +47,11 @@ type OrderShippingDocumentEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// Containers holds the value of the containers edge.
 	Containers []*OrderContainer `json:"containers,omitempty"`
+	// ReleasePods holds the value of the release_pods edge.
+	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -70,6 +72,15 @@ func (e OrderShippingDocumentEdges) ContainersOrErr() ([]*OrderContainer, error)
 		return e.Containers, nil
 	}
 	return nil, &NotLoadedError{edge: "containers"}
+}
+
+// ReleasePodsOrErr returns the ReleasePods value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderShippingDocumentEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
+	if e.loadedTypes[2] {
+		return e.ReleasePods, nil
+	}
+	return nil, &NotLoadedError{edge: "release_pods"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -173,6 +184,11 @@ func (_m *OrderShippingDocument) QueryOrder() *OrderQuery {
 // QueryContainers queries the "containers" edge of the OrderShippingDocument entity.
 func (_m *OrderShippingDocument) QueryContainers() *OrderContainerQuery {
 	return NewOrderShippingDocumentClient(_m.config).QueryContainers(_m)
+}
+
+// QueryReleasePods queries the "release_pods" edge of the OrderShippingDocument entity.
+func (_m *OrderShippingDocument) QueryReleasePods() *OrderReleasePodQuery {
+	return NewOrderShippingDocumentClient(_m.config).QueryReleasePods(_m)
 }
 
 // Update returns a builder for updating this OrderShippingDocument.

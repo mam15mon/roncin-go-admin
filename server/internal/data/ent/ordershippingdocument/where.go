@@ -537,6 +537,29 @@ func HasContainersWith(preds ...predicate.OrderContainer) predicate.OrderShippin
 	})
 }
 
+// HasReleasePods applies the HasEdge predicate on the "release_pods" edge.
+func HasReleasePods() predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReleasePodsTable, ReleasePodsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReleasePodsWith applies the HasEdge predicate on the "release_pods" edge with a given conditions (other predicates).
+func HasReleasePodsWith(preds ...predicate.OrderReleasePod) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(func(s *sql.Selector) {
+		step := newReleasePodsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.OrderShippingDocument) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.AndPredicates(predicates...))

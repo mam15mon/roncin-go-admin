@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
@@ -1004,6 +1005,39 @@ func init() {
 	orderpersonnelDescID := orderpersonnelMixinFields0[0].Descriptor()
 	// orderpersonnel.DefaultID holds the default value on creation for the id field.
 	orderpersonnel.DefaultID = orderpersonnelDescID.Default.(func() uuid.UUID)
+	orderreleasepodMixin := schema.OrderReleasePod{}.Mixin()
+	orderreleasepodMixinFields0 := orderreleasepodMixin[0].Fields()
+	_ = orderreleasepodMixinFields0
+	orderreleasepodMixinFields1 := orderreleasepodMixin[1].Fields()
+	_ = orderreleasepodMixinFields1
+	orderreleasepodFields := schema.OrderReleasePod{}.Fields()
+	_ = orderreleasepodFields
+	// orderreleasepodDescCreatedAt is the schema descriptor for created_at field.
+	orderreleasepodDescCreatedAt := orderreleasepodMixinFields1[0].Descriptor()
+	// orderreleasepod.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderreleasepod.DefaultCreatedAt = orderreleasepodDescCreatedAt.Default.(func() time.Time)
+	// orderreleasepodDescUpdatedAt is the schema descriptor for updated_at field.
+	orderreleasepodDescUpdatedAt := orderreleasepodMixinFields1[1].Descriptor()
+	// orderreleasepod.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderreleasepod.DefaultUpdatedAt = orderreleasepodDescUpdatedAt.Default.(func() time.Time)
+	// orderreleasepod.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderreleasepod.UpdateDefaultUpdatedAt = orderreleasepodDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderreleasepodDescReleaseNo is the schema descriptor for release_no field.
+	orderreleasepodDescReleaseNo := orderreleasepodFields[2].Descriptor()
+	// orderreleasepod.ReleaseNoValidator is a validator for the "release_no" field. It is called by the builders before save.
+	orderreleasepod.ReleaseNoValidator = orderreleasepodDescReleaseNo.Validators[0].(func(string) error)
+	// orderreleasepodDescPodNo is the schema descriptor for pod_no field.
+	orderreleasepodDescPodNo := orderreleasepodFields[3].Descriptor()
+	// orderreleasepod.PodNoValidator is a validator for the "pod_no" field. It is called by the builders before save.
+	orderreleasepod.PodNoValidator = orderreleasepodDescPodNo.Validators[0].(func(string) error)
+	// orderreleasepodDescNote is the schema descriptor for note field.
+	orderreleasepodDescNote := orderreleasepodFields[7].Descriptor()
+	// orderreleasepod.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	orderreleasepod.NoteValidator = orderreleasepodDescNote.Validators[0].(func(string) error)
+	// orderreleasepodDescID is the schema descriptor for id field.
+	orderreleasepodDescID := orderreleasepodMixinFields0[0].Descriptor()
+	// orderreleasepod.DefaultID holds the default value on creation for the id field.
+	orderreleasepod.DefaultID = orderreleasepodDescID.Default.(func() uuid.UUID)
 	orderservicetypeMixin := schema.OrderServiceType{}.Mixin()
 	orderservicetypeMixinFields0 := orderservicetypeMixin[0].Fields()
 	_ = orderservicetypeMixinFields0

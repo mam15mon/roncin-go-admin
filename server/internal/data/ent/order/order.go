@@ -106,6 +106,8 @@ const (
 	EdgeCargoItems = "cargo_items"
 	// EdgeShippingDocuments holds the string denoting the shipping_documents edge name in mutations.
 	EdgeShippingDocuments = "shipping_documents"
+	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
+	EdgeReleasePods = "release_pods"
 	// EdgeAbnormalCases holds the string denoting the abnormal_cases edge name in mutations.
 	EdgeAbnormalCases = "abnormal_cases"
 	// Table holds the table name of the order in the database.
@@ -194,6 +196,13 @@ const (
 	ShippingDocumentsInverseTable = "order_shipping_documents"
 	// ShippingDocumentsColumn is the table column denoting the shipping_documents relation/edge.
 	ShippingDocumentsColumn = "order_id"
+	// ReleasePodsTable is the table that holds the release_pods relation/edge.
+	ReleasePodsTable = "order_release_pods"
+	// ReleasePodsInverseTable is the table name for the OrderReleasePod entity.
+	// It exists in this package in order to avoid circular dependency with the "orderreleasepod" package.
+	ReleasePodsInverseTable = "order_release_pods"
+	// ReleasePodsColumn is the table column denoting the release_pods relation/edge.
+	ReleasePodsColumn = "order_id"
 	// AbnormalCasesTable is the table that holds the abnormal_cases relation/edge.
 	AbnormalCasesTable = "order_abnormal_cases"
 	// AbnormalCasesInverseTable is the table name for the OrderAbnormalCase entity.
@@ -788,6 +797,20 @@ func ByShippingDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 	}
 }
 
+// ByReleasePodsCount orders the results by release_pods count.
+func ByReleasePodsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReleasePodsStep(), opts...)
+	}
+}
+
+// ByReleasePods orders the results by release_pods terms.
+func ByReleasePods(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReleasePodsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAbnormalCasesCount orders the results by abnormal_cases count.
 func ByAbnormalCasesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -883,6 +906,13 @@ func newShippingDocumentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShippingDocumentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ShippingDocumentsTable, ShippingDocumentsColumn),
+	)
+}
+func newReleasePodsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReleasePodsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReleasePodsTable, ReleasePodsColumn),
 	)
 }
 func newAbnormalCasesStep() *sqlgraph.Step {

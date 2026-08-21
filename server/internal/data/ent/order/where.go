@@ -2152,6 +2152,29 @@ func HasShippingDocumentsWith(preds ...predicate.OrderShippingDocument) predicat
 	})
 }
 
+// HasReleasePods applies the HasEdge predicate on the "release_pods" edge.
+func HasReleasePods() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReleasePodsTable, ReleasePodsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReleasePodsWith applies the HasEdge predicate on the "release_pods" edge with a given conditions (other predicates).
+func HasReleasePodsWith(preds ...predicate.OrderReleasePod) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newReleasePodsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAbnormalCases applies the HasEdge predicate on the "abnormal_cases" edge.
 func HasAbnormalCases() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

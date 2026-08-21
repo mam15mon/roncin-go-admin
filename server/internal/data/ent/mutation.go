@@ -29,6 +29,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
@@ -76,6 +77,7 @@ const (
 	TypeOrderContainer        = "OrderContainer"
 	TypeOrderMilestone        = "OrderMilestone"
 	TypeOrderPersonnel        = "OrderPersonnel"
+	TypeOrderReleasePod       = "OrderReleasePod"
 	TypeOrderServiceType      = "OrderServiceType"
 	TypeOrderShippingDocument = "OrderShippingDocument"
 	TypeOrderStatusLog        = "OrderStatusLog"
@@ -7942,6 +7944,9 @@ type OrderMutation struct {
 	shipping_documents        map[uuid.UUID]struct{}
 	removedshipping_documents map[uuid.UUID]struct{}
 	clearedshipping_documents bool
+	release_pods              map[uuid.UUID]struct{}
+	removedrelease_pods       map[uuid.UUID]struct{}
+	clearedrelease_pods       bool
 	abnormal_cases            map[uuid.UUID]struct{}
 	removedabnormal_cases     map[uuid.UUID]struct{}
 	clearedabnormal_cases     bool
@@ -10116,6 +10121,60 @@ func (m *OrderMutation) ResetShippingDocuments() {
 	m.removedshipping_documents = nil
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by ids.
+func (m *OrderMutation) AddReleasePodIDs(ids ...uuid.UUID) {
+	if m.release_pods == nil {
+		m.release_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.release_pods[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReleasePods clears the "release_pods" edge to the OrderReleasePod entity.
+func (m *OrderMutation) ClearReleasePods() {
+	m.clearedrelease_pods = true
+}
+
+// ReleasePodsCleared reports if the "release_pods" edge to the OrderReleasePod entity was cleared.
+func (m *OrderMutation) ReleasePodsCleared() bool {
+	return m.clearedrelease_pods
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (m *OrderMutation) RemoveReleasePodIDs(ids ...uuid.UUID) {
+	if m.removedrelease_pods == nil {
+		m.removedrelease_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.release_pods, ids[i])
+		m.removedrelease_pods[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReleasePods returns the removed IDs of the "release_pods" edge to the OrderReleasePod entity.
+func (m *OrderMutation) RemovedReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrelease_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReleasePodsIDs returns the "release_pods" edge IDs in the mutation.
+func (m *OrderMutation) ReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.release_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReleasePods resets all changes to the "release_pods" edge.
+func (m *OrderMutation) ResetReleasePods() {
+	m.release_pods = nil
+	m.clearedrelease_pods = false
+	m.removedrelease_pods = nil
+}
+
 // AddAbnormalCaseIDs adds the "abnormal_cases" edge to the OrderAbnormalCase entity by ids.
 func (m *OrderMutation) AddAbnormalCaseIDs(ids ...uuid.UUID) {
 	if m.abnormal_cases == nil {
@@ -10997,7 +11056,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -11033,6 +11092,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.shipping_documents != nil {
 		edges = append(edges, order.EdgeShippingDocuments)
+	}
+	if m.release_pods != nil {
+		edges = append(edges, order.EdgeReleasePods)
 	}
 	if m.abnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
@@ -11110,6 +11172,12 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.release_pods))
+		for id := range m.release_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeAbnormalCases:
 		ids := make([]ent.Value, 0, len(m.abnormal_cases))
 		for id := range m.abnormal_cases {
@@ -11122,7 +11190,7 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -11149,6 +11217,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedshipping_documents != nil {
 		edges = append(edges, order.EdgeShippingDocuments)
+	}
+	if m.removedrelease_pods != nil {
+		edges = append(edges, order.EdgeReleasePods)
 	}
 	if m.removedabnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
@@ -11214,6 +11285,12 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.removedrelease_pods))
+		for id := range m.removedrelease_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeAbnormalCases:
 		ids := make([]ent.Value, 0, len(m.removedabnormal_cases))
 		for id := range m.removedabnormal_cases {
@@ -11226,7 +11303,7 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -11263,6 +11340,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedshipping_documents {
 		edges = append(edges, order.EdgeShippingDocuments)
 	}
+	if m.clearedrelease_pods {
+		edges = append(edges, order.EdgeReleasePods)
+	}
 	if m.clearedabnormal_cases {
 		edges = append(edges, order.EdgeAbnormalCases)
 	}
@@ -11297,6 +11377,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedcargo_items
 	case order.EdgeShippingDocuments:
 		return m.clearedshipping_documents
+	case order.EdgeReleasePods:
+		return m.clearedrelease_pods
 	case order.EdgeAbnormalCases:
 		return m.clearedabnormal_cases
 	}
@@ -11359,6 +11441,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeShippingDocuments:
 		m.ResetShippingDocuments()
+		return nil
+	case order.EdgeReleasePods:
+		m.ResetReleasePods()
 		return nil
 	case order.EdgeAbnormalCases:
 		m.ResetAbnormalCases()
@@ -17437,6 +17522,1041 @@ func (m *OrderPersonnelMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderPersonnel edge %s", name)
 }
 
+// OrderReleasePodMutation represents an operation that mutates the OrderReleasePod nodes in the graph.
+type OrderReleasePodMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	release_no               *string
+	pod_no                   *string
+	status                   *orderreleasepod.Status
+	signed_at                *time.Time
+	signed_by                *uuid.UUID
+	note                     *string
+	clearedFields            map[string]struct{}
+	_order                   *uuid.UUID
+	cleared_order            bool
+	shipping_document        *uuid.UUID
+	clearedshipping_document bool
+	done                     bool
+	oldValue                 func(context.Context) (*OrderReleasePod, error)
+	predicates               []predicate.OrderReleasePod
+}
+
+var _ ent.Mutation = (*OrderReleasePodMutation)(nil)
+
+// orderreleasepodOption allows management of the mutation configuration using functional options.
+type orderreleasepodOption func(*OrderReleasePodMutation)
+
+// newOrderReleasePodMutation creates new mutation for the OrderReleasePod entity.
+func newOrderReleasePodMutation(c config, op Op, opts ...orderreleasepodOption) *OrderReleasePodMutation {
+	m := &OrderReleasePodMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderReleasePod,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderReleasePodID sets the ID field of the mutation.
+func withOrderReleasePodID(id uuid.UUID) orderreleasepodOption {
+	return func(m *OrderReleasePodMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderReleasePod
+		)
+		m.oldValue = func(ctx context.Context) (*OrderReleasePod, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderReleasePod.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderReleasePod sets the old OrderReleasePod of the mutation.
+func withOrderReleasePod(node *OrderReleasePod) orderreleasepodOption {
+	return func(m *OrderReleasePodMutation) {
+		m.oldValue = func(context.Context) (*OrderReleasePod, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderReleasePodMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderReleasePodMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderReleasePod entities.
+func (m *OrderReleasePodMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderReleasePodMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderReleasePodMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderReleasePod.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderReleasePodMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderReleasePodMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderReleasePodMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderReleasePodMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderReleasePodMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderReleasePodMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderReleasePodMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderReleasePodMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderReleasePodMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (m *OrderReleasePodMutation) SetShippingDocumentID(u uuid.UUID) {
+	m.shipping_document = &u
+}
+
+// ShippingDocumentID returns the value of the "shipping_document_id" field in the mutation.
+func (m *OrderReleasePodMutation) ShippingDocumentID() (r uuid.UUID, exists bool) {
+	v := m.shipping_document
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShippingDocumentID returns the old "shipping_document_id" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldShippingDocumentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShippingDocumentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShippingDocumentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShippingDocumentID: %w", err)
+	}
+	return oldValue.ShippingDocumentID, nil
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (m *OrderReleasePodMutation) ClearShippingDocumentID() {
+	m.shipping_document = nil
+	m.clearedFields[orderreleasepod.FieldShippingDocumentID] = struct{}{}
+}
+
+// ShippingDocumentIDCleared returns if the "shipping_document_id" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) ShippingDocumentIDCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldShippingDocumentID]
+	return ok
+}
+
+// ResetShippingDocumentID resets all changes to the "shipping_document_id" field.
+func (m *OrderReleasePodMutation) ResetShippingDocumentID() {
+	m.shipping_document = nil
+	delete(m.clearedFields, orderreleasepod.FieldShippingDocumentID)
+}
+
+// SetReleaseNo sets the "release_no" field.
+func (m *OrderReleasePodMutation) SetReleaseNo(s string) {
+	m.release_no = &s
+}
+
+// ReleaseNo returns the value of the "release_no" field in the mutation.
+func (m *OrderReleasePodMutation) ReleaseNo() (r string, exists bool) {
+	v := m.release_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReleaseNo returns the old "release_no" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldReleaseNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReleaseNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReleaseNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReleaseNo: %w", err)
+	}
+	return oldValue.ReleaseNo, nil
+}
+
+// ClearReleaseNo clears the value of the "release_no" field.
+func (m *OrderReleasePodMutation) ClearReleaseNo() {
+	m.release_no = nil
+	m.clearedFields[orderreleasepod.FieldReleaseNo] = struct{}{}
+}
+
+// ReleaseNoCleared returns if the "release_no" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) ReleaseNoCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldReleaseNo]
+	return ok
+}
+
+// ResetReleaseNo resets all changes to the "release_no" field.
+func (m *OrderReleasePodMutation) ResetReleaseNo() {
+	m.release_no = nil
+	delete(m.clearedFields, orderreleasepod.FieldReleaseNo)
+}
+
+// SetPodNo sets the "pod_no" field.
+func (m *OrderReleasePodMutation) SetPodNo(s string) {
+	m.pod_no = &s
+}
+
+// PodNo returns the value of the "pod_no" field in the mutation.
+func (m *OrderReleasePodMutation) PodNo() (r string, exists bool) {
+	v := m.pod_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPodNo returns the old "pod_no" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldPodNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPodNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPodNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPodNo: %w", err)
+	}
+	return oldValue.PodNo, nil
+}
+
+// ClearPodNo clears the value of the "pod_no" field.
+func (m *OrderReleasePodMutation) ClearPodNo() {
+	m.pod_no = nil
+	m.clearedFields[orderreleasepod.FieldPodNo] = struct{}{}
+}
+
+// PodNoCleared returns if the "pod_no" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) PodNoCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldPodNo]
+	return ok
+}
+
+// ResetPodNo resets all changes to the "pod_no" field.
+func (m *OrderReleasePodMutation) ResetPodNo() {
+	m.pod_no = nil
+	delete(m.clearedFields, orderreleasepod.FieldPodNo)
+}
+
+// SetStatus sets the "status" field.
+func (m *OrderReleasePodMutation) SetStatus(o orderreleasepod.Status) {
+	m.status = &o
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *OrderReleasePodMutation) Status() (r orderreleasepod.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldStatus(ctx context.Context) (v orderreleasepod.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *OrderReleasePodMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSignedAt sets the "signed_at" field.
+func (m *OrderReleasePodMutation) SetSignedAt(t time.Time) {
+	m.signed_at = &t
+}
+
+// SignedAt returns the value of the "signed_at" field in the mutation.
+func (m *OrderReleasePodMutation) SignedAt() (r time.Time, exists bool) {
+	v := m.signed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignedAt returns the old "signed_at" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldSignedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignedAt: %w", err)
+	}
+	return oldValue.SignedAt, nil
+}
+
+// ClearSignedAt clears the value of the "signed_at" field.
+func (m *OrderReleasePodMutation) ClearSignedAt() {
+	m.signed_at = nil
+	m.clearedFields[orderreleasepod.FieldSignedAt] = struct{}{}
+}
+
+// SignedAtCleared returns if the "signed_at" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) SignedAtCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldSignedAt]
+	return ok
+}
+
+// ResetSignedAt resets all changes to the "signed_at" field.
+func (m *OrderReleasePodMutation) ResetSignedAt() {
+	m.signed_at = nil
+	delete(m.clearedFields, orderreleasepod.FieldSignedAt)
+}
+
+// SetSignedBy sets the "signed_by" field.
+func (m *OrderReleasePodMutation) SetSignedBy(u uuid.UUID) {
+	m.signed_by = &u
+}
+
+// SignedBy returns the value of the "signed_by" field in the mutation.
+func (m *OrderReleasePodMutation) SignedBy() (r uuid.UUID, exists bool) {
+	v := m.signed_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignedBy returns the old "signed_by" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldSignedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignedBy: %w", err)
+	}
+	return oldValue.SignedBy, nil
+}
+
+// ClearSignedBy clears the value of the "signed_by" field.
+func (m *OrderReleasePodMutation) ClearSignedBy() {
+	m.signed_by = nil
+	m.clearedFields[orderreleasepod.FieldSignedBy] = struct{}{}
+}
+
+// SignedByCleared returns if the "signed_by" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) SignedByCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldSignedBy]
+	return ok
+}
+
+// ResetSignedBy resets all changes to the "signed_by" field.
+func (m *OrderReleasePodMutation) ResetSignedBy() {
+	m.signed_by = nil
+	delete(m.clearedFields, orderreleasepod.FieldSignedBy)
+}
+
+// SetNote sets the "note" field.
+func (m *OrderReleasePodMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderReleasePodMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderReleasePod entity.
+// If the OrderReleasePod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderReleasePodMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderReleasePodMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[orderreleasepod.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderReleasePodMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[orderreleasepod.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderReleasePodMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, orderreleasepod.FieldNote)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderReleasePodMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderreleasepod.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderReleasePodMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderReleasePodMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderReleasePodMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
+func (m *OrderReleasePodMutation) ClearShippingDocument() {
+	m.clearedshipping_document = true
+	m.clearedFields[orderreleasepod.FieldShippingDocumentID] = struct{}{}
+}
+
+// ShippingDocumentCleared reports if the "shipping_document" edge to the OrderShippingDocument entity was cleared.
+func (m *OrderReleasePodMutation) ShippingDocumentCleared() bool {
+	return m.ShippingDocumentIDCleared() || m.clearedshipping_document
+}
+
+// ShippingDocumentIDs returns the "shipping_document" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingDocumentID instead. It exists only for internal usage by the builders.
+func (m *OrderReleasePodMutation) ShippingDocumentIDs() (ids []uuid.UUID) {
+	if id := m.shipping_document; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingDocument resets all changes to the "shipping_document" edge.
+func (m *OrderReleasePodMutation) ResetShippingDocument() {
+	m.shipping_document = nil
+	m.clearedshipping_document = false
+}
+
+// Where appends a list predicates to the OrderReleasePodMutation builder.
+func (m *OrderReleasePodMutation) Where(ps ...predicate.OrderReleasePod) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderReleasePodMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderReleasePodMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderReleasePod, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderReleasePodMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderReleasePodMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderReleasePod).
+func (m *OrderReleasePodMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderReleasePodMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, orderreleasepod.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderreleasepod.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, orderreleasepod.FieldOrderID)
+	}
+	if m.shipping_document != nil {
+		fields = append(fields, orderreleasepod.FieldShippingDocumentID)
+	}
+	if m.release_no != nil {
+		fields = append(fields, orderreleasepod.FieldReleaseNo)
+	}
+	if m.pod_no != nil {
+		fields = append(fields, orderreleasepod.FieldPodNo)
+	}
+	if m.status != nil {
+		fields = append(fields, orderreleasepod.FieldStatus)
+	}
+	if m.signed_at != nil {
+		fields = append(fields, orderreleasepod.FieldSignedAt)
+	}
+	if m.signed_by != nil {
+		fields = append(fields, orderreleasepod.FieldSignedBy)
+	}
+	if m.note != nil {
+		fields = append(fields, orderreleasepod.FieldNote)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderReleasePodMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderreleasepod.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderreleasepod.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderreleasepod.FieldOrderID:
+		return m.OrderID()
+	case orderreleasepod.FieldShippingDocumentID:
+		return m.ShippingDocumentID()
+	case orderreleasepod.FieldReleaseNo:
+		return m.ReleaseNo()
+	case orderreleasepod.FieldPodNo:
+		return m.PodNo()
+	case orderreleasepod.FieldStatus:
+		return m.Status()
+	case orderreleasepod.FieldSignedAt:
+		return m.SignedAt()
+	case orderreleasepod.FieldSignedBy:
+		return m.SignedBy()
+	case orderreleasepod.FieldNote:
+		return m.Note()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderReleasePodMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderreleasepod.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderreleasepod.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderreleasepod.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderreleasepod.FieldShippingDocumentID:
+		return m.OldShippingDocumentID(ctx)
+	case orderreleasepod.FieldReleaseNo:
+		return m.OldReleaseNo(ctx)
+	case orderreleasepod.FieldPodNo:
+		return m.OldPodNo(ctx)
+	case orderreleasepod.FieldStatus:
+		return m.OldStatus(ctx)
+	case orderreleasepod.FieldSignedAt:
+		return m.OldSignedAt(ctx)
+	case orderreleasepod.FieldSignedBy:
+		return m.OldSignedBy(ctx)
+	case orderreleasepod.FieldNote:
+		return m.OldNote(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderReleasePod field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderReleasePodMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderreleasepod.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderreleasepod.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderreleasepod.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderreleasepod.FieldShippingDocumentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShippingDocumentID(v)
+		return nil
+	case orderreleasepod.FieldReleaseNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReleaseNo(v)
+		return nil
+	case orderreleasepod.FieldPodNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPodNo(v)
+		return nil
+	case orderreleasepod.FieldStatus:
+		v, ok := value.(orderreleasepod.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case orderreleasepod.FieldSignedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignedAt(v)
+		return nil
+	case orderreleasepod.FieldSignedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignedBy(v)
+		return nil
+	case orderreleasepod.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderReleasePod field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderReleasePodMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderReleasePodMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderReleasePodMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderReleasePod numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderReleasePodMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderreleasepod.FieldShippingDocumentID) {
+		fields = append(fields, orderreleasepod.FieldShippingDocumentID)
+	}
+	if m.FieldCleared(orderreleasepod.FieldReleaseNo) {
+		fields = append(fields, orderreleasepod.FieldReleaseNo)
+	}
+	if m.FieldCleared(orderreleasepod.FieldPodNo) {
+		fields = append(fields, orderreleasepod.FieldPodNo)
+	}
+	if m.FieldCleared(orderreleasepod.FieldSignedAt) {
+		fields = append(fields, orderreleasepod.FieldSignedAt)
+	}
+	if m.FieldCleared(orderreleasepod.FieldSignedBy) {
+		fields = append(fields, orderreleasepod.FieldSignedBy)
+	}
+	if m.FieldCleared(orderreleasepod.FieldNote) {
+		fields = append(fields, orderreleasepod.FieldNote)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderReleasePodMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderReleasePodMutation) ClearField(name string) error {
+	switch name {
+	case orderreleasepod.FieldShippingDocumentID:
+		m.ClearShippingDocumentID()
+		return nil
+	case orderreleasepod.FieldReleaseNo:
+		m.ClearReleaseNo()
+		return nil
+	case orderreleasepod.FieldPodNo:
+		m.ClearPodNo()
+		return nil
+	case orderreleasepod.FieldSignedAt:
+		m.ClearSignedAt()
+		return nil
+	case orderreleasepod.FieldSignedBy:
+		m.ClearSignedBy()
+		return nil
+	case orderreleasepod.FieldNote:
+		m.ClearNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderReleasePod nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderReleasePodMutation) ResetField(name string) error {
+	switch name {
+	case orderreleasepod.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderreleasepod.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderreleasepod.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderreleasepod.FieldShippingDocumentID:
+		m.ResetShippingDocumentID()
+		return nil
+	case orderreleasepod.FieldReleaseNo:
+		m.ResetReleaseNo()
+		return nil
+	case orderreleasepod.FieldPodNo:
+		m.ResetPodNo()
+		return nil
+	case orderreleasepod.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case orderreleasepod.FieldSignedAt:
+		m.ResetSignedAt()
+		return nil
+	case orderreleasepod.FieldSignedBy:
+		m.ResetSignedBy()
+		return nil
+	case orderreleasepod.FieldNote:
+		m.ResetNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderReleasePod field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderReleasePodMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._order != nil {
+		edges = append(edges, orderreleasepod.EdgeOrder)
+	}
+	if m.shipping_document != nil {
+		edges = append(edges, orderreleasepod.EdgeShippingDocument)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderReleasePodMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderreleasepod.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderreleasepod.EdgeShippingDocument:
+		if id := m.shipping_document; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderReleasePodMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderReleasePodMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderReleasePodMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_order {
+		edges = append(edges, orderreleasepod.EdgeOrder)
+	}
+	if m.clearedshipping_document {
+		edges = append(edges, orderreleasepod.EdgeShippingDocument)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderReleasePodMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderreleasepod.EdgeOrder:
+		return m.cleared_order
+	case orderreleasepod.EdgeShippingDocument:
+		return m.clearedshipping_document
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderReleasePodMutation) ClearEdge(name string) error {
+	switch name {
+	case orderreleasepod.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case orderreleasepod.EdgeShippingDocument:
+		m.ClearShippingDocument()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderReleasePod unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderReleasePodMutation) ResetEdge(name string) error {
+	switch name {
+	case orderreleasepod.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case orderreleasepod.EdgeShippingDocument:
+		m.ResetShippingDocument()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderReleasePod edge %s", name)
+}
+
 // OrderServiceTypeMutation represents an operation that mutates the OrderServiceType nodes in the graph.
 type OrderServiceTypeMutation struct {
 	config
@@ -17988,25 +19108,28 @@ func (m *OrderServiceTypeMutation) ResetEdge(name string) error {
 // OrderShippingDocumentMutation represents an operation that mutates the OrderShippingDocument nodes in the graph.
 type OrderShippingDocumentMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *uuid.UUID
-	created_at        *time.Time
-	updated_at        *time.Time
-	master_no         *string
-	house_no          *string
-	release_type      *string
-	status            *ordershippingdocument.Status
-	note              *string
-	clearedFields     map[string]struct{}
-	_order            *uuid.UUID
-	cleared_order     bool
-	containers        map[uuid.UUID]struct{}
-	removedcontainers map[uuid.UUID]struct{}
-	clearedcontainers bool
-	done              bool
-	oldValue          func(context.Context) (*OrderShippingDocument, error)
-	predicates        []predicate.OrderShippingDocument
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	master_no           *string
+	house_no            *string
+	release_type        *string
+	status              *ordershippingdocument.Status
+	note                *string
+	clearedFields       map[string]struct{}
+	_order              *uuid.UUID
+	cleared_order       bool
+	containers          map[uuid.UUID]struct{}
+	removedcontainers   map[uuid.UUID]struct{}
+	clearedcontainers   bool
+	release_pods        map[uuid.UUID]struct{}
+	removedrelease_pods map[uuid.UUID]struct{}
+	clearedrelease_pods bool
+	done                bool
+	oldValue            func(context.Context) (*OrderShippingDocument, error)
+	predicates          []predicate.OrderShippingDocument
 }
 
 var _ ent.Mutation = (*OrderShippingDocumentMutation)(nil)
@@ -18508,6 +19631,60 @@ func (m *OrderShippingDocumentMutation) ResetContainers() {
 	m.removedcontainers = nil
 }
 
+// AddReleasePodIDs adds the "release_pods" edge to the OrderReleasePod entity by ids.
+func (m *OrderShippingDocumentMutation) AddReleasePodIDs(ids ...uuid.UUID) {
+	if m.release_pods == nil {
+		m.release_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.release_pods[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReleasePods clears the "release_pods" edge to the OrderReleasePod entity.
+func (m *OrderShippingDocumentMutation) ClearReleasePods() {
+	m.clearedrelease_pods = true
+}
+
+// ReleasePodsCleared reports if the "release_pods" edge to the OrderReleasePod entity was cleared.
+func (m *OrderShippingDocumentMutation) ReleasePodsCleared() bool {
+	return m.clearedrelease_pods
+}
+
+// RemoveReleasePodIDs removes the "release_pods" edge to the OrderReleasePod entity by IDs.
+func (m *OrderShippingDocumentMutation) RemoveReleasePodIDs(ids ...uuid.UUID) {
+	if m.removedrelease_pods == nil {
+		m.removedrelease_pods = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.release_pods, ids[i])
+		m.removedrelease_pods[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReleasePods returns the removed IDs of the "release_pods" edge to the OrderReleasePod entity.
+func (m *OrderShippingDocumentMutation) RemovedReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrelease_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReleasePodsIDs returns the "release_pods" edge IDs in the mutation.
+func (m *OrderShippingDocumentMutation) ReleasePodsIDs() (ids []uuid.UUID) {
+	for id := range m.release_pods {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReleasePods resets all changes to the "release_pods" edge.
+func (m *OrderShippingDocumentMutation) ResetReleasePods() {
+	m.release_pods = nil
+	m.clearedrelease_pods = false
+	m.removedrelease_pods = nil
+}
+
 // Where appends a list predicates to the OrderShippingDocumentMutation builder.
 func (m *OrderShippingDocumentMutation) Where(ps ...predicate.OrderShippingDocument) {
 	m.predicates = append(m.predicates, ps...)
@@ -18775,12 +19952,15 @@ func (m *OrderShippingDocumentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderShippingDocumentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m._order != nil {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
 	}
 	if m.containers != nil {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
+	}
+	if m.release_pods != nil {
+		edges = append(edges, ordershippingdocument.EdgeReleasePods)
 	}
 	return edges
 }
@@ -18799,15 +19979,24 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case ordershippingdocument.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.release_pods))
+		for id := range m.release_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcontainers != nil {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
+	}
+	if m.removedrelease_pods != nil {
+		edges = append(edges, ordershippingdocument.EdgeReleasePods)
 	}
 	return edges
 }
@@ -18822,18 +20011,27 @@ func (m *OrderShippingDocumentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case ordershippingdocument.EdgeReleasePods:
+		ids := make([]ent.Value, 0, len(m.removedrelease_pods))
+		for id := range m.removedrelease_pods {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderShippingDocumentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleared_order {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
 	}
 	if m.clearedcontainers {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
+	}
+	if m.clearedrelease_pods {
+		edges = append(edges, ordershippingdocument.EdgeReleasePods)
 	}
 	return edges
 }
@@ -18846,6 +20044,8 @@ func (m *OrderShippingDocumentMutation) EdgeCleared(name string) bool {
 		return m.cleared_order
 	case ordershippingdocument.EdgeContainers:
 		return m.clearedcontainers
+	case ordershippingdocument.EdgeReleasePods:
+		return m.clearedrelease_pods
 	}
 	return false
 }
@@ -18870,6 +20070,9 @@ func (m *OrderShippingDocumentMutation) ResetEdge(name string) error {
 		return nil
 	case ordershippingdocument.EdgeContainers:
 		m.ResetContainers()
+		return nil
+	case ordershippingdocument.EdgeReleasePods:
+		m.ResetReleasePods()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderShippingDocument edge %s", name)
