@@ -115,6 +115,10 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		orderv1.OperationOrderShippingDocumentServiceUpdateShippingDocument:           {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderShippingDocumentServiceTransitionShippingDocumentStatus: {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderShippingDocumentServiceRemoveShippingDocument:           {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderAbnormalCaseServiceListAbnormalCases:                    {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderAbnormalCaseServiceMarkAbnormalCase:                     {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderAbnormalCaseServiceResolveAbnormalCase:                  {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderAbnormalCaseServiceRemoveAbnormalCase:                   {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
 
 	return func(handler middleware.Handler) middleware.Handler {
