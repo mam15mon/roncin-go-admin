@@ -129,10 +129,10 @@ pnpm --dir web biome:lint
 
 ## 配置、数据与部署
 
-- 当前 Windows 开发环境的 PostgreSQL 运行在 WSL2 的 Docker 容器
-  `roncin-postgres` 中，并发布到 `0.0.0.0:5432`。启动后端前先启动 WSL 与该
-  容器并等待 PostgreSQL 就绪；若 Windows 访问 `127.0.0.1:5432` 被拒绝，先
-  检查容器状态和 WSL localhost 转发，不要推断为未安装数据库。
+- 当前 Windows 开发环境使用 Scoop 安装的 PostgreSQL，数据目录为
+  `C:\Users\admin\scoop\persist\postgresql\data`，监听 `127.0.0.1:5432`。
+  启动后端前执行 `pg_ctl start` 并等待 PostgreSQL 就绪；若连接被拒绝，先用
+  `pg_ctl status` 检查本机数据库进程。
 - 私密配置只通过环境变量注入；仓库只提交 `.env.example` 和不含凭据的示例
   配置。不要把真实密码、令牌、Cookie、连接串或生产数据写入 Git。
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
