@@ -1,0 +1,183 @@
+package data
+
+import (
+	"context"
+	"strings"
+
+	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
+	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+)
+
+type orderContainerRepo struct {
+	data *Data
+}
+
+func NewOrderContainerRepo(data *Data) biz.OrderContainerRepo {
+	return &orderContainerRepo{data: data}
+}
+
+func (r *orderContainerRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
+	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+		if ent.IsNotFound(err) {
+			return biz.ErrOrderContainerNotFound
+		}
+		return err
+	}
+	return nil
+}
+
+func (r *orderContainerRepo) validateContainerSpec(ctx context.Context, organizationID, specID uuid.UUID) error {
+	count, err := r.data.db.MasterDataItem.Query().
+		Where(
+			masterdataitement.IDEQ(specID),
+			masterdataitement.OrganizationIDEQ(organizationID),
+			masterdataitement.KindEQ(masterdataitement.KindContainerSpec),
+			masterdataitement.EnabledEQ(true),
+		).
+		Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return biz.ErrOrderContainerSpecInvalid
+	}
+	return nil
+}
+
+func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderContainer, error) {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return nil, err
+	}
+	items, err := r.data.db.OrderContainer.Query().
+		Where(ordercontainerent.OrderIDEQ(orderID)).
+		Order(ordercontainerent.ByContainerNo()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.OrderContainer, 0, len(items))
+	for _, item := range items {
+		result = append(result, orderContainerToBiz(item))
+	}
+	return result, nil
+}
+
+func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderContainer) (*biz.OrderContainer, error) {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return nil, err
+	}
+	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
+		return nil, err
+	}
+	builder := r.data.db.OrderContainer.Create().
+		SetOrderID(orderID).
+		SetContainerNo(input.ContainerNo).
+		SetContainerSpecID(input.ContainerSpecID).
+		SetGrossWeightKg(input.GrossWeightKg).
+		SetVolumeCbm(input.VolumeCbm)
+	if input.SealNo != nil {
+		builder.SetSealNo(*input.SealNo)
+	}
+	if input.Note != nil {
+		builder.SetNote(*input.Note)
+	}
+	created, err := builder.Save(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_containers_order_id_container_no") {
+			return nil, biz.ErrOrderContainerExists
+		}
+		return nil, err
+	}
+	return orderContainerToBiz(created), nil
+}
+
+func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer) (*biz.OrderContainer, error) {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return nil, err
+	}
+	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
+		return nil, err
+	}
+	item, err := r.data.db.OrderContainer.Query().
+		Where(
+			ordercontainerent.IDEQ(id),
+			ordercontainerent.OrderIDEQ(orderID),
+		).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderContainerNotFound
+		}
+		return nil, err
+	}
+	builder := item.Update().
+		SetContainerNo(input.ContainerNo).
+		SetContainerSpecID(input.ContainerSpecID).
+		SetGrossWeightKg(input.GrossWeightKg).
+		SetVolumeCbm(input.VolumeCbm)
+	if input.SealNo != nil {
+		builder.SetSealNo(*input.SealNo)
+	} else {
+		builder.ClearSealNo()
+	}
+	if input.Note != nil {
+		builder.SetNote(*input.Note)
+	} else {
+		builder.ClearNote()
+	}
+	updated, err := builder.Save(ctx)
+	if err != nil {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_containers_order_id_container_no") {
+			return nil, biz.ErrOrderContainerExists
+		}
+		return nil, err
+	}
+	return orderContainerToBiz(updated), nil
+}
+
+func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return err
+	}
+	n, err := r.data.db.OrderContainer.Delete().
+		Where(
+			ordercontainerent.IDEQ(id),
+			ordercontainerent.OrderIDEQ(orderID),
+		).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return biz.ErrOrderContainerNotFound
+	}
+	return nil
+}
+
+func orderContainerToBiz(item *ent.OrderContainer) *biz.OrderContainer {
+	result := &biz.OrderContainer{
+		ID:              item.ID,
+		OrderID:         item.OrderID,
+		ContainerNo:     item.ContainerNo,
+		ContainerSpecID: item.ContainerSpecID,
+		GrossWeightKg:   item.GrossWeightKg,
+		VolumeCbm:       item.VolumeCbm,
+		CreatedAt:       item.CreatedAt,
+		UpdatedAt:       item.UpdatedAt,
+	}
+	if item.SealNo != "" {
+		v := item.SealNo
+		result.SealNo = &v
+	}
+	if item.Note != "" {
+		v := item.Note
+		result.Note = &v
+	}
+	return result
+}
+
+var _ biz.OrderContainerRepo = (*orderContainerRepo)(nil)
