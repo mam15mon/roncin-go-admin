@@ -47,6 +47,12 @@ export async function getInitialState(): Promise<InitialState> {
 }
 
 export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
+  menuHeaderRender: (logo, title) => (
+    <Link to="/welcome" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {logo}
+      {title}
+    </Link>
+  ),
   menuItemRender: (item, dom) =>
     item.path ? (
       <Link to={item.path} prefetch>

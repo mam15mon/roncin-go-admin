@@ -63,92 +63,134 @@ body,
 
 // ----------------------------------------
 // 左侧全高深色侧边栏（Ant Design 官方标准配色）
+// 侧栏自上而下 100vh 全高覆盖，顶部顶栏置于侧栏右侧
 // ----------------------------------------
-.ant-pro-sider,
-.ant-layout-sider-dark,
-.ant-pro-sider-fixed {
-  background: #001529 !important;
-  border-right: none !important;
-  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+.ant-pro-layout,
+.ant-pro-layout-mix {
+  .ant-pro-sider,
+  .ant-layout-sider,
+  .ant-layout-sider-dark,
+  .ant-pro-sider-fixed {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    z-index: 101 !important;
+    background: #001529 !important;
+    border-right: none !important;
+    box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
 
-  .ant-pro-sider-logo {
-    height: 56px;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    .ant-pro-sider-logo {
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
 
-    img,
-    svg {
-      height: 24px;
-      width: auto;
-    }
-
-    h1 {
-      color: #ffffff !important;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      margin: 0;
-      white-space: nowrap;
-    }
-  }
-
-  // 菜单项样式
-  .ant-menu-dark,
-  .ant-menu {
-    background: transparent !important;
-    padding: 6px 8px;
-
-    .ant-menu-item {
-      height: 38px;
-      line-height: 38px;
-      margin: 2px 0;
-      padding: 0 12px !important;
-      border-radius: 6px;
-      color: rgba(255, 255, 255, 0.65);
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.15s ease;
-
-      .anticon {
-        font-size: 15px;
-        color: rgba(255, 255, 255, 0.65);
-        transition: color 0.15s ease;
+      a {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
       }
+
+      img,
+      svg {
+        height: 24px;
+        width: auto;
+      }
+
+      h1 {
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        margin: 0;
+        white-space: nowrap;
+      }
+    }
+
+    // 菜单项样式
+    .ant-menu-dark,
+    .ant-menu {
+      background: transparent !important;
+      padding: 6px 8px;
+
+      .ant-menu-item {
+        height: 38px;
+        line-height: 38px;
+        margin: 2px 0;
+        padding: 0 12px !important;
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+
+        .anticon {
+          font-size: 15px;
+          color: rgba(255, 255, 255, 0.65);
+          transition: color 0.15s ease;
+        }
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.08) !important;
+          color: #ffffff !important;
+
+          .anticon {
+            color: #ffffff;
+          }
+        }
+
+        &.ant-menu-item-selected {
+          background: #1677ff !important;
+          color: #ffffff !important;
+          font-weight: 600;
+
+          .anticon {
+            color: #ffffff;
+          }
+        }
+      }
+    }
+
+    // 折叠按钮
+    .ant-pro-sider-collapsed-button {
+      color: rgba(255, 255, 255, 0.65) !important;
+      background: #001529 !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
         color: #ffffff !important;
-
-        .anticon {
-          color: #ffffff;
-        }
-      }
-
-      &.ant-menu-item-selected {
-        background: #1677ff !important;
-        color: #ffffff !important;
-        font-weight: 600;
-
-        .anticon {
-          color: #ffffff;
-        }
+        background: #002140 !important;
       }
     }
   }
 
-  // 折叠按钮
-  .ant-pro-sider-collapsed-button {
-    color: rgba(255, 255, 255, 0.65) !important;
-    background: #001529 !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  // 顶部顶栏：置于侧边栏右侧（left: 216px, width: calc(100% - 216px)）
+  .ant-pro-layout-header,
+  .ant-pro-fixed-header,
+  .ant-pro-global-header-layout-mix {
+    left: 216px !important;
+    width: calc(100% - 216px) !important;
+    z-index: 100 !important;
+    transition: all 0.2s ease !important;
+  }
 
-    &:hover {
-      color: #ffffff !important;
-      background: #002140 !important;
-    }
+  // 隐藏顶部顶栏中冗余的 Logo（Logo 由全高左侧侧栏呈现）
+  .ant-pro-global-header-logo {
+    display: none !important;
+  }
+
+  // 侧边栏折叠时顶栏自动贴合
+  .ant-pro-sider-collapsed ~ .ant-layout .ant-pro-layout-header,
+  .ant-pro-sider-collapsed ~ .ant-layout .ant-pro-fixed-header,
+  .ant-layout-sider-collapsed ~ .ant-layout .ant-pro-layout-header,
+  .ant-layout-sider-collapsed ~ .ant-layout .ant-pro-fixed-header {
+    left: 64px !important;
+    width: calc(100% - 64px) !important;
   }
 }
 
