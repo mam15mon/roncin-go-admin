@@ -318,6 +318,7 @@ declare namespace API {
   type CreateOrganizationRequest = {
     code: string;
     name: string;
+    parentId?: string;
   };
 
   type CreatePartnerAccountRequest = {
