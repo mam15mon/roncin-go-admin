@@ -122,6 +122,33 @@ enum PartnerRoleType {
   PARTNER_ROLE_TYPE_CARRIER = 4;
 }
 
+enum PartnerCustomerType {
+  PARTNER_CUSTOMER_TYPE_UNSPECIFIED = 0;
+  PARTNER_CUSTOMER_TYPE_DIRECT = 1;
+  PARTNER_CUSTOMER_TYPE_PEER = 2;
+}
+
+enum PartnerBusinessType {
+  PARTNER_BUSINESS_TYPE_UNSPECIFIED = 0;
+  PARTNER_BUSINESS_TYPE_SE = 1;
+  PARTNER_BUSINESS_TYPE_SI = 2;
+  PARTNER_BUSINESS_TYPE_AE = 3;
+  PARTNER_BUSINESS_TYPE_AI = 4;
+  PARTNER_BUSINESS_TYPE_LAND = 5;
+  PARTNER_BUSINESS_TYPE_RAIL = 6;
+}
+
+enum PartnerAssignmentRole {
+  PARTNER_ASSIGNMENT_ROLE_UNSPECIFIED = 0;
+  PARTNER_ASSIGNMENT_ROLE_CREATOR = 1;
+  PARTNER_ASSIGNMENT_ROLE_OPERATOR = 2;
+  PARTNER_ASSIGNMENT_ROLE_SALES = 3;
+  PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE = 4;
+  PARTNER_ASSIGNMENT_ROLE_DOCUMENT = 5;
+  PARTNER_ASSIGNMENT_ROLE_COMMERCIAL = 6;
+  PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT = 7;
+}
+
 message PartnerRole {
   PartnerRoleType type = 1;
   bool enabled = 2;
@@ -150,6 +177,36 @@ message PartnerAlias {
   string updated_at = 5;
 }
 
+message PartnerProfile {
+  string name_en = 1;
+  string address_en = 2;
+  string country_code = 3;
+  string province_code = 4;
+  string city_code = 5;
+  string district_code = 6;
+  string address_detail = 7;
+  string nature = 8;
+  string development_method = 9;
+  repeated PartnerCustomerType customer_types = 10;
+  repeated PartnerBusinessType business_types = 11;
+  string remark = 12;
+}
+
+message PartnerAssignment {
+  string id = 1;
+  PartnerAssignmentRole role = 2;
+  string user_id = 3;
+  string organization_id = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message PartnerAssignmentInput {
+  PartnerAssignmentRole role = 1 [(google.api.field_behavior) = REQUIRED];
+  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
 message Partner {
   string id = 1;
   string organization_id = 2;
@@ -163,6 +220,8 @@ message Partner {
   repeated PartnerAlias aliases = 10;
   string created_at = 11;
   string updated_at = 12;
+  PartnerProfile profile = 13;
+  repeated PartnerAssignment assignments = 14;
 }
 
 message PartnerRoleInput {
@@ -203,6 +262,8 @@ message CreatePartnerRequest {
   repeated PartnerRoleInput roles = 5;
   repeated PartnerContactInput contacts = 6;
   repeated PartnerAliasInput aliases = 7;
+  PartnerProfile profile = 8;
+  repeated PartnerAssignmentInput assignments = 9;
 }
 
 message UpdatePartnerRequest {
@@ -214,6 +275,8 @@ message UpdatePartnerRequest {
   repeated PartnerRoleInput roles = 6;
   repeated PartnerContactInput contacts = 7;
   repeated PartnerAliasInput aliases = 8;
+  PartnerProfile profile = 9;
+  repeated PartnerAssignmentInput assignments = 10;
 }
 
 enum PartnerImportMode {
@@ -230,6 +293,8 @@ message PartnerImportItemInput {
   repeated PartnerRoleInput roles = 5;
   repeated PartnerContactInput contacts = 6;
   repeated PartnerAliasInput aliases = 7;
+  PartnerProfile profile = 8;
+  repeated PartnerAssignmentInput assignments = 9;
 }
 
 message ImportPartnersRequest {
@@ -460,6 +525,8 @@ message PartnerSettlementRule {
   bool is_active = 9;
   string created_at = 10;
   string updated_at = 11;
+  optional int64 credit_limit_minor = 12;
+  optional string credit_currency = 13;
 }
 
 message PartnerSettlementRuleInput {
@@ -470,6 +537,8 @@ message PartnerSettlementRuleInput {
   optional PartnerSettlementBase settlement_base = 5;
   string settlement_currency = 6 [(google.api.field_behavior) = REQUIRED];
   bool is_active = 7;
+  optional int64 credit_limit_minor = 8;
+  optional string credit_currency = 9;
 }
 
 message ListPartnerSettlementRulesRequest {

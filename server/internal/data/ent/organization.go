@@ -50,6 +50,8 @@ type OrganizationEdges struct {
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Partners holds the value of the partners edge.
 	Partners []*Partner `json:"partners,omitempty"`
+	// PartnerAssignments holds the value of the partner_assignments edge.
+	PartnerAssignments []*PartnerAssignment `json:"partner_assignments,omitempty"`
 	// MasterDataItems holds the value of the master_data_items edge.
 	MasterDataItems []*MasterDataItem `json:"master_data_items,omitempty"`
 	// NumberRules holds the value of the number_rules edge.
@@ -64,7 +66,7 @@ type OrganizationEdges struct {
 	BackgroundTasks []*BackgroundTask `json:"background_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -123,10 +125,19 @@ func (e OrganizationEdges) PartnersOrErr() ([]*Partner, error) {
 	return nil, &NotLoadedError{edge: "partners"}
 }
 
+// PartnerAssignmentsOrErr returns the PartnerAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) PartnerAssignmentsOrErr() ([]*PartnerAssignment, error) {
+	if e.loadedTypes[6] {
+		return e.PartnerAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "partner_assignments"}
+}
+
 // MasterDataItemsOrErr returns the MasterDataItems value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.MasterDataItems, nil
 	}
 	return nil, &NotLoadedError{edge: "master_data_items"}
@@ -135,7 +146,7 @@ func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
 // NumberRulesOrErr returns the NumberRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.NumberRules, nil
 	}
 	return nil, &NotLoadedError{edge: "number_rules"}
@@ -144,7 +155,7 @@ func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
 // StatusTemplatesOrErr returns the StatusTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.StatusTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "status_templates"}
@@ -153,7 +164,7 @@ func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
 // MilestoneTemplatesOrErr returns the MilestoneTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.MilestoneTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "milestone_templates"}
@@ -162,7 +173,7 @@ func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, erro
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -171,7 +182,7 @@ func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -291,6 +302,11 @@ func (_m *Organization) QuerySessions() *SessionQuery {
 // QueryPartners queries the "partners" edge of the Organization entity.
 func (_m *Organization) QueryPartners() *PartnerQuery {
 	return NewOrganizationClient(_m.config).QueryPartners(_m)
+}
+
+// QueryPartnerAssignments queries the "partner_assignments" edge of the Organization entity.
+func (_m *Organization) QueryPartnerAssignments() *PartnerAssignmentQuery {
+	return NewOrganizationClient(_m.config).QueryPartnerAssignments(_m)
 }
 
 // QueryMasterDataItems queries the "master_data_items" edge of the Organization entity.

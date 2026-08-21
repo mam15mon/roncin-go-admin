@@ -71,6 +71,8 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		partnerv1.OperationPartnerServiceRegisterPartnerAttachment:                    {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceImportPartners:                               {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceExportPartners:                               {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceListCurrencies:                         {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
+		masterdatav1.OperationMasterDataServiceListAdministrativeRegions:              {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListItems:                              {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListOptions:                            {key: access.MasterDataRead, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceCreateItem:                             {key: access.MasterDataManage, scope: biz.DataScopeOrganization},

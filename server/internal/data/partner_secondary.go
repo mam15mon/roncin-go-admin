@@ -6,6 +6,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	partnercontractent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
@@ -66,6 +67,13 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 	if err != nil {
 		return nil, err
 	}
+	if exists, err := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	} else if !exists {
+		_ = tx.Rollback()
+		return nil, biz.ErrPartnerAccountInvalidArgument
+	}
 	if input.IsDefault {
 		if _, err := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
 			_ = tx.Rollback()
@@ -111,6 +119,13 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if exists, err := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	} else if !exists {
+		_ = tx.Rollback()
+		return nil, biz.ErrPartnerAccountInvalidArgument
 	}
 	existing, err := tx.PartnerAccount.Query().Where(partneraccountent.IDEQ(id), partneraccountent.PartnerRoleIDEQ(role.ID)).ForUpdate().Only(ctx)
 	if err != nil {

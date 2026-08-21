@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	partnerfilterent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
@@ -56,6 +57,9 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
+	if err := validateSettlementCurrencies(ctx, r.data.db, input); err != nil {
+		return nil, err
+	}
 	builder := r.data.db.PartnerSettlementRule.Create().
 		SetPartnerRoleID(role.ID).
 		SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
@@ -71,6 +75,9 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if input.SettlementBase != nil {
 		builder.SetSettlementBase(partnerfilterent.SettlementBase(*input.SettlementBase))
 	}
+	if input.CreditLimitMinor != nil {
+		builder.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
+	}
 	created, err := builder.Save(ctx)
 	if err != nil {
 		return nil, mapPartnerSettlementRuleConstraint(err)
@@ -81,6 +88,9 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule) (*biz.PartnerSettlementRule, error) {
 	role, err := r.role(ctx, organizationID, partnerID, roleType)
 	if err != nil {
+		return nil, err
+	}
+	if err := validateSettlementCurrencies(ctx, r.data.db, input); err != nil {
 		return nil, err
 	}
 	update := r.data.db.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID)).
@@ -102,6 +112,11 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 		update.ClearSettlementBase()
 	} else {
 		update.SetSettlementBase(partnerfilterent.SettlementBase(*input.SettlementBase))
+	}
+	if input.CreditLimitMinor == nil {
+		update.ClearCreditLimitMinor().ClearCreditCurrency()
+	} else {
+		update.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
@@ -138,5 +153,22 @@ func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSet
 		value := biz.PartnerSettlementBase(*item.SettlementBase)
 		result.SettlementBase = &value
 	}
+	result.CreditLimitMinor = item.CreditLimitMinor
+	result.CreditCurrency = item.CreditCurrency
 	return result
+}
+
+func validateSettlementCurrencies(ctx context.Context, client *ent.Client, input *biz.PartnerSettlementRule) error {
+	codes := []string{input.SettlementCurrency}
+	if input.CreditCurrency != nil && *input.CreditCurrency != input.SettlementCurrency {
+		codes = append(codes, *input.CreditCurrency)
+	}
+	count, err := client.Currency.Query().Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count != len(codes) {
+		return biz.ErrPartnerSettlementRuleInvalidArgument
+	}
+	return nil
 }

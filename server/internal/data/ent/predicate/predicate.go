@@ -6,11 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AdministrativeRegion is the predicate function for administrativeregion builders.
+type AdministrativeRegion func(*sql.Selector)
+
 // AuditLog is the predicate function for auditlog builders.
 type AuditLog func(*sql.Selector)
 
 // BackgroundTask is the predicate function for backgroundtask builders.
 type BackgroundTask func(*sql.Selector)
+
+// Currency is the predicate function for currency builders.
+type Currency func(*sql.Selector)
 
 // MasterDataItem is the predicate function for masterdataitem builders.
 type MasterDataItem func(*sql.Selector)
@@ -78,6 +84,9 @@ type PartnerAccount func(*sql.Selector)
 // PartnerAlias is the predicate function for partneralias builders.
 type PartnerAlias func(*sql.Selector)
 
+// PartnerAssignment is the predicate function for partnerassignment builders.
+type PartnerAssignment func(*sql.Selector)
+
 // PartnerAttachment is the predicate function for partnerattachment builders.
 type PartnerAttachment func(*sql.Selector)
 
@@ -86,6 +95,9 @@ type PartnerContact func(*sql.Selector)
 
 // PartnerContract is the predicate function for partnercontract builders.
 type PartnerContract func(*sql.Selector)
+
+// PartnerProfile is the predicate function for partnerprofile builders.
+type PartnerProfile func(*sql.Selector)
 
 // PartnerRole is the predicate function for partnerrole builders.
 type PartnerRole func(*sql.Selector)

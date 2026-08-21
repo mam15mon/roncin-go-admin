@@ -86,6 +86,16 @@ func SettlementCurrency(v string) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldSettlementCurrency, v))
 }
 
+// CreditLimitMinor applies equality check predicate on the "credit_limit_minor" field. It's identical to CreditLimitMinorEQ.
+func CreditLimitMinor(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldCreditLimitMinor, v))
+}
+
+// CreditCurrency applies equality check predicate on the "credit_currency" field. It's identical to CreditCurrencyEQ.
+func CreditCurrency(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldCreditCurrency, v))
+}
+
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldIsActive, v))
@@ -424,6 +434,131 @@ func SettlementCurrencyEqualFold(v string) predicate.PartnerSettlementRule {
 // SettlementCurrencyContainsFold applies the ContainsFold predicate on the "settlement_currency" field.
 func SettlementCurrencyContainsFold(v string) predicate.PartnerSettlementRule {
 	return predicate.PartnerSettlementRule(sql.FieldContainsFold(FieldSettlementCurrency, v))
+}
+
+// CreditLimitMinorEQ applies the EQ predicate on the "credit_limit_minor" field.
+func CreditLimitMinorEQ(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorNEQ applies the NEQ predicate on the "credit_limit_minor" field.
+func CreditLimitMinorNEQ(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNEQ(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorIn applies the In predicate on the "credit_limit_minor" field.
+func CreditLimitMinorIn(vs ...int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIn(FieldCreditLimitMinor, vs...))
+}
+
+// CreditLimitMinorNotIn applies the NotIn predicate on the "credit_limit_minor" field.
+func CreditLimitMinorNotIn(vs ...int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotIn(FieldCreditLimitMinor, vs...))
+}
+
+// CreditLimitMinorGT applies the GT predicate on the "credit_limit_minor" field.
+func CreditLimitMinorGT(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGT(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorGTE applies the GTE predicate on the "credit_limit_minor" field.
+func CreditLimitMinorGTE(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGTE(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorLT applies the LT predicate on the "credit_limit_minor" field.
+func CreditLimitMinorLT(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLT(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorLTE applies the LTE predicate on the "credit_limit_minor" field.
+func CreditLimitMinorLTE(v int64) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLTE(FieldCreditLimitMinor, v))
+}
+
+// CreditLimitMinorIsNil applies the IsNil predicate on the "credit_limit_minor" field.
+func CreditLimitMinorIsNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIsNull(FieldCreditLimitMinor))
+}
+
+// CreditLimitMinorNotNil applies the NotNil predicate on the "credit_limit_minor" field.
+func CreditLimitMinorNotNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotNull(FieldCreditLimitMinor))
+}
+
+// CreditCurrencyEQ applies the EQ predicate on the "credit_currency" field.
+func CreditCurrencyEQ(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEQ(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyNEQ applies the NEQ predicate on the "credit_currency" field.
+func CreditCurrencyNEQ(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNEQ(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyIn applies the In predicate on the "credit_currency" field.
+func CreditCurrencyIn(vs ...string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIn(FieldCreditCurrency, vs...))
+}
+
+// CreditCurrencyNotIn applies the NotIn predicate on the "credit_currency" field.
+func CreditCurrencyNotIn(vs ...string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotIn(FieldCreditCurrency, vs...))
+}
+
+// CreditCurrencyGT applies the GT predicate on the "credit_currency" field.
+func CreditCurrencyGT(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGT(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyGTE applies the GTE predicate on the "credit_currency" field.
+func CreditCurrencyGTE(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldGTE(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyLT applies the LT predicate on the "credit_currency" field.
+func CreditCurrencyLT(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLT(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyLTE applies the LTE predicate on the "credit_currency" field.
+func CreditCurrencyLTE(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldLTE(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyContains applies the Contains predicate on the "credit_currency" field.
+func CreditCurrencyContains(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldContains(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyHasPrefix applies the HasPrefix predicate on the "credit_currency" field.
+func CreditCurrencyHasPrefix(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldHasPrefix(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyHasSuffix applies the HasSuffix predicate on the "credit_currency" field.
+func CreditCurrencyHasSuffix(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldHasSuffix(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyIsNil applies the IsNil predicate on the "credit_currency" field.
+func CreditCurrencyIsNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldIsNull(FieldCreditCurrency))
+}
+
+// CreditCurrencyNotNil applies the NotNil predicate on the "credit_currency" field.
+func CreditCurrencyNotNil() predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldNotNull(FieldCreditCurrency))
+}
+
+// CreditCurrencyEqualFold applies the EqualFold predicate on the "credit_currency" field.
+func CreditCurrencyEqualFold(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldEqualFold(FieldCreditCurrency, v))
+}
+
+// CreditCurrencyContainsFold applies the ContainsFold predicate on the "credit_currency" field.
+func CreditCurrencyContainsFold(v string) predicate.PartnerSettlementRule {
+	return predicate.PartnerSettlementRule(sql.FieldContainsFold(FieldCreditCurrency, v))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

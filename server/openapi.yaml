@@ -2007,6 +2007,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleReply'
+    /api/v1/reference/administrative-regions:
+        get:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_ListAdministrativeRegions
+            parameters:
+                - name: level
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: parentCode
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.AdministrativeRegionListReply'
+    /api/v1/reference/currencies:
+        get:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_ListCurrencies
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.CurrencyListReply'
 components:
     schemas:
         admin.v1.AdminAuditLog:
@@ -2471,6 +2509,48 @@ components:
             properties:
                 organizationId:
                     type: string
+        masterdata.v1.AdministrativeRegion:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                parentCode:
+                    type: string
+                regionType:
+                    type: string
+                source:
+                    type: string
+                sourceVersion:
+                    type: string
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        masterdata.v1.AdministrativeRegionListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.AdministrativeRegion'
+                traceId:
+                    type: string
         masterdata.v1.CreateMasterDataItemRequest:
             required:
                 - kind
@@ -2568,6 +2648,42 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/masterdata.v1.StatusTemplateItemInput'
+        masterdata.v1.Currency:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                symbol:
+                    type: string
+                minorUnit:
+                    type: integer
+                    format: int32
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        masterdata.v1.CurrencyListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.Currency'
+                traceId:
+                    type: string
         masterdata.v1.ImportMasterDataItemsRequest:
             required:
                 - kind
@@ -4300,6 +4416,12 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+                profile:
+                    $ref: '#/components/schemas/partner.v1.PartnerProfile'
+                assignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
         partner.v1.CreatePartnerSettlementRuleRequest:
             required:
                 - partnerId
@@ -4363,6 +4485,12 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                profile:
+                    $ref: '#/components/schemas/partner.v1.PartnerProfile'
+                assignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignment'
         partner.v1.PartnerAccount:
             type: object
             properties:
@@ -4481,6 +4609,36 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
+        partner.v1.PartnerAssignment:
+            type: object
+            properties:
+                id:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+                userId:
+                    type: string
+                organizationId:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerAssignmentInput:
+            required:
+                - role
+                - userId
+                - organizationId
+            type: object
+            properties:
+                role:
+                    type: integer
+                    format: enum
+                userId:
+                    type: string
+                organizationId:
+                    type: string
         partner.v1.PartnerAttachment:
             type: object
             properties:
@@ -4686,6 +4844,12 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+                profile:
+                    $ref: '#/components/schemas/partner.v1.PartnerProfile'
+                assignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
         partner.v1.PartnerImportReply:
             type: object
             properties:
@@ -4728,6 +4892,39 @@ components:
                     type: integer
                     format: int32
                 traceId:
+                    type: string
+        partner.v1.PartnerProfile:
+            type: object
+            properties:
+                nameEn:
+                    type: string
+                addressEn:
+                    type: string
+                countryCode:
+                    type: string
+                provinceCode:
+                    type: string
+                cityCode:
+                    type: string
+                districtCode:
+                    type: string
+                addressDetail:
+                    type: string
+                nature:
+                    type: string
+                developmentMethod:
+                    type: string
+                customerTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                businessTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                remark:
                     type: string
         partner.v1.PartnerReply:
             type: object
@@ -4797,6 +4994,10 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                creditLimitMinor:
+                    type: string
+                creditCurrency:
+                    type: string
         partner.v1.PartnerSettlementRuleInput:
             required:
                 - statementMode
@@ -4823,6 +5024,10 @@ components:
                     type: string
                 isActive:
                     type: boolean
+                creditLimitMinor:
+                    type: string
+                creditCurrency:
+                    type: string
         partner.v1.PartnerSettlementRuleListReply:
             type: object
             properties:
@@ -4966,6 +5171,12 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerAliasInput'
+                profile:
+                    $ref: '#/components/schemas/partner.v1.PartnerProfile'
+                assignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignmentInput'
         partner.v1.UpdatePartnerSettlementRuleRequest:
             required:
                 - partnerId

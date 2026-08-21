@@ -6,10 +6,16 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	administrativeregionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	partnerprofileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -93,7 +99,7 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 		_ = tx.Rollback()
 		return nil, mapPartnerConstraint(err)
 	}
-	if err := createPartnerChildren(ctx, tx, created.ID, input); err != nil {
+	if err := createPartnerChildren(ctx, tx, organizationID, created.ID, input); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -152,6 +158,14 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		return nil, err
 	}
 	if err := createPartnerAliases(ctx, tx, id, input.Aliases); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := replacePartnerProfile(ctx, tx, id, input.Profile); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := replacePartnerAssignments(ctx, tx, organizationID, id, input.Assignments); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -246,7 +260,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 				_ = tx.Rollback()
 				return nil, mapPartnerConstraint(saveErr)
 			}
-			if childErr := createPartnerChildren(ctx, tx, created.ID, input); childErr != nil {
+			if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
 				_ = tx.Rollback()
 				return nil, childErr
 			}
@@ -257,7 +271,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 			_ = tx.Rollback()
 			return nil, biz.ErrPartnerCodeExists
 		}
-		if updateErr := updatePartnerInTx(ctx, tx, existing, input); updateErr != nil {
+		if updateErr := updatePartnerInTx(ctx, tx, organizationID, existing, input); updateErr != nil {
 			_ = tx.Rollback()
 			return nil, updateErr
 		}
@@ -269,7 +283,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 	return result, nil
 }
 
-func updatePartnerInTx(ctx context.Context, tx *ent.Tx, existing *ent.Partner, input *biz.Partner) error {
+func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, existing *ent.Partner, input *biz.Partner) error {
 	update := existing.Update().
 		SetLegalName(input.LegalName).
 		SetNormalizedName(input.NormalizedName).
@@ -295,7 +309,13 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, existing *ent.Partner, i
 	if err := createPartnerContacts(ctx, tx, existing.ID, input.Contacts); err != nil {
 		return err
 	}
-	return createPartnerAliases(ctx, tx, existing.ID, input.Aliases)
+	if err := createPartnerAliases(ctx, tx, existing.ID, input.Aliases); err != nil {
+		return err
+	}
+	if err := replacePartnerProfile(ctx, tx, existing.ID, input.Profile); err != nil {
+		return err
+	}
+	return replacePartnerAssignments(ctx, tx, organizationID, existing.ID, input.Assignments)
 }
 
 func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
@@ -308,10 +328,14 @@ func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
 		}).
 		WithAliases(func(aliasQuery *ent.PartnerAliasQuery) {
 			aliasQuery.Order(partneraliasent.BySortOrder(), partneraliasent.ByAliasName())
+		}).
+		WithProfile().
+		WithAssignments(func(query *ent.PartnerAssignmentQuery) {
+			query.Order(partnerassignmentent.ByRole())
 		})
 }
 
-func createPartnerChildren(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, input *biz.Partner) error {
+func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, input *biz.Partner) error {
 	for _, role := range input.Roles {
 		if _, err := tx.PartnerRole.Create().
 			SetPartnerID(partnerID).
@@ -324,7 +348,140 @@ func createPartnerChildren(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID,
 	if err := createPartnerContacts(ctx, tx, partnerID, input.Contacts); err != nil {
 		return err
 	}
-	return createPartnerAliases(ctx, tx, partnerID, input.Aliases)
+	if err := createPartnerAliases(ctx, tx, partnerID, input.Aliases); err != nil {
+		return err
+	}
+	if err := replacePartnerProfile(ctx, tx, partnerID, input.Profile); err != nil {
+		return err
+	}
+	return replacePartnerAssignments(ctx, tx, organizationID, partnerID, input.Assignments)
+}
+
+func replacePartnerProfile(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, profile *biz.PartnerProfile) error {
+	if _, err := tx.PartnerProfile.Delete().Where(partnerprofileent.PartnerIDEQ(partnerID)).Exec(ctx); err != nil {
+		return err
+	}
+	if profile == nil {
+		return nil
+	}
+	if err := validatePartnerProfileRegions(ctx, tx, profile); err != nil {
+		return err
+	}
+	_, err := tx.PartnerProfile.Create().
+		SetPartnerID(partnerID).
+		SetNameEn(profile.NameEN).
+		SetAddressEn(profile.AddressEN).
+		SetCountryCode(profile.CountryCode).
+		SetProvinceCode(profile.ProvinceCode).
+		SetCityCode(profile.CityCode).
+		SetDistrictCode(profile.DistrictCode).
+		SetAddressDetail(profile.AddressDetail).
+		SetNature(profile.Nature).
+		SetDevelopmentMethod(profile.DevelopmentMethod).
+		SetCustomerTypes(partnerCustomerTypesToStrings(profile.CustomerTypes)).
+		SetBusinessTypes(partnerBusinessTypesToStrings(profile.BusinessTypes)).
+		SetRemark(profile.Remark).
+		Save(ctx)
+	return err
+}
+
+func partnerCustomerTypesToStrings(values []biz.PartnerCustomerType) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, string(value))
+	}
+	return result
+}
+
+func partnerBusinessTypesToStrings(values []biz.PartnerBusinessType) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, string(value))
+	}
+	return result
+}
+
+func validatePartnerProfileRegions(ctx context.Context, tx *ent.Tx, profile *biz.PartnerProfile) error {
+	if profile.CountryCode != "CN" || profile.ProvinceCode == "" {
+		return nil
+	}
+	province, err := tx.AdministrativeRegion.Query().Where(
+		administrativeregionent.CodeEQ(profile.ProvinceCode), administrativeregionent.LevelEQ(1), administrativeregionent.EnabledEQ(true),
+	).Only(ctx)
+	if err != nil {
+		return biz.ErrPartnerInvalidArgument
+	}
+	if profile.CityCode == "" {
+		return nil
+	}
+	city, err := tx.AdministrativeRegion.Query().Where(
+		administrativeregionent.CodeEQ(profile.CityCode), administrativeregionent.LevelEQ(2),
+		administrativeregionent.ParentCodeEQ(province.Code), administrativeregionent.EnabledEQ(true),
+	).Only(ctx)
+	if err != nil {
+		return biz.ErrPartnerInvalidArgument
+	}
+	if profile.DistrictCode == "" {
+		return nil
+	}
+	if _, err := tx.AdministrativeRegion.Query().Where(
+		administrativeregionent.CodeEQ(profile.DistrictCode), administrativeregionent.LevelEQ(3),
+		administrativeregionent.ParentCodeEQ(city.Code), administrativeregionent.EnabledEQ(true),
+	).Only(ctx); err != nil {
+		return biz.ErrPartnerInvalidArgument
+	}
+	return nil
+}
+
+func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganizationID, partnerID uuid.UUID, assignments []*biz.PartnerAssignment) error {
+	if _, err := tx.PartnerAssignment.Delete().Where(partnerassignmentent.PartnerIDEQ(partnerID)).Exec(ctx); err != nil {
+		return err
+	}
+	if len(assignments) == 0 {
+		return nil
+	}
+	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	if err != nil {
+		return err
+	}
+	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+	for _, organization := range organizations {
+		parentByID[organization.ID] = organization.ParentID
+	}
+	for _, assignment := range assignments {
+		if !organizationWithinRoot(parentByID, rootOrganizationID, assignment.OrganizationID) {
+			return biz.ErrPartnerInvalidArgument
+		}
+		validMembership, err := tx.Membership.Query().Where(
+			membershipent.UserIDEQ(assignment.UserID), membershipent.OrganizationIDEQ(assignment.OrganizationID), membershipent.EnabledEQ(true),
+			membershipent.HasUserWith(userent.EnabledEQ(true)),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !validMembership {
+			return biz.ErrPartnerInvalidArgument
+		}
+		if _, err := tx.PartnerAssignment.Create().SetPartnerID(partnerID).SetUserID(assignment.UserID).
+			SetOrganizationID(assignment.OrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).Save(ctx); err != nil {
+			return mapPartnerConstraint(err)
+		}
+	}
+	return nil
+}
+
+func organizationWithinRoot(parentByID map[uuid.UUID]*uuid.UUID, rootID, targetID uuid.UUID) bool {
+	for current := targetID; current != uuid.Nil; {
+		if current == rootID {
+			return true
+		}
+		parent, exists := parentByID[current]
+		if !exists || parent == nil {
+			return false
+		}
+		current = *parent
+	}
+	return false
 }
 
 func createPartnerContacts(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, contacts []*biz.PartnerContact) error {
@@ -408,6 +565,8 @@ func mapPartnerConstraint(err error) error {
 		return biz.ErrPartnerAliasExists
 	case strings.Contains(message, "partner_role_type_key"):
 		return biz.ErrPartnerInvalidRole
+	case strings.Contains(message, "partnerassignment_partner_id_role"):
+		return biz.ErrPartnerInvalidArgument
 	default:
 		return err
 	}
@@ -442,6 +601,38 @@ func partnerToBiz(item *ent.Partner) *biz.Partner {
 			ID: alias.ID, AliasName: alias.AliasName, NormalizedAliasName: alias.NormalizedAliasName,
 			SortOrder: alias.SortOrder, CreatedAt: alias.CreatedAt, UpdatedAt: alias.UpdatedAt,
 		})
+	}
+	if profile := item.Edges.Profile; profile != nil {
+		result.Profile = &biz.PartnerProfile{
+			NameEN: profile.NameEn, AddressEN: profile.AddressEn, CountryCode: profile.CountryCode,
+			ProvinceCode: profile.ProvinceCode, CityCode: profile.CityCode, DistrictCode: profile.DistrictCode,
+			AddressDetail: profile.AddressDetail, Nature: profile.Nature, DevelopmentMethod: profile.DevelopmentMethod,
+			CustomerTypes: partnerCustomerTypesToBiz(profile.CustomerTypes), BusinessTypes: partnerBusinessTypesToBiz(profile.BusinessTypes),
+			Remark: profile.Remark,
+		}
+	}
+	result.Assignments = make([]*biz.PartnerAssignment, 0, len(item.Edges.Assignments))
+	for _, assignment := range item.Edges.Assignments {
+		result.Assignments = append(result.Assignments, &biz.PartnerAssignment{
+			ID: assignment.ID, Role: biz.PartnerAssignmentRole(assignment.Role), UserID: assignment.UserID,
+			OrganizationID: assignment.OrganizationID, CreatedAt: assignment.CreatedAt, UpdatedAt: assignment.UpdatedAt,
+		})
+	}
+	return result
+}
+
+func partnerCustomerTypesToBiz(values []string) []biz.PartnerCustomerType {
+	result := make([]biz.PartnerCustomerType, 0, len(values))
+	for _, value := range values {
+		result = append(result, biz.PartnerCustomerType(value))
+	}
+	return result
+}
+
+func partnerBusinessTypesToBiz(values []string) []biz.PartnerBusinessType {
+	result := make([]biz.PartnerBusinessType, 0, len(values))
+	for _, value := range values {
+		result = append(result, biz.PartnerBusinessType(value))
 	}
 	return result
 }

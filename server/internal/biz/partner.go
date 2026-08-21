@@ -72,6 +72,82 @@ type PartnerAlias struct {
 	UpdatedAt           time.Time
 }
 
+type PartnerCustomerType string
+
+const (
+	PartnerCustomerDirect PartnerCustomerType = "DIRECT"
+	PartnerCustomerPeer   PartnerCustomerType = "PEER"
+)
+
+func (t PartnerCustomerType) Valid() bool {
+	return t == PartnerCustomerDirect || t == PartnerCustomerPeer
+}
+
+type PartnerBusinessType string
+
+const (
+	PartnerBusinessSE   PartnerBusinessType = "SE"
+	PartnerBusinessSI   PartnerBusinessType = "SI"
+	PartnerBusinessAE   PartnerBusinessType = "AE"
+	PartnerBusinessAI   PartnerBusinessType = "AI"
+	PartnerBusinessLand PartnerBusinessType = "LAND"
+	PartnerBusinessRail PartnerBusinessType = "RAIL"
+)
+
+func (t PartnerBusinessType) Valid() bool {
+	switch t {
+	case PartnerBusinessSE, PartnerBusinessSI, PartnerBusinessAE, PartnerBusinessAI, PartnerBusinessLand, PartnerBusinessRail:
+		return true
+	default:
+		return false
+	}
+}
+
+type PartnerProfile struct {
+	NameEN            string
+	AddressEN         string
+	CountryCode       string
+	ProvinceCode      string
+	CityCode          string
+	DistrictCode      string
+	AddressDetail     string
+	Nature            string
+	DevelopmentMethod string
+	CustomerTypes     []PartnerCustomerType
+	BusinessTypes     []PartnerBusinessType
+	Remark            string
+}
+
+type PartnerAssignmentRole string
+
+const (
+	PartnerAssignmentCreator         PartnerAssignmentRole = "CREATOR"
+	PartnerAssignmentOperator        PartnerAssignmentRole = "OPERATOR"
+	PartnerAssignmentSales           PartnerAssignmentRole = "SALES"
+	PartnerAssignmentCustomerService PartnerAssignmentRole = "CUSTOMER_SERVICE"
+	PartnerAssignmentDocument        PartnerAssignmentRole = "DOCUMENT"
+	PartnerAssignmentCommercial      PartnerAssignmentRole = "COMMERCIAL"
+	PartnerAssignmentInternalContact PartnerAssignmentRole = "INTERNAL_CONTACT"
+)
+
+func (r PartnerAssignmentRole) Valid() bool {
+	switch r {
+	case PartnerAssignmentCreator, PartnerAssignmentOperator, PartnerAssignmentSales, PartnerAssignmentCustomerService, PartnerAssignmentDocument, PartnerAssignmentCommercial, PartnerAssignmentInternalContact:
+		return true
+	default:
+		return false
+	}
+}
+
+type PartnerAssignment struct {
+	ID             uuid.UUID
+	Role           PartnerAssignmentRole
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Partner struct {
 	ID                      uuid.UUID
 	OrganizationID          uuid.UUID
@@ -84,6 +160,8 @@ type Partner struct {
 	Roles                   []*PartnerRole
 	Contacts                []*PartnerContact
 	Aliases                 []*PartnerAlias
+	Profile                 *PartnerProfile
+	Assignments             []*PartnerAssignment
 	CreatedAt               time.Time
 	UpdatedAt               time.Time
 }
@@ -343,7 +421,96 @@ func normalizePartner(input *Partner, creating bool) (*Partner, error) {
 	output.Roles = roles
 	output.Contacts = contacts
 	output.Aliases = aliases
+	profile, err := normalizePartnerProfile(output.Profile)
+	if err != nil {
+		return nil, err
+	}
+	assignments, err := normalizePartnerAssignments(output.Assignments)
+	if err != nil {
+		return nil, err
+	}
+	output.Profile = profile
+	output.Assignments = assignments
 	return &output, nil
+}
+
+func normalizePartnerProfile(input *PartnerProfile) (*PartnerProfile, error) {
+	if input == nil {
+		return nil, nil
+	}
+	output := *input
+	output.NameEN = strings.TrimSpace(output.NameEN)
+	output.AddressEN = strings.TrimSpace(output.AddressEN)
+	output.CountryCode = strings.ToUpper(strings.TrimSpace(output.CountryCode))
+	output.ProvinceCode = strings.TrimSpace(output.ProvinceCode)
+	output.CityCode = strings.TrimSpace(output.CityCode)
+	output.DistrictCode = strings.TrimSpace(output.DistrictCode)
+	output.AddressDetail = strings.TrimSpace(output.AddressDetail)
+	output.Nature = strings.TrimSpace(output.Nature)
+	output.DevelopmentMethod = strings.TrimSpace(output.DevelopmentMethod)
+	output.Remark = strings.TrimSpace(output.Remark)
+	if output.CountryCode == "" {
+		output.CountryCode = "CN"
+	}
+	if len(output.CountryCode) != 2 || utf8.RuneCountInString(output.NameEN) > 200 || utf8.RuneCountInString(output.AddressEN) > 500 || utf8.RuneCountInString(output.AddressDetail) > 500 || utf8.RuneCountInString(output.Nature) > 100 || utf8.RuneCountInString(output.DevelopmentMethod) > 100 || utf8.RuneCountInString(output.Remark) > 2000 {
+		return nil, ErrPartnerInvalidArgument
+	}
+	locationCodes := []string{output.ProvinceCode, output.CityCode, output.DistrictCode}
+	for _, code := range locationCodes {
+		if code != "" && !administrativeRegionCodePattern.MatchString(code) {
+			return nil, ErrPartnerInvalidArgument
+		}
+	}
+	if output.CountryCode != "CN" && (output.ProvinceCode != "" || output.CityCode != "" || output.DistrictCode != "") {
+		return nil, ErrPartnerInvalidArgument
+	}
+	if (output.CityCode != "" && output.ProvinceCode == "") || (output.DistrictCode != "" && output.CityCode == "") {
+		return nil, ErrPartnerInvalidArgument
+	}
+	customerTypes, err := normalizeUniqueValues(output.CustomerTypes, func(value PartnerCustomerType) bool { return value.Valid() })
+	if err != nil {
+		return nil, err
+	}
+	businessTypes, err := normalizeUniqueValues(output.BusinessTypes, func(value PartnerBusinessType) bool { return value.Valid() })
+	if err != nil {
+		return nil, err
+	}
+	output.CustomerTypes = customerTypes
+	output.BusinessTypes = businessTypes
+	return &output, nil
+}
+
+func normalizeUniqueValues[T comparable](values []T, valid func(T) bool) ([]T, error) {
+	seen := make(map[T]struct{}, len(values))
+	result := make([]T, 0, len(values))
+	for _, value := range values {
+		if !valid(value) {
+			return nil, ErrPartnerInvalidArgument
+		}
+		if _, exists := seen[value]; exists {
+			return nil, ErrPartnerInvalidArgument
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result, nil
+}
+
+func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignment, error) {
+	seen := make(map[PartnerAssignmentRole]struct{}, len(input))
+	result := make([]*PartnerAssignment, 0, len(input))
+	for _, item := range input {
+		if item == nil || !item.Role.Valid() || item.UserID == uuid.Nil || item.OrganizationID == uuid.Nil {
+			return nil, ErrPartnerInvalidArgument
+		}
+		if _, exists := seen[item.Role]; exists {
+			return nil, ErrPartnerInvalidArgument
+		}
+		seen[item.Role] = struct{}{}
+		copy := *item
+		result = append(result, &copy)
+	}
+	return result, nil
 }
 
 func requiresPartnerTaxIdentifier(roles []*PartnerRole) bool {

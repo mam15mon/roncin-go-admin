@@ -116,6 +116,34 @@ func (_c *PartnerSettlementRuleCreate) SetSettlementCurrency(v string) *PartnerS
 	return _c
 }
 
+// SetCreditLimitMinor sets the "credit_limit_minor" field.
+func (_c *PartnerSettlementRuleCreate) SetCreditLimitMinor(v int64) *PartnerSettlementRuleCreate {
+	_c.mutation.SetCreditLimitMinor(v)
+	return _c
+}
+
+// SetNillableCreditLimitMinor sets the "credit_limit_minor" field if the given value is not nil.
+func (_c *PartnerSettlementRuleCreate) SetNillableCreditLimitMinor(v *int64) *PartnerSettlementRuleCreate {
+	if v != nil {
+		_c.SetCreditLimitMinor(*v)
+	}
+	return _c
+}
+
+// SetCreditCurrency sets the "credit_currency" field.
+func (_c *PartnerSettlementRuleCreate) SetCreditCurrency(v string) *PartnerSettlementRuleCreate {
+	_c.mutation.SetCreditCurrency(v)
+	return _c
+}
+
+// SetNillableCreditCurrency sets the "credit_currency" field if the given value is not nil.
+func (_c *PartnerSettlementRuleCreate) SetNillableCreditCurrency(v *string) *PartnerSettlementRuleCreate {
+	if v != nil {
+		_c.SetCreditCurrency(*v)
+	}
+	return _c
+}
+
 // SetIsActive sets the "is_active" field.
 func (_c *PartnerSettlementRuleCreate) SetIsActive(v bool) *PartnerSettlementRuleCreate {
 	_c.mutation.SetIsActive(v)
@@ -242,6 +270,16 @@ func (_c *PartnerSettlementRuleCreate) check() error {
 			return &ValidationError{Name: "settlement_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_currency": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.CreditLimitMinor(); ok {
+		if err := partnersettlementrule.CreditLimitMinorValidator(v); err != nil {
+			return &ValidationError{Name: "credit_limit_minor", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_limit_minor": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.CreditCurrency(); ok {
+		if err := partnersettlementrule.CreditCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "PartnerSettlementRule.is_active"`)}
 	}
@@ -314,6 +352,14 @@ func (_c *PartnerSettlementRuleCreate) createSpec() (*PartnerSettlementRule, *sq
 	if value, ok := _c.mutation.SettlementCurrency(); ok {
 		_spec.SetField(partnersettlementrule.FieldSettlementCurrency, field.TypeString, value)
 		_node.SettlementCurrency = value
+	}
+	if value, ok := _c.mutation.CreditLimitMinor(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
+		_node.CreditLimitMinor = &value
+	}
+	if value, ok := _c.mutation.CreditCurrency(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditCurrency, field.TypeString, value)
+		_node.CreditCurrency = &value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)

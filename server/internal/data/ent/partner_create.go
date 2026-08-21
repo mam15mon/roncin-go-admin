@@ -15,9 +15,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 )
 
@@ -184,6 +186,40 @@ func (_c *PartnerCreate) AddAliases(v ...*PartnerAlias) *PartnerCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddAliasIDs(ids...)
+}
+
+// SetProfileID sets the "profile" edge to the PartnerProfile entity by ID.
+func (_c *PartnerCreate) SetProfileID(id uuid.UUID) *PartnerCreate {
+	_c.mutation.SetProfileID(id)
+	return _c
+}
+
+// SetNillableProfileID sets the "profile" edge to the PartnerProfile entity by ID if the given value is not nil.
+func (_c *PartnerCreate) SetNillableProfileID(id *uuid.UUID) *PartnerCreate {
+	if id != nil {
+		_c = _c.SetProfileID(*id)
+	}
+	return _c
+}
+
+// SetProfile sets the "profile" edge to the PartnerProfile entity.
+func (_c *PartnerCreate) SetProfile(v *PartnerProfile) *PartnerCreate {
+	return _c.SetProfileID(v.ID)
+}
+
+// AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
+func (_c *PartnerCreate) AddAssignmentIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddAssignmentIDs(ids...)
+	return _c
+}
+
+// AddAssignments adds the "assignments" edges to the PartnerAssignment entity.
+func (_c *PartnerCreate) AddAssignments(v ...*PartnerAssignment) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAssignmentIDs(ids...)
 }
 
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
@@ -460,6 +496,38 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.ProfileTable,
+			Columns: []string{partner.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

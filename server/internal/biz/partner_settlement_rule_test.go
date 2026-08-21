@@ -67,4 +67,34 @@ func TestPartnerSettlementRuleRejectsInconsistentSchedule(t *testing.T) {
 	}
 }
 
+func TestPartnerSettlementRuleValidatesCreditLimitCurrencyPair(t *testing.T) {
+	usecase := NewPartnerSettlementRuleUsecase(&partnerSettlementRuleRepoStub{}, &auditRepoStub{})
+	creditLimit := int64(100000)
+	creditCurrency := " usd "
+	input := PartnerSettlementRule{
+		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+		SettlementCurrency: "cny", CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency,
+	}
+	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &input)
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if created.CreditCurrency == nil || *created.CreditCurrency != "USD" || created.CreditLimitMinor == nil || *created.CreditLimitMinor != creditLimit {
+		t.Fatalf("normalized credit rule = %#v", created)
+	}
+
+	missingCurrency := input
+	missingCurrency.CreditCurrency = nil
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &missingCurrency); err != ErrPartnerSettlementRuleInvalidArgument {
+		t.Fatalf("missing credit currency error = %v", err)
+	}
+
+	negativeLimit := int64(-1)
+	invalidLimit := input
+	invalidLimit.CreditLimitMinor = &negativeLimit
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &invalidLimit); err != ErrPartnerSettlementRuleInvalidArgument {
+		t.Fatalf("negative credit limit error = %v", err)
+	}
+}
+
 var _ PartnerSettlementRuleRepo = (*partnerSettlementRuleRepoStub)(nil)

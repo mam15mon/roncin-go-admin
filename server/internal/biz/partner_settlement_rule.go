@@ -69,6 +69,8 @@ type PartnerSettlementRule struct {
 	SettlementCycleDays *int
 	SettlementBase      *PartnerSettlementBase
 	SettlementCurrency  string
+	CreditLimitMinor    *int64
+	CreditCurrency      *string
 	IsActive            bool
 }
 
@@ -133,6 +135,10 @@ func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettl
 	}
 	output := *input
 	output.SettlementCurrency = strings.ToUpper(strings.TrimSpace(output.SettlementCurrency))
+	if output.CreditCurrency != nil {
+		value := strings.ToUpper(strings.TrimSpace(*output.CreditCurrency))
+		output.CreditCurrency = &value
+	}
 	if !output.StatementMode.Valid() || !output.SettlementMethod.Valid() || len(output.SettlementCurrency) != 3 {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
@@ -156,6 +162,12 @@ func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettl
 			return nil, ErrPartnerSettlementRuleInvalidArgument
 		}
 	} else if output.SettlementBase == nil {
+		return nil, ErrPartnerSettlementRuleInvalidArgument
+	}
+	if output.CreditLimitMinor != nil && (*output.CreditLimitMinor < 0 || output.CreditCurrency == nil) {
+		return nil, ErrPartnerSettlementRuleInvalidArgument
+	}
+	if output.CreditCurrency != nil && (len(*output.CreditCurrency) != 3 || output.CreditLimitMinor == nil) {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
 	return &output, nil

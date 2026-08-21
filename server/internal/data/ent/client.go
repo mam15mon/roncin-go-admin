@@ -16,8 +16,10 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -40,9 +42,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -59,10 +63,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
+	AdministrativeRegion *AdministrativeRegionClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
 	BackgroundTask *BackgroundTaskClient
+	// Currency is the client for interacting with the Currency builders.
+	Currency *CurrencyClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -107,12 +115,16 @@ type Client struct {
 	PartnerAccount *PartnerAccountClient
 	// PartnerAlias is the client for interacting with the PartnerAlias builders.
 	PartnerAlias *PartnerAliasClient
+	// PartnerAssignment is the client for interacting with the PartnerAssignment builders.
+	PartnerAssignment *PartnerAssignmentClient
 	// PartnerAttachment is the client for interacting with the PartnerAttachment builders.
 	PartnerAttachment *PartnerAttachmentClient
 	// PartnerContact is the client for interacting with the PartnerContact builders.
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
 	PartnerContract *PartnerContractClient
+	// PartnerProfile is the client for interacting with the PartnerProfile builders.
+	PartnerProfile *PartnerProfileClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
@@ -142,8 +154,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AdministrativeRegion = NewAdministrativeRegionClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
+	c.Currency = NewCurrencyClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
@@ -166,9 +180,11 @@ func (c *Client) init() {
 	c.Partner = NewPartnerClient(c.config)
 	c.PartnerAccount = NewPartnerAccountClient(c.config)
 	c.PartnerAlias = NewPartnerAliasClient(c.config)
+	c.PartnerAssignment = NewPartnerAssignmentClient(c.config)
 	c.PartnerAttachment = NewPartnerAttachmentClient(c.config)
 	c.PartnerContact = NewPartnerContactClient(c.config)
 	c.PartnerContract = NewPartnerContractClient(c.config)
+	c.PartnerProfile = NewPartnerProfileClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
@@ -270,8 +286,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                   ctx,
 		config:                cfg,
+		AdministrativeRegion:  NewAdministrativeRegionClient(cfg),
 		AuditLog:              NewAuditLogClient(cfg),
 		BackgroundTask:        NewBackgroundTaskClient(cfg),
+		Currency:              NewCurrencyClient(cfg),
 		MasterDataItem:        NewMasterDataItemClient(cfg),
 		Membership:            NewMembershipClient(cfg),
 		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
@@ -294,9 +312,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
 		PartnerAlias:          NewPartnerAliasClient(cfg),
+		PartnerAssignment:     NewPartnerAssignmentClient(cfg),
 		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
+		PartnerProfile:        NewPartnerProfileClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
 		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
 		Permission:            NewPermissionClient(cfg),
@@ -325,8 +345,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                   ctx,
 		config:                cfg,
+		AdministrativeRegion:  NewAdministrativeRegionClient(cfg),
 		AuditLog:              NewAuditLogClient(cfg),
 		BackgroundTask:        NewBackgroundTaskClient(cfg),
+		Currency:              NewCurrencyClient(cfg),
 		MasterDataItem:        NewMasterDataItemClient(cfg),
 		Membership:            NewMembershipClient(cfg),
 		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
@@ -349,9 +371,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Partner:               NewPartnerClient(cfg),
 		PartnerAccount:        NewPartnerAccountClient(cfg),
 		PartnerAlias:          NewPartnerAliasClient(cfg),
+		PartnerAssignment:     NewPartnerAssignmentClient(cfg),
 		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
 		PartnerContact:        NewPartnerContactClient(cfg),
 		PartnerContract:       NewPartnerContractClient(cfg),
+		PartnerProfile:        NewPartnerProfileClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
 		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
 		Permission:            NewPermissionClient(cfg),
@@ -367,7 +391,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AuditLog.
+//		AdministrativeRegion.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -390,13 +414,14 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
-		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
+		c.AdministrativeRegion, c.AuditLog, c.BackgroundTask, c.Currency,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
 		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
@@ -408,13 +433,14 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
-		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
+		c.AdministrativeRegion, c.AuditLog, c.BackgroundTask, c.Currency,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
 		c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
@@ -425,10 +451,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AdministrativeRegionMutation:
+		return c.AdministrativeRegion.mutate(ctx, m)
 	case *AuditLogMutation:
 		return c.AuditLog.mutate(ctx, m)
 	case *BackgroundTaskMutation:
 		return c.BackgroundTask.mutate(ctx, m)
+	case *CurrencyMutation:
+		return c.Currency.mutate(ctx, m)
 	case *MasterDataItemMutation:
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
@@ -473,12 +503,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerAccount.mutate(ctx, m)
 	case *PartnerAliasMutation:
 		return c.PartnerAlias.mutate(ctx, m)
+	case *PartnerAssignmentMutation:
+		return c.PartnerAssignment.mutate(ctx, m)
 	case *PartnerAttachmentMutation:
 		return c.PartnerAttachment.mutate(ctx, m)
 	case *PartnerContactMutation:
 		return c.PartnerContact.mutate(ctx, m)
 	case *PartnerContractMutation:
 		return c.PartnerContract.mutate(ctx, m)
+	case *PartnerProfileMutation:
+		return c.PartnerProfile.mutate(ctx, m)
 	case *PartnerRoleMutation:
 		return c.PartnerRole.mutate(ctx, m)
 	case *PartnerSettlementRuleMutation:
@@ -499,6 +533,139 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AdministrativeRegionClient is a client for the AdministrativeRegion schema.
+type AdministrativeRegionClient struct {
+	config
+}
+
+// NewAdministrativeRegionClient returns a client for the AdministrativeRegion from the given config.
+func NewAdministrativeRegionClient(c config) *AdministrativeRegionClient {
+	return &AdministrativeRegionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `administrativeregion.Hooks(f(g(h())))`.
+func (c *AdministrativeRegionClient) Use(hooks ...Hook) {
+	c.hooks.AdministrativeRegion = append(c.hooks.AdministrativeRegion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `administrativeregion.Intercept(f(g(h())))`.
+func (c *AdministrativeRegionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AdministrativeRegion = append(c.inters.AdministrativeRegion, interceptors...)
+}
+
+// Create returns a builder for creating a AdministrativeRegion entity.
+func (c *AdministrativeRegionClient) Create() *AdministrativeRegionCreate {
+	mutation := newAdministrativeRegionMutation(c.config, OpCreate)
+	return &AdministrativeRegionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AdministrativeRegion entities.
+func (c *AdministrativeRegionClient) CreateBulk(builders ...*AdministrativeRegionCreate) *AdministrativeRegionCreateBulk {
+	return &AdministrativeRegionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AdministrativeRegionClient) MapCreateBulk(slice any, setFunc func(*AdministrativeRegionCreate, int)) *AdministrativeRegionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AdministrativeRegionCreateBulk{err: fmt.Errorf("calling to AdministrativeRegionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AdministrativeRegionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AdministrativeRegionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AdministrativeRegion.
+func (c *AdministrativeRegionClient) Update() *AdministrativeRegionUpdate {
+	mutation := newAdministrativeRegionMutation(c.config, OpUpdate)
+	return &AdministrativeRegionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AdministrativeRegionClient) UpdateOne(_m *AdministrativeRegion) *AdministrativeRegionUpdateOne {
+	mutation := newAdministrativeRegionMutation(c.config, OpUpdateOne, withAdministrativeRegion(_m))
+	return &AdministrativeRegionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AdministrativeRegionClient) UpdateOneID(id uuid.UUID) *AdministrativeRegionUpdateOne {
+	mutation := newAdministrativeRegionMutation(c.config, OpUpdateOne, withAdministrativeRegionID(id))
+	return &AdministrativeRegionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AdministrativeRegion.
+func (c *AdministrativeRegionClient) Delete() *AdministrativeRegionDelete {
+	mutation := newAdministrativeRegionMutation(c.config, OpDelete)
+	return &AdministrativeRegionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AdministrativeRegionClient) DeleteOne(_m *AdministrativeRegion) *AdministrativeRegionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AdministrativeRegionClient) DeleteOneID(id uuid.UUID) *AdministrativeRegionDeleteOne {
+	builder := c.Delete().Where(administrativeregion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AdministrativeRegionDeleteOne{builder}
+}
+
+// Query returns a query builder for AdministrativeRegion.
+func (c *AdministrativeRegionClient) Query() *AdministrativeRegionQuery {
+	return &AdministrativeRegionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAdministrativeRegion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AdministrativeRegion entity by its id.
+func (c *AdministrativeRegionClient) Get(ctx context.Context, id uuid.UUID) (*AdministrativeRegion, error) {
+	return c.Query().Where(administrativeregion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AdministrativeRegionClient) GetX(ctx context.Context, id uuid.UUID) *AdministrativeRegion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AdministrativeRegionClient) Hooks() []Hook {
+	return c.hooks.AdministrativeRegion
+}
+
+// Interceptors returns the client interceptors.
+func (c *AdministrativeRegionClient) Interceptors() []Interceptor {
+	return c.inters.AdministrativeRegion
+}
+
+func (c *AdministrativeRegionClient) mutate(ctx context.Context, m *AdministrativeRegionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AdministrativeRegionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AdministrativeRegionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AdministrativeRegionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AdministrativeRegionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AdministrativeRegion mutation op: %q", m.Op())
 	}
 }
 
@@ -781,6 +948,139 @@ func (c *BackgroundTaskClient) mutate(ctx context.Context, m *BackgroundTaskMuta
 		return (&BackgroundTaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown BackgroundTask mutation op: %q", m.Op())
+	}
+}
+
+// CurrencyClient is a client for the Currency schema.
+type CurrencyClient struct {
+	config
+}
+
+// NewCurrencyClient returns a client for the Currency from the given config.
+func NewCurrencyClient(c config) *CurrencyClient {
+	return &CurrencyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `currency.Hooks(f(g(h())))`.
+func (c *CurrencyClient) Use(hooks ...Hook) {
+	c.hooks.Currency = append(c.hooks.Currency, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `currency.Intercept(f(g(h())))`.
+func (c *CurrencyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Currency = append(c.inters.Currency, interceptors...)
+}
+
+// Create returns a builder for creating a Currency entity.
+func (c *CurrencyClient) Create() *CurrencyCreate {
+	mutation := newCurrencyMutation(c.config, OpCreate)
+	return &CurrencyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Currency entities.
+func (c *CurrencyClient) CreateBulk(builders ...*CurrencyCreate) *CurrencyCreateBulk {
+	return &CurrencyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CurrencyClient) MapCreateBulk(slice any, setFunc func(*CurrencyCreate, int)) *CurrencyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CurrencyCreateBulk{err: fmt.Errorf("calling to CurrencyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CurrencyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CurrencyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Currency.
+func (c *CurrencyClient) Update() *CurrencyUpdate {
+	mutation := newCurrencyMutation(c.config, OpUpdate)
+	return &CurrencyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CurrencyClient) UpdateOne(_m *Currency) *CurrencyUpdateOne {
+	mutation := newCurrencyMutation(c.config, OpUpdateOne, withCurrency(_m))
+	return &CurrencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CurrencyClient) UpdateOneID(id uuid.UUID) *CurrencyUpdateOne {
+	mutation := newCurrencyMutation(c.config, OpUpdateOne, withCurrencyID(id))
+	return &CurrencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Currency.
+func (c *CurrencyClient) Delete() *CurrencyDelete {
+	mutation := newCurrencyMutation(c.config, OpDelete)
+	return &CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CurrencyClient) DeleteOne(_m *Currency) *CurrencyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CurrencyClient) DeleteOneID(id uuid.UUID) *CurrencyDeleteOne {
+	builder := c.Delete().Where(currency.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CurrencyDeleteOne{builder}
+}
+
+// Query returns a query builder for Currency.
+func (c *CurrencyClient) Query() *CurrencyQuery {
+	return &CurrencyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCurrency},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Currency entity by its id.
+func (c *CurrencyClient) Get(ctx context.Context, id uuid.UUID) (*Currency, error) {
+	return c.Query().Where(currency.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CurrencyClient) GetX(ctx context.Context, id uuid.UUID) *Currency {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CurrencyClient) Hooks() []Hook {
+	return c.hooks.Currency
+}
+
+// Interceptors returns the client interceptors.
+func (c *CurrencyClient) Interceptors() []Interceptor {
+	return c.inters.Currency
+}
+
+func (c *CurrencyClient) mutate(ctx context.Context, m *CurrencyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CurrencyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CurrencyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CurrencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Currency mutation op: %q", m.Op())
 	}
 }
 
@@ -4022,6 +4322,22 @@ func (c *OrganizationClient) QueryPartners(_m *Organization) *PartnerQuery {
 	return query
 }
 
+// QueryPartnerAssignments queries the partner_assignments edge of a Organization.
+func (c *OrganizationClient) QueryPartnerAssignments(_m *Organization) *PartnerAssignmentQuery {
+	query := (&PartnerAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PartnerAssignmentsTable, organization.PartnerAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryMasterDataItems queries the master_data_items edge of a Organization.
 func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataItemQuery {
 	query := (&MasterDataItemClient{config: c.config}).Query()
@@ -4308,6 +4624,38 @@ func (c *PartnerClient) QueryAliases(_m *Partner) *PartnerAliasQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partneralias.Table, partneralias.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.AliasesTable, partner.AliasesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProfile queries the profile edge of a Partner.
+func (c *PartnerClient) QueryProfile(_m *Partner) *PartnerProfileQuery {
+	query := (&PartnerProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partnerprofile.Table, partnerprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, partner.ProfileTable, partner.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssignments queries the assignments edge of a Partner.
+func (c *PartnerClient) QueryAssignments(_m *Partner) *PartnerAssignmentQuery {
+	query := (&PartnerAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AssignmentsTable, partner.AssignmentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4683,6 +5031,187 @@ func (c *PartnerAliasClient) mutate(ctx context.Context, m *PartnerAliasMutation
 		return (&PartnerAliasDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown PartnerAlias mutation op: %q", m.Op())
+	}
+}
+
+// PartnerAssignmentClient is a client for the PartnerAssignment schema.
+type PartnerAssignmentClient struct {
+	config
+}
+
+// NewPartnerAssignmentClient returns a client for the PartnerAssignment from the given config.
+func NewPartnerAssignmentClient(c config) *PartnerAssignmentClient {
+	return &PartnerAssignmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnerassignment.Hooks(f(g(h())))`.
+func (c *PartnerAssignmentClient) Use(hooks ...Hook) {
+	c.hooks.PartnerAssignment = append(c.hooks.PartnerAssignment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnerassignment.Intercept(f(g(h())))`.
+func (c *PartnerAssignmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerAssignment = append(c.inters.PartnerAssignment, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerAssignment entity.
+func (c *PartnerAssignmentClient) Create() *PartnerAssignmentCreate {
+	mutation := newPartnerAssignmentMutation(c.config, OpCreate)
+	return &PartnerAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerAssignment entities.
+func (c *PartnerAssignmentClient) CreateBulk(builders ...*PartnerAssignmentCreate) *PartnerAssignmentCreateBulk {
+	return &PartnerAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerAssignmentClient) MapCreateBulk(slice any, setFunc func(*PartnerAssignmentCreate, int)) *PartnerAssignmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerAssignmentCreateBulk{err: fmt.Errorf("calling to PartnerAssignmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerAssignmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerAssignment.
+func (c *PartnerAssignmentClient) Update() *PartnerAssignmentUpdate {
+	mutation := newPartnerAssignmentMutation(c.config, OpUpdate)
+	return &PartnerAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerAssignmentClient) UpdateOne(_m *PartnerAssignment) *PartnerAssignmentUpdateOne {
+	mutation := newPartnerAssignmentMutation(c.config, OpUpdateOne, withPartnerAssignment(_m))
+	return &PartnerAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerAssignmentClient) UpdateOneID(id uuid.UUID) *PartnerAssignmentUpdateOne {
+	mutation := newPartnerAssignmentMutation(c.config, OpUpdateOne, withPartnerAssignmentID(id))
+	return &PartnerAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerAssignment.
+func (c *PartnerAssignmentClient) Delete() *PartnerAssignmentDelete {
+	mutation := newPartnerAssignmentMutation(c.config, OpDelete)
+	return &PartnerAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerAssignmentClient) DeleteOne(_m *PartnerAssignment) *PartnerAssignmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerAssignmentClient) DeleteOneID(id uuid.UUID) *PartnerAssignmentDeleteOne {
+	builder := c.Delete().Where(partnerassignment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerAssignmentDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerAssignment.
+func (c *PartnerAssignmentClient) Query() *PartnerAssignmentQuery {
+	return &PartnerAssignmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerAssignment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerAssignment entity by its id.
+func (c *PartnerAssignmentClient) Get(ctx context.Context, id uuid.UUID) (*PartnerAssignment, error) {
+	return c.Query().Where(partnerassignment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerAssignmentClient) GetX(ctx context.Context, id uuid.UUID) *PartnerAssignment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPartner queries the partner edge of a PartnerAssignment.
+func (c *PartnerAssignmentClient) QueryPartner(_m *PartnerAssignment) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerassignment.Table, partnerassignment.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerassignment.PartnerTable, partnerassignment.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a PartnerAssignment.
+func (c *PartnerAssignmentClient) QueryUser(_m *PartnerAssignment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerassignment.Table, partnerassignment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerassignment.UserTable, partnerassignment.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrganization queries the organization edge of a PartnerAssignment.
+func (c *PartnerAssignmentClient) QueryOrganization(_m *PartnerAssignment) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerassignment.Table, partnerassignment.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerassignment.OrganizationTable, partnerassignment.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerAssignmentClient) Hooks() []Hook {
+	return c.hooks.PartnerAssignment
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerAssignmentClient) Interceptors() []Interceptor {
+	return c.inters.PartnerAssignment
+}
+
+func (c *PartnerAssignmentClient) mutate(ctx context.Context, m *PartnerAssignmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerAssignment mutation op: %q", m.Op())
 	}
 }
 
@@ -5130,6 +5659,155 @@ func (c *PartnerContractClient) mutate(ctx context.Context, m *PartnerContractMu
 		return (&PartnerContractDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown PartnerContract mutation op: %q", m.Op())
+	}
+}
+
+// PartnerProfileClient is a client for the PartnerProfile schema.
+type PartnerProfileClient struct {
+	config
+}
+
+// NewPartnerProfileClient returns a client for the PartnerProfile from the given config.
+func NewPartnerProfileClient(c config) *PartnerProfileClient {
+	return &PartnerProfileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnerprofile.Hooks(f(g(h())))`.
+func (c *PartnerProfileClient) Use(hooks ...Hook) {
+	c.hooks.PartnerProfile = append(c.hooks.PartnerProfile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnerprofile.Intercept(f(g(h())))`.
+func (c *PartnerProfileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerProfile = append(c.inters.PartnerProfile, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerProfile entity.
+func (c *PartnerProfileClient) Create() *PartnerProfileCreate {
+	mutation := newPartnerProfileMutation(c.config, OpCreate)
+	return &PartnerProfileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerProfile entities.
+func (c *PartnerProfileClient) CreateBulk(builders ...*PartnerProfileCreate) *PartnerProfileCreateBulk {
+	return &PartnerProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerProfileClient) MapCreateBulk(slice any, setFunc func(*PartnerProfileCreate, int)) *PartnerProfileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerProfileCreateBulk{err: fmt.Errorf("calling to PartnerProfileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerProfileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerProfile.
+func (c *PartnerProfileClient) Update() *PartnerProfileUpdate {
+	mutation := newPartnerProfileMutation(c.config, OpUpdate)
+	return &PartnerProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerProfileClient) UpdateOne(_m *PartnerProfile) *PartnerProfileUpdateOne {
+	mutation := newPartnerProfileMutation(c.config, OpUpdateOne, withPartnerProfile(_m))
+	return &PartnerProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerProfileClient) UpdateOneID(id uuid.UUID) *PartnerProfileUpdateOne {
+	mutation := newPartnerProfileMutation(c.config, OpUpdateOne, withPartnerProfileID(id))
+	return &PartnerProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerProfile.
+func (c *PartnerProfileClient) Delete() *PartnerProfileDelete {
+	mutation := newPartnerProfileMutation(c.config, OpDelete)
+	return &PartnerProfileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerProfileClient) DeleteOne(_m *PartnerProfile) *PartnerProfileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerProfileClient) DeleteOneID(id uuid.UUID) *PartnerProfileDeleteOne {
+	builder := c.Delete().Where(partnerprofile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerProfileDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerProfile.
+func (c *PartnerProfileClient) Query() *PartnerProfileQuery {
+	return &PartnerProfileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerProfile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerProfile entity by its id.
+func (c *PartnerProfileClient) Get(ctx context.Context, id uuid.UUID) (*PartnerProfile, error) {
+	return c.Query().Where(partnerprofile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerProfileClient) GetX(ctx context.Context, id uuid.UUID) *PartnerProfile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPartner queries the partner edge of a PartnerProfile.
+func (c *PartnerProfileClient) QueryPartner(_m *PartnerProfile) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerprofile.Table, partnerprofile.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, partnerprofile.PartnerTable, partnerprofile.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerProfileClient) Hooks() []Hook {
+	return c.hooks.PartnerProfile
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerProfileClient) Interceptors() []Interceptor {
+	return c.inters.PartnerProfile
+}
+
+func (c *PartnerProfileClient) mutate(ctx context.Context, m *PartnerProfileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerProfileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerProfile mutation op: %q", m.Op())
 	}
 }
 
@@ -6609,6 +7287,22 @@ func (c *UserClient) QueryOrderPersonnel(_m *User) *OrderPersonnelQuery {
 	return query
 }
 
+// QueryPartnerAssignments queries the partner_assignments edge of a User.
+func (c *UserClient) QueryPartnerAssignments(_m *User) *PartnerAssignmentQuery {
+	query := (&PartnerAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PartnerAssignmentsTable, user.PartnerAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -6637,23 +7331,25 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
-		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		AdministrativeRegion, AuditLog, BackgroundTask, Currency, MasterDataItem,
+		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
+		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
+		OrderCargoItem, OrderContainer, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
-		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
-		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		AdministrativeRegion, AuditLog, BackgroundTask, Currency, MasterDataItem,
+		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
+		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
+		OrderCargoItem, OrderContainer, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
 		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}
 )

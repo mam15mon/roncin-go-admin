@@ -166,6 +166,53 @@ func (_u *PartnerSettlementRuleUpdate) SetNillableSettlementCurrency(v *string) 
 	return _u
 }
 
+// SetCreditLimitMinor sets the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdate) SetCreditLimitMinor(v int64) *PartnerSettlementRuleUpdate {
+	_u.mutation.ResetCreditLimitMinor()
+	_u.mutation.SetCreditLimitMinor(v)
+	return _u
+}
+
+// SetNillableCreditLimitMinor sets the "credit_limit_minor" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdate) SetNillableCreditLimitMinor(v *int64) *PartnerSettlementRuleUpdate {
+	if v != nil {
+		_u.SetCreditLimitMinor(*v)
+	}
+	return _u
+}
+
+// AddCreditLimitMinor adds value to the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdate) AddCreditLimitMinor(v int64) *PartnerSettlementRuleUpdate {
+	_u.mutation.AddCreditLimitMinor(v)
+	return _u
+}
+
+// ClearCreditLimitMinor clears the value of the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdate) ClearCreditLimitMinor() *PartnerSettlementRuleUpdate {
+	_u.mutation.ClearCreditLimitMinor()
+	return _u
+}
+
+// SetCreditCurrency sets the "credit_currency" field.
+func (_u *PartnerSettlementRuleUpdate) SetCreditCurrency(v string) *PartnerSettlementRuleUpdate {
+	_u.mutation.SetCreditCurrency(v)
+	return _u
+}
+
+// SetNillableCreditCurrency sets the "credit_currency" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdate) SetNillableCreditCurrency(v *string) *PartnerSettlementRuleUpdate {
+	if v != nil {
+		_u.SetCreditCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCreditCurrency clears the value of the "credit_currency" field.
+func (_u *PartnerSettlementRuleUpdate) ClearCreditCurrency() *PartnerSettlementRuleUpdate {
+	_u.mutation.ClearCreditCurrency()
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *PartnerSettlementRuleUpdate) SetIsActive(v bool) *PartnerSettlementRuleUpdate {
 	_u.mutation.SetIsActive(v)
@@ -254,6 +301,16 @@ func (_u *PartnerSettlementRuleUpdate) check() error {
 			return &ValidationError{Name: "settlement_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.CreditLimitMinor(); ok {
+		if err := partnersettlementrule.CreditLimitMinorValidator(v); err != nil {
+			return &ValidationError{Name: "credit_limit_minor", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_limit_minor": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CreditCurrency(); ok {
+		if err := partnersettlementrule.CreditCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerSettlementRule.partner_role"`)
 	}
@@ -307,6 +364,21 @@ func (_u *PartnerSettlementRuleUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if value, ok := _u.mutation.SettlementCurrency(); ok {
 		_spec.SetField(partnersettlementrule.FieldSettlementCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CreditLimitMinor(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCreditLimitMinor(); ok {
+		_spec.AddField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
+	}
+	if _u.mutation.CreditLimitMinorCleared() {
+		_spec.ClearField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.CreditCurrency(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CreditCurrencyCleared() {
+		_spec.ClearField(partnersettlementrule.FieldCreditCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)
@@ -496,6 +568,53 @@ func (_u *PartnerSettlementRuleUpdateOne) SetNillableSettlementCurrency(v *strin
 	return _u
 }
 
+// SetCreditLimitMinor sets the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdateOne) SetCreditLimitMinor(v int64) *PartnerSettlementRuleUpdateOne {
+	_u.mutation.ResetCreditLimitMinor()
+	_u.mutation.SetCreditLimitMinor(v)
+	return _u
+}
+
+// SetNillableCreditLimitMinor sets the "credit_limit_minor" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdateOne) SetNillableCreditLimitMinor(v *int64) *PartnerSettlementRuleUpdateOne {
+	if v != nil {
+		_u.SetCreditLimitMinor(*v)
+	}
+	return _u
+}
+
+// AddCreditLimitMinor adds value to the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdateOne) AddCreditLimitMinor(v int64) *PartnerSettlementRuleUpdateOne {
+	_u.mutation.AddCreditLimitMinor(v)
+	return _u
+}
+
+// ClearCreditLimitMinor clears the value of the "credit_limit_minor" field.
+func (_u *PartnerSettlementRuleUpdateOne) ClearCreditLimitMinor() *PartnerSettlementRuleUpdateOne {
+	_u.mutation.ClearCreditLimitMinor()
+	return _u
+}
+
+// SetCreditCurrency sets the "credit_currency" field.
+func (_u *PartnerSettlementRuleUpdateOne) SetCreditCurrency(v string) *PartnerSettlementRuleUpdateOne {
+	_u.mutation.SetCreditCurrency(v)
+	return _u
+}
+
+// SetNillableCreditCurrency sets the "credit_currency" field if the given value is not nil.
+func (_u *PartnerSettlementRuleUpdateOne) SetNillableCreditCurrency(v *string) *PartnerSettlementRuleUpdateOne {
+	if v != nil {
+		_u.SetCreditCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCreditCurrency clears the value of the "credit_currency" field.
+func (_u *PartnerSettlementRuleUpdateOne) ClearCreditCurrency() *PartnerSettlementRuleUpdateOne {
+	_u.mutation.ClearCreditCurrency()
+	return _u
+}
+
 // SetIsActive sets the "is_active" field.
 func (_u *PartnerSettlementRuleUpdateOne) SetIsActive(v bool) *PartnerSettlementRuleUpdateOne {
 	_u.mutation.SetIsActive(v)
@@ -597,6 +716,16 @@ func (_u *PartnerSettlementRuleUpdateOne) check() error {
 			return &ValidationError{Name: "settlement_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.CreditLimitMinor(); ok {
+		if err := partnersettlementrule.CreditLimitMinorValidator(v); err != nil {
+			return &ValidationError{Name: "credit_limit_minor", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_limit_minor": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CreditCurrency(); ok {
+		if err := partnersettlementrule.CreditCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "credit_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_currency": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerRoleCleared() && len(_u.mutation.PartnerRoleIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerSettlementRule.partner_role"`)
 	}
@@ -667,6 +796,21 @@ func (_u *PartnerSettlementRuleUpdateOne) sqlSave(ctx context.Context) (_node *P
 	}
 	if value, ok := _u.mutation.SettlementCurrency(); ok {
 		_spec.SetField(partnersettlementrule.FieldSettlementCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CreditLimitMinor(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCreditLimitMinor(); ok {
+		_spec.AddField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
+	}
+	if _u.mutation.CreditLimitMinorCleared() {
+		_spec.ClearField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.CreditCurrency(); ok {
+		_spec.SetField(partnersettlementrule.FieldCreditCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CreditCurrencyCleared() {
+		_spec.ClearField(partnersettlementrule.FieldCreditCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)

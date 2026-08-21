@@ -648,6 +648,52 @@ func HasAliasesWith(preds ...predicate.PartnerAlias) predicate.Partner {
 	})
 }
 
+// HasProfile applies the HasEdge predicate on the "profile" edge.
+func HasProfile() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProfileTable, ProfileColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProfileWith applies the HasEdge predicate on the "profile" edge with a given conditions (other predicates).
+func HasProfileWith(preds ...predicate.PartnerProfile) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newProfileStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAssignments applies the HasEdge predicate on the "assignments" edge.
+func HasAssignments() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAssignmentsWith applies the HasEdge predicate on the "assignments" edge with a given conditions (other predicates).
+func HasAssignmentsWith(preds ...predicate.PartnerAssignment) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newAssignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasContracts applies the HasEdge predicate on the "contracts" edge.
 func HasContracts() predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {

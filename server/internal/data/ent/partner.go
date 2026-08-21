@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 )
 
 // Partner is the model entity for the Partner schema.
@@ -53,6 +54,10 @@ type PartnerEdges struct {
 	Contacts []*PartnerContact `json:"contacts,omitempty"`
 	// Aliases holds the value of the aliases edge.
 	Aliases []*PartnerAlias `json:"aliases,omitempty"`
+	// Profile holds the value of the profile edge.
+	Profile *PartnerProfile `json:"profile,omitempty"`
+	// Assignments holds the value of the assignments edge.
+	Assignments []*PartnerAssignment `json:"assignments,omitempty"`
 	// Contracts holds the value of the contracts edge.
 	Contracts []*PartnerContract `json:"contracts,omitempty"`
 	// Attachments holds the value of the attachments edge.
@@ -61,7 +66,7 @@ type PartnerEdges struct {
 	Orders []*Order `json:"orders,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -102,10 +107,30 @@ func (e PartnerEdges) AliasesOrErr() ([]*PartnerAlias, error) {
 	return nil, &NotLoadedError{edge: "aliases"}
 }
 
+// ProfileOrErr returns the Profile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PartnerEdges) ProfileOrErr() (*PartnerProfile, error) {
+	if e.Profile != nil {
+		return e.Profile, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: partnerprofile.Label}
+	}
+	return nil, &NotLoadedError{edge: "profile"}
+}
+
+// AssignmentsOrErr returns the Assignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) AssignmentsOrErr() ([]*PartnerAssignment, error) {
+	if e.loadedTypes[5] {
+		return e.Assignments, nil
+	}
+	return nil, &NotLoadedError{edge: "assignments"}
+}
+
 // ContractsOrErr returns the Contracts value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[6] {
 		return e.Contracts, nil
 	}
 	return nil, &NotLoadedError{edge: "contracts"}
@@ -114,7 +139,7 @@ func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
 // AttachmentsOrErr returns the Attachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[7] {
 		return e.Attachments, nil
 	}
 	return nil, &NotLoadedError{edge: "attachments"}
@@ -123,7 +148,7 @@ func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[8] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -249,6 +274,16 @@ func (_m *Partner) QueryContacts() *PartnerContactQuery {
 // QueryAliases queries the "aliases" edge of the Partner entity.
 func (_m *Partner) QueryAliases() *PartnerAliasQuery {
 	return NewPartnerClient(_m.config).QueryAliases(_m)
+}
+
+// QueryProfile queries the "profile" edge of the Partner entity.
+func (_m *Partner) QueryProfile() *PartnerProfileQuery {
+	return NewPartnerClient(_m.config).QueryProfile(_m)
+}
+
+// QueryAssignments queries the "assignments" edge of the Partner entity.
+func (_m *Partner) QueryAssignments() *PartnerAssignmentQuery {
+	return NewPartnerClient(_m.config).QueryAssignments(_m)
 }
 
 // QueryContracts queries the "contracts" edge of the Partner entity.

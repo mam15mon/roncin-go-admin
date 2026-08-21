@@ -474,6 +474,29 @@ func HasPartnersWith(preds ...predicate.Partner) predicate.Organization {
 	})
 }
 
+// HasPartnerAssignments applies the HasEdge predicate on the "partner_assignments" edge.
+func HasPartnerAssignments() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartnerAssignmentsTable, PartnerAssignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartnerAssignmentsWith applies the HasEdge predicate on the "partner_assignments" edge with a given conditions (other predicates).
+func HasPartnerAssignmentsWith(preds ...predicate.PartnerAssignment) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newPartnerAssignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasMasterDataItems applies the HasEdge predicate on the "master_data_items" edge.
 func HasMasterDataItems() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

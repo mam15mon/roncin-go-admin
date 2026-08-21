@@ -39,6 +39,8 @@ const (
 	EdgeSessions = "sessions"
 	// EdgePartners holds the string denoting the partners edge name in mutations.
 	EdgePartners = "partners"
+	// EdgePartnerAssignments holds the string denoting the partner_assignments edge name in mutations.
+	EdgePartnerAssignments = "partner_assignments"
 	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
 	EdgeMasterDataItems = "master_data_items"
 	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
@@ -89,6 +91,13 @@ const (
 	PartnersInverseTable = "partners"
 	// PartnersColumn is the table column denoting the partners relation/edge.
 	PartnersColumn = "organization_id"
+	// PartnerAssignmentsTable is the table that holds the partner_assignments relation/edge.
+	PartnerAssignmentsTable = "partner_assignments"
+	// PartnerAssignmentsInverseTable is the table name for the PartnerAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerassignment" package.
+	PartnerAssignmentsInverseTable = "partner_assignments"
+	// PartnerAssignmentsColumn is the table column denoting the partner_assignments relation/edge.
+	PartnerAssignmentsColumn = "organization_id"
 	// MasterDataItemsTable is the table that holds the master_data_items relation/edge.
 	MasterDataItemsTable = "master_data_items"
 	// MasterDataItemsInverseTable is the table name for the MasterDataItem entity.
@@ -286,6 +295,20 @@ func ByPartners(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByPartnerAssignmentsCount orders the results by partner_assignments count.
+func ByPartnerAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartnerAssignmentsStep(), opts...)
+	}
+}
+
+// ByPartnerAssignments orders the results by partner_assignments terms.
+func ByPartnerAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartnerAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByMasterDataItemsCount orders the results by master_data_items count.
 func ByMasterDataItemsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -409,6 +432,13 @@ func newPartnersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartnersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartnersTable, PartnersColumn),
+	)
+}
+func newPartnerAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartnerAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartnerAssignmentsTable, PartnerAssignmentsColumn),
 	)
 }
 func newMasterDataItemsStep() *sqlgraph.Step {

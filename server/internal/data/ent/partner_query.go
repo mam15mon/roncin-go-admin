@@ -18,9 +18,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -36,6 +38,8 @@ type PartnerQuery struct {
 	withRoles        *PartnerRoleQuery
 	withContacts     *PartnerContactQuery
 	withAliases      *PartnerAliasQuery
+	withProfile      *PartnerProfileQuery
+	withAssignments  *PartnerAssignmentQuery
 	withContracts    *PartnerContractQuery
 	withAttachments  *PartnerAttachmentQuery
 	withOrders       *OrderQuery
@@ -157,6 +161,50 @@ func (_q *PartnerQuery) QueryAliases() *PartnerAliasQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partneralias.Table, partneralias.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.AliasesTable, partner.AliasesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProfile chains the current query on the "profile" edge.
+func (_q *PartnerQuery) QueryProfile() *PartnerProfileQuery {
+	query := (&PartnerProfileClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partnerprofile.Table, partnerprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, partner.ProfileTable, partner.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAssignments chains the current query on the "assignments" edge.
+func (_q *PartnerQuery) QueryAssignments() *PartnerAssignmentQuery {
+	query := (&PartnerAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.AssignmentsTable, partner.AssignmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -426,6 +474,8 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withRoles:        _q.withRoles.Clone(),
 		withContacts:     _q.withContacts.Clone(),
 		withAliases:      _q.withAliases.Clone(),
+		withProfile:      _q.withProfile.Clone(),
+		withAssignments:  _q.withAssignments.Clone(),
 		withContracts:    _q.withContracts.Clone(),
 		withAttachments:  _q.withAttachments.Clone(),
 		withOrders:       _q.withOrders.Clone(),
@@ -476,6 +526,28 @@ func (_q *PartnerQuery) WithAliases(opts ...func(*PartnerAliasQuery)) *PartnerQu
 		opt(query)
 	}
 	_q.withAliases = query
+	return _q
+}
+
+// WithProfile tells the query-builder to eager-load the nodes that are connected to
+// the "profile" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithProfile(opts ...func(*PartnerProfileQuery)) *PartnerQuery {
+	query := (&PartnerProfileClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withProfile = query
+	return _q
+}
+
+// WithAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithAssignments(opts ...func(*PartnerAssignmentQuery)) *PartnerQuery {
+	query := (&PartnerAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAssignments = query
 	return _q
 }
 
@@ -590,11 +662,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
 			_q.withAliases != nil,
+			_q.withProfile != nil,
+			_q.withAssignments != nil,
 			_q.withContracts != nil,
 			_q.withAttachments != nil,
 			_q.withOrders != nil,
@@ -645,6 +719,19 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadAliases(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Aliases = []*PartnerAlias{} },
 			func(n *Partner, e *PartnerAlias) { n.Edges.Aliases = append(n.Edges.Aliases, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withProfile; query != nil {
+		if err := _q.loadProfile(ctx, query, nodes, nil,
+			func(n *Partner, e *PartnerProfile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAssignments; query != nil {
+		if err := _q.loadAssignments(ctx, query, nodes,
+			func(n *Partner) { n.Edges.Assignments = []*PartnerAssignment{} },
+			func(n *Partner, e *PartnerAssignment) { n.Edges.Assignments = append(n.Edges.Assignments, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -776,6 +863,63 @@ func (_q *PartnerQuery) loadAliases(ctx context.Context, query *PartnerAliasQuer
 	}
 	query.Where(predicate.PartnerAlias(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.AliasesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadProfile(ctx context.Context, query *PartnerProfileQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerProfile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerprofile.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerProfile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.ProfileColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadAssignments(ctx context.Context, query *PartnerAssignmentQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerassignment.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.AssignmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

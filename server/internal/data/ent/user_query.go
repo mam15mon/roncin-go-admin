@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -24,14 +25,15 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                *QueryContext
-	order              []user.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.User
-	withMemberships    *MembershipQuery
-	withSessions       *SessionQuery
-	withOrderPersonnel *OrderPersonnelQuery
-	modifiers          []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []user.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.User
+	withMemberships        *MembershipQuery
+	withSessions           *SessionQuery
+	withOrderPersonnel     *OrderPersonnelQuery
+	withPartnerAssignments *PartnerAssignmentQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -127,6 +129,28 @@ func (_q *UserQuery) QueryOrderPersonnel() *OrderPersonnelQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(orderpersonnel.Table, orderpersonnel.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderPersonnelTable, user.OrderPersonnelColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartnerAssignments chains the current query on the "partner_assignments" edge.
+func (_q *UserQuery) QueryPartnerAssignments() *PartnerAssignmentQuery {
+	query := (&PartnerAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PartnerAssignmentsTable, user.PartnerAssignmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -321,14 +345,15 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:             _q.config,
-		ctx:                _q.ctx.Clone(),
-		order:              append([]user.OrderOption{}, _q.order...),
-		inters:             append([]Interceptor{}, _q.inters...),
-		predicates:         append([]predicate.User{}, _q.predicates...),
-		withMemberships:    _q.withMemberships.Clone(),
-		withSessions:       _q.withSessions.Clone(),
-		withOrderPersonnel: _q.withOrderPersonnel.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]user.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.User{}, _q.predicates...),
+		withMemberships:        _q.withMemberships.Clone(),
+		withSessions:           _q.withSessions.Clone(),
+		withOrderPersonnel:     _q.withOrderPersonnel.Clone(),
+		withPartnerAssignments: _q.withPartnerAssignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -365,6 +390,17 @@ func (_q *UserQuery) WithOrderPersonnel(opts ...func(*OrderPersonnelQuery)) *Use
 		opt(query)
 	}
 	_q.withOrderPersonnel = query
+	return _q
+}
+
+// WithPartnerAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "partner_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithPartnerAssignments(opts ...func(*PartnerAssignmentQuery)) *UserQuery {
+	query := (&PartnerAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartnerAssignments = query
 	return _q
 }
 
@@ -446,10 +482,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
+			_q.withPartnerAssignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -491,6 +528,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadOrderPersonnel(ctx, query, nodes,
 			func(n *User) { n.Edges.OrderPersonnel = []*OrderPersonnel{} },
 			func(n *User, e *OrderPersonnel) { n.Edges.OrderPersonnel = append(n.Edges.OrderPersonnel, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartnerAssignments; query != nil {
+		if err := _q.loadPartnerAssignments(ctx, query, nodes,
+			func(n *User) { n.Edges.PartnerAssignments = []*PartnerAssignment{} },
+			func(n *User, e *PartnerAssignment) {
+				n.Edges.PartnerAssignments = append(n.Edges.PartnerAssignments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -572,6 +618,36 @@ func (_q *UserQuery) loadOrderPersonnel(ctx context.Context, query *OrderPersonn
 	}
 	query.Where(predicate.OrderPersonnel(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.OrderPersonnelColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadPartnerAssignments(ctx context.Context, query *PartnerAssignmentQuery, nodes []*User, init func(*User), assign func(*User, *PartnerAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerassignment.FieldUserID)
+	}
+	query.Where(predicate.PartnerAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.PartnerAssignmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

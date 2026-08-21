@@ -62,6 +62,28 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AdministrativeRegion = {
+    id?: string;
+    code?: string;
+    name?: string;
+    level?: number;
+    parentCode?: string;
+    regionType?: string;
+    source?: string;
+    sourceVersion?: string;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AdministrativeRegionListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdministrativeRegion[];
+    traceId?: string;
+  };
+
   type AdminOperationReply = {
     success?: boolean;
     code?: number;
@@ -350,6 +372,8 @@ declare namespace API {
     roles?: PartnerRoleInput[];
     contacts?: PartnerContactInput[];
     aliases?: PartnerAliasInput[];
+    profile?: PartnerProfile;
+    assignments?: PartnerAssignmentInput[];
   };
 
   type CreatePartnerSettlementRuleRequest = {
@@ -379,6 +403,25 @@ declare namespace API {
     password: string;
     email?: string;
     roleIds?: string[];
+  };
+
+  type Currency = {
+    id?: string;
+    code?: string;
+    name?: string;
+    symbol?: string;
+    minorUnit?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type CurrencyListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Currency[];
+    traceId?: string;
   };
 
   type CurrentUser = {
@@ -486,6 +529,12 @@ declare namespace API {
     message?: string;
     data?: MasterDataItem[];
     traceId?: string;
+  };
+
+  type MasterDataServiceListAdministrativeRegionsParams = {
+    level?: number;
+    parentCode?: string;
+    keyword?: string;
   };
 
   type MasterDataServiceListItemsParams = {
@@ -1130,6 +1179,8 @@ declare namespace API {
     aliases?: PartnerAlias[];
     createdAt?: string;
     updatedAt?: string;
+    profile?: PartnerProfile;
+    assignments?: PartnerAssignment[];
   };
 
   type PartnerAccount = {
@@ -1192,6 +1243,21 @@ declare namespace API {
   type PartnerAliasInput = {
     aliasName?: string;
     sortOrder?: number;
+  };
+
+  type PartnerAssignment = {
+    id?: string;
+    role?: number;
+    userId?: string;
+    organizationId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerAssignmentInput = {
+    role: number;
+    userId: string;
+    organizationId: string;
   };
 
   type PartnerAttachment = {
@@ -1299,6 +1365,8 @@ declare namespace API {
     roles?: PartnerRoleInput[];
     contacts?: PartnerContactInput[];
     aliases?: PartnerAliasInput[];
+    profile?: PartnerProfile;
+    assignments?: PartnerAssignmentInput[];
   };
 
   type PartnerImportReply = {
@@ -1319,6 +1387,21 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     traceId?: string;
+  };
+
+  type PartnerProfile = {
+    nameEn?: string;
+    addressEn?: string;
+    countryCode?: string;
+    provinceCode?: string;
+    cityCode?: string;
+    districtCode?: string;
+    addressDetail?: string;
+    nature?: string;
+    developmentMethod?: string;
+    customerTypes?: number[];
+    businessTypes?: number[];
+    remark?: string;
   };
 
   type PartnerReply = {
@@ -1433,6 +1516,8 @@ declare namespace API {
     isActive?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    creditLimitMinor?: string;
+    creditCurrency?: string;
   };
 
   type PartnerSettlementRuleInput = {
@@ -1443,6 +1528,8 @@ declare namespace API {
     settlementBase?: number;
     settlementCurrency: string;
     isActive?: boolean;
+    creditLimitMinor?: string;
+    creditCurrency?: string;
   };
 
   type PartnerSettlementRuleListReply = {
@@ -1725,6 +1812,8 @@ declare namespace API {
     roles?: PartnerRoleInput[];
     contacts?: PartnerContactInput[];
     aliases?: PartnerAliasInput[];
+    profile?: PartnerProfile;
+    assignments?: PartnerAssignmentInput[];
   };
 
   type UpdatePartnerSettlementRuleRequest = {

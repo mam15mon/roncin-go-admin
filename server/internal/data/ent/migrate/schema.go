@@ -9,6 +9,53 @@ import (
 )
 
 var (
+	// AdministrativeRegionsColumns holds the columns for the "administrative_regions" table.
+	AdministrativeRegionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 12},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "level", Type: field.TypeInt},
+		{Name: "parent_code", Type: field.TypeString, Nullable: true, Size: 12},
+		{Name: "region_type", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "source", Type: field.TypeString, Size: 50, Default: "MCA_DMFW"},
+		{Name: "source_version", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+	}
+	// AdministrativeRegionsTable holds the schema information for the "administrative_regions" table.
+	AdministrativeRegionsTable = &schema.Table{
+		Name:       "administrative_regions",
+		Columns:    AdministrativeRegionsColumns,
+		PrimaryKey: []*schema.Column{AdministrativeRegionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "administrativeregion_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AdministrativeRegionsColumns[2]},
+			},
+			{
+				Name:    "administrativeregion_code",
+				Unique:  true,
+				Columns: []*schema.Column{AdministrativeRegionsColumns[3]},
+			},
+			{
+				Name:    "administrativeregion_level_code",
+				Unique:  false,
+				Columns: []*schema.Column{AdministrativeRegionsColumns[5], AdministrativeRegionsColumns[3]},
+			},
+			{
+				Name:    "administrativeregion_parent_code_level_code",
+				Unique:  false,
+				Columns: []*schema.Column{AdministrativeRegionsColumns[6], AdministrativeRegionsColumns[5], AdministrativeRegionsColumns[3]},
+			},
+			{
+				Name:    "administrativeregion_name",
+				Unique:  false,
+				Columns: []*schema.Column{AdministrativeRegionsColumns[4]},
+			},
+		},
+	}
 	// AuditLogsColumns holds the columns for the "audit_logs" table.
 	AuditLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -112,6 +159,40 @@ var (
 				Name:    "backgroundtask_organization_id_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{BackgroundTasksColumns[12], BackgroundTasksColumns[1]},
+			},
+		},
+	}
+	// CurrenciesColumns holds the columns for the "currencies" table.
+	CurrenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 3},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "symbol", Type: field.TypeString, Nullable: true, Size: 16},
+		{Name: "minor_unit", Type: field.TypeInt, Default: 2},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+	}
+	// CurrenciesTable holds the schema information for the "currencies" table.
+	CurrenciesTable = &schema.Table{
+		Name:       "currencies",
+		Columns:    CurrenciesColumns,
+		PrimaryKey: []*schema.Column{CurrenciesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "currency_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{CurrenciesColumns[2]},
+			},
+			{
+				Name:    "currency_code",
+				Unique:  true,
+				Columns: []*schema.Column{CurrenciesColumns[3]},
+			},
+			{
+				Name:    "currency_enabled_code",
+				Unique:  false,
+				Columns: []*schema.Column{CurrenciesColumns[7], CurrenciesColumns[3]},
 			},
 		},
 	}
@@ -1162,6 +1243,64 @@ var (
 			},
 		},
 	}
+	// PartnerAssignmentsColumns holds the columns for the "partner_assignments" table.
+	PartnerAssignmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "INTERNAL_CONTACT"}},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "partner_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// PartnerAssignmentsTable holds the schema information for the "partner_assignments" table.
+	PartnerAssignmentsTable = &schema.Table{
+		Name:       "partner_assignments",
+		Columns:    PartnerAssignmentsColumns,
+		PrimaryKey: []*schema.Column{PartnerAssignmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_assignments_organizations_partner_assignments",
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[4]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "partner_assignments_partners_assignments",
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[5]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "partner_assignments_users_partner_assignments",
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnerassignment_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAssignmentsColumns[2]},
+			},
+			{
+				Name:    "partnerassignment_partner_id_role",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerAssignmentsColumns[5], PartnerAssignmentsColumns[3]},
+			},
+			{
+				Name:    "partnerassignment_user_id_role",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAssignmentsColumns[6], PartnerAssignmentsColumns[3]},
+			},
+			{
+				Name:    "partnerassignment_organization_id_role",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerAssignmentsColumns[4], PartnerAssignmentsColumns[3]},
+			},
+		},
+	}
 	// PartnerAttachmentsColumns holds the columns for the "partner_attachments" table.
 	PartnerAttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1304,6 +1443,56 @@ var (
 			},
 		},
 	}
+	// PartnerProfilesColumns holds the columns for the "partner_profiles" table.
+	PartnerProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "address_en", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "country_code", Type: field.TypeString, Size: 2, Default: "CN"},
+		{Name: "province_code", Type: field.TypeString, Nullable: true, Size: 12},
+		{Name: "city_code", Type: field.TypeString, Nullable: true, Size: 12},
+		{Name: "district_code", Type: field.TypeString, Nullable: true, Size: 12},
+		{Name: "address_detail", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "nature", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "development_method", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "customer_types", Type: field.TypeJSON, Nullable: true},
+		{Name: "business_types", Type: field.TypeJSON, Nullable: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "partner_id", Type: field.TypeUUID, Unique: true},
+	}
+	// PartnerProfilesTable holds the schema information for the "partner_profiles" table.
+	PartnerProfilesTable = &schema.Table{
+		Name:       "partner_profiles",
+		Columns:    PartnerProfilesColumns,
+		PrimaryKey: []*schema.Column{PartnerProfilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_profiles_partners_profile",
+				Columns:    []*schema.Column{PartnerProfilesColumns[15]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnerprofile_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerProfilesColumns[2]},
+			},
+			{
+				Name:    "partnerprofile_partner_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerProfilesColumns[15]},
+			},
+			{
+				Name:    "partnerprofile_province_code_city_code_district_code",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerProfilesColumns[6], PartnerProfilesColumns[7], PartnerProfilesColumns[8]},
+			},
+		},
+	}
 	// PartnerRolesColumns holds the columns for the "partner_roles" table.
 	PartnerRolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1364,6 +1553,8 @@ var (
 		{Name: "settlement_cycle_days", Type: field.TypeInt, Nullable: true},
 		{Name: "settlement_base", Type: field.TypeEnum, Nullable: true, Enums: []string{"bill_date", "sailing_date", "arrival_date"}},
 		{Name: "settlement_currency", Type: field.TypeString, Size: 3},
+		{Name: "credit_limit_minor", Type: field.TypeInt64, Nullable: true},
+		{Name: "credit_currency", Type: field.TypeString, Nullable: true, Size: 3},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "partner_role_id", Type: field.TypeUUID},
 	}
@@ -1375,7 +1566,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_settlement_rules_partner_roles_settlement_rules",
-				Columns:    []*schema.Column{PartnerSettlementRulesColumns[10]},
+				Columns:    []*schema.Column{PartnerSettlementRulesColumns[12]},
 				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1389,12 +1580,12 @@ var (
 			{
 				Name:    "partner_settlement_rule_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[10], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[12], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
 			},
 			{
 				Name:    "partnersettlementrule_partner_role_id_is_active",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[10], PartnerSettlementRulesColumns[9]},
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[12], PartnerSettlementRulesColumns[11]},
 			},
 		},
 	}
@@ -1722,8 +1913,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AdministrativeRegionsTable,
 		AuditLogsTable,
 		BackgroundTasksTable,
+		CurrenciesTable,
 		MasterDataItemsTable,
 		MembershipsTable,
 		MilestoneTemplatesTable,
@@ -1746,9 +1939,11 @@ var (
 		PartnersTable,
 		PartnerAccountsTable,
 		PartnerAliasTable,
+		PartnerAssignmentsTable,
 		PartnerAttachmentsTable,
 		PartnerContactsTable,
 		PartnerContractsTable,
+		PartnerProfilesTable,
 		PartnerRolesTable,
 		PartnerSettlementRulesTable,
 		PermissionsTable,
@@ -1792,9 +1987,13 @@ func init() {
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	PartnerAliasTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerAssignmentsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	PartnerAssignmentsTable.ForeignKeys[1].RefTable = PartnersTable
+	PartnerAssignmentsTable.ForeignKeys[2].RefTable = UsersTable
 	PartnerAttachmentsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContractsTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerProfilesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable

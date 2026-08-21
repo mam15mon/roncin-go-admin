@@ -41,6 +41,10 @@ const (
 	EdgeContacts = "contacts"
 	// EdgeAliases holds the string denoting the aliases edge name in mutations.
 	EdgeAliases = "aliases"
+	// EdgeProfile holds the string denoting the profile edge name in mutations.
+	EdgeProfile = "profile"
+	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
+	EdgeAssignments = "assignments"
 	// EdgeContracts holds the string denoting the contracts edge name in mutations.
 	EdgeContracts = "contracts"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
@@ -77,6 +81,20 @@ const (
 	AliasesInverseTable = "partner_alias"
 	// AliasesColumn is the table column denoting the aliases relation/edge.
 	AliasesColumn = "partner_id"
+	// ProfileTable is the table that holds the profile relation/edge.
+	ProfileTable = "partner_profiles"
+	// ProfileInverseTable is the table name for the PartnerProfile entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerprofile" package.
+	ProfileInverseTable = "partner_profiles"
+	// ProfileColumn is the table column denoting the profile relation/edge.
+	ProfileColumn = "partner_id"
+	// AssignmentsTable is the table that holds the assignments relation/edge.
+	AssignmentsTable = "partner_assignments"
+	// AssignmentsInverseTable is the table name for the PartnerAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerassignment" package.
+	AssignmentsInverseTable = "partner_assignments"
+	// AssignmentsColumn is the table column denoting the assignments relation/edge.
+	AssignmentsColumn = "partner_id"
 	// ContractsTable is the table that holds the contracts relation/edge.
 	ContractsTable = "partner_contracts"
 	// ContractsInverseTable is the table name for the PartnerContract entity.
@@ -249,6 +267,27 @@ func ByAliases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByProfileField orders the results by profile field.
+func ByProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProfileStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAssignmentsCount orders the results by assignments count.
+func ByAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAssignmentsStep(), opts...)
+	}
+}
+
+// ByAssignments orders the results by assignments terms.
+func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByContractsCount orders the results by contracts count.
 func ByContractsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -316,6 +355,20 @@ func newAliasesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AliasesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AliasesTable, AliasesColumn),
+	)
+}
+func newProfileStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProfileInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ProfileTable, ProfileColumn),
+	)
+}
+func newAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
 	)
 }
 func newContractsStep() *sqlgraph.Step {

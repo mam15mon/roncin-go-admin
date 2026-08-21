@@ -34,6 +34,10 @@ const (
 	FieldSettlementBase = "settlement_base"
 	// FieldSettlementCurrency holds the string denoting the settlement_currency field in the database.
 	FieldSettlementCurrency = "settlement_currency"
+	// FieldCreditLimitMinor holds the string denoting the credit_limit_minor field in the database.
+	FieldCreditLimitMinor = "credit_limit_minor"
+	// FieldCreditCurrency holds the string denoting the credit_currency field in the database.
+	FieldCreditCurrency = "credit_currency"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// EdgePartnerRole holds the string denoting the partner_role edge name in mutations.
@@ -61,6 +65,8 @@ var Columns = []string{
 	FieldSettlementCycleDays,
 	FieldSettlementBase,
 	FieldSettlementCurrency,
+	FieldCreditLimitMinor,
+	FieldCreditCurrency,
 	FieldIsActive,
 }
 
@@ -83,6 +89,10 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// SettlementCurrencyValidator is a validator for the "settlement_currency" field. It is called by the builders before save.
 	SettlementCurrencyValidator func(string) error
+	// CreditLimitMinorValidator is a validator for the "credit_limit_minor" field. It is called by the builders before save.
+	CreditLimitMinorValidator func(int64) error
+	// CreditCurrencyValidator is a validator for the "credit_currency" field. It is called by the builders before save.
+	CreditCurrencyValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -216,6 +226,16 @@ func BySettlementBase(opts ...sql.OrderTermOption) OrderOption {
 // BySettlementCurrency orders the results by the settlement_currency field.
 func BySettlementCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementCurrency, opts...).ToFunc()
+}
+
+// ByCreditLimitMinor orders the results by the credit_limit_minor field.
+func ByCreditLimitMinor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreditLimitMinor, opts...).ToFunc()
+}
+
+// ByCreditCurrency orders the results by the credit_currency field.
+func ByCreditCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreditCurrency, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

@@ -12,10 +12,14 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
+	AdministrativeRegion *AdministrativeRegionClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
 	BackgroundTask *BackgroundTaskClient
+	// Currency is the client for interacting with the Currency builders.
+	Currency *CurrencyClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -60,12 +64,16 @@ type Tx struct {
 	PartnerAccount *PartnerAccountClient
 	// PartnerAlias is the client for interacting with the PartnerAlias builders.
 	PartnerAlias *PartnerAliasClient
+	// PartnerAssignment is the client for interacting with the PartnerAssignment builders.
+	PartnerAssignment *PartnerAssignmentClient
 	// PartnerAttachment is the client for interacting with the PartnerAttachment builders.
 	PartnerAttachment *PartnerAttachmentClient
 	// PartnerContact is the client for interacting with the PartnerContact builders.
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
 	PartnerContract *PartnerContractClient
+	// PartnerProfile is the client for interacting with the PartnerProfile builders.
+	PartnerProfile *PartnerProfileClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
@@ -215,8 +223,10 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AdministrativeRegion = NewAdministrativeRegionClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
+	tx.Currency = NewCurrencyClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)
@@ -239,9 +249,11 @@ func (tx *Tx) init() {
 	tx.Partner = NewPartnerClient(tx.config)
 	tx.PartnerAccount = NewPartnerAccountClient(tx.config)
 	tx.PartnerAlias = NewPartnerAliasClient(tx.config)
+	tx.PartnerAssignment = NewPartnerAssignmentClient(tx.config)
 	tx.PartnerAttachment = NewPartnerAttachmentClient(tx.config)
 	tx.PartnerContact = NewPartnerContactClient(tx.config)
 	tx.PartnerContract = NewPartnerContractClient(tx.config)
+	tx.PartnerProfile = NewPartnerProfileClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)
 	tx.PartnerSettlementRule = NewPartnerSettlementRuleClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
@@ -260,7 +272,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AuditLog.QueryXXX(), the query will be executed
+// applies a query, for example: AdministrativeRegion.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

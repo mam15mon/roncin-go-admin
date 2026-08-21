@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -155,6 +156,21 @@ func (_c *UserCreate) AddOrderPersonnel(v ...*OrderPersonnel) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderPersonnelIDs(ids...)
+}
+
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_c *UserCreate) AddPartnerAssignmentIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddPartnerAssignmentIDs(ids...)
+	return _c
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_c *UserCreate) AddPartnerAssignments(v ...*PartnerAssignment) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartnerAssignmentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -354,6 +370,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

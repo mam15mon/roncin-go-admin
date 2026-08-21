@@ -37,6 +37,10 @@ type PartnerSettlementRule struct {
 	SettlementBase *partnersettlementrule.SettlementBase `json:"settlement_base,omitempty"`
 	// SettlementCurrency holds the value of the "settlement_currency" field.
 	SettlementCurrency string `json:"settlement_currency,omitempty"`
+	// CreditLimitMinor holds the value of the "credit_limit_minor" field.
+	CreditLimitMinor *int64 `json:"credit_limit_minor,omitempty"`
+	// CreditCurrency holds the value of the "credit_currency" field.
+	CreditCurrency *string `json:"credit_currency,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -72,9 +76,9 @@ func (*PartnerSettlementRule) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partnersettlementrule.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case partnersettlementrule.FieldSettlementDay, partnersettlementrule.FieldSettlementCycleDays:
+		case partnersettlementrule.FieldSettlementDay, partnersettlementrule.FieldSettlementCycleDays, partnersettlementrule.FieldCreditLimitMinor:
 			values[i] = new(sql.NullInt64)
-		case partnersettlementrule.FieldStatementMode, partnersettlementrule.FieldSettlementMethod, partnersettlementrule.FieldSettlementBase, partnersettlementrule.FieldSettlementCurrency:
+		case partnersettlementrule.FieldStatementMode, partnersettlementrule.FieldSettlementMethod, partnersettlementrule.FieldSettlementBase, partnersettlementrule.FieldSettlementCurrency, partnersettlementrule.FieldCreditCurrency:
 			values[i] = new(sql.NullString)
 		case partnersettlementrule.FieldCreatedAt, partnersettlementrule.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -158,6 +162,20 @@ func (_m *PartnerSettlementRule) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.SettlementCurrency = value.String
 			}
+		case partnersettlementrule.FieldCreditLimitMinor:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field credit_limit_minor", values[i])
+			} else if value.Valid {
+				_m.CreditLimitMinor = new(int64)
+				*_m.CreditLimitMinor = value.Int64
+			}
+		case partnersettlementrule.FieldCreditCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field credit_currency", values[i])
+			} else if value.Valid {
+				_m.CreditCurrency = new(string)
+				*_m.CreditCurrency = value.String
+			}
 		case partnersettlementrule.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
@@ -237,6 +255,16 @@ func (_m *PartnerSettlementRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("settlement_currency=")
 	builder.WriteString(_m.SettlementCurrency)
+	builder.WriteString(", ")
+	if v := _m.CreditLimitMinor; v != nil {
+		builder.WriteString("credit_limit_minor=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CreditCurrency; v != nil {
+		builder.WriteString("credit_currency=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))

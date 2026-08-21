@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
@@ -191,6 +192,21 @@ func (_c *OrganizationCreate) AddPartners(v ...*Partner) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddPartnerIDs(ids...)
+}
+
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_c *OrganizationCreate) AddPartnerAssignmentIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddPartnerAssignmentIDs(ids...)
+	return _c
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_c *OrganizationCreate) AddPartnerAssignments(v ...*PartnerAssignment) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartnerAssignmentIDs(ids...)
 }
 
 // AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
@@ -508,6 +524,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

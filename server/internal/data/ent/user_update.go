@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -145,6 +146,21 @@ func (_u *UserUpdate) AddOrderPersonnel(v ...*OrderPersonnel) *UserUpdate {
 	return _u.AddOrderPersonnelIDs(ids...)
 }
 
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *UserUpdate) AddPartnerAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddPartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *UserUpdate) AddPartnerAssignments(v ...*PartnerAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -211,6 +227,27 @@ func (_u *UserUpdate) RemoveOrderPersonnel(v ...*OrderPersonnel) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderPersonnelIDs(ids...)
+}
+
+// ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *UserUpdate) ClearPartnerAssignments() *UserUpdate {
+	_u.mutation.ClearPartnerAssignments()
+	return _u
+}
+
+// RemovePartnerAssignmentIDs removes the "partner_assignments" edge to PartnerAssignment entities by IDs.
+func (_u *UserUpdate) RemovePartnerAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemovePartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// RemovePartnerAssignments removes "partner_assignments" edges to PartnerAssignment entities.
+func (_u *UserUpdate) RemovePartnerAssignments(v ...*PartnerAssignment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerAssignmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -434,6 +471,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -567,6 +649,21 @@ func (_u *UserUpdateOne) AddOrderPersonnel(v ...*OrderPersonnel) *UserUpdateOne 
 	return _u.AddOrderPersonnelIDs(ids...)
 }
 
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *UserUpdateOne) AddPartnerAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddPartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *UserUpdateOne) AddPartnerAssignments(v ...*PartnerAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -633,6 +730,27 @@ func (_u *UserUpdateOne) RemoveOrderPersonnel(v ...*OrderPersonnel) *UserUpdateO
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderPersonnelIDs(ids...)
+}
+
+// ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *UserUpdateOne) ClearPartnerAssignments() *UserUpdateOne {
+	_u.mutation.ClearPartnerAssignments()
+	return _u
+}
+
+// RemovePartnerAssignmentIDs removes the "partner_assignments" edge to PartnerAssignment entities by IDs.
+func (_u *UserUpdateOne) RemovePartnerAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemovePartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// RemovePartnerAssignments removes "partner_assignments" edges to PartnerAssignment entities.
+func (_u *UserUpdateOne) RemovePartnerAssignments(v ...*PartnerAssignment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerAssignmentIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -879,6 +997,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PartnerAssignmentsTable,
+			Columns: []string{user.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

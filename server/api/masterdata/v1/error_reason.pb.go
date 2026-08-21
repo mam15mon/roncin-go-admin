@@ -40,6 +40,7 @@ const (
 	ErrorReason_MILESTONE_TEMPLATE_EXISTS           ErrorReason = 13
 	ErrorReason_MILESTONE_TEMPLATE_INVALID          ErrorReason = 14
 	ErrorReason_MILESTONE_TEMPLATE_DEFAULT_CONFLICT ErrorReason = 15
+	ErrorReason_REFERENCE_DATA_INVALID_ARGUMENT     ErrorReason = 16
 )
 
 // Enum value maps for ErrorReason.
@@ -61,6 +62,7 @@ var (
 		13: "MILESTONE_TEMPLATE_EXISTS",
 		14: "MILESTONE_TEMPLATE_INVALID",
 		15: "MILESTONE_TEMPLATE_DEFAULT_CONFLICT",
+		16: "REFERENCE_DATA_INVALID_ARGUMENT",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_UNSPECIFIED":            0,
@@ -79,6 +81,7 @@ var (
 		"MILESTONE_TEMPLATE_EXISTS":           13,
 		"MILESTONE_TEMPLATE_INVALID":          14,
 		"MILESTONE_TEMPLATE_DEFAULT_CONFLICT": 15,
+		"REFERENCE_DATA_INVALID_ARGUMENT":     16,
 	}
 )
 
@@ -113,7 +116,7 @@ var File_masterdata_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xfd\x03\n" +
+	" masterdata/v1/error_reason.proto\x12\rmasterdata.v1*\xa2\x04\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cMASTER_DATA_INVALID_ARGUMENT\x10\x01\x12\x19\n" +
@@ -131,7 +134,8 @@ const file_masterdata_v1_error_reason_proto_rawDesc = "" +
 	"\x1cMILESTONE_TEMPLATE_NOT_FOUND\x10\f\x12\x1d\n" +
 	"\x19MILESTONE_TEMPLATE_EXISTS\x10\r\x12\x1e\n" +
 	"\x1aMILESTONE_TEMPLATE_INVALID\x10\x0e\x12'\n" +
-	"#MILESTONE_TEMPLATE_DEFAULT_CONFLICT\x10\x0fB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"#MILESTONE_TEMPLATE_DEFAULT_CONFLICT\x10\x0f\x12#\n" +
+	"\x1fREFERENCE_DATA_INVALID_ARGUMENT\x10\x10B?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_error_reason_proto_rawDescOnce sync.Once

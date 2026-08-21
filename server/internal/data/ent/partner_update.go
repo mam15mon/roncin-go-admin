@@ -16,9 +16,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -188,6 +190,40 @@ func (_u *PartnerUpdate) AddAliases(v ...*PartnerAlias) *PartnerUpdate {
 	return _u.AddAliasIDs(ids...)
 }
 
+// SetProfileID sets the "profile" edge to the PartnerProfile entity by ID.
+func (_u *PartnerUpdate) SetProfileID(id uuid.UUID) *PartnerUpdate {
+	_u.mutation.SetProfileID(id)
+	return _u
+}
+
+// SetNillableProfileID sets the "profile" edge to the PartnerProfile entity by ID if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableProfileID(id *uuid.UUID) *PartnerUpdate {
+	if id != nil {
+		_u = _u.SetProfileID(*id)
+	}
+	return _u
+}
+
+// SetProfile sets the "profile" edge to the PartnerProfile entity.
+func (_u *PartnerUpdate) SetProfile(v *PartnerProfile) *PartnerUpdate {
+	return _u.SetProfileID(v.ID)
+}
+
+// AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *PartnerUpdate) AddAssignmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddAssignmentIDs(ids...)
+	return _u
+}
+
+// AddAssignments adds the "assignments" edges to the PartnerAssignment entity.
+func (_u *PartnerUpdate) AddAssignments(v ...*PartnerAssignment) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAssignmentIDs(ids...)
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
 func (_u *PartnerUpdate) AddContractIDs(ids ...uuid.UUID) *PartnerUpdate {
 	_u.mutation.AddContractIDs(ids...)
@@ -305,6 +341,33 @@ func (_u *PartnerUpdate) RemoveAliases(v ...*PartnerAlias) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAliasIDs(ids...)
+}
+
+// ClearProfile clears the "profile" edge to the PartnerProfile entity.
+func (_u *PartnerUpdate) ClearProfile() *PartnerUpdate {
+	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearAssignments clears all "assignments" edges to the PartnerAssignment entity.
+func (_u *PartnerUpdate) ClearAssignments() *PartnerUpdate {
+	_u.mutation.ClearAssignments()
+	return _u
+}
+
+// RemoveAssignmentIDs removes the "assignments" edge to PartnerAssignment entities by IDs.
+func (_u *PartnerUpdate) RemoveAssignmentIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveAssignments removes "assignments" edges to PartnerAssignment entities.
+func (_u *PartnerUpdate) RemoveAssignments(v ...*PartnerAssignment) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAssignmentIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -634,6 +697,80 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.ProfileTable,
+			Columns: []string{partner.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.ProfileTable,
+			Columns: []string{partner.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ContractsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -941,6 +1078,40 @@ func (_u *PartnerUpdateOne) AddAliases(v ...*PartnerAlias) *PartnerUpdateOne {
 	return _u.AddAliasIDs(ids...)
 }
 
+// SetProfileID sets the "profile" edge to the PartnerProfile entity by ID.
+func (_u *PartnerUpdateOne) SetProfileID(id uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.SetProfileID(id)
+	return _u
+}
+
+// SetNillableProfileID sets the "profile" edge to the PartnerProfile entity by ID if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableProfileID(id *uuid.UUID) *PartnerUpdateOne {
+	if id != nil {
+		_u = _u.SetProfileID(*id)
+	}
+	return _u
+}
+
+// SetProfile sets the "profile" edge to the PartnerProfile entity.
+func (_u *PartnerUpdateOne) SetProfile(v *PartnerProfile) *PartnerUpdateOne {
+	return _u.SetProfileID(v.ID)
+}
+
+// AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *PartnerUpdateOne) AddAssignmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddAssignmentIDs(ids...)
+	return _u
+}
+
+// AddAssignments adds the "assignments" edges to the PartnerAssignment entity.
+func (_u *PartnerUpdateOne) AddAssignments(v ...*PartnerAssignment) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAssignmentIDs(ids...)
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
 func (_u *PartnerUpdateOne) AddContractIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddContractIDs(ids...)
@@ -1058,6 +1229,33 @@ func (_u *PartnerUpdateOne) RemoveAliases(v ...*PartnerAlias) *PartnerUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAliasIDs(ids...)
+}
+
+// ClearProfile clears the "profile" edge to the PartnerProfile entity.
+func (_u *PartnerUpdateOne) ClearProfile() *PartnerUpdateOne {
+	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearAssignments clears all "assignments" edges to the PartnerAssignment entity.
+func (_u *PartnerUpdateOne) ClearAssignments() *PartnerUpdateOne {
+	_u.mutation.ClearAssignments()
+	return _u
+}
+
+// RemoveAssignmentIDs removes the "assignments" edge to PartnerAssignment entities by IDs.
+func (_u *PartnerUpdateOne) RemoveAssignmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveAssignments removes "assignments" edges to PartnerAssignment entities.
+func (_u *PartnerUpdateOne) RemoveAssignments(v ...*PartnerAssignment) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAssignmentIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -1410,6 +1608,80 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partneralias.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.ProfileTable,
+			Columns: []string{partner.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.ProfileTable,
+			Columns: []string{partner.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.AssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.AssignmentsTable,
+			Columns: []string{partner.AssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

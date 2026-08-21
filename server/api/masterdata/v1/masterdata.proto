@@ -37,6 +37,14 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
+  rpc ListCurrencies(ListCurrenciesRequest) returns (CurrencyListReply) {
+    option (google.api.http) = {get: "/api/v1/reference/currencies"};
+  }
+
+  rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (AdministrativeRegionListReply) {
+    option (google.api.http) = {get: "/api/v1/reference/administrative-regions"};
+  }
+
   rpc ListNumberRules(ListNumberRulesRequest) returns (NumberRuleListReply) {
     option (google.api.http) = {get: "/api/v1/master-data/number-rules"};
   }
@@ -268,6 +276,55 @@ message MasterDataOptionsReply {
   int32 code = 2;
   string message = 3;
   repeated MasterDataItem data = 4;
+  string trace_id = 5;
+}
+
+message ListCurrenciesRequest {}
+
+message Currency {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string symbol = 4;
+  int32 minor_unit = 5;
+  bool enabled = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message CurrencyListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Currency data = 4;
+  string trace_id = 5;
+}
+
+message ListAdministrativeRegionsRequest {
+  int32 level = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string parent_code = 2;
+  string keyword = 3;
+}
+
+message AdministrativeRegion {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  int32 level = 4;
+  optional string parent_code = 5;
+  optional string region_type = 6;
+  string source = 7;
+  optional string source_version = 8;
+  bool enabled = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message AdministrativeRegionListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AdministrativeRegion data = 4;
   string trace_id = 5;
 }
 

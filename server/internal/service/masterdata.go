@@ -14,16 +14,59 @@ import (
 type MasterDataService struct {
 	v1.UnimplementedMasterDataServiceServer
 	usecase                *biz.MasterDataUsecase
+	referenceDataUsecase   *biz.ReferenceDataUsecase
 	orderConfigUsecase     *biz.OrderConfigUsecase
 	milestoneConfigUsecase *biz.MilestoneConfigUsecase
 }
 
-func NewMasterDataService(usecase *biz.MasterDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase, milestoneConfigUsecase *biz.MilestoneConfigUsecase) *MasterDataService {
+func NewMasterDataService(usecase *biz.MasterDataUsecase, referenceDataUsecase *biz.ReferenceDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase, milestoneConfigUsecase *biz.MilestoneConfigUsecase) *MasterDataService {
 	return &MasterDataService{
 		usecase:                usecase,
+		referenceDataUsecase:   referenceDataUsecase,
 		orderConfigUsecase:     orderConfigUsecase,
 		milestoneConfigUsecase: milestoneConfigUsecase,
 	}
+}
+
+func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurrenciesRequest) (*v1.CurrencyListReply, error) {
+	if _, err := requirePrincipal(ctx); err != nil {
+		return nil, err
+	}
+	items, err := s.referenceDataUsecase.ListCurrencies(ctx)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.Currency, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.Currency{
+			Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol,
+			MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled,
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		})
+	}
+	return &v1.CurrencyListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, request *v1.ListAdministrativeRegionsRequest) (*v1.AdministrativeRegionListReply, error) {
+	if _, err := requirePrincipal(ctx); err != nil {
+		return nil, err
+	}
+	items, err := s.referenceDataUsecase.ListAdministrativeRegions(ctx, biz.AdministrativeRegionQuery{
+		Level: int(request.GetLevel()), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), Keyword: request.GetKeyword(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.AdministrativeRegion, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.AdministrativeRegion{
+			Id: item.ID.String(), Code: item.Code, Name: item.Name, Level: int32(item.Level),
+			ParentCode: item.ParentCode, RegionType: item.RegionType, Source: item.Source,
+			SourceVersion: item.SourceVersion, Enabled: item.Enabled,
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		})
+	}
+	return &v1.AdministrativeRegionListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListMasterDataItemsRequest) (*v1.MasterDataItemListReply, error) {

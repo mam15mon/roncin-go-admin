@@ -9,6 +9,18 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
 
+// The AdministrativeRegionFunc type is an adapter to allow the use of ordinary
+// function as AdministrativeRegion mutator.
+type AdministrativeRegionFunc func(context.Context, *ent.AdministrativeRegionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AdministrativeRegionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AdministrativeRegionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdministrativeRegionMutation", m)
+}
+
 // The AuditLogFunc type is an adapter to allow the use of ordinary
 // function as AuditLog mutator.
 type AuditLogFunc func(context.Context, *ent.AuditLogMutation) (ent.Value, error)
@@ -31,6 +43,18 @@ func (f BackgroundTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BackgroundTaskMutation", m)
+}
+
+// The CurrencyFunc type is an adapter to allow the use of ordinary
+// function as Currency mutator.
+type CurrencyFunc func(context.Context, *ent.CurrencyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CurrencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CurrencyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CurrencyMutation", m)
 }
 
 // The MasterDataItemFunc type is an adapter to allow the use of ordinary
@@ -297,6 +321,18 @@ func (f PartnerAliasFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerAliasMutation", m)
 }
 
+// The PartnerAssignmentFunc type is an adapter to allow the use of ordinary
+// function as PartnerAssignment mutator.
+type PartnerAssignmentFunc func(context.Context, *ent.PartnerAssignmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerAssignmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerAssignmentMutation", m)
+}
+
 // The PartnerAttachmentFunc type is an adapter to allow the use of ordinary
 // function as PartnerAttachment mutator.
 type PartnerAttachmentFunc func(context.Context, *ent.PartnerAttachmentMutation) (ent.Value, error)
@@ -331,6 +367,18 @@ func (f PartnerContractFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerContractMutation", m)
+}
+
+// The PartnerProfileFunc type is an adapter to allow the use of ordinary
+// function as PartnerProfile mutator.
+type PartnerProfileFunc func(context.Context, *ent.PartnerProfileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerProfileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerProfileMutation", m)
 }
 
 // The PartnerRoleFunc type is an adapter to allow the use of ordinary

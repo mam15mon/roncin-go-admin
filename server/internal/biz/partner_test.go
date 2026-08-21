@@ -156,6 +156,68 @@ func TestPartnerTaxIdentifierDependsOnActiveRole(t *testing.T) {
 	}
 }
 
+func TestPartnerNormalizesProfileAndAssignments(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	userID := uuid.New()
+	organizationID := uuid.New()
+
+	created, err := usecase.Create(context.Background(), organizationID, userID, &Partner{
+		Code: "CUSTOMER", LegalName: "境内客户", UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		Profile: &PartnerProfile{
+			NameEN: " ACME Logistics ", CountryCode: " cn ", ProvinceCode: "310000000000",
+			CityCode: "310100000000", DistrictCode: "310115000000",
+			CustomerTypes: []PartnerCustomerType{PartnerCustomerDirect},
+			BusinessTypes: []PartnerBusinessType{PartnerBusinessSE, PartnerBusinessAI},
+		},
+		Assignments: []*PartnerAssignment{{Role: PartnerAssignmentSales, UserID: userID, OrganizationID: organizationID}},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if created.Profile == nil || created.Profile.NameEN != "ACME Logistics" || created.Profile.CountryCode != "CN" {
+		t.Fatalf("normalized profile = %#v", created.Profile)
+	}
+	if len(created.Assignments) != 1 || created.Assignments[0].Role != PartnerAssignmentSales {
+		t.Fatalf("normalized assignments = %#v", created.Assignments)
+	}
+}
+
+func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
+	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	base := Partner{
+		Code: "CUSTOMER", LegalName: "境内客户", UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+	}
+
+	invalidProfiles := []*PartnerProfile{
+		{CountryCode: "US", ProvinceCode: "310000000000"},
+		{CountryCode: "CN", CityCode: "310100000000"},
+		{CountryCode: "CN", ProvinceCode: "310000"},
+		{CountryCode: "CN", CustomerTypes: []PartnerCustomerType{PartnerCustomerDirect, PartnerCustomerDirect}},
+		{CountryCode: "CN", BusinessTypes: []PartnerBusinessType{"OCEAN"}},
+	}
+	for index, profile := range invalidProfiles {
+		input := base
+		input.Profile = profile
+		if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+			t.Fatalf("invalid profile %d error = %v, want ErrPartnerInvalidArgument", index, err)
+		}
+	}
+
+	input := base
+	input.Assignments = []*PartnerAssignment{
+		{Role: PartnerAssignmentSales, UserID: uuid.New(), OrganizationID: organizationID},
+		{Role: PartnerAssignmentSales, UserID: uuid.New(), OrganizationID: organizationID},
+	}
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+		t.Fatalf("duplicate assignment role error = %v, want ErrPartnerInvalidArgument", err)
+	}
+}
+
 func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 	organizationID := uuid.New()

@@ -35,6 +35,8 @@ const (
 	EdgeSessions = "sessions"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
+	// EdgePartnerAssignments holds the string denoting the partner_assignments edge name in mutations.
+	EdgePartnerAssignments = "partner_assignments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -58,6 +60,13 @@ const (
 	OrderPersonnelInverseTable = "order_personnels"
 	// OrderPersonnelColumn is the table column denoting the order_personnel relation/edge.
 	OrderPersonnelColumn = "user_id"
+	// PartnerAssignmentsTable is the table that holds the partner_assignments relation/edge.
+	PartnerAssignmentsTable = "partner_assignments"
+	// PartnerAssignmentsInverseTable is the table name for the PartnerAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerassignment" package.
+	PartnerAssignmentsInverseTable = "partner_assignments"
+	// PartnerAssignmentsColumn is the table column denoting the partner_assignments relation/edge.
+	PartnerAssignmentsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -187,6 +196,20 @@ func ByOrderPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPartnerAssignmentsCount orders the results by partner_assignments count.
+func ByPartnerAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartnerAssignmentsStep(), opts...)
+	}
+}
+
+// ByPartnerAssignments orders the results by partner_assignments terms.
+func ByPartnerAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartnerAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -206,5 +229,12 @@ func newOrderPersonnelStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderPersonnelInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderPersonnelTable, OrderPersonnelColumn),
+	)
+}
+func newPartnerAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartnerAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartnerAssignmentsTable, PartnerAssignmentsColumn),
 	)
 }

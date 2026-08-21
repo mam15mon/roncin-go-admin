@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -171,6 +172,21 @@ func (_u *OrganizationUpdate) AddPartners(v ...*Partner) *OrganizationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartnerIDs(ids...)
+}
+
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *OrganizationUpdate) AddPartnerAssignmentIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddPartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *OrganizationUpdate) AddPartnerAssignments(v ...*PartnerAssignment) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerAssignmentIDs(ids...)
 }
 
 // AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
@@ -377,6 +393,27 @@ func (_u *OrganizationUpdate) RemovePartners(v ...*Partner) *OrganizationUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerIDs(ids...)
+}
+
+// ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *OrganizationUpdate) ClearPartnerAssignments() *OrganizationUpdate {
+	_u.mutation.ClearPartnerAssignments()
+	return _u
+}
+
+// RemovePartnerAssignmentIDs removes the "partner_assignments" edge to PartnerAssignment entities by IDs.
+func (_u *OrganizationUpdate) RemovePartnerAssignmentIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemovePartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// RemovePartnerAssignments removes "partner_assignments" edges to PartnerAssignment entities.
+func (_u *OrganizationUpdate) RemovePartnerAssignments(v ...*PartnerAssignment) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerAssignmentIDs(ids...)
 }
 
 // ClearMasterDataItems clears all "master_data_items" edges to the MasterDataItem entity.
@@ -826,6 +863,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.MasterDataItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1250,6 +1332,21 @@ func (_u *OrganizationUpdateOne) AddPartners(v ...*Partner) *OrganizationUpdateO
 	return _u.AddPartnerIDs(ids...)
 }
 
+// AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
+func (_u *OrganizationUpdateOne) AddPartnerAssignmentIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddPartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// AddPartnerAssignments adds the "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *OrganizationUpdateOne) AddPartnerAssignments(v ...*PartnerAssignment) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerAssignmentIDs(ids...)
+}
+
 // AddMasterDataItemIDs adds the "master_data_items" edge to the MasterDataItem entity by IDs.
 func (_u *OrganizationUpdateOne) AddMasterDataItemIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddMasterDataItemIDs(ids...)
@@ -1454,6 +1551,27 @@ func (_u *OrganizationUpdateOne) RemovePartners(v ...*Partner) *OrganizationUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerIDs(ids...)
+}
+
+// ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
+func (_u *OrganizationUpdateOne) ClearPartnerAssignments() *OrganizationUpdateOne {
+	_u.mutation.ClearPartnerAssignments()
+	return _u
+}
+
+// RemovePartnerAssignmentIDs removes the "partner_assignments" edge to PartnerAssignment entities by IDs.
+func (_u *OrganizationUpdateOne) RemovePartnerAssignmentIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemovePartnerAssignmentIDs(ids...)
+	return _u
+}
+
+// RemovePartnerAssignments removes "partner_assignments" edges to PartnerAssignment entities.
+func (_u *OrganizationUpdateOne) RemovePartnerAssignments(v ...*PartnerAssignment) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerAssignmentIDs(ids...)
 }
 
 // ClearMasterDataItems clears all "master_data_items" edges to the MasterDataItem entity.
@@ -1926,6 +2044,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.PartnerAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerAssignmentsTable,
+			Columns: []string{organization.PartnerAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

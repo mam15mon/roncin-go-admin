@@ -82,6 +82,7 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 		Code: request.GetCode(), LegalName: request.GetLegalName(),
 		UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(), RegisteredAddress: request.GetRegisteredAddress(),
 		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
+		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})
 	if err != nil {
 		return nil, err
@@ -102,6 +103,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 		LegalName: request.GetLegalName(), UnifiedSocialCreditCode: request.GetUnifiedSocialCreditCode(),
 		RegisteredAddress: request.GetRegisteredAddress(), Enabled: request.GetEnabled(),
 		Roles: partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
+		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +367,7 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 			Code: item.GetCode(), LegalName: item.GetLegalName(),
 			UnifiedSocialCreditCode: item.GetUnifiedSocialCreditCode(), RegisteredAddress: item.GetRegisteredAddress(),
 			Roles: partnerRolesFromAPI(item.GetRoles()), Contacts: partnerContactsFromAPI(item.GetContacts()), Aliases: partnerAliasesFromAPI(item.GetAliases()),
+			Profile: partnerProfileFromAPI(item.GetProfile()), Assignments: partnerAssignmentsFromAPI(item.GetAssignments()),
 		})
 	}
 	result, err := s.usecase.Import(ctx, principal.Organization.ID, principal.UserID, biz.PartnerImportInput{
@@ -562,6 +565,108 @@ func partnerRoleTypeToAPI(value biz.PartnerRoleType) v1.PartnerRoleType {
 	}
 }
 
+func partnerCustomerTypeFromAPI(value v1.PartnerCustomerType) biz.PartnerCustomerType {
+	switch value {
+	case v1.PartnerCustomerType_PARTNER_CUSTOMER_TYPE_DIRECT:
+		return biz.PartnerCustomerDirect
+	case v1.PartnerCustomerType_PARTNER_CUSTOMER_TYPE_PEER:
+		return biz.PartnerCustomerPeer
+	default:
+		return ""
+	}
+}
+
+func partnerCustomerTypeToAPI(value biz.PartnerCustomerType) v1.PartnerCustomerType {
+	switch value {
+	case biz.PartnerCustomerDirect:
+		return v1.PartnerCustomerType_PARTNER_CUSTOMER_TYPE_DIRECT
+	case biz.PartnerCustomerPeer:
+		return v1.PartnerCustomerType_PARTNER_CUSTOMER_TYPE_PEER
+	default:
+		return v1.PartnerCustomerType_PARTNER_CUSTOMER_TYPE_UNSPECIFIED
+	}
+}
+
+func partnerBusinessTypeFromAPI(value v1.PartnerBusinessType) biz.PartnerBusinessType {
+	switch value {
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_SE:
+		return biz.PartnerBusinessSE
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_SI:
+		return biz.PartnerBusinessSI
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_AE:
+		return biz.PartnerBusinessAE
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_AI:
+		return biz.PartnerBusinessAI
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_LAND:
+		return biz.PartnerBusinessLand
+	case v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_RAIL:
+		return biz.PartnerBusinessRail
+	default:
+		return ""
+	}
+}
+
+func partnerBusinessTypeToAPI(value biz.PartnerBusinessType) v1.PartnerBusinessType {
+	switch value {
+	case biz.PartnerBusinessSE:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_SE
+	case biz.PartnerBusinessSI:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_SI
+	case biz.PartnerBusinessAE:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_AE
+	case biz.PartnerBusinessAI:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_AI
+	case biz.PartnerBusinessLand:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_LAND
+	case biz.PartnerBusinessRail:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_RAIL
+	default:
+		return v1.PartnerBusinessType_PARTNER_BUSINESS_TYPE_UNSPECIFIED
+	}
+}
+
+func partnerAssignmentRoleFromAPI(value v1.PartnerAssignmentRole) biz.PartnerAssignmentRole {
+	switch value {
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_CREATOR:
+		return biz.PartnerAssignmentCreator
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_OPERATOR:
+		return biz.PartnerAssignmentOperator
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_SALES:
+		return biz.PartnerAssignmentSales
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE:
+		return biz.PartnerAssignmentCustomerService
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_DOCUMENT:
+		return biz.PartnerAssignmentDocument
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_COMMERCIAL:
+		return biz.PartnerAssignmentCommercial
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT:
+		return biz.PartnerAssignmentInternalContact
+	default:
+		return ""
+	}
+}
+
+func partnerAssignmentRoleToAPI(value biz.PartnerAssignmentRole) v1.PartnerAssignmentRole {
+	switch value {
+	case biz.PartnerAssignmentCreator:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_CREATOR
+	case biz.PartnerAssignmentOperator:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_OPERATOR
+	case biz.PartnerAssignmentSales:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_SALES
+	case biz.PartnerAssignmentCustomerService:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE
+	case biz.PartnerAssignmentDocument:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_DOCUMENT
+	case biz.PartnerAssignmentCommercial:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_COMMERCIAL
+	case biz.PartnerAssignmentInternalContact:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT
+	default:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_UNSPECIFIED
+	}
+}
+
 func partnerRolesFromAPI(items []*v1.PartnerRoleInput) []*biz.PartnerRole {
 	roles := make([]*biz.PartnerRole, 0, len(items))
 	for _, item := range items {
@@ -600,6 +705,42 @@ func partnerAliasesFromAPI(items []*v1.PartnerAliasInput) []*biz.PartnerAlias {
 	return aliases
 }
 
+func partnerProfileFromAPI(value *v1.PartnerProfile) *biz.PartnerProfile {
+	if value == nil {
+		return nil
+	}
+	customerTypes := make([]biz.PartnerCustomerType, 0, len(value.GetCustomerTypes()))
+	for _, item := range value.GetCustomerTypes() {
+		customerTypes = append(customerTypes, partnerCustomerTypeFromAPI(item))
+	}
+	businessTypes := make([]biz.PartnerBusinessType, 0, len(value.GetBusinessTypes()))
+	for _, item := range value.GetBusinessTypes() {
+		businessTypes = append(businessTypes, partnerBusinessTypeFromAPI(item))
+	}
+	return &biz.PartnerProfile{
+		NameEN: value.GetNameEn(), AddressEN: value.GetAddressEn(), CountryCode: value.GetCountryCode(),
+		ProvinceCode: value.GetProvinceCode(), CityCode: value.GetCityCode(), DistrictCode: value.GetDistrictCode(),
+		AddressDetail: value.GetAddressDetail(), Nature: value.GetNature(), DevelopmentMethod: value.GetDevelopmentMethod(),
+		CustomerTypes: customerTypes, BusinessTypes: businessTypes, Remark: value.GetRemark(),
+	}
+}
+
+func partnerAssignmentsFromAPI(items []*v1.PartnerAssignmentInput) []*biz.PartnerAssignment {
+	result := make([]*biz.PartnerAssignment, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			result = append(result, nil)
+			continue
+		}
+		userID, _ := uuid.Parse(item.GetUserId())
+		organizationID, _ := uuid.Parse(item.GetOrganizationId())
+		result = append(result, &biz.PartnerAssignment{
+			Role: partnerAssignmentRoleFromAPI(item.GetRole()), UserID: userID, OrganizationID: organizationID,
+		})
+	}
+	return result
+}
+
 func partnerReply(ctx context.Context, value *biz.Partner) *v1.PartnerReply {
 	return &v1.PartnerReply{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(value), TraceId: requestmeta.TraceID(ctx)}
 }
@@ -631,7 +772,39 @@ func partnerToAPI(value *biz.Partner) *v1.Partner {
 		UnifiedSocialCreditCode: value.UnifiedSocialCreditCode, RegisteredAddress: value.RegisteredAddress, Enabled: value.Enabled,
 		Roles: roles, Contacts: contacts, Aliases: aliases,
 		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
+		Profile: partnerProfileToAPI(value.Profile), Assignments: partnerAssignmentsToAPI(value.Assignments),
 	}
+}
+
+func partnerProfileToAPI(value *biz.PartnerProfile) *v1.PartnerProfile {
+	if value == nil {
+		return nil
+	}
+	customerTypes := make([]v1.PartnerCustomerType, 0, len(value.CustomerTypes))
+	for _, item := range value.CustomerTypes {
+		customerTypes = append(customerTypes, partnerCustomerTypeToAPI(item))
+	}
+	businessTypes := make([]v1.PartnerBusinessType, 0, len(value.BusinessTypes))
+	for _, item := range value.BusinessTypes {
+		businessTypes = append(businessTypes, partnerBusinessTypeToAPI(item))
+	}
+	return &v1.PartnerProfile{
+		NameEn: value.NameEN, AddressEn: value.AddressEN, CountryCode: value.CountryCode,
+		ProvinceCode: value.ProvinceCode, CityCode: value.CityCode, DistrictCode: value.DistrictCode,
+		AddressDetail: value.AddressDetail, Nature: value.Nature, DevelopmentMethod: value.DevelopmentMethod,
+		CustomerTypes: customerTypes, BusinessTypes: businessTypes, Remark: value.Remark,
+	}
+}
+
+func partnerAssignmentsToAPI(items []*biz.PartnerAssignment) []*v1.PartnerAssignment {
+	result := make([]*v1.PartnerAssignment, 0, len(items))
+	for _, item := range items {
+		result = append(result, &v1.PartnerAssignment{
+			Id: item.ID.String(), Role: partnerAssignmentRoleToAPI(item.Role), UserId: item.UserID.String(),
+			OrganizationId: item.OrganizationID.String(), CreatedAt: item.CreatedAt.Format(time.RFC3339), UpdatedAt: item.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+	return result
 }
 
 func partnerStatementModeFromAPI(value v1.PartnerStatementMode) biz.PartnerStatementMode {
@@ -747,6 +920,14 @@ func partnerSettlementRuleFromAPI(value *v1.PartnerSettlementRuleInput) *biz.Par
 	if value.SettlementBase != nil {
 		result.SettlementBase = partnerSettlementBaseFromAPI(value.GetSettlementBase())
 	}
+	if value.CreditLimitMinor != nil {
+		item := value.GetCreditLimitMinor()
+		result.CreditLimitMinor = &item
+	}
+	if value.CreditCurrency != nil {
+		item := value.GetCreditCurrency()
+		result.CreditCurrency = &item
+	}
 	return result
 }
 
@@ -764,6 +945,8 @@ func partnerSettlementRuleToAPI(value *biz.PartnerSettlementRule) *v1.PartnerSet
 		result.SettlementCycleDays = &item
 	}
 	result.SettlementBase = partnerSettlementBaseToAPI(value.SettlementBase)
+	result.CreditLimitMinor = value.CreditLimitMinor
+	result.CreditCurrency = value.CreditCurrency
 	return result
 }
 

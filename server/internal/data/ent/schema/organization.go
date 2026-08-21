@@ -29,6 +29,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("roles", Role.Type),
 		edge.To("sessions", Session.Type),
 		edge.To("partners", Partner.Type),
+		edge.To("partner_assignments", PartnerAssignment.Type),
 		edge.To("master_data_items", MasterDataItem.Type),
 		edge.To("number_rules", NumberRule.Type),
 		edge.To("status_templates", StatusTemplate.Type),

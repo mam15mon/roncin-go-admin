@@ -12,8 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -36,9 +38,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -108,8 +112,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			administrativeregion.Table:  administrativeregion.ValidColumn,
 			auditlog.Table:              auditlog.ValidColumn,
 			backgroundtask.Table:        backgroundtask.ValidColumn,
+			currency.Table:              currency.ValidColumn,
 			masterdataitem.Table:        masterdataitem.ValidColumn,
 			membership.Table:            membership.ValidColumn,
 			milestonetemplate.Table:     milestonetemplate.ValidColumn,
@@ -132,9 +138,11 @@ func checkColumn(t, c string) error {
 			partner.Table:               partner.ValidColumn,
 			partneraccount.Table:        partneraccount.ValidColumn,
 			partneralias.Table:          partneralias.ValidColumn,
+			partnerassignment.Table:     partnerassignment.ValidColumn,
 			partnerattachment.Table:     partnerattachment.ValidColumn,
 			partnercontact.Table:        partnercontact.ValidColumn,
 			partnercontract.Table:       partnercontract.ValidColumn,
+			partnerprofile.Table:        partnerprofile.ValidColumn,
 			partnerrole.Table:           partnerrole.ValidColumn,
 			partnersettlementrule.Table: partnersettlementrule.ValidColumn,
 			permission.Table:            permission.ValidColumn,
