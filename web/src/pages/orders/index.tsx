@@ -1,6 +1,7 @@
 import {
   ContainerOutlined,
   EditOutlined,
+  FileTextOutlined,
   FlagOutlined,
   InboxOutlined,
   PaperClipOutlined,
@@ -63,6 +64,13 @@ import {
   orderServiceTransitionOrderStatus,
   orderServiceUpdateOrder,
 } from '@/services/roncin/orderService';
+import {
+  orderShippingDocumentServiceAddShippingDocument,
+  orderShippingDocumentServiceListShippingDocuments,
+  orderShippingDocumentServiceRemoveShippingDocument,
+  orderShippingDocumentServiceTransitionShippingDocumentStatus,
+  orderShippingDocumentServiceUpdateShippingDocument,
+} from '@/services/roncin/orderShippingDocumentService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 
 const businessTypeOptions = [
@@ -203,6 +211,22 @@ type CargoItemFormValues = {
   note?: string;
 };
 
+type ShippingDocumentFormValues = {
+  masterNo: string;
+  houseNo: string;
+  releaseType?: string;
+  note?: string;
+};
+
+const shippingDocumentStatusValueEnum: Record<
+  number,
+  { text: string; status: 'Default' | 'Processing' | 'Success' }
+> = {
+  1: { text: '草稿', status: 'Default' },
+  2: { text: '已确认', status: 'Processing' },
+  3: { text: '已放货', status: 'Success' },
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -218,6 +242,8 @@ export default function Orders() {
   const containerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const cargoActionRef = useRef<ActionType | undefined>(undefined);
   const cargoFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const shippingDocumentActionRef = useRef<ActionType | undefined>(undefined);
+  const shippingDocumentFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -234,6 +260,10 @@ export default function Orders() {
   const [containerModalOpen, setContainerModalOpen] = useState(false);
   const [cargoDrawerOpen, setCargoDrawerOpen] = useState(false);
   const [cargoModalOpen, setCargoModalOpen] = useState(false);
+  const [shippingDocumentDrawerOpen, setShippingDocumentDrawerOpen] =
+    useState(false);
+  const [shippingDocumentModalOpen, setShippingDocumentModalOpen] =
+    useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
@@ -242,9 +272,13 @@ export default function Orders() {
   const [personnelOrder, setPersonnelOrder] = useState<API.Order>();
   const [containerOrder, setContainerOrder] = useState<API.Order>();
   const [cargoOrder, setCargoOrder] = useState<API.Order>();
+  const [shippingDocumentOrder, setShippingDocumentOrder] =
+    useState<API.Order>();
   const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
   const [editingContainer, setEditingContainer] = useState<API.OrderContainer>();
   const [editingCargoItem, setEditingCargoItem] = useState<API.OrderCargoItem>();
+  const [editingShippingDocument, setEditingShippingDocument] =
+    useState<API.OrderShippingDocument>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -506,6 +540,150 @@ export default function Orders() {
     });
     setCargoModalOpen(true);
   };
+
+  const openShippingDocuments = (record: API.Order) => {
+    setShippingDocumentOrder(record);
+    setShippingDocumentDrawerOpen(true);
+  };
+
+  const openCreateShippingDocument = () => {
+    setEditingShippingDocument(undefined);
+    shippingDocumentFormRef.current?.resetFields();
+    setShippingDocumentModalOpen(true);
+  };
+
+  const openEditShippingDocument = (record: API.OrderShippingDocument) => {
+    setEditingShippingDocument(record);
+    shippingDocumentFormRef.current?.setFieldsValue({
+      masterNo: record.masterNo,
+      houseNo: record.houseNo,
+      releaseType: record.releaseType,
+      note: record.note,
+    });
+    setShippingDocumentModalOpen(true);
+  };
+
+  const shippingDocumentColumns: ProColumns<API.OrderShippingDocument>[] = [
+    {
+      title: '主单号',
+      dataIndex: 'masterNo',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.masterNo || '-',
+    },
+    {
+      title: '分单号',
+      dataIndex: 'houseNo',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.houseNo || '-',
+    },
+    {
+      title: '放货类型',
+      dataIndex: 'releaseType',
+      ellipsis: true,
+      render: (_, record) => record.releaseType || '-',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      valueType: 'select',
+      valueEnum: shippingDocumentStatusValueEnum,
+      render: (_, record) => {
+        if (record.status === 1) {
+          return <Tag color="default">草稿</Tag>;
+        }
+        if (record.status === 2) {
+          return <Tag color="processing">已确认</Tag>;
+        }
+        if (record.status === 3) {
+          return <Tag color="success">已放货</Tag>;
+        }
+        return '-';
+      },
+    },
+    {
+      title: '备注',
+      dataIndex: 'note',
+      ellipsis: true,
+      render: (_, record) => record.note || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.createdAt
+          ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      search: false,
+      width: 180,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        if (record.status !== 1 && record.status !== 2) return null;
+        const currentText = record.status === 1 ? '草稿' : '已确认';
+        const nextText = record.status === 1 ? '已确认' : '已放货';
+        return (
+          <Space size="small">
+            <Button
+              type="link"
+              size="small"
+              onClick={() => openEditShippingDocument(record)}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title={`确定将提单状态从「${currentText}」流转为「${nextText}」？`}
+              onConfirm={async () => {
+                if (!shippingDocumentOrder?.id || !record.id || !record.status)
+                  return;
+                const toStatus = record.status === 1 ? 2 : 3;
+                await orderShippingDocumentServiceTransitionShippingDocumentStatus(
+                  {
+                    orderId: shippingDocumentOrder.id,
+                    id: record.id,
+                  },
+                  {
+                    orderId: shippingDocumentOrder.id,
+                    id: record.id,
+                    expectedStatus: record.status,
+                    toStatus,
+                  },
+                );
+                message.success('流转提单状态成功');
+                shippingDocumentActionRef.current?.reload();
+              }}
+            >
+              <Button type="link" size="small">
+                流转
+              </Button>
+            </Popconfirm>
+            <Popconfirm
+              title="确定移除该提单？"
+              onConfirm={async () => {
+                if (!shippingDocumentOrder?.id || !record.id) return;
+                await orderShippingDocumentServiceRemoveShippingDocument({
+                  orderId: shippingDocumentOrder.id,
+                  id: record.id,
+                });
+                message.success('移除提单成功');
+                shippingDocumentActionRef.current?.reload();
+              }}
+            >
+              <Button type="link" danger size="small">
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
 
   const containerColumns: ProColumns<API.OrderContainer>[] = [
     {
@@ -923,7 +1101,7 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 480,
+      width: 540,
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
@@ -987,6 +1165,14 @@ export default function Orders() {
               onClick={() => openCargoItems(record)}
             >
               货物
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<FileTextOutlined />}
+              onClick={() => openShippingDocuments(record)}
+            >
+              提单
             </Button>
           </Space>
         );
@@ -2090,6 +2276,136 @@ export default function Orders() {
           label="净重(KG)"
           min={0.001}
           placeholder="请输入净重 (可选)"
+        />
+        <ProFormTextArea
+          name="note"
+          label="备注"
+          placeholder="请输入备注 (可选)"
+          fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          shippingDocumentOrder
+            ? `订单提单 - ${shippingDocumentOrder.orderNo || shippingDocumentOrder.id}`
+            : '订单提单'
+        }
+        open={shippingDocumentDrawerOpen}
+        onClose={() => {
+          setShippingDocumentDrawerOpen(false);
+          setShippingDocumentOrder(undefined);
+        }}
+        width={900}
+        destroyOnHidden
+      >
+        {shippingDocumentOrder?.id && (
+          <ProTable<API.OrderShippingDocument>
+            actionRef={shippingDocumentActionRef}
+            rowKey="id"
+            columns={shippingDocumentColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response =
+                await orderShippingDocumentServiceListShippingDocuments({
+                  orderId: shippingDocumentOrder.id as string,
+                });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateShippingDocument}
+                >
+                  添加提单
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<ShippingDocumentFormValues>
+        title={editingShippingDocument ? '编辑提单' : '添加提单'}
+        open={shippingDocumentModalOpen}
+        formRef={shippingDocumentFormRef}
+        initialValues={
+          editingShippingDocument
+            ? {
+                masterNo: editingShippingDocument.masterNo,
+                houseNo: editingShippingDocument.houseNo,
+                releaseType: editingShippingDocument.releaseType,
+                note: editingShippingDocument.note,
+              }
+            : undefined
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 560,
+          onCancel: () => setShippingDocumentModalOpen(false),
+        }}
+        onOpenChange={setShippingDocumentModalOpen}
+        onFinish={async (values) => {
+          if (!shippingDocumentOrder?.id) return false;
+          if (editingShippingDocument?.id) {
+            await orderShippingDocumentServiceUpdateShippingDocument(
+              {
+                orderId: shippingDocumentOrder.id,
+                id: editingShippingDocument.id,
+              },
+              {
+                orderId: shippingDocumentOrder.id,
+                id: editingShippingDocument.id,
+                masterNo: values.masterNo.trim(),
+                houseNo: values.houseNo.trim(),
+                releaseType: values.releaseType?.trim() || undefined,
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('更新提单成功');
+          } else {
+            await orderShippingDocumentServiceAddShippingDocument(
+              {
+                orderId: shippingDocumentOrder.id,
+              },
+              {
+                orderId: shippingDocumentOrder.id,
+                masterNo: values.masterNo.trim(),
+                houseNo: values.houseNo.trim(),
+                releaseType: values.releaseType?.trim() || undefined,
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('添加提单成功');
+          }
+          setShippingDocumentModalOpen(false);
+          shippingDocumentActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="masterNo"
+          label="主单号"
+          placeholder="请输入主单号"
+          rules={[{ required: true, message: '请输入主单号' }]}
+        />
+        <ProFormText
+          name="houseNo"
+          label="分单号"
+          placeholder="请输入分单号"
+          rules={[{ required: true, message: '请输入分单号' }]}
+        />
+        <ProFormText
+          name="releaseType"
+          label="放货类型"
+          placeholder="请输入放货类型 (可选)"
         />
         <ProFormTextArea
           name="note"
