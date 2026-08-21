@@ -19,6 +19,8 @@ const (
 	MasterDataManage   = "system.master_data.manage"
 	OrderRead          = "business.order.read"
 	OrderManage        = "business.order.manage"
+	TaskRead           = "system.task.read"
+	TaskManage         = "system.task.manage"
 )
 
 var manifest = []Permission{
@@ -33,6 +35,8 @@ var manifest = []Permission{
 	{Key: MasterDataManage, Name: "管理主数据", Group: "系统管理", Description: "维护币种、地区、港口、机场和订单基础目录"},
 	{Key: OrderRead, Name: "查看订单", Group: "订单管理", Description: "查看当前组织的订单"},
 	{Key: OrderManage, Name: "管理订单", Group: "订单管理", Description: "创建、编辑和流转当前组织的订单"},
+	{Key: TaskRead, Name: "查看后台任务", Group: "系统管理", Description: "查看当前组织的后台任务执行状态"},
+	{Key: TaskManage, Name: "管理后台任务", Group: "系统管理", Description: "回放当前组织的失败或死信后台任务"},
 }
 
 func Manifest() []Permission { return append([]Permission(nil), manifest...) }

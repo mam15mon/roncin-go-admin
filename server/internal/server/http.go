@@ -12,6 +12,7 @@ import (
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
+	taskv1 "github.com/roncin/roncin-go-admin/server/api/task/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
@@ -23,7 +24,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -60,6 +61,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderMilestoneServiceHTTPServer(srv, milestones)
 	orderv1.RegisterOrderAttachmentServiceHTTPServer(srv, orderAttachment)
 	orderv1.RegisterOrderPersonnelServiceHTTPServer(srv, orderPersonnel)
+	taskv1.RegisterBackgroundTaskServiceHTTPServer(srv, backgroundTask)
 	registerHealthHandlers(srv, readiness)
 	srv.HandlePrefix("/", webassets.Handler())
 	return srv

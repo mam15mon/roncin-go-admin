@@ -9,6 +9,7 @@ import (
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
+	taskv1 "github.com/roncin/roncin-go-admin/server/api/task/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
@@ -19,7 +20,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -47,5 +48,6 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderMilestoneServiceServer(srv, milestones)
 	orderv1.RegisterOrderAttachmentServiceServer(srv, orderAttachment)
 	orderv1.RegisterOrderPersonnelServiceServer(srv, orderPersonnel)
+	taskv1.RegisterBackgroundTaskServiceServer(srv, backgroundTask)
 	return srv
 }

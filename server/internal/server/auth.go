@@ -10,6 +10,7 @@ import (
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
+	taskv1 "github.com/roncin/roncin-go-admin/server/api/task/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
@@ -98,6 +99,9 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		orderv1.OperationOrderPersonnelServiceListPersonnel:                {key: access.OrderRead, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderPersonnelServiceAssignPersonnel:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderPersonnelServiceRemovePersonnel:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		taskv1.OperationBackgroundTaskServiceListBackgroundTasks:           {key: access.TaskRead, scope: biz.DataScopeOrganization},
+		taskv1.OperationBackgroundTaskServiceGetBackgroundTask:             {key: access.TaskRead, scope: biz.DataScopeOrganization},
+		taskv1.OperationBackgroundTaskServiceRequeueBackgroundTask:         {key: access.TaskManage, scope: biz.DataScopeOrganization},
 	}
 
 	return func(handler middleware.Handler) middleware.Handler {
