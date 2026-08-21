@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
@@ -127,6 +128,21 @@ func (_c *OrderShippingDocumentCreate) SetNillableID(v *uuid.UUID) *OrderShippin
 // SetOrder sets the "order" edge to the Order entity.
 func (_c *OrderShippingDocumentCreate) SetOrder(v *Order) *OrderShippingDocumentCreate {
 	return _c.SetOrderID(v.ID)
+}
+
+// AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
+func (_c *OrderShippingDocumentCreate) AddContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentCreate {
+	_c.mutation.AddContainerIDs(ids...)
+	return _c
+}
+
+// AddContainers adds the "containers" edges to the OrderContainer entity.
+func (_c *OrderShippingDocumentCreate) AddContainers(v ...*OrderContainer) *OrderShippingDocumentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddContainerIDs(ids...)
 }
 
 // Mutation returns the OrderShippingDocumentMutation object of the builder.
@@ -308,6 +324,22 @@ func (_c *OrderShippingDocumentCreate) createSpec() (*OrderShippingDocument, *sq
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrderID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ContainersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ordershippingdocument.ContainersTable,
+			Columns: []string{ordershippingdocument.ContainersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

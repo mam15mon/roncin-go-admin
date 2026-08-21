@@ -2795,6 +2795,22 @@ func (c *OrderContainerClient) QueryOrder(_m *OrderContainer) *OrderQuery {
 	return query
 }
 
+// QueryShippingDocument queries the shipping_document edge of a OrderContainer.
+func (c *OrderContainerClient) QueryShippingDocument(_m *OrderContainer) *OrderShippingDocumentQuery {
+	query := (&OrderShippingDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercontainer.Table, ordercontainer.FieldID, id),
+			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercontainer.ShippingDocumentTable, ordercontainer.ShippingDocumentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderContainerClient) Hooks() []Hook {
 	return c.hooks.OrderContainer
@@ -3400,6 +3416,22 @@ func (c *OrderShippingDocumentClient) QueryOrder(_m *OrderShippingDocument) *Ord
 			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.OrderTable, ordershippingdocument.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContainers queries the containers edge of a OrderShippingDocument.
+func (c *OrderShippingDocumentClient) QueryContainers(_m *OrderShippingDocument) *OrderContainerQuery {
+	query := (&OrderContainerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, id),
+			sqlgraph.To(ordercontainer.Table, ordercontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ordershippingdocument.ContainersTable, ordershippingdocument.ContainersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

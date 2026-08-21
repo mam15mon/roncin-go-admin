@@ -20,16 +20,17 @@ var (
 )
 
 type OrderContainer struct {
-	ID              uuid.UUID
-	OrderID         uuid.UUID
-	ContainerNo     string
-	ContainerSpecID uuid.UUID
-	SealNo          *string
-	GrossWeightKg   float64
-	VolumeCbm       float64
-	Note            *string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                 uuid.UUID
+	OrderID            uuid.UUID
+	ContainerNo        string
+	ContainerSpecID    uuid.UUID
+	ShippingDocumentID *uuid.UUID
+	SealNo             *string
+	GrossWeightKg      float64
+	VolumeCbm          float64
+	Note               *string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type OrderContainerRepo interface {

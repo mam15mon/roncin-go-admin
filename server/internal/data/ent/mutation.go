@@ -14775,25 +14775,27 @@ func (m *OrderCargoItemMutation) ResetEdge(name string) error {
 // OrderContainerMutation represents an operation that mutates the OrderContainer nodes in the graph.
 type OrderContainerMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	container_no       *string
-	container_spec_id  *uuid.UUID
-	seal_no            *string
-	gross_weight_kg    *float64
-	addgross_weight_kg *float64
-	volume_cbm         *float64
-	addvolume_cbm      *float64
-	note               *string
-	clearedFields      map[string]struct{}
-	_order             *uuid.UUID
-	cleared_order      bool
-	done               bool
-	oldValue           func(context.Context) (*OrderContainer, error)
-	predicates         []predicate.OrderContainer
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	container_no             *string
+	container_spec_id        *uuid.UUID
+	seal_no                  *string
+	gross_weight_kg          *float64
+	addgross_weight_kg       *float64
+	volume_cbm               *float64
+	addvolume_cbm            *float64
+	note                     *string
+	clearedFields            map[string]struct{}
+	_order                   *uuid.UUID
+	cleared_order            bool
+	shipping_document        *uuid.UUID
+	clearedshipping_document bool
+	done                     bool
+	oldValue                 func(context.Context) (*OrderContainer, error)
+	predicates               []predicate.OrderContainer
 }
 
 var _ ent.Mutation = (*OrderContainerMutation)(nil)
@@ -15080,6 +15082,55 @@ func (m *OrderContainerMutation) ResetContainerSpecID() {
 	m.container_spec_id = nil
 }
 
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (m *OrderContainerMutation) SetShippingDocumentID(u uuid.UUID) {
+	m.shipping_document = &u
+}
+
+// ShippingDocumentID returns the value of the "shipping_document_id" field in the mutation.
+func (m *OrderContainerMutation) ShippingDocumentID() (r uuid.UUID, exists bool) {
+	v := m.shipping_document
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShippingDocumentID returns the old "shipping_document_id" field's value of the OrderContainer entity.
+// If the OrderContainer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderContainerMutation) OldShippingDocumentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShippingDocumentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShippingDocumentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShippingDocumentID: %w", err)
+	}
+	return oldValue.ShippingDocumentID, nil
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (m *OrderContainerMutation) ClearShippingDocumentID() {
+	m.shipping_document = nil
+	m.clearedFields[ordercontainer.FieldShippingDocumentID] = struct{}{}
+}
+
+// ShippingDocumentIDCleared returns if the "shipping_document_id" field was cleared in this mutation.
+func (m *OrderContainerMutation) ShippingDocumentIDCleared() bool {
+	_, ok := m.clearedFields[ordercontainer.FieldShippingDocumentID]
+	return ok
+}
+
+// ResetShippingDocumentID resets all changes to the "shipping_document_id" field.
+func (m *OrderContainerMutation) ResetShippingDocumentID() {
+	m.shipping_document = nil
+	delete(m.clearedFields, ordercontainer.FieldShippingDocumentID)
+}
+
 // SetSealNo sets the "seal_no" field.
 func (m *OrderContainerMutation) SetSealNo(s string) {
 	m.seal_no = &s
@@ -15317,6 +15368,33 @@ func (m *OrderContainerMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
+// ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
+func (m *OrderContainerMutation) ClearShippingDocument() {
+	m.clearedshipping_document = true
+	m.clearedFields[ordercontainer.FieldShippingDocumentID] = struct{}{}
+}
+
+// ShippingDocumentCleared reports if the "shipping_document" edge to the OrderShippingDocument entity was cleared.
+func (m *OrderContainerMutation) ShippingDocumentCleared() bool {
+	return m.ShippingDocumentIDCleared() || m.clearedshipping_document
+}
+
+// ShippingDocumentIDs returns the "shipping_document" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingDocumentID instead. It exists only for internal usage by the builders.
+func (m *OrderContainerMutation) ShippingDocumentIDs() (ids []uuid.UUID) {
+	if id := m.shipping_document; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingDocument resets all changes to the "shipping_document" edge.
+func (m *OrderContainerMutation) ResetShippingDocument() {
+	m.shipping_document = nil
+	m.clearedshipping_document = false
+}
+
 // Where appends a list predicates to the OrderContainerMutation builder.
 func (m *OrderContainerMutation) Where(ps ...predicate.OrderContainer) {
 	m.predicates = append(m.predicates, ps...)
@@ -15351,7 +15429,7 @@ func (m *OrderContainerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderContainerMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, ordercontainer.FieldCreatedAt)
 	}
@@ -15366,6 +15444,9 @@ func (m *OrderContainerMutation) Fields() []string {
 	}
 	if m.container_spec_id != nil {
 		fields = append(fields, ordercontainer.FieldContainerSpecID)
+	}
+	if m.shipping_document != nil {
+		fields = append(fields, ordercontainer.FieldShippingDocumentID)
 	}
 	if m.seal_no != nil {
 		fields = append(fields, ordercontainer.FieldSealNo)
@@ -15397,6 +15478,8 @@ func (m *OrderContainerMutation) Field(name string) (ent.Value, bool) {
 		return m.ContainerNo()
 	case ordercontainer.FieldContainerSpecID:
 		return m.ContainerSpecID()
+	case ordercontainer.FieldShippingDocumentID:
+		return m.ShippingDocumentID()
 	case ordercontainer.FieldSealNo:
 		return m.SealNo()
 	case ordercontainer.FieldGrossWeightKg:
@@ -15424,6 +15507,8 @@ func (m *OrderContainerMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldContainerNo(ctx)
 	case ordercontainer.FieldContainerSpecID:
 		return m.OldContainerSpecID(ctx)
+	case ordercontainer.FieldShippingDocumentID:
+		return m.OldShippingDocumentID(ctx)
 	case ordercontainer.FieldSealNo:
 		return m.OldSealNo(ctx)
 	case ordercontainer.FieldGrossWeightKg:
@@ -15475,6 +15560,13 @@ func (m *OrderContainerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContainerSpecID(v)
+		return nil
+	case ordercontainer.FieldShippingDocumentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShippingDocumentID(v)
 		return nil
 	case ordercontainer.FieldSealNo:
 		v, ok := value.(string)
@@ -15561,6 +15653,9 @@ func (m *OrderContainerMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderContainerMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(ordercontainer.FieldShippingDocumentID) {
+		fields = append(fields, ordercontainer.FieldShippingDocumentID)
+	}
 	if m.FieldCleared(ordercontainer.FieldSealNo) {
 		fields = append(fields, ordercontainer.FieldSealNo)
 	}
@@ -15581,6 +15676,9 @@ func (m *OrderContainerMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderContainerMutation) ClearField(name string) error {
 	switch name {
+	case ordercontainer.FieldShippingDocumentID:
+		m.ClearShippingDocumentID()
+		return nil
 	case ordercontainer.FieldSealNo:
 		m.ClearSealNo()
 		return nil
@@ -15610,6 +15708,9 @@ func (m *OrderContainerMutation) ResetField(name string) error {
 	case ordercontainer.FieldContainerSpecID:
 		m.ResetContainerSpecID()
 		return nil
+	case ordercontainer.FieldShippingDocumentID:
+		m.ResetShippingDocumentID()
+		return nil
 	case ordercontainer.FieldSealNo:
 		m.ResetSealNo()
 		return nil
@@ -15628,9 +15729,12 @@ func (m *OrderContainerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderContainerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._order != nil {
 		edges = append(edges, ordercontainer.EdgeOrder)
+	}
+	if m.shipping_document != nil {
+		edges = append(edges, ordercontainer.EdgeShippingDocument)
 	}
 	return edges
 }
@@ -15643,13 +15747,17 @@ func (m *OrderContainerMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case ordercontainer.EdgeShippingDocument:
+		if id := m.shipping_document; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderContainerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -15661,9 +15769,12 @@ func (m *OrderContainerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderContainerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_order {
 		edges = append(edges, ordercontainer.EdgeOrder)
+	}
+	if m.clearedshipping_document {
+		edges = append(edges, ordercontainer.EdgeShippingDocument)
 	}
 	return edges
 }
@@ -15674,6 +15785,8 @@ func (m *OrderContainerMutation) EdgeCleared(name string) bool {
 	switch name {
 	case ordercontainer.EdgeOrder:
 		return m.cleared_order
+	case ordercontainer.EdgeShippingDocument:
+		return m.clearedshipping_document
 	}
 	return false
 }
@@ -15685,6 +15798,9 @@ func (m *OrderContainerMutation) ClearEdge(name string) error {
 	case ordercontainer.EdgeOrder:
 		m.ClearOrder()
 		return nil
+	case ordercontainer.EdgeShippingDocument:
+		m.ClearShippingDocument()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer unique edge %s", name)
 }
@@ -15695,6 +15811,9 @@ func (m *OrderContainerMutation) ResetEdge(name string) error {
 	switch name {
 	case ordercontainer.EdgeOrder:
 		m.ResetOrder()
+		return nil
+	case ordercontainer.EdgeShippingDocument:
+		m.ResetShippingDocument()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer edge %s", name)
@@ -17869,22 +17988,25 @@ func (m *OrderServiceTypeMutation) ResetEdge(name string) error {
 // OrderShippingDocumentMutation represents an operation that mutates the OrderShippingDocument nodes in the graph.
 type OrderShippingDocumentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	master_no     *string
-	house_no      *string
-	release_type  *string
-	status        *ordershippingdocument.Status
-	note          *string
-	clearedFields map[string]struct{}
-	_order        *uuid.UUID
-	cleared_order bool
-	done          bool
-	oldValue      func(context.Context) (*OrderShippingDocument, error)
-	predicates    []predicate.OrderShippingDocument
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	created_at        *time.Time
+	updated_at        *time.Time
+	master_no         *string
+	house_no          *string
+	release_type      *string
+	status            *ordershippingdocument.Status
+	note              *string
+	clearedFields     map[string]struct{}
+	_order            *uuid.UUID
+	cleared_order     bool
+	containers        map[uuid.UUID]struct{}
+	removedcontainers map[uuid.UUID]struct{}
+	clearedcontainers bool
+	done              bool
+	oldValue          func(context.Context) (*OrderShippingDocument, error)
+	predicates        []predicate.OrderShippingDocument
 }
 
 var _ ent.Mutation = (*OrderShippingDocumentMutation)(nil)
@@ -18332,6 +18454,60 @@ func (m *OrderShippingDocumentMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
+// AddContainerIDs adds the "containers" edge to the OrderContainer entity by ids.
+func (m *OrderShippingDocumentMutation) AddContainerIDs(ids ...uuid.UUID) {
+	if m.containers == nil {
+		m.containers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.containers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearContainers clears the "containers" edge to the OrderContainer entity.
+func (m *OrderShippingDocumentMutation) ClearContainers() {
+	m.clearedcontainers = true
+}
+
+// ContainersCleared reports if the "containers" edge to the OrderContainer entity was cleared.
+func (m *OrderShippingDocumentMutation) ContainersCleared() bool {
+	return m.clearedcontainers
+}
+
+// RemoveContainerIDs removes the "containers" edge to the OrderContainer entity by IDs.
+func (m *OrderShippingDocumentMutation) RemoveContainerIDs(ids ...uuid.UUID) {
+	if m.removedcontainers == nil {
+		m.removedcontainers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.containers, ids[i])
+		m.removedcontainers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContainers returns the removed IDs of the "containers" edge to the OrderContainer entity.
+func (m *OrderShippingDocumentMutation) RemovedContainersIDs() (ids []uuid.UUID) {
+	for id := range m.removedcontainers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ContainersIDs returns the "containers" edge IDs in the mutation.
+func (m *OrderShippingDocumentMutation) ContainersIDs() (ids []uuid.UUID) {
+	for id := range m.containers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetContainers resets all changes to the "containers" edge.
+func (m *OrderShippingDocumentMutation) ResetContainers() {
+	m.containers = nil
+	m.clearedcontainers = false
+	m.removedcontainers = nil
+}
+
 // Where appends a list predicates to the OrderShippingDocumentMutation builder.
 func (m *OrderShippingDocumentMutation) Where(ps ...predicate.OrderShippingDocument) {
 	m.predicates = append(m.predicates, ps...)
@@ -18599,9 +18775,12 @@ func (m *OrderShippingDocumentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderShippingDocumentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._order != nil {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
+	}
+	if m.containers != nil {
+		edges = append(edges, ordershippingdocument.EdgeContainers)
 	}
 	return edges
 }
@@ -18614,27 +18793,47 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case ordershippingdocument.EdgeContainers:
+		ids := make([]ent.Value, 0, len(m.containers))
+		for id := range m.containers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedcontainers != nil {
+		edges = append(edges, ordershippingdocument.EdgeContainers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case ordershippingdocument.EdgeContainers:
+		ids := make([]ent.Value, 0, len(m.removedcontainers))
+		for id := range m.removedcontainers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderShippingDocumentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_order {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
+	}
+	if m.clearedcontainers {
+		edges = append(edges, ordershippingdocument.EdgeContainers)
 	}
 	return edges
 }
@@ -18645,6 +18844,8 @@ func (m *OrderShippingDocumentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		return m.cleared_order
+	case ordershippingdocument.EdgeContainers:
+		return m.clearedcontainers
 	}
 	return false
 }
@@ -18666,6 +18867,9 @@ func (m *OrderShippingDocumentMutation) ResetEdge(name string) error {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		m.ResetOrder()
+		return nil
+	case ordershippingdocument.EdgeContainers:
+		m.ResetContainers()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderShippingDocument edge %s", name)

@@ -28,6 +28,7 @@ func (OrderShippingDocument) Fields() []ent.Field {
 func (OrderShippingDocument) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).Ref("shipping_documents").Field("order_id").Unique().Required(),
+		edge.To("containers", OrderContainer.Type),
 	}
 }
 

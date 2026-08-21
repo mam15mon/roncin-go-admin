@@ -2980,6 +2980,8 @@ components:
                     type: string
                 containerSpecId:
                     type: string
+                shippingDocumentId:
+                    type: string
                 sealNo:
                     type: string
                 grossWeightKg:
@@ -3420,6 +3422,8 @@ components:
                     type: string
                 containerSpecId:
                     type: string
+                shippingDocumentId:
+                    type: string
                 sealNo:
                     type: string
                 grossWeightKg:
@@ -3851,6 +3855,8 @@ components:
                 containerNo:
                     type: string
                 containerSpecId:
+                    type: string
+                shippingDocumentId:
                     type: string
                 sealNo:
                     type: string

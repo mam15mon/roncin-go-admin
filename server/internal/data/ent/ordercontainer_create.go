@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
 // OrderContainerCreate is the builder for creating a OrderContainer entity.
@@ -65,6 +66,20 @@ func (_c *OrderContainerCreate) SetContainerNo(v string) *OrderContainerCreate {
 // SetContainerSpecID sets the "container_spec_id" field.
 func (_c *OrderContainerCreate) SetContainerSpecID(v uuid.UUID) *OrderContainerCreate {
 	_c.mutation.SetContainerSpecID(v)
+	return _c
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (_c *OrderContainerCreate) SetShippingDocumentID(v uuid.UUID) *OrderContainerCreate {
+	_c.mutation.SetShippingDocumentID(v)
+	return _c
+}
+
+// SetNillableShippingDocumentID sets the "shipping_document_id" field if the given value is not nil.
+func (_c *OrderContainerCreate) SetNillableShippingDocumentID(v *uuid.UUID) *OrderContainerCreate {
+	if v != nil {
+		_c.SetShippingDocumentID(*v)
+	}
 	return _c
 }
 
@@ -125,6 +140,11 @@ func (_c *OrderContainerCreate) SetNillableID(v *uuid.UUID) *OrderContainerCreat
 // SetOrder sets the "order" edge to the Order entity.
 func (_c *OrderContainerCreate) SetOrder(v *Order) *OrderContainerCreate {
 	return _c.SetOrderID(v.ID)
+}
+
+// SetShippingDocument sets the "shipping_document" edge to the OrderShippingDocument entity.
+func (_c *OrderContainerCreate) SetShippingDocument(v *OrderShippingDocument) *OrderContainerCreate {
+	return _c.SetShippingDocumentID(v.ID)
 }
 
 // Mutation returns the OrderContainerMutation object of the builder.
@@ -309,6 +329,23 @@ func (_c *OrderContainerCreate) createSpec() (*OrderContainer, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrderID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingDocumentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.ShippingDocumentTable,
+			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ShippingDocumentID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -75,6 +76,26 @@ func (_u *OrderContainerUpdate) SetNillableContainerSpecID(v *uuid.UUID) *OrderC
 	if v != nil {
 		_u.SetContainerSpecID(*v)
 	}
+	return _u
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (_u *OrderContainerUpdate) SetShippingDocumentID(v uuid.UUID) *OrderContainerUpdate {
+	_u.mutation.SetShippingDocumentID(v)
+	return _u
+}
+
+// SetNillableShippingDocumentID sets the "shipping_document_id" field if the given value is not nil.
+func (_u *OrderContainerUpdate) SetNillableShippingDocumentID(v *uuid.UUID) *OrderContainerUpdate {
+	if v != nil {
+		_u.SetShippingDocumentID(*v)
+	}
+	return _u
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (_u *OrderContainerUpdate) ClearShippingDocumentID() *OrderContainerUpdate {
+	_u.mutation.ClearShippingDocumentID()
 	return _u
 }
 
@@ -165,6 +186,11 @@ func (_u *OrderContainerUpdate) SetOrder(v *Order) *OrderContainerUpdate {
 	return _u.SetOrderID(v.ID)
 }
 
+// SetShippingDocument sets the "shipping_document" edge to the OrderShippingDocument entity.
+func (_u *OrderContainerUpdate) SetShippingDocument(v *OrderShippingDocument) *OrderContainerUpdate {
+	return _u.SetShippingDocumentID(v.ID)
+}
+
 // Mutation returns the OrderContainerMutation object of the builder.
 func (_u *OrderContainerUpdate) Mutation() *OrderContainerMutation {
 	return _u.mutation
@@ -173,6 +199,12 @@ func (_u *OrderContainerUpdate) Mutation() *OrderContainerMutation {
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderContainerUpdate) ClearOrder() *OrderContainerUpdate {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
+func (_u *OrderContainerUpdate) ClearShippingDocument() *OrderContainerUpdate {
+	_u.mutation.ClearShippingDocument()
 	return _u
 }
 
@@ -319,6 +351,35 @@ func (_u *OrderContainerUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ShippingDocumentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.ShippingDocumentTable,
+			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingDocumentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.ShippingDocumentTable,
+			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{ordercontainer.Label}
@@ -384,6 +445,26 @@ func (_u *OrderContainerUpdateOne) SetNillableContainerSpecID(v *uuid.UUID) *Ord
 	if v != nil {
 		_u.SetContainerSpecID(*v)
 	}
+	return _u
+}
+
+// SetShippingDocumentID sets the "shipping_document_id" field.
+func (_u *OrderContainerUpdateOne) SetShippingDocumentID(v uuid.UUID) *OrderContainerUpdateOne {
+	_u.mutation.SetShippingDocumentID(v)
+	return _u
+}
+
+// SetNillableShippingDocumentID sets the "shipping_document_id" field if the given value is not nil.
+func (_u *OrderContainerUpdateOne) SetNillableShippingDocumentID(v *uuid.UUID) *OrderContainerUpdateOne {
+	if v != nil {
+		_u.SetShippingDocumentID(*v)
+	}
+	return _u
+}
+
+// ClearShippingDocumentID clears the value of the "shipping_document_id" field.
+func (_u *OrderContainerUpdateOne) ClearShippingDocumentID() *OrderContainerUpdateOne {
+	_u.mutation.ClearShippingDocumentID()
 	return _u
 }
 
@@ -474,6 +555,11 @@ func (_u *OrderContainerUpdateOne) SetOrder(v *Order) *OrderContainerUpdateOne {
 	return _u.SetOrderID(v.ID)
 }
 
+// SetShippingDocument sets the "shipping_document" edge to the OrderShippingDocument entity.
+func (_u *OrderContainerUpdateOne) SetShippingDocument(v *OrderShippingDocument) *OrderContainerUpdateOne {
+	return _u.SetShippingDocumentID(v.ID)
+}
+
 // Mutation returns the OrderContainerMutation object of the builder.
 func (_u *OrderContainerUpdateOne) Mutation() *OrderContainerMutation {
 	return _u.mutation
@@ -482,6 +568,12 @@ func (_u *OrderContainerUpdateOne) Mutation() *OrderContainerMutation {
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderContainerUpdateOne) ClearOrder() *OrderContainerUpdateOne {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearShippingDocument clears the "shipping_document" edge to the OrderShippingDocument entity.
+func (_u *OrderContainerUpdateOne) ClearShippingDocument() *OrderContainerUpdateOne {
+	_u.mutation.ClearShippingDocument()
 	return _u
 }
 
@@ -651,6 +743,35 @@ func (_u *OrderContainerUpdateOne) sqlSave(ctx context.Context) (_node *OrderCon
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingDocumentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.ShippingDocumentTable,
+			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingDocumentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercontainer.ShippingDocumentTable,
+			Columns: []string{ordercontainer.ShippingDocumentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

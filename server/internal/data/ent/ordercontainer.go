@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
 // OrderContainer is the model entity for the OrderContainer schema.
@@ -29,6 +30,8 @@ type OrderContainer struct {
 	ContainerNo string `json:"container_no,omitempty"`
 	// ContainerSpecID holds the value of the "container_spec_id" field.
 	ContainerSpecID uuid.UUID `json:"container_spec_id,omitempty"`
+	// ShippingDocumentID holds the value of the "shipping_document_id" field.
+	ShippingDocumentID *uuid.UUID `json:"shipping_document_id,omitempty"`
 	// SealNo holds the value of the "seal_no" field.
 	SealNo string `json:"seal_no,omitempty"`
 	// GrossWeightKg holds the value of the "gross_weight_kg" field.
@@ -47,9 +50,11 @@ type OrderContainer struct {
 type OrderContainerEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
+	// ShippingDocument holds the value of the shipping_document edge.
+	ShippingDocument *OrderShippingDocument `json:"shipping_document,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -63,11 +68,24 @@ func (e OrderContainerEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
+// ShippingDocumentOrErr returns the ShippingDocument value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderContainerEdges) ShippingDocumentOrErr() (*OrderShippingDocument, error) {
+	if e.ShippingDocument != nil {
+		return e.ShippingDocument, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: ordershippingdocument.Label}
+	}
+	return nil, &NotLoadedError{edge: "shipping_document"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OrderContainer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case ordercontainer.FieldShippingDocumentID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case ordercontainer.FieldGrossWeightKg, ordercontainer.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case ordercontainer.FieldContainerNo, ordercontainer.FieldSealNo, ordercontainer.FieldNote:
@@ -127,6 +145,13 @@ func (_m *OrderContainer) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ContainerSpecID = *value
 			}
+		case ordercontainer.FieldShippingDocumentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field shipping_document_id", values[i])
+			} else if value.Valid {
+				_m.ShippingDocumentID = new(uuid.UUID)
+				*_m.ShippingDocumentID = *value.S.(*uuid.UUID)
+			}
 		case ordercontainer.FieldSealNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field seal_no", values[i])
@@ -169,6 +194,11 @@ func (_m *OrderContainer) QueryOrder() *OrderQuery {
 	return NewOrderContainerClient(_m.config).QueryOrder(_m)
 }
 
+// QueryShippingDocument queries the "shipping_document" edge of the OrderContainer entity.
+func (_m *OrderContainer) QueryShippingDocument() *OrderShippingDocumentQuery {
+	return NewOrderContainerClient(_m.config).QueryShippingDocument(_m)
+}
+
 // Update returns a builder for updating this OrderContainer.
 // Note that you need to call OrderContainer.Unwrap() before calling this method if this OrderContainer
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -206,6 +236,11 @@ func (_m *OrderContainer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("container_spec_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ContainerSpecID))
+	builder.WriteString(", ")
+	if v := _m.ShippingDocumentID; v != nil {
+		builder.WriteString("shipping_document_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("seal_no=")
 	builder.WriteString(_m.SealNo)

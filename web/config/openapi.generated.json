@@ -4717,6 +4717,9 @@
           "containerSpecId": {
             "type": "string"
           },
+          "shippingDocumentId": {
+            "type": "string"
+          },
           "sealNo": {
             "type": "string"
           },
@@ -5356,6 +5359,9 @@
           "containerSpecId": {
             "type": "string"
           },
+          "shippingDocumentId": {
+            "type": "string"
+          },
           "sealNo": {
             "type": "string"
           },
@@ -5977,6 +5983,9 @@
             "type": "string"
           },
           "containerSpecId": {
+            "type": "string"
+          },
+          "shippingDocumentId": {
             "type": "string"
           },
           "sealNo": {

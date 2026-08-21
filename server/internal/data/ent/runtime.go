@@ -909,19 +909,19 @@ func init() {
 		}
 	}()
 	// ordercontainerDescSealNo is the schema descriptor for seal_no field.
-	ordercontainerDescSealNo := ordercontainerFields[3].Descriptor()
+	ordercontainerDescSealNo := ordercontainerFields[4].Descriptor()
 	// ordercontainer.SealNoValidator is a validator for the "seal_no" field. It is called by the builders before save.
 	ordercontainer.SealNoValidator = ordercontainerDescSealNo.Validators[0].(func(string) error)
 	// ordercontainerDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	ordercontainerDescGrossWeightKg := ordercontainerFields[4].Descriptor()
+	ordercontainerDescGrossWeightKg := ordercontainerFields[5].Descriptor()
 	// ordercontainer.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	ordercontainer.GrossWeightKgValidator = ordercontainerDescGrossWeightKg.Validators[0].(func(float64) error)
 	// ordercontainerDescVolumeCbm is the schema descriptor for volume_cbm field.
-	ordercontainerDescVolumeCbm := ordercontainerFields[5].Descriptor()
+	ordercontainerDescVolumeCbm := ordercontainerFields[6].Descriptor()
 	// ordercontainer.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	ordercontainer.VolumeCbmValidator = ordercontainerDescVolumeCbm.Validators[0].(func(float64) error)
 	// ordercontainerDescNote is the schema descriptor for note field.
-	ordercontainerDescNote := ordercontainerFields[6].Descriptor()
+	ordercontainerDescNote := ordercontainerFields[7].Descriptor()
 	// ordercontainer.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	ordercontainer.NoteValidator = ordercontainerDescNote.Validators[0].(func(string) error)
 	// ordercontainerDescID is the schema descriptor for id field.

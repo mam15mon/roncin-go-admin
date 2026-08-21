@@ -81,6 +81,11 @@ func ContainerSpecID(v uuid.UUID) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldContainerSpecID, v))
 }
 
+// ShippingDocumentID applies equality check predicate on the "shipping_document_id" field. It's identical to ShippingDocumentIDEQ.
+func ShippingDocumentID(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldShippingDocumentID, v))
+}
+
 // SealNo applies equality check predicate on the "seal_no" field. It's identical to SealNoEQ.
 func SealNo(v string) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldEQ(FieldSealNo, v))
@@ -304,6 +309,36 @@ func ContainerSpecIDLT(v uuid.UUID) predicate.OrderContainer {
 // ContainerSpecIDLTE applies the LTE predicate on the "container_spec_id" field.
 func ContainerSpecIDLTE(v uuid.UUID) predicate.OrderContainer {
 	return predicate.OrderContainer(sql.FieldLTE(FieldContainerSpecID, v))
+}
+
+// ShippingDocumentIDEQ applies the EQ predicate on the "shipping_document_id" field.
+func ShippingDocumentIDEQ(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldEQ(FieldShippingDocumentID, v))
+}
+
+// ShippingDocumentIDNEQ applies the NEQ predicate on the "shipping_document_id" field.
+func ShippingDocumentIDNEQ(v uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNEQ(FieldShippingDocumentID, v))
+}
+
+// ShippingDocumentIDIn applies the In predicate on the "shipping_document_id" field.
+func ShippingDocumentIDIn(vs ...uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldIn(FieldShippingDocumentID, vs...))
+}
+
+// ShippingDocumentIDNotIn applies the NotIn predicate on the "shipping_document_id" field.
+func ShippingDocumentIDNotIn(vs ...uuid.UUID) predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNotIn(FieldShippingDocumentID, vs...))
+}
+
+// ShippingDocumentIDIsNil applies the IsNil predicate on the "shipping_document_id" field.
+func ShippingDocumentIDIsNil() predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldIsNull(FieldShippingDocumentID))
+}
+
+// ShippingDocumentIDNotNil applies the NotNil predicate on the "shipping_document_id" field.
+func ShippingDocumentIDNotNil() predicate.OrderContainer {
+	return predicate.OrderContainer(sql.FieldNotNull(FieldShippingDocumentID))
 }
 
 // SealNoEQ applies the EQ predicate on the "seal_no" field.
@@ -551,6 +586,29 @@ func HasOrder() predicate.OrderContainer {
 func HasOrderWith(preds ...predicate.Order) predicate.OrderContainer {
 	return predicate.OrderContainer(func(s *sql.Selector) {
 		step := newOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingDocument applies the HasEdge predicate on the "shipping_document" edge.
+func HasShippingDocument() predicate.OrderContainer {
+	return predicate.OrderContainer(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingDocumentTable, ShippingDocumentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingDocumentWith applies the HasEdge predicate on the "shipping_document" edge with a given conditions (other predicates).
+func HasShippingDocumentWith(preds ...predicate.OrderShippingDocument) predicate.OrderContainer {
+	return predicate.OrderContainer(func(s *sql.Selector) {
+		step := newShippingDocumentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

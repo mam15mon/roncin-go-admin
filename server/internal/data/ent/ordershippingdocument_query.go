@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -14,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -21,12 +23,13 @@ import (
 // OrderShippingDocumentQuery is the builder for querying OrderShippingDocument entities.
 type OrderShippingDocumentQuery struct {
 	config
-	ctx        *QueryContext
-	order      []ordershippingdocument.OrderOption
-	inters     []Interceptor
-	predicates []predicate.OrderShippingDocument
-	withOrder  *OrderQuery
-	modifiers  []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []ordershippingdocument.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.OrderShippingDocument
+	withOrder      *OrderQuery
+	withContainers *OrderContainerQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +81,28 @@ func (_q *OrderShippingDocumentQuery) QueryOrder() *OrderQuery {
 			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, selector),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.OrderTable, ordershippingdocument.OrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryContainers chains the current query on the "containers" edge.
+func (_q *OrderShippingDocumentQuery) QueryContainers() *OrderContainerQuery {
+	query := (&OrderContainerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, selector),
+			sqlgraph.To(ordercontainer.Table, ordercontainer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ordershippingdocument.ContainersTable, ordershippingdocument.ContainersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -272,12 +297,13 @@ func (_q *OrderShippingDocumentQuery) Clone() *OrderShippingDocumentQuery {
 		return nil
 	}
 	return &OrderShippingDocumentQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]ordershippingdocument.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.OrderShippingDocument{}, _q.predicates...),
-		withOrder:  _q.withOrder.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]ordershippingdocument.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.OrderShippingDocument{}, _q.predicates...),
+		withOrder:      _q.withOrder.Clone(),
+		withContainers: _q.withContainers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -292,6 +318,17 @@ func (_q *OrderShippingDocumentQuery) WithOrder(opts ...func(*OrderQuery)) *Orde
 		opt(query)
 	}
 	_q.withOrder = query
+	return _q
+}
+
+// WithContainers tells the query-builder to eager-load the nodes that are connected to
+// the "containers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderShippingDocumentQuery) WithContainers(opts ...func(*OrderContainerQuery)) *OrderShippingDocumentQuery {
+	query := (&OrderContainerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withContainers = query
 	return _q
 }
 
@@ -373,8 +410,9 @@ func (_q *OrderShippingDocumentQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*OrderShippingDocument{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withOrder != nil,
+			_q.withContainers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +439,13 @@ func (_q *OrderShippingDocumentQuery) sqlAll(ctx context.Context, hooks ...query
 	if query := _q.withOrder; query != nil {
 		if err := _q.loadOrder(ctx, query, nodes, nil,
 			func(n *OrderShippingDocument, e *Order) { n.Edges.Order = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withContainers; query != nil {
+		if err := _q.loadContainers(ctx, query, nodes,
+			func(n *OrderShippingDocument) { n.Edges.Containers = []*OrderContainer{} },
+			func(n *OrderShippingDocument, e *OrderContainer) { n.Edges.Containers = append(n.Edges.Containers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -433,6 +478,39 @@ func (_q *OrderShippingDocumentQuery) loadOrder(ctx context.Context, query *Orde
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *OrderShippingDocumentQuery) loadContainers(ctx context.Context, query *OrderContainerQuery, nodes []*OrderShippingDocument, init func(*OrderShippingDocument), assign func(*OrderShippingDocument, *OrderContainer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderShippingDocument)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(ordercontainer.FieldShippingDocumentID)
+	}
+	query.Where(predicate.OrderContainer(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(ordershippingdocument.ContainersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ShippingDocumentID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "shipping_document_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "shipping_document_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

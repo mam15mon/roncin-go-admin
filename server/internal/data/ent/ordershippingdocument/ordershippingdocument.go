@@ -34,6 +34,8 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeContainers holds the string denoting the containers edge name in mutations.
+	EdgeContainers = "containers"
 	// Table holds the table name of the ordershippingdocument in the database.
 	Table = "order_shipping_documents"
 	// OrderTable is the table that holds the order relation/edge.
@@ -43,6 +45,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// ContainersTable is the table that holds the containers relation/edge.
+	ContainersTable = "order_containers"
+	// ContainersInverseTable is the table name for the OrderContainer entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercontainer" package.
+	ContainersInverseTable = "order_containers"
+	// ContainersColumn is the table column denoting the containers relation/edge.
+	ContainersColumn = "shipping_document_id"
 )
 
 // Columns holds all SQL columns for ordershippingdocument fields.
@@ -168,10 +177,31 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByContainersCount orders the results by containers count.
+func ByContainersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContainersStep(), opts...)
+	}
+}
+
+// ByContainers orders the results by containers terms.
+func ByContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContainersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
+	)
+}
+func newContainersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContainersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
 	)
 }

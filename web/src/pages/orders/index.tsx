@@ -204,6 +204,7 @@ type PersonnelFormValues = {
 type ContainerFormValues = {
   containerNo: string;
   containerSpecId: string;
+  shippingDocumentId?: string;
   sealNo?: string;
   grossWeightKg: number;
   volumeCbm: number;
@@ -295,6 +296,9 @@ export default function Orders() {
   const [attachmentOrder, setAttachmentOrder] = useState<API.Order>();
   const [personnelOrder, setPersonnelOrder] = useState<API.Order>();
   const [containerOrder, setContainerOrder] = useState<API.Order>();
+  const [containerDocuments, setContainerDocuments] = useState<
+    API.OrderShippingDocument[]
+  >([]);
   const [cargoOrder, setCargoOrder] = useState<API.Order>();
   const [shippingDocumentOrder, setShippingDocumentOrder] =
     useState<API.Order>();
@@ -542,7 +546,23 @@ export default function Orders() {
   const openContainers = (record: API.Order) => {
     setContainerOrder(record);
     setContainerDrawerOpen(true);
+    orderShippingDocumentServiceListShippingDocuments({
+      orderId: record.id as string,
+    }).then((res) => {
+      setContainerDocuments(res.data ?? []);
+    });
   };
+
+  const containerDocumentOptions = containerDocuments.map((doc) => ({
+    label: `${doc.masterNo} / ${doc.houseNo}`,
+    value: doc.id ?? '',
+  }));
+
+  const containerDocumentMap = Object.fromEntries(
+    containerDocuments
+      .filter((doc) => doc.id)
+      .map((doc) => [doc.id as string, `${doc.masterNo} / ${doc.houseNo}`]),
+  );
 
   const openCreateContainer = () => {
     setEditingContainer(undefined);
@@ -555,6 +575,7 @@ export default function Orders() {
     containerFormRef.current?.setFieldsValue({
       containerNo: record.containerNo,
       containerSpecId: record.containerSpecId,
+      shippingDocumentId: record.shippingDocumentId,
       sealNo: record.sealNo,
       grossWeightKg: record.grossWeightKg,
       volumeCbm: record.volumeCbm,
@@ -867,6 +888,15 @@ export default function Orders() {
       ellipsis: true,
       render: (_, record) =>
         (record.containerSpecId && containerSpecMap[record.containerSpecId]) ||
+        '-',
+    },
+    {
+      title: '关联提单',
+      dataIndex: 'shippingDocumentId',
+      ellipsis: true,
+      render: (_, record) =>
+        (record.shippingDocumentId &&
+          containerDocumentMap[record.shippingDocumentId]) ||
         '-',
     },
     {
@@ -2208,6 +2238,7 @@ export default function Orders() {
             ? {
                 containerNo: editingContainer.containerNo,
                 containerSpecId: editingContainer.containerSpecId,
+                shippingDocumentId: editingContainer.shippingDocumentId,
                 sealNo: editingContainer.sealNo,
                 grossWeightKg: editingContainer.grossWeightKg,
                 volumeCbm: editingContainer.volumeCbm,
@@ -2234,6 +2265,7 @@ export default function Orders() {
                 orderId: containerOrder.id,
                 containerNo: values.containerNo.trim(),
                 containerSpecId: values.containerSpecId,
+                shippingDocumentId: values.shippingDocumentId || undefined,
                 sealNo: values.sealNo?.trim() || undefined,
                 grossWeightKg: Number(values.grossWeightKg),
                 volumeCbm: Number(values.volumeCbm),
@@ -2250,6 +2282,7 @@ export default function Orders() {
                 orderId: containerOrder.id,
                 containerNo: values.containerNo.trim(),
                 containerSpecId: values.containerSpecId,
+                shippingDocumentId: values.shippingDocumentId || undefined,
                 sealNo: values.sealNo?.trim() || undefined,
                 grossWeightKg: Number(values.grossWeightKg),
                 volumeCbm: Number(values.volumeCbm),
@@ -2275,6 +2308,12 @@ export default function Orders() {
           rules={[{ required: true, message: '请选择箱型' }]}
           options={containerSpecOptions}
           placeholder="请选择箱型"
+        />
+        <ProFormSelect
+          name="shippingDocumentId"
+          label="关联提单"
+          options={containerDocumentOptions}
+          placeholder="请选择关联提单 (可选)"
         />
         <ProFormText
           name="sealNo"

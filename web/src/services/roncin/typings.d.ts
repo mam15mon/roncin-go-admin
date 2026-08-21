@@ -13,6 +13,7 @@ declare namespace API {
     orderId: string;
     containerNo: string;
     containerSpecId: string;
+    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg: number;
     volumeCbm: number;
@@ -809,6 +810,7 @@ declare namespace API {
     orderId?: string;
     containerNo?: string;
     containerSpecId?: string;
+    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg?: number;
     volumeCbm?: number;
@@ -1547,6 +1549,7 @@ declare namespace API {
     id: string;
     containerNo: string;
     containerSpecId: string;
+    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg: number;
     volumeCbm: number;

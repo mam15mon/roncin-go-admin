@@ -663,6 +663,7 @@ var (
 		{Name: "volume_cbm", Type: field.TypeFloat64},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "shipping_document_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrderContainersTable holds the schema information for the "order_containers" table.
 	OrderContainersTable = &schema.Table{
@@ -675,6 +676,12 @@ var (
 				Columns:    []*schema.Column{OrderContainersColumns[9]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_containers_order_shipping_documents_containers",
+				Columns:    []*schema.Column{OrderContainersColumns[10]},
+				RefColumns: []*schema.Column{OrderShippingDocumentsColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -697,6 +704,11 @@ var (
 				Name:    "ordercontainer_container_spec_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrderContainersColumns[4]},
+			},
+			{
+				Name:    "ordercontainer_shipping_document_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainersColumns[10]},
 			},
 		},
 	}
@@ -1715,6 +1727,7 @@ func init() {
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable

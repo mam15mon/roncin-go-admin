@@ -10,6 +10,7 @@ import (
 	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
 type orderContainerRepo struct {
@@ -73,12 +74,18 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
 		return nil, err
 	}
+	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
+		return nil, err
+	}
 	builder := r.data.db.OrderContainer.Create().
 		SetOrderID(orderID).
 		SetContainerNo(input.ContainerNo).
 		SetContainerSpecID(input.ContainerSpecID).
 		SetGrossWeightKg(input.GrossWeightKg).
 		SetVolumeCbm(input.VolumeCbm)
+	if input.ShippingDocumentID != nil {
+		builder.SetShippingDocumentID(*input.ShippingDocumentID)
+	}
 	if input.SealNo != nil {
 		builder.SetSealNo(*input.SealNo)
 	}
@@ -95,11 +102,34 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	return orderContainerToBiz(created), nil
 }
 
+// validateShippingDocument 校验可选的提单引用必须挂在同一订单下。
+func (r *orderContainerRepo) validateShippingDocument(ctx context.Context, orderID uuid.UUID, documentID *uuid.UUID) error {
+	if documentID == nil {
+		return nil
+	}
+	exists, err := r.data.db.OrderShippingDocument.Query().
+		Where(
+			ordershippingdocumentent.IDEQ(*documentID),
+			ordershippingdocumentent.OrderIDEQ(orderID),
+		).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return biz.ErrOrderShippingDocumentNotFound
+	}
+	return nil
+}
+
 func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer) (*biz.OrderContainer, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
+		return nil, err
+	}
+	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
 	item, err := r.data.db.OrderContainer.Query().
@@ -119,6 +149,11 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 		SetContainerSpecID(input.ContainerSpecID).
 		SetGrossWeightKg(input.GrossWeightKg).
 		SetVolumeCbm(input.VolumeCbm)
+	if input.ShippingDocumentID != nil {
+		builder.SetShippingDocumentID(*input.ShippingDocumentID)
+	} else {
+		builder.ClearShippingDocumentID()
+	}
 	if input.SealNo != nil {
 		builder.SetSealNo(*input.SealNo)
 	} else {
@@ -160,14 +195,15 @@ func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID
 
 func orderContainerToBiz(item *ent.OrderContainer) *biz.OrderContainer {
 	result := &biz.OrderContainer{
-		ID:              item.ID,
-		OrderID:         item.OrderID,
-		ContainerNo:     item.ContainerNo,
-		ContainerSpecID: item.ContainerSpecID,
-		GrossWeightKg:   item.GrossWeightKg,
-		VolumeCbm:       item.VolumeCbm,
-		CreatedAt:       item.CreatedAt,
-		UpdatedAt:       item.UpdatedAt,
+		ID:                 item.ID,
+		OrderID:            item.OrderID,
+		ContainerNo:        item.ContainerNo,
+		ContainerSpecID:    item.ContainerSpecID,
+		ShippingDocumentID: item.ShippingDocumentID,
+		GrossWeightKg:      item.GrossWeightKg,
+		VolumeCbm:          item.VolumeCbm,
+		CreatedAt:          item.CreatedAt,
+		UpdatedAt:          item.UpdatedAt,
 	}
 	if item.SealNo != "" {
 		v := item.SealNo

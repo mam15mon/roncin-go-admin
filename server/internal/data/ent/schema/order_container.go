@@ -19,6 +19,7 @@ func (OrderContainer) Fields() []ent.Field {
 		field.UUID("order_id", uuid.Nil),
 		field.String("container_no").NotEmpty().MaxLen(64),
 		field.UUID("container_spec_id", uuid.Nil),
+		field.UUID("shipping_document_id", uuid.Nil).Optional().Nillable(),
 		field.String("seal_no").Optional().MaxLen(64),
 		field.Float("gross_weight_kg").Positive(),
 		field.Float("volume_cbm").Positive(),
@@ -29,6 +30,7 @@ func (OrderContainer) Fields() []ent.Field {
 func (OrderContainer) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).Ref("containers").Field("order_id").Unique().Required(),
+		edge.From("shipping_document", OrderShippingDocument.Type).Ref("containers").Field("shipping_document_id").Unique(),
 	}
 }
 
@@ -37,5 +39,6 @@ func (OrderContainer) Indexes() []ent.Index {
 		index.Fields("order_id", "container_no").Unique(),
 		index.Fields("order_id"),
 		index.Fields("container_spec_id"),
+		index.Fields("shipping_document_id"),
 	}
 }

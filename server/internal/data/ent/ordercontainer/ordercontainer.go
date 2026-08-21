@@ -25,6 +25,8 @@ const (
 	FieldContainerNo = "container_no"
 	// FieldContainerSpecID holds the string denoting the container_spec_id field in the database.
 	FieldContainerSpecID = "container_spec_id"
+	// FieldShippingDocumentID holds the string denoting the shipping_document_id field in the database.
+	FieldShippingDocumentID = "shipping_document_id"
 	// FieldSealNo holds the string denoting the seal_no field in the database.
 	FieldSealNo = "seal_no"
 	// FieldGrossWeightKg holds the string denoting the gross_weight_kg field in the database.
@@ -35,6 +37,8 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeShippingDocument holds the string denoting the shipping_document edge name in mutations.
+	EdgeShippingDocument = "shipping_document"
 	// Table holds the table name of the ordercontainer in the database.
 	Table = "order_containers"
 	// OrderTable is the table that holds the order relation/edge.
@@ -44,6 +48,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// ShippingDocumentTable is the table that holds the shipping_document relation/edge.
+	ShippingDocumentTable = "order_containers"
+	// ShippingDocumentInverseTable is the table name for the OrderShippingDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "ordershippingdocument" package.
+	ShippingDocumentInverseTable = "order_shipping_documents"
+	// ShippingDocumentColumn is the table column denoting the shipping_document relation/edge.
+	ShippingDocumentColumn = "shipping_document_id"
 )
 
 // Columns holds all SQL columns for ordercontainer fields.
@@ -54,6 +65,7 @@ var Columns = []string{
 	FieldOrderID,
 	FieldContainerNo,
 	FieldContainerSpecID,
+	FieldShippingDocumentID,
 	FieldSealNo,
 	FieldGrossWeightKg,
 	FieldVolumeCbm,
@@ -124,6 +136,11 @@ func ByContainerSpecID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContainerSpecID, opts...).ToFunc()
 }
 
+// ByShippingDocumentID orders the results by the shipping_document_id field.
+func ByShippingDocumentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingDocumentID, opts...).ToFunc()
+}
+
 // BySealNo orders the results by the seal_no field.
 func BySealNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSealNo, opts...).ToFunc()
@@ -150,10 +167,24 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByShippingDocumentField orders the results by shipping_document field.
+func ByShippingDocumentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingDocumentStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
+	)
+}
+func newShippingDocumentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingDocumentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingDocumentTable, ShippingDocumentColumn),
 	)
 }
