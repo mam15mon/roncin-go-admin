@@ -22,6 +22,7 @@ export default [
     name: '客户与供应商',
     icon: 'contacts',
     access: 'canReadPartners',
+    hideInMenu: true,
     component: './partners',
   },
   {
@@ -36,6 +37,7 @@ export default [
     name: '主数据',
     icon: 'database',
     access: 'canReadMasterData',
+    hideInMenu: true,
     component: './master-data',
   },
   {
@@ -43,6 +45,7 @@ export default [
     name: '系统管理',
     icon: 'setting',
     access: 'canAccessPlatform',
+    hideInMenu: true,
     component: './admin',
   },
   {
