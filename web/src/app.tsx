@@ -3,6 +3,7 @@ import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import { Result } from 'antd';
 import React from 'react';
+import { HeaderMenus } from '@/components/layout/HeaderMenus';
 import { HeaderTitle } from '@/components/layout/HeaderTitle';
 import { TagsView } from '@/components/layout/TagsView';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
@@ -55,7 +56,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
       dom
     ),
   headerContentRender: () => <HeaderTitle />,
-  actionsRender: () => [<OrganizationSwitcher key="organization" />],
+  actionsRender: () => [
+    <HeaderMenus key="header-menus" />,
+    <OrganizationSwitcher key="organization" />,
+  ],
   avatarProps: {
     title:
       initialState?.currentUser?.displayName ??
