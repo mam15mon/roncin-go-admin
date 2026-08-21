@@ -29,9 +29,9 @@
 | D01 | 认证：`00-auth.prisma` | User、Account、Session、VerificationToken、LoginRateLimitBucket、AccessPolicyCacheEpoch | 部分完成 | P2 | 新会话已落到 Go/Ent；补齐用户管理、会话撤销和登录限流；明确旧密码哈希是否可复用；不复制 JWT 权限快照作为后端安全依据。 |
 | D02 | 组织与 RBAC：`01-org-rbac.prisma` | Organization、RoleGroup、RoleGroupPermission、UserOrganizationAssignment、UserRoleGroupAssignment、AccessImpactSnapshot | 部分完成 | P2/P3 | 新 `Role`/`Permission`/`RoleAssignment` 已有基础模型；必须先完成旧角色组、权限、组织成员和数据范围的映射决策；AccessImpactSnapshot 是否保留需单独判断。 |
 | D03 | 往来单位：`02-party-master.prisma` | Carrier、Party、PartyRole、CustomerProfile、SupplierProfile、AgentProfile、PartyContact、PartyRoleAccount、PartyContract、PartyRoleSettlementRule、PartyAttachment 及日志 | 部分完成 | P5/P6/P7 | Partner 核心、账户、合同、结算规则、附件元数据登记、固定导入导出已完成；默认账户有数据库条件唯一约束，停用账户不能设为默认，合同编号创建后不可变，结算规则组合键唯一且周期字段受领域校验，附件使用组织隔离和幂等键。真实对象存储能力仍留 P7，信用额度仍留 P8 金额模型；因此整体状态仍为‘部分完成’。订单、费用和财务继续只引用 Partner 聚合 ID。 |
-| D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 部分完成 | P6/P7/P8/P9 | 订单核心和里程碑首版已完成；旧 JSON 快照、自定义字段、佣金、利润、财务字段不迁移到订单核心，执行扩展和报关/AE 按后续决策实现。 |
-| D05 | 订单扩展与执行：`04-order-extension.prisma` | OrderContainer、OrderCargoItem、OrderShippingDocument、OrderReleasePod、OrderCollaborator、OrderAbnormalCase、OrderAttachment、OrderAlertTask、OrderPersonnel 等 | 部分完成 | P7 | 附件元数据登记、协作人员闭环、集装箱、货物明细、提单、异常标记与放货凭证首版已完成：提单/放货凭证状态收紧为向前单步流转并带期望状态并发条件，(order_id, master_no) 唯一（修正旧系统可重复主单号），已放货提单与已回单凭证禁改禁删，签收人由服务端记录；异常类型收敛为组织级 abnormal_case 主数据，已解决标记可重新激活；订单状态变更副作用已通过领域事件集中挂载。装载状态、计费重、AE 仓储字段按跟踪事件/P8/M-006 决策后置，不设空列。真实对象存储、跟踪事件、提醒仍未完成，需逐项建模。 |
-| D06 | 报关与 AE 扩展：`04-order-extension.prisma` | OrderCustomsDeclaration、CustomsTaskStatus、OrderAeMonitor、OrderAeTransitInfo、OrderAeInsuranceDraft 及相关枚举 | 未开始 | P6/P7 | 这是独立业务范围，不得因通用订单模型存在而视为自动覆盖；P0 必须决定是否属于 MVP、支持哪些业务类型，以及数据是否迁移。 |
+| D04 | 订单核心：`03-order-core.prisma` | Order、OrderProfile、OrderCustomFieldDefinition、OrderCustomFieldValue、服务/货物字典、OrderMilestone、OrderStatusLog、佣金与利润相关模型 | 部分完成 | P6/P7/P8/P9 | 订单核心和里程碑首版已完成；所有订单统一属于专线订单聚合，SE/SI/AE/AI/LAND/RAIL 只表示线路类型。旧 JSON 快照、自定义字段、佣金、利润、财务字段不迁移到订单核心，执行扩展、报关和线路特有执行信息按后续决策实现。 |
+| D05 | 订单扩展与执行：`04-order-extension.prisma` | OrderContainer、OrderCargoItem、OrderShippingDocument、OrderReleasePod、OrderCollaborator、OrderAbnormalCase、OrderAttachment、OrderAlertTask、OrderPersonnel 等 | 部分完成 | P7 | 附件元数据登记、协作人员闭环、集装箱、货物明细、提单、异常标记与放货凭证首版已完成：提单/放货凭证状态收紧为向前单步流转并带期望状态并发条件，(order_id, master_no) 唯一（修正旧系统可重复主单号），已放货提单与已回单凭证禁改禁删，签收人由服务端记录；异常类型收敛为组织级 abnormal_case 主数据，已解决标记可重新激活；订单状态变更副作用已通过领域事件集中挂载。装载状态、计费重、线路特有仓储字段按跟踪事件/P8/M-006 决策后置，不设空列。真实对象存储、跟踪事件、提醒仍未完成，需逐项建模。 |
+| D06 | 报关与线路特有执行信息：`04-order-extension.prisma` | OrderCustomsDeclaration、CustomsTaskStatus、OrderAeMonitor、OrderAeTransitInfo、OrderAeInsuranceDraft 及相关枚举 | 未开始 | P6/P7 | 这些旧模型不是独立订单域。报关按订单执行能力设计；`OrderAe*` 只表示空运出口线路特有的执行信息，并附着于统一订单聚合。P0 必须决定 MVP 字段范围、适用线路以及数据是否迁移。 |
 | D07 | 费用与账单：`05-finance-billing.prisma`、`08-dictionaries.prisma` | BillingUnit、FeeSetting、TaxableService、Fee、Bill、BillFee、BillOrderLink、FinanceTag、VerificationRecord、PaymentRecord、InvoiceRecord、VerificationAllocation | 未开始 | P8/P9 | 计费单位、费用项和应税服务直接参与金额计算，随财务聚合一起设计；明确应收应付、含税/不含税、税务模式、账单生成后修改、核销和状态日志，金额规则必须在领域层统一。 |
 | D08 | 对账单工作流：`05-finance-billing.prisma` | FinanceStatement、FinanceStatementLineItem、FinanceStatementAuditLog、StatementWorkflowStatus | 未开始 | P9 | 不将“财务工作台”作为默认覆盖；需明确对账单的创建、提交、审核、确认、关闭、撤销和审计流程。 |
 | D09 | 汇率：`06-fx.prisma` | ExchangeRateSetting、ExchangeRatePolicy、FxRateQuote、FxQuoteRevision、FxSnapshotRevision、BillFxSnapshotRevision、ChargeLineFxOverride、FxApproval | 未开始 | P8 前置 | 先完成币对、来源、日期规则、快照、锁定、容差和审批；费用/账单只能依赖已确定的汇率快照，不得在页面临时计算。 |
@@ -111,9 +111,9 @@
 
 ### M-006：订单扩展范围
 
-对报关和 AE 扩展分别标记：迁移、后置或明确不迁移，并记录业务理由。不能把 `OrderCustomsDeclaration` 或 `OrderAe*` 隐藏在“订单扩展已完成”的笼统状态中。
+对报关和旧 `OrderAe*` 线路执行信息分别标记：迁移、后置或明确不迁移，并记录业务理由。不能把这些能力隐藏在“订单扩展已完成”的笼统状态中，也不能由旧模型名称推导出独立 AE 订单域。
 
-当前 MVP 将报关和 AE 扩展后置：订单核心不创建这些字段的空兼容列，也不伪装支持相关状态；待业务确认适用线路、责任主体和验收场景后，在 P7 以独立扩展聚合实现。
+当前 MVP 将报关和线路特有执行信息后置：订单核心不创建这些字段的空兼容列，也不伪装支持相关状态；待业务确认适用线路、责任主体和验收场景后，在 P7 作为统一订单聚合的执行信息实现，不新建 AE 订单聚合。
 
 ## 旧系统问题与新系统修正原则
 
@@ -141,6 +141,6 @@
 - 12 个旧 Prisma 领域文件全部在矩阵中有记录，没有“未知”领域。
 - 每一行均有目标阶段、迁移状态和“迁移/后置/明确不迁移”决策。
 - M-001 至 M-006 有明确结论或记录为阻塞项，不用临时兼容分支替代。
-- `Partner`/`Party`、RBAC、页面模板、汇率、报关/AE、企业资源和财务对账单均有单独验收口径。
+- `Partner`/`Party`、RBAC、页面模板、汇率、报关与线路特有执行信息、企业资源和财务对账单均有单独验收口径。
 - 旧系统问题已转换成新系统的架构约束，而不是只写在说明里。
 - P0 完成后才能把订单、费用和财务 Proto/Ent Schema 作为稳定契约实现。

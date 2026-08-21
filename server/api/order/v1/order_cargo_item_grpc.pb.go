@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrderCargoItemService 订单货物明细服务。
-// 计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。
+// 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 type OrderCargoItemServiceClient interface {
 	// ListCargoItems 获取指定订单的货物明细列表。
 	ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...grpc.CallOption) (*OrderCargoItemListReply, error)
@@ -95,7 +95,7 @@ func (c *orderCargoItemServiceClient) RemoveCargoItem(ctx context.Context, in *R
 // for forward compatibility.
 //
 // OrderCargoItemService 订单货物明细服务。
-// 计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。
+// 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 type OrderCargoItemServiceServer interface {
 	// ListCargoItems 获取指定订单的货物明细列表。
 	ListCargoItems(context.Context, *ListCargoItemsRequest) (*OrderCargoItemListReply, error)

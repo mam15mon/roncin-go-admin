@@ -7795,7 +7795,7 @@
     },
     {
       "name": "OrderCargoItemService",
-      "description": "OrderCargoItemService 订单货物明细服务。\n 计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。"
+      "description": "OrderCargoItemService 订单货物明细服务。\n 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。"
     },
     {
       "name": "OrderContainerService",

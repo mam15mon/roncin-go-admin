@@ -8,7 +8,7 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderCargoItemService 订单货物明细服务。
-// 计费重、AE 仓储执行字段和申报状态按 P8/M-006 决策后置。
+// 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 service OrderCargoItemService {
   // ListCargoItems 获取指定订单的货物明细列表。
   rpc ListCargoItems(ListCargoItemsRequest) returns (OrderCargoItemListReply) {
