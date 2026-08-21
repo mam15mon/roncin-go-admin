@@ -9,10 +9,9 @@ data:
   database:
     driver: postgres
     source: ${DATABASE_SOURCE}
-    # Development conveniences. Keep both false in production and apply schema
-    # changes as a separate reviewed step.
+    # 数据库结构只通过版本化迁移变更；本地首次启动也先显式执行迁移。
     debug: true
-    auto_migrate: true
+    auto_migrate: false
     max_open_connections: 30
     max_idle_connections: 10
     connection_max_lifetime: 1800s

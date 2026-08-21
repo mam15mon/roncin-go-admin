@@ -42,13 +42,18 @@ OTEL_ENABLED=false
 
 ## 首次初始化
 
-开发配置默认允许 Ent 根据 Schema 创建表。首次初始化管理员：
+先显式执行版本化数据库迁移，再初始化管理员：
+
+```powershell
+pnpm run migrate:server
+```
 
 ```powershell
 pnpm run bootstrap:admin
 ```
 
-该命令只允许空数据库执行；如果数据库中已经存在用户，命令会拒绝继续。
+迁移命令使用 `.env.local` 中的 `DATABASE_SOURCE`。管理员初始化只允许迁移完成且
+尚无用户的数据库执行；如果数据库中已经存在用户，命令会拒绝继续。
 
 ## 启动服务
 

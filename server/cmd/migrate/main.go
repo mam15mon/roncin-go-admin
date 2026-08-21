@@ -16,9 +16,9 @@ func main() {
 	dir := flag.String("dir", "migrations", "迁移文件目录")
 	flag.Parse()
 
-	source := os.Getenv("DATABASE_URL")
+	source := os.Getenv("DATABASE_SOURCE")
 	if source == "" {
-		fmt.Fprintln(os.Stderr, "DATABASE_URL 不能为空")
+		fmt.Fprintln(os.Stderr, "DATABASE_SOURCE 不能为空")
 		os.Exit(1)
 	}
 	db, err := sql.Open("pgx", source)
