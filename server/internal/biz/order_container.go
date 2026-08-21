@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -34,18 +33,17 @@ type OrderContainer struct {
 
 type OrderContainerRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderContainer, error)
-	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderContainer) (*OrderContainer, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderContainer) (*OrderContainer, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
+	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderContainer, audit *AuditEvent) (*OrderContainer, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderContainerUsecase struct {
-	repo  OrderContainerRepo
-	audit AuditRepo
+	repo OrderContainerRepo
 }
 
-func NewOrderContainerUsecase(repo OrderContainerRepo, audit AuditRepo) *OrderContainerUsecase {
-	return &OrderContainerUsecase{repo: repo, audit: audit}
+func NewOrderContainerUsecase(repo OrderContainerRepo) *OrderContainerUsecase {
+	return &OrderContainerUsecase{repo: repo}
 }
 
 func (uc *OrderContainerUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderContainer, error) {
@@ -63,25 +61,19 @@ func (uc *OrderContainerUsecase) Add(ctx context.Context, organizationID, actorI
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	normalized.ID = uuid.Must(uuid.NewV7())
+	return uc.repo.Add(ctx, organizationID, orderID, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.container.add",
 		Result:         "success",
 		Details: map[string]string{
-			"container.id":      created.ID.String(),
+			"container.id":      normalized.ID.String(),
 			"order.id":          orderID.String(),
-			"container.no":      created.ContainerNo,
-			"container.spec_id": created.ContainerSpecID.String(),
+			"container.no":      normalized.ContainerNo,
+			"container.spec_id": normalized.ContainerSpecID.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order container add audit: %w", err)
-	}
-	return created, nil
+	})
 }
 
 func (uc *OrderContainerUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderContainer) (*OrderContainer, error) {
@@ -92,35 +84,25 @@ func (uc *OrderContainerUsecase) Update(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, orderID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.container.update",
 		Result:         "success",
 		Details: map[string]string{
-			"container.id":      updated.ID.String(),
+			"container.id":      id.String(),
 			"order.id":          orderID.String(),
-			"container.no":      updated.ContainerNo,
-			"container.spec_id": updated.ContainerSpecID.String(),
+			"container.no":      normalized.ContainerNo,
+			"container.spec_id": normalized.ContainerSpecID.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order container update audit: %w", err)
-	}
-	return updated, nil
+	})
 }
 
 func (uc *OrderContainerUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return ErrOrderContainerInvalidArgument
 	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id); err != nil {
-		return err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.container.remove",
@@ -129,10 +111,7 @@ func (uc *OrderContainerUsecase) Remove(ctx context.Context, organizationID, act
 			"container.id": id.String(),
 			"order.id":     orderID.String(),
 		},
-	}); err != nil {
-		return fmt.Errorf("write order container remove audit: %w", err)
-	}
-	return nil
+	})
 }
 
 func normalizeOrderContainer(input *OrderContainer) (*OrderContainer, error) {

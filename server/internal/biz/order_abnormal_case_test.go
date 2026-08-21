@@ -9,11 +9,14 @@ import (
 )
 
 type orderAbnormalCaseRepoStub struct {
-	items    []*OrderAbnormalCase
-	marked   *OrderAbnormalCase
-	resolved *OrderAbnormalCase
-	removed  bool
-	err      error
+	items         []*OrderAbnormalCase
+	marked        *OrderAbnormalCase
+	markedAudit   *AuditEvent
+	resolved      *OrderAbnormalCase
+	resolvedAudit *AuditEvent
+	removed       bool
+	removedAudit  *AuditEvent
+	err           error
 }
 
 func (s *orderAbnormalCaseRepoStub) List(_ context.Context, _, orderID uuid.UUID) ([]*OrderAbnormalCase, error) {
@@ -23,12 +26,13 @@ func (s *orderAbnormalCaseRepoStub) List(_ context.Context, _, orderID uuid.UUID
 	return s.items, nil
 }
 
-func (s *orderAbnormalCaseRepoStub) Mark(_ context.Context, _, orderID, actorID, abnormalCaseID uuid.UUID) (*OrderAbnormalCase, error) {
+func (s *orderAbnormalCaseRepoStub) Mark(_ context.Context, _, orderID, actorID, abnormalCaseID uuid.UUID, newID uuid.UUID, audit *AuditEvent) (*OrderAbnormalCase, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
+	s.markedAudit = audit
 	s.marked = &OrderAbnormalCase{
-		ID:             uuid.New(),
+		ID:             newID,
 		OrderID:        orderID,
 		AbnormalCaseID: abnormalCaseID,
 		Status:         OrderAbnormalCaseStatusActive,
@@ -40,10 +44,11 @@ func (s *orderAbnormalCaseRepoStub) Mark(_ context.Context, _, orderID, actorID,
 	return s.marked, nil
 }
 
-func (s *orderAbnormalCaseRepoStub) Resolve(_ context.Context, _, orderID, actorID, id uuid.UUID) (*OrderAbnormalCase, error) {
+func (s *orderAbnormalCaseRepoStub) Resolve(_ context.Context, _, orderID, actorID, id uuid.UUID, audit *AuditEvent) (*OrderAbnormalCase, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
+	s.resolvedAudit = audit
 	now := time.Now()
 	s.resolved = &OrderAbnormalCase{
 		ID:             id,
@@ -60,11 +65,12 @@ func (s *orderAbnormalCaseRepoStub) Resolve(_ context.Context, _, orderID, actor
 	return s.resolved, nil
 }
 
-func (s *orderAbnormalCaseRepoStub) Remove(_ context.Context, _, _, _ uuid.UUID) error {
+func (s *orderAbnormalCaseRepoStub) Remove(_ context.Context, _, _, id uuid.UUID, audit *AuditEvent) error {
 	if s.err != nil {
 		return s.err
 	}
 	s.removed = true
+	s.removedAudit = audit
 	return nil
 }
 
@@ -112,8 +118,7 @@ func TestOrderAbnormalCaseListValidates(t *testing.T) {
 			},
 		},
 	}
-	audit := &auditRepoStub{}
-	usecase := NewOrderAbnormalCaseUsecase(repo, audit)
+	usecase := NewOrderAbnormalCaseUsecase(repo)
 
 	if _, err := usecase.List(context.Background(), uuid.Nil, uuid.New()); err != ErrOrderAbnormalCaseInvalidArgument {
 		t.Fatalf("expected ErrOrderAbnormalCaseInvalidArgument for nil orgID, got %v", err)
@@ -133,8 +138,7 @@ func TestOrderAbnormalCaseListValidates(t *testing.T) {
 
 func TestOrderAbnormalCaseMarkValidatesAndAudits(t *testing.T) {
 	repo := &orderAbnormalCaseRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderAbnormalCaseUsecase(repo, audit)
+	usecase := NewOrderAbnormalCaseUsecase(repo)
 	orgID, actorID, orderID, abnormalCaseID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -152,7 +156,7 @@ func TestOrderAbnormalCaseMarkValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path with audit check
-	audit.events = nil
+	repo.markedAudit = nil
 	created, err := usecase.Mark(context.Background(), orgID, actorID, orderID, abnormalCaseID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -163,15 +167,14 @@ func TestOrderAbnormalCaseMarkValidatesAndAudits(t *testing.T) {
 	if created.Status != OrderAbnormalCaseStatusActive {
 		t.Fatalf("expected status %q, got %q", OrderAbnormalCaseStatusActive, created.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.markedAudit == nil {
+		t.Fatalf("expected non-nil markedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.markedAudit
 	if event.Action != "order.abnormal_case.mark" {
 		t.Fatalf("expected action 'order.abnormal_case.mark', got %q", event.Action)
 	}
-	if event.Details["abnormal_case_record.id"] != created.ID.String() ||
-		event.Details["order.id"] != orderID.String() ||
+	if event.Details["order.id"] != orderID.String() ||
 		event.Details["abnormal_case.id"] != abnormalCaseID.String() ||
 		event.Details["status"] != string(OrderAbnormalCaseStatusActive) {
 		t.Fatalf("unexpected audit details: %#v", event.Details)
@@ -180,8 +183,7 @@ func TestOrderAbnormalCaseMarkValidatesAndAudits(t *testing.T) {
 
 func TestOrderAbnormalCaseResolveValidatesAndAudits(t *testing.T) {
 	repo := &orderAbnormalCaseRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderAbnormalCaseUsecase(repo, audit)
+	usecase := NewOrderAbnormalCaseUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -199,7 +201,7 @@ func TestOrderAbnormalCaseResolveValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path with audit check
-	audit.events = nil
+	repo.resolvedAudit = nil
 	resolved, err := usecase.Resolve(context.Background(), orgID, actorID, orderID, id)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -210,10 +212,10 @@ func TestOrderAbnormalCaseResolveValidatesAndAudits(t *testing.T) {
 	if resolved.Status != OrderAbnormalCaseStatusResolved {
 		t.Fatalf("expected status %q, got %q", OrderAbnormalCaseStatusResolved, resolved.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.resolvedAudit == nil {
+		t.Fatalf("expected non-nil resolvedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.resolvedAudit
 	if event.Action != "order.abnormal_case.resolve" {
 		t.Fatalf("expected action 'order.abnormal_case.resolve', got %q", event.Action)
 	}
@@ -225,8 +227,7 @@ func TestOrderAbnormalCaseResolveValidatesAndAudits(t *testing.T) {
 
 func TestOrderAbnormalCaseRemoveValidatesAndAudits(t *testing.T) {
 	repo := &orderAbnormalCaseRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderAbnormalCaseUsecase(repo, audit)
+	usecase := NewOrderAbnormalCaseUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -244,17 +245,17 @@ func TestOrderAbnormalCaseRemoveValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success
-	audit.events = nil
+	repo.removedAudit = nil
 	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !repo.removed {
 		t.Fatalf("expected repo.Remove to have been called")
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.removedAudit == nil {
+		t.Fatalf("expected non-nil removedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.removedAudit
 	if event.Action != "order.abnormal_case.remove" {
 		t.Fatalf("expected action 'order.abnormal_case.remove', got %q", event.Action)
 	}

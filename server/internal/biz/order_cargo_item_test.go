@@ -10,9 +10,12 @@ import (
 )
 
 type orderCargoItemRepoStub struct {
-	added   *OrderCargoItem
-	updated *OrderCargoItem
-	removed bool
+	added        *OrderCargoItem
+	addedAudit   *AuditEvent
+	updated      *OrderCargoItem
+	updatedAudit *AuditEvent
+	removed      bool
+	removedAudit *AuditEvent
 }
 
 func (s *orderCargoItemRepoStub) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderCargoItem, error) {
@@ -30,9 +33,10 @@ func (s *orderCargoItemRepoStub) List(ctx context.Context, organizationID, order
 	}, nil
 }
 
-func (s *orderCargoItemRepoStub) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderCargoItem) (*OrderCargoItem, error) {
+func (s *orderCargoItemRepoStub) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderCargoItem, audit *AuditEvent) (*OrderCargoItem, error) {
+	s.addedAudit = audit
 	s.added = &OrderCargoItem{
-		ID:            uuid.New(),
+		ID:            input.ID,
 		OrderID:       orderID,
 		CargoName:     input.CargoName,
 		PackageCount:  input.PackageCount,
@@ -46,7 +50,8 @@ func (s *orderCargoItemRepoStub) Add(ctx context.Context, organizationID, orderI
 	return s.added, nil
 }
 
-func (s *orderCargoItemRepoStub) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderCargoItem) (*OrderCargoItem, error) {
+func (s *orderCargoItemRepoStub) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderCargoItem, audit *AuditEvent) (*OrderCargoItem, error) {
+	s.updatedAudit = audit
 	s.updated = &OrderCargoItem{
 		ID:            id,
 		OrderID:       orderID,
@@ -62,8 +67,9 @@ func (s *orderCargoItemRepoStub) Update(ctx context.Context, organizationID, ord
 	return s.updated, nil
 }
 
-func (s *orderCargoItemRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (s *orderCargoItemRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error {
 	s.removed = true
+	s.removedAudit = audit
 	return nil
 }
 
@@ -75,8 +81,7 @@ func floatPtr(v float64) *float64 {
 
 func TestOrderCargoItemListValidates(t *testing.T) {
 	repo := &orderCargoItemRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderCargoItemUsecase(repo, audit)
+	usecase := NewOrderCargoItemUsecase(repo)
 
 	if _, err := usecase.List(context.Background(), uuid.Nil, uuid.New()); err != ErrOrderCargoItemInvalidArgument {
 		t.Fatalf("expected ErrOrderCargoItemInvalidArgument for nil orgID, got %v", err)
@@ -96,8 +101,7 @@ func TestOrderCargoItemListValidates(t *testing.T) {
 
 func TestOrderCargoItemAddValidatesAndAudits(t *testing.T) {
 	repo := &orderCargoItemRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderCargoItemUsecase(repo, audit)
+	usecase := NewOrderCargoItemUsecase(repo)
 	orgID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 
 	baseValidInput := func() *OrderCargoItem {
@@ -200,7 +204,7 @@ func TestOrderCargoItemAddValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path with audit check
-	audit.events = nil
+	repo.addedAudit = nil
 	created, err := usecase.Add(context.Background(), orgID, actorID, orderID, baseValidInput())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -208,10 +212,10 @@ func TestOrderCargoItemAddValidatesAndAudits(t *testing.T) {
 	if created == nil || created.CargoName != "Auto Parts" {
 		t.Fatalf("unexpected created cargo item: %#v", created)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.addedAudit == nil {
+		t.Fatalf("expected non-nil addedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.addedAudit
 	if event.Action != "order.cargo_item.add" {
 		t.Fatalf("expected action 'order.cargo_item.add', got %q", event.Action)
 	}
@@ -224,8 +228,7 @@ func TestOrderCargoItemAddValidatesAndAudits(t *testing.T) {
 
 func TestOrderCargoItemUpdateValidatesAndAudits(t *testing.T) {
 	repo := &orderCargoItemRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderCargoItemUsecase(repo, audit)
+	usecase := NewOrderCargoItemUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	input := &OrderCargoItem{
@@ -259,7 +262,7 @@ func TestOrderCargoItemUpdateValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path
-	audit.events = nil
+	repo.updatedAudit = nil
 	updated, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -267,10 +270,10 @@ func TestOrderCargoItemUpdateValidatesAndAudits(t *testing.T) {
 	if updated.ID != id || updated.CargoName != "Medical Supplies" {
 		t.Fatalf("unexpected updated cargo item: %#v", updated)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.updatedAudit == nil {
+		t.Fatalf("expected non-nil updatedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.updatedAudit
 	if event.Action != "order.cargo_item.update" {
 		t.Fatalf("expected action 'order.cargo_item.update', got %q", event.Action)
 	}
@@ -283,8 +286,7 @@ func TestOrderCargoItemUpdateValidatesAndAudits(t *testing.T) {
 
 func TestOrderCargoItemRemoveValidatesAndAudits(t *testing.T) {
 	repo := &orderCargoItemRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderCargoItemUsecase(repo, audit)
+	usecase := NewOrderCargoItemUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -302,17 +304,17 @@ func TestOrderCargoItemRemoveValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success
-	audit.events = nil
+	repo.removedAudit = nil
 	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !repo.removed {
 		t.Fatalf("expected repo.Remove to have been called")
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.removedAudit == nil {
+		t.Fatalf("expected non-nil removedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.removedAudit
 	if event.Action != "order.cargo_item.remove" {
 		t.Fatalf("expected action 'order.cargo_item.remove', got %q", event.Action)
 	}

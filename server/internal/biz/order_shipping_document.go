@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -63,19 +62,18 @@ type OrderShippingDocument struct {
 
 type OrderShippingDocumentRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderShippingDocument, error)
-	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderShippingDocument) (*OrderShippingDocument, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderShippingDocument) (*OrderShippingDocument, error)
-	Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to OrderShippingDocumentStatus) (*OrderShippingDocument, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
+	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderShippingDocument, audit *AuditEvent) (*OrderShippingDocument, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderShippingDocument, audit *AuditEvent) (*OrderShippingDocument, error)
+	Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to OrderShippingDocumentStatus, audit *AuditEvent) (*OrderShippingDocument, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderShippingDocumentUsecase struct {
-	repo  OrderShippingDocumentRepo
-	audit AuditRepo
+	repo OrderShippingDocumentRepo
 }
 
-func NewOrderShippingDocumentUsecase(repo OrderShippingDocumentRepo, audit AuditRepo) *OrderShippingDocumentUsecase {
-	return &OrderShippingDocumentUsecase{repo: repo, audit: audit}
+func NewOrderShippingDocumentUsecase(repo OrderShippingDocumentRepo) *OrderShippingDocumentUsecase {
+	return &OrderShippingDocumentUsecase{repo: repo}
 }
 
 func (uc *OrderShippingDocumentUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderShippingDocument, error) {
@@ -93,25 +91,19 @@ func (uc *OrderShippingDocumentUsecase) Add(ctx context.Context, organizationID,
 	if err != nil {
 		return nil, err
 	}
+	normalized.ID = uuid.Must(uuid.NewV7())
 	normalized.Status = OrderShippingDocumentStatusDraft
-	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Add(ctx, organizationID, orderID, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.shipping_document.add",
 		Result:         "success",
 		Details: map[string]string{
-			"shipping_document.id": created.ID.String(),
+			"shipping_document.id": normalized.ID.String(),
 			"order.id":             orderID.String(),
-			"master_no":            created.MasterNo,
+			"master_no":            normalized.MasterNo,
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order shipping document add audit: %w", err)
-	}
-	return created, nil
+	})
 }
 
 func (uc *OrderShippingDocumentUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderShippingDocument) (*OrderShippingDocument, error) {
@@ -122,24 +114,17 @@ func (uc *OrderShippingDocumentUsecase) Update(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, orderID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.shipping_document.update",
 		Result:         "success",
 		Details: map[string]string{
-			"shipping_document.id": updated.ID.String(),
+			"shipping_document.id": id.String(),
 			"order.id":             orderID.String(),
-			"master_no":            updated.MasterNo,
+			"master_no":            normalized.MasterNo,
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order shipping document update audit: %w", err)
-	}
-	return updated, nil
+	})
 }
 
 func (uc *OrderShippingDocumentUsecase) Transition(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, from, to OrderShippingDocumentStatus) (*OrderShippingDocument, error) {
@@ -149,35 +134,25 @@ func (uc *OrderShippingDocumentUsecase) Transition(ctx context.Context, organiza
 	if !from.Valid() || !to.Valid() || !validShippingDocumentTransition(from, to) {
 		return nil, ErrOrderShippingDocumentInvalidStatus
 	}
-	transitioned, err := uc.repo.Transition(ctx, organizationID, orderID, id, from, to)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Transition(ctx, organizationID, orderID, id, from, to, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.shipping_document.transition",
 		Result:         "success",
 		Details: map[string]string{
-			"shipping_document.id": transitioned.ID.String(),
+			"shipping_document.id": id.String(),
 			"order.id":             orderID.String(),
 			"from_status":          string(from),
 			"to_status":            string(to),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order shipping document transition audit: %w", err)
-	}
-	return transitioned, nil
+	})
 }
 
 func (uc *OrderShippingDocumentUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return ErrOrderShippingDocumentInvalidArgument
 	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id); err != nil {
-		return err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.shipping_document.remove",
@@ -186,10 +161,7 @@ func (uc *OrderShippingDocumentUsecase) Remove(ctx context.Context, organization
 			"shipping_document.id": id.String(),
 			"order.id":             orderID.String(),
 		},
-	}); err != nil {
-		return fmt.Errorf("write order shipping document remove audit: %w", err)
-	}
-	return nil
+	})
 }
 
 func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippingDocument, error) {

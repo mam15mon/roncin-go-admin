@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -59,50 +60,93 @@ func (r *backgroundTaskRepo) Claim(ctx context.Context, organizationID uuid.UUID
 		),
 	)
 
-	query := tx.BackgroundTask.Query().
-		Where(
-			backgroundtaskent.OrganizationIDEQ(organizationID),
-			runnablePred,
-		)
+	hasDeadLettered := false
+	for {
+		query := tx.BackgroundTask.Query().
+			Where(
+				backgroundtaskent.OrganizationIDEQ(organizationID),
+				runnablePred,
+			)
 
-	if len(kinds) > 0 {
-		entKinds := make([]backgroundtaskent.Kind, len(kinds))
-		for i, k := range kinds {
-			entKinds[i] = backgroundtaskent.Kind(k)
+		if len(kinds) > 0 {
+			entKinds := make([]backgroundtaskent.Kind, len(kinds))
+			for i, k := range kinds {
+				entKinds[i] = backgroundtaskent.Kind(k)
+			}
+			query = query.Where(backgroundtaskent.KindIn(entKinds...))
 		}
-		query = query.Where(backgroundtaskent.KindIn(entKinds...))
-	}
 
-	task, err := query.
-		Order(backgroundtaskent.ByNextRunAt(), backgroundtaskent.ByCreatedAt()).
-		ForUpdate().
-		First(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrBackgroundTaskNoTask
+		task, err := query.
+			Order(backgroundtaskent.ByNextRunAt(), backgroundtaskent.ByCreatedAt()).
+			ForUpdate().
+			First(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				if hasDeadLettered {
+					if commitErr := tx.Commit(); commitErr != nil {
+						return nil, commitErr
+					}
+				} else {
+					_ = tx.Rollback()
+				}
+				return nil, biz.ErrBackgroundTaskNoTask
+			}
+			_ = tx.Rollback()
+			return nil, err
 		}
-		return nil, err
+
+		leaseToken := uuid.New().String()
+		leaseExpiresAt := now.Add(leaseDuration)
+
+		if task.Status == backgroundtaskent.StatusRUNNING {
+			nextAttempts := task.Attempts + 1
+			if nextAttempts >= task.MaxAttempts {
+				_, err := tx.BackgroundTask.UpdateOne(task).
+					SetStatus(backgroundtaskent.StatusDEAD_LETTER).
+					SetAttempts(nextAttempts).
+					ClearLeaseToken().
+					ClearLeaseExpiresAt().
+					Save(ctx)
+				if err != nil {
+					_ = tx.Rollback()
+					return nil, err
+				}
+				hasDeadLettered = true
+				continue
+			}
+
+			updated, err := tx.BackgroundTask.UpdateOne(task).
+				SetStatus(backgroundtaskent.StatusRUNNING).
+				SetAttempts(nextAttempts).
+				SetLeaseToken(leaseToken).
+				SetLeaseExpiresAt(leaseExpiresAt).
+				Save(ctx)
+			if err != nil {
+				_ = tx.Rollback()
+				return nil, err
+			}
+			if err := tx.Commit(); err != nil {
+				return nil, err
+			}
+			return backgroundTaskToBiz(updated), nil
+		}
+
+		updated, err := tx.BackgroundTask.UpdateOne(task).
+			SetStatus(backgroundtaskent.StatusRUNNING).
+			SetLeaseToken(leaseToken).
+			SetLeaseExpiresAt(leaseExpiresAt).
+			Save(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+
+		if err := tx.Commit(); err != nil {
+			return nil, err
+		}
+
+		return backgroundTaskToBiz(updated), nil
 	}
-
-	leaseToken := uuid.New().String()
-	leaseExpiresAt := now.Add(leaseDuration)
-
-	updated, err := tx.BackgroundTask.UpdateOne(task).
-		SetStatus(backgroundtaskent.StatusRUNNING).
-		SetLeaseToken(leaseToken).
-		SetLeaseExpiresAt(leaseExpiresAt).
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return backgroundTaskToBiz(updated), nil
 }
 
 func (r *backgroundTaskRepo) Complete(ctx context.Context, organizationID, id uuid.UUID, leaseToken string) (*biz.BackgroundTask, error) {
@@ -276,7 +320,7 @@ func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID,
 	}, nil
 }
 
-func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uuid.UUID, now time.Time) (*biz.BackgroundTask, error) {
+func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uuid.UUID, now time.Time, audit *biz.AuditEvent) (*biz.BackgroundTask, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -311,6 +355,18 @@ func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uui
 		ClearLastError().
 		Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+
+	if audit.Details == nil {
+		audit.Details = make(map[string]string)
+	}
+	audit.Details["background_task.id"] = updated.ID.String()
+	audit.Details["background_task.kind"] = string(updated.Kind)
+	audit.Details["background_task.status"] = string(updated.Status)
+	audit.Details["background_task.attempts"] = strconv.Itoa(updated.Attempts)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}

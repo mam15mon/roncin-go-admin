@@ -2,8 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -105,17 +103,16 @@ type BackgroundTaskRepo interface {
 	Fail(context.Context, uuid.UUID, uuid.UUID, string, string, time.Time) (*BackgroundTask, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*BackgroundTask, error)
 	List(context.Context, uuid.UUID, BackgroundTaskListOptions) (*BackgroundTaskList, error)
-	Requeue(context.Context, uuid.UUID, uuid.UUID, time.Time) (*BackgroundTask, error)
+	Requeue(context.Context, uuid.UUID, uuid.UUID, time.Time, *AuditEvent) (*BackgroundTask, error)
 }
 
 type BackgroundTaskUsecase struct {
-	repo  BackgroundTaskRepo
-	audit AuditRepo
-	now   func() time.Time
+	repo BackgroundTaskRepo
+	now  func() time.Time
 }
 
-func NewBackgroundTaskUsecase(repo BackgroundTaskRepo, audit AuditRepo) *BackgroundTaskUsecase {
-	return &BackgroundTaskUsecase{repo: repo, audit: audit, now: time.Now}
+func NewBackgroundTaskUsecase(repo BackgroundTaskRepo) *BackgroundTaskUsecase {
+	return &BackgroundTaskUsecase{repo: repo, now: time.Now}
 }
 
 func (uc *BackgroundTaskUsecase) Enqueue(ctx context.Context, organizationID uuid.UUID, input *BackgroundTask) (*BackgroundTask, error) {
@@ -219,23 +216,13 @@ func (uc *BackgroundTaskUsecase) Requeue(ctx context.Context, organizationID, ac
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrBackgroundTaskInvalidArgument
 	}
-	requeued, err := uc.repo.Requeue(ctx, organizationID, id, uc.now())
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Requeue(ctx, organizationID, id, uc.now(), &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "background_task.requeue",
 		Result:         "success",
 		Details: map[string]string{
-			"background_task.id":       requeued.ID.String(),
-			"background_task.kind":     string(requeued.Kind),
-			"background_task.status":   string(requeued.Status),
-			"background_task.attempts": strconv.Itoa(requeued.Attempts),
+			"background_task.id": id.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write background task requeue audit: %w", err)
-	}
-	return requeued, nil
+	})
 }

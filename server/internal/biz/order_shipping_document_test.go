@@ -10,10 +10,14 @@ import (
 )
 
 type orderShippingDocumentRepoStub struct {
-	added        *OrderShippingDocument
-	updated      *OrderShippingDocument
-	transitioned *OrderShippingDocument
-	removed      bool
+	added             *OrderShippingDocument
+	addedAudit        *AuditEvent
+	updated           *OrderShippingDocument
+	updatedAudit      *AuditEvent
+	transitioned      *OrderShippingDocument
+	transitionedAudit *AuditEvent
+	removed           bool
+	removedAudit      *AuditEvent
 }
 
 func (s *orderShippingDocumentRepoStub) List(_ context.Context, _ uuid.UUID, orderID uuid.UUID) ([]*OrderShippingDocument, error) {
@@ -30,9 +34,10 @@ func (s *orderShippingDocumentRepoStub) List(_ context.Context, _ uuid.UUID, ord
 	}, nil
 }
 
-func (s *orderShippingDocumentRepoStub) Add(_ context.Context, _ uuid.UUID, orderID uuid.UUID, input *OrderShippingDocument) (*OrderShippingDocument, error) {
+func (s *orderShippingDocumentRepoStub) Add(_ context.Context, _ uuid.UUID, orderID uuid.UUID, input *OrderShippingDocument, audit *AuditEvent) (*OrderShippingDocument, error) {
+	s.addedAudit = audit
 	s.added = &OrderShippingDocument{
-		ID:          uuid.New(),
+		ID:          input.ID,
 		OrderID:     orderID,
 		MasterNo:    input.MasterNo,
 		HouseNo:     input.HouseNo,
@@ -45,7 +50,8 @@ func (s *orderShippingDocumentRepoStub) Add(_ context.Context, _ uuid.UUID, orde
 	return s.added, nil
 }
 
-func (s *orderShippingDocumentRepoStub) Update(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, input *OrderShippingDocument) (*OrderShippingDocument, error) {
+func (s *orderShippingDocumentRepoStub) Update(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, input *OrderShippingDocument, audit *AuditEvent) (*OrderShippingDocument, error) {
+	s.updatedAudit = audit
 	s.updated = &OrderShippingDocument{
 		ID:          id,
 		OrderID:     orderID,
@@ -60,7 +66,8 @@ func (s *orderShippingDocumentRepoStub) Update(_ context.Context, _ uuid.UUID, o
 	return s.updated, nil
 }
 
-func (s *orderShippingDocumentRepoStub) Transition(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, _, to OrderShippingDocumentStatus) (*OrderShippingDocument, error) {
+func (s *orderShippingDocumentRepoStub) Transition(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, _, to OrderShippingDocumentStatus, audit *AuditEvent) (*OrderShippingDocument, error) {
+	s.transitionedAudit = audit
 	s.transitioned = &OrderShippingDocument{
 		ID:        id,
 		OrderID:   orderID,
@@ -73,8 +80,9 @@ func (s *orderShippingDocumentRepoStub) Transition(_ context.Context, _ uuid.UUI
 	return s.transitioned, nil
 }
 
-func (s *orderShippingDocumentRepoStub) Remove(_ context.Context, _ uuid.UUID, _, _ uuid.UUID) error {
+func (s *orderShippingDocumentRepoStub) Remove(_ context.Context, _ uuid.UUID, _, _ uuid.UUID, audit *AuditEvent) error {
 	s.removed = true
+	s.removedAudit = audit
 	return nil
 }
 
@@ -107,8 +115,7 @@ func TestOrderShippingDocumentStatusValid(t *testing.T) {
 
 func TestOrderShippingDocumentListValidates(t *testing.T) {
 	repo := &orderShippingDocumentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderShippingDocumentUsecase(repo, audit)
+	usecase := NewOrderShippingDocumentUsecase(repo)
 
 	if _, err := usecase.List(context.Background(), uuid.Nil, uuid.New()); err != ErrOrderShippingDocumentInvalidArgument {
 		t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for nil orgID, got %v", err)
@@ -128,8 +135,7 @@ func TestOrderShippingDocumentListValidates(t *testing.T) {
 
 func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	repo := &orderShippingDocumentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderShippingDocumentUsecase(repo, audit)
+	usecase := NewOrderShippingDocumentUsecase(repo)
 	orgID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 
 	baseValidInput := func() *OrderShippingDocument {
@@ -221,7 +227,7 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path with audit check
-	audit.events = nil
+	repo.addedAudit = nil
 	created, err := usecase.Add(context.Background(), orgID, actorID, orderID, baseValidInput())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -232,10 +238,10 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	if created.Status != OrderShippingDocumentStatusDraft {
 		t.Fatalf("expected status %q, got %q", OrderShippingDocumentStatusDraft, created.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.addedAudit == nil {
+		t.Fatalf("expected non-nil addedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.addedAudit
 	if event.Action != "order.shipping_document.add" {
 		t.Fatalf("expected action 'order.shipping_document.add', got %q", event.Action)
 	}
@@ -248,8 +254,7 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 
 func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	repo := &orderShippingDocumentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderShippingDocumentUsecase(repo, audit)
+	usecase := NewOrderShippingDocumentUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	input := &OrderShippingDocument{
@@ -316,7 +321,7 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path
-	audit.events = nil
+	repo.updatedAudit = nil
 	updated, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -324,10 +329,10 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 	if updated.ID != id || updated.MasterNo != "MBL789" {
 		t.Fatalf("unexpected updated shipping document: %#v", updated)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.updatedAudit == nil {
+		t.Fatalf("expected non-nil updatedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.updatedAudit
 	if event.Action != "order.shipping_document.update" {
 		t.Fatalf("expected action 'order.shipping_document.update', got %q", event.Action)
 	}
@@ -340,8 +345,7 @@ func TestOrderShippingDocumentUpdateValidatesAndAudits(t *testing.T) {
 
 func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 	repo := &orderShippingDocumentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderShippingDocumentUsecase(repo, audit)
+	usecase := NewOrderShippingDocumentUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -378,7 +382,7 @@ func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 	}
 
 	// Valid transition: DRAFT -> CONFIRMED
-	audit.events = nil
+	repo.transitionedAudit = nil
 	transitioned, err := usecase.Transition(context.Background(), orgID, actorID, orderID, id, OrderShippingDocumentStatusDraft, OrderShippingDocumentStatusConfirmed)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -386,10 +390,10 @@ func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 	if transitioned.Status != OrderShippingDocumentStatusConfirmed {
 		t.Fatalf("expected status %q, got %q", OrderShippingDocumentStatusConfirmed, transitioned.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.transitionedAudit == nil {
+		t.Fatalf("expected non-nil transitionedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.transitionedAudit
 	if event.Action != "order.shipping_document.transition" {
 		t.Fatalf("expected action 'order.shipping_document.transition', got %q", event.Action)
 	}
@@ -401,7 +405,7 @@ func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 	}
 
 	// Valid transition: CONFIRMED -> RELEASED
-	audit.events = nil
+	repo.transitionedAudit = nil
 	transitioned, err = usecase.Transition(context.Background(), orgID, actorID, orderID, id, OrderShippingDocumentStatusConfirmed, OrderShippingDocumentStatusReleased)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -409,10 +413,10 @@ func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 	if transitioned.Status != OrderShippingDocumentStatusReleased {
 		t.Fatalf("expected status %q, got %q", OrderShippingDocumentStatusReleased, transitioned.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.transitionedAudit == nil {
+		t.Fatalf("expected non-nil transitionedAudit passed to repo")
 	}
-	event = audit.events[0]
+	event = repo.transitionedAudit
 	if event.Details["from_status"] != string(OrderShippingDocumentStatusConfirmed) ||
 		event.Details["to_status"] != string(OrderShippingDocumentStatusReleased) {
 		t.Fatalf("unexpected audit details: %#v", event.Details)
@@ -421,8 +425,7 @@ func TestOrderShippingDocumentTransitionValidatesAndAudits(t *testing.T) {
 
 func TestOrderShippingDocumentRemoveValidatesAndAudits(t *testing.T) {
 	repo := &orderShippingDocumentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderShippingDocumentUsecase(repo, audit)
+	usecase := NewOrderShippingDocumentUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -440,17 +443,17 @@ func TestOrderShippingDocumentRemoveValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success
-	audit.events = nil
+	repo.removedAudit = nil
 	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !repo.removed {
 		t.Fatalf("expected repo.Remove to have been called")
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if repo.removedAudit == nil {
+		t.Fatalf("expected non-nil removedAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.removedAudit
 	if event.Action != "order.shipping_document.remove" {
 		t.Fatalf("expected action 'order.shipping_document.remove', got %q", event.Action)
 	}

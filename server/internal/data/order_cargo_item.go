@@ -46,11 +46,16 @@ func (r *orderCargoItemRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderCargoItemRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderCargoItem) (*biz.OrderCargoItem, error) {
+func (r *orderCargoItemRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderCargoItem, audit *biz.AuditEvent) (*biz.OrderCargoItem, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	builder := r.data.db.OrderCargoItem.Create().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	builder := tx.OrderCargoItem.Create().
+		SetID(input.ID).
 		SetOrderID(orderID).
 		SetCargoName(input.CargoName).
 		SetPackageCount(input.PackageCount).
@@ -64,28 +69,42 @@ func (r *orderCargoItemRepo) Add(ctx context.Context, organizationID, orderID uu
 	}
 	created, err := builder.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderCargoItemToBiz(created), nil
 }
 
-func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderCargoItem) (*biz.OrderCargoItem, error) {
+func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderCargoItem, audit *biz.AuditEvent) (*biz.OrderCargoItem, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	item, err := r.data.db.OrderCargoItem.Query().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := tx.OrderCargoItem.Query().
 		Where(
 			ordercargoitement.IDEQ(id),
 			ordercargoitement.OrderIDEQ(orderID),
 		).
+		ForUpdate().
 		Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrOrderCargoItemNotFound
 		}
 		return nil, err
 	}
-	builder := item.Update().
+	builder := tx.OrderCargoItem.UpdateOne(item).
 		SetCargoName(input.CargoName).
 		SetPackageCount(input.PackageCount).
 		SetGrossWeightKg(input.GrossWeightKg).
@@ -102,28 +121,46 @@ func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID
 	}
 	updated, err := builder.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderCargoItemToBiz(updated), nil
 }
 
-func (r *orderCargoItemRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (r *orderCargoItemRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	n, err := r.data.db.OrderCargoItem.Delete().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	n, err := tx.OrderCargoItem.Delete().
 		Where(
 			ordercargoitement.IDEQ(id),
 			ordercargoitement.OrderIDEQ(orderID),
 		).
 		Exec(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	if n == 0 {
+		_ = tx.Rollback()
 		return biz.ErrOrderCargoItemNotFound
 	}
-	return nil
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func orderCargoItemToBiz(item *ent.OrderCargoItem) *biz.OrderCargoItem {

@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-kratos/kratos/v3/errors"
@@ -48,18 +47,17 @@ type OrderAbnormalCase struct {
 
 type OrderAbnormalCaseRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderAbnormalCase, error)
-	Mark(ctx context.Context, organizationID, orderID, actorID, abnormalCaseID uuid.UUID) (*OrderAbnormalCase, error)
-	Resolve(ctx context.Context, organizationID, orderID, actorID, id uuid.UUID) (*OrderAbnormalCase, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
+	Mark(ctx context.Context, organizationID, orderID, actorID, abnormalCaseID uuid.UUID, newID uuid.UUID, audit *AuditEvent) (*OrderAbnormalCase, error)
+	Resolve(ctx context.Context, organizationID, orderID, actorID, id uuid.UUID, audit *AuditEvent) (*OrderAbnormalCase, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderAbnormalCaseUsecase struct {
-	repo  OrderAbnormalCaseRepo
-	audit AuditRepo
+	repo OrderAbnormalCaseRepo
 }
 
-func NewOrderAbnormalCaseUsecase(repo OrderAbnormalCaseRepo, audit AuditRepo) *OrderAbnormalCaseUsecase {
-	return &OrderAbnormalCaseUsecase{repo: repo, audit: audit}
+func NewOrderAbnormalCaseUsecase(repo OrderAbnormalCaseRepo) *OrderAbnormalCaseUsecase {
+	return &OrderAbnormalCaseUsecase{repo: repo}
 }
 
 func (uc *OrderAbnormalCaseUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderAbnormalCase, error) {
@@ -73,58 +71,41 @@ func (uc *OrderAbnormalCaseUsecase) Mark(ctx context.Context, organizationID, ac
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || abnormalCaseID == uuid.Nil {
 		return nil, ErrOrderAbnormalCaseInvalidArgument
 	}
-	marked, err := uc.repo.Mark(ctx, organizationID, orderID, actorID, abnormalCaseID)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	newID := uuid.Must(uuid.NewV7())
+	return uc.repo.Mark(ctx, organizationID, orderID, actorID, abnormalCaseID, newID, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.abnormal_case.mark",
 		Result:         "success",
 		Details: map[string]string{
-			"abnormal_case_record.id": marked.ID.String(),
-			"order.id":                orderID.String(),
-			"abnormal_case.id":        abnormalCaseID.String(),
-			"status":                  string(marked.Status),
+			"order.id":         orderID.String(),
+			"abnormal_case.id": abnormalCaseID.String(),
+			"status":           string(OrderAbnormalCaseStatusActive),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order abnormal case mark audit: %w", err)
-	}
-	return marked, nil
+	})
 }
 
 func (uc *OrderAbnormalCaseUsecase) Resolve(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) (*OrderAbnormalCase, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrOrderAbnormalCaseInvalidArgument
 	}
-	resolved, err := uc.repo.Resolve(ctx, organizationID, orderID, actorID, id)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Resolve(ctx, organizationID, orderID, actorID, id, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.abnormal_case.resolve",
 		Result:         "success",
 		Details: map[string]string{
-			"abnormal_case_record.id": resolved.ID.String(),
+			"abnormal_case_record.id": id.String(),
 			"order.id":                orderID.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order abnormal case resolve audit: %w", err)
-	}
-	return resolved, nil
+	})
 }
 
 func (uc *OrderAbnormalCaseUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return ErrOrderAbnormalCaseInvalidArgument
 	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id); err != nil {
-		return err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.abnormal_case.remove",
@@ -133,8 +114,5 @@ func (uc *OrderAbnormalCaseUsecase) Remove(ctx context.Context, organizationID, 
 			"abnormal_case_record.id": id.String(),
 			"order.id":                orderID.String(),
 		},
-	}); err != nil {
-		return fmt.Errorf("write order abnormal case remove audit: %w", err)
-	}
-	return nil
+	})
 }

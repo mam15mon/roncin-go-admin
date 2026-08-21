@@ -67,7 +67,7 @@ func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderContainer) (*biz.OrderContainer, error) {
+func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -77,7 +77,12 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	builder := r.data.db.OrderContainer.Create().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	builder := tx.OrderContainer.Create().
+		SetID(input.ID).
 		SetOrderID(orderID).
 		SetContainerNo(input.ContainerNo).
 		SetContainerSpecID(input.ContainerSpecID).
@@ -94,9 +99,17 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	}
 	created, err := builder.Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_containers_order_id_container_no") {
+		_ = tx.Rollback()
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordercontainer_order_id_container_no") {
 			return nil, biz.ErrOrderContainerExists
 		}
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderContainerToBiz(created), nil
@@ -122,7 +135,7 @@ func (r *orderContainerRepo) validateShippingDocument(ctx context.Context, order
 	return nil
 }
 
-func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer) (*biz.OrderContainer, error) {
+func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -132,19 +145,25 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	item, err := r.data.db.OrderContainer.Query().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := tx.OrderContainer.Query().
 		Where(
 			ordercontainerent.IDEQ(id),
 			ordercontainerent.OrderIDEQ(orderID),
 		).
+		ForUpdate().
 		Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrOrderContainerNotFound
 		}
 		return nil, err
 	}
-	builder := item.Update().
+	builder := tx.OrderContainer.UpdateOne(item).
 		SetContainerNo(input.ContainerNo).
 		SetContainerSpecID(input.ContainerSpecID).
 		SetGrossWeightKg(input.GrossWeightKg).
@@ -166,31 +185,49 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 	}
 	updated, err := builder.Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_containers_order_id_container_no") {
+		_ = tx.Rollback()
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordercontainer_order_id_container_no") {
 			return nil, biz.ErrOrderContainerExists
 		}
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderContainerToBiz(updated), nil
 }
 
-func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	n, err := r.data.db.OrderContainer.Delete().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	n, err := tx.OrderContainer.Delete().
 		Where(
 			ordercontainerent.IDEQ(id),
 			ordercontainerent.OrderIDEQ(orderID),
 		).
 		Exec(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	if n == 0 {
+		_ = tx.Rollback()
 		return biz.ErrOrderContainerNotFound
 	}
-	return nil
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func orderContainerToBiz(item *ent.OrderContainer) *biz.OrderContainer {

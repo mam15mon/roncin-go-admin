@@ -38,6 +38,7 @@ type backgroundTaskRepoStub struct {
 	requeueOrgID uuid.UUID
 	requeueID    uuid.UUID
 	requeueNow   time.Time
+	requeueAudit *AuditEvent
 	requeueTask  *BackgroundTask
 }
 
@@ -108,10 +109,11 @@ func (s *backgroundTaskRepoStub) List(_ context.Context, organizationID uuid.UUI
 	}, nil
 }
 
-func (s *backgroundTaskRepoStub) Requeue(_ context.Context, organizationID, id uuid.UUID, now time.Time) (*BackgroundTask, error) {
+func (s *backgroundTaskRepoStub) Requeue(_ context.Context, organizationID, id uuid.UUID, now time.Time, audit *AuditEvent) (*BackgroundTask, error) {
 	s.requeueOrgID = organizationID
 	s.requeueID = id
 	s.requeueNow = now
+	s.requeueAudit = audit
 	if s.requeueTask != nil {
 		return s.requeueTask, nil
 	}
@@ -183,7 +185,7 @@ func TestBackgroundTaskStatusValid(t *testing.T) {
 
 func TestBackgroundTaskEnqueueValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
+	uc := NewBackgroundTaskUsecase(repo)
 	orgID := uuid.New()
 
 	// organizationID is nil
@@ -241,9 +243,8 @@ func TestBackgroundTaskEnqueueDefaultsAndSuccess(t *testing.T) {
 	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	repo := &backgroundTaskRepoStub{}
 	uc := &BackgroundTaskUsecase{
-		repo:  repo,
-		audit: &auditRepoStub{},
-		now:   func() time.Time { return fixedNow },
+		repo: repo,
+		now:  func() time.Time { return fixedNow },
 	}
 	orgID := uuid.New()
 
@@ -310,9 +311,8 @@ func TestBackgroundTaskClaimValidation(t *testing.T) {
 	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	repo := &backgroundTaskRepoStub{}
 	uc := &BackgroundTaskUsecase{
-		repo:  repo,
-		audit: &auditRepoStub{},
-		now:   func() time.Time { return fixedNow },
+		repo: repo,
+		now:  func() time.Time { return fixedNow },
 	}
 	orgID := uuid.New()
 
@@ -358,7 +358,7 @@ func TestBackgroundTaskClaimValidation(t *testing.T) {
 
 func TestBackgroundTaskCompleteValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
+	uc := NewBackgroundTaskUsecase(repo)
 	orgID := uuid.New()
 	id := uuid.New()
 	validToken := "lease-token-123"
@@ -406,7 +406,7 @@ func TestBackgroundTaskCompleteValidation(t *testing.T) {
 
 func TestBackgroundTaskFailValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
+	uc := NewBackgroundTaskUsecase(repo)
 	orgID := uuid.New()
 	id := uuid.New()
 	validToken := "lease-token-123"
@@ -471,7 +471,7 @@ func TestBackgroundTaskFailValidation(t *testing.T) {
 
 func TestBackgroundTaskGetValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
+	uc := NewBackgroundTaskUsecase(repo)
 	orgID := uuid.New()
 	id := uuid.New()
 
@@ -503,8 +503,7 @@ func TestBackgroundTaskGetValidation(t *testing.T) {
 
 func TestBackgroundTaskUsecaseList(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	audit := &auditRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo, audit)
+	uc := NewBackgroundTaskUsecase(repo)
 	orgID := uuid.New()
 
 	// organizationID is nil
@@ -582,11 +581,9 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 func TestBackgroundTaskUsecaseRequeue(t *testing.T) {
 	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	repo := &backgroundTaskRepoStub{}
-	audit := &auditRepoStub{}
 	uc := &BackgroundTaskUsecase{
-		repo:  repo,
-		audit: audit,
-		now:   func() time.Time { return fixedNow },
+		repo: repo,
+		now:  func() time.Time { return fixedNow },
 	}
 	orgID := uuid.New()
 	actorID := uuid.New()
@@ -636,11 +633,11 @@ func TestBackgroundTaskUsecaseRequeue(t *testing.T) {
 		t.Fatalf("expected repo.requeueNow %v, got %v", fixedNow, repo.requeueNow)
 	}
 
-	// Assert audit
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	// Assert audit passed to repo
+	if repo.requeueAudit == nil {
+		t.Fatalf("expected non-nil requeueAudit passed to repo")
 	}
-	event := audit.events[0]
+	event := repo.requeueAudit
 	if event.Action != "background_task.requeue" {
 		t.Fatalf("expected audit Action 'background_task.requeue', got %s", event.Action)
 	}
@@ -658,14 +655,5 @@ func TestBackgroundTaskUsecaseRequeue(t *testing.T) {
 	}
 	if event.Details["background_task.id"] != taskID.String() {
 		t.Fatalf("expected audit Details['background_task.id'] == %q, got %q", taskID.String(), event.Details["background_task.id"])
-	}
-	if event.Details["background_task.kind"] != string(BackgroundTaskKindUnlocodeImport) {
-		t.Fatalf("expected audit Details['background_task.kind'] == %q, got %q", string(BackgroundTaskKindUnlocodeImport), event.Details["background_task.kind"])
-	}
-	if event.Details["background_task.status"] != string(BackgroundTaskStatusPending) {
-		t.Fatalf("expected audit Details['background_task.status'] == %q, got %q", string(BackgroundTaskStatusPending), event.Details["background_task.status"])
-	}
-	if event.Details["background_task.attempts"] != "0" {
-		t.Fatalf("expected audit Details['background_task.attempts'] == '0', got %q", event.Details["background_task.attempts"])
 	}
 }

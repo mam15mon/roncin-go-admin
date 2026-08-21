@@ -47,11 +47,16 @@ func (r *orderShippingDocumentRepo) List(ctx context.Context, organizationID, or
 	return result, nil
 }
 
-func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderShippingDocument) (*biz.OrderShippingDocument, error) {
+func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	builder := r.data.db.OrderShippingDocument.Create().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	builder := tx.OrderShippingDocument.Create().
+		SetID(input.ID).
 		SetOrderID(orderID).
 		SetMasterNo(input.MasterNo).
 		SetHouseNo(input.HouseNo).
@@ -64,15 +69,23 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 	}
 	created, err := builder.Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_shipping_documents_order_id_master_no") {
+		_ = tx.Rollback()
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_master_no") {
 			return nil, biz.ErrOrderShippingDocumentExists
 		}
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderShippingDocumentToBiz(created), nil
 }
 
-func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderShippingDocument) (*biz.OrderShippingDocument, error) {
+func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderShippingDocument, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -114,9 +127,13 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 	updated, err := builder.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_shipping_documents_order_id_master_no") {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_master_no") {
 			return nil, biz.ErrOrderShippingDocumentExists
 		}
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -125,7 +142,7 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 	return orderShippingDocumentToBiz(updated), nil
 }
 
-func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to biz.OrderShippingDocumentStatus) (*biz.OrderShippingDocument, error) {
+func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to biz.OrderShippingDocumentStatus, audit *biz.AuditEvent) (*biz.OrderShippingDocument, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -164,44 +181,61 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderShippingDocumentToBiz(updated), nil
 }
 
-func (r *orderShippingDocumentRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (r *orderShippingDocumentRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	item, err := r.data.db.OrderShippingDocument.Query().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	item, err := tx.OrderShippingDocument.Query().
 		Where(
 			ordershippingdocumentent.IDEQ(id),
 			ordershippingdocumentent.OrderIDEQ(orderID),
 		).
+		ForUpdate().
 		Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return biz.ErrOrderShippingDocumentNotFound
 		}
 		return err
 	}
 	if item.Status == ordershippingdocumentent.StatusRELEASED {
+		_ = tx.Rollback()
 		return biz.ErrOrderShippingDocumentInvalidStatus
 	}
-	n, err := r.data.db.OrderShippingDocument.Delete().
+	n, err := tx.OrderShippingDocument.Delete().
 		Where(
 			ordershippingdocumentent.IDEQ(id),
 			ordershippingdocumentent.OrderIDEQ(orderID),
 		).
 		Exec(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	if n == 0 {
+		_ = tx.Rollback()
 		return biz.ErrOrderShippingDocumentNotFound
 	}
-	return nil
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShippingDocument {
