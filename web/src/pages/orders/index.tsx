@@ -1,6 +1,8 @@
 import {
+  ContainerOutlined,
   EditOutlined,
   FlagOutlined,
+  InboxOutlined,
   PaperClipOutlined,
   PlusOutlined,
   SwapOutlined,
@@ -34,6 +36,18 @@ import {
   orderAttachmentServiceListAttachments,
   orderAttachmentServiceRegisterAttachment,
 } from '@/services/roncin/orderAttachmentService';
+import {
+  orderCargoItemServiceAddCargoItem,
+  orderCargoItemServiceListCargoItems,
+  orderCargoItemServiceRemoveCargoItem,
+  orderCargoItemServiceUpdateCargoItem,
+} from '@/services/roncin/orderCargoItemService';
+import {
+  orderContainerServiceAddContainer,
+  orderContainerServiceListContainers,
+  orderContainerServiceRemoveContainer,
+  orderContainerServiceUpdateContainer,
+} from '@/services/roncin/orderContainerService';
 import {
   orderMilestoneServiceListMilestones,
   orderMilestoneServiceSetMilestone,
@@ -103,6 +117,7 @@ const MASTER_DATA_KINDS = {
   REGION: 3,
   PORT: 4,
   AIRPORT: 5,
+  CONTAINER_SPEC: 7,
   SERVICE_TYPE: 8,
   CARGO_CATEGORY: 9,
 } as const;
@@ -170,6 +185,24 @@ type PersonnelFormValues = {
   role: number;
 };
 
+type ContainerFormValues = {
+  containerNo: string;
+  containerSpecId: string;
+  sealNo?: string;
+  grossWeightKg: number;
+  volumeCbm: number;
+  note?: string;
+};
+
+type CargoItemFormValues = {
+  cargoName: string;
+  packageCount: number;
+  grossWeightKg: number;
+  volumeCbm: number;
+  netWeightKg?: number;
+  note?: string;
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -181,6 +214,10 @@ export default function Orders() {
   const attachmentFormRef = useRef<ProFormInstance | undefined>(undefined);
   const personnelActionRef = useRef<ActionType | undefined>(undefined);
   const personnelFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const containerActionRef = useRef<ActionType | undefined>(undefined);
+  const containerFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const cargoActionRef = useRef<ActionType | undefined>(undefined);
+  const cargoFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -193,13 +230,21 @@ export default function Orders() {
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [personnelDrawerOpen, setPersonnelDrawerOpen] = useState(false);
   const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
+  const [containerDrawerOpen, setContainerDrawerOpen] = useState(false);
+  const [containerModalOpen, setContainerModalOpen] = useState(false);
+  const [cargoDrawerOpen, setCargoDrawerOpen] = useState(false);
+  const [cargoModalOpen, setCargoModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
   const [milestoneOrder, setMilestoneOrder] = useState<API.Order>();
   const [attachmentOrder, setAttachmentOrder] = useState<API.Order>();
   const [personnelOrder, setPersonnelOrder] = useState<API.Order>();
+  const [containerOrder, setContainerOrder] = useState<API.Order>();
+  const [cargoOrder, setCargoOrder] = useState<API.Order>();
   const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
+  const [editingContainer, setEditingContainer] = useState<API.OrderContainer>();
+  const [editingCargoItem, setEditingCargoItem] = useState<API.OrderCargoItem>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -212,6 +257,27 @@ export default function Orders() {
       setMasterOptions(res.data ?? []);
     });
   }, []);
+
+  const containerSpecOptions = masterOptions
+    .filter(
+      (item) =>
+        item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.enabled !== false,
+    )
+    .map((item) => ({
+      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      value: item.id ?? '',
+    }));
+
+  const containerSpecMap = Object.fromEntries(
+    masterOptions
+      .filter(
+        (item) => item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.id,
+      )
+      .map((item) => [
+        item.id as string,
+        item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      ]),
+  );
 
   const serviceTypeOptions = masterOptions
     .filter(
@@ -392,6 +458,243 @@ export default function Orders() {
     personnelFormRef.current?.resetFields();
     setPersonnelModalOpen(true);
   };
+
+  const openContainers = (record: API.Order) => {
+    setContainerOrder(record);
+    setContainerDrawerOpen(true);
+  };
+
+  const openCreateContainer = () => {
+    setEditingContainer(undefined);
+    containerFormRef.current?.resetFields();
+    setContainerModalOpen(true);
+  };
+
+  const openEditContainer = (record: API.OrderContainer) => {
+    setEditingContainer(record);
+    containerFormRef.current?.setFieldsValue({
+      containerNo: record.containerNo,
+      containerSpecId: record.containerSpecId,
+      sealNo: record.sealNo,
+      grossWeightKg: record.grossWeightKg,
+      volumeCbm: record.volumeCbm,
+      note: record.note,
+    });
+    setContainerModalOpen(true);
+  };
+
+  const openCargoItems = (record: API.Order) => {
+    setCargoOrder(record);
+    setCargoDrawerOpen(true);
+  };
+
+  const openCreateCargoItem = () => {
+    setEditingCargoItem(undefined);
+    cargoFormRef.current?.resetFields();
+    setCargoModalOpen(true);
+  };
+
+  const openEditCargoItem = (record: API.OrderCargoItem) => {
+    setEditingCargoItem(record);
+    cargoFormRef.current?.setFieldsValue({
+      cargoName: record.cargoName,
+      packageCount: record.packageCount,
+      grossWeightKg: record.grossWeightKg,
+      volumeCbm: record.volumeCbm,
+      netWeightKg: record.netWeightKg,
+      note: record.note,
+    });
+    setCargoModalOpen(true);
+  };
+
+  const containerColumns: ProColumns<API.OrderContainer>[] = [
+    {
+      title: '箱号',
+      dataIndex: 'containerNo',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.containerNo || '-',
+    },
+    {
+      title: '箱型',
+      dataIndex: 'containerSpecId',
+      ellipsis: true,
+      render: (_, record) =>
+        (record.containerSpecId && containerSpecMap[record.containerSpecId]) ||
+        '-',
+    },
+    {
+      title: '封号',
+      dataIndex: 'sealNo',
+      ellipsis: true,
+      render: (_, record) => record.sealNo || '-',
+    },
+    {
+      title: '毛重(KG)',
+      dataIndex: 'grossWeightKg',
+      width: 120,
+      render: (_, record) =>
+        record.grossWeightKg !== undefined && record.grossWeightKg !== null
+          ? record.grossWeightKg
+          : '-',
+    },
+    {
+      title: '体积(CBM)',
+      dataIndex: 'volumeCbm',
+      width: 120,
+      render: (_, record) =>
+        record.volumeCbm !== undefined && record.volumeCbm !== null
+          ? record.volumeCbm
+          : '-',
+    },
+    {
+      title: '备注',
+      dataIndex: 'note',
+      ellipsis: true,
+      render: (_, record) => record.note || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.createdAt
+          ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 120,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Space size="small">
+            <Button
+              type="link"
+              size="small"
+              onClick={() => openEditContainer(record)}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定移除该集装箱？"
+              onConfirm={async () => {
+                if (!containerOrder?.id || !record.id) return;
+                await orderContainerServiceRemoveContainer({
+                  orderId: containerOrder.id,
+                  id: record.id,
+                });
+                message.success('移除集装箱成功');
+                containerActionRef.current?.reload();
+              }}
+            >
+              <Button type="link" danger size="small">
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
+
+  const cargoColumns: ProColumns<API.OrderCargoItem>[] = [
+    {
+      title: '货名',
+      dataIndex: 'cargoName',
+      ellipsis: true,
+      render: (_, record) => record.cargoName || '-',
+    },
+    {
+      title: '件数',
+      dataIndex: 'packageCount',
+      width: 100,
+      render: (_, record) =>
+        record.packageCount !== undefined && record.packageCount !== null
+          ? record.packageCount
+          : '-',
+    },
+    {
+      title: '毛重(KG)',
+      dataIndex: 'grossWeightKg',
+      width: 120,
+      render: (_, record) =>
+        record.grossWeightKg !== undefined && record.grossWeightKg !== null
+          ? record.grossWeightKg
+          : '-',
+    },
+    {
+      title: '体积(CBM)',
+      dataIndex: 'volumeCbm',
+      width: 120,
+      render: (_, record) =>
+        record.volumeCbm !== undefined && record.volumeCbm !== null
+          ? record.volumeCbm
+          : '-',
+    },
+    {
+      title: '净重(KG)',
+      dataIndex: 'netWeightKg',
+      width: 120,
+      render: (_, record) =>
+        record.netWeightKg !== undefined && record.netWeightKg !== null
+          ? record.netWeightKg
+          : '-',
+    },
+    {
+      title: '备注',
+      dataIndex: 'note',
+      ellipsis: true,
+      render: (_, record) => record.note || '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.createdAt
+          ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 120,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Space size="small">
+            <Button
+              type="link"
+              size="small"
+              onClick={() => openEditCargoItem(record)}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定移除该货物明细？"
+              onConfirm={async () => {
+                if (!cargoOrder?.id || !record.id) return;
+                await orderCargoItemServiceRemoveCargoItem({
+                  orderId: cargoOrder.id,
+                  id: record.id,
+                });
+                message.success('移除货物明细成功');
+                cargoActionRef.current?.reload();
+              }}
+            >
+              <Button type="link" danger size="small">
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
 
   const personnelColumns: ProColumns<API.OrderPersonnel>[] = [
     {
@@ -620,7 +923,7 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 350,
+      width: 480,
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
@@ -668,6 +971,22 @@ export default function Orders() {
               onClick={() => openPersonnel(record)}
             >
               人员
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<ContainerOutlined />}
+              onClick={() => openContainers(record)}
+            >
+              集装箱
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<InboxOutlined />}
+              onClick={() => openCargoItems(record)}
+            >
+              货物
             </Button>
           </Space>
         );
@@ -1469,6 +1788,314 @@ export default function Orders() {
           rules={[{ required: true, message: '请选择角色' }]}
           options={orderPersonnelRoleOptions}
           placeholder="请选择角色"
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          containerOrder
+            ? `订单集装箱 - ${containerOrder.orderNo || containerOrder.id}`
+            : '订单集装箱'
+        }
+        open={containerDrawerOpen}
+        onClose={() => {
+          setContainerDrawerOpen(false);
+          setContainerOrder(undefined);
+        }}
+        width={900}
+        destroyOnHidden
+      >
+        {containerOrder?.id && (
+          <ProTable<API.OrderContainer>
+            actionRef={containerActionRef}
+            rowKey="id"
+            columns={containerColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderContainerServiceListContainers({
+                orderId: containerOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateContainer}
+                >
+                  添加集装箱
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<ContainerFormValues>
+        title={editingContainer ? '编辑集装箱' : '添加集装箱'}
+        open={containerModalOpen}
+        formRef={containerFormRef}
+        initialValues={
+          editingContainer
+            ? {
+                containerNo: editingContainer.containerNo,
+                containerSpecId: editingContainer.containerSpecId,
+                sealNo: editingContainer.sealNo,
+                grossWeightKg: editingContainer.grossWeightKg,
+                volumeCbm: editingContainer.volumeCbm,
+                note: editingContainer.note,
+              }
+            : undefined
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 560,
+          onCancel: () => setContainerModalOpen(false),
+        }}
+        onOpenChange={setContainerModalOpen}
+        onFinish={async (values) => {
+          if (!containerOrder?.id) return false;
+          if (editingContainer?.id) {
+            await orderContainerServiceUpdateContainer(
+              {
+                orderId: containerOrder.id,
+                id: editingContainer.id,
+              },
+              {
+                id: editingContainer.id,
+                orderId: containerOrder.id,
+                containerNo: values.containerNo.trim(),
+                containerSpecId: values.containerSpecId,
+                sealNo: values.sealNo?.trim() || undefined,
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('更新集装箱成功');
+          } else {
+            await orderContainerServiceAddContainer(
+              {
+                orderId: containerOrder.id,
+              },
+              {
+                orderId: containerOrder.id,
+                containerNo: values.containerNo.trim(),
+                containerSpecId: values.containerSpecId,
+                sealNo: values.sealNo?.trim() || undefined,
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('添加集装箱成功');
+          }
+          setContainerModalOpen(false);
+          containerActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="containerNo"
+          label="箱号"
+          placeholder="请输入箱号"
+          rules={[{ required: true, message: '请输入箱号' }]}
+        />
+        <ProFormSelect
+          name="containerSpecId"
+          label="箱型"
+          rules={[{ required: true, message: '请选择箱型' }]}
+          options={containerSpecOptions}
+          placeholder="请选择箱型"
+        />
+        <ProFormText
+          name="sealNo"
+          label="封号"
+          placeholder="请输入封号 (可选)"
+        />
+        <ProFormDigit
+          name="grossWeightKg"
+          label="毛重(KG)"
+          min={0.001}
+          placeholder="请输入毛重"
+          rules={[{ required: true, message: '请输入毛重' }]}
+        />
+        <ProFormDigit
+          name="volumeCbm"
+          label="体积(CBM)"
+          min={0.001}
+          placeholder="请输入体积"
+          rules={[{ required: true, message: '请输入体积' }]}
+        />
+        <ProFormTextArea
+          name="note"
+          label="备注"
+          placeholder="请输入备注 (可选)"
+          fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          cargoOrder
+            ? `订单货物明细 - ${cargoOrder.orderNo || cargoOrder.id}`
+            : '订单货物明细'
+        }
+        open={cargoDrawerOpen}
+        onClose={() => {
+          setCargoDrawerOpen(false);
+          setCargoOrder(undefined);
+        }}
+        width={900}
+        destroyOnHidden
+      >
+        {cargoOrder?.id && (
+          <ProTable<API.OrderCargoItem>
+            actionRef={cargoActionRef}
+            rowKey="id"
+            columns={cargoColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderCargoItemServiceListCargoItems({
+                orderId: cargoOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateCargoItem}
+                >
+                  添加货物明细
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<CargoItemFormValues>
+        title={editingCargoItem ? '编辑货物明细' : '添加货物明细'}
+        open={cargoModalOpen}
+        formRef={cargoFormRef}
+        initialValues={
+          editingCargoItem
+            ? {
+                cargoName: editingCargoItem.cargoName,
+                packageCount: editingCargoItem.packageCount,
+                grossWeightKg: editingCargoItem.grossWeightKg,
+                volumeCbm: editingCargoItem.volumeCbm,
+                netWeightKg: editingCargoItem.netWeightKg,
+                note: editingCargoItem.note,
+              }
+            : undefined
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 560,
+          onCancel: () => setCargoModalOpen(false),
+        }}
+        onOpenChange={setCargoModalOpen}
+        onFinish={async (values) => {
+          if (!cargoOrder?.id) return false;
+          if (editingCargoItem?.id) {
+            await orderCargoItemServiceUpdateCargoItem(
+              {
+                orderId: cargoOrder.id,
+                id: editingCargoItem.id,
+              },
+              {
+                id: editingCargoItem.id,
+                orderId: cargoOrder.id,
+                cargoName: values.cargoName.trim(),
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                netWeightKg:
+                  values.netWeightKg !== undefined && values.netWeightKg !== null
+                    ? Number(values.netWeightKg)
+                    : undefined,
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('更新货物明细成功');
+          } else {
+            await orderCargoItemServiceAddCargoItem(
+              {
+                orderId: cargoOrder.id,
+              },
+              {
+                orderId: cargoOrder.id,
+                cargoName: values.cargoName.trim(),
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                netWeightKg:
+                  values.netWeightKg !== undefined && values.netWeightKg !== null
+                    ? Number(values.netWeightKg)
+                    : undefined,
+                note: values.note?.trim() || undefined,
+              },
+            );
+            message.success('添加货物明细成功');
+          }
+          setCargoModalOpen(false);
+          cargoActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="cargoName"
+          label="货名"
+          placeholder="请输入货名"
+          rules={[{ required: true, message: '请输入货名' }]}
+        />
+        <ProFormDigit
+          name="packageCount"
+          label="件数"
+          min={1}
+          fieldProps={{ precision: 0 }}
+          placeholder="请输入件数"
+          rules={[{ required: true, message: '请输入件数' }]}
+        />
+        <ProFormDigit
+          name="grossWeightKg"
+          label="毛重(KG)"
+          min={0.001}
+          placeholder="请输入毛重"
+          rules={[{ required: true, message: '请输入毛重' }]}
+        />
+        <ProFormDigit
+          name="volumeCbm"
+          label="体积(CBM)"
+          min={0.001}
+          placeholder="请输入体积"
+          rules={[{ required: true, message: '请输入体积' }]}
+        />
+        <ProFormDigit
+          name="netWeightKg"
+          label="净重(KG)"
+          min={0.001}
+          placeholder="请输入净重 (可选)"
+        />
+        <ProFormTextArea
+          name="note"
+          label="备注"
+          placeholder="请输入备注 (可选)"
+          fieldProps={{ maxLength: 500, showCount: true }}
         />
       </ModalForm>
     </>
