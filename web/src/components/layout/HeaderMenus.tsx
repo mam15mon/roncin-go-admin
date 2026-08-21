@@ -99,24 +99,12 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
           <Button
             type="text"
             size="small"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              height: 32,
-              padding: '0 8px',
-              fontSize: 13,
-              fontWeight: isSettingsActive ? 600 : 500,
-              color: isSettingsActive ? '#1677ff' : 'rgba(0, 0, 0, 0.65)',
-            }}
+            className={`roncin-header-menu-btn ${
+              isSettingsActive ? 'active' : ''
+            }`}
           >
             <span>设置中心</span>
-            <DownOutlined
-              style={{
-                fontSize: 10,
-                color: isSettingsActive ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
-              }}
-            />
+            <DownOutlined className="roncin-header-menu-icon" />
           </Button>
         </HeaderDropdown>
       )}
@@ -133,24 +121,12 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
           <Button
             type="text"
             size="small"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              height: 32,
-              padding: '0 8px',
-              fontSize: 13,
-              fontWeight: isEnterpriseActive ? 600 : 500,
-              color: isEnterpriseActive ? '#1677ff' : 'rgba(0, 0, 0, 0.65)',
-            }}
+            className={`roncin-header-menu-btn ${
+              isEnterpriseActive ? 'active' : ''
+            }`}
           >
             <span>企业资源</span>
-            <DownOutlined
-              style={{
-                fontSize: 10,
-                color: isEnterpriseActive ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
-              }}
-            />
+            <DownOutlined className="roncin-header-menu-icon" />
           </Button>
         </HeaderDropdown>
       )}

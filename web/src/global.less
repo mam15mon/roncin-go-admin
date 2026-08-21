@@ -228,9 +228,100 @@ body,
 .roncin-header-content {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   height: 56px;
   min-width: 0;
+}
+
+.roncin-header-menu-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.65) !important;
+  border-radius: 6px !important;
+  transition: all 0.15s ease !important;
+
+  .roncin-header-menu-icon {
+    font-size: 10px !important;
+    color: rgba(0, 0, 0, 0.45) !important;
+    transition: color 0.15s ease !important;
+  }
+
+  &:hover {
+    color: #1677ff !important;
+    background: rgba(0, 0, 0, 0.04) !important;
+
+    .roncin-header-menu-icon {
+      color: #1677ff !important;
+    }
+  }
+
+  &.active {
+    color: #1677ff !important;
+    font-weight: 600 !important;
+
+    .roncin-header-menu-icon {
+      color: #1677ff !important;
+    }
+  }
+}
+
+// ----------------------------------------
+// 顶栏下拉菜单与通用下拉弹层高清晰度样式
+// ----------------------------------------
+.ant-dropdown {
+  .ant-dropdown-menu {
+    padding: 4px !important;
+    border-radius: 8px !important;
+    border: 1px solid #f0f0f0 !important;
+    background: #ffffff !important;
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12) !important;
+
+    .ant-dropdown-menu-item {
+      height: 36px;
+      line-height: 36px;
+      padding: 0 12px !important;
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      color: rgba(0, 0, 0, 0.88) !important;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .anticon {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.65);
+        transition: color 0.15s ease;
+      }
+
+      // Hover 悬浮高亮：高对比度淡蓝背景 + 品牌纯蓝文字与图标
+      &:hover,
+      &-active {
+        background: #f0f7ff !important;
+        color: #1677ff !important;
+
+        .anticon {
+          color: #1677ff !important;
+        }
+      }
+
+      // Selected 当前激活项
+      &-selected {
+        background: #e6f4ff !important;
+        color: #1677ff !important;
+        font-weight: 600 !important;
+
+        .anticon {
+          color: #1677ff !important;
+        }
+      }
+    }
+  }
 }
 
 // ----------------------------------------
