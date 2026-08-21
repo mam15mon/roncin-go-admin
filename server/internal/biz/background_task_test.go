@@ -30,6 +30,15 @@ type backgroundTaskRepoStub struct {
 
 	getOrgID uuid.UUID
 	getID    uuid.UUID
+
+	listOrgID   uuid.UUID
+	listOptions BackgroundTaskListOptions
+	listResult  *BackgroundTaskList
+
+	requeueOrgID uuid.UUID
+	requeueID    uuid.UUID
+	requeueNow   time.Time
+	requeueTask  *BackgroundTask
 }
 
 func (s *backgroundTaskRepoStub) Enqueue(_ context.Context, organizationID uuid.UUID, task *BackgroundTask) (*BackgroundTask, error) {
@@ -82,6 +91,38 @@ func (s *backgroundTaskRepoStub) Get(_ context.Context, organizationID, id uuid.
 	return &BackgroundTask{
 		ID:             id,
 		OrganizationID: organizationID,
+	}, nil
+}
+
+func (s *backgroundTaskRepoStub) List(_ context.Context, organizationID uuid.UUID, options BackgroundTaskListOptions) (*BackgroundTaskList, error) {
+	s.listOrgID = organizationID
+	s.listOptions = options
+	if s.listResult != nil {
+		return s.listResult, nil
+	}
+	return &BackgroundTaskList{
+		Items:    []*BackgroundTask{},
+		Total:    0,
+		Page:     options.Page,
+		PageSize: options.PageSize,
+	}, nil
+}
+
+func (s *backgroundTaskRepoStub) Requeue(_ context.Context, organizationID, id uuid.UUID, now time.Time) (*BackgroundTask, error) {
+	s.requeueOrgID = organizationID
+	s.requeueID = id
+	s.requeueNow = now
+	if s.requeueTask != nil {
+		return s.requeueTask, nil
+	}
+	return &BackgroundTask{
+		ID:             id,
+		OrganizationID: organizationID,
+		Kind:           BackgroundTaskKindMasterDataImport,
+		Status:         BackgroundTaskStatusPending,
+		Attempts:       0,
+		MaxAttempts:    3,
+		NextRunAt:      now,
 	}, nil
 }
 
@@ -142,7 +183,7 @@ func TestBackgroundTaskStatusValid(t *testing.T) {
 
 func TestBackgroundTaskEnqueueValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo)
+	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
 	orgID := uuid.New()
 
 	// organizationID is nil
@@ -200,8 +241,9 @@ func TestBackgroundTaskEnqueueDefaultsAndSuccess(t *testing.T) {
 	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	repo := &backgroundTaskRepoStub{}
 	uc := &BackgroundTaskUsecase{
-		repo: repo,
-		now:  func() time.Time { return fixedNow },
+		repo:  repo,
+		audit: &auditRepoStub{},
+		now:   func() time.Time { return fixedNow },
 	}
 	orgID := uuid.New()
 
@@ -268,8 +310,9 @@ func TestBackgroundTaskClaimValidation(t *testing.T) {
 	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	repo := &backgroundTaskRepoStub{}
 	uc := &BackgroundTaskUsecase{
-		repo: repo,
-		now:  func() time.Time { return fixedNow },
+		repo:  repo,
+		audit: &auditRepoStub{},
+		now:   func() time.Time { return fixedNow },
 	}
 	orgID := uuid.New()
 
@@ -315,7 +358,7 @@ func TestBackgroundTaskClaimValidation(t *testing.T) {
 
 func TestBackgroundTaskCompleteValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo)
+	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
 	orgID := uuid.New()
 	id := uuid.New()
 	validToken := "lease-token-123"
@@ -363,7 +406,7 @@ func TestBackgroundTaskCompleteValidation(t *testing.T) {
 
 func TestBackgroundTaskFailValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo)
+	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
 	orgID := uuid.New()
 	id := uuid.New()
 	validToken := "lease-token-123"
@@ -428,7 +471,7 @@ func TestBackgroundTaskFailValidation(t *testing.T) {
 
 func TestBackgroundTaskGetValidation(t *testing.T) {
 	repo := &backgroundTaskRepoStub{}
-	uc := NewBackgroundTaskUsecase(repo)
+	uc := NewBackgroundTaskUsecase(repo, &auditRepoStub{})
 	orgID := uuid.New()
 	id := uuid.New()
 
@@ -455,5 +498,174 @@ func TestBackgroundTaskGetValidation(t *testing.T) {
 	}
 	if repo.getID != id {
 		t.Fatalf("expected repo getID %v, got %v", id, repo.getID)
+	}
+}
+
+func TestBackgroundTaskUsecaseList(t *testing.T) {
+	repo := &backgroundTaskRepoStub{}
+	audit := &auditRepoStub{}
+	uc := NewBackgroundTaskUsecase(repo, audit)
+	orgID := uuid.New()
+
+	// organizationID is nil
+	if _, err := uc.List(context.Background(), uuid.Nil, BackgroundTaskListOptions{Page: 1, PageSize: 20}); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for nil orgID, got %v", err)
+	}
+
+	// invalid pagination (page < 1, pageSize < 1, pageSize > 100)
+	for _, opt := range []BackgroundTaskListOptions{
+		{Page: 0, PageSize: 20},
+		{Page: -1, PageSize: 20},
+		{Page: 1, PageSize: 0},
+		{Page: 1, PageSize: -5},
+		{Page: 1, PageSize: 101},
+	} {
+		if _, err := uc.List(context.Background(), orgID, opt); err != ErrBackgroundTaskInvalidArgument {
+			t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid pagination %+v, got %v", opt, err)
+		}
+	}
+
+	// invalid status enum
+	invalidStatus := BackgroundTaskStatus("INVALID_STATUS")
+	if _, err := uc.List(context.Background(), orgID, BackgroundTaskListOptions{Page: 1, PageSize: 20, Status: &invalidStatus}); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid status, got %v", err)
+	}
+
+	// invalid kind enum
+	invalidKind := BackgroundTaskKind("INVALID_KIND")
+	if _, err := uc.List(context.Background(), orgID, BackgroundTaskListOptions{Page: 1, PageSize: 20, Kind: &invalidKind}); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid kind, got %v", err)
+	}
+
+	// success with valid options and pass-through assertion
+	validStatus := BackgroundTaskStatusFailed
+	validKind := BackgroundTaskKindMasterDataImport
+	now := time.Now()
+	startTime := now.Add(-24 * time.Hour)
+	endTime := now
+	opt := BackgroundTaskListOptions{
+		Page:      2,
+		PageSize:  50,
+		Status:    &validStatus,
+		Kind:      &validKind,
+		StartTime: &startTime,
+		EndTime:   &endTime,
+	}
+	expectedItem := &BackgroundTask{
+		ID:             uuid.New(),
+		OrganizationID: orgID,
+		Kind:           validKind,
+		Status:         validStatus,
+	}
+	repo.listResult = &BackgroundTaskList{
+		Items:    []*BackgroundTask{expectedItem},
+		Total:    1,
+		Page:     2,
+		PageSize: 50,
+	}
+
+	res, err := uc.List(context.Background(), orgID, opt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if res == nil || res.Total != 1 || len(res.Items) != 1 || res.Page != 2 || res.PageSize != 50 {
+		t.Fatalf("unexpected result: %#v", res)
+	}
+	if repo.listOrgID != orgID {
+		t.Fatalf("expected repo.listOrgID %v, got %v", orgID, repo.listOrgID)
+	}
+	if repo.listOptions.Page != 2 || repo.listOptions.PageSize != 50 || *repo.listOptions.Status != validStatus || *repo.listOptions.Kind != validKind || !repo.listOptions.StartTime.Equal(startTime) || !repo.listOptions.EndTime.Equal(endTime) {
+		t.Fatalf("expected repo.listOptions %+v, got %+v", opt, repo.listOptions)
+	}
+}
+
+func TestBackgroundTaskUsecaseRequeue(t *testing.T) {
+	fixedNow := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
+	repo := &backgroundTaskRepoStub{}
+	audit := &auditRepoStub{}
+	uc := &BackgroundTaskUsecase{
+		repo:  repo,
+		audit: audit,
+		now:   func() time.Time { return fixedNow },
+	}
+	orgID := uuid.New()
+	actorID := uuid.New()
+	taskID := uuid.New()
+
+	// organizationID is nil
+	if _, err := uc.Requeue(context.Background(), uuid.Nil, actorID, taskID); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for nil orgID, got %v", err)
+	}
+
+	// actorID is nil
+	if _, err := uc.Requeue(context.Background(), orgID, uuid.Nil, taskID); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for nil actorID, got %v", err)
+	}
+
+	// taskID is nil
+	if _, err := uc.Requeue(context.Background(), orgID, actorID, uuid.Nil); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for nil taskID, got %v", err)
+	}
+
+	// Success
+	requeuedTask := &BackgroundTask{
+		ID:             taskID,
+		OrganizationID: orgID,
+		Kind:           BackgroundTaskKindUnlocodeImport,
+		Status:         BackgroundTaskStatusPending,
+		Attempts:       0,
+		MaxAttempts:    5,
+		NextRunAt:      fixedNow,
+	}
+	repo.requeueTask = requeuedTask
+
+	result, err := uc.Requeue(context.Background(), orgID, actorID, taskID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result != requeuedTask {
+		t.Fatalf("expected result %v, got %v", requeuedTask, result)
+	}
+	if repo.requeueOrgID != orgID {
+		t.Fatalf("expected repo.requeueOrgID %v, got %v", orgID, repo.requeueOrgID)
+	}
+	if repo.requeueID != taskID {
+		t.Fatalf("expected repo.requeueID %v, got %v", taskID, repo.requeueID)
+	}
+	if !repo.requeueNow.Equal(fixedNow) {
+		t.Fatalf("expected repo.requeueNow %v, got %v", fixedNow, repo.requeueNow)
+	}
+
+	// Assert audit
+	if len(audit.events) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	}
+	event := audit.events[0]
+	if event.Action != "background_task.requeue" {
+		t.Fatalf("expected audit Action 'background_task.requeue', got %s", event.Action)
+	}
+	if event.Result != "success" {
+		t.Fatalf("expected audit Result 'success', got %s", event.Result)
+	}
+	if event.OrganizationID == nil || *event.OrganizationID != orgID {
+		t.Fatalf("expected audit OrganizationID %v, got %v", orgID, event.OrganizationID)
+	}
+	if event.UserID == nil || *event.UserID != actorID {
+		t.Fatalf("expected audit UserID %v, got %v", actorID, event.UserID)
+	}
+	if event.Details == nil {
+		t.Fatalf("expected non-nil audit Details")
+	}
+	if event.Details["background_task.id"] != taskID.String() {
+		t.Fatalf("expected audit Details['background_task.id'] == %q, got %q", taskID.String(), event.Details["background_task.id"])
+	}
+	if event.Details["background_task.kind"] != string(BackgroundTaskKindUnlocodeImport) {
+		t.Fatalf("expected audit Details['background_task.kind'] == %q, got %q", string(BackgroundTaskKindUnlocodeImport), event.Details["background_task.kind"])
+	}
+	if event.Details["background_task.status"] != string(BackgroundTaskStatusPending) {
+		t.Fatalf("expected audit Details['background_task.status'] == %q, got %q", string(BackgroundTaskStatusPending), event.Details["background_task.status"])
+	}
+	if event.Details["background_task.attempts"] != "0" {
+		t.Fatalf("expected audit Details['background_task.attempts'] == '0', got %q", event.Details["background_task.attempts"])
 	}
 }

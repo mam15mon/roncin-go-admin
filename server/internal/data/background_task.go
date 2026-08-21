@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -235,6 +236,90 @@ func (r *backgroundTaskRepo) Get(ctx context.Context, organizationID, id uuid.UU
 		return nil, err
 	}
 	return backgroundTaskToBiz(task), nil
+}
+
+func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.BackgroundTaskListOptions) (*biz.BackgroundTaskList, error) {
+	query := r.data.db.BackgroundTask.Query().Where(backgroundtaskent.OrganizationIDEQ(organizationID))
+	if options.Status != nil {
+		query.Where(backgroundtaskent.StatusEQ(backgroundtaskent.Status(*options.Status)))
+	}
+	if options.Kind != nil {
+		query.Where(backgroundtaskent.KindEQ(backgroundtaskent.Kind(*options.Kind)))
+	}
+	if options.StartTime != nil {
+		query.Where(backgroundtaskent.CreatedAtGTE(*options.StartTime))
+	}
+	if options.EndTime != nil {
+		query.Where(backgroundtaskent.CreatedAtLTE(*options.EndTime))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.
+		Order(backgroundtaskent.ByCreatedAt(entsql.OrderDesc())).
+		Offset((options.Page - 1) * options.PageSize).
+		Limit(options.PageSize).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tasks := make([]*biz.BackgroundTask, 0, len(items))
+	for _, item := range items {
+		tasks = append(tasks, backgroundTaskToBiz(item))
+	}
+	return &biz.BackgroundTaskList{
+		Items:    tasks,
+		Total:    total,
+		Page:     options.Page,
+		PageSize: options.PageSize,
+	}, nil
+}
+
+func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uuid.UUID, now time.Time) (*biz.BackgroundTask, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	task, err := tx.BackgroundTask.Query().
+		Where(
+			backgroundtaskent.IDEQ(id),
+			backgroundtaskent.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrBackgroundTaskNotFound
+		}
+		return nil, err
+	}
+
+	if task.Status != backgroundtaskent.StatusFAILED && task.Status != backgroundtaskent.StatusDEAD_LETTER {
+		_ = tx.Rollback()
+		return nil, biz.ErrBackgroundTaskNotRequeueable
+	}
+
+	updated, err := tx.BackgroundTask.UpdateOne(task).
+		SetStatus(backgroundtaskent.StatusPENDING).
+		SetAttempts(0).
+		SetNextRunAt(now).
+		ClearLeaseToken().
+		ClearLeaseExpiresAt().
+		ClearLastError().
+		Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return backgroundTaskToBiz(updated), nil
 }
 
 func backgroundTaskToBiz(item *ent.BackgroundTask) *biz.BackgroundTask {

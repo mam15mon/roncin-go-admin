@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -17,6 +19,7 @@ var (
 	ErrBackgroundTaskLeaseMismatch   = errors.Conflict("BACKGROUND_TASK_LEASE_MISMATCH", "后台任务租约不匹配或已失效")
 	ErrBackgroundTaskNoTask          = errors.NotFound("BACKGROUND_TASK_NO_TASK", "没有可执行的后台任务")
 	ErrBackgroundTaskInvalidStatus   = errors.BadRequest("BACKGROUND_TASK_INVALID_STATUS", "后台任务状态不合法")
+	ErrBackgroundTaskNotRequeueable  = errors.Conflict("BACKGROUND_TASK_NOT_REQUEUEABLE", "后台任务当前状态不可回放")
 )
 
 type BackgroundTaskKind string
@@ -79,21 +82,40 @@ type BackgroundTask struct {
 	LastError      *string
 }
 
+type BackgroundTaskListOptions struct {
+	Page      int
+	PageSize  int
+	Status    *BackgroundTaskStatus
+	Kind      *BackgroundTaskKind
+	StartTime *time.Time
+	EndTime   *time.Time
+}
+
+type BackgroundTaskList struct {
+	Items    []*BackgroundTask
+	Total    int
+	Page     int
+	PageSize int
+}
+
 type BackgroundTaskRepo interface {
 	Enqueue(context.Context, uuid.UUID, *BackgroundTask) (*BackgroundTask, error)
 	Claim(context.Context, uuid.UUID, []BackgroundTaskKind, time.Duration, time.Time) (*BackgroundTask, error)
 	Complete(context.Context, uuid.UUID, uuid.UUID, string) (*BackgroundTask, error)
 	Fail(context.Context, uuid.UUID, uuid.UUID, string, string, time.Time) (*BackgroundTask, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*BackgroundTask, error)
+	List(context.Context, uuid.UUID, BackgroundTaskListOptions) (*BackgroundTaskList, error)
+	Requeue(context.Context, uuid.UUID, uuid.UUID, time.Time) (*BackgroundTask, error)
 }
 
 type BackgroundTaskUsecase struct {
-	repo BackgroundTaskRepo
-	now  func() time.Time
+	repo  BackgroundTaskRepo
+	audit AuditRepo
+	now   func() time.Time
 }
 
-func NewBackgroundTaskUsecase(repo BackgroundTaskRepo) *BackgroundTaskUsecase {
-	return &BackgroundTaskUsecase{repo: repo, now: time.Now}
+func NewBackgroundTaskUsecase(repo BackgroundTaskRepo, audit AuditRepo) *BackgroundTaskUsecase {
+	return &BackgroundTaskUsecase{repo: repo, audit: audit, now: time.Now}
 }
 
 func (uc *BackgroundTaskUsecase) Enqueue(ctx context.Context, organizationID uuid.UUID, input *BackgroundTask) (*BackgroundTask, error) {
@@ -180,4 +202,40 @@ func (uc *BackgroundTaskUsecase) Get(ctx context.Context, organizationID, id uui
 	return uc.repo.Get(ctx, organizationID, id)
 }
 
-var _ BackgroundTaskRepo = (BackgroundTaskRepo)(nil)
+func (uc *BackgroundTaskUsecase) List(ctx context.Context, organizationID uuid.UUID, options BackgroundTaskListOptions) (*BackgroundTaskList, error) {
+	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	if options.Status != nil && !options.Status.Valid() {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	if options.Kind != nil && !options.Kind.Valid() {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	return uc.repo.List(ctx, organizationID, options)
+}
+
+func (uc *BackgroundTaskUsecase) Requeue(ctx context.Context, organizationID, actorID, id uuid.UUID) (*BackgroundTask, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	requeued, err := uc.repo.Requeue(ctx, organizationID, id, uc.now())
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "background_task.requeue",
+		Result:         "success",
+		Details: map[string]string{
+			"background_task.id":       requeued.ID.String(),
+			"background_task.kind":     string(requeued.Kind),
+			"background_task.status":   string(requeued.Status),
+			"background_task.attempts": strconv.Itoa(requeued.Attempts),
+		},
+	}); err != nil {
+		return nil, fmt.Errorf("write background task requeue audit: %w", err)
+	}
+	return requeued, nil
+}
