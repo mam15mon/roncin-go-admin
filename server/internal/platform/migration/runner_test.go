@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -81,6 +82,33 @@ func TestApplyRejectsChangedMigration(t *testing.T) {
 
 	if err := Apply(context.Background(), db, dir); err == nil {
 		t.Fatal("Apply() error = nil, want checksum mismatch")
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestApplyRollsBackFailedMigration(t *testing.T) {
+	dir := t.TempDir()
+	statement := "CREATE TABLE broken;"
+	if err := os.WriteFile(filepath.Join(dir, "20260821140000_broken.sql"), []byte(statement), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('public.schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(statement)).WillReturnError(errors.New("invalid SQL"))
+	mock.ExpectRollback()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if err := Apply(context.Background(), db, dir); err == nil {
+		t.Fatal("Apply() error = nil, want SQL error")
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)
