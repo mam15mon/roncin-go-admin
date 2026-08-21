@@ -512,14 +512,27 @@ export default function Orders() {
     setPersonnelModalOpen(true);
   };
 
+  const activeContainerOrderIdRef = useRef<string | undefined>(undefined);
+
   const openContainers = (record: API.Order) => {
     setContainerOrder(record);
+    setContainerDocuments([]);
     setContainerDrawerOpen(true);
+    const orderId = record.id as string;
+    activeContainerOrderIdRef.current = orderId;
     orderShippingDocumentServiceListShippingDocuments({
-      orderId: record.id as string,
-    }).then((res) => {
-      setContainerDocuments(res.data ?? []);
-    });
+      orderId,
+    })
+      .then((res) => {
+        if (activeContainerOrderIdRef.current === orderId) {
+          setContainerDocuments(res.data ?? []);
+        }
+      })
+      .catch(() => {
+        if (activeContainerOrderIdRef.current === orderId) {
+          setContainerDocuments([]);
+        }
+      });
   };
 
   const containerDocumentOptions = containerDocuments.map((doc) => ({
@@ -2043,8 +2056,10 @@ export default function Orders() {
         }
         open={containerDrawerOpen}
         onClose={() => {
+          activeContainerOrderIdRef.current = undefined;
           setContainerDrawerOpen(false);
           setContainerOrder(undefined);
+          setContainerDocuments([]);
         }}
         width={900}
         destroyOnHidden

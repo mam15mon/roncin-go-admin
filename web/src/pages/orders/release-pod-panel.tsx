@@ -67,14 +67,28 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     const [order, setOrder] = useState<API.Order>();
     const [documents, setDocuments] = useState<API.OrderShippingDocument[]>([]);
     const [editingRecord, setEditingRecord] = useState<API.OrderReleasePod>();
+    const activeOrderIdRef = useRef<string | undefined>(undefined);
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
         setOrder(record);
+        setDocuments([]);
         setDrawerOpen(true);
+        const orderId = record.id as string;
+        activeOrderIdRef.current = orderId;
         orderShippingDocumentServiceListShippingDocuments({
-          orderId: record.id as string,
-        }).then((response) => setDocuments(response.data ?? []));
+          orderId,
+        })
+          .then((response) => {
+            if (activeOrderIdRef.current === orderId) {
+              setDocuments(response.data ?? []);
+            }
+          })
+          .catch(() => {
+            if (activeOrderIdRef.current === orderId) {
+              setDocuments([]);
+            }
+          });
       },
     }));
 
@@ -241,6 +255,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           }
           open={drawerOpen}
           onClose={() => {
+            activeOrderIdRef.current = undefined;
             setDrawerOpen(false);
             setOrder(undefined);
             setDocuments([]);
