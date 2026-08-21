@@ -381,30 +381,6 @@ export default function OrganizationsPanel() {
             position: 'relative',
           }}
         >
-          {/* Top-right Floating Action Bar for Chart */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              zIndex: 10,
-              display: 'flex',
-              gap: 8,
-              background: 'rgba(255, 255, 255, 0.95)',
-              padding: '4px 8px',
-              borderRadius: 8,
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              border: '1px solid #f0f0f0',
-            }}
-          >
-            <Button
-              size="small"
-              onClick={() => graphRef.current?.fitView()}
-            >
-              自适应居中
-            </Button>
-          </div>
-
           {/* Org Chart Container */}
           <Spin spinning={loading}>
             {graphData.nodes.length > 0 ? (
@@ -413,7 +389,6 @@ export default function OrganizationsPanel() {
                   ref={graphRef}
                   data={graphData}
                   direction={chartDirection}
-                  autoFit="center"
                   node={{
                     style: {
                       size: [210, 72],
@@ -609,6 +584,9 @@ export default function OrganizationsPanel() {
                   behaviors={['drag-canvas', 'click-select']}
                   onReady={(graph: any) => {
                     graphRef.current = graph;
+                    try {
+                      graph.zoomTo(1);
+                    } catch {}
                     graph.on('node:click', (evt: any) => {
                       const id = evt.target?.id || evt.itemId || evt.target?.cfg?.id;
                       if (id) {
