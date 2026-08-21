@@ -1,24 +1,50 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
 
 /**
- * @name
+ * 全局后台布局默认配置
+ * 统一对齐企业级后台设计：左侧全高深色侧栏（216px）、顶部56px紧凑浅色顶栏
  */
 const Settings: ProLayoutProps & {
   logo?: string;
 } = {
-  navTheme: 'light',
+  navTheme: 'realDark',
   colorPrimary: '#1677ff',
-  layout: 'mix',
+  layout: 'side',
   contentWidth: 'Fluid',
-  fixedHeader: false,
+  fixedHeader: true,
   fixSiderbar: true,
   colorWeak: false,
   title: 'Roncin 货代后台',
   logo: '/logo.svg',
   iconfontUrl: '',
+  siderWidth: 216,
+  splitMenus: false,
   token: {
-    // 参见ts声明，demo 见文档，通过token 修改样式
-    //https://procomponents.ant.design/components/layout#%E9%80%9A%E8%BF%87-token-%E4%BF%AE%E6%94%B9%E6%A0%B7%E5%BC%8F
+    sider: {
+      colorBgCollapsedButton: '#1e293b',
+      colorTextCollapsedButton: '#94a3b8',
+      colorTextCollapsedButtonHover: '#f8fafc',
+      colorBgMenuItemCollapsedElevated: '#0f172a',
+      colorBgMenuItemHover: 'rgba(255, 255, 255, 0.06)',
+      colorBgMenuItemSelected: 'rgba(59, 130, 246, 0.16)',
+      colorTextMenu: '#94a3b8',
+      colorTextMenuSelected: '#60a5fa',
+      colorTextMenuItemHover: '#f8fafc',
+      colorTextMenuTitle: '#f8fafc',
+      colorMenuBackground: '#0f172a',
+    },
+    header: {
+      colorBgHeader: '#ffffff',
+      colorHeaderTitle: '#0f172a',
+      colorTextMenu: '#64748b',
+      colorBgMenuItemHover: 'rgba(0, 0, 0, 0.04)',
+      colorTextMenuSelected: '#1677ff',
+      heightLayoutHeader: 56,
+    },
+    pageContainer: {
+      paddingBlockPageContainerContent: 8,
+      paddingInlinePageContainerContent: 12,
+    },
   },
 };
 

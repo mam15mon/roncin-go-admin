@@ -1,4 +1,4 @@
-import { LogoutOutlined, SkinOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Spin } from 'antd';
@@ -14,10 +14,6 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ children }) => {
   if (!initialState?.currentUser) return <Spin size="small" />;
 
   const onMenuClick: MenuProps['onClick'] = async ({ key }) => {
-    if (key === 'theme') {
-      setInitialState((state) => ({ ...state, settingDrawerOpen: true }));
-      return;
-    }
     if (key !== 'logout') return;
 
     await authServiceLogout({});
@@ -27,8 +23,21 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ children }) => {
     history.replace('/user/login');
   };
 
+  const displayName =
+    initialState.currentUser.displayName || initialState.currentUser.username;
+  const username = initialState.currentUser.username;
+
   const items: MenuProps['items'] = [
-    { key: 'theme', icon: <SkinOutlined />, label: '主题设置' },
+    {
+      key: 'user-info',
+      disabled: true,
+      label: (
+        <div style={{ padding: '2px 0', color: '#0f172a' }}>
+          <div style={{ fontWeight: 600, fontSize: 13 }}>{displayName}</div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>@{username}</div>
+        </div>
+      ),
+    },
     { type: 'divider' },
     { key: 'logout', icon: <LogoutOutlined />, label: '退出登录' },
   ];

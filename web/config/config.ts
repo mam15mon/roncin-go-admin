@@ -147,10 +147,61 @@ export default defineConfig({
   antd: {
     appConfig: {},
     configProvider: {
-      variant: 'filled',
       theme: {
         token: {
-          fontFamily: 'AlibabaSans, sans-serif',
+          fontFamily:
+            'AlibabaSans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          borderRadius: 6,
+          colorPrimary: '#1677ff',
+          colorBgLayout: '#f8fafc',
+          colorBgContainer: '#ffffff',
+          colorBorder: '#e2e8f0',
+          colorBorderSecondary: '#f1f5f9',
+          colorText: '#0f172a',
+          colorTextSecondary: '#475569',
+          colorTextTertiary: '#94a3b8',
+          controlHeight: 32,
+          controlHeightSM: 24,
+          fontSize: 13,
+        },
+        components: {
+          Card: {
+            paddingLG: 12,
+            padding: 12,
+            paddingSM: 8,
+            headerHeight: 38,
+            headerFontSize: 13,
+          },
+          Table: {
+            headerBg: '#f8fafc',
+            headerColor: '#334155',
+            rowHoverBg: '#f1f5f9',
+            cellPaddingBlock: 7,
+            cellPaddingInline: 10,
+            cellPaddingBlockSM: 6,
+            cellPaddingInlineSM: 8,
+            fontSize: 13,
+            borderColor: '#e2e8f0',
+          },
+          Button: {
+            controlHeight: 32,
+            controlHeightSM: 24,
+            paddingInline: 12,
+            paddingInlineSM: 8,
+            borderRadius: 6,
+          },
+          Form: {
+            itemMarginBottom: 12,
+            verticalLabelPadding: '0 0 4px',
+          },
+          Modal: {
+            headerBg: '#ffffff',
+            contentBg: '#ffffff',
+            borderRadiusLG: 8,
+          },
+          Drawer: {
+            paddingLG: 16,
+          },
         },
       },
     },

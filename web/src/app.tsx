@@ -1,9 +1,10 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
-import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import { Result } from 'antd';
 import React from 'react';
+import { HeaderTitle } from '@/components/layout/HeaderTitle';
+import { TagsView } from '@/components/layout/TagsView';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
@@ -17,7 +18,6 @@ export interface InitialState {
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-  settingDrawerOpen?: boolean;
 }
 
 export async function getInitialState(): Promise<InitialState> {
@@ -45,10 +45,7 @@ export async function getInitialState(): Promise<InitialState> {
   }
 }
 
-export const layout: RunTimeLayoutConfig = ({
-  initialState,
-  setInitialState,
-}) => ({
+export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   menuItemRender: (item, dom) =>
     item.path ? (
       <Link to={item.path} prefetch>
@@ -57,6 +54,7 @@ export const layout: RunTimeLayoutConfig = ({
     ) : (
       dom
     ),
+  headerContentRender: () => <HeaderTitle />,
   actionsRender: () => [<OrganizationSwitcher key="organization" />],
   avatarProps: {
     title:
@@ -73,24 +71,10 @@ export const layout: RunTimeLayoutConfig = ({
   },
   unAccessible: <Result status="403" title="403" subTitle="无权访问此页面" />,
   childrenRender: (children) => (
-    <>
-      {children}
-      <SettingDrawer
-        disableUrlParams
-        enableDarkTheme
-        collapse={initialState?.settingDrawerOpen}
-        onCollapseChange={(open) =>
-          setInitialState((state) => ({
-            ...state,
-            settingDrawerOpen: open,
-          }))
-        }
-        settings={initialState?.settings}
-        onSettingChange={(settings) =>
-          setInitialState((state) => ({ ...state, settings }))
-        }
-      />
-    </>
+    <div className="roncin-layout-wrapper">
+      <TagsView />
+      <div className="roncin-layout-main">{children}</div>
+    </div>
   ),
   ...initialState?.settings,
 });
