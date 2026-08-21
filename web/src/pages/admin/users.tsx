@@ -5,6 +5,7 @@ import {
   PlusOutlined,
   ReloadOutlined,
   SafetyCertificateOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
@@ -217,10 +218,16 @@ export default function UsersPanel() {
   return (
     <>
       <ProTable<API.AdminUser>
+        headerTitle={
+          <Space size={8}>
+            <UserOutlined style={{ color: '#1677ff' }} />
+            <span>成员账号列表</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        cardBordered={false}
+        bordered
         pagination={{
           defaultPageSize: 20,
           showSizeChanger: true,
@@ -286,7 +293,7 @@ export default function UsersPanel() {
                 roleIds: values.roleIds ?? [],
               },
             );
-            message.success('用户已更新');
+            message.success('用户已成功更新');
           } else {
             await adminServiceCreateUser({
               username: values.username?.trim() ?? '',
@@ -295,7 +302,7 @@ export default function UsersPanel() {
               email: values.email?.trim() || undefined,
               roleIds: values.roleIds ?? [],
             });
-            message.success('用户已创建');
+            message.success('用户已成功创建');
           }
           setModalOpen(false);
           actionRef.current?.reload();
@@ -403,4 +410,3 @@ export default function UsersPanel() {
     </>
   );
 }
-

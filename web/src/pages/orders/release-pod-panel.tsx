@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -11,7 +11,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
+import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
@@ -22,6 +22,8 @@ import {
   orderReleasePodServiceUpdateReleasePod,
 } from '@/services/roncin/orderReleasePodService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+
+const { Text } = Typography;
 
 type ReleasePodFormValues = {
   releaseNo?: string;
@@ -40,11 +42,11 @@ export type ReleasePodPanelRef = {
 
 const releasePodStatusValueEnum: Record<
   number,
-  { text: string; status: 'Default' | 'Processing' | 'Success' }
+  { text: string; color: string }
 > = {
-  1: { text: '待签收', status: 'Default' },
-  2: { text: '已签收', status: 'Processing' },
-  3: { text: '已回单', status: 'Success' },
+  1: { text: '待签收', color: 'default' },
+  2: { text: '已签收', color: 'processing' },
+  3: { text: '已回单', color: 'success' },
 };
 
 export function getReleasePodTransition(status?: number) {
@@ -128,14 +130,22 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         dataIndex: 'releaseNo',
         copyable: true,
         ellipsis: true,
-        render: (_, record) => record.releaseNo || '-',
+        render: (_, record) => (
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            {record.releaseNo || '-'}
+          </Text>
+        ),
       },
       {
         title: '回单编号',
         dataIndex: 'podNo',
         copyable: true,
         ellipsis: true,
-        render: (_, record) => record.podNo || '-',
+        render: (_, record) => (
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            {record.podNo || '-'}
+          </Text>
+        ),
       },
       {
         title: '关联提单',
@@ -150,28 +160,40 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         title: '状态',
         dataIndex: 'status',
         valueType: 'select',
-        valueEnum: releasePodStatusValueEnum,
+        valueEnum: {
+          1: { text: '待签收' },
+          2: { text: '已签收' },
+          3: { text: '已回单' },
+        },
         render: (_, record) => {
-          const status = releasePodStatusValueEnum[record.status ?? 0];
-          return status ? <Tag color={status.status}>{status.text}</Tag> : '-';
+          const config = releasePodStatusValueEnum[record.status ?? 0];
+          return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
         },
       },
       {
         title: '签收时间',
         dataIndex: 'signedAt',
         valueType: 'dateTime',
-        width: 180,
+        width: 170,
         render: (_, record) =>
           record.signedAt
             ? dayjs(record.signedAt).format('YYYY-MM-DD HH:mm:ss')
-            : '-',
+            : <Text type="secondary">-</Text>,
       },
       {
         title: '签收人',
         dataIndex: 'signedBy',
         copyable: true,
         ellipsis: true,
-        render: (_, record) => record.signedBy || '-',
+        render: (_, record) => (
+          record.signedBy ? (
+            <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+              {record.signedBy}
+            </Text>
+          ) : (
+            <Text type="secondary">-</Text>
+          )
+        ),
       },
       {
         title: '备注',
@@ -183,7 +205,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         title: '创建时间',
         dataIndex: 'createdAt',
         valueType: 'dateTime',
-        width: 180,
+        width: 170,
         render: (_, record) =>
           record.createdAt
             ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
@@ -193,36 +215,39 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         title: '操作',
         valueType: 'option',
         search: false,
-        width: 180,
+        width: 170,
+        fixed: 'right',
         render: (_, record) => {
           const transition = getReleasePodTransition(record.status);
-          if (!canManage || !transition) return null;
+          if (!canManage) return null;
           return (
             <Space size="small">
               <Button type="link" size="small" onClick={() => openEdit(record)}>
                 编辑
               </Button>
-              <Popconfirm
-                title={`确定将放货凭证状态从「${transition.currentText}」流转为「${transition.nextText}」？`}
-                onConfirm={async () => {
-                  if (!order?.id || !record.id || !record.status) return;
-                  await orderReleasePodServiceTransitionReleasePodStatus(
-                    { orderId: order.id, id: record.id },
-                    {
-                      orderId: order.id,
-                      id: record.id,
-                      expectedStatus: record.status,
-                      toStatus: transition.toStatus,
-                    },
-                  );
-                  message.success('流转放货凭证状态成功');
-                  actionRef.current?.reload();
-                }}
-              >
-                <Button type="link" size="small">
-                  流转
-                </Button>
-              </Popconfirm>
+              {transition && (
+                <Popconfirm
+                  title={`确定将放货凭证状态从「${transition.currentText}」流转为「${transition.nextText}」？`}
+                  onConfirm={async () => {
+                    if (!order?.id || !record.id || !record.status) return;
+                    await orderReleasePodServiceTransitionReleasePodStatus(
+                      { orderId: order.id, id: record.id },
+                      {
+                        orderId: order.id,
+                        id: record.id,
+                        expectedStatus: record.status,
+                        toStatus: transition.toStatus,
+                      },
+                    );
+                    message.success('流转放货凭证状态成功');
+                    actionRef.current?.reload();
+                  }}
+                >
+                  <Button type="link" size="small">
+                    流转
+                  </Button>
+                </Popconfirm>
+              )}
               <Popconfirm
                 title="确定移除该放货凭证？"
                 onConfirm={async () => {
@@ -250,8 +275,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         <Drawer
           title={
             order
-              ? `订单放货凭证 - ${order.orderNo || order.id}`
-              : '订单放货凭证'
+              ? `订单放货凭证 (POD) - ${order.orderNo || order.id}`
+              : '订单放货凭证 (POD)'
           }
           open={drawerOpen}
           onClose={() => {
@@ -260,14 +285,21 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             setOrder(undefined);
             setDocuments([]);
           }}
-          width={900}
+          width={920}
           destroyOnHidden
         >
           {order?.id && (
             <ProTable<API.OrderReleasePod>
+              headerTitle={
+                <Space size={8}>
+                  <FileDoneOutlined style={{ color: '#52c41a' }} />
+                  <span>放货回单记录</span>
+                </Space>
+              }
               actionRef={actionRef}
               rowKey="id"
               columns={columns}
+              bordered
               search={false}
               pagination={false}
               request={async () => {
@@ -340,7 +372,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           />
           <ProFormText
             name="podNo"
-            label="回单编号"
+            label="回单编号 (POD No)"
             placeholder="请输入回单编号 (可选)"
           />
           <ProFormSelect
@@ -351,8 +383,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           />
           <ProFormTextArea
             name="note"
-            label="备注"
-            placeholder="请输入备注 (可选)"
+            label="备注说明"
+            placeholder="请输入备注说明 (可选)"
             fieldProps={{ maxLength: 500, showCount: true }}
           />
         </ModalForm>

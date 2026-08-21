@@ -1,11 +1,11 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ModalForm, ProFormSelect, ProTable } from '@ant-design/pro-components';
-import { App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
+import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
@@ -14,6 +14,8 @@ import {
   orderAbnormalCaseServiceRemoveAbnormalCase,
   orderAbnormalCaseServiceResolveAbnormalCase,
 } from '@/services/roncin/orderAbnormalCaseService';
+
+const { Text } = Typography;
 
 type AbnormalCaseFormValues = {
   abnormalCaseId: string;
@@ -32,10 +34,10 @@ const ABNORMAL_CASE_KIND = 10;
 
 const abnormalCaseStatusValueEnum: Record<
   number,
-  { text: string; status: 'Error' | 'Success' }
+  { text: string; color: string }
 > = {
-  1: { text: '进行中', status: 'Error' },
-  2: { text: '已解决', status: 'Success' },
+  1: { text: '处理中', color: 'error' },
+  2: { text: '已解决', color: 'success' },
 };
 
 const AbnormalCasePanel = forwardRef<
@@ -78,24 +80,35 @@ const AbnormalCasePanel = forwardRef<
       title: '异常类型',
       dataIndex: 'abnormalCaseId',
       ellipsis: true,
-      render: (_, record) =>
-        (record.abnormalCaseId && nameMap[record.abnormalCaseId]) || '-',
+      render: (_, record) => {
+        const label = (record.abnormalCaseId && nameMap[record.abnormalCaseId]) || record.abnormalCaseId;
+        return (
+          <Space size={6}>
+            <WarningOutlined style={{ color: '#ff4d4f' }} />
+            <Text strong>{label || '-'}</Text>
+          </Space>
+        );
+      },
     },
     {
       title: '状态',
       dataIndex: 'status',
+      width: 100,
       valueType: 'select',
-      valueEnum: abnormalCaseStatusValueEnum,
+      valueEnum: {
+        1: { text: '处理中' },
+        2: { text: '已解决' },
+      },
       render: (_, record) => {
-        const status = abnormalCaseStatusValueEnum[record.status ?? 0];
-        return status ? <Tag color={status.status}>{status.text}</Tag> : '-';
+        const config = abnormalCaseStatusValueEnum[record.status ?? 0];
+        return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
       },
     },
     {
       title: '标记时间',
       dataIndex: 'markedAt',
       valueType: 'dateTime',
-      width: 180,
+      width: 170,
       render: (_, record) =>
         record.markedAt
           ? dayjs(record.markedAt).format('YYYY-MM-DD HH:mm:ss')
@@ -106,34 +119,47 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'markedBy',
       copyable: true,
       ellipsis: true,
-      render: (_, record) => record.markedBy || '-',
+      render: (_, record) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          {record.markedBy || '-'}
+        </Text>
+      ),
     },
     {
       title: '解决时间',
       dataIndex: 'resolvedAt',
       valueType: 'dateTime',
-      width: 180,
+      width: 170,
       render: (_, record) =>
         record.resolvedAt
           ? dayjs(record.resolvedAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
+          : <Text type="secondary">待解决</Text>,
     },
     {
       title: '解决人',
       dataIndex: 'resolvedBy',
       copyable: true,
       ellipsis: true,
-      render: (_, record) => record.resolvedBy || '-',
+      render: (_, record) => (
+        record.resolvedBy ? (
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            {record.resolvedBy}
+          </Text>
+        ) : (
+          <Text type="secondary">-</Text>
+        )
+      ),
     },
     {
       title: '操作',
       valueType: 'option',
       search: false,
-      width: 140,
+      width: 130,
+      fixed: 'right',
       render: (_, record) => {
         if (!canManage) return null;
         return (
-          <Space size="small">
+          <Space size={6}>
             {record.status === 1 && (
               <Popconfirm
                 title="确定解决该异常？"
@@ -147,7 +173,7 @@ const AbnormalCasePanel = forwardRef<
                   actionRef.current?.reload();
                 }}
               >
-                <Button type="link" size="small">
+                <Button type="link" size="small" style={{ padding: 0 }}>
                   解决
                 </Button>
               </Popconfirm>
@@ -164,7 +190,7 @@ const AbnormalCasePanel = forwardRef<
                 actionRef.current?.reload();
               }}
             >
-              <Button type="link" danger size="small">
+              <Button type="link" danger size="small" style={{ padding: 0 }}>
                 移除
               </Button>
             </Popconfirm>
@@ -177,20 +203,27 @@ const AbnormalCasePanel = forwardRef<
   return (
     <>
       <Drawer
-        title={order ? `订单异常 - ${order.orderNo || order.id}` : '订单异常'}
+        title={order ? `订单异常协同 - ${order.orderNo || order.id}` : '订单异常协同'}
         open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           setOrder(undefined);
         }}
-        width={900}
+        width={920}
         destroyOnHidden
       >
         {order?.id && (
           <ProTable<API.OrderAbnormalCase>
+            headerTitle={
+              <Space size={8}>
+                <WarningOutlined style={{ color: '#faad14' }} />
+                <span>异常登记与闭环处理列表</span>
+              </Space>
+            }
             actionRef={actionRef}
             rowKey="id"
             columns={columns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -222,7 +255,7 @@ const AbnormalCasePanel = forwardRef<
       </Drawer>
 
       <ModalForm<AbnormalCaseFormValues>
-        title="标记异常"
+        title="标记订单异常"
         open={modalOpen}
         formRef={formRef}
         modalProps={{
@@ -245,7 +278,7 @@ const AbnormalCasePanel = forwardRef<
       >
         <ProFormSelect
           name="abnormalCaseId"
-          label="异常类型"
+          label="异常类别"
           rules={[{ required: true, message: '请选择异常类型' }]}
           options={options}
           placeholder="请选择异常类型"

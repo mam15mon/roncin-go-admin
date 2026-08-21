@@ -7,6 +7,7 @@ import {
   MinusSquareOutlined,
   PlusOutlined,
   ReloadOutlined,
+  SafetyCertificateOutlined,
   SearchOutlined,
   SettingOutlined,
   UpOutlined,
@@ -244,7 +245,7 @@ export default function RolesPanel() {
       ),
     },
     {
-      title: '数据范围',
+      title: '数据访问范围',
       dataIndex: 'dataScope',
       width: 160,
       valueEnum: Object.fromEntries(
@@ -281,7 +282,7 @@ export default function RolesPanel() {
               backgroundColor: count > 0 ? '#eff6ff' : '#f1f5f9',
               color: count > 0 ? '#1d4ed8' : '#64748b',
               fontSize: 12,
-              padding: '1px 8px',
+              padding: '2px 8px',
             }}
           >
             <KeyOutlined style={{ marginRight: 4 }} />
@@ -330,10 +331,16 @@ export default function RolesPanel() {
   return (
     <>
       <ProTable<API.AdminRole>
+        headerTitle={
+          <Space size={8}>
+            <SafetyCertificateOutlined style={{ color: '#1677ff' }} />
+            <span>角色与权限方案列表</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        cardBordered={false}
+        bordered
         search={false}
         pagination={false}
         request={async () => {
@@ -367,7 +374,7 @@ export default function RolesPanel() {
         initialValues={editing ? { ...editing, permissionKeys: editing.permissionKeys } : { dataScope: 2, enabled: true }}
         modalProps={{
           destroyOnClose: true,
-          width: 780,
+          width: 800,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -384,7 +391,7 @@ export default function RolesPanel() {
                   permissionKeys: selectedPermissionKeys,
                 },
               );
-              message.success('角色已更新');
+              message.success('角色已成功更新');
             } else {
               await adminServiceCreateRole({
                 code: values.code?.trim() ?? '',
@@ -392,7 +399,7 @@ export default function RolesPanel() {
                 dataScope: values.dataScope ?? 2,
                 permissionKeys: selectedPermissionKeys,
               });
-              message.success('角色已创建');
+              message.success('角色已成功创建');
             }
             setModalOpen(false);
             actionRef.current?.reload();
@@ -637,4 +644,3 @@ export default function RolesPanel() {
     </>
   );
 }
-

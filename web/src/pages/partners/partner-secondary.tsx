@@ -1,4 +1,11 @@
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  AuditOutlined,
+  BankOutlined,
+  EditOutlined,
+  FileTextOutlined,
+  PaperClipOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -16,7 +23,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceCreatePartnerContract,
@@ -31,12 +38,16 @@ import {
   partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
 
+const { Text } = Typography;
+
 const roleOptions = [
-  { label: '客户', value: 1 },
-  { label: '供应商', value: 2 },
-  { label: '代理', value: 3 },
-  { label: '承运人', value: 4 },
+  { label: '客户', value: 1, color: 'blue' },
+  { label: '供应商', value: 2, color: 'green' },
+  { label: '代理', value: 3, color: 'purple' },
+  { label: '承运人', value: 4, color: 'orange' },
 ];
+
+const roleMap = new Map(roleOptions.map((opt) => [opt.value, opt]));
 
 const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
@@ -209,28 +220,34 @@ export default function PartnerSecondary({
   };
 
   const accountColumns: ProColumns<API.PartnerAccount>[] = [
-    { title: '发票抬头', dataIndex: 'invoiceTitle', ellipsis: true },
-    { title: '币种', dataIndex: 'currency', width: 80 },
-    { title: '开户行', dataIndex: 'bankName', ellipsis: true },
+    { title: '发票抬头', dataIndex: 'invoiceTitle', ellipsis: true, render: (t) => <Text strong>{t}</Text> },
+    {
+      title: '结算币种',
+      dataIndex: 'currency',
+      width: 100,
+      render: (cur) => <Tag color="gold" bordered={false}>{cur}</Tag>,
+    },
+    { title: '开户银行', dataIndex: 'bankName', ellipsis: true },
     {
       title: '银行账号',
       dataIndex: 'bankAccount',
       copyable: true,
       ellipsis: true,
+      render: (acc) => <Text style={{ fontFamily: 'monospace' }}>{acc}</Text>,
     },
     {
-      title: '默认',
+      title: '默认账户',
       dataIndex: 'isDefault',
-      width: 70,
+      width: 90,
       render: (_, record) =>
-        record.isDefault ? <Tag color="blue">默认</Tag> : '-',
+        record.isDefault ? <Tag color="blue">默认</Tag> : <Text type="secondary">-</Text>,
     },
     {
       title: '状态',
       dataIndex: 'status',
-      width: 80,
+      width: 90,
       render: (_, record) =>
-        record.status === 1 ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+        record.status === 1 ? <Tag color="success">启用</Tag> : <Tag color="default">停用</Tag>,
     },
     {
       title: '更新时间',
@@ -242,12 +259,14 @@ export default function PartnerSecondary({
       title: '操作',
       valueType: 'option',
       width: 80,
+      fixed: 'right',
       render: (_, record) =>
         canManage ? (
           <Button
             type="link"
             size="small"
             icon={<EditOutlined />}
+            style={{ padding: 0 }}
             onClick={() => openAccountForm(record)}
           >
             编辑
@@ -257,12 +276,18 @@ export default function PartnerSecondary({
   ];
 
   const contractColumns: ProColumns<API.PartnerContract>[] = [
-    { title: '合同编号', dataIndex: 'contractNo', width: 140, copyable: true },
-    { title: '合同名称', dataIndex: 'name', ellipsis: true },
+    {
+      title: '合同编号',
+      dataIndex: 'contractNo',
+      width: 150,
+      copyable: true,
+      render: (no) => <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>{no}</Text>,
+    },
+    { title: '合同名称', dataIndex: 'name', ellipsis: true, render: (name) => <Text strong>{name}</Text> },
     {
       title: '状态',
       dataIndex: 'status',
-      width: 90,
+      width: 100,
       render: (_, record) => (
         <Tag color={contractStatusColors[record.status ?? 0]}>
           {contractStatusLabels[record.status ?? 0] ?? '未知'}
@@ -270,22 +295,29 @@ export default function PartnerSecondary({
       ),
     },
     {
-      title: '开始日期',
+      title: '生效起止日期',
       dataIndex: 'startDate',
-      valueType: 'date',
-      width: 110,
+      width: 220,
+      render: (_, record) => (
+        <span>
+          {record.startDate ? dayjs(record.startDate).format('YYYY-MM-DD') : '-'}
+          {' ~ '}
+          {record.endDate ? dayjs(record.endDate).format('YYYY-MM-DD') : '-'}
+        </span>
+      ),
     },
-    { title: '结束日期', dataIndex: 'endDate', valueType: 'date', width: 110 },
     {
       title: '操作',
       valueType: 'option',
       width: 80,
+      fixed: 'right',
       render: (_, record) =>
         canManage ? (
           <Button
             type="link"
             size="small"
             icon={<EditOutlined />}
+            style={{ padding: 0 }}
             onClick={() => openContractForm(record)}
           >
             编辑
@@ -296,9 +328,16 @@ export default function PartnerSecondary({
 
   const accountPanel = hasCustomerRole ? (
     <ProTable<API.PartnerAccount>
+      headerTitle={
+        <Space size={6}>
+          <BankOutlined style={{ color: '#1677ff' }} />
+          <span>客户结算账户列表</span>
+        </Space>
+      }
       rowKey="id"
       actionRef={accountActionRef}
       columns={accountColumns}
+      bordered
       search={false}
       pagination={false}
       request={async () => {
@@ -324,16 +363,27 @@ export default function PartnerSecondary({
       }
     />
   ) : (
-    <Typography.Text type="secondary">
-      该往来单位没有客户角色，不能配置客户结算账户。
-    </Typography.Text>
+    <Alert
+      showIcon
+      type="info"
+      message="无需结算账户配置"
+      description="该往来单位当前未分配客户角色，仅客户身份支持配置发票开票与结算银行账户。"
+      style={{ margin: '16px 0' }}
+    />
   );
 
   const contractPanel = (
     <ProTable<API.PartnerContract>
+      headerTitle={
+        <Space size={6}>
+          <FileTextOutlined style={{ color: '#1677ff' }} />
+          <span>商务框架合同列表</span>
+        </Space>
+      }
       rowKey="id"
       actionRef={contractActionRef}
       columns={contractColumns}
+      bordered
       search={false}
       pagination={false}
       request={async () => {
@@ -362,12 +412,19 @@ export default function PartnerSecondary({
 
   const settlementRuleColumns: ProColumns<SettlementRuleItem>[] = [
     {
-      title: '角色',
+      title: '角色身份',
       dataIndex: 'roleType',
-      width: 90,
-      render: (_, record) => (
-        <Tag>{roleLabels[record.roleType ?? 0] ?? '未知'}</Tag>
-      ),
+      width: 100,
+      render: (_, record) => {
+        const item = roleMap.get(record.roleType ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          <Tag>未知</Tag>
+        );
+      },
     },
     {
       title: '对账模式',
@@ -391,43 +448,46 @@ export default function PartnerSecondary({
         settlementBaseLabels[record.settlementBase ?? 0] ?? '-',
     },
     {
-      title: '结算日',
+      title: '约定结算日',
       dataIndex: 'settlementDay',
-      width: 90,
-      render: (_, record) =>
-        record.settlementDay != null ? `${record.settlementDay}日` : '-',
-    },
-    {
-      title: '周期天数',
-      dataIndex: 'settlementCycleDays',
       width: 100,
       render: (_, record) =>
+        record.settlementDay != null ? `${record.settlementDay} 日` : '-',
+    },
+    {
+      title: '结算周期天数',
+      dataIndex: 'settlementCycleDays',
+      width: 110,
+      render: (_, record) =>
         record.settlementCycleDays != null
-          ? `${record.settlementCycleDays}天`
+          ? `${record.settlementCycleDays} 天`
           : '-',
     },
     {
       title: '结算币种',
       dataIndex: 'settlementCurrency',
       width: 90,
+      render: (cur) => <Tag color="gold" bordered={false}>{cur}</Tag>,
     },
     {
-      title: '启用',
+      title: '启用状态',
       dataIndex: 'isActive',
-      width: 80,
+      width: 90,
       render: (_, record) =>
-        record.isActive ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+        record.isActive ? <Tag color="success">启用</Tag> : <Tag color="default">停用</Tag>,
     },
     {
       title: '操作',
       valueType: 'option',
       width: 80,
+      fixed: 'right',
       render: (_, record) =>
         canManage ? (
           <Button
             type="link"
             size="small"
             icon={<EditOutlined />}
+            style={{ padding: 0 }}
             onClick={() => openSettlementRuleForm(record)}
           >
             编辑
@@ -438,9 +498,16 @@ export default function PartnerSecondary({
 
   const settlementRulePanel = (
     <ProTable<SettlementRuleItem>
+      headerTitle={
+        <Space size={6}>
+          <AuditOutlined style={{ color: '#1677ff' }} />
+          <span>财务结算与对账规则</span>
+        </Space>
+      }
       rowKey="id"
       actionRef={settlementRuleActionRef}
       columns={settlementRuleColumns}
+      bordered
       search={false}
       pagination={false}
       request={async () => {
@@ -481,14 +548,15 @@ export default function PartnerSecondary({
   );
 
   const attachmentColumns: ProColumns<API.PartnerAttachment>[] = [
-    { title: '文件名', dataIndex: 'fileName', ellipsis: true },
+    { title: '文件名', dataIndex: 'fileName', ellipsis: true, render: (name) => <Text strong>{name}</Text> },
     { title: 'MIME 类型', dataIndex: 'mimeType', width: 140, ellipsis: true },
-    { title: '文件大小', dataIndex: 'fileSize', width: 100 },
+    { title: '文件大小', dataIndex: 'fileSize', width: 110, render: (s) => `${s} 字节` },
     {
       title: '对象键',
       dataIndex: 'objectKey',
       copyable: true,
       ellipsis: true,
+      render: (key) => <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{key}</Text>,
     },
     {
       title: '校验和',
@@ -512,9 +580,16 @@ export default function PartnerSecondary({
 
   const attachmentPanel = (
     <ProTable<API.PartnerAttachment>
+      headerTitle={
+        <Space size={6}>
+          <PaperClipOutlined style={{ color: '#1677ff' }} />
+          <span>往来单位附件与证照</span>
+        </Space>
+      }
       rowKey="id"
       actionRef={attachmentActionRef}
       columns={attachmentColumns}
+      bordered
       search={false}
       pagination={false}
       request={async () => {
@@ -544,24 +619,62 @@ export default function PartnerSecondary({
   return (
     <>
       <Drawer
-        title={`账户与合同 - ${partner?.legalName ?? ''}`}
+        title={
+          <Space size={8}>
+            <BankOutlined style={{ color: '#1677ff' }} />
+            <span>往来商务档案：{partner?.legalName ?? ''}</span>
+            {partner?.code && (
+              <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
+                {partner.code}
+              </Tag>
+            )}
+          </Space>
+        }
         open={open}
         onClose={onClose}
-        size="large"
+        width={960}
         destroyOnHidden
       >
         <Tabs
           items={[
-            { key: 'accounts', label: '结算账户', children: accountPanel },
-            { key: 'contracts', label: '合同', children: contractPanel },
+            {
+              key: 'accounts',
+              label: (
+                <Space size={4}>
+                  <BankOutlined />
+                  <span>结算账户</span>
+                </Space>
+              ),
+              children: accountPanel,
+            },
+            {
+              key: 'contracts',
+              label: (
+                <Space size={4}>
+                  <FileTextOutlined />
+                  <span>商务合同</span>
+                </Space>
+              ),
+              children: contractPanel,
+            },
             {
               key: 'settlement-rules',
-              label: '结算规则',
+              label: (
+                <Space size={4}>
+                  <AuditOutlined />
+                  <span>结算规则</span>
+                </Space>
+              ),
               children: settlementRulePanel,
             },
             {
               key: 'attachments',
-              label: '附件',
+              label: (
+                <Space size={4}>
+                  <PaperClipOutlined />
+                  <span>证照附件</span>
+                </Space>
+              ),
               children: attachmentPanel,
             },
           ]}
@@ -593,55 +706,58 @@ export default function PartnerSecondary({
               { partnerId: partner.id, id: editingAccount.id },
               { partnerId: partner.id, id: editingAccount.id, account },
             );
-            message.success('结算账户已更新');
+            message.success('结算账户已成功更新');
           } else {
             await partnerServiceCreatePartnerAccount(
               { partnerId: partner.id },
               { partnerId: partner.id, account },
             );
-            message.success('结算账户已创建');
+            message.success('结算账户已成功创建');
           }
           setAccountModalOpen(false);
           accountActionRef.current?.reload();
           return true;
         }}
       >
-        <Space align="start" wrap>
+        <Space align="start" wrap size={16} style={{ width: '100%', marginBottom: 12 }}>
           <ProFormText
             name="currency"
-            label="币种"
-            width="xs"
+            label="结算币种"
+            width="sm"
+            placeholder="如 CNY、USD"
             rules={[{ required: true, len: 3, message: '请输入三位币种代码' }]}
           />
           <ProFormSelect
             name="status"
-            label="状态"
-            width="xs"
+            label="账户状态"
+            width="sm"
             options={accountStatusOptions}
             rules={[{ required: true }]}
           />
-          <ProFormSwitch name="isDefault" label="默认账户" />
+          <ProFormSwitch name="isDefault" label="设为默认结算账户" />
         </Space>
         <ProFormText
           name="invoiceTitle"
-          label="发票抬头"
+          label="开票发票抬头"
+          placeholder="请输入增值税发票抬头"
           rules={[{ required: true, message: '请输入发票抬头' }]}
         />
-        <ProFormText name="unifiedSocialCreditCode" label="统一社会信用代码" />
-        <ProFormText name="billingAddress" label="开票地址" />
-        <ProFormText name="billingPhone" label="开票电话" />
-        <ProFormText name="bankName" label="开户行" />
-        <ProFormText name="bankAccount" label="银行账号" />
-        <ProFormText name="swiftCode" label="SWIFT Code" />
+        <ProFormText name="unifiedSocialCreditCode" label="纳税人识别号 / 统一社会信用代码" placeholder="18位纳税人识别号" />
+        <ProFormText name="billingAddress" label="开票法定注册地址" placeholder="请输入开票地址" />
+        <ProFormText name="billingPhone" label="开票联系电话" placeholder="请输入开票电话" />
+        <ProFormText name="bankName" label="开户银行名称及支行" placeholder="例如：中国工商银行上海自贸试验区分行" />
+        <ProFormText name="bankAccount" label="银行开户账号" placeholder="请输入银行结算账号" />
+        <ProFormText name="swiftCode" label="SWIFT Code (外币国际结算)" placeholder="例如：ICBKCNBS" />
         <ProFormTextArea
           name="remark"
-          label="备注"
+          label="备注说明"
+          placeholder="请输入其他开票说明"
           fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
         />
       </ModalForm>
 
       <ModalForm<ContractFormValues>
-        title={editingContract ? '编辑合同' : '新增合同'}
+        title={editingContract ? '编辑商务合同' : '新增商务合同'}
         open={contractModalOpen}
         formRef={contractFormRef}
         initialValues={
@@ -690,7 +806,7 @@ export default function PartnerSecondary({
                 contract: common,
               },
             );
-            message.success('合同已更新');
+            message.success('合同已成功更新');
           } else {
             if (!values.contractNo) return false;
             await partnerServiceCreatePartnerContract(
@@ -700,7 +816,7 @@ export default function PartnerSecondary({
                 contract: { ...common, contractNo: values.contractNo.trim() },
               },
             );
-            message.success('合同已创建');
+            message.success('合同已成功创建');
           }
           setContractModalOpen(false);
           contractActionRef.current?.reload();
@@ -709,40 +825,45 @@ export default function PartnerSecondary({
       >
         <ProFormText
           name="contractNo"
-          label="合同编号"
+          label="合同唯一编号"
+          placeholder="例如：CT-2026-0001"
           disabled={Boolean(editingContract)}
           rules={[{ required: !editingContract, message: '请输入合同编号' }]}
         />
         <ProFormText
           name="name"
           label="合同名称"
+          placeholder="例如：2026年度国际海运出口货代服务框架协议"
           rules={[{ required: true, message: '请输入合同名称' }]}
         />
         <ProFormSelect
           name="status"
-          label="合同状态"
+          label="合同生命周期状态"
           options={availableContractStatuses(editingContract)}
           rules={[{ required: true, message: '请选择合同状态' }]}
         />
         <ProFormDateRangePicker
           name="dateRange"
-          label="合同期限"
+          label="合同有效起止期限"
           rules={[{ required: true, message: '请选择合同期限' }]}
           fieldProps={{ allowEmpty: [false, false] }}
         />
         <ProFormTextArea
           name="paymentTerms"
-          label="付款条款"
+          label="付款与账期约定"
+          placeholder="请输入结算账期、支付方式与违约金约定"
           fieldProps={{ rows: 3, maxLength: 2000, showCount: true }}
         />
         <ProFormTextArea
           name="disputeResolution"
-          label="争议解决"
+          label="争议管辖与解决"
+          placeholder="例如：提交上海国际仲裁中心仲裁"
           fieldProps={{ rows: 3, maxLength: 2000, showCount: true }}
         />
         <ProFormTextArea
           name="otherNotes"
-          label="其他约定"
+          label="补充约定事项"
+          placeholder="其他补充约定"
           fieldProps={{ rows: 3, maxLength: 2000, showCount: true }}
         />
       </ModalForm>
@@ -799,7 +920,7 @@ export default function PartnerSecondary({
                 rule,
               },
             );
-            message.success('结算规则已更新');
+            message.success('结算规则已成功更新');
           } else {
             await partnerServiceCreatePartnerSettlementRule(
               {
@@ -812,80 +933,71 @@ export default function PartnerSecondary({
                 rule,
               },
             );
-            message.success('结算规则已创建');
+            message.success('结算规则已成功创建');
           }
           setSettlementRuleModalOpen(false);
           settlementRuleActionRef.current?.reload();
           return true;
         }}
       >
-        <Space align="start" wrap>
-          <ProFormSelect
-            name="roleType"
-            label="角色"
-            width="xs"
-            options={roleOptions.filter((option) =>
-              partner?.roles?.some((role) => role.type === option.value),
-            )}
-            disabled={Boolean(editingSettlementRule)}
-            rules={[{ required: true, message: '请选择角色' }]}
-          />
-          <ProFormSelect
-            name="statementMode"
-            label="对账模式"
-            width="xs"
-            options={statementModeOptions}
-            rules={[{ required: true, message: '请选择对账模式' }]}
-          />
-          <ProFormSelect
-            name="settlementMethod"
-            label="结算方式"
-            width="xs"
-            options={settlementMethodOptions}
-            rules={[{ required: true, message: '请选择结算方式' }]}
-          />
-          <ProFormSelect
-            name="settlementBase"
-            label="结算基准"
-            width="xs"
-            options={settlementBaseOptions}
-            allowClear
-          />
-        </Space>
-        <Space align="start" wrap>
-          <ProFormDigit
-            name="settlementDay"
-            label="结算日"
-            width="xs"
-            min={1}
-            max={31}
-            fieldProps={{ precision: 0 }}
-          />
-          <ProFormDigit
-            name="settlementCycleDays"
-            label="周期天数"
-            width="xs"
-            min={1}
-            max={365}
-            fieldProps={{ precision: 0 }}
-          />
-          <ProFormText
-            name="settlementCurrency"
-            label="结算币种"
-            width="xs"
-            rules={[{ required: true, len: 3, message: '请输入三位币种代码' }]}
-          />
-          <ProFormSwitch name="isActive" label="启用" />
-        </Space>
+        <ProFormSelect
+          name="roleType"
+          label="适用业务角色"
+          options={(partner?.roles ?? []).map((r) => ({
+            label: roleLabels[r.type ?? 0] ?? '未知角色',
+            value: r.type,
+          }))}
+          disabled={Boolean(editingSettlementRule)}
+          rules={[{ required: true, message: '请选择角色' }]}
+        />
+        <ProFormSelect
+          name="statementMode"
+          label="对账核销模式"
+          options={statementModeOptions}
+          rules={[{ required: true, message: '请选择对账模式' }]}
+        />
+        <ProFormSelect
+          name="settlementMethod"
+          label="结算账期方式"
+          options={settlementMethodOptions}
+          rules={[{ required: true, message: '请选择结算方式' }]}
+        />
+        <ProFormSelect
+          name="settlementBase"
+          label="账期起算基准"
+          options={settlementBaseOptions}
+        />
+        <ProFormDigit
+          name="settlementDay"
+          label="每月固定结算日"
+          min={1}
+          max={31}
+          placeholder="例如: 25"
+          fieldProps={{ precision: 0 }}
+        />
+        <ProFormDigit
+          name="settlementCycleDays"
+          label="周期循环天数"
+          min={1}
+          placeholder="例如: 30"
+          fieldProps={{ precision: 0 }}
+        />
+        <ProFormText
+          name="settlementCurrency"
+          label="约定结算币种"
+          placeholder="例如: CNY / USD"
+          rules={[{ required: true, message: '请输入结算币种' }]}
+        />
+        <ProFormSwitch name="isActive" label="规则启用状态" initialValue />
       </ModalForm>
 
       <ModalForm<AttachmentFormValues>
-        title="登记附件"
+        title="登记往来单位证照与附件"
         open={attachmentModalOpen}
         formRef={attachmentFormRef}
         modalProps={{
           destroyOnHidden: true,
-          width: 720,
+          width: 560,
           onCancel: () => setAttachmentModalOpen(false),
         }}
         onOpenChange={setAttachmentModalOpen}
@@ -894,8 +1006,7 @@ export default function PartnerSecondary({
             !partner?.id ||
             !values.fileName ||
             !values.mimeType ||
-            values.fileSize === undefined ||
-            values.fileSize === null ||
+            !values.fileSize ||
             !values.objectKey ||
             !values.idempotencyKey
           ) {
@@ -913,7 +1024,7 @@ export default function PartnerSecondary({
               idempotencyKey: values.idempotencyKey.trim(),
             },
           );
-          message.success('附件已登记');
+          message.success('证照附件登记成功');
           setAttachmentModalOpen(false);
           attachmentActionRef.current?.reload();
           return true;
@@ -922,39 +1033,44 @@ export default function PartnerSecondary({
         <Alert
           type="info"
           showIcon
-          message="此处仅登记外部对象存储引用，不上传文件内容。"
+          message="此处登记企业营业执照、开户许可证、水运许可证等对象存储引用。"
           style={{ marginBottom: 16 }}
         />
         <ProFormText
           name="fileName"
-          label="文件名"
+          label="附件名称"
+          placeholder="例如: 营业执照扫描件.pdf"
           rules={[{ required: true, message: '请输入文件名' }]}
         />
         <ProFormText
           name="mimeType"
           label="MIME 类型"
+          placeholder="例如: application/pdf 或 image/jpeg"
           rules={[{ required: true, message: '请输入 MIME 类型' }]}
         />
         <ProFormDigit
           name="fileSize"
-          label="文件大小"
+          label="文件字节数 (Byte)"
           min={1}
-          max={104857600}
           fieldProps={{ precision: 0 }}
+          placeholder="请输入文件大小"
           rules={[{ required: true, message: '请输入文件大小' }]}
         />
         <ProFormText
           name="objectKey"
-          label="对象键"
+          label="对象存储标识键 (Object Key)"
+          placeholder="例如: partners/licenses/cust001_license.pdf"
           rules={[{ required: true, message: '请输入对象键' }]}
         />
         <ProFormText
           name="checksum"
-          label="校验和"
+          label="SHA256 校验和"
+          placeholder="请输入文件哈希校验和 (可选)"
         />
         <ProFormText
           name="idempotencyKey"
           label="幂等键"
+          placeholder="请输入请求幂等键"
           rules={[{ required: true, message: '请输入幂等键' }]}
         />
       </ModalForm>

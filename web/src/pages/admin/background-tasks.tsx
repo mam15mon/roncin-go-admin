@@ -1,14 +1,16 @@
-import { ReloadOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, ReloadOutlined, RedoOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Popconfirm, Tag, Typography } from 'antd';
+import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
 import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
+
+const { Text } = Typography;
 
 const statusTagMap: Record<number, { color: string; label: string }> = {
   1: { color: 'default', label: '待执行' },
@@ -18,27 +20,58 @@ const statusTagMap: Record<number, { color: string; label: string }> = {
   5: { color: 'error', label: '死信' },
 };
 
+const kindTagMap: Record<number, { label: string; color: string }> = {
+  1: { label: '主数据导入', color: 'blue' },
+  2: { label: 'UNLOCODE 导入', color: 'cyan' },
+  3: { label: '订单提醒', color: 'orange' },
+  4: { label: '外部系统集成', color: 'purple' },
+};
+
 export default function BackgroundTasksPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const access = useAccess();
   const { message } = App.useApp();
 
   const columns: ProColumns<API.BackgroundTask>[] = [
-    { title: '时间范围', dataIndex: 'timeRange', valueType: 'dateRange', hideInTable: true },
-    { title: '创建时间', dataIndex: 'createdAt', valueType: 'dateTime', width: 180, search: false },
     {
-      title: '类型',
+      title: '时间范围',
+      dataIndex: 'timeRange',
+      valueType: 'dateRange',
+      hideInTable: true,
+      fieldProps: {
+        placeholder: ['开始时间', '结束时间'],
+      },
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      width: 170,
+      search: false,
+    },
+    {
+      title: '任务类型',
       dataIndex: 'kind',
-      width: 140,
+      width: 150,
       valueEnum: {
         1: { text: '主数据导入' },
         2: { text: 'UNLOCODE 导入' },
         3: { text: '订单提醒' },
-        4: { text: '集成任务' },
+        4: { text: '外部系统集成' },
+      },
+      render: (_, record) => {
+        const config = record.kind ? kindTagMap[record.kind] : undefined;
+        return config ? (
+          <Tag color={config.color} bordered={false}>
+            {config.label}
+          </Tag>
+        ) : (
+          '-'
+        );
       },
     },
     {
-      title: '状态',
+      title: '执行状态',
       dataIndex: 'status',
       width: 110,
       valueEnum: {
@@ -53,43 +86,70 @@ export default function BackgroundTasksPanel() {
         return config ? <Tag color={config.color}>{config.label}</Tag> : '-';
       },
     },
-    { title: '幂等键', dataIndex: 'idempotencyKey', width: 220, copyable: true },
+    {
+      title: '幂等键',
+      dataIndex: 'idempotencyKey',
+      width: 200,
+      copyable: true,
+      render: (_, record) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          {record.idempotencyKey || '-'}
+        </Text>
+      ),
+    },
     {
       title: '重试次数',
       dataIndex: 'attempts',
       width: 100,
       search: false,
-      render: (_, record) => `${record.attempts ?? 0}/${record.maxAttempts ?? 0}`,
+      render: (_, record) => {
+        const attempts = record.attempts ?? 0;
+        const maxAttempts = record.maxAttempts ?? 0;
+        const hasFailed = attempts >= maxAttempts && maxAttempts > 0;
+        return (
+          <Tag color={hasFailed ? 'error' : attempts > 0 ? 'warning' : 'default'} bordered={false}>
+            {attempts} / {maxAttempts}
+          </Tag>
+        );
+      },
     },
-    { title: '下次执行', dataIndex: 'nextRunAt', valueType: 'dateTime', width: 180, search: false },
     {
-      title: '最近错误',
+      title: '下次调度时间',
+      dataIndex: 'nextRunAt',
+      valueType: 'dateTime',
+      width: 170,
+      search: false,
+    },
+    {
+      title: '最近错误信息',
       dataIndex: 'lastError',
       search: false,
       render: (_, record) =>
         record.lastError ? (
           <Typography.Paragraph
+            type="danger"
             ellipsis={{ rows: 2, expandable: true }}
-            style={{ marginBottom: 0, maxWidth: 300 }}
+            style={{ marginBottom: 0, maxWidth: 300, fontSize: 12 }}
           >
             {record.lastError}
           </Typography.Paragraph>
         ) : (
-          '-'
+          <Text type="secondary">-</Text>
         ),
     },
     {
       title: '操作',
       valueType: 'option',
-      width: 80,
+      width: 90,
+      fixed: 'right',
       search: false,
       render: (_, record) => {
         if (!access.canManageTasks) return null;
         if (record.status !== 4 && record.status !== 5) return null;
         return (
           <Popconfirm
-            title="确定回放此任务？"
-            description="任务将重置为待执行并清空租约"
+            title="确定重新回放此任务？"
+            description="任务将重置为「待执行」状态并释放当前租约"
             onConfirm={async () => {
               if (!record.id) return;
               try {
@@ -97,14 +157,14 @@ export default function BackgroundTasksPanel() {
                   { id: record.id },
                   { id: record.id },
                 );
-                message.success('任务已回放');
+                message.success('任务已成功加入回放队列');
                 actionRef.current?.reload();
               } catch (err: any) {
-                message.error(err?.message || '回放失败');
+                message.error(err?.message || '回放任务失败');
               }
             }}
           >
-            <Button type="link" size="small">
+            <Button type="link" size="small" icon={<RedoOutlined />}>
               回放
             </Button>
           </Popconfirm>
@@ -115,10 +175,21 @@ export default function BackgroundTasksPanel() {
 
   return (
     <ProTable<API.BackgroundTask>
+      headerTitle={
+        <Space size={8}>
+          <ClockCircleOutlined style={{ color: '#1677ff' }} />
+          <span>后台异步任务队列</span>
+        </Space>
+      }
       rowKey="id"
       actionRef={actionRef}
       columns={columns}
-      pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+      bordered
+      pagination={{
+        defaultPageSize: 20,
+        showSizeChanger: true,
+        showQuickJumper: true,
+      }}
       request={async (params) => {
         const range = params.timeRange as [string, string] | undefined;
         const response = await backgroundTaskServiceListBackgroundTasks({

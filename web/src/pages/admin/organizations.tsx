@@ -188,7 +188,7 @@ export default function OrganizationsPanel() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 6,
-          padding: '2px 0',
+          padding: '3px 0',
           fontSize: 13,
         }}
       >
@@ -208,6 +208,8 @@ export default function OrganizationsPanel() {
             lineHeight: '18px',
             padding: '0 4px',
             fontFamily: 'monospace',
+            backgroundColor: '#f1f5f9',
+            color: '#475569',
           }}
         >
           {code}
@@ -223,7 +225,7 @@ export default function OrganizationsPanel() {
               padding: '0 4px',
             }}
           >
-            停用
+            已停用
           </Tag>
         )}
       </span>
@@ -255,21 +257,21 @@ export default function OrganizationsPanel() {
 
   return (
     <>
-      <ProCard split="vertical" variant="outlined" headerBordered>
+      <ProCard split="vertical" variant="outlined" headerBordered style={{ minHeight: 640 }}>
         {/* Left: Organization Tree */}
         <ProCard
-          colSpan={{ xs: 24, md: '340px' }}
+          colSpan={{ xs: 24, md: '360px' }}
           title={
-            <Space size={6}>
-              <ApartmentOutlined />
-              <span>组织架构</span>
-              <Tag bordered={false} style={{ margin: 0, fontSize: 11 }}>
-                {organizations.length} 个
+            <Space size={8}>
+              <ApartmentOutlined style={{ color: '#1677ff' }} />
+              <span>组织架构树</span>
+              <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
+                共 {organizations.length} 个节点
               </Tag>
             </Space>
           }
           extra={
-            <Space size={4}>
+            <Space size={6}>
               <Button
                 type="text"
                 size="small"
@@ -292,7 +294,7 @@ export default function OrganizationsPanel() {
           {/* Search Input */}
           <div style={{ marginBottom: 12 }}>
             <Input
-              placeholder="搜索组织名称或编码"
+              placeholder="搜索组织名称或编码..."
               prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
               allowClear
               value={searchKeyword}
@@ -304,8 +306,8 @@ export default function OrganizationsPanel() {
           <Spin spinning={loading}>
             <div
               style={{
-                maxHeight: 'calc(100vh - 320px)',
-                minHeight: 380,
+                maxHeight: 'calc(100vh - 340px)',
+                minHeight: 420,
                 overflowY: 'auto',
                 paddingRight: 4,
               }}
@@ -331,18 +333,18 @@ export default function OrganizationsPanel() {
                   icon={({ expanded, isLeaf }) => {
                     if (!isLeaf) {
                       return expanded ? (
-                        <FolderOpenOutlined />
+                        <FolderOpenOutlined style={{ color: '#1677ff' }} />
                       ) : (
-                        <FolderOutlined />
+                        <FolderOutlined style={{ color: '#1677ff' }} />
                       );
                     }
-                    return <TeamOutlined />;
+                    return <TeamOutlined style={{ color: '#64748b' }} />;
                   }}
                 />
               ) : (
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={searchKeyword ? '无匹配组织' : '暂无组织数据'}
+                  description={searchKeyword ? '未找到匹配的组织机构' : '暂无组织数据'}
                   style={{ margin: '40px 0' }}
                 />
               )}
@@ -354,25 +356,36 @@ export default function OrganizationsPanel() {
         <ProCard
           title={
             selectedOrg ? (
-              <Space align="center" size={8}>
+              <Space align="center" size={10}>
                 <Title level={4} style={{ margin: 0 }}>
                   {selectedOrg.name}
                 </Title>
+                <Tag
+                  bordered={false}
+                  style={{
+                    margin: 0,
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    padding: '2px 8px',
+                  }}
+                >
+                  {selectedOrg.code}
+                </Tag>
                 {selectedOrg.enabled ? (
-                  <Tag color="success">启用</Tag>
+                  <Tag color="success">启用中</Tag>
                 ) : (
                   <Tag color="default">已停用</Tag>
                 )}
               </Space>
             ) : (
-              '组织详情'
+              '组织详细信息'
             )
           }
           extra={
             selectedOrg ? (
               <Space size={8}>
                 <Button icon={<PlusOutlined />} onClick={openCreateChild}>
-                  新增子组织
+                  新增下级组织
                 </Button>
                 <Button
                   type="primary"
@@ -387,12 +400,12 @@ export default function OrganizationsPanel() {
           headerBordered
         >
           {selectedOrg ? (
-            <Space direction="vertical" size={20} style={{ width: '100%' }}>
+            <Space direction="vertical" size={24} style={{ width: '100%' }}>
               {/* Basic Descriptions */}
               <Descriptions
                 bordered
-                size="small"
-                column={{ xs: 1, sm: 2, md: 2, lg: 2 }}
+                size="middle"
+                column={{ xs: 1, sm: 2, lg: 3 }}
               >
                 <Descriptions.Item label="组织编码">
                   <Text copyable style={{ fontFamily: 'monospace' }}>
@@ -415,117 +428,142 @@ export default function OrganizationsPanel() {
                       {parentOrgOfSelected.name} ({parentOrgOfSelected.code})
                     </Button>
                   ) : (
-                    '—'
+                    <Text type="secondary">根组织（无上级）</Text>
                   )}
                 </Descriptions.Item>
-                <Descriptions.Item label="启用状态">
+                <Descriptions.Item label="运营状态">
                   {selectedOrg.enabled ? (
-                    <Tag color="success">启用中</Tag>
+                    <Tag color="success">正常启用</Tag>
                   ) : (
                     <Tag color="default">已停用</Tag>
                   )}
                 </Descriptions.Item>
-                <Descriptions.Item label="直接下级数量">
-                  <Text strong>{directChildren.length}</Text> 个
+                <Descriptions.Item label="直属下级机构">
+                  <Text strong style={{ color: '#1677ff' }}>
+                    {directChildren.length}
+                  </Text>{' '}
+                  个
                 </Descriptions.Item>
-                <Descriptions.Item label="全部下级数量">
-                  <Text strong>{totalDescendantCount}</Text> 个
+                <Descriptions.Item label="全部后代机构">
+                  <Text strong style={{ color: '#1677ff' }}>
+                    {totalDescendantCount}
+                  </Text>{' '}
+                  个
                 </Descriptions.Item>
               </Descriptions>
 
               {/* Direct Sub-organizations Table */}
-              {directChildren.length > 0 && (
-                <Card
-                  type="inner"
-                  title="直接下级组织"
-                  size="small"
-                  extra={
-                    <Button
-                      type="link"
-                      size="small"
-                      icon={<PlusOutlined />}
-                      onClick={openCreateChild}
-                    >
-                      添加子组织
-                    </Button>
-                  }
-                >
-                  <Table<API.AdminOrganization>
-                    rowKey="id"
+              <Card
+                type="inner"
+                title={
+                  <Space size={6}>
+                    <TeamOutlined />
+                    <span>直属下级组织机构</span>
+                    <Tag color="blue" bordered={false} style={{ margin: 0 }}>
+                      {directChildren.length}
+                    </Tag>
+                  </Space>
+                }
+                size="small"
+                extra={
+                  <Button
+                    type="link"
                     size="small"
-                    pagination={false}
-                    dataSource={directChildren}
-                    columns={[
-                      {
-                        title: '组织名称',
-                        dataIndex: 'name',
-                        render: (name, record) => (
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{
-                              padding: 0,
-                              height: 'auto',
-                              fontWeight: 500,
-                            }}
-                            onClick={() => setSelectedId(record.id ?? '')}
-                          >
-                            {name}
-                          </Button>
+                    icon={<PlusOutlined />}
+                    onClick={openCreateChild}
+                  >
+                    添加下级组织
+                  </Button>
+                }
+              >
+                <Table<API.AdminOrganization>
+                  rowKey="id"
+                  size="small"
+                  pagination={
+                    directChildren.length > 5
+                      ? { pageSize: 5, showSizeChanger: false }
+                      : false
+                  }
+                  dataSource={directChildren}
+                  columns={[
+                    {
+                      title: '组织名称',
+                      dataIndex: 'name',
+                      render: (name, record) => (
+                        <Button
+                          type="link"
+                          size="small"
+                          style={{
+                            padding: 0,
+                            height: 'auto',
+                            fontWeight: 500,
+                          }}
+                          onClick={() => setSelectedId(record.id ?? '')}
+                        >
+                          {name}
+                        </Button>
+                      ),
+                    },
+                    {
+                      title: '组织编码',
+                      dataIndex: 'code',
+                      render: (code) => (
+                        <Text
+                          copyable
+                          style={{ fontFamily: 'monospace', fontSize: 12 }}
+                        >
+                          {code}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'enabled',
+                      width: 90,
+                      render: (enabled) =>
+                        enabled ? (
+                          <Tag color="success">启用</Tag>
+                        ) : (
+                          <Tag color="default">停用</Tag>
                         ),
-                      },
-                      {
-                        title: '组织编码',
-                        dataIndex: 'code',
-                        render: (code) => (
-                          <Text
-                            copyable
-                            style={{ fontFamily: 'monospace', fontSize: 12 }}
-                          >
-                            {code}
-                          </Text>
-                        ),
-                      },
-                      {
-                        title: '状态',
-                        dataIndex: 'enabled',
-                        width: 90,
-                        render: (enabled) =>
-                          enabled ? (
-                            <Tag color="success">启用</Tag>
-                          ) : (
-                            <Tag color="default">停用</Tag>
-                          ),
-                      },
-                      {
-                        title: '操作',
-                        width: 80,
-                        render: (_, record) => (
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={() => setSelectedId(record.id ?? '')}
-                          >
-                            查看
-                          </Button>
-                        ),
-                      },
-                    ]}
-                  />
-                </Card>
-              )}
+                    },
+                    {
+                      title: '操作',
+                      width: 90,
+                      render: (_, record) => (
+                        <Button
+                          type="link"
+                          size="small"
+                          style={{ padding: 0 }}
+                          onClick={() => setSelectedId(record.id ?? '')}
+                        >
+                          切换查看
+                        </Button>
+                      ),
+                    },
+                  ]}
+                  locale={{
+                    emptyText: (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description="当前组织暂无直属下级机构"
+                        style={{ margin: '16px 0' }}
+                      />
+                    ),
+                  }}
+                />
+              </Card>
             </Space>
           ) : (
             <div
               style={{
-                minHeight: 360,
+                minHeight: 400,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Empty description="请从左侧组织树选择一个节点查看详细信息，或点击上方新增根组织">
+              <Empty description="请从左侧组织架构树选择一个节点查看详细信息，或点击上方按钮新增根组织">
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -543,7 +581,7 @@ export default function OrganizationsPanel() {
       <ModalForm<CreateFormValues>
         title={
           parentForCreate
-            ? `新增子组织（所属上级：${parentForCreate.name}）`
+            ? `新增下级组织（所属上级：${parentForCreate.name}）`
             : '新增根组织'
         }
         open={createModalOpen}
@@ -561,7 +599,7 @@ export default function OrganizationsPanel() {
               name: values.name?.trim() ?? '',
               parentId: parentForCreate?.id,
             });
-            message.success('组织已创建');
+            message.success('组织已成功创建');
             setCreateModalOpen(false);
             const createdId = response.data?.id;
             await loadData(createdId || selectedId);
@@ -622,7 +660,7 @@ export default function OrganizationsPanel() {
                 enabled: values.enabled ?? true,
               },
             );
-            message.success('组织已更新');
+            message.success('组织已成功更新');
             setEditModalOpen(false);
             await loadData(editingOrg.id);
             return true;

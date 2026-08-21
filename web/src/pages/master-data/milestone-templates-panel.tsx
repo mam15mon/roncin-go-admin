@@ -1,4 +1,4 @@
-import { CheckOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { CheckOutlined, FlagOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -15,7 +15,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Popconfirm, Space, Tag } from 'antd';
+import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   masterDataServiceCreateMilestoneTemplate,
@@ -24,17 +24,19 @@ import {
   masterDataServiceSetDefaultMilestoneTemplate,
 } from '@/services/roncin/masterDataService';
 
+const { Text } = Typography;
+
 const businessTypeOptions = [
-  { label: '海运出口', value: 1 },
-  { label: '海运进口', value: 2 },
-  { label: '空运出口', value: 3 },
-  { label: '空运进口', value: 4 },
-  { label: '陆运', value: 5 },
-  { label: '铁路', value: 6 },
+  { label: '海运出口', value: 1, color: 'blue' },
+  { label: '海运进口', value: 2, color: 'cyan' },
+  { label: '空运出口', value: 3, color: 'geekblue' },
+  { label: '空运进口', value: 4, color: 'purple' },
+  { label: '陆运', value: 5, color: 'green' },
+  { label: '铁路', value: 6, color: 'volcano' },
 ];
 
-const businessTypeLabels = Object.fromEntries(
-  businessTypeOptions.map((item) => [item.value, item.label]),
+const businessTypeMap = new Map(
+  businessTypeOptions.map((item) => [item.value, item]),
 );
 
 type MilestoneTemplateFormValues = {
@@ -70,7 +72,7 @@ export default function MilestoneTemplatesPanel() {
       { id: record.id },
       { id: record.id },
     );
-    message.success('已设为默认版本');
+    message.success('已成功设为该业务类型的默认里程碑模板');
     actionRef.current?.reload();
   };
 
@@ -83,34 +85,67 @@ export default function MilestoneTemplatesPanel() {
       valueEnum: Object.fromEntries(
         businessTypeOptions.map((item) => [item.value, { text: item.label }]),
       ),
-      render: (_, record) => (
-        <Tag>{businessTypeLabels[record.businessType ?? 0] ?? '未知'}</Tag>
-      ),
+      render: (_, record) => {
+        const item = businessTypeMap.get(record.businessType ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          <Tag>未知</Tag>
+        );
+      },
     },
     {
       title: '贸易条款',
       dataIndex: 'tradeTerm',
       width: 120,
-      render: (_, record) => record.tradeTerm || '通用',
+      render: (_, record) =>
+        record.tradeTerm ? (
+          <Tag color="orange" bordered={false}>
+            {record.tradeTerm}
+          </Tag>
+        ) : (
+          <Tag bordered={false}>通用条款</Tag>
+        ),
     },
-    { title: '编码', dataIndex: 'code', width: 160, copyable: true },
-    { title: '名称', dataIndex: 'name', width: 180 },
     {
-      title: '版本',
+      title: '模板编码',
+      dataIndex: 'code',
+      width: 160,
+      copyable: true,
+      render: (code) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>
+          {code}
+        </Text>
+      ),
+    },
+    {
+      title: '模板名称',
+      dataIndex: 'name',
+      width: 200,
+      render: (name) => <Text strong>{name}</Text>,
+    },
+    {
+      title: '版本号',
       dataIndex: 'version',
       width: 90,
       search: false,
-      render: (_, record) => `v${record.version ?? 1}`,
+      render: (_, record) => (
+        <Tag color="geekblue" bordered={false}>
+          v{record.version ?? 1}
+        </Tag>
+      ),
     },
     {
       title: '发布状态',
       dataIndex: 'published',
-      width: 120,
+      width: 110,
       valueType: 'select',
       valueEnum: { true: { text: '已发布' }, false: { text: '草稿' } },
       render: (_, record) =>
         record.publishedAt ? (
-          <Tag color="processing">已发布</Tag>
+          <Tag color="success">已发布</Tag>
         ) : (
           <Tag color="default">草稿</Tag>
         ),
@@ -121,14 +156,18 @@ export default function MilestoneTemplatesPanel() {
       width: 100,
       search: false,
       render: (_, record) =>
-        record.isDefault ? <Tag color="success">默认</Tag> : <Tag>非默认</Tag>,
+        record.isDefault ? (
+          <Tag color="blue">默认模板</Tag>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
       title: '节点数量',
       dataIndex: 'items',
-      width: 100,
+      width: 110,
       search: false,
-      render: (_, record) => record.items?.length ?? 0,
+      render: (_, record) => `${record.items?.length ?? 0} 个里程碑`,
     },
     {
       title: '更新时间',
@@ -141,6 +180,7 @@ export default function MilestoneTemplatesPanel() {
       title: '操作',
       valueType: 'option',
       width: 150,
+      fixed: 'right',
       render: (_, record) => {
         if (!access.canManageMasterData) {
           return null;
@@ -158,7 +198,7 @@ export default function MilestoneTemplatesPanel() {
                 setPublishModalOpen(true);
               }}
             >
-              发布
+              发布模板
             </Button>
           );
         }
@@ -166,7 +206,7 @@ export default function MilestoneTemplatesPanel() {
         if (!isDefault) {
           return (
             <Popconfirm
-              title="确定设为默认版本？"
+              title="确定设为该业务类型的默认里程碑模板？"
               onConfirm={() => handleSetDefault(record)}
             >
               <Button type="link" size="small" icon={<CheckOutlined />}>
@@ -187,11 +227,39 @@ export default function MilestoneTemplatesPanel() {
         API.MilestoneTemplate,
         API.MasterDataServiceListMilestoneTemplatesParams
       >
-        headerTitle="里程碑模板"
+        headerTitle={
+          <Space size={8}>
+            <FlagOutlined style={{ color: '#1677ff' }} />
+            <span>订单履约里程碑模板列表</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
+        bordered
         pagination={false}
+        expandable={{
+          expandedRowRender: (record) => (
+            <div style={{ padding: '8px 16px', backgroundColor: '#f8fafc', borderRadius: 6 }}>
+              <Text strong style={{ fontSize: 12, color: '#475569', display: 'block', marginBottom: 8 }}>
+                包含的履约里程碑流水节点：
+              </Text>
+              <Space wrap size={[6, 6]}>
+                {(record.items ?? []).map((item, idx) => (
+                  <Tag
+                    key={item.code}
+                    color="blue"
+                    bordered={false}
+                    style={{ fontSize: 12, padding: '2px 8px' }}
+                  >
+                    {idx + 1}. {item.label} ({item.code})
+                    {item.category ? ` · [${item.category}]` : ''}
+                  </Tag>
+                ))}
+              </Space>
+            </div>
+          ),
+        }}
         request={async (params) => {
           const response = await masterDataServiceListMilestoneTemplates({
             businessType: params.businessType,
@@ -227,7 +295,7 @@ export default function MilestoneTemplatesPanel() {
       />
 
       <ModalForm<MilestoneTemplateFormValues>
-        title="新增里程碑模板"
+        title="新增履约里程碑模板"
         open={modalOpen}
         formRef={formRef}
         initialValues={{
@@ -244,7 +312,7 @@ export default function MilestoneTemplatesPanel() {
         }}
         modalProps={{
           destroyOnClose: true,
-          width: 900,
+          width: 920,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -270,7 +338,7 @@ export default function MilestoneTemplatesPanel() {
             version: values.version ?? 1,
             items,
           });
-          message.success('里程碑模板已创建');
+          message.success('里程碑模板已成功创建');
           setModalOpen(false);
           actionRef.current?.reload();
           return true;
@@ -278,37 +346,37 @@ export default function MilestoneTemplatesPanel() {
       >
         <ProFormText
           name="code"
-          label="编码"
-          placeholder="如 MS_SE_FOB"
+          label="模板编码"
+          placeholder="例如：MS_SE_FOB"
           rules={[{ required: true, message: '请输入模板编码' }]}
         />
         <ProFormText
           name="name"
-          label="名称"
-          placeholder="如 海运出口 FOB 里程碑流程"
+          label="模板名称"
+          placeholder="例如：海运出口 FOB 履约里程碑流程"
           rules={[{ required: true, message: '请输入模板名称' }]}
         />
         <ProFormSelect
           name="businessType"
-          label="业务类型"
+          label="适用业务类型"
           options={businessTypeOptions}
           rules={[{ required: true, message: '请选择业务类型' }]}
         />
         <ProFormText
           name="tradeTerm"
-          label="贸易条款"
-          placeholder="如 FOB、CIF（可选）"
+          label="贸易条款限制"
+          placeholder="如 FOB、CIF（留空则适用于通用贸易条款）"
         />
         <ProFormDigit
           name="version"
-          label="版本"
+          label="版本号"
           min={1}
           fieldProps={{ precision: 0 }}
           rules={[{ required: true, message: '请输入版本号' }]}
         />
         <ProFormList
           name="items"
-          label="里程碑节点列表"
+          label="里程碑节点流水列表（按时序排列）"
           creatorButtonProps={{
             creatorButtonText: '添加里程碑节点',
           }}
@@ -333,7 +401,7 @@ export default function MilestoneTemplatesPanel() {
           ]}
         >
           {() => (
-            <Space direction="horizontal" align="start" size={8} wrap>
+            <Space direction="horizontal" align="start" size={10} wrap>
               <ProFormText
                 name="code"
                 label="节点编码"
@@ -350,13 +418,13 @@ export default function MilestoneTemplatesPanel() {
               />
               <ProFormText
                 name="category"
-                label="分类"
+                label="业务分类"
                 width="xs"
                 placeholder="如 CUSTOMS"
               />
               <ProFormSelect
                 name="dependsOn"
-                label="依赖前置编码"
+                label="前置依赖编码"
                 width="sm"
                 placeholder="输入编码后回车"
                 fieldProps={{ mode: 'tags', tokenSeparators: [','] }}
@@ -371,7 +439,7 @@ export default function MilestoneTemplatesPanel() {
               <ProFormSwitch name="enabled" label="启用" initialValue={true} />
               <ProFormText
                 name="description"
-                label="说明"
+                label="节点说明"
                 width="md"
                 placeholder="节点说明（可选）"
               />
@@ -385,6 +453,7 @@ export default function MilestoneTemplatesPanel() {
         open={publishModalOpen}
         modalProps={{
           destroyOnClose: true,
+          width: 520,
           onCancel: () => setPublishModalOpen(false),
         }}
         onOpenChange={setPublishModalOpen}
@@ -394,7 +463,7 @@ export default function MilestoneTemplatesPanel() {
             { id: publishingItem.id },
             { id: publishingItem.id, isDefault: values.isDefault ?? false },
           );
-          message.success('里程碑模板发布成功');
+          message.success('里程碑模板已成功发布');
           setPublishModalOpen(false);
           actionRef.current?.reload();
           return true;
@@ -402,11 +471,11 @@ export default function MilestoneTemplatesPanel() {
       >
         <ProFormRadio.Group
           name="isDefault"
-          label="发布后设为默认版本"
+          label="发布后是否设为默认版本"
           initialValue={false}
           options={[
             { label: '否，仅发布为可用版本', value: false },
-            { label: '是，发布并设为默认模板', value: true },
+            { label: '是，发布并设为默认里程碑模板', value: true },
           ]}
         />
       </ModalForm>

@@ -1,6 +1,11 @@
 import {
   CheckOutlined,
+  DatabaseOutlined,
   EditOutlined,
+  FieldTimeOutlined,
+  FlagOutlined,
+  NodeIndexOutlined,
+  NumberOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -11,6 +16,7 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ModalForm,
+  PageContainer,
   ProFormDependency,
   ProFormDigit,
   ProFormList,
@@ -21,8 +27,8 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Card, Popconfirm, Space, Tabs, Tag } from 'antd';
-import React, { useRef, useState } from 'react';
+import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   masterDataServiceCreateItem,
   masterDataServiceCreateNumberRule,
@@ -37,41 +43,41 @@ import {
 } from '@/services/roncin/masterDataService';
 import MilestoneTemplatesPanel from './milestone-templates-panel';
 
+const { Text } = Typography;
+
 const kindOptions = [
-  { label: '币种', value: 1 },
-  { label: '国家', value: 2 },
-  { label: '地区', value: 3 },
-  { label: '港口', value: 4 },
-  { label: '机场', value: 5 },
-  { label: '承运人', value: 6 },
-  { label: '箱型', value: 7 },
-  { label: '服务类型', value: 8 },
-  { label: '货物类别', value: 9 },
+  { label: '币种', value: 1, color: 'gold' },
+  { label: '国家', value: 2, color: 'blue' },
+  { label: '地区', value: 3, color: 'cyan' },
+  { label: '港口', value: 4, color: 'geekblue' },
+  { label: '机场', value: 5, color: 'purple' },
+  { label: '承运人', value: 6, color: 'orange' },
+  { label: '箱型', value: 7, color: 'magenta' },
+  { label: '服务类型', value: 8, color: 'green' },
+  { label: '货物类别', value: 9, color: 'volcano' },
 ];
 
-const kindLabels = Object.fromEntries(
-  kindOptions.map((item) => [item.value, item.label]),
-);
+const kindMap = new Map(kindOptions.map((item) => [item.value, item]));
 
 const documentTypeOptions = [
-  { label: '订单', value: 1 },
-  { label: '订舱', value: 2 },
-  { label: 'HBL', value: 3 },
-  { label: 'MBL', value: 4 },
-  { label: '账单', value: 5 },
-  { label: '对账单', value: 6 },
-  { label: '付款', value: 7 },
-  { label: '发票', value: 8 },
+  { label: '订单', value: 1, color: 'blue' },
+  { label: '订舱', value: 2, color: 'cyan' },
+  { label: 'HBL (分单)', value: 3, color: 'purple' },
+  { label: 'MBL (主单)', value: 4, color: 'geekblue' },
+  { label: '账单', value: 5, color: 'orange' },
+  { label: '对账单', value: 6, color: 'gold' },
+  { label: '付款', value: 7, color: 'green' },
+  { label: '发票', value: 8, color: 'volcano' },
 ];
 
-const documentTypeLabels = Object.fromEntries(
-  documentTypeOptions.map((item) => [item.value, item.label]),
+const documentTypeMap = new Map(
+  documentTypeOptions.map((item) => [item.value, item]),
 );
 
 const dateFormatOptions = [
-  { label: 'yyyyMMdd', value: 1 },
-  { label: 'yyyyMM', value: 2 },
-  { label: 'yyyy', value: 3 },
+  { label: 'yyyyMMdd (年月日)', value: 1 },
+  { label: 'yyyyMM (年月)', value: 2 },
+  { label: 'yyyy (年)', value: 3 },
   { label: '无日期', value: 4 },
 ];
 
@@ -80,10 +86,10 @@ const dateFormatLabels = Object.fromEntries(
 );
 
 const resetPolicyOptions = [
-  { label: '每日', value: 1 },
-  { label: '每月', value: 2 },
-  { label: '每年', value: 3 },
-  { label: '永不', value: 4 },
+  { label: '每日重置', value: 1 },
+  { label: '每月重置', value: 2 },
+  { label: '每年重置', value: 3 },
+  { label: '永不重置', value: 4 },
 ];
 
 const resetPolicyLabels = Object.fromEntries(
@@ -91,16 +97,16 @@ const resetPolicyLabels = Object.fromEntries(
 );
 
 const businessTypeOptions = [
-  { label: '海运出口', value: 1 },
-  { label: '海运进口', value: 2 },
-  { label: '空运出口', value: 3 },
-  { label: '空运进口', value: 4 },
-  { label: '陆运', value: 5 },
-  { label: '铁路', value: 6 },
+  { label: '海运出口', value: 1, color: 'blue' },
+  { label: '海运进口', value: 2, color: 'cyan' },
+  { label: '空运出口', value: 3, color: 'geekblue' },
+  { label: '空运进口', value: 4, color: 'purple' },
+  { label: '陆运', value: 5, color: 'green' },
+  { label: '铁路', value: 6, color: 'volcano' },
 ];
 
-const businessTypeLabels = Object.fromEntries(
-  businessTypeOptions.map((item) => [item.value, item.label]),
+const businessTypeMap = new Map(
+  businessTypeOptions.map((item) => [item.value, item]),
 );
 
 type MasterDataFormValues = {
@@ -165,48 +171,120 @@ function MasterDataCatalogPanel() {
       valueEnum: Object.fromEntries(
         kindOptions.map((item) => [item.value, { text: item.label }]),
       ),
+      render: (_, record) => {
+        const item = kindMap.get(record.kind ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          <Tag>未知</Tag>
+        );
+      },
+    },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      width: 150,
+      copyable: true,
       render: (_, record) => (
-        <Tag>{kindLabels[record.kind ?? 0] ?? '未知'}</Tag>
+        <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>
+          {record.code}
+        </Text>
       ),
     },
-    { title: '编码', dataIndex: 'code', width: 160, copyable: true },
-    { title: '名称', dataIndex: 'name', width: 220, ellipsis: true },
+    {
+      title: '名称',
+      dataIndex: 'name',
+      width: 200,
+      ellipsis: true,
+      render: (_, record) => <Text strong>{record.name}</Text>,
+    },
     {
       title: '英文名称',
       dataIndex: 'nameEn',
-      width: 220,
+      width: 200,
       ellipsis: true,
       search: false,
+      render: (_, record) => record.nameEn || <Text type="secondary">-</Text>,
     },
-    { title: '上级编码', dataIndex: 'parentCode', width: 140, search: false },
+    {
+      title: '上级编码',
+      dataIndex: 'parentCode',
+      width: 130,
+      search: false,
+      render: (_, record) =>
+        record.parentCode ? (
+          <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
+            {record.parentCode}
+          </Tag>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
+    },
     {
       title: '运输方式',
       dataIndex: 'transportMode',
-      width: 120,
+      width: 110,
+      search: false,
+      render: (_, record) =>
+        record.transportMode ? (
+          <Tag color="blue" bordered={false}>
+            {record.transportMode}
+          </Tag>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
+    },
+    {
+      title: 'TEU 系数',
+      dataIndex: 'teuFactor',
+      width: 100,
+      search: false,
+      render: (_, record) => record.teuFactor || <Text type="secondary">-</Text>,
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      width: 110,
+      search: false,
+      render: (_, record) => (
+        <Tag bordered={false} style={{ fontSize: 11 }}>
+          {record.source || 'manual'}
+        </Tag>
+      ),
+    },
+    {
+      title: '排序',
+      dataIndex: 'sortOrder',
+      width: 80,
       search: false,
     },
-    { title: 'TEU 系数', dataIndex: 'teuFactor', width: 110, search: false },
-    { title: '来源', dataIndex: 'source', width: 120, search: false },
-    { title: '排序', dataIndex: 'sortOrder', width: 80, search: false },
     {
       title: '状态',
       dataIndex: 'enabled',
-      width: 100,
+      width: 90,
       valueType: 'select',
       valueEnum: { true: { text: '启用' }, false: { text: '停用' } },
       render: (_, record) =>
-        record.enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+        record.enabled ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
     {
       title: '操作',
       valueType: 'option',
-      width: 100,
+      width: 90,
+      fixed: 'right',
       render: (_, record) =>
         access.canManageMasterData ? (
           <Button
             type="link"
             size="small"
             icon={<EditOutlined />}
+            style={{ padding: 0 }}
             onClick={() => openEdit(record)}
           >
             编辑
@@ -218,11 +296,17 @@ function MasterDataCatalogPanel() {
   return (
     <>
       <ProTable<API.MasterDataItem>
-        headerTitle="主数据目录"
+        headerTitle={
+          <Space size={8}>
+            <DatabaseOutlined style={{ color: '#1677ff' }} />
+            <span>主数据目录列表</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        scroll={{ x: 1400 }}
+        bordered
+        scroll={{ x: 1300 }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
         request={async (params) => {
           const response = await masterDataServiceListItems({
@@ -261,12 +345,13 @@ function MasterDataCatalogPanel() {
         }
       />
       <ModalForm<MasterDataFormValues>
-        title={editing ? '编辑主数据' : '新增主数据'}
+        title={editing ? `编辑主数据：${editing.name} (${editing.code})` : '新增主数据'}
         open={modalOpen}
         formRef={formRef}
         initialValues={{ source: 'manual', sortOrder: 100, ...editing }}
         modalProps={{
           destroyOnClose: true,
+          width: 600,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -287,7 +372,7 @@ function MasterDataCatalogPanel() {
                 enabled: values.enabled ?? true,
               },
             );
-            message.success('主数据已更新');
+            message.success('主数据已成功更新');
           } else {
             await masterDataServiceCreateItem({
               kind: values.kind ?? 0,
@@ -300,7 +385,7 @@ function MasterDataCatalogPanel() {
               source: values.source,
               sortOrder: values.sortOrder,
             });
-            message.success('主数据已创建');
+            message.success('主数据已成功创建');
           }
           setModalOpen(false);
           actionRef.current?.reload();
@@ -309,27 +394,29 @@ function MasterDataCatalogPanel() {
       >
         <ProFormSelect
           name="kind"
-          label="类型"
+          label="主数据类型"
           options={kindOptions}
           disabled={Boolean(editing)}
           rules={[{ required: true, message: '请选择主数据类型' }]}
         />
         <ProFormText
           name="code"
-          label="编码"
+          label="字典编码"
           disabled={Boolean(editing)}
+          placeholder="例如：CN_SHA 或 USD"
           rules={[{ required: true, message: '请输入编码' }]}
         />
         <ProFormText
           name="name"
-          label="名称"
+          label="中文名称"
+          placeholder="例如：上海港 或 美元"
           rules={[{ required: true, message: '请输入名称' }]}
         />
-        <ProFormText name="nameEn" label="英文名称" />
+        <ProFormText name="nameEn" label="英文名称" placeholder="例如：Port of Shanghai" />
         <ProFormDependency name={['kind']}>
           {({ kind }) =>
             kind === 3 || kind === 4 || kind === 5 ? (
-              <ProFormText name="parentCode" label="上级编码" />
+              <ProFormText name="parentCode" label="所属上级国家/地区编码" placeholder="例如：CN" />
             ) : null
           }
         </ProFormDependency>
@@ -340,10 +427,10 @@ function MasterDataCatalogPanel() {
                 name="transportMode"
                 label="运输方式"
                 options={[
-                  { label: '海运', value: 'SEA' },
-                  { label: '空运', value: 'AIR' },
-                  { label: '陆运', value: 'LAND' },
-                  { label: '铁路', value: 'RAIL' },
+                  { label: '海运 (SEA)', value: 'SEA' },
+                  { label: '空运 (AIR)', value: 'AIR' },
+                  { label: '陆运 (LAND)', value: 'LAND' },
+                  { label: '铁路 (RAIL)', value: 'RAIL' },
                 ]}
               />
             ) : null
@@ -354,7 +441,8 @@ function MasterDataCatalogPanel() {
             kind === 7 ? (
               <ProFormText
                 name="teuFactor"
-                label="TEU 系数"
+                label="TEU 折算系数"
+                placeholder="例如：1.0 或 2.0"
                 rules={[
                   { pattern: /^\d+(\.\d+)?$/, message: '请输入大于 0 的数字' },
                 ]}
@@ -364,12 +452,13 @@ function MasterDataCatalogPanel() {
         </ProFormDependency>
         <ProFormText
           name="source"
-          label="来源"
+          label="数据来源标识"
+          placeholder="例如：manual / unlocode / cbrc"
           rules={[{ required: true, message: '请输入来源' }]}
         />
         <ProFormDigit
           name="sortOrder"
-          label="排序"
+          label="显示排序"
           min={0}
           fieldProps={{ precision: 0 }}
         />
@@ -402,32 +491,65 @@ function NumberRulesPanel() {
     {
       title: '单据类型',
       dataIndex: 'documentType',
-      width: 140,
-      render: (_, record) => (
-        <Tag>{documentTypeLabels[record.documentType ?? 0] ?? '未知'}</Tag>
+      width: 160,
+      render: (_, record) => {
+        const item = documentTypeMap.get(record.documentType ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          <Tag>未知</Tag>
+        );
+      },
+    },
+    {
+      title: '前缀',
+      dataIndex: 'prefix',
+      width: 120,
+      render: (prefix) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+          {prefix}
+        </Text>
       ),
     },
-    { title: '前缀', dataIndex: 'prefix', width: 120 },
     {
       title: '日期格式',
       dataIndex: 'dateFormat',
-      width: 140,
-      render: (_, record) => dateFormatLabels[record.dateFormat ?? 0] ?? '未知',
+      width: 160,
+      render: (_, record) => (
+        <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
+          {dateFormatLabels[record.dateFormat ?? 0] ?? '未知'}
+        </Tag>
+      ),
     },
-    { title: '序号长度', dataIndex: 'sequenceLength', width: 100 },
+    {
+      title: '流水号长度',
+      dataIndex: 'sequenceLength',
+      width: 120,
+      render: (len) => `${len ?? 4} 位`,
+    },
     {
       title: '重置周期',
       dataIndex: 'resetPolicy',
-      width: 120,
-      render: (_, record) =>
-        resetPolicyLabels[record.resetPolicy ?? 0] ?? '未知',
+      width: 130,
+      render: (_, record) => (
+        <Tag color="cyan" bordered={false}>
+          <FieldTimeOutlined style={{ marginRight: 4 }} />
+          {resetPolicyLabels[record.resetPolicy ?? 0] ?? '未知'}
+        </Tag>
+      ),
     },
     {
       title: '状态',
       dataIndex: 'enabled',
       width: 100,
       render: (_, record) =>
-        record.enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+        record.enabled ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
     {
       title: '更新时间',
@@ -438,13 +560,15 @@ function NumberRulesPanel() {
     {
       title: '操作',
       valueType: 'option',
-      width: 100,
+      width: 90,
+      fixed: 'right',
       render: (_, record) =>
         access.canManageMasterData ? (
           <Button
             type="link"
             size="small"
             icon={<EditOutlined />}
+            style={{ padding: 0 }}
             onClick={() => openEdit(record)}
           >
             编辑
@@ -456,10 +580,16 @@ function NumberRulesPanel() {
   return (
     <>
       <ProTable<API.NumberRule>
-        headerTitle="编号规则"
+        headerTitle={
+          <Space size={8}>
+            <NumberOutlined style={{ color: '#1677ff' }} />
+            <span>单据自动编号生成规则</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
+        bordered
         search={false}
         pagination={false}
         request={async () => {
@@ -492,7 +622,7 @@ function NumberRulesPanel() {
         }
       />
       <ModalForm<NumberRuleFormValues>
-        title={editing ? '编辑编号规则' : '新增编号规则'}
+        title={editing ? '编辑编号生成规则' : '新增编号生成规则'}
         open={modalOpen}
         formRef={formRef}
         initialValues={{
@@ -504,6 +634,7 @@ function NumberRulesPanel() {
         }}
         modalProps={{
           destroyOnClose: true,
+          width: 560,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -520,7 +651,7 @@ function NumberRulesPanel() {
                 enabled: values.enabled ?? true,
               },
             );
-            message.success('编号规则已更新');
+            message.success('编号规则已成功更新');
           } else {
             await masterDataServiceCreateNumberRule({
               documentType: values.documentType ?? 1,
@@ -529,7 +660,7 @@ function NumberRulesPanel() {
               sequenceLength: values.sequenceLength ?? 4,
               resetPolicy: values.resetPolicy ?? 1,
             });
-            message.success('编号规则已创建');
+            message.success('编号规则已成功创建');
           }
           setModalOpen(false);
           actionRef.current?.reload();
@@ -543,16 +674,21 @@ function NumberRulesPanel() {
           disabled={Boolean(editing)}
           rules={[{ required: true, message: '请选择单据类型' }]}
         />
-        <ProFormText name="prefix" label="前缀" placeholder="如 ORD、BKG" />
+        <ProFormText
+          name="prefix"
+          label="编号前缀"
+          placeholder="例如：ORD、BKG、HBL"
+          rules={[{ required: true, message: '请输入编号前缀' }]}
+        />
         <ProFormSelect
           name="dateFormat"
-          label="日期格式"
+          label="日期嵌入格式"
           options={dateFormatOptions}
           rules={[{ required: true, message: '请选择日期格式' }]}
         />
         <ProFormDigit
           name="sequenceLength"
-          label="序号长度"
+          label="自增流水号位数"
           min={1}
           max={12}
           fieldProps={{ precision: 0 }}
@@ -560,7 +696,7 @@ function NumberRulesPanel() {
         />
         <ProFormSelect
           name="resetPolicy"
-          label="重置周期"
+          label="流水计数重置周期"
           options={resetPolicyOptions}
           rules={[{ required: true, message: '请选择重置周期' }]}
         />
@@ -603,28 +739,54 @@ function StatusTemplatesPanel() {
       valueEnum: Object.fromEntries(
         businessTypeOptions.map((item) => [item.value, { text: item.label }]),
       ),
-      render: (_, record) => (
-        <Tag>{businessTypeLabels[record.businessType ?? 0] ?? '未知'}</Tag>
+      render: (_, record) => {
+        const item = businessTypeMap.get(record.businessType ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          <Tag>未知</Tag>
+        );
+      },
+    },
+    {
+      title: '模板编码',
+      dataIndex: 'code',
+      width: 160,
+      copyable: true,
+      render: (code) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>
+          {code}
+        </Text>
       ),
     },
-    { title: '编码', dataIndex: 'code', width: 160, copyable: true },
-    { title: '名称', dataIndex: 'name', width: 180 },
     {
-      title: '版本',
+      title: '模板名称',
+      dataIndex: 'name',
+      width: 200,
+      render: (name) => <Text strong>{name}</Text>,
+    },
+    {
+      title: '版本号',
       dataIndex: 'version',
       width: 90,
       search: false,
-      render: (_, record) => `v${record.version ?? 1}`,
+      render: (_, record) => (
+        <Tag color="geekblue" bordered={false}>
+          v{record.version ?? 1}
+        </Tag>
+      ),
     },
     {
       title: '发布状态',
       dataIndex: 'published',
-      width: 120,
+      width: 110,
       valueType: 'select',
       valueEnum: { true: { text: '已发布' }, false: { text: '草稿' } },
       render: (_, record) =>
         record.publishedAt ? (
-          <Tag color="processing">已发布</Tag>
+          <Tag color="success">已发布</Tag>
         ) : (
           <Tag color="default">草稿</Tag>
         ),
@@ -635,14 +797,18 @@ function StatusTemplatesPanel() {
       width: 100,
       search: false,
       render: (_, record) =>
-        record.isDefault ? <Tag color="success">默认</Tag> : <Tag>非默认</Tag>,
+        record.isDefault ? (
+          <Tag color="blue">默认模板</Tag>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
-      title: '状态数量',
+      title: '状态条目数',
       dataIndex: 'items',
-      width: 100,
+      width: 110,
       search: false,
-      render: (_, record) => record.items?.length ?? 0,
+      render: (_, record) => `${record.items?.length ?? 0} 个节点`,
     },
     {
       title: '更新时间',
@@ -655,6 +821,7 @@ function StatusTemplatesPanel() {
       title: '操作',
       valueType: 'option',
       width: 150,
+      fixed: 'right',
       render: (_, record) => {
         if (!access.canManageMasterData) {
           return null;
@@ -672,7 +839,7 @@ function StatusTemplatesPanel() {
                 setPublishModalOpen(true);
               }}
             >
-              发布
+              发布模板
             </Button>
           );
         }
@@ -680,7 +847,7 @@ function StatusTemplatesPanel() {
         if (!isDefault) {
           return (
             <Popconfirm
-              title="确定设为默认版本？"
+              title="确定设为该业务类型的默认模板？"
               onConfirm={() => handleSetDefault(record)}
             >
               <Button type="link" size="small" icon={<CheckOutlined />}>
@@ -701,11 +868,38 @@ function StatusTemplatesPanel() {
         API.StatusTemplate,
         API.MasterDataServiceListStatusTemplatesParams
       >
-        headerTitle="状态模板"
+        headerTitle={
+          <Space size={8}>
+            <NodeIndexOutlined style={{ color: '#1677ff' }} />
+            <span>订单业务状态流转模板</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
+        bordered
         pagination={false}
+        expandable={{
+          expandedRowRender: (record) => (
+            <div style={{ padding: '8px 16px', backgroundColor: '#f8fafc', borderRadius: 6 }}>
+              <Text strong style={{ fontSize: 12, color: '#475569', display: 'block', marginBottom: 8 }}>
+                包含的状态节点流水：
+              </Text>
+              <Space wrap size={[6, 6]}>
+                {(record.items ?? []).map((item, idx) => (
+                  <Tag
+                    key={item.code}
+                    color={item.colorToken || 'blue'}
+                    bordered={false}
+                    style={{ fontSize: 12, padding: '2px 8px' }}
+                  >
+                    {idx + 1}. {item.label} ({item.code})
+                  </Tag>
+                ))}
+              </Space>
+            </div>
+          ),
+        }}
         request={async (params) => {
           const response = await masterDataServiceListStatusTemplates({
             businessType: params.businessType,
@@ -740,7 +934,7 @@ function StatusTemplatesPanel() {
       />
 
       <ModalForm<StatusTemplateFormValues>
-        title="新增状态模板"
+        title="新增订单状态流转模板"
         open={modalOpen}
         formRef={formRef}
         initialValues={{
@@ -759,7 +953,7 @@ function StatusTemplatesPanel() {
         }}
         modalProps={{
           destroyOnClose: true,
-          width: 840,
+          width: 860,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -783,7 +977,7 @@ function StatusTemplatesPanel() {
             version: values.version ?? 1,
             items,
           });
-          message.success('状态模板已创建');
+          message.success('状态模板已成功创建');
           setModalOpen(false);
           actionRef.current?.reload();
           return true;
@@ -791,34 +985,34 @@ function StatusTemplatesPanel() {
       >
         <ProFormText
           name="code"
-          label="编码"
-          placeholder="如 SE_DEFAULT"
+          label="模板编码"
+          placeholder="例如：SE_DEFAULT"
           rules={[{ required: true, message: '请输入模板编码' }]}
         />
         <ProFormText
           name="name"
-          label="名称"
-          placeholder="如 海运出口默认状态流程"
+          label="模板名称"
+          placeholder="例如：海运出口标准状态流转流程"
           rules={[{ required: true, message: '请输入模板名称' }]}
         />
         <ProFormSelect
           name="businessType"
-          label="业务类型"
+          label="适用业务类型"
           options={businessTypeOptions}
           rules={[{ required: true, message: '请选择业务类型' }]}
         />
         <ProFormDigit
           name="version"
-          label="版本"
+          label="版本号"
           min={1}
           fieldProps={{ precision: 0 }}
           rules={[{ required: true, message: '请输入版本号' }]}
         />
         <ProFormList
           name="items"
-          label="状态条目列表"
+          label="状态节点列表（按执行顺序列出）"
           creatorButtonProps={{
-            creatorButtonText: '添加状态条目',
+            creatorButtonText: '添加状态节点',
           }}
           min={1}
           rules={[
@@ -845,7 +1039,7 @@ function StatusTemplatesPanel() {
         >
           <ProFormDependency name={['system']}>
             {() => (
-              <Space direction="horizontal" align="start" size={8} wrap>
+              <Space direction="horizontal" align="start" size={10} wrap>
                 <ProFormText
                   name="code"
                   label="状态编码"
@@ -894,6 +1088,7 @@ function StatusTemplatesPanel() {
         open={publishModalOpen}
         modalProps={{
           destroyOnClose: true,
+          width: 520,
           onCancel: () => setPublishModalOpen(false),
         }}
         onOpenChange={setPublishModalOpen}
@@ -903,7 +1098,7 @@ function StatusTemplatesPanel() {
             { id: publishingItem.id },
             { id: publishingItem.id, isDefault: values.isDefault ?? false },
           );
-          message.success('状态模板发布成功');
+          message.success('状态模板已成功发布');
           setPublishModalOpen(false);
           actionRef.current?.reload();
           return true;
@@ -911,11 +1106,11 @@ function StatusTemplatesPanel() {
       >
         <ProFormRadio.Group
           name="isDefault"
-          label="发布后设为默认版本"
+          label="发布后是否设为默认版本"
           initialValue={false}
           options={[
             { label: '否，仅发布为可用版本', value: false },
-            { label: '是，发布并设为该业务类型的默认模板', value: true },
+            { label: '是，发布并立即设为该业务类型的默认模板', value: true },
           ]}
         />
       </ModalForm>
@@ -924,32 +1119,68 @@ function StatusTemplatesPanel() {
 }
 
 export default function MasterDataPage() {
-  const tabItems = [
-    {
-      key: 'catalog',
-      label: '主数据目录',
-      children: <MasterDataCatalogPanel />,
-    },
-    {
-      key: 'number-rules',
-      label: '编号规则',
-      children: <NumberRulesPanel />,
-    },
-    {
-      key: 'status-templates',
-      label: '状态模板',
-      children: <StatusTemplatesPanel />,
-    },
-    {
-      key: 'milestone-templates',
-      label: '里程碑模板',
-      children: <MilestoneTemplatesPanel />,
-    },
-  ];
+  const tabItems = useMemo(
+    () => [
+      {
+        key: 'catalog',
+        tab: (
+          <Space size={6}>
+            <DatabaseOutlined />
+            <span>主数据目录</span>
+          </Space>
+        ),
+        children: <MasterDataCatalogPanel />,
+      },
+      {
+        key: 'number-rules',
+        tab: (
+          <Space size={6}>
+            <NumberOutlined />
+            <span>单据编号规则</span>
+          </Space>
+        ),
+        children: <NumberRulesPanel />,
+      },
+      {
+        key: 'status-templates',
+        tab: (
+          <Space size={6}>
+            <NodeIndexOutlined />
+            <span>状态流转模板</span>
+          </Space>
+        ),
+        children: <StatusTemplatesPanel />,
+      },
+      {
+        key: 'milestone-templates',
+        tab: (
+          <Space size={6}>
+            <FlagOutlined />
+            <span>履约里程碑模板</span>
+          </Space>
+        ),
+        children: <MilestoneTemplatesPanel />,
+      },
+    ],
+    [],
+  );
+
+  const [activeTab, setActiveTab] = useState<string>('catalog');
+
+  const activeContent = tabItems.find((item) => item.key === activeTab)?.children;
 
   return (
-    <Card>
-      <Tabs items={tabItems} />
-    </Card>
+    <PageContainer
+      title="主数据管理"
+      subTitle="维护物流业务基础字典、单据编号序列规则、状态流转状态机与履约里程碑流水"
+      tabList={tabItems.map((item) => ({
+        key: item.key,
+        tab: item.tab,
+      }))}
+      tabActiveKey={activeTab}
+      onTabChange={(key) => setActiveTab(key)}
+    >
+      {activeContent}
+    </PageContainer>
   );
 }

@@ -1,4 +1,5 @@
 import {
+  ContactsOutlined,
   EditOutlined,
   ExportOutlined,
   FolderOpenOutlined,
@@ -14,6 +15,7 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ModalForm,
+  PageContainer,
   ProFormDigit,
   ProFormList,
   ProFormRadio,
@@ -24,7 +26,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Space, Tag } from 'antd';
+import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartner,
@@ -36,12 +38,16 @@ import {
 } from '@/services/roncin/partnerService';
 import PartnerSecondary from './partner-secondary';
 
+const { Text } = Typography;
+
 const roleOptions = [
-  { label: '客户', value: 1 },
-  { label: '供应商', value: 2 },
-  { label: '代理', value: 3 },
-  { label: '承运人', value: 4 },
+  { label: '客户', value: 1, color: 'blue' },
+  { label: '供应商', value: 2, color: 'green' },
+  { label: '代理', value: 3, color: 'purple' },
+  { label: '承运人', value: 4, color: 'orange' },
 ];
+
+const roleMap = new Map(roleOptions.map((opt) => [opt.value, opt]));
 
 const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
@@ -70,13 +76,17 @@ type PartnerImportFormValues = {
 };
 
 function roleTags(roles?: API.PartnerRole[]) {
-  return (roles ?? []).map((role) => (
-    <Tag key={role.type} color={role.blacklisted ? 'error' : undefined}>
-      {roleLabels[role.type ?? 0] ?? '未知'}
-      {!role.enabled ? '（停用）' : ''}
-      {role.blacklisted ? '（黑名单）' : ''}
-    </Tag>
-  ));
+  return (roles ?? []).map((role) => {
+    const item = roleMap.get(role.type ?? 0);
+    const color = role.blacklisted ? 'error' : item?.color || 'default';
+    return (
+      <Tag key={role.type} color={color} bordered={false}>
+        {roleLabels[role.type ?? 0] ?? '未知'}
+        {!role.enabled ? ' (停用)' : ''}
+        {role.blacklisted ? ' [黑名单]' : ''}
+      </Tag>
+    );
+  });
 }
 
 export default function Partners() {
@@ -176,48 +186,76 @@ export default function Partners() {
 
   const columns: ProColumns<API.Partner>[] = [
     {
-      title: '编码',
+      title: '单位编码',
       dataIndex: 'code',
-      width: 130,
+      width: 140,
       fixed: 'left',
       copyable: true,
+      render: (code) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+          {code}
+        </Text>
+      ),
     },
     {
-      title: '法人名称',
+      title: '法人实体名称',
       dataIndex: 'legalName',
       width: 240,
       ellipsis: true,
+      render: (name) => <Text strong>{name}</Text>,
     },
     {
-      title: '角色',
+      title: '业务角色身份',
       dataIndex: 'role',
-      width: 260,
+      width: 240,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         roleOptions.map((option) => [option.value, { text: option.label }]),
       ),
-      render: (_, record) => <Space wrap>{roleTags(record.roles)}</Space>,
+      render: (_, record) => <Space wrap size={[4, 4]}>{roleTags(record.roles)}</Space>,
     },
     {
       title: '联系人',
       dataIndex: 'contacts',
-      width: 90,
+      width: 100,
       search: false,
-      render: (_, record) => record.contacts?.length ?? 0,
+      render: (_, record) => {
+        const count = record.contacts?.length ?? 0;
+        return (
+          <Tag bordered={false}>
+            {count} 位
+          </Tag>
+        );
+      },
     },
     {
-      title: '别名',
+      title: '常用别名',
       dataIndex: 'aliases',
-      width: 80,
+      width: 90,
       search: false,
-      render: (_, record) => record.aliases?.length ?? 0,
+      render: (_, record) => {
+        const count = record.aliases?.length ?? 0;
+        return (
+          <Tag bordered={false}>
+            {count} 个
+          </Tag>
+        );
+      },
     },
     {
       title: '统一社会信用代码',
       dataIndex: 'unifiedSocialCreditCode',
-      width: 190,
+      width: 200,
       search: false,
       copyable: true,
+      render: (code) =>
+        code ? (
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            {code}
+          </Text>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
       title: '状态',
@@ -229,65 +267,83 @@ export default function Partners() {
         false: { text: '停用', status: 'Default' },
       },
       render: (_, record) =>
-        record.enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+        record.enabled ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
     {
       title: '更新时间',
       dataIndex: 'updatedAt',
       valueType: 'dateTime',
-      width: 180,
+      width: 170,
       search: false,
     },
     {
       title: '操作',
       valueType: 'option',
-      width: 270,
+      width: 220,
       fixed: 'right',
       render: (_, record) => (
-        <Space size={0} wrap>
+        <Space size={8}>
           <Button
             type="link"
             size="small"
             icon={<FolderOpenOutlined />}
+            style={{ padding: 0 }}
             onClick={() => setSecondaryPartner(record)}
           >
             账户/合同
           </Button>
-          {access.canManagePartners ? (
+          {access.canManagePartners && (
             <>
               <Button
                 type="link"
                 size="small"
                 icon={<EditOutlined />}
+                style={{ padding: 0 }}
                 onClick={() => openEdit(record)}
               >
                 编辑
               </Button>
-              {record.roles?.some((role) => role.type === 2) ? (
+              {record.roles?.some((role) => role.type === 2) && (
                 <Button
                   type="link"
                   size="small"
+                  danger
                   icon={<StopOutlined />}
+                  style={{ padding: 0 }}
                   onClick={() => openBlacklist(record)}
                 >
                   黑名单
                 </Button>
-              ) : null}
+              )}
             </>
-          ) : null}
+          )}
         </Space>
       ),
     },
   ];
 
   return (
-    <>
+    <PageContainer
+      title="往来单位"
+      subTitle="统一维护客户、供应商、车队、船东及海外代理档案，管理银行账户、合同条款与黑名单"
+    >
       <ProTable<API.Partner>
+        headerTitle={
+          <Space size={8}>
+            <ContactsOutlined style={{ color: '#1677ff' }} />
+            <span>往来单位档案列表</span>
+          </Space>
+        }
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
+        bordered
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        scroll={{ x: 1400 }}
+        scroll={{ x: 1300 }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,
@@ -317,7 +373,7 @@ export default function Partners() {
             loading={exporting}
             onClick={handleExport}
           >
-            导出
+            导出 CSV
           </Button>,
           access.canManagePartners ? (
             <Button
@@ -325,7 +381,7 @@ export default function Partners() {
               icon={<ImportOutlined />}
               onClick={openImport}
             >
-              导入
+              导入数据
             </Button>
           ) : null,
           access.canManagePartners ? (
@@ -337,12 +393,12 @@ export default function Partners() {
       />
 
       <ModalForm<PartnerFormValues>
-        title={editing ? '编辑往来单位' : '新增往来单位'}
+        title={editing ? `编辑往来单位：${editing.legalName} (${editing.code})` : '新增往来单位'}
         open={modalOpen}
         formRef={formRef}
         modalProps={{
           destroyOnClose: true,
-          width: 760,
+          width: 780,
           onCancel: () => setModalOpen(false),
         }}
         initialValues={
@@ -379,7 +435,7 @@ export default function Partners() {
                 aliases,
               },
             );
-            message.success('往来单位已更新');
+            message.success('往来单位已成功更新');
           } else {
             await partnerServiceCreatePartner({
               code: values.code ?? '',
@@ -390,7 +446,7 @@ export default function Partners() {
               contacts,
               aliases,
             });
-            message.success('往来单位已创建');
+            message.success('往来单位已成功创建');
           }
           setModalOpen(false);
           actionRef.current?.reload();
@@ -399,24 +455,24 @@ export default function Partners() {
       >
         <ProFormText
           name="code"
-          label="编码"
-          placeholder="请输入组织内唯一编码"
+          label="单位唯一编码"
+          placeholder="请输入组织内唯一编码（如 CUST001、SUPP001）"
           disabled={Boolean(editing)}
           rules={[{ required: true, message: '请输入往来单位编码' }]}
         />
         <ProFormText
           name="legalName"
-          label="法人名称"
-          placeholder="请输入完整法人名称"
+          label="企业法人全称"
+          placeholder="请输入完整企业法人营业执照名称"
           rules={[{ required: true, message: '请输入法人名称' }]}
         />
-        <ProFormText name="unifiedSocialCreditCode" label="统一社会信用代码" />
-        <ProFormTextArea name="registeredAddress" label="注册地址" fieldProps={{ rows: 2 }} />
-        <ProFormSwitch name="enabled" label="启用状态" initialValue />
+        <ProFormText name="unifiedSocialCreditCode" label="统一社会信用代码" placeholder="18位统一社会信用代码" />
+        <ProFormTextArea name="registeredAddress" label="注册办公地址" fieldProps={{ rows: 2 }} placeholder="请输入企业法定注册地址" />
+        <ProFormSwitch name="enabled" label="企业合作状态" initialValue />
         <ProFormList
           name="roles"
-          label="业务角色"
-          creatorButtonProps={{ creatorButtonText: '添加角色' }}
+          label="业务角色身份分配"
+          creatorButtonProps={{ creatorButtonText: '添加业务角色' }}
           min={1}
         >
           <Space align="start">
@@ -427,41 +483,41 @@ export default function Partners() {
               width="sm"
               rules={[{ required: true, message: '请选择角色' }]}
             />
-            <ProFormSwitch name="enabled" label="启用" initialValue />
+            <ProFormSwitch name="enabled" label="启用状态" initialValue />
           </Space>
         </ProFormList>
         <ProFormList
           name="contacts"
-          label="联系人"
+          label="联系人通讯录"
           creatorButtonProps={{ creatorButtonText: '添加联系人' }}
         >
           <Space align="start" wrap>
             <ProFormText name="name" label="姓名" rules={[{ required: true, message: '请输入联系人姓名' }]} />
-            <ProFormText name="phone" label="电话" />
-            <ProFormText name="email" label="邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
-            <ProFormSwitch name="isPrimary" label="主联系人" />
-            <ProFormText name="note" label="备注" />
+            <ProFormText name="phone" label="联系电话" />
+            <ProFormText name="email" label="电子邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
+            <ProFormSwitch name="isPrimary" label="主要联系人" />
+            <ProFormText name="note" label="职务/备注" />
           </Space>
         </ProFormList>
         <ProFormList
           name="aliases"
-          label="别名"
+          label="常用企业简称 / 别名"
           creatorButtonProps={{ creatorButtonText: '添加别名' }}
         >
           <Space align="start">
-            <ProFormText name="aliasName" label="别名" rules={[{ required: true, message: '请输入别名' }]} />
-            <ProFormDigit name="sortOrder" label="排序" min={0} fieldProps={{ precision: 0 }} />
+            <ProFormText name="aliasName" label="简称/别名" rules={[{ required: true, message: '请输入别名' }]} />
+            <ProFormDigit name="sortOrder" label="排序权重" min={0} fieldProps={{ precision: 0 }} />
           </Space>
         </ProFormList>
       </ModalForm>
 
       <ModalForm<PartnerImportFormValues>
-        title="导入往来单位"
+        title="批量导入往来单位数据"
         open={importModalOpen}
         formRef={importFormRef}
         modalProps={{
           destroyOnClose: true,
-          width: 680,
+          width: 700,
           onCancel: () => setImportModalOpen(false),
         }}
         initialValues={{
@@ -527,22 +583,22 @@ export default function Partners() {
       >
         <ProFormText
           name="source"
-          label="数据来源"
+          label="数据来源标识"
           placeholder="请输入数据来源，例如 ERP / EXCEL"
           rules={[{ required: true, message: '请输入数据来源' }]}
         />
         <ProFormRadio.Group
           name="mode"
-          label="导入模式"
+          label="数据导入模式"
           options={[
-            { label: '仅创建 (create_only)', value: 1 },
-            { label: '存在则更新 (upsert)', value: 2 },
+            { label: '仅新增 (若存在则忽略或跳过)', value: 1 },
+            { label: '存在则更新 (Upsert 按编码匹配覆盖)', value: 2 },
           ]}
           rules={[{ required: true, message: '请选择导入模式' }]}
         />
         <ProFormTextArea
           name="items"
-          label="导入数据 (JSON)"
+          label="导入数据载荷 (JSON Array)"
           placeholder={`请输入 JSON 数组，例如：
 [
   {
@@ -559,7 +615,7 @@ export default function Partners() {
       </ModalForm>
 
       <ModalForm<BlacklistFormValues>
-        title={`供应商黑名单 - ${blacklistPartner?.legalName ?? ''}`}
+        title={`供应商黑名单管理 - ${blacklistPartner?.legalName ?? ''}`}
         open={blacklistModalOpen}
         formRef={blacklistFormRef}
         initialValues={{
@@ -569,6 +625,7 @@ export default function Partners() {
         }}
         modalProps={{
           destroyOnClose: true,
+          width: 520,
           onCancel: () => setBlacklistModalOpen(false),
         }}
         onOpenChange={setBlacklistModalOpen}
@@ -588,10 +645,10 @@ export default function Partners() {
           return true;
         }}
       >
-        <ProFormSwitch name="blacklisted" label="列入黑名单" />
+        <ProFormSwitch name="blacklisted" label="列入供应商黑名单" />
         <ProFormTextArea
           name="reason"
-          label="变更原因"
+          label="变更原因与说明"
           rules={[{ required: true, message: '请输入黑名单变更原因' }]}
           fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
         />
@@ -603,6 +660,6 @@ export default function Partners() {
         canManage={access.canManagePartners}
         onClose={() => setSecondaryPartner(undefined)}
       />
-    </>
+    </PageContainer>
   );
 }

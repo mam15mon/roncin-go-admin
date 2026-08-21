@@ -1,12 +1,15 @@
 import {
   ContainerOutlined,
+  DownOutlined,
   EditOutlined,
   FileDoneOutlined,
   FileTextOutlined,
   FlagOutlined,
   InboxOutlined,
+  OrderedListOutlined,
   PaperClipOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SwapOutlined,
   TeamOutlined,
   WarningOutlined,
@@ -18,6 +21,7 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ModalForm,
+  PageContainer,
   ProFormDatePicker,
   ProFormDateTimePicker,
   ProFormDigit,
@@ -28,7 +32,17 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Dropdown,
+  Popconfirm,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -79,14 +93,20 @@ import AbnormalCasePanel, {
 } from './abnormal-case-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
+const { Text } = Typography;
+
 const businessTypeOptions = [
-  { label: '海运出口', value: 1 },
-  { label: '海运进口', value: 2 },
-  { label: '空运出口', value: 3 },
-  { label: '空运进口', value: 4 },
-  { label: '陆运', value: 5 },
-  { label: '铁路', value: 6 },
+  { label: '海运出口', value: 1, color: 'blue' },
+  { label: '海运进口', value: 2, color: 'cyan' },
+  { label: '空运出口', value: 3, color: 'geekblue' },
+  { label: '空运进口', value: 4, color: 'purple' },
+  { label: '陆运', value: 5, color: 'green' },
+  { label: '铁路', value: 6, color: 'volcano' },
 ];
+
+const businessTypeMap = new Map(
+  businessTypeOptions.map((opt) => [opt.value, opt]),
+);
 
 const businessTypeValueEnum = Object.fromEntries(
   businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
@@ -180,14 +200,14 @@ type AttachmentFormValues = {
 };
 
 const orderPersonnelRoleOptions = [
-  { label: 'CREATOR', value: 1 },
-  { label: 'OPERATOR', value: 2 },
-  { label: 'SALES', value: 3 },
-  { label: 'CUSTOMER_SERVICE', value: 4 },
-  { label: 'DOCUMENT', value: 5 },
-  { label: 'COMMERCIAL', value: 6 },
-  { label: 'ASSOCIATE', value: 7 },
-  { label: 'ASSOCIATE2', value: 8 },
+  { label: '创建人 (CREATOR)', value: 1 },
+  { label: '操作专员 (OPERATOR)', value: 2 },
+  { label: '业务销售 (SALES)', value: 3 },
+  { label: '客服专员 (CUSTOMER_SERVICE)', value: 4 },
+  { label: '单证专员 (DOCUMENT)', value: 5 },
+  { label: '商务采购 (COMMERCIAL)', value: 6 },
+  { label: '协同助理 (ASSOCIATE)', value: 7 },
+  { label: '副协同 (ASSOCIATE2)', value: 8 },
 ];
 
 const orderPersonnelRoleValueEnum = Object.fromEntries(
@@ -938,20 +958,28 @@ export default function Orders() {
       dataIndex: 'userId',
       copyable: true,
       ellipsis: true,
-      render: (_, record) => record.userId || '-',
+      render: (_, record) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          {record.userId || '-'}
+        </Text>
+      ),
     },
     {
-      title: '角色',
+      title: '协作角色',
       dataIndex: 'role',
       valueType: 'select',
       valueEnum: orderPersonnelRoleValueEnum,
       render: (_, record) =>
-        (record.role !== undefined &&
-          orderPersonnelRoleValueEnum[record.role]?.text) ||
-        '-',
+        record.role !== undefined && orderPersonnelRoleValueEnum[record.role] ? (
+          <Tag color="blue" bordered={false}>
+            {orderPersonnelRoleValueEnum[record.role]?.text}
+          </Tag>
+        ) : (
+          '-'
+        ),
     },
     {
-      title: '分配时间',
+      title: '指派时间',
       dataIndex: 'assignedAt',
       valueType: 'dateTime',
       width: 180,
@@ -993,12 +1021,17 @@ export default function Orders() {
       title: '文档类型',
       dataIndex: 'docType',
       width: 140,
-      ellipsis: true,
+      render: (type) => (
+        <Tag color="geekblue" bordered={false}>
+          {type}
+        </Tag>
+      ),
     },
     {
       title: '文件名',
       dataIndex: 'fileName',
       ellipsis: true,
+      render: (name) => <Text strong>{name}</Text>,
     },
     {
       title: 'MIME 类型',
@@ -1010,12 +1043,18 @@ export default function Orders() {
       title: '文件大小',
       dataIndex: 'fileSize',
       width: 120,
+      render: (size) => `${size} 字节`,
     },
     {
       title: '对象键',
       dataIndex: 'objectKey',
       copyable: true,
       ellipsis: true,
+      render: (key) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          {key}
+        </Text>
+      ),
     },
     {
       title: '校验和',
@@ -1024,7 +1063,7 @@ export default function Orders() {
       ellipsis: true,
     },
     {
-      title: '创建时间',
+      title: '登记时间',
       dataIndex: 'createdAt',
       valueType: 'dateTime',
       width: 180,
@@ -1033,21 +1072,32 @@ export default function Orders() {
 
   const milestoneColumns: ProColumns<API.OrderMilestone>[] = [
     {
-      title: '类型',
+      title: '里程碑类型',
       dataIndex: 'type',
-      width: 140,
-      render: (_, record) => record.type || '-',
+      width: 160,
+      render: (_, record) => (
+        <Tag color="blue" bordered={false}>
+          {record.type || '-'}
+        </Tag>
+      ),
     },
     {
       title: '节点编码',
       dataIndex: 'templateNodeCode',
-      width: 140,
-      render: (_, record) => record.templateNodeCode || '-',
+      width: 150,
+      render: (_, record) =>
+        record.templateNodeCode ? (
+          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
+            {record.templateNodeCode}
+          </Text>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '节点名称',
       dataIndex: 'templateNodeLabel',
-      width: 140,
+      width: 150,
       render: (_, record) => record.templateNodeLabel || '-',
     },
     {
@@ -1058,10 +1108,10 @@ export default function Orders() {
       render: (_, record) =>
         record.occurredAt
           ? dayjs(record.occurredAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
+          : <Text type="secondary">未完成</Text>,
     },
     {
-      title: '备注',
+      title: '备注说明',
       dataIndex: 'note',
       ellipsis: true,
       render: (_, record) => record.note || '-',
@@ -1096,79 +1146,173 @@ export default function Orders() {
       },
     },
     {
-      title: '订单号',
+      title: '订单编号',
       dataIndex: 'orderNo',
       copyable: true,
       search: false,
-      render: (_, record) => record.orderNo || '-',
+      width: 170,
+      render: (_, record) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>
+          {record.orderNo || record.id}
+        </Text>
+      ),
     },
     {
       title: '业务类型',
       dataIndex: 'businessType',
+      width: 130,
       valueType: 'select',
       valueEnum: businessTypeValueEnum,
-      render: (_, record) =>
-        businessTypeValueEnum[record.businessType ?? 0]?.text || '-',
+      render: (_, record) => {
+        const item = businessTypeMap.get(record.businessType ?? 0);
+        return item ? (
+          <Tag color={item.color} bordered={false}>
+            {item.label}
+          </Tag>
+        ) : (
+          '-'
+        );
+      },
     },
     {
-      title: '客户',
+      title: '客户单位',
       dataIndex: 'customerId',
+      width: 200,
+      ellipsis: true,
       valueType: 'select',
       fieldProps: {
         showSearch: true,
         placeholder: '搜索客户',
       },
       request: async ({ keyWords }) => searchCustomers(keyWords),
-      render: (_, record) =>
-        customerMap[record.customerId ?? ''] || record.customerId || '-',
+      render: (_, record) => (
+        <Text strong>
+          {customerMap[record.customerId ?? ''] || record.customerId || '-'}
+        </Text>
+      ),
     },
     {
-      title: '状态',
+      title: '当前状态',
       dataIndex: 'status',
+      width: 120,
       valueType: 'text',
-      render: (_, record) => (
-        <Tag color={record.status === 'DRAFT' ? 'default' : 'blue'}>
-          {record.status || '-'}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const isDraft = record.status === 'DRAFT';
+        return (
+          <Tag
+            color={isDraft ? 'default' : 'processing'}
+            bordered={false}
+            style={{ fontWeight: 500 }}
+          >
+            {record.status || '-'}
+          </Tag>
+        );
+      },
     },
     {
       title: '贸易方向',
       dataIndex: 'tradeDirection',
+      width: 100,
       search: false,
       valueType: 'select',
       valueEnum: tradeDirectionValueEnum,
-      render: (_, record) =>
-        tradeDirectionValueEnum[record.tradeDirection ?? 0]?.text || '-',
+      render: (_, record) => (
+        <Tag bordered={false}>
+          {tradeDirectionValueEnum[record.tradeDirection ?? 0]?.text || '-'}
+        </Tag>
+      ),
     },
     {
-      title: 'ETD',
+      title: '预计离港 (ETD)',
       dataIndex: 'etd',
+      width: 130,
       search: false,
       render: (_, record) =>
-        record.etd ? dayjs(record.etd).format('YYYY-MM-DD') : '-',
+        record.etd ? dayjs(record.etd).format('YYYY-MM-DD') : <Text type="secondary">-</Text>,
     },
     {
-      title: 'ETA',
+      title: '预计到港 (ETA)',
       dataIndex: 'eta',
+      width: 130,
       search: false,
       render: (_, record) =>
-        record.eta ? dayjs(record.eta).format('YYYY-MM-DD') : '-',
+        record.eta ? dayjs(record.eta).format('YYYY-MM-DD') : <Text type="secondary">-</Text>,
     },
     {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 680,
+      width: 320,
+      fixed: 'right',
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
+
+        const fulfillmentMenu = {
+          items: [
+            {
+              key: 'milestone',
+              label: '履约里程碑',
+              icon: <FlagOutlined />,
+              onClick: () => openMilestones(record),
+            },
+            {
+              key: 'pod',
+              label: '放货凭证 (POD)',
+              icon: <FileDoneOutlined />,
+              onClick: () => releasePodPanelRef.current?.open(record),
+            },
+            {
+              key: 'abnormal',
+              label: '异常标记与协同',
+              icon: <WarningOutlined />,
+              onClick: () => abnormalCasePanelRef.current?.open(record),
+            },
+          ],
+        };
+
+        const documentCargoMenu = {
+          items: [
+            {
+              key: 'shippingDoc',
+              label: '提单管理',
+              icon: <FileTextOutlined />,
+              onClick: () => openShippingDocuments(record),
+            },
+            {
+              key: 'containers',
+              label: '集装箱管理',
+              icon: <ContainerOutlined />,
+              onClick: () => openContainers(record),
+            },
+            {
+              key: 'cargo',
+              label: '货物明细',
+              icon: <InboxOutlined />,
+              onClick: () => openCargoItems(record),
+            },
+            {
+              key: 'attachments',
+              label: '附件档案',
+              icon: <PaperClipOutlined />,
+              onClick: () => openAttachments(record),
+            },
+            {
+              key: 'personnel',
+              label: '协作人员',
+              icon: <TeamOutlined />,
+              onClick: () => openPersonnel(record),
+            },
+          ],
+        };
+
         return (
-          <Space size="small">
+          <Space size={8}>
             {access.canManageOrders && record.status === 'DRAFT' && (
               <Button
                 type="link"
                 size="small"
                 icon={<EditOutlined />}
+                style={{ padding: 0 }}
                 onClick={() => openEdit(record)}
               >
                 编辑
@@ -1179,75 +1323,22 @@ export default function Orders() {
                 type="link"
                 size="small"
                 icon={<SwapOutlined />}
+                style={{ padding: 0 }}
                 onClick={() => openTransition(record)}
               >
-                状态流转
+                流转
               </Button>
             )}
-            <Button
-              type="link"
-              size="small"
-              icon={<FlagOutlined />}
-              onClick={() => openMilestones(record)}
-            >
-              里程碑
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<PaperClipOutlined />}
-              onClick={() => openAttachments(record)}
-            >
-              附件
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<TeamOutlined />}
-              onClick={() => openPersonnel(record)}
-            >
-              人员
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<ContainerOutlined />}
-              onClick={() => openContainers(record)}
-            >
-              集装箱
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<InboxOutlined />}
-              onClick={() => openCargoItems(record)}
-            >
-              货物
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<FileTextOutlined />}
-              onClick={() => openShippingDocuments(record)}
-            >
-              提单
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<FileDoneOutlined />}
-              onClick={() => releasePodPanelRef.current?.open(record)}
-            >
-              放货凭证
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<WarningOutlined />}
-              onClick={() => abnormalCasePanelRef.current?.open(record)}
-            >
-              异常
-            </Button>
+            <Dropdown menu={fulfillmentMenu}>
+              <Button type="link" size="small" style={{ padding: 0 }}>
+                履约协同 <DownOutlined style={{ fontSize: 10 }} />
+              </Button>
+            </Dropdown>
+            <Dropdown menu={documentCargoMenu}>
+              <Button type="link" size="small" style={{ padding: 0 }}>
+                单证箱货 <DownOutlined style={{ fontSize: 10 }} />
+              </Button>
+            </Dropdown>
           </Space>
         );
       },
@@ -1255,12 +1346,22 @@ export default function Orders() {
   ];
 
   return (
-    <>
+    <PageContainer
+      title="订单管理"
+      subTitle="全链路海运、空运与多式联运货代订单协同，统一管理状态流转、单证箱货与履约里程碑"
+    >
       <ProTable<API.Order>
-        headerTitle="订单列表"
+        headerTitle={
+          <Space size={8}>
+            <OrderedListOutlined style={{ color: '#1677ff' }} />
+            <span>货代订单列表</span>
+          </Space>
+        }
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
+        bordered
+        scroll={{ x: 1300 }}
         request={async (params) => {
           const response = await orderServiceListOrders({
             page: params.current,
@@ -1277,6 +1378,13 @@ export default function Orders() {
           };
         }}
         toolBarRender={() => [
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
           access.canManageOrders && (
             <Button
               key="create"
@@ -1291,13 +1399,13 @@ export default function Orders() {
       />
 
       <ModalForm<OrderFormValues>
-        title="新增订单"
+        title="新增货代订单"
         open={createModalOpen}
         formRef={createFormRef}
         grid
         modalProps={{
           destroyOnHidden: true,
-          width: 800,
+          width: 820,
           onCancel: () => setCreateModalOpen(false),
         }}
         onOpenChange={setCreateModalOpen}
@@ -1332,7 +1440,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="customerId"
-          label="客户"
+          label="客户单位"
           rules={[{ required: true, message: '请选择客户' }]}
           fieldProps={{
             showSearch: true,
@@ -1351,7 +1459,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="statusTemplateId"
-          label="状态模板"
+          label="状态流转模板"
           rules={[{ required: true, message: '请选择状态模板' }]}
           dependencies={['businessType']}
           request={async ({ businessType }) =>
@@ -1378,7 +1486,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="paymentTerm"
-          label="付款条款"
+          label="运费条款"
           rules={[{ required: true, message: '请选择付款条款' }]}
           options={paymentTermOptions}
           placeholder="请选择付款条款"
@@ -1386,14 +1494,14 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="shipmentType"
-          label="装载类型"
+          label="装载方式"
           options={shipmentTypeOptions}
           placeholder="请选择装载类型"
         />
         <ProFormSelect
           colProps={{ span: 12 }}
           name="originLocationId"
-          label="起运地点"
+          label="起运港 / 地点"
           options={locationOptions}
           fieldProps={{ showSearch: true }}
           placeholder="请选择起运地点"
@@ -1401,7 +1509,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="destinationLocationId"
-          label="目的地点"
+          label="目的港 / 地点"
           options={locationOptions}
           fieldProps={{ showSearch: true }}
           placeholder="请选择目的地点"
@@ -1409,19 +1517,19 @@ export default function Orders() {
         <ProFormText
           colProps={{ span: 12 }}
           name="vesselVoyage"
-          label="船名航次"
+          label="船名航次 / 车次"
           placeholder="请输入船名航次"
         />
         <ProFormDatePicker
           colProps={{ span: 12 }}
           name="etd"
-          label="ETD"
+          label="预计离港时间 (ETD)"
           fieldProps={{ style: { width: '100%' } }}
         />
         <ProFormDatePicker
           colProps={{ span: 12 }}
           name="eta"
-          label="ETA"
+          label="预计到达时间 (ETA)"
           fieldProps={{ style: { width: '100%' } }}
         />
         <ProFormSelect
@@ -1443,7 +1551,7 @@ export default function Orders() {
         <ProFormDigit
           colProps={{ span: 12 }}
           name="totalPackages"
-          label="件数"
+          label="总件数"
           min={0}
           placeholder="请输入件数"
         />
@@ -1463,8 +1571,8 @@ export default function Orders() {
         <ProFormTextArea
           colProps={{ span: 24 }}
           name="notes"
-          label="备注"
-          placeholder="请输入备注"
+          label="业务备注"
+          placeholder="请输入备注说明"
           fieldProps={{ maxLength: 1000, showCount: true }}
         />
       </ModalForm>
@@ -1499,7 +1607,7 @@ export default function Orders() {
         }
         modalProps={{
           destroyOnHidden: true,
-          width: 800,
+          width: 820,
           onCancel: () => setEditModalOpen(false),
         }}
         onOpenChange={setEditModalOpen}
@@ -1538,7 +1646,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="customerId"
-          label="客户"
+          label="客户单位"
           rules={[{ required: true, message: '请选择客户' }]}
           fieldProps={{
             showSearch: true,
@@ -1573,7 +1681,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="paymentTerm"
-          label="付款条款"
+          label="运费条款"
           rules={[{ required: true, message: '请选择付款条款' }]}
           options={paymentTermOptions}
           placeholder="请选择付款条款"
@@ -1581,14 +1689,14 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="shipmentType"
-          label="装载类型"
+          label="装载方式"
           options={shipmentTypeOptions}
           placeholder="请选择装载类型"
         />
         <ProFormSelect
           colProps={{ span: 12 }}
           name="originLocationId"
-          label="起运地点"
+          label="起运港 / 地点"
           options={locationOptions}
           fieldProps={{ showSearch: true }}
           placeholder="请选择起运地点"
@@ -1596,7 +1704,7 @@ export default function Orders() {
         <ProFormSelect
           colProps={{ span: 12 }}
           name="destinationLocationId"
-          label="目的地点"
+          label="目的港 / 地点"
           options={locationOptions}
           fieldProps={{ showSearch: true }}
           placeholder="请选择目的地点"
@@ -1604,19 +1712,19 @@ export default function Orders() {
         <ProFormText
           colProps={{ span: 12 }}
           name="vesselVoyage"
-          label="船名航次"
+          label="船名航次 / 车次"
           placeholder="请输入船名航次"
         />
         <ProFormDatePicker
           colProps={{ span: 12 }}
           name="etd"
-          label="ETD"
+          label="预计离港时间 (ETD)"
           fieldProps={{ style: { width: '100%' } }}
         />
         <ProFormDatePicker
           colProps={{ span: 12 }}
           name="eta"
-          label="ETA"
+          label="预计到达时间 (ETA)"
           fieldProps={{ style: { width: '100%' } }}
         />
         <ProFormSelect
@@ -1638,7 +1746,7 @@ export default function Orders() {
         <ProFormDigit
           colProps={{ span: 12 }}
           name="totalPackages"
-          label="件数"
+          label="总件数"
           min={0}
           placeholder="请输入件数"
         />
@@ -1658,14 +1766,14 @@ export default function Orders() {
         <ProFormTextArea
           colProps={{ span: 24 }}
           name="notes"
-          label="备注"
-          placeholder="请输入备注"
+          label="业务备注"
+          placeholder="请输入备注说明"
           fieldProps={{ maxLength: 1000, showCount: true }}
         />
       </ModalForm>
 
       <ModalForm<TransitionFormValues>
-        title="状态流转"
+        title="订单状态流转"
         open={transitionModalOpen}
         formRef={transitionFormRef}
         initialValues={
@@ -1704,15 +1812,15 @@ export default function Orders() {
         />
         <ProFormSelect
           name="targetStatus"
-          label="目标状态"
+          label="目标流转状态"
           rules={[{ required: true, message: '请选择目标状态' }]}
           options={targetStatusOptions}
           placeholder="请选择目标状态"
         />
         <ProFormTextArea
           name="reason"
-          label="流转原因"
-          placeholder="请输入流转原因"
+          label="流转原因说明"
+          placeholder="请输入状态变更原因说明（可选）"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
       </ModalForm>
@@ -1720,15 +1828,15 @@ export default function Orders() {
       <Drawer
         title={
           milestoneOrder
-            ? `订单里程碑 - ${milestoneOrder.orderNo || milestoneOrder.id}`
-            : '订单里程碑'
+            ? `订单履约里程碑 - ${milestoneOrder.orderNo || milestoneOrder.id}`
+            : '订单履约里程碑'
         }
         open={milestoneDrawerOpen}
         onClose={() => {
           setMilestoneDrawerOpen(false);
           setMilestoneOrder(undefined);
         }}
-        width={800}
+        width={860}
         destroyOnHidden
       >
         {milestoneOrder?.id && (
@@ -1736,6 +1844,7 @@ export default function Orders() {
             actionRef={milestoneActionRef}
             rowKey={(record) => record.id || record.type || ''}
             columns={milestoneColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -1821,7 +1930,7 @@ export default function Orders() {
         <ProFormSwitch name="clearOccurredAt" label="清除发生时间" />
         <ProFormTextArea
           name="note"
-          label="备注"
+          label="备注说明"
           placeholder="请输入备注"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
@@ -1830,15 +1939,15 @@ export default function Orders() {
       <Drawer
         title={
           attachmentOrder
-            ? `订单附件 - ${attachmentOrder.orderNo || attachmentOrder.id}`
-            : '订单附件'
+            ? `订单附件档案 - ${attachmentOrder.orderNo || attachmentOrder.id}`
+            : '订单附件档案'
         }
         open={attachmentDrawerOpen}
         onClose={() => {
           setAttachmentDrawerOpen(false);
           setAttachmentOrder(undefined);
         }}
-        width={900}
+        width={920}
         destroyOnHidden
       >
         {attachmentOrder?.id && (
@@ -1846,6 +1955,7 @@ export default function Orders() {
             actionRef={attachmentActionRef}
             rowKey={(record) => record.id || record.objectKey || ''}
             columns={attachmentColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -1874,7 +1984,7 @@ export default function Orders() {
       </Drawer>
 
       <ModalForm<AttachmentFormValues>
-        title="登记附件"
+        title="登记订单附件"
         open={attachmentModalOpen}
         formRef={attachmentFormRef}
         modalProps={{
@@ -1907,7 +2017,7 @@ export default function Orders() {
         <Alert
           type="info"
           showIcon
-          message="此处仅登记外部对象存储引用，不上传文件内容。"
+          message="此处登记外部对象存储引用与元数据，不直接进行二进制文件上传。"
           style={{ marginBottom: 16 }}
         />
         <ProFormText
@@ -1936,21 +2046,21 @@ export default function Orders() {
         />
         <ProFormDigit
           name="fileSize"
-          label="文件大小"
+          label="文件大小 (字节)"
           min={1}
           fieldProps={{ precision: 0 }}
-          placeholder="请输入文件大小 (字节)"
+          placeholder="请输入文件大小"
           rules={[{ required: true, message: '请输入文件大小' }]}
         />
         <ProFormText
           name="objectKey"
-          label="对象键"
-          placeholder="请输入对象键"
+          label="对象存储键 (Object Key)"
+          placeholder="请输入对象存储键"
           rules={[{ required: true, message: '请输入对象键' }]}
         />
         <ProFormText
           name="checksum"
-          label="校验和"
+          label="校验和 (Checksum)"
           placeholder="请输入校验和 (可选)"
         />
       </ModalForm>
@@ -1958,15 +2068,15 @@ export default function Orders() {
       <Drawer
         title={
           personnelOrder
-            ? `订单协作人员 - ${personnelOrder.orderNo || personnelOrder.id}`
-            : '订单协作人员'
+            ? `订单协作团队 - ${personnelOrder.orderNo || personnelOrder.id}`
+            : '订单协作团队'
         }
         open={personnelDrawerOpen}
         onClose={() => {
           setPersonnelDrawerOpen(false);
           setPersonnelOrder(undefined);
         }}
-        width={800}
+        width={820}
         destroyOnHidden
       >
         {personnelOrder?.id && (
@@ -1974,6 +2084,7 @@ export default function Orders() {
             actionRef={personnelActionRef}
             rowKey={(record) => record.id || `${record.userId}-${record.role}`}
             columns={personnelColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -1993,7 +2104,7 @@ export default function Orders() {
                   icon={<PlusOutlined />}
                   onClick={openAssignPersonnel}
                 >
-                  分配人员
+                  分配协作人员
                 </Button>
               ),
             ]}
@@ -2027,12 +2138,6 @@ export default function Orders() {
           return true;
         }}
       >
-        <Alert
-          type="info"
-          showIcon
-          message="当前录入的是组织内用户 UUID，后续可另建可分配用户目录。"
-          style={{ marginBottom: 16 }}
-        />
         <ProFormText
           name="userId"
           label="用户 UUID"
@@ -2041,7 +2146,7 @@ export default function Orders() {
         />
         <ProFormSelect
           name="role"
-          label="角色"
+          label="担当角色"
           rules={[{ required: true, message: '请选择角色' }]}
           options={orderPersonnelRoleOptions}
           placeholder="请选择角色"
@@ -2051,8 +2156,8 @@ export default function Orders() {
       <Drawer
         title={
           containerOrder
-            ? `订单集装箱 - ${containerOrder.orderNo || containerOrder.id}`
-            : '订单集装箱'
+            ? `订单集装箱列表 - ${containerOrder.orderNo || containerOrder.id}`
+            : '订单集装箱列表'
         }
         open={containerDrawerOpen}
         onClose={() => {
@@ -2061,7 +2166,7 @@ export default function Orders() {
           setContainerOrder(undefined);
           setContainerDocuments([]);
         }}
-        width={900}
+        width={920}
         destroyOnHidden
       >
         {containerOrder?.id && (
@@ -2069,6 +2174,7 @@ export default function Orders() {
             actionRef={containerActionRef}
             rowKey="id"
             columns={containerColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -2166,12 +2272,12 @@ export default function Orders() {
         <ProFormText
           name="containerNo"
           label="箱号"
-          placeholder="请输入箱号"
+          placeholder="请输入箱号 (如 COSU1234567)"
           rules={[{ required: true, message: '请输入箱号' }]}
         />
         <ProFormSelect
           name="containerSpecId"
-          label="箱型"
+          label="集装箱规格"
           rules={[{ required: true, message: '请选择箱型' }]}
           options={containerSpecOptions}
           placeholder="请选择箱型"
@@ -2184,26 +2290,26 @@ export default function Orders() {
         />
         <ProFormText
           name="sealNo"
-          label="封号"
-          placeholder="请输入封号 (可选)"
+          label="铅封号"
+          placeholder="请输入铅封号 (可选)"
         />
         <ProFormDigit
           name="grossWeightKg"
-          label="毛重(KG)"
+          label="货物毛重 (KG)"
           min={0.001}
           placeholder="请输入毛重"
           rules={[{ required: true, message: '请输入毛重' }]}
         />
         <ProFormDigit
           name="volumeCbm"
-          label="体积(CBM)"
+          label="货物体积 (CBM)"
           min={0.001}
           placeholder="请输入体积"
           rules={[{ required: true, message: '请输入体积' }]}
         />
         <ProFormTextArea
           name="note"
-          label="备注"
+          label="备注说明"
           placeholder="请输入备注 (可选)"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
@@ -2220,7 +2326,7 @@ export default function Orders() {
           setCargoDrawerOpen(false);
           setCargoOrder(undefined);
         }}
-        width={900}
+        width={920}
         destroyOnHidden
       >
         {cargoOrder?.id && (
@@ -2228,6 +2334,7 @@ export default function Orders() {
             actionRef={cargoActionRef}
             rowKey="id"
             columns={cargoColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -2329,7 +2436,7 @@ export default function Orders() {
       >
         <ProFormText
           name="cargoName"
-          label="货名"
+          label="货物名称"
           placeholder="请输入货名"
           rules={[{ required: true, message: '请输入货名' }]}
         />
@@ -2343,27 +2450,27 @@ export default function Orders() {
         />
         <ProFormDigit
           name="grossWeightKg"
-          label="毛重(KG)"
+          label="毛重 (KG)"
           min={0.001}
           placeholder="请输入毛重"
           rules={[{ required: true, message: '请输入毛重' }]}
         />
         <ProFormDigit
           name="volumeCbm"
-          label="体积(CBM)"
+          label="体积 (CBM)"
           min={0.001}
           placeholder="请输入体积"
           rules={[{ required: true, message: '请输入体积' }]}
         />
         <ProFormDigit
           name="netWeightKg"
-          label="净重(KG)"
+          label="净重 (KG)"
           min={0.001}
           placeholder="请输入净重 (可选)"
         />
         <ProFormTextArea
           name="note"
-          label="备注"
+          label="备注说明"
           placeholder="请输入备注 (可选)"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
@@ -2372,15 +2479,15 @@ export default function Orders() {
       <Drawer
         title={
           shippingDocumentOrder
-            ? `订单提单 - ${shippingDocumentOrder.orderNo || shippingDocumentOrder.id}`
-            : '订单提单'
+            ? `订单提单与放货 - ${shippingDocumentOrder.orderNo || shippingDocumentOrder.id}`
+            : '订单提单与放货'
         }
         open={shippingDocumentDrawerOpen}
         onClose={() => {
           setShippingDocumentDrawerOpen(false);
           setShippingDocumentOrder(undefined);
         }}
-        width={900}
+        width={920}
         destroyOnHidden
       >
         {shippingDocumentOrder?.id && (
@@ -2388,6 +2495,7 @@ export default function Orders() {
             actionRef={shippingDocumentActionRef}
             rowKey="id"
             columns={shippingDocumentColumns}
+            bordered
             search={false}
             pagination={false}
             request={async () => {
@@ -2476,24 +2584,24 @@ export default function Orders() {
       >
         <ProFormText
           name="masterNo"
-          label="主单号"
+          label="主单号 (MBL)"
           placeholder="请输入主单号"
           rules={[{ required: true, message: '请输入主单号' }]}
         />
         <ProFormText
           name="houseNo"
-          label="分单号"
+          label="分单号 (HBL)"
           placeholder="请输入分单号"
           rules={[{ required: true, message: '请输入分单号' }]}
         />
         <ProFormText
           name="releaseType"
           label="放货类型"
-          placeholder="请输入放货类型 (可选)"
+          placeholder="请输入放货类型 (如 电放 / 正本 / SeaWayBill)"
         />
         <ProFormTextArea
           name="note"
-          label="备注"
+          label="备注说明"
           placeholder="请输入备注 (可选)"
           fieldProps={{ maxLength: 500, showCount: true }}
         />
@@ -2508,6 +2616,6 @@ export default function Orders() {
         canManage={access.canManageOrders}
         masterOptions={masterOptions}
       />
-    </>
+    </PageContainer>
   );
 }
