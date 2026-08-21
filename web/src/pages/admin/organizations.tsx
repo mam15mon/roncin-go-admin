@@ -66,9 +66,7 @@ type EditFormValues = {
 export default function OrganizationsPanel() {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
-  );
+  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -76,12 +74,9 @@ export default function OrganizationsPanel() {
 
   // Modal states
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [parentForCreate, setParentForCreate] =
-    useState<API.AdminOrganization | null>(null);
+  const [parentForCreate, setParentForCreate] = useState<API.AdminOrganization | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<API.AdminOrganization | null>(
-    null,
-  );
+  const [editingOrg, setEditingOrg] = useState<API.AdminOrganization | null>(null);
 
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
   const editFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -166,21 +161,18 @@ export default function OrganizationsPanel() {
     setAutoExpandParent(true);
     if (value.trim()) {
       const { matchedKeys: keysToExpand } = filterOrgTree(treeData, value);
-      setExpandedKeys((prev) =>
-        Array.from(new Set([...prev, ...keysToExpand])),
-      );
+      setExpandedKeys((prev) => Array.from(new Set([...prev, ...keysToExpand])));
     }
   };
 
-  // Node title renderer with search keyword highlight
+  // Node title renderer
   const renderTreeTitle = (nodeData: DataNode) => {
     const node = nodeData as unknown as OrgTreeNode;
     const kw = searchKeyword.trim().toLowerCase();
     const title = node.title || '未命名组织';
     const code = node.code || '';
     const isMatched =
-      kw &&
-      (title.toLowerCase().includes(kw) || code.toLowerCase().includes(kw));
+      kw && (title.toLowerCase().includes(kw) || code.toLowerCase().includes(kw));
 
     return (
       <span
@@ -188,14 +180,14 @@ export default function OrganizationsPanel() {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 6,
-          padding: '3px 0',
+          padding: '2px 0',
           fontSize: 13,
         }}
       >
         <span
           style={{
             fontWeight: node.children && node.children.length > 0 ? 600 : 400,
-            color: isMatched ? '#1677ff' : undefined,
+            color: isMatched ? '#1677ff' : 'rgba(0, 0, 0, 0.88)',
           }}
         >
           {title}
@@ -208,8 +200,8 @@ export default function OrganizationsPanel() {
             lineHeight: '18px',
             padding: '0 4px',
             fontFamily: 'monospace',
-            backgroundColor: '#f1f5f9',
-            color: '#475569',
+            backgroundColor: '#fafafa',
+            color: 'rgba(0, 0, 0, 0.45)',
           }}
         >
           {code}
@@ -257,16 +249,16 @@ export default function OrganizationsPanel() {
 
   return (
     <>
-      <ProCard split="vertical" variant="outlined" headerBordered style={{ minHeight: 640 }}>
+      <ProCard split="vertical" variant="outlined" headerBordered style={{ minHeight: 600 }}>
         {/* Left: Organization Tree */}
         <ProCard
-          colSpan={{ xs: 24, md: '360px' }}
+          colSpan={{ xs: 24, md: '340px' }}
           title={
             <Space size={8}>
               <ApartmentOutlined style={{ color: '#1677ff' }} />
               <span>组织架构树</span>
               <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
-                共 {organizations.length} 个节点
+                {organizations.length} 个组织
               </Tag>
             </Space>
           }
@@ -286,7 +278,7 @@ export default function OrganizationsPanel() {
                 icon={<PlusOutlined />}
                 onClick={openCreateRoot}
               >
-                新增根组织
+                新建根组织
               </Button>
             </Space>
           }
@@ -295,7 +287,7 @@ export default function OrganizationsPanel() {
           <div style={{ marginBottom: 12 }}>
             <Input
               placeholder="搜索组织名称或编码..."
-              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
               allowClear
               value={searchKeyword}
               onChange={(e) => handleSearch(e.target.value)}
@@ -307,7 +299,7 @@ export default function OrganizationsPanel() {
             <div
               style={{
                 maxHeight: 'calc(100vh - 340px)',
-                minHeight: 420,
+                minHeight: 400,
                 overflowY: 'auto',
                 paddingRight: 4,
               }}
@@ -338,7 +330,7 @@ export default function OrganizationsPanel() {
                         <FolderOutlined style={{ color: '#1677ff' }} />
                       );
                     }
-                    return <TeamOutlined style={{ color: '#64748b' }} />;
+                    return <TeamOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />;
                   }}
                 />
               ) : (
@@ -357,7 +349,7 @@ export default function OrganizationsPanel() {
           title={
             selectedOrg ? (
               <Space align="center" size={10}>
-                <Title level={4} style={{ margin: 0 }}>
+                <Title level={4} style={{ margin: 0, color: 'rgba(0, 0, 0, 0.88)' }}>
                   {selectedOrg.name}
                 </Title>
                 <Tag
@@ -367,12 +359,14 @@ export default function OrganizationsPanel() {
                     fontFamily: 'monospace',
                     fontSize: 12,
                     padding: '2px 8px',
+                    backgroundColor: '#fafafa',
+                    color: 'rgba(0, 0, 0, 0.65)',
                   }}
                 >
                   {selectedOrg.code}
                 </Tag>
                 {selectedOrg.enabled ? (
-                  <Tag color="success">启用中</Tag>
+                  <Tag color="success">正常启用</Tag>
                 ) : (
                   <Tag color="default">已停用</Tag>
                 )}
@@ -400,7 +394,7 @@ export default function OrganizationsPanel() {
           headerBordered
         >
           {selectedOrg ? (
-            <Space direction="vertical" size={24} style={{ width: '100%' }}>
+            <Space direction="vertical" size={20} style={{ width: '100%' }}>
               {/* Basic Descriptions */}
               <Descriptions
                 bordered
@@ -454,12 +448,11 @@ export default function OrganizationsPanel() {
 
               {/* Direct Sub-organizations Table */}
               <Card
-                type="inner"
                 title={
                   <Space size={6}>
-                    <TeamOutlined />
-                    <span>直属下级组织机构</span>
-                    <Tag color="blue" bordered={false} style={{ margin: 0 }}>
+                    <TeamOutlined style={{ color: '#1677ff' }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>直属下级组织列表</span>
+                    <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
                       {directChildren.length}
                     </Tag>
                   </Space>
@@ -478,7 +471,7 @@ export default function OrganizationsPanel() {
               >
                 <Table<API.AdminOrganization>
                   rowKey="id"
-                  size="small"
+                  size="middle"
                   pagination={
                     directChildren.length > 5
                       ? { pageSize: 5, showSizeChanger: false }
@@ -519,7 +512,7 @@ export default function OrganizationsPanel() {
                     {
                       title: '状态',
                       dataIndex: 'enabled',
-                      width: 90,
+                      width: 100,
                       render: (enabled) =>
                         enabled ? (
                           <Tag color="success">启用</Tag>
@@ -529,7 +522,7 @@ export default function OrganizationsPanel() {
                     },
                     {
                       title: '操作',
-                      width: 90,
+                      width: 100,
                       render: (_, record) => (
                         <Button
                           type="link"

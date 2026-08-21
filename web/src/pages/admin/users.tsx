@@ -81,7 +81,7 @@ export default function UsersPanel() {
               {initial}
             </Avatar>
             <div style={{ lineHeight: 1.3 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: '#0f172a' }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
                 {record.displayName || '-'}
               </div>
               <Text
@@ -111,8 +111,8 @@ export default function UsersPanel() {
       ellipsis: true,
       render: (_, record) =>
         record.email ? (
-          <Space size={4} style={{ color: '#475569', fontSize: 12 }}>
-            <MailOutlined style={{ color: '#94a3b8', fontSize: 12 }} />
+          <Space size={4} style={{ color: 'rgba(0, 0, 0, 0.65)', fontSize: 12 }}>
+            <MailOutlined style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12 }} />
             <span>{record.email}</span>
           </Space>
         ) : (

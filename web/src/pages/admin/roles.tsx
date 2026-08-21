@@ -279,8 +279,8 @@ export default function RolesPanel() {
             bordered={false}
             style={{
               margin: 0,
-              backgroundColor: count > 0 ? '#eff6ff' : '#f1f5f9',
-              color: count > 0 ? '#1d4ed8' : '#64748b',
+              backgroundColor: count > 0 ? '#e6f4ff' : '#fafafa',
+              color: count > 0 ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
               fontSize: 12,
               padding: '2px 8px',
             }}
@@ -467,7 +467,7 @@ export default function RolesPanel() {
             }}
           >
             <Space size={8}>
-              <Text strong style={{ fontSize: 13, color: '#0f172a' }}>
+              <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
                 功能权限配置
               </Text>
               <Tag color="blue" bordered={false}>
@@ -492,15 +492,15 @@ export default function RolesPanel() {
 
           <div
             style={{
-              border: '1px solid #e2e8f0',
+              border: '1px solid #f0f0f0',
               borderRadius: 6,
               padding: 12,
-              backgroundColor: '#f8fafc',
+              backgroundColor: '#fafafa',
             }}
           >
             <Input
               placeholder="搜索权限名称、权限码或说明..."
-              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
               allowClear
               size="small"
               value={permissionKeyword}
