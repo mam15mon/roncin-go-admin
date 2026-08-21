@@ -20,14 +20,18 @@ export default function Login() {
   const { message } = App.useApp();
 
   const handleSubmit = async (values: API.LoginRequest) => {
-    const response = await authServiceLogin(values);
-    if (!response.data) return;
-    startTransition(() => {
-      setInitialState((state) => ({ ...state, currentUser: response.data }));
-    });
-    message.success('登录成功');
-    const redirect = new URL(window.location.href).searchParams.get('redirect');
-    window.location.href = safeRedirect(redirect);
+    try {
+      const response = await authServiceLogin(values, { skipErrorHandler: true });
+      if (!response.data) return;
+      startTransition(() => {
+        setInitialState((state) => ({ ...state, currentUser: response.data }));
+      });
+      message.success('登录成功');
+      const redirect = new URL(window.location.href).searchParams.get('redirect');
+      window.location.href = safeRedirect(redirect);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '登录失败，请稍后重试');
+    }
   };
 
   return (
