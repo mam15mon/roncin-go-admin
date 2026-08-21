@@ -19,7 +19,7 @@ type adminRepoStub struct {
 	resetPassword     string
 }
 
-func (s *adminRepoStub) ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error) {
+func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
 	return nil, nil
 }
 

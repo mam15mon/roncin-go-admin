@@ -91,7 +91,7 @@ type AdminAuditLogList struct {
 }
 
 type AdminRepo interface {
-	ListOrganizations(context.Context, uuid.UUID) ([]*AdminOrganization, error)
+	ListOrganizations(context.Context) ([]*AdminOrganization, error)
 	GetOrganization(context.Context, uuid.UUID) (*AdminOrganization, error)
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
 	UpdateOrganization(context.Context, uuid.UUID, uuid.UUID, string, bool) (*AdminOrganization, error)
@@ -119,7 +119,7 @@ func (uc *AdminUsecase) ListOrganizations(ctx context.Context, organizationID uu
 	if organizationID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	return uc.repo.ListOrganizations(ctx, organizationID)
+	return uc.repo.ListOrganizations(ctx)
 }
 
 func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID, input *AdminOrganization) (*AdminOrganization, error) {

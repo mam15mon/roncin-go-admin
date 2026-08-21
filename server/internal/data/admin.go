@@ -25,8 +25,8 @@ type adminRepo struct{ data *Data }
 
 func NewAdminRepo(data *Data) biz.AdminRepo { return &adminRepo{data: data} }
 
-func (r *adminRepo) ListOrganizations(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminOrganization, error) {
-	items, err := r.data.db.Organization.Query().Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).All(ctx)
+func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganization, error) {
+	items, err := r.data.db.Organization.Query().All(ctx)
 	if err != nil {
 		return nil, err
 	}
