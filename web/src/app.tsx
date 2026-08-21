@@ -53,6 +53,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
       {title}
     </Link>
   ),
+  collapsedButtonRender: (_collapsed, defaultDom) => (
+    <div className="roncin-sider-bottom-trigger" title={_collapsed ? '展开侧栏' : '收起侧栏'}>
+      {defaultDom}
+    </div>
+  ),
   menuItemRender: (item, dom) =>
     item.path ? (
       <Link to={item.path} prefetch>
