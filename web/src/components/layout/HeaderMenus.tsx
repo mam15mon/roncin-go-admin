@@ -107,14 +107,14 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
               padding: '0 8px',
               fontSize: 13,
               fontWeight: isSettingsActive ? 600 : 500,
-              color: isSettingsActive ? '#1677ff' : '#475569',
+              color: isSettingsActive ? '#1677ff' : 'rgba(0, 0, 0, 0.65)',
             }}
           >
             <span>设置中心</span>
             <DownOutlined
               style={{
                 fontSize: 10,
-                color: isSettingsActive ? '#1677ff' : '#94a3b8',
+                color: isSettingsActive ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
               }}
             />
           </Button>
@@ -141,14 +141,14 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
               padding: '0 8px',
               fontSize: 13,
               fontWeight: isEnterpriseActive ? 600 : 500,
-              color: isEnterpriseActive ? '#1677ff' : '#475569',
+              color: isEnterpriseActive ? '#1677ff' : 'rgba(0, 0, 0, 0.65)',
             }}
           >
             <span>企业资源</span>
             <DownOutlined
               style={{
                 fontSize: 10,
-                color: isEnterpriseActive ? '#1677ff' : '#94a3b8',
+                color: isEnterpriseActive ? '#1677ff' : 'rgba(0, 0, 0, 0.45)',
               }}
             />
           </Button>
