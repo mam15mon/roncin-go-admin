@@ -111,10 +111,10 @@ type RoleType string
 
 // RoleType values.
 const (
-	RoleTypeCustomer RoleType = "customer"
-	RoleTypeSupplier RoleType = "supplier"
-	RoleTypeAgent    RoleType = "agent"
-	RoleTypeCarrier  RoleType = "carrier"
+	RoleTypeCustomer     RoleType = "customer"
+	RoleTypeSupplier     RoleType = "supplier"
+	RoleTypeForeignAgent RoleType = "foreign_agent"
+	RoleTypeCarrier      RoleType = "carrier"
 )
 
 func (rt RoleType) String() string {
@@ -124,7 +124,7 @@ func (rt RoleType) String() string {
 // RoleTypeValidator is a validator for the "role_type" field enum values. It is called by the builders before save.
 func RoleTypeValidator(rt RoleType) error {
 	switch rt {
-	case RoleTypeCustomer, RoleTypeSupplier, RoleTypeAgent, RoleTypeCarrier:
+	case RoleTypeCustomer, RoleTypeSupplier, RoleTypeForeignAgent, RoleTypeCarrier:
 		return nil
 	default:
 		return fmt.Errorf("partnerrole: invalid enum value for role_type field: %q", rt)

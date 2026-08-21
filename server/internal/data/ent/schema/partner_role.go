@@ -16,7 +16,7 @@ func (PartnerRole) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin
 func (PartnerRole) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("partner_id", uuid.Nil),
-		field.Enum("role_type").Values("customer", "supplier", "agent", "carrier"),
+		field.Enum("role_type").Values("customer", "supplier", "foreign_agent", "carrier"),
 		field.Bool("enabled").Default(true),
 		field.Bool("blacklisted").Default(false),
 		field.String("blacklist_reason").Optional().MaxLen(500),

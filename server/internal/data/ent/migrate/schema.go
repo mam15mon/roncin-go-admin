@@ -1309,7 +1309,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "role_type", Type: field.TypeEnum, Enums: []string{"customer", "supplier", "agent", "carrier"}},
+		{Name: "role_type", Type: field.TypeEnum, Enums: []string{"customer", "supplier", "foreign_agent", "carrier"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "blacklisted", Type: field.TypeBool, Default: false},
 		{Name: "blacklist_reason", Type: field.TypeString, Nullable: true, Size: 500},

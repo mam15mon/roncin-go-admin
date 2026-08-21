@@ -43,7 +43,7 @@ const { Text } = Typography;
 const roleOptions = [
   { label: '客户', value: 1, color: 'blue' },
   { label: '供应商', value: 2, color: 'green' },
-  { label: '代理', value: 3, color: 'purple' },
+  { label: '国外代理', value: 3, color: 'purple' },
   { label: '承运人', value: 4, color: 'orange' },
 ];
 

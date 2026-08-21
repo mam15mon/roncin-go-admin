@@ -134,6 +134,28 @@ func TestPartnerRejectsInvalidUSCCAndDuplicateAlias(t *testing.T) {
 	}
 }
 
+func TestPartnerTaxIdentifierDependsOnActiveRole(t *testing.T) {
+	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	organizationID := uuid.New()
+	actorID := uuid.New()
+
+	for _, roleType := range []PartnerRoleType{PartnerRoleCustomer, PartnerRoleSupplier} {
+		if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
+			Code: "DOMESTIC", LegalName: "境内往来单位",
+			Roles: []*PartnerRole{{Type: roleType, Enabled: true}},
+		}); err != ErrPartnerTaxIdentifierRequired {
+			t.Fatalf("role %s error = %v, want ErrPartnerTaxIdentifierRequired", roleType, err)
+		}
+	}
+
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
+		Code: "FOREIGN", LegalName: "国外代理",
+		Roles: []*PartnerRole{{Type: PartnerRoleForeignAgent, Enabled: true}},
+	}); err != nil {
+		t.Fatalf("foreign agent without tax identifier error = %v", err)
+	}
+}
+
 func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 	organizationID := uuid.New()

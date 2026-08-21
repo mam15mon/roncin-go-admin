@@ -245,7 +245,7 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		}
 	}
 	if input.BookingAgentID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeAgent); err != nil {
+		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeForeignAgent); err != nil {
 			return biz.ErrOrderInvalidArgument
 		}
 	}

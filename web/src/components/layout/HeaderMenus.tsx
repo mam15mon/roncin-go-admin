@@ -4,8 +4,10 @@ import {
   ContactsOutlined,
   DatabaseOutlined,
   DownOutlined,
+  GlobalOutlined,
   HistoryOutlined,
   SafetyCertificateOutlined,
+  ShopOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { history, useAccess, useLocation } from '@umijs/max';
@@ -101,9 +103,19 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
 
     if (access?.canReadPartners) {
       items.push({
-        key: '/partners',
+        key: '/partners/customers',
         icon: <ContactsOutlined />,
-        label: '客户与供应商',
+        label: '客户',
+      });
+      items.push({
+        key: '/partners/suppliers',
+        icon: <ShopOutlined />,
+        label: '供应商',
+      });
+      items.push({
+        key: '/partners/foreign-agents',
+        icon: <GlobalOutlined />,
+        label: '国外代理',
       });
     }
 

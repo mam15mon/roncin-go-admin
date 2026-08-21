@@ -46,7 +46,10 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 		))
 	}
 	if options.Role != "" {
-		query.Where(partnerent.HasRolesWith(partnerroleent.RoleTypeEQ(partnerroleent.RoleType(options.Role))))
+		query.Where(partnerent.HasRolesWith(
+			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(options.Role)),
+			partnerroleent.EnabledEQ(true),
+		))
 	}
 	if options.Enabled != nil {
 		query.Where(partnerent.EnabledEQ(*options.Enabled))
@@ -365,7 +368,7 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 			if role.RoleType == partnerroleent.RoleTypeSupplier && role.Blacklisted {
 				return biz.ErrPartnerBlacklistedSupplierRole
 			}
-			if _, err := tx.PartnerRole.Delete().Where(partnerroleent.IDEQ(role.ID)).Exec(ctx); err != nil {
+			if _, err := role.Update().SetEnabled(false).Save(ctx); err != nil {
 				return err
 			}
 			continue

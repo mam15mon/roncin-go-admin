@@ -16,6 +16,7 @@ import type {
 import {
   ModalForm,
   PageContainer,
+  ProFormDependency,
   ProFormDigit,
   ProFormList,
   ProFormRadio,
@@ -25,7 +26,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess, useLocation } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
@@ -43,9 +44,33 @@ const { Text } = Typography;
 const roleOptions = [
   { label: '客户', value: 1, color: 'blue' },
   { label: '供应商', value: 2, color: 'green' },
-  { label: '代理', value: 3, color: 'purple' },
+  { label: '国外代理', value: 3, color: 'purple' },
   { label: '承运人', value: 4, color: 'orange' },
 ];
+
+const partnerViews: Record<
+  string,
+  { title: string; roleType: number; codeExample: string; description: string }
+> = {
+  '/partners/customers': {
+    title: '客户',
+    roleType: 1,
+    codeExample: 'CUST001',
+    description: '维护客户企业档案、联系人、合同与结算资料',
+  },
+  '/partners/suppliers': {
+    title: '供应商',
+    roleType: 2,
+    codeExample: 'SUPP001',
+    description: '维护供应商企业档案、联系人、合同与黑名单',
+  },
+  '/partners/foreign-agents': {
+    title: '国外代理',
+    roleType: 3,
+    codeExample: 'AGENT001',
+    description: '维护国外代理企业档案、联系人、合同与结算资料',
+  },
+};
 
 const roleMap = new Map(roleOptions.map((opt) => [opt.value, opt]));
 
@@ -96,6 +121,8 @@ export default function Partners() {
   const importFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
+  const location = useLocation();
+  const currentView = partnerViews[location.pathname] ?? partnerViews['/partners/customers'];
   const [modalOpen, setModalOpen] = useState(false);
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -118,7 +145,7 @@ export default function Partners() {
   const handleExport = async () => {
     try {
       setExporting(true);
-      const response = await partnerServiceExportPartners({});
+      const response = await partnerServiceExportPartners({ role: currentView.roleType });
       const data = response.data ?? [];
       if (data.length === 0) {
         message.warning('没有可导出的数据');
@@ -160,7 +187,7 @@ export default function Partners() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'partners.csv');
+      link.setAttribute('download', `${currentView.title}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -208,10 +235,7 @@ export default function Partners() {
       title: '业务角色身份',
       dataIndex: 'role',
       width: 240,
-      valueType: 'select',
-      valueEnum: Object.fromEntries(
-        roleOptions.map((option) => [option.value, { text: option.label }]),
-      ),
+      search: false,
       render: (_, record) => <Space wrap size={[4, 4]}>{roleTags(record.roles)}</Space>,
     },
     {
@@ -328,14 +352,15 @@ export default function Partners() {
 
   return (
     <PageContainer
-      title="往来单位"
-      subTitle="统一维护客户、供应商、车队、船东及海外代理档案，管理银行账户、合同条款与黑名单"
+      title={currentView.title}
+      subTitle={currentView.description}
     >
       <ProTable<API.Partner>
+        key={location.pathname}
         headerTitle={
           <Space size={8}>
             <ContactsOutlined style={{ color: '#1677ff' }} />
-            <span>往来单位档案列表</span>
+            <span>{currentView.title}档案列表</span>
           </Space>
         }
         rowKey="id"
@@ -349,7 +374,7 @@ export default function Partners() {
             page: params.current,
             pageSize: params.pageSize,
             keyword: params.keyword,
-            role: params.role,
+            role: currentView.roleType,
             enabled: params.enabled,
           });
           return {
@@ -386,14 +411,14 @@ export default function Partners() {
           ) : null,
           access.canManagePartners ? (
             <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              新增往来单位
+              新增{currentView.title}
             </Button>
           ) : null,
         ].filter(Boolean) as React.ReactNode[]}
       />
 
       <ModalForm<PartnerFormValues>
-        title={editing ? `编辑往来单位：${editing.legalName} (${editing.code})` : '新增往来单位'}
+        title={editing ? `编辑往来单位：${editing.legalName} (${editing.code})` : `新增${currentView.title}`}
         open={modalOpen}
         formRef={formRef}
         modalProps={{
@@ -405,13 +430,12 @@ export default function Partners() {
           editing
             ? {
                 ...editing,
-                roles: editing.roles?.map((role) => ({
-                  type: role.type,
-                  enabled: role.enabled,
-                })),
+                roles: editing.roles
+                  ?.filter((role) => role.enabled)
+                  .map((role) => ({ type: role.type, enabled: true })),
               }
             : {
-                roles: [{ type: 1, enabled: true }],
+                roles: [{ type: currentView.roleType, enabled: true }],
                 contacts: [],
                 aliases: [],
               }
@@ -456,7 +480,7 @@ export default function Partners() {
         <ProFormText
           name="code"
           label="单位唯一编码"
-          placeholder="请输入组织内唯一编码（如 CUST001、SUPP001）"
+          placeholder={`请输入组织内唯一编码（如 ${currentView.codeExample}）`}
           disabled={Boolean(editing)}
           rules={[{ required: true, message: '请输入往来单位编码' }]}
         />
@@ -466,7 +490,28 @@ export default function Partners() {
           placeholder="请输入完整企业法人营业执照名称"
           rules={[{ required: true, message: '请输入法人名称' }]}
         />
-        <ProFormText name="unifiedSocialCreditCode" label="统一社会信用代码" placeholder="18位统一社会信用代码" />
+        <ProFormDependency name={['roles']}>
+          {({ roles }: PartnerFormValues) => {
+            const requiresTaxIdentifier = (roles ?? []).some(
+              (role) =>
+                role.enabled !== false && (role.type === 1 || role.type === 2),
+            );
+            return requiresTaxIdentifier ? (
+              <ProFormText
+                name="unifiedSocialCreditCode"
+                label="纳税人识别号"
+                placeholder="请输入18位统一社会信用代码"
+                rules={[
+                  { required: true, message: '客户或供应商必须填写纳税人识别号' },
+                  {
+                    pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
+                    message: '请输入正确的18位统一社会信用代码',
+                  },
+                ]}
+              />
+            ) : null;
+          }}
+        </ProFormDependency>
         <ProFormTextArea name="registeredAddress" label="注册办公地址" fieldProps={{ rows: 2 }} placeholder="请输入企业法定注册地址" />
         <ProFormSwitch name="enabled" label="企业合作状态" initialValue />
         <ProFormList

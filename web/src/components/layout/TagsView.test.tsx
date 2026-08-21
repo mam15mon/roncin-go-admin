@@ -29,7 +29,9 @@ describe('routeUtils', () => {
     expect(resolveRouteTitle('/welcome')).toBe('工作台');
     expect(resolveRouteTitle('/orders')).toBe('订单管理');
     expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
-    expect(resolveRouteTitle('/partners')).toBe('客户与供应商');
+    expect(resolveRouteTitle('/partners/customers')).toBe('客户');
+    expect(resolveRouteTitle('/partners/suppliers')).toBe('供应商');
+    expect(resolveRouteTitle('/partners/foreign-agents')).toBe('国外代理');
     expect(resolveRouteTitle('/master-data')).toBe('主数据');
     expect(resolveRouteTitle('/admin')).toBe('系统管理');
     expect(resolveRouteTitle('/')).toBe('工作台');
@@ -51,14 +53,14 @@ describe('TagsView logic', () => {
       FIXED_TAB,
       { key: '/orders', path: '/orders', title: '订单管理', closable: true },
       {
-        key: '/partners',
-        path: '/partners',
-        title: '客户与供应商',
+        key: '/partners/customers',
+        path: '/partners/customers',
+        title: '客户',
         closable: true,
       },
     ];
-    // 当前在 /orders，关闭 /partners
-    const next = computeNextActivePath(tags, '/partners', '/orders');
+    // 当前在 /orders，关闭 /partners/customers
+    const next = computeNextActivePath(tags, '/partners/customers', '/orders');
     expect(next).toBeNull();
   });
 
@@ -67,14 +69,14 @@ describe('TagsView logic', () => {
       FIXED_TAB,
       { key: '/orders', path: '/orders', title: '订单管理', closable: true },
       {
-        key: '/partners',
-        path: '/partners',
-        title: '客户与供应商',
+        key: '/partners/customers',
+        path: '/partners/customers',
+        title: '客户',
         closable: true,
       },
     ];
-    // 当前在 /partners，关闭 /partners -> 激活 /orders
-    const next = computeNextActivePath(tags, '/partners', '/partners');
+    // 当前在客户页，关闭客户页签后激活订单页签
+    const next = computeNextActivePath(tags, '/partners/customers', '/partners/customers');
     expect(next).toBe('/orders');
   });
 

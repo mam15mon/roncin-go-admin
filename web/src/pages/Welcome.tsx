@@ -25,9 +25,9 @@ const quickLinks = [
   },
   {
     title: '往来单位',
-    desc: '统一维护客户、供应商、车队、船东及海外代理档案，管理银行账户与合同条款',
+    desc: '统一维护客户、供应商、车队、船东及国外代理档案，管理银行账户与合同条款',
     icon: <ContactsOutlined style={{ fontSize: 24, color: '#52c41a' }} />,
-    path: '/partners',
+    path: '/partners/customers',
   },
   {
     title: '主数据管理',

@@ -18,6 +18,7 @@ var (
 	ErrPartnerCodeExists              = errors.Conflict("PARTNER_CODE_EXISTS", "往来单位编码已存在")
 	ErrPartnerNameExists              = errors.Conflict("PARTNER_NAME_EXISTS", "往来单位名称已存在")
 	ErrPartnerUSCCExists              = errors.Conflict("PARTNER_USCC_EXISTS", "统一社会信用代码已存在")
+	ErrPartnerTaxIdentifierRequired   = errors.BadRequest("PARTNER_TAX_IDENTIFIER_REQUIRED", "客户或供应商必须填写纳税人识别号")
 	ErrPartnerRoleRequired            = errors.BadRequest("PARTNER_ROLE_REQUIRED", "往来单位至少需要一个有效角色")
 	ErrPartnerInvalidRole             = errors.BadRequest("PARTNER_INVALID_ROLE", "往来单位角色不合法")
 	ErrPartnerInvalidArgument         = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位字段不合法")
@@ -32,14 +33,14 @@ var (
 type PartnerRoleType string
 
 const (
-	PartnerRoleCustomer PartnerRoleType = "customer"
-	PartnerRoleSupplier PartnerRoleType = "supplier"
-	PartnerRoleAgent    PartnerRoleType = "agent"
-	PartnerRoleCarrier  PartnerRoleType = "carrier"
+	PartnerRoleCustomer     PartnerRoleType = "customer"
+	PartnerRoleSupplier     PartnerRoleType = "supplier"
+	PartnerRoleForeignAgent PartnerRoleType = "foreign_agent"
+	PartnerRoleCarrier      PartnerRoleType = "carrier"
 )
 
 func (t PartnerRoleType) Valid() bool {
-	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleAgent || t == PartnerRoleCarrier
+	return t == PartnerRoleCustomer || t == PartnerRoleSupplier || t == PartnerRoleForeignAgent || t == PartnerRoleCarrier
 }
 
 type PartnerRole struct {
@@ -336,10 +337,22 @@ func normalizePartner(input *Partner, creating bool) (*Partner, error) {
 	if err != nil {
 		return nil, err
 	}
+	if requiresPartnerTaxIdentifier(roles) && output.UnifiedSocialCreditCode == "" {
+		return nil, ErrPartnerTaxIdentifierRequired
+	}
 	output.Roles = roles
 	output.Contacts = contacts
 	output.Aliases = aliases
 	return &output, nil
+}
+
+func requiresPartnerTaxIdentifier(roles []*PartnerRole) bool {
+	for _, role := range roles {
+		if role.Enabled && (role.Type == PartnerRoleCustomer || role.Type == PartnerRoleSupplier) {
+			return true
+		}
+	}
+	return false
 }
 
 func normalizePartnerRoles(input []*PartnerRole, partnerEnabled bool) ([]*PartnerRole, error) {

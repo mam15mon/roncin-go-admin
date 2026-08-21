@@ -538,8 +538,8 @@ func partnerRoleTypeFromAPI(value v1.PartnerRoleType) biz.PartnerRoleType {
 		return biz.PartnerRoleCustomer
 	case v1.PartnerRoleType_PARTNER_ROLE_TYPE_SUPPLIER:
 		return biz.PartnerRoleSupplier
-	case v1.PartnerRoleType_PARTNER_ROLE_TYPE_AGENT:
-		return biz.PartnerRoleAgent
+	case v1.PartnerRoleType_PARTNER_ROLE_TYPE_FOREIGN_AGENT:
+		return biz.PartnerRoleForeignAgent
 	case v1.PartnerRoleType_PARTNER_ROLE_TYPE_CARRIER:
 		return biz.PartnerRoleCarrier
 	default:
@@ -553,8 +553,8 @@ func partnerRoleTypeToAPI(value biz.PartnerRoleType) v1.PartnerRoleType {
 		return v1.PartnerRoleType_PARTNER_ROLE_TYPE_CUSTOMER
 	case biz.PartnerRoleSupplier:
 		return v1.PartnerRoleType_PARTNER_ROLE_TYPE_SUPPLIER
-	case biz.PartnerRoleAgent:
-		return v1.PartnerRoleType_PARTNER_ROLE_TYPE_AGENT
+	case biz.PartnerRoleForeignAgent:
+		return v1.PartnerRoleType_PARTNER_ROLE_TYPE_FOREIGN_AGENT
 	case biz.PartnerRoleCarrier:
 		return v1.PartnerRoleType_PARTNER_ROLE_TYPE_CARRIER
 	default:
