@@ -13,11 +13,11 @@ declare namespace API {
     orderId: string;
     containerNo: string;
     containerSpecId: string;
-    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg: number;
     volumeCbm: number;
     note?: string;
+    shippingDocumentId?: string;
   };
 
   type AddReleasePodRequest = {
@@ -818,13 +818,13 @@ declare namespace API {
     orderId?: string;
     containerNo?: string;
     containerSpecId?: string;
-    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg?: number;
     volumeCbm?: number;
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+    shippingDocumentId?: string;
   };
 
   type OrderContainerListReply = {
@@ -1624,11 +1624,11 @@ declare namespace API {
     id: string;
     containerNo: string;
     containerSpecId: string;
-    shippingDocumentId?: string;
     sealNo?: string;
     grossWeightKg: number;
     volumeCbm: number;
     note?: string;
+    shippingDocumentId?: string;
   };
 
   type UpdateMasterDataItemRequest = {

@@ -29,13 +29,13 @@ type OrderContainer struct {
 	OrderId            string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	ContainerNo        string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
 	ContainerSpecId    string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,5,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,6,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,7,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,8,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,9,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	CreatedAt          string                 `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          string                 `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SealNo             *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg      float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm          float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note               *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	CreatedAt          string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ShippingDocumentId *string                `protobuf:"bytes,11,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -98,13 +98,6 @@ func (x *OrderContainer) GetContainerSpecId() string {
 	return ""
 }
 
-func (x *OrderContainer) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
-	}
-	return ""
-}
-
 func (x *OrderContainer) GetSealNo() string {
 	if x != nil && x.SealNo != nil {
 		return *x.SealNo
@@ -143,6 +136,13 @@ func (x *OrderContainer) GetCreatedAt() string {
 func (x *OrderContainer) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *OrderContainer) GetShippingDocumentId() string {
+	if x != nil && x.ShippingDocumentId != nil {
+		return *x.ShippingDocumentId
 	}
 	return ""
 }
@@ -198,11 +198,11 @@ type AddContainerRequest struct {
 	OrderId            string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	ContainerNo        string                 `protobuf:"bytes,2,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
 	ContainerSpecId    string                 `protobuf:"bytes,3,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,4,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	SealNo             *string                `protobuf:"bytes,4,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg      float64                `protobuf:"fixed64,5,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm          float64                `protobuf:"fixed64,6,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note               *string                `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ShippingDocumentId *string                `protobuf:"bytes,8,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -258,13 +258,6 @@ func (x *AddContainerRequest) GetContainerSpecId() string {
 	return ""
 }
 
-func (x *AddContainerRequest) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
-	}
-	return ""
-}
-
 func (x *AddContainerRequest) GetSealNo() string {
 	if x != nil && x.SealNo != nil {
 		return *x.SealNo
@@ -293,6 +286,13 @@ func (x *AddContainerRequest) GetNote() string {
 	return ""
 }
 
+func (x *AddContainerRequest) GetShippingDocumentId() string {
+	if x != nil && x.ShippingDocumentId != nil {
+		return *x.ShippingDocumentId
+	}
+	return ""
+}
+
 // UpdateContainerRequest 更新订单集装箱请求。
 type UpdateContainerRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -300,11 +300,11 @@ type UpdateContainerRequest struct {
 	Id                 string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	ContainerNo        string                 `protobuf:"bytes,3,opt,name=container_no,json=containerNo,proto3" json:"container_no,omitempty"`
 	ContainerSpecId    string                 `protobuf:"bytes,4,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,5,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	SealNo             *string                `protobuf:"bytes,6,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
-	GrossWeightKg      float64                `protobuf:"fixed64,7,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
-	VolumeCbm          float64                `protobuf:"fixed64,8,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
-	Note               *string                `protobuf:"bytes,9,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	SealNo             *string                `protobuf:"bytes,5,opt,name=seal_no,json=sealNo,proto3,oneof" json:"seal_no,omitempty"`
+	GrossWeightKg      float64                `protobuf:"fixed64,6,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	VolumeCbm          float64                `protobuf:"fixed64,7,opt,name=volume_cbm,json=volumeCbm,proto3" json:"volume_cbm,omitempty"`
+	Note               *string                `protobuf:"bytes,8,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ShippingDocumentId *string                `protobuf:"bytes,9,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -367,13 +367,6 @@ func (x *UpdateContainerRequest) GetContainerSpecId() string {
 	return ""
 }
 
-func (x *UpdateContainerRequest) GetShippingDocumentId() string {
-	if x != nil && x.ShippingDocumentId != nil {
-		return *x.ShippingDocumentId
-	}
-	return ""
-}
-
 func (x *UpdateContainerRequest) GetSealNo() string {
 	if x != nil && x.SealNo != nil {
 		return *x.SealNo
@@ -398,6 +391,13 @@ func (x *UpdateContainerRequest) GetVolumeCbm() float64 {
 func (x *UpdateContainerRequest) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
+	}
+	return ""
+}
+
+func (x *UpdateContainerRequest) GetShippingDocumentId() string {
+	if x != nil && x.ShippingDocumentId != nil {
+		return *x.ShippingDocumentId
 	}
 	return ""
 }
@@ -687,53 +687,53 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12!\n" +
 	"\fcontainer_no\x18\x03 \x01(\tR\vcontainerNo\x12*\n" +
-	"\x11container_spec_id\x18\x04 \x01(\tR\x0fcontainerSpecId\x125\n" +
-	"\x14shipping_document_id\x18\x05 \x01(\tH\x00R\x12shippingDocumentId\x88\x01\x01\x12\x1c\n" +
-	"\aseal_no\x18\x06 \x01(\tH\x01R\x06sealNo\x88\x01\x01\x12&\n" +
-	"\x0fgross_weight_kg\x18\a \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
+	"\x11container_spec_id\x18\x04 \x01(\tR\x0fcontainerSpecId\x12\x1c\n" +
+	"\aseal_no\x18\x05 \x01(\tH\x00R\x06sealNo\x88\x01\x01\x12&\n" +
+	"\x0fgross_weight_kg\x18\x06 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
 	"\n" +
-	"volume_cbm\x18\b \x01(\x01R\tvolumeCbm\x12\x17\n" +
-	"\x04note\x18\t \x01(\tH\x02R\x04note\x88\x01\x01\x12\x1d\n" +
+	"volume_cbm\x18\a \x01(\x01R\tvolumeCbm\x12\x17\n" +
+	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\n" +
-	" \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\tR\tupdatedAtB\x17\n" +
-	"\x15_shipping_document_idB\n" +
+	"updated_at\x18\n" +
+	" \x01(\tR\tupdatedAt\x125\n" +
+	"\x14shipping_document_id\x18\v \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_note\"7\n" +
+	"\x05_noteB\x17\n" +
+	"\x15_shipping_document_id\"7\n" +
 	"\x15ListContainersRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xfb\x02\n" +
 	"\x13AddContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12&\n" +
 	"\fcontainer_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vcontainerNo\x12/\n" +
-	"\x11container_spec_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x125\n" +
-	"\x14shipping_document_id\x18\x04 \x01(\tH\x00R\x12shippingDocumentId\x88\x01\x01\x12\x1c\n" +
-	"\aseal_no\x18\x05 \x01(\tH\x01R\x06sealNo\x88\x01\x01\x12+\n" +
-	"\x0fgross_weight_kg\x18\x06 \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
+	"\x11container_spec_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x12\x1c\n" +
+	"\aseal_no\x18\x04 \x01(\tH\x00R\x06sealNo\x88\x01\x01\x12+\n" +
+	"\x0fgross_weight_kg\x18\x05 \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
-	"volume_cbm\x18\a \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
-	"\x04note\x18\b \x01(\tH\x02R\x04note\x88\x01\x01B\x17\n" +
-	"\x15_shipping_document_idB\n" +
+	"volume_cbm\x18\x06 \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
+	"\x04note\x18\a \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
+	"\x14shipping_document_id\x18\b \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_note\"\x93\x03\n" +
+	"\x05_noteB\x17\n" +
+	"\x15_shipping_document_id\"\x93\x03\n" +
 	"\x16UpdateContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12&\n" +
 	"\fcontainer_no\x18\x03 \x01(\tB\x03\xe0A\x02R\vcontainerNo\x12/\n" +
-	"\x11container_spec_id\x18\x04 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x125\n" +
-	"\x14shipping_document_id\x18\x05 \x01(\tH\x00R\x12shippingDocumentId\x88\x01\x01\x12\x1c\n" +
-	"\aseal_no\x18\x06 \x01(\tH\x01R\x06sealNo\x88\x01\x01\x12+\n" +
-	"\x0fgross_weight_kg\x18\a \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
+	"\x11container_spec_id\x18\x04 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x12\x1c\n" +
+	"\aseal_no\x18\x05 \x01(\tH\x00R\x06sealNo\x88\x01\x01\x12+\n" +
+	"\x0fgross_weight_kg\x18\x06 \x01(\x01B\x03\xe0A\x02R\rgrossWeightKg\x12\"\n" +
 	"\n" +
-	"volume_cbm\x18\b \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
-	"\x04note\x18\t \x01(\tH\x02R\x04note\x88\x01\x01B\x17\n" +
-	"\x15_shipping_document_idB\n" +
+	"volume_cbm\x18\a \x01(\x01B\x03\xe0A\x02R\tvolumeCbm\x12\x17\n" +
+	"\x04note\x18\b \x01(\tH\x01R\x04note\x88\x01\x01\x125\n" +
+	"\x14shipping_document_id\x18\t \x01(\tH\x02R\x12shippingDocumentId\x88\x01\x01B\n" +
 	"\n" +
 	"\b_seal_noB\a\n" +
-	"\x05_note\"M\n" +
+	"\x05_noteB\x17\n" +
+	"\x15_shipping_document_id\"M\n" +
 	"\x16RemoveContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa6\x01\n" +

@@ -3108,8 +3108,6 @@ components:
                     type: string
                 containerSpecId:
                     type: string
-                shippingDocumentId:
-                    type: string
                 sealNo:
                     type: string
                 grossWeightKg:
@@ -3119,6 +3117,8 @@ components:
                     type: number
                     format: double
                 note:
+                    type: string
+                shippingDocumentId:
                     type: string
             description: AddContainerRequest 添加订单集装箱请求。
         order.v1.AddReleasePodRequest:
@@ -3566,8 +3566,6 @@ components:
                     type: string
                 containerSpecId:
                     type: string
-                shippingDocumentId:
-                    type: string
                 sealNo:
                     type: string
                 grossWeightKg:
@@ -3581,6 +3579,8 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+                shippingDocumentId:
                     type: string
             description: OrderContainer 订单集装箱信息。
         order.v1.OrderContainerListReply:
@@ -4091,8 +4091,6 @@ components:
                     type: string
                 containerSpecId:
                     type: string
-                shippingDocumentId:
-                    type: string
                 sealNo:
                     type: string
                 grossWeightKg:
@@ -4102,6 +4100,8 @@ components:
                     type: number
                     format: double
                 note:
+                    type: string
+                shippingDocumentId:
                     type: string
             description: UpdateContainerRequest 更新订单集装箱请求。
         order.v1.UpdateOrderRequest:

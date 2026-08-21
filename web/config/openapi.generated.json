@@ -4922,9 +4922,6 @@
           "containerSpecId": {
             "type": "string"
           },
-          "shippingDocumentId": {
-            "type": "string"
-          },
           "sealNo": {
             "type": "string"
           },
@@ -4937,6 +4934,9 @@
             "format": "double"
           },
           "note": {
+            "type": "string"
+          },
+          "shippingDocumentId": {
             "type": "string"
           }
         },
@@ -5588,9 +5588,6 @@
           "containerSpecId": {
             "type": "string"
           },
-          "shippingDocumentId": {
-            "type": "string"
-          },
           "sealNo": {
             "type": "string"
           },
@@ -5609,6 +5606,9 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "shippingDocumentId": {
             "type": "string"
           }
         },
@@ -6346,9 +6346,6 @@
           "containerSpecId": {
             "type": "string"
           },
-          "shippingDocumentId": {
-            "type": "string"
-          },
           "sealNo": {
             "type": "string"
           },
@@ -6361,6 +6358,9 @@
             "format": "double"
           },
           "note": {
+            "type": "string"
+          },
+          "shippingDocumentId": {
             "type": "string"
           }
         },

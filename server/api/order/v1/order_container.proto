@@ -43,13 +43,13 @@ message OrderContainer {
   string order_id = 2;
   string container_no = 3;
   string container_spec_id = 4;
-  optional string shipping_document_id = 5;
-  optional string seal_no = 6;
-  double gross_weight_kg = 7;
-  double volume_cbm = 8;
-  optional string note = 9;
-  string created_at = 10;
-  string updated_at = 11;
+  optional string seal_no = 5;
+  double gross_weight_kg = 6;
+  double volume_cbm = 7;
+  optional string note = 8;
+  string created_at = 9;
+  string updated_at = 10;
+  optional string shipping_document_id = 11;
 }
 
 // ListContainersRequest 获取订单集装箱列表请求。
@@ -62,11 +62,11 @@ message AddContainerRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string container_no = 2 [(google.api.field_behavior) = REQUIRED];
   string container_spec_id = 3 [(google.api.field_behavior) = REQUIRED];
-  optional string shipping_document_id = 4;
-  optional string seal_no = 5;
-  double gross_weight_kg = 6 [(google.api.field_behavior) = REQUIRED];
-  double volume_cbm = 7 [(google.api.field_behavior) = REQUIRED];
-  optional string note = 8;
+  optional string seal_no = 4;
+  double gross_weight_kg = 5 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 7;
+  optional string shipping_document_id = 8;
 }
 
 // UpdateContainerRequest 更新订单集装箱请求。
@@ -75,11 +75,11 @@ message UpdateContainerRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   string container_no = 3 [(google.api.field_behavior) = REQUIRED];
   string container_spec_id = 4 [(google.api.field_behavior) = REQUIRED];
-  optional string shipping_document_id = 5;
-  optional string seal_no = 6;
-  double gross_weight_kg = 7 [(google.api.field_behavior) = REQUIRED];
-  double volume_cbm = 8 [(google.api.field_behavior) = REQUIRED];
-  optional string note = 9;
+  optional string seal_no = 5;
+  double gross_weight_kg = 6 [(google.api.field_behavior) = REQUIRED];
+  double volume_cbm = 7 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 8;
+  optional string shipping_document_id = 9;
 }
 
 // RemoveContainerRequest 移除订单集装箱请求。
