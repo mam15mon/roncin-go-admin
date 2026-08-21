@@ -50,7 +50,7 @@ Partner/Party 决策 + 往来单位
 - P5 第四组附件已完成元数据登记闭环：附件只保存外部对象存储引用、文件元数据、幂等键和审计，不把文件内容写入数据库；固定页面明确提示“不上传文件内容”。真实对象存储上传、下载授权、删除和后台清理留到 P7 文件能力建设。
 - P5 第五组导入和导出已完成：导入支持固定结构化批量契约，支持 create_only/upsert 模式，单批最多 500 条且整批事务原子执行；导出支持固定字段 CSV。真实对象存储上传、下载授权、删除及后台清理仍留 P7，信用额度仍留 P8。
 - P6 订单核心首版已完成：订单使用组织级编号规则生成订单号，客户/承运人/订舱代理按 Partner 角色校验，创建必须绑定已发布状态模板；订单编辑只允许草稿并携带 expected_status，状态流转按模板节点校验并写入状态日志和审计；固定订单列表、创建、草稿编辑和状态流转页面已接入。
-- P7 订单里程碑首版、订单附件元数据登记与订单协作人员闭环已完成：后端有 OrderMilestoneService（ListMilestones/SetMilestone）、附件接口（ListAttachments/RegisterAttachment）与 OrderPersonnelService 三个接口（ListPersonnel/AssignPersonnel/RemovePersonnel），具备组织隔离、订单内幂等键唯一、对象键全局唯一、固定字段校验、协作人员固定角色枚举、组织内启用用户校验、订单内唯一约束、expected_order_status 并发条件、(order_id,type) 唯一约束、状态校验、行锁保护、分配/移除审计记录与读写权限控制；前端订单页已有固定里程碑抽屉、固定附件 Drawer/登记表单（明确提示不上传文件内容）与固定协作人员 Drawer/表单，使用生成 OpenAPI 客户端。P7 整体仍未完成：真实对象存储上传、下载授权/签名、删除、清理，以及集装箱、提单、货物明细、异常、提醒、任务幂等/租约/重试/死信、报关和 AE 仍未完成。
+- P7 订单里程碑首版、订单附件元数据登记、订单协作人员闭环与后台任务追踪基础设施已完成：后端有 OrderMilestoneService（ListMilestones/SetMilestone）、附件接口（ListAttachments/RegisterAttachment）、OrderPersonnelService 三个接口（ListPersonnel/AssignPersonnel/RemovePersonnel）与 BackgroundTaskService 三个接口（ListBackgroundTasks/GetBackgroundTask/RequeueBackgroundTask），具备组织隔离、订单内幂等键唯一、对象键全局唯一、固定字段校验、协作人员固定角色枚举、组织内启用用户校验、订单内唯一约束、expected_order_status 并发条件、(order_id,type) 唯一约束、状态校验、行锁保护、分配/移除审计记录与读写权限控制；后台任务具备组织隔离、幂等键、租约领取/完成/失败、重试上限、死信、行锁条件回放（仅 FAILED/DEAD_LETTER 可回放，重置 attempts 并清空租约）、回放审计与读写权限控制，API 不暴露租约凭据；前端订单页已有固定里程碑抽屉、固定附件 Drawer/登记表单（明确提示不上传文件内容）与固定协作人员 Drawer/表单，系统管理页已有后台任务面板（状态/类型/时间筛选、失败与死信任务回放），使用生成 OpenAPI 客户端。P7 整体仍未完成：真实对象存储上传、下载授权/签名、删除、清理，以及集装箱、提单、货物明细、异常、提醒、实际任务执行循环（worker 消费 Claim/Complete/Fail）、报关和 AE 仍未完成。
 - P0 门禁暂按冷启动、Party 聚合、固定表单 MVP、明确金额/汇率口径和报关/AE 后置推进；这些是当前实现假设，不代表已完成生产业务确认。
 
 ## 阶段计划
@@ -129,15 +129,16 @@ Partner/Party 决策 + 往来单位
 
 ### P7：后台任务基础与订单执行能力
 
-- 已完成订单里程碑首版、订单附件元数据登记与订单协作人员闭环：
+- 已完成订单里程碑首版、订单附件元数据登记、订单协作人员闭环与后台任务追踪基础设施：
   - 订单里程碑首版：OrderMilestoneService 的 ListMilestones/SetMilestone 接口、组织隔离、expected_order_status 并发条件、(order_id, type) 唯一约束、状态校验、行锁保护与审计记录；前端订单列表接入固定里程碑抽屉和固定字段表单，使用生成 OpenAPI 客户端。
   - 订单附件元数据登记闭环：ListAttachments/RegisterAttachment 接口、组织隔离、订单内幂等键唯一、对象键全局唯一、固定字段校验、审计与读写权限接入；前端订单页提供固定附件 Drawer 与登记表单，明确提示不上传文件内容，使用生成 OpenAPI 客户端。
   - 订单协作人员闭环：OrderPersonnelService 三个接口（ListPersonnel/AssignPersonnel/RemovePersonnel）、固定角色枚举、组织内启用用户校验、订单内唯一约束、分配/移除审计记录与读写权限接入；前端订单页提供固定协作人员 Drawer/表单，使用生成 OpenAPI 客户端。
+  - 后台任务追踪基础设施：Ent 实体（幂等键组织内唯一、Kind/Status 枚举、attempts/max_attempts、next_run_at、租约字段）+ biz 用例（Enqueue/Claim/Complete/Fail/Get/List/Requeue 校验与审计）+ data 仓储（行锁事务、租约领取、条件回放）+ BackgroundTaskService 追踪接口（组织隔离、分页筛选、回放仅限 FAILED/DEAD_LETTER、不暴露租约凭据）+ 权限码 system.task.read/manage + 前端系统管理后台任务面板；biz/data 层有单元测试。
 - 剩余执行能力与后台基础设施（未完成）：
   - 迁移执行附件真实对象存储上传、下载授权/签名、删除和后台清理。
   - 迁移集装箱、提单、货物明细、异常处理和跟踪事件。
   - 迁移提醒、告警、订单操作日志以及报关和 AE 扩展。
-  - 建立任务幂等键、租约、超时、重试、死信、回放和任务追踪基础设施。
+  - 接入实际任务执行循环：worker 消费 Claim/Complete/Fail，业务用例（主数据导入、提醒、集成）接入 Enqueue。
   - 对订单状态机和跨模块副作用进行集中封装，避免业务规则落入传输层。
 
 完成标准：订单执行链路能够独立闭环，状态变更和异常处理可追溯、可重试；后台任务失败不会静默丢失。
