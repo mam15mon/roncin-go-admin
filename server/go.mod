@@ -41,6 +41,7 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/go-kratos/kratos/contrib/otel/v3 v3.0.0-20260515082355-1ddb58e407c5
 	github.com/go-kratos/kratos/v3 v3.0.0
