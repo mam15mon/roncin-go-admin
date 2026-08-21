@@ -47,22 +47,32 @@ func Apply(ctx context.Context, db *sql.DB, dir string) error {
 	if err != nil {
 		return err
 	}
-	seen := make(map[string]struct{}, len(files))
+	local := make(map[string]file, len(files))
 	for _, migration := range files {
-		seen[migration.version] = struct{}{}
-		if checksum, ok := applied[migration.version]; ok {
-			if checksum != migration.checksum {
-				return fmt.Errorf("迁移 %s 已执行但校验和不一致", migration.name)
-			}
+		local[migration.version] = migration
+	}
+	latestApplied := ""
+	for version, checksum := range applied {
+		migration, ok := local[version]
+		if !ok {
+			return fmt.Errorf("数据库中存在本地缺失的迁移版本 %s", version)
+		}
+		if checksum != migration.checksum {
+			return fmt.Errorf("迁移 %s 已执行但校验和不一致", migration.name)
+		}
+		if version > latestApplied {
+			latestApplied = version
+		}
+	}
+	for _, migration := range files {
+		if _, ok := applied[migration.version]; ok {
 			continue
+		}
+		if migration.version < latestApplied {
+			return fmt.Errorf("迁移 %s 早于数据库最新版本 %s，禁止非线性补录", migration.name, latestApplied)
 		}
 		if err := applyFile(ctx, conn, migration); err != nil {
 			return err
-		}
-	}
-	for version := range applied {
-		if _, ok := seen[version]; !ok {
-			return fmt.Errorf("数据库中存在本地缺失的迁移版本 %s", version)
 		}
 	}
 	return nil

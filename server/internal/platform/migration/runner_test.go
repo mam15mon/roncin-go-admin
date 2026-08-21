@@ -114,3 +114,55 @@ func TestApplyRollsBackFailedMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestApplyValidatesCompleteHistoryBeforeWriting(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "20260821150000_new.sql"), []byte("SELECT 2;"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('public.schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821140000_missing", "checksum"))
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if err := Apply(context.Background(), db, dir); err == nil {
+		t.Fatal("Apply() error = nil, want missing history error")
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestApplyRejectsNonLinearMigration(t *testing.T) {
+	dir := t.TempDir()
+	oldStatement := []byte("SELECT 1;")
+	newStatement := []byte("SELECT 2;")
+	if err := os.WriteFile(filepath.Join(dir, "20260821140000_inserted.sql"), oldStatement, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "20260821150000_applied.sql"), newStatement, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	hash := sha256.Sum256(newStatement)
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('public.schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821150000_applied", hex.EncodeToString(hash[:])))
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	if err := Apply(context.Background(), db, dir); err == nil {
+		t.Fatal("Apply() error = nil, want non-linear migration error")
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
