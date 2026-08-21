@@ -416,7 +416,7 @@ export default function OrganizationsPanel() {
                   autoFit="center"
                   node={{
                     style: {
-                      size: [220, 84],
+                      size: [210, 72],
                       component: (nodeData: Record<string, unknown>) => {
                         const item = (nodeData.data || nodeData) as {
                           id: string;
@@ -430,22 +430,23 @@ export default function OrganizationsPanel() {
                         return (
                           <div
                             style={{
-                              width: 220,
-                              height: 84,
+                              width: 210,
+                              height: 72,
                               backgroundColor: '#ffffff',
                               borderRadius: 8,
                               border: isCurrentSelected
                                 ? '2px solid #1677ff'
                                 : '1px solid #e2e8f0',
                               boxShadow: isCurrentSelected
-                                ? '0 4px 12px rgba(22, 119, 255, 0.25)'
+                                ? '0 4px 14px rgba(22, 119, 255, 0.25)'
                                 : '0 2px 6px rgba(0, 0, 0, 0.04)',
-                              padding: '8px 10px',
+                              padding: '9px 12px',
                               display: 'flex',
                               flexDirection: 'column',
                               justifyContent: 'space-between',
                               cursor: 'pointer',
                               boxSizing: 'border-box',
+                              position: 'relative',
                               transition: 'all 0.15s ease',
                             }}
                           >
@@ -519,7 +520,7 @@ export default function OrganizationsPanel() {
                               )}
                             </div>
 
-                            {/* Card Bottom Row: Code, Count Badge, Direct Action Buttons */}
+                            {/* Card Bottom Row: Code + Count Badge */}
                             <div
                               style={{
                                 display: 'flex',
@@ -532,7 +533,7 @@ export default function OrganizationsPanel() {
                                 style={{
                                   fontFamily: 'monospace',
                                   color: 'rgba(0, 0, 0, 0.45)',
-                                  maxWidth: 90,
+                                  maxWidth: 110,
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
@@ -542,66 +543,64 @@ export default function OrganizationsPanel() {
                                 {item.code}
                               </span>
 
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {(item.childrenCount ?? 0) > 0 && (
-                                  <Tag
-                                    color="blue"
-                                    bordered={false}
-                                    style={{
-                                      margin: 0,
-                                      fontSize: 10,
-                                      lineHeight: '16px',
-                                      padding: '0 4px',
-                                    }}
-                                  >
-                                    {item.childrenCount}
-                                  </Tag>
-                                )}
-                                <Tooltip title="直接新增下级组织">
-                                  <Button
-                                    size="small"
-                                    type="primary"
-                                    ghost
-                                    icon={<PlusOutlined style={{ fontSize: 11 }} />}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openCreateChild(item);
-                                    }}
-                                    style={{
-                                      height: 22,
-                                      width: 22,
-                                      minWidth: 22,
-                                      padding: 0,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      borderRadius: 4,
-                                    }}
-                                  />
-                                </Tooltip>
-                                <Tooltip title="编辑组织">
-                                  <Button
-                                    size="small"
-                                    type="text"
-                                    icon={<EditOutlined style={{ fontSize: 11 }} />}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openEdit(item);
-                                    }}
-                                    style={{
-                                      height: 22,
-                                      width: 22,
-                                      minWidth: 22,
-                                      padding: 0,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      color: 'rgba(0, 0, 0, 0.45)',
-                                    }}
-                                  />
-                                </Tooltip>
-                              </div>
+                              {(item.childrenCount ?? 0) > 0 ? (
+                                <Tag
+                                  color="blue"
+                                  bordered={false}
+                                  style={{
+                                    margin: 0,
+                                    fontSize: 10,
+                                    lineHeight: '16px',
+                                    padding: '0 4px',
+                                  }}
+                                >
+                                  {item.childrenCount} 个下级
+                                </Tag>
+                              ) : (
+                                <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>
+                                  末级
+                                </span>
+                              )}
                             </div>
+
+                            {/* Edge-Centered Floating Circular Add Button */}
+                            <Tooltip title={`在「${item.name}」下新增分支`}>
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openCreateChild(item);
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  ...(chartDirection === 'vertical'
+                                    ? {
+                                        bottom: -11,
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                      }
+                                    : {
+                                        right: -11,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                      }),
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#1677ff',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: '0 2px 6px rgba(22, 119, 255, 0.4)',
+                                  cursor: 'pointer',
+                                  zIndex: 10,
+                                  border: '2px solid #ffffff',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <PlusOutlined style={{ fontSize: 10 }} />
+                              </div>
+                            </Tooltip>
                           </div>
                         );
                       },
