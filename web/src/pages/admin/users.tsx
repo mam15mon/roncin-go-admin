@@ -1,4 +1,11 @@
-import { EditOutlined, KeyOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  EditOutlined,
+  KeyOutlined,
+  MailOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
 import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -7,7 +14,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { App, Button, Space, Tag } from 'antd';
+import { Alert, App, Avatar, Button, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   adminServiceCreateUser,
@@ -16,6 +23,8 @@ import {
   adminServiceResetUserPassword,
   adminServiceUpdateUser,
 } from '@/services/roncin/adminService';
+
+const { Text } = Typography;
 
 type UserFormValues = {
   username?: string;
@@ -51,32 +60,155 @@ export default function UsersPanel() {
   };
 
   const columns: ProColumns<API.AdminUser>[] = [
-    { title: '用户名', dataIndex: 'username', width: 180, copyable: true },
-    { title: '显示名称', dataIndex: 'displayName', width: 160 },
-    { title: '邮箱', dataIndex: 'email', width: 220, ellipsis: true },
     {
-      title: '角色',
+      title: '用户',
+      dataIndex: 'displayName',
+      width: 220,
+      render: (_, record) => {
+        const initial = record.displayName ? record.displayName.charAt(0).toUpperCase() : 'U';
+        return (
+          <Space size={10} align="center">
+            <Avatar
+              size={32}
+              style={{
+                backgroundColor: record.enabled ? '#1677ff' : '#94a3b8',
+                fontSize: 14,
+                fontWeight: 600,
+                flexShrink: 0,
+              }}
+            >
+              {initial}
+            </Avatar>
+            <div style={{ lineHeight: 1.3 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#0f172a' }}>
+                {record.displayName || '-'}
+              </div>
+              <Text
+                copyable={{ text: record.username }}
+                type="secondary"
+                style={{ fontSize: 11, fontFamily: 'monospace' }}
+              >
+                @{record.username}
+              </Text>
+            </div>
+          </Space>
+        );
+      },
+    },
+    {
+      title: '用户名',
+      dataIndex: 'username',
+      hideInTable: true,
+      fieldProps: {
+        placeholder: '搜索用户名',
+      },
+    },
+    {
+      title: '邮箱地址',
+      dataIndex: 'email',
+      width: 220,
+      ellipsis: true,
+      render: (_, record) =>
+        record.email ? (
+          <Space size={4} style={{ color: '#475569', fontSize: 12 }}>
+            <MailOutlined style={{ color: '#94a3b8', fontSize: 12 }} />
+            <span>{record.email}</span>
+          </Space>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            -
+          </Text>
+        ),
+    },
+    {
+      title: '已分配角色',
       dataIndex: 'roleCodes',
       width: 240,
       search: false,
-      render: (_, record) => <Space wrap>{(record.roleCodes ?? []).map((code) => <Tag key={code}>{code}</Tag>)}</Space>,
+      render: (_, record) => {
+        const codes = record.roleCodes ?? [];
+        if (codes.length === 0) {
+          return (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              未分配角色
+            </Text>
+          );
+        }
+        return (
+          <Space wrap size={[4, 4]}>
+            {codes.map((code) => {
+              const matchedRole = roles.find((r) => r.code === code);
+              const label = matchedRole ? matchedRole.name : code;
+              return (
+                <Tag
+                  key={code}
+                  bordered={false}
+                  style={{
+                    margin: 0,
+                    fontSize: 11,
+                    lineHeight: '20px',
+                    padding: '0 6px',
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #dbeafe',
+                  }}
+                >
+                  <SafetyCertificateOutlined style={{ marginRight: 3, fontSize: 11 }} />
+                  {label}
+                </Tag>
+              );
+            })}
+          </Space>
+        );
+      },
     },
     {
       title: '状态',
       dataIndex: 'enabled',
       width: 100,
-      valueEnum: { true: { text: '启用' }, false: { text: '停用' } },
-      render: (_, record) => record.enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+      valueEnum: {
+        true: { text: '启用' },
+        false: { text: '停用' },
+      },
+      render: (_, record) =>
+        record.enabled ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
-    { title: '更新时间', dataIndex: 'updatedAt', valueType: 'dateTime', width: 180, search: false },
+    {
+      title: '更新时间',
+      dataIndex: 'updatedAt',
+      valueType: 'dateTime',
+      width: 170,
+      search: false,
+    },
     {
       title: '操作',
       valueType: 'option',
-      width: 100,
+      width: 160,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
-          <Button type="link" size="small" icon={<KeyOutlined />} onClick={() => setResetting(record)}>重置密码</Button>
+        <Space size={8}>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            style={{ padding: 0 }}
+            onClick={() => openEdit(record)}
+          >
+            编辑
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<KeyOutlined />}
+            style={{ padding: 0, color: '#f59e0b' }}
+            onClick={() => setResetting(record)}
+          >
+            重置密码
+          </Button>
         </Space>
       ),
     },
@@ -88,29 +220,81 @@ export default function UsersPanel() {
         rowKey="id"
         actionRef={actionRef}
         columns={columns}
-        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+        cardBordered={false}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
         request={async (params) => {
-          const response = await adminServiceListUsers({ page: params.current, pageSize: params.pageSize, keyword: params.keyword });
-          return { data: response.data ?? [], success: response.success ?? true, total: response.total ?? 0 };
+          const response = await adminServiceListUsers({
+            page: params.current,
+            pageSize: params.pageSize,
+            keyword: params.keyword || params.username || params.displayName,
+          });
+          return {
+            data: response.data ?? [],
+            success: response.success ?? true,
+            total: response.total ?? 0,
+          };
+        }}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: false,
+          span: 8,
         }}
         toolBarRender={() => [
-          <Button key="refresh" icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>刷新</Button>,
-          <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>新增用户</Button>,
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
+          <Button
+            key="create"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={openCreate}
+          >
+            新增用户
+          </Button>,
         ]}
       />
+
+      {/* Create / Edit User Modal */}
       <ModalForm<UserFormValues>
-        title={editing ? '编辑用户' : '新增用户'}
+        title={editing ? `编辑用户：${editing.displayName || editing.username}` : '新增用户'}
         open={modalOpen}
         formRef={formRef}
         initialValues={editing}
-        modalProps={{ destroyOnClose: true, onCancel: () => setModalOpen(false) }}
+        modalProps={{
+          destroyOnClose: true,
+          width: 560,
+          onCancel: () => setModalOpen(false),
+        }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
           if (editing?.id) {
-            await adminServiceUpdateUser({ id: editing.id }, { id: editing.id, displayName: values.displayName ?? '', email: values.email, enabled: values.enabled ?? true, roleIds: values.roleIds ?? [] });
+            await adminServiceUpdateUser(
+              { id: editing.id },
+              {
+                id: editing.id,
+                displayName: values.displayName?.trim() ?? '',
+                email: values.email?.trim() || undefined,
+                enabled: values.enabled ?? true,
+                roleIds: values.roleIds ?? [],
+              },
+            );
             message.success('用户已更新');
           } else {
-            await adminServiceCreateUser({ username: values.username ?? '', displayName: values.displayName ?? '', password: values.password ?? '', email: values.email, roleIds: values.roleIds ?? [] });
+            await adminServiceCreateUser({
+              username: values.username?.trim() ?? '',
+              displayName: values.displayName?.trim() ?? '',
+              password: values.password ?? '',
+              email: values.email?.trim() || undefined,
+              roleIds: values.roleIds ?? [],
+            });
             message.success('用户已创建');
           }
           setModalOpen(false);
@@ -118,28 +302,105 @@ export default function UsersPanel() {
           return true;
         }}
       >
-        <ProFormText name="username" label="用户名" disabled={Boolean(editing)} rules={[{ required: true, message: '请输入用户名' }]} />
-        <ProFormText name="displayName" label="显示名称" rules={[{ required: true, message: '请输入显示名称' }]} />
-        {!editing ? <ProFormText name="password" label="初始密码" fieldProps={{ type: 'password' }} rules={[{ required: true, min: 12, message: '初始密码至少 12 位' }]} /> : null}
-        <ProFormText name="email" label="邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
-        <ProFormSelect name="roleIds" label="角色" mode="multiple" options={roles.map((role) => ({ label: `${role.name}（${role.code}）`, value: role.id }))} />
-        {editing ? <ProFormSwitch name="enabled" label="启用状态" /> : null}
+        <ProFormText
+          name="username"
+          label="用户名（登录账号）"
+          placeholder="例如：zhangsan 或 logistics_op"
+          disabled={Boolean(editing)}
+          rules={[
+            { required: true, message: '请输入用户名' },
+            { pattern: /^[A-Za-z0-9_.-]+$/, message: '用户名仅支持英文字母、数字、点号、下划线及连字符' },
+          ]}
+        />
+        <ProFormText
+          name="displayName"
+          label="显示名称（用户姓名）"
+          placeholder="例如：张三 / 操作一组"
+          rules={[{ required: true, message: '请输入显示名称' }]}
+        />
+        {!editing && (
+          <ProFormText
+            name="password"
+            label="初始登录密码"
+            placeholder="请输入至少 12 位初始密码"
+            fieldProps={{ type: 'password' }}
+            extra="密码长度至少 12 位，建议包含大小写字母、数字与特殊字符"
+            rules={[{ required: true, min: 12, message: '初始密码至少 12 位' }]}
+          />
+        )}
+        <ProFormText
+          name="email"
+          label="邮箱地址"
+          placeholder="例如：user@roncin.com"
+          rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}
+        />
+        <ProFormSelect
+          name="roleIds"
+          label="分配角色"
+          mode="multiple"
+          placeholder="请选择角色"
+          options={roles.map((role) => ({
+            label: `${role.name} (${role.code})`,
+            value: role.id,
+          }))}
+        />
+        {editing && (
+          <ProFormSwitch
+            name="enabled"
+            label="账号状态"
+            extra="停用后用户将无法登录系统或调用业务接口"
+          />
+        )}
       </ModalForm>
+
+      {/* Reset Password Modal */}
       <ModalForm<{ password?: string }>
-        title={`重置密码：${resetting?.username ?? ''}`}
+        title={`重置登录密码：${resetting?.displayName || resetting?.username || ''}`}
         open={Boolean(resetting)}
-        modalProps={{ destroyOnClose: true, onCancel: () => setResetting(undefined) }}
-        onOpenChange={(open) => { if (!open) setResetting(undefined); }}
+        modalProps={{
+          destroyOnClose: true,
+          width: 500,
+          onCancel: () => setResetting(undefined),
+        }}
+        onOpenChange={(open) => {
+          if (!open) setResetting(undefined);
+        }}
         onFinish={async (values) => {
           if (!resetting?.id) return false;
-          await adminServiceResetUserPassword({ id: resetting.id }, { id: resetting.id, password: values.password ?? '' });
-          message.success('密码已重置，用户现有会话已失效');
+          await adminServiceResetUserPassword(
+            { id: resetting.id },
+            { id: resetting.id, password: values.password ?? '' },
+          );
+          message.success('密码已重置，该用户现有在线会话已全部失效');
           setResetting(undefined);
           return true;
         }}
       >
-        <ProFormText name="password" label="新密码" fieldProps={{ type: 'password' }} rules={[{ required: true, min: 12, message: '新密码至少 12 位' }]} />
+        <Alert
+          showIcon
+          type="warning"
+          message="重置密码安全须知"
+          description="密码重置成功后，该用户的旧密码将立即失效，当前所有在线登录会话将被强制退出。"
+          style={{ marginBottom: 16 }}
+        />
+        <div style={{ marginBottom: 12 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            目标账号：
+          </Text>
+          <Text strong style={{ marginLeft: 4, fontFamily: 'monospace' }}>
+            {resetting?.username}
+          </Text>
+        </div>
+        <ProFormText
+          name="password"
+          label="新登录密码"
+          placeholder="请输入至少 12 位新密码"
+          fieldProps={{ type: 'password' }}
+          extra="新密码至少 12 位，重置后请及时通知用户"
+          rules={[{ required: true, min: 12, message: '新密码至少 12 位' }]}
+        />
       </ModalForm>
     </>
   );
 }
+
