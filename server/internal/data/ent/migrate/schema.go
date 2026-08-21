@@ -786,6 +786,49 @@ var (
 			},
 		},
 	}
+	// OrderShippingDocumentsColumns holds the columns for the "order_shipping_documents" table.
+	OrderShippingDocumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "master_no", Type: field.TypeString, Size: 64},
+		{Name: "house_no", Type: field.TypeString, Size: 64},
+		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderShippingDocumentsTable holds the schema information for the "order_shipping_documents" table.
+	OrderShippingDocumentsTable = &schema.Table{
+		Name:       "order_shipping_documents",
+		Columns:    OrderShippingDocumentsColumns,
+		PrimaryKey: []*schema.Column{OrderShippingDocumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_shipping_documents_orders_shipping_documents",
+				Columns:    []*schema.Column{OrderShippingDocumentsColumns[8]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordershippingdocument_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[2]},
+			},
+			{
+				Name:    "ordershippingdocument_order_id_master_no",
+				Unique:  true,
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[3]},
+			},
+			{
+				Name:    "ordershippingdocument_order_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[6]},
+			},
+		},
+	}
 	// OrderStatusLogsColumns holds the columns for the "order_status_logs" table.
 	OrderStatusLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1588,6 +1631,7 @@ var (
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
 		OrderServiceTypesTable,
+		OrderShippingDocumentsTable,
 		OrderStatusLogsTable,
 		OrganizationsTable,
 		PartnersTable,
@@ -1629,6 +1673,7 @@ func init() {
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable

@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -579,6 +580,21 @@ func (_c *OrderCreate) AddCargoItems(v ...*OrderCargoItem) *OrderCreate {
 	return _c.AddCargoItemIDs(ids...)
 }
 
+// AddShippingDocumentIDs adds the "shipping_documents" edge to the OrderShippingDocument entity by IDs.
+func (_c *OrderCreate) AddShippingDocumentIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddShippingDocumentIDs(ids...)
+	return _c
+}
+
+// AddShippingDocuments adds the "shipping_documents" edges to the OrderShippingDocument entity.
+func (_c *OrderCreate) AddShippingDocuments(v ...*OrderShippingDocument) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddShippingDocumentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -1108,6 +1124,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

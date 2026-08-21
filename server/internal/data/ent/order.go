@@ -117,9 +117,11 @@ type OrderEdges struct {
 	Containers []*OrderContainer `json:"containers,omitempty"`
 	// CargoItems holds the value of the cargo_items edge.
 	CargoItems []*OrderCargoItem `json:"cargo_items,omitempty"`
+	// ShippingDocuments holds the value of the shipping_documents edge.
+	ShippingDocuments []*OrderShippingDocument `json:"shipping_documents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [12]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -225,6 +227,15 @@ func (e OrderEdges) CargoItemsOrErr() ([]*OrderCargoItem, error) {
 		return e.CargoItems, nil
 	}
 	return nil, &NotLoadedError{edge: "cargo_items"}
+}
+
+// ShippingDocumentsOrErr returns the ShippingDocuments value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) ShippingDocumentsOrErr() ([]*OrderShippingDocument, error) {
+	if e.loadedTypes[11] {
+		return e.ShippingDocuments, nil
+	}
+	return nil, &NotLoadedError{edge: "shipping_documents"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -537,6 +548,11 @@ func (_m *Order) QueryContainers() *OrderContainerQuery {
 // QueryCargoItems queries the "cargo_items" edge of the Order entity.
 func (_m *Order) QueryCargoItems() *OrderCargoItemQuery {
 	return NewOrderClient(_m.config).QueryCargoItems(_m)
+}
+
+// QueryShippingDocuments queries the "shipping_documents" edge of the Order entity.
+func (_m *Order) QueryShippingDocuments() *OrderShippingDocumentQuery {
+	return NewOrderClient(_m.config).QueryShippingDocuments(_m)
 }
 
 // Update returns a builder for updating this Order.

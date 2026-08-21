@@ -104,6 +104,8 @@ const (
 	EdgeContainers = "containers"
 	// EdgeCargoItems holds the string denoting the cargo_items edge name in mutations.
 	EdgeCargoItems = "cargo_items"
+	// EdgeShippingDocuments holds the string denoting the shipping_documents edge name in mutations.
+	EdgeShippingDocuments = "shipping_documents"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -183,6 +185,13 @@ const (
 	CargoItemsInverseTable = "order_cargo_items"
 	// CargoItemsColumn is the table column denoting the cargo_items relation/edge.
 	CargoItemsColumn = "order_id"
+	// ShippingDocumentsTable is the table that holds the shipping_documents relation/edge.
+	ShippingDocumentsTable = "order_shipping_documents"
+	// ShippingDocumentsInverseTable is the table name for the OrderShippingDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "ordershippingdocument" package.
+	ShippingDocumentsInverseTable = "order_shipping_documents"
+	// ShippingDocumentsColumn is the table column denoting the shipping_documents relation/edge.
+	ShippingDocumentsColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -755,6 +764,20 @@ func ByCargoItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCargoItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByShippingDocumentsCount orders the results by shipping_documents count.
+func ByShippingDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShippingDocumentsStep(), opts...)
+	}
+}
+
+// ByShippingDocuments orders the results by shipping_documents terms.
+func ByShippingDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -830,5 +853,12 @@ func newCargoItemsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CargoItemsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CargoItemsTable, CargoItemsColumn),
+	)
+}
+func newShippingDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShippingDocumentsTable, ShippingDocumentsColumn),
 	)
 }

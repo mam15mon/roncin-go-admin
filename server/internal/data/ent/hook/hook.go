@@ -201,6 +201,18 @@ func (f OrderServiceTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderServiceTypeMutation", m)
 }
 
+// The OrderShippingDocumentFunc type is an adapter to allow the use of ordinary
+// function as OrderShippingDocument mutator.
+type OrderShippingDocumentFunc func(context.Context, *ent.OrderShippingDocumentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderShippingDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderShippingDocumentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderShippingDocumentMutation", m)
+}
+
 // The OrderStatusLogFunc type is an adapter to allow the use of ordinary
 // function as OrderStatusLog mutator.
 type OrderStatusLogFunc func(context.Context, *ent.OrderStatusLogMutation) (ent.Value, error)

@@ -54,6 +54,9 @@ type OrderPersonnel func(*sql.Selector)
 // OrderServiceType is the predicate function for orderservicetype builders.
 type OrderServiceType func(*sql.Selector)
 
+// OrderShippingDocument is the predicate function for ordershippingdocument builders.
+type OrderShippingDocument func(*sql.Selector)
+
 // OrderStatusLog is the predicate function for orderstatuslog builders.
 type OrderStatusLog func(*sql.Selector)
 

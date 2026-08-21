@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -740,6 +741,21 @@ func (_u *OrderUpdate) AddCargoItems(v ...*OrderCargoItem) *OrderUpdate {
 	return _u.AddCargoItemIDs(ids...)
 }
 
+// AddShippingDocumentIDs adds the "shipping_documents" edge to the OrderShippingDocument entity by IDs.
+func (_u *OrderUpdate) AddShippingDocumentIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddShippingDocumentIDs(ids...)
+	return _u
+}
+
+// AddShippingDocuments adds the "shipping_documents" edges to the OrderShippingDocument entity.
+func (_u *OrderUpdate) AddShippingDocuments(v ...*OrderShippingDocument) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShippingDocumentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -929,6 +945,27 @@ func (_u *OrderUpdate) RemoveCargoItems(v ...*OrderCargoItem) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCargoItemIDs(ids...)
+}
+
+// ClearShippingDocuments clears all "shipping_documents" edges to the OrderShippingDocument entity.
+func (_u *OrderUpdate) ClearShippingDocuments() *OrderUpdate {
+	_u.mutation.ClearShippingDocuments()
+	return _u
+}
+
+// RemoveShippingDocumentIDs removes the "shipping_documents" edge to OrderShippingDocument entities by IDs.
+func (_u *OrderUpdate) RemoveShippingDocumentIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveShippingDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveShippingDocuments removes "shipping_documents" edges to OrderShippingDocument entities.
+func (_u *OrderUpdate) RemoveShippingDocuments(v ...*OrderShippingDocument) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShippingDocumentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1693,6 +1730,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ShippingDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShippingDocumentsIDs(); len(nodes) > 0 && !_u.mutation.ShippingDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{order.Label}
@@ -2413,6 +2495,21 @@ func (_u *OrderUpdateOne) AddCargoItems(v ...*OrderCargoItem) *OrderUpdateOne {
 	return _u.AddCargoItemIDs(ids...)
 }
 
+// AddShippingDocumentIDs adds the "shipping_documents" edge to the OrderShippingDocument entity by IDs.
+func (_u *OrderUpdateOne) AddShippingDocumentIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddShippingDocumentIDs(ids...)
+	return _u
+}
+
+// AddShippingDocuments adds the "shipping_documents" edges to the OrderShippingDocument entity.
+func (_u *OrderUpdateOne) AddShippingDocuments(v ...*OrderShippingDocument) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShippingDocumentIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2602,6 +2699,27 @@ func (_u *OrderUpdateOne) RemoveCargoItems(v ...*OrderCargoItem) *OrderUpdateOne
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCargoItemIDs(ids...)
+}
+
+// ClearShippingDocuments clears all "shipping_documents" edges to the OrderShippingDocument entity.
+func (_u *OrderUpdateOne) ClearShippingDocuments() *OrderUpdateOne {
+	_u.mutation.ClearShippingDocuments()
+	return _u
+}
+
+// RemoveShippingDocumentIDs removes the "shipping_documents" edge to OrderShippingDocument entities by IDs.
+func (_u *OrderUpdateOne) RemoveShippingDocumentIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveShippingDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveShippingDocuments removes "shipping_documents" edges to OrderShippingDocument entities.
+func (_u *OrderUpdateOne) RemoveShippingDocuments(v ...*OrderShippingDocument) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShippingDocumentIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -3389,6 +3507,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercargoitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShippingDocumentsIDs(); len(nodes) > 0 && !_u.mutation.ShippingDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ShippingDocumentsTable,
+			Columns: []string{order.ShippingDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

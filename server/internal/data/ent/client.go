@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -88,6 +89,8 @@ type Client struct {
 	OrderPersonnel *OrderPersonnelClient
 	// OrderServiceType is the client for interacting with the OrderServiceType builders.
 	OrderServiceType *OrderServiceTypeClient
+	// OrderShippingDocument is the client for interacting with the OrderShippingDocument builders.
+	OrderShippingDocument *OrderShippingDocumentClient
 	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
 	OrderStatusLog *OrderStatusLogClient
 	// Organization is the client for interacting with the Organization builders.
@@ -149,6 +152,7 @@ func (c *Client) init() {
 	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderPersonnel = NewOrderPersonnelClient(c.config)
 	c.OrderServiceType = NewOrderServiceTypeClient(c.config)
+	c.OrderShippingDocument = NewOrderShippingDocumentClient(c.config)
 	c.OrderStatusLog = NewOrderStatusLogClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
@@ -274,6 +278,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderMilestone:        NewOrderMilestoneClient(cfg),
 		OrderPersonnel:        NewOrderPersonnelClient(cfg),
 		OrderServiceType:      NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument: NewOrderShippingDocumentClient(cfg),
 		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
 		Partner:               NewPartnerClient(cfg),
@@ -326,6 +331,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderMilestone:        NewOrderMilestoneClient(cfg),
 		OrderPersonnel:        NewOrderPersonnelClient(cfg),
 		OrderServiceType:      NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument: NewOrderShippingDocumentClient(cfg),
 		OrderStatusLog:        NewOrderStatusLogClient(cfg),
 		Organization:          NewOrganizationClient(cfg),
 		Partner:               NewPartnerClient(cfg),
@@ -376,10 +382,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
 		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderServiceType,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
+		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -393,10 +400,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
 		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderServiceType,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
+		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -437,6 +445,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderPersonnel.mutate(ctx, m)
 	case *OrderServiceTypeMutation:
 		return c.OrderServiceType.mutate(ctx, m)
+	case *OrderShippingDocumentMutation:
+		return c.OrderShippingDocument.mutate(ctx, m)
 	case *OrderStatusLogMutation:
 		return c.OrderStatusLog.mutate(ctx, m)
 	case *OrganizationMutation:
@@ -2000,6 +2010,22 @@ func (c *OrderClient) QueryCargoItems(_m *Order) *OrderCargoItemQuery {
 	return query
 }
 
+// QueryShippingDocuments queries the shipping_documents edge of a Order.
+func (c *OrderClient) QueryShippingDocuments(_m *Order) *OrderShippingDocumentQuery {
+	query := (&OrderShippingDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.ShippingDocumentsTable, order.ShippingDocumentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -3081,6 +3107,155 @@ func (c *OrderServiceTypeClient) mutate(ctx context.Context, m *OrderServiceType
 		return (&OrderServiceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderServiceType mutation op: %q", m.Op())
+	}
+}
+
+// OrderShippingDocumentClient is a client for the OrderShippingDocument schema.
+type OrderShippingDocumentClient struct {
+	config
+}
+
+// NewOrderShippingDocumentClient returns a client for the OrderShippingDocument from the given config.
+func NewOrderShippingDocumentClient(c config) *OrderShippingDocumentClient {
+	return &OrderShippingDocumentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ordershippingdocument.Hooks(f(g(h())))`.
+func (c *OrderShippingDocumentClient) Use(hooks ...Hook) {
+	c.hooks.OrderShippingDocument = append(c.hooks.OrderShippingDocument, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ordershippingdocument.Intercept(f(g(h())))`.
+func (c *OrderShippingDocumentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderShippingDocument = append(c.inters.OrderShippingDocument, interceptors...)
+}
+
+// Create returns a builder for creating a OrderShippingDocument entity.
+func (c *OrderShippingDocumentClient) Create() *OrderShippingDocumentCreate {
+	mutation := newOrderShippingDocumentMutation(c.config, OpCreate)
+	return &OrderShippingDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderShippingDocument entities.
+func (c *OrderShippingDocumentClient) CreateBulk(builders ...*OrderShippingDocumentCreate) *OrderShippingDocumentCreateBulk {
+	return &OrderShippingDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderShippingDocumentClient) MapCreateBulk(slice any, setFunc func(*OrderShippingDocumentCreate, int)) *OrderShippingDocumentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderShippingDocumentCreateBulk{err: fmt.Errorf("calling to OrderShippingDocumentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderShippingDocumentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderShippingDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderShippingDocument.
+func (c *OrderShippingDocumentClient) Update() *OrderShippingDocumentUpdate {
+	mutation := newOrderShippingDocumentMutation(c.config, OpUpdate)
+	return &OrderShippingDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderShippingDocumentClient) UpdateOne(_m *OrderShippingDocument) *OrderShippingDocumentUpdateOne {
+	mutation := newOrderShippingDocumentMutation(c.config, OpUpdateOne, withOrderShippingDocument(_m))
+	return &OrderShippingDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderShippingDocumentClient) UpdateOneID(id uuid.UUID) *OrderShippingDocumentUpdateOne {
+	mutation := newOrderShippingDocumentMutation(c.config, OpUpdateOne, withOrderShippingDocumentID(id))
+	return &OrderShippingDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderShippingDocument.
+func (c *OrderShippingDocumentClient) Delete() *OrderShippingDocumentDelete {
+	mutation := newOrderShippingDocumentMutation(c.config, OpDelete)
+	return &OrderShippingDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderShippingDocumentClient) DeleteOne(_m *OrderShippingDocument) *OrderShippingDocumentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderShippingDocumentClient) DeleteOneID(id uuid.UUID) *OrderShippingDocumentDeleteOne {
+	builder := c.Delete().Where(ordershippingdocument.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderShippingDocumentDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderShippingDocument.
+func (c *OrderShippingDocumentClient) Query() *OrderShippingDocumentQuery {
+	return &OrderShippingDocumentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderShippingDocument},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderShippingDocument entity by its id.
+func (c *OrderShippingDocumentClient) Get(ctx context.Context, id uuid.UUID) (*OrderShippingDocument, error) {
+	return c.Query().Where(ordershippingdocument.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderShippingDocumentClient) GetX(ctx context.Context, id uuid.UUID) *OrderShippingDocument {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderShippingDocument.
+func (c *OrderShippingDocumentClient) QueryOrder(_m *OrderShippingDocument) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.OrderTable, ordershippingdocument.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderShippingDocumentClient) Hooks() []Hook {
+	return c.hooks.OrderShippingDocument
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderShippingDocumentClient) Interceptors() []Interceptor {
+	return c.inters.OrderShippingDocument
+}
+
+func (c *OrderShippingDocumentClient) mutate(ctx context.Context, m *OrderShippingDocumentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderShippingDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderShippingDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderShippingDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderShippingDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderShippingDocument mutation op: %q", m.Op())
 	}
 }
 
@@ -6055,19 +6230,20 @@ type (
 		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
 		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
 		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
-		OrderPersonnel, OrderServiceType, OrderStatusLog, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerRole, PartnerSettlementRule, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
+		OrderPersonnel, OrderServiceType, OrderShippingDocument, OrderStatusLog,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerRole, PartnerSettlementRule,
+		Permission, Role, RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
+		User []ent.Hook
 	}
 	inters struct {
 		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
 		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
 		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
-		OrderPersonnel, OrderServiceType, OrderStatusLog, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerRole, PartnerSettlementRule, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
+		OrderPersonnel, OrderServiceType, OrderShippingDocument, OrderStatusLog,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerRole, PartnerSettlementRule,
+		Permission, Role, RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
 		User []ent.Interceptor
 	}
 )

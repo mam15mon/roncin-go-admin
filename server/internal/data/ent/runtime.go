@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -998,6 +999,71 @@ func init() {
 	orderservicetypeDescID := orderservicetypeMixinFields0[0].Descriptor()
 	// orderservicetype.DefaultID holds the default value on creation for the id field.
 	orderservicetype.DefaultID = orderservicetypeDescID.Default.(func() uuid.UUID)
+	ordershippingdocumentMixin := schema.OrderShippingDocument{}.Mixin()
+	ordershippingdocumentMixinFields0 := ordershippingdocumentMixin[0].Fields()
+	_ = ordershippingdocumentMixinFields0
+	ordershippingdocumentMixinFields1 := ordershippingdocumentMixin[1].Fields()
+	_ = ordershippingdocumentMixinFields1
+	ordershippingdocumentFields := schema.OrderShippingDocument{}.Fields()
+	_ = ordershippingdocumentFields
+	// ordershippingdocumentDescCreatedAt is the schema descriptor for created_at field.
+	ordershippingdocumentDescCreatedAt := ordershippingdocumentMixinFields1[0].Descriptor()
+	// ordershippingdocument.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordershippingdocument.DefaultCreatedAt = ordershippingdocumentDescCreatedAt.Default.(func() time.Time)
+	// ordershippingdocumentDescUpdatedAt is the schema descriptor for updated_at field.
+	ordershippingdocumentDescUpdatedAt := ordershippingdocumentMixinFields1[1].Descriptor()
+	// ordershippingdocument.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordershippingdocument.DefaultUpdatedAt = ordershippingdocumentDescUpdatedAt.Default.(func() time.Time)
+	// ordershippingdocument.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordershippingdocument.UpdateDefaultUpdatedAt = ordershippingdocumentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordershippingdocumentDescMasterNo is the schema descriptor for master_no field.
+	ordershippingdocumentDescMasterNo := ordershippingdocumentFields[1].Descriptor()
+	// ordershippingdocument.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
+	ordershippingdocument.MasterNoValidator = func() func(string) error {
+		validators := ordershippingdocumentDescMasterNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(master_no string) error {
+			for _, fn := range fns {
+				if err := fn(master_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordershippingdocumentDescHouseNo is the schema descriptor for house_no field.
+	ordershippingdocumentDescHouseNo := ordershippingdocumentFields[2].Descriptor()
+	// ordershippingdocument.HouseNoValidator is a validator for the "house_no" field. It is called by the builders before save.
+	ordershippingdocument.HouseNoValidator = func() func(string) error {
+		validators := ordershippingdocumentDescHouseNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(house_no string) error {
+			for _, fn := range fns {
+				if err := fn(house_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordershippingdocumentDescReleaseType is the schema descriptor for release_type field.
+	ordershippingdocumentDescReleaseType := ordershippingdocumentFields[3].Descriptor()
+	// ordershippingdocument.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
+	ordershippingdocument.ReleaseTypeValidator = ordershippingdocumentDescReleaseType.Validators[0].(func(string) error)
+	// ordershippingdocumentDescNote is the schema descriptor for note field.
+	ordershippingdocumentDescNote := ordershippingdocumentFields[5].Descriptor()
+	// ordershippingdocument.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	ordershippingdocument.NoteValidator = ordershippingdocumentDescNote.Validators[0].(func(string) error)
+	// ordershippingdocumentDescID is the schema descriptor for id field.
+	ordershippingdocumentDescID := ordershippingdocumentMixinFields0[0].Descriptor()
+	// ordershippingdocument.DefaultID holds the default value on creation for the id field.
+	ordershippingdocument.DefaultID = ordershippingdocumentDescID.Default.(func() uuid.UUID)
 	orderstatuslogMixin := schema.OrderStatusLog{}.Mixin()
 	orderstatuslogMixinFields0 := orderstatuslogMixin[0].Fields()
 	_ = orderstatuslogMixinFields0
