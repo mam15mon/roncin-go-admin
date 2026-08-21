@@ -1,8 +1,12 @@
 import {
+  ApartmentOutlined,
+  ClockCircleOutlined,
   ContactsOutlined,
   DatabaseOutlined,
   DownOutlined,
-  SettingOutlined,
+  HistoryOutlined,
+  SafetyCertificateOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { history, useAccess, useLocation } from '@umijs/max';
 import type { MenuProps } from 'antd';
@@ -28,9 +32,33 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     }
   };
 
-  // 设置中心下拉项
+  // 设置中心下拉项（直达组织、人员、角色、主数据等）
   const settingsItems = useMemo<MenuProps['items']>(() => {
     const items: MenuProps['items'] = [];
+
+    if (access?.canManageOrganizations || access?.canAccessPlatform) {
+      items.push({
+        key: '/admin?tab=organizations',
+        icon: <ApartmentOutlined />,
+        label: '组织架构',
+      });
+    }
+
+    if (access?.canManageUsers || access?.canAccessPlatform) {
+      items.push({
+        key: '/admin?tab=users',
+        icon: <UserOutlined />,
+        label: '用户人员',
+      });
+    }
+
+    if (access?.canManageRoles || access?.canAccessPlatform) {
+      items.push({
+        key: '/admin?tab=roles',
+        icon: <SafetyCertificateOutlined />,
+        label: '角色权限',
+      });
+    }
 
     if (access?.canReadMasterData) {
       items.push({
@@ -40,16 +68,32 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
       });
     }
 
-    if (access?.canAccessPlatform) {
+    if (access?.canReadAudit) {
       items.push({
-        key: '/admin',
-        icon: <SettingOutlined />,
-        label: '系统管理',
+        key: '/admin?tab=audit',
+        icon: <HistoryOutlined />,
+        label: '审计日志',
+      });
+    }
+
+    if (access?.canReadTasks) {
+      items.push({
+        key: '/admin?tab=background-tasks',
+        icon: <ClockCircleOutlined />,
+        label: '后台任务',
       });
     }
 
     return items;
-  }, [access?.canReadMasterData, access?.canAccessPlatform]);
+  }, [
+    access?.canManageOrganizations,
+    access?.canManageUsers,
+    access?.canManageRoles,
+    access?.canReadMasterData,
+    access?.canReadAudit,
+    access?.canReadTasks,
+    access?.canAccessPlatform,
+  ]);
 
   // 企业资源下拉项
   const enterpriseResourceItems = useMemo<MenuProps['items']>(() => {

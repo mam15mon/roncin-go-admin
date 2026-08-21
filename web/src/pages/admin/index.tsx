@@ -7,9 +7,9 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { history, useAccess, useLocation } from '@umijs/max';
 import { Alert, Space } from 'antd';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AuditPanel from './audit';
 import BackgroundTasksPanel from './background-tasks';
 import OrganizationsPanel from './organizations';
@@ -19,6 +19,7 @@ import UsersPanel from './users';
 
 export default function Admin() {
   const access = useAccess();
+  const location = useLocation();
 
   const tabItems = useMemo(
     () =>
@@ -103,9 +104,24 @@ export default function Admin() {
     [access],
   );
 
-  const [activeTab, setActiveTab] = useState<string>(
-    () => tabItems[0]?.key || 'organizations',
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
   );
+  const queryTab = searchParams.get('tab');
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (queryTab && tabItems.some((item) => item.key === queryTab)) {
+      return queryTab;
+    }
+    return tabItems[0]?.key || 'organizations';
+  });
+
+  useEffect(() => {
+    if (queryTab && tabItems.some((item) => item.key === queryTab)) {
+      setActiveTab(queryTab);
+    }
+  }, [queryTab, tabItems]);
 
   const currentTabKey = tabItems.some((item) => item.key === activeTab)
     ? activeTab
@@ -113,6 +129,11 @@ export default function Admin() {
 
   const activeContent = tabItems.find((item) => item.key === currentTabKey)
     ?.children;
+
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    history.replace(`/admin?tab=${key}`);
+  };
 
   return (
     <PageContainer
@@ -123,7 +144,7 @@ export default function Admin() {
         tab: item.tab,
       }))}
       tabActiveKey={currentTabKey}
-      onTabChange={(key) => setActiveTab(key)}
+      onTabChange={handleTabChange}
     >
       {tabItems.length > 0 ? (
         activeContent
