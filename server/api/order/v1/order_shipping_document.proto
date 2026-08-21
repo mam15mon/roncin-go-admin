@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderShippingDocumentService 订单提单服务。
+// 新建提单固定为草稿态；字段编辑仅允许草稿/已确认；状态仅允许
+// DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
+service OrderShippingDocumentService {
+  // ListShippingDocuments 获取指定订单的提单列表。
+  rpc ListShippingDocuments(ListShippingDocumentsRequest) returns (OrderShippingDocumentListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/shipping-documents"};
+  }
+
+  // AddShippingDocument 添加订单提单，初始状态为草稿。
+  rpc AddShippingDocument(AddShippingDocumentRequest) returns (OrderShippingDocumentReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/shipping-documents"
+      body: "*"
+    };
+  }
+
+  // UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
+  rpc UpdateShippingDocument(UpdateShippingDocumentRequest) returns (OrderShippingDocumentReply) {
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/shipping-documents/{id}"
+      body: "*"
+    };
+  }
+
+  // TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
+  rpc TransitionShippingDocumentStatus(TransitionShippingDocumentStatusRequest) returns (OrderShippingDocumentReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/shipping-documents/{id}/transition"
+      body: "*"
+    };
+  }
+
+  // RemoveShippingDocument 移除提单，已放货的提单不可删除。
+  rpc RemoveShippingDocument(RemoveShippingDocumentRequest) returns (OrderShippingDocumentOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/shipping-documents/{id}"};
+  }
+}
+
+// OrderShippingDocumentStatus 提单状态枚举。
+enum OrderShippingDocumentStatus {
+  ORDER_SHIPPING_DOCUMENT_STATUS_UNSPECIFIED = 0;
+  ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT = 1;
+  ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED = 2;
+  ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED = 3;
+}
+
+// OrderShippingDocument 提单信息。
+message OrderShippingDocument {
+  string id = 1;
+  string order_id = 2;
+  string master_no = 3;
+  string house_no = 4;
+  optional string release_type = 5;
+  OrderShippingDocumentStatus status = 6;
+  optional string note = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+// ListShippingDocumentsRequest 获取提单列表请求。
+message ListShippingDocumentsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AddShippingDocumentRequest 添加提单请求。
+message AddShippingDocumentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string master_no = 2 [(google.api.field_behavior) = REQUIRED];
+  string house_no = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string release_type = 4;
+  optional string note = 5;
+}
+
+// UpdateShippingDocumentRequest 更新提单字段请求。
+message UpdateShippingDocumentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  string master_no = 3 [(google.api.field_behavior) = REQUIRED];
+  string house_no = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string release_type = 5;
+  optional string note = 6;
+}
+
+// TransitionShippingDocumentStatusRequest 流转提单状态请求。
+message TransitionShippingDocumentStatusRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderShippingDocumentStatus expected_status = 3 [(google.api.field_behavior) = REQUIRED];
+  OrderShippingDocumentStatus to_status = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemoveShippingDocumentRequest 移除提单请求。
+message RemoveShippingDocumentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderShippingDocumentReply 单条提单响应。
+message OrderShippingDocumentReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderShippingDocument data = 4;
+  string trace_id = 5;
+}
+
+// OrderShippingDocumentListReply 提单列表响应。
+message OrderShippingDocumentListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderShippingDocument data = 4;
+  string trace_id = 5;
+}
+
+// OrderShippingDocumentOperationReply 提单操作响应。
+message OrderShippingDocumentOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

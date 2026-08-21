@@ -19,6 +19,14 @@ declare namespace API {
     note?: string;
   };
 
+  type AddShippingDocumentRequest = {
+    orderId: string;
+    masterNo: string;
+    houseNo: string;
+    releaseType?: string;
+    note?: string;
+  };
+
   type AdminAuditLog = {
     id?: string;
     organizationId?: string;
@@ -915,6 +923,64 @@ declare namespace API {
     id: string;
   };
 
+  type OrderShippingDocument = {
+    id?: string;
+    orderId?: string;
+    masterNo?: string;
+    houseNo?: string;
+    releaseType?: string;
+    status?: number;
+    note?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderShippingDocumentListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument[];
+    traceId?: string;
+  };
+
+  type OrderShippingDocumentOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderShippingDocumentReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument;
+    traceId?: string;
+  };
+
+  type OrderShippingDocumentServiceAddShippingDocumentParams = {
+    orderId: string;
+  };
+
+  type OrderShippingDocumentServiceListShippingDocumentsParams = {
+    orderId: string;
+  };
+
+  type OrderShippingDocumentServiceRemoveShippingDocumentParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderShippingDocumentServiceTransitionShippingDocumentStatusParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderShippingDocumentServiceUpdateShippingDocumentParams = {
+    orderId: string;
+    id: string;
+  };
+
   type Organization = {
     id?: string;
     code?: string;
@@ -1394,6 +1460,13 @@ declare namespace API {
     reason?: string;
   };
 
+  type TransitionShippingDocumentStatusRequest = {
+    orderId: string;
+    id: string;
+    expectedStatus: number;
+    toStatus: number;
+  };
+
   type UpdateCargoItemRequest = {
     orderId: string;
     id: string;
@@ -1524,6 +1597,15 @@ declare namespace API {
     dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
+  };
+
+  type UpdateShippingDocumentRequest = {
+    orderId: string;
+    id: string;
+    masterNo: string;
+    houseNo: string;
+    releaseType?: string;
+    note?: string;
   };
 
   type UpdateUserRequest = {

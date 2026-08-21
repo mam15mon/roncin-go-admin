@@ -2004,6 +2004,211 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/shipping-documents": {
+      "get": {
+        "tags": [
+          "OrderShippingDocumentService"
+        ],
+        "description": "ListShippingDocuments 获取指定订单的提单列表。",
+        "operationId": "OrderShippingDocumentService_ListShippingDocuments",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OrderShippingDocumentService"
+        ],
+        "description": "AddShippingDocument 添加订单提单，初始状态为草稿。",
+        "operationId": "OrderShippingDocumentService_AddShippingDocument",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.AddShippingDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/shipping-documents/{id}": {
+      "put": {
+        "tags": [
+          "OrderShippingDocumentService"
+        ],
+        "description": "UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。",
+        "operationId": "OrderShippingDocumentService_UpdateShippingDocument",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.UpdateShippingDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "OrderShippingDocumentService"
+        ],
+        "description": "RemoveShippingDocument 移除提单，已放货的提单不可删除。",
+        "operationId": "OrderShippingDocumentService_RemoveShippingDocument",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentOperationReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/shipping-documents/{id}/transition": {
+      "post": {
+        "tags": [
+          "OrderShippingDocumentService"
+        ],
+        "description": "TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。",
+        "operationId": "OrderShippingDocumentService_TransitionShippingDocumentStatus",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.TransitionShippingDocumentStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/partners": {
       "get": {
         "tags": [
@@ -4371,6 +4576,32 @@
         },
         "description": "AddContainerRequest 添加订单集装箱请求。"
       },
+      "order.v1.AddShippingDocumentRequest": {
+        "required": [
+          "orderId",
+          "masterNo",
+          "houseNo"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "releaseType": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "description": "AddShippingDocumentRequest 添加提单请求。"
+      },
       "order.v1.AssignPersonnelRequest": {
         "required": [
           "orderId",
@@ -5173,6 +5404,106 @@
         },
         "description": "OrderReply 单条订单响应。"
       },
+      "order.v1.OrderShippingDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "releaseType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "note": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "description": "OrderShippingDocument 提单信息。"
+      },
+      "order.v1.OrderShippingDocumentListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderShippingDocumentListReply 提单列表响应。"
+      },
+      "order.v1.OrderShippingDocumentOperationReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderShippingDocumentOperationReply 提单操作响应。"
+      },
+      "order.v1.OrderShippingDocumentReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderShippingDocumentReply 单条提单响应。"
+      },
       "order.v1.RegisterAttachmentRequest": {
         "required": [
           "orderId",
@@ -5263,6 +5594,32 @@
           }
         },
         "description": "TransitionOrderStatusRequest 流转订单状态请求。"
+      },
+      "order.v1.TransitionShippingDocumentStatusRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedStatus",
+          "toStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "toStatus": {
+            "type": "integer",
+            "format": "enum"
+          }
+        },
+        "description": "TransitionShippingDocumentStatusRequest 流转提单状态请求。"
       },
       "order.v1.UpdateCargoItemRequest": {
         "required": [
@@ -5462,6 +5819,36 @@
           }
         },
         "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。"
+      },
+      "order.v1.UpdateShippingDocumentRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "masterNo",
+          "houseNo"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "releaseType": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "description": "UpdateShippingDocumentRequest 更新提单字段请求。"
       },
       "partner.v1.CreatePartnerAccountRequest": {
         "required": [
@@ -6730,6 +7117,10 @@
     {
       "name": "OrderService",
       "description": "OrderService 订单核心服务。"
+    },
+    {
+      "name": "OrderShippingDocumentService",
+      "description": "OrderShippingDocumentService 订单提单服务。\n 新建提单固定为草稿态；字段编辑仅允许草稿/已确认；状态仅允许\n DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。"
     },
     {
       "name": "PartnerService"

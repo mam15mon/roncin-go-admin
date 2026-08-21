@@ -25,27 +25,32 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_ORDER_UNSPECIFIED                 ErrorReason = 0
-	ErrorReason_ORDER_NOT_FOUND                   ErrorReason = 1
-	ErrorReason_ORDER_INVALID_ARGUMENT            ErrorReason = 2
-	ErrorReason_ORDER_NUMBER_EXISTS               ErrorReason = 3
-	ErrorReason_ORDER_CUSTOMER_INVALID            ErrorReason = 4
-	ErrorReason_ORDER_STATUS_INVALID              ErrorReason = 5
-	ErrorReason_ORDER_STATUS_CONFLICT             ErrorReason = 6
-	ErrorReason_ORDER_STATUS_TEMPLATE_REQUIRED    ErrorReason = 7
-	ErrorReason_ORDER_ATTACHMENT_NOT_FOUND        ErrorReason = 8
-	ErrorReason_ORDER_ATTACHMENT_EXISTS           ErrorReason = 9
-	ErrorReason_ORDER_ATTACHMENT_INVALID_ARGUMENT ErrorReason = 10
-	ErrorReason_ORDER_PERSONNEL_NOT_FOUND         ErrorReason = 11
-	ErrorReason_ORDER_PERSONNEL_EXISTS            ErrorReason = 12
-	ErrorReason_ORDER_PERSONNEL_INVALID_ARGUMENT  ErrorReason = 13
-	ErrorReason_ORDER_PERSONNEL_USER_INVALID      ErrorReason = 14
-	ErrorReason_ORDER_CONTAINER_NOT_FOUND         ErrorReason = 15
-	ErrorReason_ORDER_CONTAINER_EXISTS            ErrorReason = 16
-	ErrorReason_ORDER_CONTAINER_INVALID_ARGUMENT  ErrorReason = 17
-	ErrorReason_ORDER_CONTAINER_SPEC_INVALID      ErrorReason = 18
-	ErrorReason_ORDER_CARGO_ITEM_NOT_FOUND        ErrorReason = 19
-	ErrorReason_ORDER_CARGO_ITEM_INVALID_ARGUMENT ErrorReason = 20
+	ErrorReason_ORDER_UNSPECIFIED                        ErrorReason = 0
+	ErrorReason_ORDER_NOT_FOUND                          ErrorReason = 1
+	ErrorReason_ORDER_INVALID_ARGUMENT                   ErrorReason = 2
+	ErrorReason_ORDER_NUMBER_EXISTS                      ErrorReason = 3
+	ErrorReason_ORDER_CUSTOMER_INVALID                   ErrorReason = 4
+	ErrorReason_ORDER_STATUS_INVALID                     ErrorReason = 5
+	ErrorReason_ORDER_STATUS_CONFLICT                    ErrorReason = 6
+	ErrorReason_ORDER_STATUS_TEMPLATE_REQUIRED           ErrorReason = 7
+	ErrorReason_ORDER_ATTACHMENT_NOT_FOUND               ErrorReason = 8
+	ErrorReason_ORDER_ATTACHMENT_EXISTS                  ErrorReason = 9
+	ErrorReason_ORDER_ATTACHMENT_INVALID_ARGUMENT        ErrorReason = 10
+	ErrorReason_ORDER_PERSONNEL_NOT_FOUND                ErrorReason = 11
+	ErrorReason_ORDER_PERSONNEL_EXISTS                   ErrorReason = 12
+	ErrorReason_ORDER_PERSONNEL_INVALID_ARGUMENT         ErrorReason = 13
+	ErrorReason_ORDER_PERSONNEL_USER_INVALID             ErrorReason = 14
+	ErrorReason_ORDER_CONTAINER_NOT_FOUND                ErrorReason = 15
+	ErrorReason_ORDER_CONTAINER_EXISTS                   ErrorReason = 16
+	ErrorReason_ORDER_CONTAINER_INVALID_ARGUMENT         ErrorReason = 17
+	ErrorReason_ORDER_CONTAINER_SPEC_INVALID             ErrorReason = 18
+	ErrorReason_ORDER_CARGO_ITEM_NOT_FOUND               ErrorReason = 19
+	ErrorReason_ORDER_CARGO_ITEM_INVALID_ARGUMENT        ErrorReason = 20
+	ErrorReason_ORDER_SHIPPING_DOCUMENT_NOT_FOUND        ErrorReason = 21
+	ErrorReason_ORDER_SHIPPING_DOCUMENT_EXISTS           ErrorReason = 22
+	ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT ErrorReason = 23
+	ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_STATUS   ErrorReason = 24
+	ErrorReason_ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT  ErrorReason = 25
 )
 
 // Enum value maps for ErrorReason.
@@ -72,29 +77,39 @@ var (
 		18: "ORDER_CONTAINER_SPEC_INVALID",
 		19: "ORDER_CARGO_ITEM_NOT_FOUND",
 		20: "ORDER_CARGO_ITEM_INVALID_ARGUMENT",
+		21: "ORDER_SHIPPING_DOCUMENT_NOT_FOUND",
+		22: "ORDER_SHIPPING_DOCUMENT_EXISTS",
+		23: "ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT",
+		24: "ORDER_SHIPPING_DOCUMENT_INVALID_STATUS",
+		25: "ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT",
 	}
 	ErrorReason_value = map[string]int32{
-		"ORDER_UNSPECIFIED":                 0,
-		"ORDER_NOT_FOUND":                   1,
-		"ORDER_INVALID_ARGUMENT":            2,
-		"ORDER_NUMBER_EXISTS":               3,
-		"ORDER_CUSTOMER_INVALID":            4,
-		"ORDER_STATUS_INVALID":              5,
-		"ORDER_STATUS_CONFLICT":             6,
-		"ORDER_STATUS_TEMPLATE_REQUIRED":    7,
-		"ORDER_ATTACHMENT_NOT_FOUND":        8,
-		"ORDER_ATTACHMENT_EXISTS":           9,
-		"ORDER_ATTACHMENT_INVALID_ARGUMENT": 10,
-		"ORDER_PERSONNEL_NOT_FOUND":         11,
-		"ORDER_PERSONNEL_EXISTS":            12,
-		"ORDER_PERSONNEL_INVALID_ARGUMENT":  13,
-		"ORDER_PERSONNEL_USER_INVALID":      14,
-		"ORDER_CONTAINER_NOT_FOUND":         15,
-		"ORDER_CONTAINER_EXISTS":            16,
-		"ORDER_CONTAINER_INVALID_ARGUMENT":  17,
-		"ORDER_CONTAINER_SPEC_INVALID":      18,
-		"ORDER_CARGO_ITEM_NOT_FOUND":        19,
-		"ORDER_CARGO_ITEM_INVALID_ARGUMENT": 20,
+		"ORDER_UNSPECIFIED":                        0,
+		"ORDER_NOT_FOUND":                          1,
+		"ORDER_INVALID_ARGUMENT":                   2,
+		"ORDER_NUMBER_EXISTS":                      3,
+		"ORDER_CUSTOMER_INVALID":                   4,
+		"ORDER_STATUS_INVALID":                     5,
+		"ORDER_STATUS_CONFLICT":                    6,
+		"ORDER_STATUS_TEMPLATE_REQUIRED":           7,
+		"ORDER_ATTACHMENT_NOT_FOUND":               8,
+		"ORDER_ATTACHMENT_EXISTS":                  9,
+		"ORDER_ATTACHMENT_INVALID_ARGUMENT":        10,
+		"ORDER_PERSONNEL_NOT_FOUND":                11,
+		"ORDER_PERSONNEL_EXISTS":                   12,
+		"ORDER_PERSONNEL_INVALID_ARGUMENT":         13,
+		"ORDER_PERSONNEL_USER_INVALID":             14,
+		"ORDER_CONTAINER_NOT_FOUND":                15,
+		"ORDER_CONTAINER_EXISTS":                   16,
+		"ORDER_CONTAINER_INVALID_ARGUMENT":         17,
+		"ORDER_CONTAINER_SPEC_INVALID":             18,
+		"ORDER_CARGO_ITEM_NOT_FOUND":               19,
+		"ORDER_CARGO_ITEM_INVALID_ARGUMENT":        20,
+		"ORDER_SHIPPING_DOCUMENT_NOT_FOUND":        21,
+		"ORDER_SHIPPING_DOCUMENT_EXISTS":           22,
+		"ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT": 23,
+		"ORDER_SHIPPING_DOCUMENT_INVALID_STATUS":   24,
+		"ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT":  25,
 	}
 )
 
@@ -129,7 +144,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\x94\x05\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xe6\x06\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -152,7 +167,12 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	" ORDER_CONTAINER_INVALID_ARGUMENT\x10\x11\x12 \n" +
 	"\x1cORDER_CONTAINER_SPEC_INVALID\x10\x12\x12\x1e\n" +
 	"\x1aORDER_CARGO_ITEM_NOT_FOUND\x10\x13\x12%\n" +
-	"!ORDER_CARGO_ITEM_INVALID_ARGUMENT\x10\x14B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"!ORDER_CARGO_ITEM_INVALID_ARGUMENT\x10\x14\x12%\n" +
+	"!ORDER_SHIPPING_DOCUMENT_NOT_FOUND\x10\x15\x12\"\n" +
+	"\x1eORDER_SHIPPING_DOCUMENT_EXISTS\x10\x16\x12,\n" +
+	"(ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT\x10\x17\x12*\n" +
+	"&ORDER_SHIPPING_DOCUMENT_INVALID_STATUS\x10\x18\x12+\n" +
+	"'ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT\x10\x19B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once

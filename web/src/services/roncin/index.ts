@@ -12,6 +12,7 @@ import * as orderCargoItemService from "./orderCargoItemService";
 import * as orderContainerService from "./orderContainerService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
+import * as orderShippingDocumentService from "./orderShippingDocumentService";
 import * as partnerService from "./partnerService";
 export default {
   adminService,
@@ -24,5 +25,6 @@ export default {
   orderContainerService,
   orderMilestoneService,
   orderPersonnelService,
+  orderShippingDocumentService,
   partnerService,
 };
