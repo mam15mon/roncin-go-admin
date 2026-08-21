@@ -9,8 +9,6 @@ import {
   ReloadOutlined,
   SearchOutlined,
   TeamOutlined,
-  ZoomInOutlined,
-  ZoomOutOutlined,
 } from '@ant-design/icons';
 import { OrganizationChart } from '@ant-design/graphs';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -393,34 +391,18 @@ export default function OrganizationsPanel() {
               display: 'flex',
               gap: 8,
               background: 'rgba(255, 255, 255, 0.95)',
-              padding: '6px 10px',
+              padding: '4px 8px',
               borderRadius: 8,
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              backdropFilter: 'blur(4px)',
+              border: '1px solid #f0f0f0',
             }}
           >
-            <Tooltip title="放大">
-              <Button
-                size="small"
-                icon={<ZoomInOutlined />}
-                onClick={() => graphRef.current?.zoomBy(1.2)}
-              />
-            </Tooltip>
-            <Tooltip title="缩小">
-              <Button
-                size="small"
-                icon={<ZoomOutOutlined />}
-                onClick={() => graphRef.current?.zoomBy(0.8)}
-              />
-            </Tooltip>
-            <Tooltip title="适应画布居中">
-              <Button
-                size="small"
-                onClick={() => graphRef.current?.fitView()}
-              >
-                自适应
-              </Button>
-            </Tooltip>
+            <Button
+              size="small"
+              onClick={() => graphRef.current?.fitView()}
+            >
+              自适应居中
+            </Button>
           </div>
 
           {/* Org Chart Container */}
@@ -434,7 +416,7 @@ export default function OrganizationsPanel() {
                   autoFit="center"
                   node={{
                     style: {
-                      size: [200, 76],
+                      size: [220, 84],
                       component: (nodeData: Record<string, unknown>) => {
                         const item = (nodeData.data || nodeData) as {
                           id: string;
@@ -448,8 +430,8 @@ export default function OrganizationsPanel() {
                         return (
                           <div
                             style={{
-                              width: 200,
-                              height: 76,
+                              width: 220,
+                              height: 84,
                               backgroundColor: '#ffffff',
                               borderRadius: 8,
                               border: isCurrentSelected
@@ -458,7 +440,7 @@ export default function OrganizationsPanel() {
                               boxShadow: isCurrentSelected
                                 ? '0 4px 12px rgba(22, 119, 255, 0.25)'
                                 : '0 2px 6px rgba(0, 0, 0, 0.04)',
-                              padding: '10px 12px',
+                              padding: '8px 10px',
                               display: 'flex',
                               flexDirection: 'column',
                               justifyContent: 'space-between',
@@ -467,6 +449,7 @@ export default function OrganizationsPanel() {
                               transition: 'all 0.15s ease',
                             }}
                           >
+                            {/* Card Top Row: Name + Status */}
                             <div
                               style={{
                                 display: 'flex',
@@ -500,7 +483,7 @@ export default function OrganizationsPanel() {
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
-                                    maxWidth: 110,
+                                    maxWidth: 120,
                                   }}
                                   title={item.name}
                                 >
@@ -536,6 +519,7 @@ export default function OrganizationsPanel() {
                               )}
                             </div>
 
+                            {/* Card Bottom Row: Code, Count Badge, Direct Action Buttons */}
                             <div
                               style={{
                                 display: 'flex',
@@ -548,35 +532,82 @@ export default function OrganizationsPanel() {
                                 style={{
                                   fontFamily: 'monospace',
                                   color: 'rgba(0, 0, 0, 0.45)',
+                                  maxWidth: 90,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
                                 }}
+                                title={item.code}
                               >
                                 {item.code}
                               </span>
-                              {(item.childrenCount ?? 0) > 0 ? (
-                                <Tag
-                                  color="blue"
-                                  bordered={false}
-                                  style={{
-                                    margin: 0,
-                                    fontSize: 10,
-                                    lineHeight: '16px',
-                                    padding: '0 4px',
-                                  }}
-                                >
-                                  {item.childrenCount} 个下级
-                                </Tag>
-                              ) : (
-                                <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>
-                                  末级节点
-                                </span>
-                              )}
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {(item.childrenCount ?? 0) > 0 && (
+                                  <Tag
+                                    color="blue"
+                                    bordered={false}
+                                    style={{
+                                      margin: 0,
+                                      fontSize: 10,
+                                      lineHeight: '16px',
+                                      padding: '0 4px',
+                                    }}
+                                  >
+                                    {item.childrenCount}
+                                  </Tag>
+                                )}
+                                <Tooltip title="直接新增下级组织">
+                                  <Button
+                                    size="small"
+                                    type="primary"
+                                    ghost
+                                    icon={<PlusOutlined style={{ fontSize: 11 }} />}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openCreateChild(item);
+                                    }}
+                                    style={{
+                                      height: 22,
+                                      width: 22,
+                                      minWidth: 22,
+                                      padding: 0,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      borderRadius: 4,
+                                    }}
+                                  />
+                                </Tooltip>
+                                <Tooltip title="编辑组织">
+                                  <Button
+                                    size="small"
+                                    type="text"
+                                    icon={<EditOutlined style={{ fontSize: 11 }} />}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openEdit(item);
+                                    }}
+                                    style={{
+                                      height: 22,
+                                      width: 22,
+                                      minWidth: 22,
+                                      padding: 0,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'rgba(0, 0, 0, 0.45)',
+                                    }}
+                                  />
+                                </Tooltip>
+                              </div>
                             </div>
                           </div>
                         );
                       },
                     },
                   }}
-                  behaviors={['drag-canvas', 'zoom-canvas', 'click-select']}
+                  behaviors={['drag-canvas', 'click-select']}
                   onReady={(graph: any) => {
                     graphRef.current = graph;
                     graph.on('node:click', (evt: any) => {
