@@ -86,7 +86,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderAbnormalCaseUsecase := biz.NewOrderAbnormalCaseUsecase(orderAbnormalCaseRepo, auditRepo)
 	orderAbnormalCaseService := service.NewOrderAbnormalCaseService(orderAbnormalCaseUsecase)
 	orderReleasePodRepo := data.NewOrderReleasePodRepo(dataData)
-	orderReleasePodUsecase := biz.NewOrderReleasePodUsecase(orderReleasePodRepo, auditRepo)
+	orderReleasePodUsecase := biz.NewOrderReleasePodUsecase(orderReleasePodRepo)
 	orderReleasePodService := service.NewOrderReleasePodService(orderReleasePodUsecase)
 	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, sessionPolicy, logger)
 	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, sessionPolicy, dataData, logger)

@@ -14,6 +14,7 @@ type orderRepoStub struct {
 	transitioned   *Order
 	expectedStatus string
 	targetStatus   string
+	statusEvent    *OrderStatusChangedEvent
 }
 
 func (s *orderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error) {
@@ -41,9 +42,10 @@ func (s *orderRepoStub) UpdateDraft(_ context.Context, organizationID, id uuid.U
 	return input, nil
 }
 
-func (s *orderRepoStub) TransitionStatus(_ context.Context, organizationID, id uuid.UUID, expectedStatus, targetStatus, _ string, _ uuid.UUID) (*Order, error) {
+func (s *orderRepoStub) TransitionStatus(_ context.Context, organizationID, id uuid.UUID, expectedStatus, targetStatus, _ string, _ uuid.UUID, event *OrderStatusChangedEvent) (*Order, error) {
 	s.expectedStatus = expectedStatus
 	s.targetStatus = targetStatus
+	s.statusEvent = event
 	s.transitioned = &Order{ID: id, OrganizationID: organizationID, Status: targetStatus}
 	return s.transitioned, nil
 }
@@ -111,15 +113,12 @@ func TestOrderTransitionNormalizesStatusAndAudits(t *testing.T) {
 	if updated.Status != "BOOKED" || repo.expectedStatus != "DRAFT" || repo.targetStatus != "BOOKED" {
 		t.Fatalf("transition result = %#v, from = %s, to = %s", updated, repo.expectedStatus, repo.targetStatus)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.status.transition" || audit.events[0].Details["to_status"] != "BOOKED" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.statusEvent == nil || repo.statusEvent.AuditEvent().Action != "order.status.transition" || repo.statusEvent.ToStatus != "BOOKED" {
+		t.Fatalf("status event = %#v", repo.statusEvent)
 	}
 }
 
 func TestOrderStatusChangedEventFields(t *testing.T) {
-	repo := &orderRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(&orderConfigRepoStub{}, audit), audit)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -132,13 +131,7 @@ func TestOrderStatusChangedEventFields(t *testing.T) {
 		ToStatus:       "SHIPPED",
 		OccurredAt:     time.Now().UTC(),
 	}
-	if err := usecase.handleOrderStatusChanged(context.Background(), event); err != nil {
-		t.Fatalf("handleOrderStatusChanged() error = %v", err)
-	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected one audit event, got %d", len(audit.events))
-	}
-	auditEvent := audit.events[0]
+	auditEvent := event.AuditEvent()
 	if auditEvent.Action != "order.status.transition" ||
 		auditEvent.OrganizationID == nil || *auditEvent.OrganizationID != organizationID ||
 		auditEvent.UserID == nil || *auditEvent.UserID != actorID ||

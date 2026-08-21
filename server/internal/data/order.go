@@ -191,7 +191,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	return r.Get(ctx, organizationID, id)
 }
 
-func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedStatus, targetStatus, reason string, actorID uuid.UUID) (*biz.Order, error) {
+func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedStatus, targetStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -222,6 +222,10 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		return nil, err
 	}
 	if _, err := tx.OrderStatusLog.Create().SetOrderID(id).SetFromStatus(expectedStatus).SetToStatus(targetStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}

@@ -14,6 +14,7 @@ type orderReleasePodRepoStub struct {
 	updated      *OrderReleasePod
 	transitioned *OrderReleasePod
 	removed      bool
+	audits       []*AuditEvent
 }
 
 func (s *orderReleasePodRepoStub) List(_ context.Context, _ uuid.UUID, orderID uuid.UUID) ([]*OrderReleasePod, error) {
@@ -28,9 +29,9 @@ func (s *orderReleasePodRepoStub) List(_ context.Context, _ uuid.UUID, orderID u
 	}, nil
 }
 
-func (s *orderReleasePodRepoStub) Add(_ context.Context, _ uuid.UUID, orderID uuid.UUID, input *OrderReleasePod) (*OrderReleasePod, error) {
+func (s *orderReleasePodRepoStub) Add(_ context.Context, _ uuid.UUID, orderID uuid.UUID, input *OrderReleasePod, audit *AuditEvent) (*OrderReleasePod, error) {
 	s.added = &OrderReleasePod{
-		ID:                 uuid.New(),
+		ID:                 input.ID,
 		OrderID:            orderID,
 		ShippingDocumentID: input.ShippingDocumentID,
 		ReleaseNo:          input.ReleaseNo,
@@ -42,10 +43,11 @@ func (s *orderReleasePodRepoStub) Add(_ context.Context, _ uuid.UUID, orderID uu
 		CreatedAt:          time.Now(),
 		UpdatedAt:          time.Now(),
 	}
+	s.audits = append(s.audits, audit)
 	return s.added, nil
 }
 
-func (s *orderReleasePodRepoStub) Update(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, input *OrderReleasePod) (*OrderReleasePod, error) {
+func (s *orderReleasePodRepoStub) Update(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, input *OrderReleasePod, audit *AuditEvent) (*OrderReleasePod, error) {
 	s.updated = &OrderReleasePod{
 		ID:                 id,
 		OrderID:            orderID,
@@ -59,10 +61,11 @@ func (s *orderReleasePodRepoStub) Update(_ context.Context, _ uuid.UUID, orderID
 		CreatedAt:          time.Now(),
 		UpdatedAt:          time.Now(),
 	}
+	s.audits = append(s.audits, audit)
 	return s.updated, nil
 }
 
-func (s *orderReleasePodRepoStub) Transition(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, _, to OrderReleasePodStatus, actorID uuid.UUID) (*OrderReleasePod, error) {
+func (s *orderReleasePodRepoStub) Transition(_ context.Context, _ uuid.UUID, orderID, id uuid.UUID, _, to OrderReleasePodStatus, actorID uuid.UUID, audit *AuditEvent) (*OrderReleasePod, error) {
 	now := time.Now()
 	s.transitioned = &OrderReleasePod{
 		ID:        id,
@@ -75,11 +78,13 @@ func (s *orderReleasePodRepoStub) Transition(_ context.Context, _ uuid.UUID, ord
 		s.transitioned.SignedAt = &now
 		s.transitioned.SignedBy = &actorID
 	}
+	s.audits = append(s.audits, audit)
 	return s.transitioned, nil
 }
 
-func (s *orderReleasePodRepoStub) Remove(_ context.Context, _ uuid.UUID, _, _ uuid.UUID) error {
+func (s *orderReleasePodRepoStub) Remove(_ context.Context, _ uuid.UUID, _, _ uuid.UUID, audit *AuditEvent) error {
 	s.removed = true
+	s.audits = append(s.audits, audit)
 	return nil
 }
 
@@ -116,8 +121,7 @@ func TestOrderReleasePodStatusValid(t *testing.T) {
 
 func TestOrderReleasePodListValidates(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderReleasePodUsecase(repo, audit)
+	usecase := NewOrderReleasePodUsecase(repo)
 
 	if _, err := usecase.List(context.Background(), uuid.Nil, uuid.New()); err != ErrOrderReleasePodInvalidArgument {
 		t.Fatalf("expected ErrOrderReleasePodInvalidArgument for nil orgID, got %v", err)
@@ -137,8 +141,7 @@ func TestOrderReleasePodListValidates(t *testing.T) {
 
 func TestOrderReleasePodAddValidatesAndAudits(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderReleasePodUsecase(repo, audit)
+	usecase := NewOrderReleasePodUsecase(repo)
 	orgID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 	docID := uuid.New()
 
@@ -216,7 +219,7 @@ func TestOrderReleasePodAddValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path with audit check
-	audit.events = nil
+	repo.audits = nil
 	created, err := usecase.Add(context.Background(), orgID, actorID, orderID, baseValidInput())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -227,10 +230,10 @@ func TestOrderReleasePodAddValidatesAndAudits(t *testing.T) {
 	if created.Status != OrderReleasePodStatusPending {
 		t.Fatalf("expected status %q, got %q", OrderReleasePodStatusPending, created.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if len(repo.audits) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(repo.audits))
 	}
-	event := audit.events[0]
+	event := repo.audits[0]
 	if event.Action != "order.release_pod.add" {
 		t.Fatalf("expected action 'order.release_pod.add', got %q", event.Action)
 	}
@@ -242,8 +245,7 @@ func TestOrderReleasePodAddValidatesAndAudits(t *testing.T) {
 
 func TestOrderReleasePodUpdateValidatesAndAudits(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderReleasePodUsecase(repo, audit)
+	usecase := NewOrderReleasePodUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 	docID := uuid.New()
 
@@ -314,7 +316,7 @@ func TestOrderReleasePodUpdateValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success path
-	audit.events = nil
+	repo.audits = nil
 	updated, err := usecase.Update(context.Background(), orgID, actorID, orderID, id, input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -322,10 +324,10 @@ func TestOrderReleasePodUpdateValidatesAndAudits(t *testing.T) {
 	if updated.ID != id || updated.ReleaseNo == nil || *updated.ReleaseNo != "REL789" {
 		t.Fatalf("unexpected updated release pod: %#v", updated)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if len(repo.audits) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(repo.audits))
 	}
-	event := audit.events[0]
+	event := repo.audits[0]
 	if event.Action != "order.release_pod.update" {
 		t.Fatalf("expected action 'order.release_pod.update', got %q", event.Action)
 	}
@@ -337,8 +339,7 @@ func TestOrderReleasePodUpdateValidatesAndAudits(t *testing.T) {
 
 func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderReleasePodUsecase(repo, audit)
+	usecase := NewOrderReleasePodUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -375,7 +376,7 @@ func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 	}
 
 	// Valid transition: PENDING -> SIGNED
-	audit.events = nil
+	repo.audits = nil
 	transitioned, err := usecase.Transition(context.Background(), orgID, actorID, orderID, id, OrderReleasePodStatusPending, OrderReleasePodStatusSigned)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -386,10 +387,10 @@ func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 	if transitioned.SignedAt == nil || transitioned.SignedBy == nil || *transitioned.SignedBy != actorID {
 		t.Fatalf("expected SignedAt and SignedBy to be populated")
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if len(repo.audits) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(repo.audits))
 	}
-	event := audit.events[0]
+	event := repo.audits[0]
 	if event.Action != "order.release_pod.transition" {
 		t.Fatalf("expected action 'order.release_pod.transition', got %q", event.Action)
 	}
@@ -401,7 +402,7 @@ func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 	}
 
 	// Valid transition: SIGNED -> RETURNED
-	audit.events = nil
+	repo.audits = nil
 	transitioned, err = usecase.Transition(context.Background(), orgID, actorID, orderID, id, OrderReleasePodStatusSigned, OrderReleasePodStatusReturned)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -409,10 +410,10 @@ func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 	if transitioned.Status != OrderReleasePodStatusReturned {
 		t.Fatalf("expected status %q, got %q", OrderReleasePodStatusReturned, transitioned.Status)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if len(repo.audits) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(repo.audits))
 	}
-	event = audit.events[0]
+	event = repo.audits[0]
 	if event.Action != "order.release_pod.transition" {
 		t.Fatalf("expected action 'order.release_pod.transition', got %q", event.Action)
 	}
@@ -426,8 +427,7 @@ func TestOrderReleasePodTransitionValidatesAndAudits(t *testing.T) {
 
 func TestOrderReleasePodRemoveValidatesAndAudits(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderReleasePodUsecase(repo, audit)
+	usecase := NewOrderReleasePodUsecase(repo)
 	orgID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Nil IDs
@@ -445,17 +445,17 @@ func TestOrderReleasePodRemoveValidatesAndAudits(t *testing.T) {
 	}
 
 	// Success
-	audit.events = nil
+	repo.audits = nil
 	if err := usecase.Remove(context.Background(), orgID, actorID, orderID, id); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !repo.removed {
 		t.Fatalf("expected repo.Remove to have been called")
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("expected 1 audit event, got %d", len(audit.events))
+	if len(repo.audits) != 1 {
+		t.Fatalf("expected 1 audit event, got %d", len(repo.audits))
 	}
-	event := audit.events[0]
+	event := repo.audits[0]
 	if event.Action != "order.release_pod.remove" {
 		t.Fatalf("expected action 'order.release_pod.remove', got %q", event.Action)
 	}

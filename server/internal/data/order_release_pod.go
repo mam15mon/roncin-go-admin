@@ -67,14 +67,19 @@ func (r *orderReleasePodRepo) List(ctx context.Context, organizationID, orderID 
 	return result, nil
 }
 
-func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderReleasePod) (*biz.OrderReleasePod, error) {
+func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderReleasePod, audit *biz.AuditEvent) (*biz.OrderReleasePod, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	builder := r.data.db.OrderReleasePod.Create().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	builder := tx.OrderReleasePod.Create().
+		SetID(input.ID).
 		SetOrderID(orderID).
 		SetStatus(orderreleasepodent.StatusPENDING)
 	if input.ShippingDocumentID != nil {
@@ -91,12 +96,20 @@ func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID u
 	}
 	created, err := builder.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(created), nil
 }
 
-func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderReleasePod) (*biz.OrderReleasePod, error) {
+func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderReleasePod, audit *biz.AuditEvent) (*biz.OrderReleasePod, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -151,13 +164,17 @@ func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderI
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(updated), nil
 }
 
-func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to biz.OrderReleasePodStatus, actorID uuid.UUID) (*biz.OrderReleasePod, error) {
+func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to biz.OrderReleasePodStatus, actorID uuid.UUID, audit *biz.AuditEvent) (*biz.OrderReleasePod, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
@@ -199,44 +216,61 @@ func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, or
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(updated), nil
 }
 
-func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	item, err := r.data.db.OrderReleasePod.Query().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	item, err := tx.OrderReleasePod.Query().
 		Where(
 			orderreleasepodent.IDEQ(id),
 			orderreleasepodent.OrderIDEQ(orderID),
 		).
+		ForUpdate().
 		Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return biz.ErrOrderReleasePodNotFound
 		}
 		return err
 	}
 	if item.Status == orderreleasepodent.StatusRETURNED {
+		_ = tx.Rollback()
 		return biz.ErrOrderReleasePodInvalidStatus
 	}
-	n, err := r.data.db.OrderReleasePod.Delete().
+	n, err := tx.OrderReleasePod.Delete().
 		Where(
 			orderreleasepodent.IDEQ(id),
 			orderreleasepodent.OrderIDEQ(orderID),
 		).
 		Exec(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	if n == 0 {
+		_ = tx.Rollback()
 		return biz.ErrOrderReleasePodNotFound
 	}
-	return nil
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func orderReleasePodToBiz(item *ent.OrderReleasePod) *biz.OrderReleasePod {

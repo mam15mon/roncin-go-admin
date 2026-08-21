@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -65,19 +64,18 @@ type OrderReleasePod struct {
 
 type OrderReleasePodRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderReleasePod, error)
-	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderReleasePod) (*OrderReleasePod, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderReleasePod) (*OrderReleasePod, error)
-	Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to OrderReleasePodStatus, actorID uuid.UUID) (*OrderReleasePod, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
+	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderReleasePod, audit *AuditEvent) (*OrderReleasePod, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderReleasePod, audit *AuditEvent) (*OrderReleasePod, error)
+	Transition(ctx context.Context, organizationID, orderID, id uuid.UUID, from, to OrderReleasePodStatus, actorID uuid.UUID, audit *AuditEvent) (*OrderReleasePod, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderReleasePodUsecase struct {
-	repo  OrderReleasePodRepo
-	audit AuditRepo
+	repo OrderReleasePodRepo
 }
 
-func NewOrderReleasePodUsecase(repo OrderReleasePodRepo, audit AuditRepo) *OrderReleasePodUsecase {
-	return &OrderReleasePodUsecase{repo: repo, audit: audit}
+func NewOrderReleasePodUsecase(repo OrderReleasePodRepo) *OrderReleasePodUsecase {
+	return &OrderReleasePodUsecase{repo: repo}
 }
 
 func (uc *OrderReleasePodUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderReleasePod, error) {
@@ -95,24 +93,18 @@ func (uc *OrderReleasePodUsecase) Add(ctx context.Context, organizationID, actor
 	if err != nil {
 		return nil, err
 	}
+	normalized.ID = uuid.Must(uuid.NewV7())
 	normalized.Status = OrderReleasePodStatusPending
-	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Add(ctx, organizationID, orderID, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.release_pod.add",
 		Result:         "success",
 		Details: map[string]string{
-			"release_pod.id": created.ID.String(),
+			"release_pod.id": normalized.ID.String(),
 			"order.id":       orderID.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order release pod add audit: %w", err)
-	}
-	return created, nil
+	})
 }
 
 func (uc *OrderReleasePodUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderReleasePod) (*OrderReleasePod, error) {
@@ -123,23 +115,16 @@ func (uc *OrderReleasePodUsecase) Update(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, orderID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.release_pod.update",
 		Result:         "success",
 		Details: map[string]string{
-			"release_pod.id": updated.ID.String(),
+			"release_pod.id": id.String(),
 			"order.id":       orderID.String(),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order release pod update audit: %w", err)
-	}
-	return updated, nil
+	})
 }
 
 func (uc *OrderReleasePodUsecase) Transition(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, from, to OrderReleasePodStatus) (*OrderReleasePod, error) {
@@ -149,35 +134,25 @@ func (uc *OrderReleasePodUsecase) Transition(ctx context.Context, organizationID
 	if !from.Valid() || !to.Valid() || !validReleasePodTransition(from, to) {
 		return nil, ErrOrderReleasePodInvalidStatus
 	}
-	transitioned, err := uc.repo.Transition(ctx, organizationID, orderID, id, from, to, actorID)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Transition(ctx, organizationID, orderID, id, from, to, actorID, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.release_pod.transition",
 		Result:         "success",
 		Details: map[string]string{
-			"release_pod.id": transitioned.ID.String(),
+			"release_pod.id": id.String(),
 			"order.id":       orderID.String(),
 			"from_status":    string(from),
 			"to_status":      string(to),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order release pod transition audit: %w", err)
-	}
-	return transitioned, nil
+	})
 }
 
 func (uc *OrderReleasePodUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return ErrOrderReleasePodInvalidArgument
 	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id); err != nil {
-		return err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.release_pod.remove",
@@ -186,10 +161,7 @@ func (uc *OrderReleasePodUsecase) Remove(ctx context.Context, organizationID, ac
 			"release_pod.id": id.String(),
 			"order.id":       orderID.String(),
 		},
-	}); err != nil {
-		return fmt.Errorf("write order release pod remove audit: %w", err)
-	}
-	return nil
+	})
 }
 
 func normalizeOrderReleasePod(input *OrderReleasePod) (*OrderReleasePod, error) {

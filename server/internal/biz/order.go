@@ -174,7 +174,7 @@ type OrderRepo interface {
 	List(context.Context, uuid.UUID, OrderListOptions) (*OrderList, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
-	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID) (*Order, error)
+	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
 }
 
 type OrderUsecase struct {
