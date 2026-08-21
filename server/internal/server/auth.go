@@ -102,6 +102,14 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		taskv1.OperationBackgroundTaskServiceListBackgroundTasks:           {key: access.TaskRead, scope: biz.DataScopeOrganization},
 		taskv1.OperationBackgroundTaskServiceGetBackgroundTask:             {key: access.TaskRead, scope: biz.DataScopeOrganization},
 		taskv1.OperationBackgroundTaskServiceRequeueBackgroundTask:         {key: access.TaskManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderContainerServiceListContainers:               {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderContainerServiceAddContainer:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderContainerServiceUpdateContainer:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderContainerServiceRemoveContainer:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderCargoItemServiceListCargoItems:               {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderCargoItemServiceAddCargoItem:                 {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderCargoItemServiceUpdateCargoItem:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderCargoItemServiceRemoveCargoItem:              {key: access.OrderManage, scope: biz.DataScopeOrganization},
 	}
 
 	return func(handler middleware.Handler) middleware.Handler {

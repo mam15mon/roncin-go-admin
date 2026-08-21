@@ -20,7 +20,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, authUsecase *biz.AuthUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -49,5 +49,7 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderAttachmentServiceServer(srv, orderAttachment)
 	orderv1.RegisterOrderPersonnelServiceServer(srv, orderPersonnel)
 	taskv1.RegisterBackgroundTaskServiceServer(srv, backgroundTask)
+	orderv1.RegisterOrderContainerServiceServer(srv, orderContainer)
+	orderv1.RegisterOrderCargoItemServiceServer(srv, orderCargoItem)
 	return srv
 }
