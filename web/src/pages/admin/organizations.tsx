@@ -3,7 +3,6 @@ import {
   EditOutlined,
   FolderOpenOutlined,
   FolderOutlined,
-  InfoCircleOutlined,
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
@@ -12,6 +11,7 @@ import {
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
+  ProCard,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
@@ -20,11 +20,9 @@ import {
   App,
   Button,
   Card,
-  Col,
   Descriptions,
   Empty,
   Input,
-  Row,
   Space,
   Spin,
   Table,
@@ -45,17 +43,15 @@ import {
   adminServiceListOrganizations,
   adminServiceUpdateOrganization,
 } from '@/services/roncin/adminService';
+import {
+  buildOrgTree,
+  filterOrgTree,
+  getDirectChildren,
+  getTotalDescendantCount,
+  type OrgTreeNode,
+} from './organization-tree';
 
-const { Text } = Typography;
-
-type OrgNode = {
-  key: string;
-  title: string;
-  code: string;
-  enabled: boolean;
-  raw: API.AdminOrganization;
-  children?: OrgNode[];
-};
+const { Text, Title } = Typography;
 
 type CreateFormValues = {
   code?: string;
@@ -90,7 +86,7 @@ export default function OrganizationsPanel() {
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
   const editFormRef = useRef<ProFormInstance | undefined>(undefined);
 
-  // Load data
+  // Load organizations from backend
   const loadData = useCallback(
     async (selectIdAfterLoad?: string) => {
       setLoading(true);
@@ -121,138 +117,64 @@ export default function OrganizationsPanel() {
     loadData();
   }, [loadData]);
 
-  // Index map of organizations
-  const orgMap = useMemo(() => {
-    const map = new Map<string, API.AdminOrganization>();
-    for (const org of organizations) {
-      if (org.id) map.set(org.id, org);
-    }
-    return map;
-  }, [organizations]);
+  // Construct organization tree structure
+  const { treeData, allKeys, orgMap } = useMemo(
+    () => buildOrgTree(organizations),
+    [organizations],
+  );
 
-  // Build tree data
-  const { treeData, allKeys } = useMemo(() => {
-    const childrenMap = new Map<string, API.AdminOrganization[]>();
-    const roots: API.AdminOrganization[] = [];
-
-    for (const org of organizations) {
-      const pId = org.parentId;
-      if (!pId || !orgMap.has(pId)) {
-        roots.push(org);
-      } else {
-        const arr = childrenMap.get(pId) ?? [];
-        arr.push(org);
-        childrenMap.set(pId, arr);
-      }
-    }
-
-    const keys: string[] = [];
-    const buildNodes = (list: API.AdminOrganization[]): OrgNode[] => {
-      return list.map((item) => {
-        const id = item.id ?? '';
-        keys.push(id);
-        const children = childrenMap.get(id);
-        return {
-          key: id,
-          title: item.name ?? '',
-          code: item.code ?? '',
-          enabled: item.enabled ?? true,
-          raw: item,
-          children:
-            children && children.length > 0 ? buildNodes(children) : undefined,
-        };
-      });
-    };
-
-    return { treeData: buildNodes(roots), allKeys: keys };
-  }, [organizations, orgMap]);
-
-  // Set default expanded keys when tree is first loaded
+  // Default expand all nodes on initial load
   useEffect(() => {
     if (expandedKeys.length === 0 && allKeys.length > 0) {
       setExpandedKeys(allKeys);
     }
   }, [allKeys, expandedKeys.length]);
 
-  // Currently selected organization
+  // Selected organization object
   const selectedOrg = useMemo(() => {
     if (!selectedId) return null;
     return orgMap.get(selectedId) ?? null;
   }, [selectedId, orgMap]);
 
+  // Parent organization of currently selected organization
+  const parentOrgOfSelected = useMemo(() => {
+    if (!selectedOrg?.parentId) return null;
+    return orgMap.get(selectedOrg.parentId) ?? null;
+  }, [selectedOrg, orgMap]);
+
   // Direct sub-organizations of selected organization
-  const directChildren = useMemo(() => {
-    if (!selectedId) return [];
-    return organizations.filter((org) => org.parentId === selectedId);
-  }, [selectedId, organizations]);
+  const directChildren = useMemo(
+    () => getDirectChildren(selectedId, organizations),
+    [selectedId, organizations],
+  );
 
-  // Recursive count of all descendants
-  const totalDescendantCount = useMemo(() => {
-    if (!selectedId) return 0;
-    let count = 0;
-    const stack = [...directChildren];
-    while (stack.length > 0) {
-      const current = stack.pop();
-      if (!current?.id) continue;
-      count += 1;
-      const sub = organizations.filter((org) => org.parentId === current.id);
-      stack.push(...sub);
-    }
-    return count;
-  }, [selectedId, directChildren, organizations]);
+  // Recursive total count of all sub-organizations
+  const totalDescendantCount = useMemo(
+    () => getTotalDescendantCount(selectedId, organizations),
+    [selectedId, organizations],
+  );
 
-  // Filtered tree data & search highlight
-  const filteredTreeData = useMemo(() => {
-    const kw = searchKeyword.trim().toLowerCase();
-    if (!kw) return treeData;
+  // Filtered tree data
+  const { filteredTree } = useMemo(
+    () => filterOrgTree(treeData, searchKeyword),
+    [treeData, searchKeyword],
+  );
 
-    const filterNode = (node: OrgNode): OrgNode | null => {
-      const matchesSelf =
-        node.title.toLowerCase().includes(kw) ||
-        node.code.toLowerCase().includes(kw);
-      const filteredChildren = node.children
-        ?.map(filterNode)
-        .filter((child): child is OrgNode => Boolean(child));
-
-      if (matchesSelf || (filteredChildren && filteredChildren.length > 0)) {
-        return {
-          ...node,
-          children:
-            filteredChildren && filteredChildren.length > 0
-              ? filteredChildren
-              : undefined,
-        };
-      }
-      return null;
-    };
-
-    return treeData
-      .map(filterNode)
-      .filter((node): node is OrgNode => Boolean(node));
-  }, [treeData, searchKeyword]);
-
-  // When searching, expand all matched paths
+  // Handle keyword search
   const handleSearch = (value: string) => {
     setSearchKeyword(value);
     setAutoExpandParent(true);
-    if (!value.trim()) return;
-
-    const kw = value.trim().toLowerCase();
-    const matchedKeys: string[] = [];
-    for (const org of organizations) {
-      if (
-        org.name?.toLowerCase().includes(kw) ||
-        org.code?.toLowerCase().includes(kw)
-      ) {
-        if (org.id) matchedKeys.push(org.id);
-      }
+    if (value.trim()) {
+      const { matchedKeys: keysToExpand } = filterOrgTree(treeData, value);
+      setExpandedKeys((prev) =>
+        Array.from(new Set([...prev, ...keysToExpand])),
+      );
     }
-    setExpandedKeys((prev) => Array.from(new Set([...prev, ...matchedKeys])));
   };
 
   // Node title renderer with search keyword highlight
   const renderTreeTitle = (nodeData: DataNode) => {
-    const node = nodeData as unknown as OrgNode;
+    const node = nodeData as unknown as OrgTreeNode;
     const kw = searchKeyword.trim().toLowerCase();
     const title = node.title || '未命名组织';
     const code = node.code || '';
@@ -285,8 +207,6 @@ export default function OrganizationsPanel() {
             fontSize: 11,
             lineHeight: '18px',
             padding: '0 4px',
-            color: '#64748b',
-            backgroundColor: '#f1f5f9',
             fontFamily: 'monospace',
           }}
         >
@@ -333,328 +253,273 @@ export default function OrganizationsPanel() {
     setEditModalOpen(true);
   };
 
-  const parentOrgOfSelected = selectedOrg?.parentId
-    ? orgMap.get(selectedOrg.parentId)
-    : null;
-
   return (
-    <div style={{ minHeight: 600 }}>
-      <Row gutter={[16, 16]}>
-        {/* Left: Organization Tree Card */}
-        <Col xs={24} md={9} lg={8} xl={7}>
-          <Card
-            styles={{
-              body: { padding: '12px' },
-              header: { padding: '0 12px', minHeight: 48 },
-            }}
-            title={
-              <Space size={6}>
-                <ApartmentOutlined style={{ color: '#1677ff' }} />
-                <span>组织架构</span>
-                <Tag style={{ margin: 0, fontSize: 11 }}>
-                  {organizations.length} 个
-                </Tag>
-              </Space>
-            }
-            extra={
-              <Space size={4}>
-                <Button
-                  size="small"
-                  icon={<ReloadOutlined />}
-                  onClick={() => loadData(selectedId)}
-                  loading={loading}
-                  title="刷新组织树"
+    <>
+      <ProCard split="vertical" variant="outlined" headerBordered>
+        {/* Left: Organization Tree */}
+        <ProCard
+          colSpan={{ xs: 24, md: '340px' }}
+          title={
+            <Space size={6}>
+              <ApartmentOutlined />
+              <span>组织架构</span>
+              <Tag bordered={false} style={{ margin: 0, fontSize: 11 }}>
+                {organizations.length} 个
+              </Tag>
+            </Space>
+          }
+          extra={
+            <Space size={4}>
+              <Button
+                type="text"
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={() => loadData(selectedId)}
+                loading={loading}
+                title="刷新组织树"
+              />
+              <Button
+                type="primary"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={openCreateRoot}
+              >
+                新增根组织
+              </Button>
+            </Space>
+          }
+        >
+          {/* Search Input */}
+          <div style={{ marginBottom: 12 }}>
+            <Input
+              placeholder="搜索组织名称或编码"
+              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              allowClear
+              value={searchKeyword}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+          </div>
+
+          {/* Tree View */}
+          <Spin spinning={loading}>
+            <div
+              style={{
+                maxHeight: 'calc(100vh - 320px)',
+                minHeight: 380,
+                overflowY: 'auto',
+                paddingRight: 4,
+              }}
+            >
+              {filteredTree.length > 0 ? (
+                <Tree
+                  showIcon
+                  blockNode
+                  treeData={filteredTree as unknown as DataNode[]}
+                  selectedKeys={selectedId ? [selectedId] : []}
+                  expandedKeys={expandedKeys}
+                  autoExpandParent={autoExpandParent}
+                  onExpand={(keys) => {
+                    setExpandedKeys(keys);
+                    setAutoExpandParent(false);
+                  }}
+                  onSelect={(keys) => {
+                    if (keys.length > 0) {
+                      setSelectedId(String(keys[0]));
+                    }
+                  }}
+                  titleRender={renderTreeTitle}
+                  icon={({ expanded, isLeaf }) => {
+                    if (!isLeaf) {
+                      return expanded ? (
+                        <FolderOpenOutlined />
+                      ) : (
+                        <FolderOutlined />
+                      );
+                    }
+                    return <TeamOutlined />;
+                  }}
                 />
+              ) : (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={searchKeyword ? '无匹配组织' : '暂无组织数据'}
+                  style={{ margin: '40px 0' }}
+                />
+              )}
+            </div>
+          </Spin>
+        </ProCard>
+
+        {/* Right: Organization Details */}
+        <ProCard
+          title={
+            selectedOrg ? (
+              <Space align="center" size={8}>
+                <Title level={4} style={{ margin: 0 }}>
+                  {selectedOrg.name}
+                </Title>
+                {selectedOrg.enabled ? (
+                  <Tag color="success">启用</Tag>
+                ) : (
+                  <Tag color="default">已停用</Tag>
+                )}
+              </Space>
+            ) : (
+              '组织详情'
+            )
+          }
+          extra={
+            selectedOrg ? (
+              <Space size={8}>
+                <Button icon={<PlusOutlined />} onClick={openCreateChild}>
+                  新增子组织
+                </Button>
                 <Button
                   type="primary"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={openCreateRoot}
+                  icon={<EditOutlined />}
+                  onClick={openEdit}
                 >
-                  新增根组织
+                  编辑组织
                 </Button>
               </Space>
-            }
-          >
-            {/* Search Input */}
-            <div style={{ marginBottom: 12 }}>
-              <Input
-                placeholder="搜索组织名称或编码"
-                prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
-                allowClear
-                size="middle"
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-
-            {/* Tree */}
-            <Spin spinning={loading}>
-              <div
-                style={{
-                  maxHeight: 'calc(100vh - 310px)',
-                  minHeight: 420,
-                  overflowY: 'auto',
-                  paddingRight: 4,
-                }}
-              >
-                {filteredTreeData.length > 0 ? (
-                  <Tree
-                    showIcon
-                    blockNode
-                    treeData={filteredTreeData as unknown as DataNode[]}
-                    selectedKeys={selectedId ? [selectedId] : []}
-                    expandedKeys={expandedKeys}
-                    autoExpandParent={autoExpandParent}
-                    onExpand={(keys) => {
-                      setExpandedKeys(keys);
-                      setAutoExpandParent(false);
-                    }}
-                    onSelect={(keys) => {
-                      if (keys.length > 0) {
-                        setSelectedId(String(keys[0]));
-                      }
-                    }}
-                    titleRender={renderTreeTitle}
-                    icon={({ expanded, isLeaf }) => {
-                      if (!isLeaf) {
-                        return expanded ? (
-                          <FolderOpenOutlined style={{ color: '#1677ff' }} />
-                        ) : (
-                          <FolderOutlined style={{ color: '#1677ff' }} />
-                        );
-                      }
-                      return <TeamOutlined style={{ color: '#64748b' }} />;
-                    }}
-                  />
-                ) : (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={searchKeyword ? '无匹配组织' : '暂无组织数据'}
-                    style={{ margin: '40px 0' }}
-                  />
-                )}
-              </div>
-            </Spin>
-          </Card>
-        </Col>
-
-        {/* Right: Selected Organization Details */}
-        <Col xs={24} md={15} lg={16} xl={17}>
+            ) : null
+          }
+          headerBordered
+        >
           {selectedOrg ? (
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <Card
-                styles={{
-                  body: { padding: 20 },
-                  header: { padding: '0 20px', minHeight: 52 },
-                }}
-                title={
-                  <Space align="center" size={8}>
-                    <Text strong style={{ fontSize: 16 }}>
-                      {selectedOrg.name}
-                    </Text>
-                    {selectedOrg.enabled ? (
-                      <Tag color="success">启用</Tag>
-                    ) : (
-                      <Tag>已停用</Tag>
-                    )}
-                    <Tag
-                      bordered={false}
-                      style={{
-                        fontFamily: 'monospace',
-                        color: '#475569',
-                        backgroundColor: '#f1f5f9',
-                      }}
-                    >
-                      {selectedOrg.code}
-                    </Tag>
-                  </Space>
-                }
-                extra={
-                  <Space size={8}>
-                    <Button icon={<PlusOutlined />} onClick={openCreateChild}>
-                      新增子组织
-                    </Button>
+            <Space direction="vertical" size={20} style={{ width: '100%' }}>
+              {/* Basic Descriptions */}
+              <Descriptions
+                bordered
+                size="small"
+                column={{ xs: 1, sm: 2, md: 2, lg: 2 }}
+              >
+                <Descriptions.Item label="组织编码">
+                  <Text copyable style={{ fontFamily: 'monospace' }}>
+                    {selectedOrg.code}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="组织名称">
+                  <Text strong>{selectedOrg.name}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="上级组织">
+                  {parentOrgOfSelected ? (
                     <Button
-                      type="primary"
-                      icon={<EditOutlined />}
-                      onClick={openEdit}
+                      type="link"
+                      size="small"
+                      style={{ padding: 0, height: 'auto' }}
+                      onClick={() =>
+                        setSelectedId(parentOrgOfSelected.id ?? '')
+                      }
                     >
-                      编辑组织
+                      {parentOrgOfSelected.name} ({parentOrgOfSelected.code})
                     </Button>
-                  </Space>
-                }
-              >
-                <Descriptions
-                  bordered
+                  ) : (
+                    '—'
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="启用状态">
+                  {selectedOrg.enabled ? (
+                    <Tag color="success">启用中</Tag>
+                  ) : (
+                    <Tag color="default">已停用</Tag>
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="直接下级数量">
+                  <Text strong>{directChildren.length}</Text> 个
+                </Descriptions.Item>
+                <Descriptions.Item label="全部下级数量">
+                  <Text strong>{totalDescendantCount}</Text> 个
+                </Descriptions.Item>
+              </Descriptions>
+
+              {/* Direct Sub-organizations Table */}
+              {directChildren.length > 0 && (
+                <Card
+                  type="inner"
+                  title="直接下级组织"
                   size="small"
-                  column={{ xs: 1, sm: 2, md: 2, lg: 3 }}
-                  styles={{ label: { width: 110, color: '#64748b' } }}
-                >
-                  <Descriptions.Item label="组织名称">
-                    <Text strong>{selectedOrg.name}</Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="组织编码">
-                    <Text copyable style={{ fontFamily: 'monospace' }}>
-                      {selectedOrg.code}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="组织状态">
-                    {selectedOrg.enabled ? (
-                      <Tag color="success">启用中</Tag>
-                    ) : (
-                      <Tag color="default">已停用</Tag>
-                    )}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="上级组织">
-                    {parentOrgOfSelected ? (
-                      <Space size={4}>
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ padding: 0, height: 'auto' }}
-                          onClick={() =>
-                            setSelectedId(parentOrgOfSelected.id ?? '')
-                          }
-                        >
-                          {parentOrgOfSelected.name}
-                        </Button>
-                        <Text
-                          type="secondary"
-                          style={{ fontSize: 11, fontFamily: 'monospace' }}
-                        >
-                          ({parentOrgOfSelected.code})
-                        </Text>
-                      </Space>
-                    ) : (
-                      <Tag color="blue" bordered={false}>
-                        根组织 / 顶级
-                      </Tag>
-                    )}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="直接子组织">
-                    <Text strong>{directChildren.length}</Text> 个
-                  </Descriptions.Item>
-                  <Descriptions.Item label="下级组织总数">
-                    <Text strong>{totalDescendantCount}</Text> 个
-                  </Descriptions.Item>
-                  <Descriptions.Item label="组织唯一标识" span={3}>
-                    <Text
-                      copyable
-                      type="secondary"
-                      style={{ fontSize: 12, fontFamily: 'monospace' }}
+                  extra={
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      onClick={openCreateChild}
                     >
-                      {selectedOrg.id}
-                    </Text>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-
-              {/* Sub-organizations Table */}
-              <Card
-                title="下级子组织"
-                styles={{
-                  body: { padding: 0 },
-                  header: { padding: '0 20px', minHeight: 48 },
-                }}
-                extra={
-                  <Button
+                      添加子组织
+                    </Button>
+                  }
+                >
+                  <Table<API.AdminOrganization>
+                    rowKey="id"
                     size="small"
-                    type="link"
-                    icon={<PlusOutlined />}
-                    onClick={openCreateChild}
-                  >
-                    添加子组织
-                  </Button>
-                }
-              >
-                <Table
-                  rowKey="id"
-                  size="small"
-                  pagination={false}
-                  dataSource={directChildren}
-                  locale={{ emptyText: '当前组织下暂无子组织' }}
-                  columns={[
-                    {
-                      title: '组织名称',
-                      dataIndex: 'name',
-                      render: (text, record) => (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{
-                            padding: 0,
-                            height: 'auto',
-                            fontWeight: 500,
-                          }}
-                          onClick={() => setSelectedId(record.id ?? '')}
-                        >
-                          {text}
-                        </Button>
-                      ),
-                    },
-                    {
-                      title: '编码',
-                      dataIndex: 'code',
-                      render: (code) => (
-                        <Text
-                          copyable
-                          style={{ fontFamily: 'monospace', fontSize: 12 }}
-                        >
-                          {code}
-                        </Text>
-                      ),
-                    },
-                    {
-                      title: '状态',
-                      dataIndex: 'enabled',
-                      width: 90,
-                      render: (enabled) =>
-                        enabled ? (
-                          <Tag color="success">启用</Tag>
-                        ) : (
-                          <Tag>停用</Tag>
+                    pagination={false}
+                    dataSource={directChildren}
+                    columns={[
+                      {
+                        title: '组织名称',
+                        dataIndex: 'name',
+                        render: (name, record) => (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{
+                              padding: 0,
+                              height: 'auto',
+                              fontWeight: 500,
+                            }}
+                            onClick={() => setSelectedId(record.id ?? '')}
+                          >
+                            {name}
+                          </Button>
                         ),
-                    },
-                    {
-                      title: '操作',
-                      width: 90,
-                      render: (_, record) => (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ padding: 0 }}
-                          onClick={() => {
-                            setSelectedId(record.id ?? '');
-                            setEditingOrg(record);
-                            editFormRef.current?.setFieldsValue({
-                              name: record.name,
-                              enabled: record.enabled ?? true,
-                            });
-                            setEditModalOpen(true);
-                          }}
-                        >
-                          编辑
-                        </Button>
-                      ),
-                    },
-                  ]}
-                />
-              </Card>
-
-              {/* Architecture info callout */}
-              <Alert
-                showIcon
-                icon={<InfoCircleOutlined />}
-                type="info"
-                message="组织架构权限联动机制"
-                description="组织用于划分企业多租户或多层级业务边界。调整组织启用状态时，停用的组织及其成员的数据访问权限将受到相应限制。"
-                style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}
-              />
+                      },
+                      {
+                        title: '组织编码',
+                        dataIndex: 'code',
+                        render: (code) => (
+                          <Text
+                            copyable
+                            style={{ fontFamily: 'monospace', fontSize: 12 }}
+                          >
+                            {code}
+                          </Text>
+                        ),
+                      },
+                      {
+                        title: '状态',
+                        dataIndex: 'enabled',
+                        width: 90,
+                        render: (enabled) =>
+                          enabled ? (
+                            <Tag color="success">启用</Tag>
+                          ) : (
+                            <Tag color="default">停用</Tag>
+                          ),
+                      },
+                      {
+                        title: '操作',
+                        width: 80,
+                        render: (_, record) => (
+                          <Button
+                            type="link"
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={() => setSelectedId(record.id ?? '')}
+                          >
+                            查看
+                          </Button>
+                        ),
+                      },
+                    ]}
+                  />
+                </Card>
+              )}
             </Space>
           ) : (
-            <Card
+            <div
               style={{
-                minHeight: 400,
+                minHeight: 360,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -669,10 +534,10 @@ export default function OrganizationsPanel() {
                   新增根组织
                 </Button>
               </Empty>
-            </Card>
+            </div>
           )}
-        </Col>
-      </Row>
+        </ProCard>
+      </ProCard>
 
       {/* Modal: Create Organization */}
       <ModalForm<CreateFormValues>
@@ -708,20 +573,12 @@ export default function OrganizationsPanel() {
         }}
       >
         {parentForCreate && (
-          <div style={{ marginBottom: 16 }}>
-            <Text
-              type="secondary"
-              style={{ fontSize: 12, display: 'block', marginBottom: 4 }}
-            >
-              所属上级组织
-            </Text>
-            <Tag
-              color="processing"
-              style={{ fontSize: 13, padding: '2px 8px' }}
-            >
-              {parentForCreate.name} ({parentForCreate.code})
-            </Tag>
-          </div>
+          <Alert
+            showIcon
+            type="info"
+            message={`当前上级组织：${parentForCreate.name} (${parentForCreate.code})`}
+            style={{ marginBottom: 16 }}
+          />
         )}
         <ProFormText
           name="code"
@@ -797,6 +654,6 @@ export default function OrganizationsPanel() {
           extra="停用后该组织及其关联成员将无法进行业务操作"
         />
       </ModalForm>
-    </div>
+    </>
   );
 }
