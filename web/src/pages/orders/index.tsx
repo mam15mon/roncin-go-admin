@@ -8,6 +8,7 @@ import {
   PlusOutlined,
   SwapOutlined,
   TeamOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import type {
   ActionType,
@@ -33,6 +34,12 @@ import {
   masterDataServiceListOptions,
   masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
+import {
+  orderAbnormalCaseServiceListAbnormalCases,
+  orderAbnormalCaseServiceMarkAbnormalCase,
+  orderAbnormalCaseServiceRemoveAbnormalCase,
+  orderAbnormalCaseServiceResolveAbnormalCase,
+} from '@/services/roncin/orderAbnormalCaseService';
 import {
   orderAttachmentServiceListAttachments,
   orderAttachmentServiceRegisterAttachment,
@@ -128,6 +135,7 @@ const MASTER_DATA_KINDS = {
   CONTAINER_SPEC: 7,
   SERVICE_TYPE: 8,
   CARGO_CATEGORY: 9,
+  ABNORMAL_CASE: 10,
 } as const;
 
 type OrderFormValues = {
@@ -227,6 +235,18 @@ const shippingDocumentStatusValueEnum: Record<
   3: { text: '已放货', status: 'Success' },
 };
 
+type AbnormalCaseFormValues = {
+  abnormalCaseId: string;
+};
+
+const abnormalCaseStatusValueEnum: Record<
+  number,
+  { text: string; status: 'Error' | 'Success' }
+> = {
+  1: { text: '进行中', status: 'Error' },
+  2: { text: '已解决', status: 'Success' },
+};
+
 export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -244,6 +264,8 @@ export default function Orders() {
   const cargoFormRef = useRef<ProFormInstance | undefined>(undefined);
   const shippingDocumentActionRef = useRef<ActionType | undefined>(undefined);
   const shippingDocumentFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const abnormalCaseActionRef = useRef<ActionType | undefined>(undefined);
+  const abnormalCaseFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -264,6 +286,8 @@ export default function Orders() {
     useState(false);
   const [shippingDocumentModalOpen, setShippingDocumentModalOpen] =
     useState(false);
+  const [abnormalCaseDrawerOpen, setAbnormalCaseDrawerOpen] = useState(false);
+  const [abnormalCaseModalOpen, setAbnormalCaseModalOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
@@ -274,6 +298,7 @@ export default function Orders() {
   const [cargoOrder, setCargoOrder] = useState<API.Order>();
   const [shippingDocumentOrder, setShippingDocumentOrder] =
     useState<API.Order>();
+  const [abnormalCaseOrder, setAbnormalCaseOrder] = useState<API.Order>();
   const [editingMilestone, setEditingMilestone] = useState<API.OrderMilestone>();
   const [editingContainer, setEditingContainer] = useState<API.OrderContainer>();
   const [editingCargoItem, setEditingCargoItem] = useState<API.OrderCargoItem>();
@@ -306,6 +331,27 @@ export default function Orders() {
     masterOptions
       .filter(
         (item) => item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.id,
+      )
+      .map((item) => [
+        item.id as string,
+        item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      ]),
+  );
+
+  const abnormalCaseOptions = masterOptions
+    .filter(
+      (item) =>
+        item.kind === MASTER_DATA_KINDS.ABNORMAL_CASE && item.enabled !== false,
+    )
+    .map((item) => ({
+      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      value: item.id ?? '',
+    }));
+
+  const abnormalCaseMap = Object.fromEntries(
+    masterOptions
+      .filter(
+        (item) => item.kind === MASTER_DATA_KINDS.ABNORMAL_CASE && item.id,
       )
       .map((item) => [
         item.id as string,
@@ -562,6 +608,128 @@ export default function Orders() {
     });
     setShippingDocumentModalOpen(true);
   };
+
+  const openAbnormalCases = (record: API.Order) => {
+    setAbnormalCaseOrder(record);
+    setAbnormalCaseDrawerOpen(true);
+  };
+
+  const openMarkAbnormalCase = () => {
+    abnormalCaseFormRef.current?.resetFields();
+    setAbnormalCaseModalOpen(true);
+  };
+
+  const abnormalCaseColumns: ProColumns<API.OrderAbnormalCase>[] = [
+    {
+      title: '异常类型',
+      dataIndex: 'abnormalCaseId',
+      ellipsis: true,
+      render: (_, record) =>
+        (record.abnormalCaseId && abnormalCaseMap[record.abnormalCaseId]) || '-',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      valueType: 'select',
+      valueEnum: abnormalCaseStatusValueEnum,
+      render: (_, record) => {
+        if (record.status === 1) {
+          return <Tag color="error">进行中</Tag>;
+        }
+        if (record.status === 2) {
+          return <Tag color="success">已解决</Tag>;
+        }
+        return '-';
+      },
+    },
+    {
+      title: '标记时间',
+      dataIndex: 'markedAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.markedAt
+          ? dayjs(record.markedAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '标记人',
+      dataIndex: 'markedBy',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.markedBy || '-',
+    },
+    {
+      title: '解决时间',
+      dataIndex: 'resolvedAt',
+      valueType: 'dateTime',
+      width: 180,
+      render: (_, record) =>
+        record.resolvedAt
+          ? dayjs(record.resolvedAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
+    },
+    {
+      title: '解决人',
+      dataIndex: 'resolvedBy',
+      copyable: true,
+      ellipsis: true,
+      render: (_, record) => record.resolvedBy || '-',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      search: false,
+      width: 140,
+      render: (_, record) => {
+        if (!access.canManageOrders) return null;
+        return (
+          <Space size="small">
+            {record.status === 1 && (
+              <Popconfirm
+                title="确定解决该异常？"
+                onConfirm={async () => {
+                  if (!abnormalCaseOrder?.id || !record.id) return;
+                  await orderAbnormalCaseServiceResolveAbnormalCase(
+                    {
+                      orderId: abnormalCaseOrder.id,
+                      id: record.id,
+                    },
+                    {
+                      orderId: abnormalCaseOrder.id,
+                      id: record.id,
+                    },
+                  );
+                  message.success('解决异常成功');
+                  abnormalCaseActionRef.current?.reload();
+                }}
+              >
+                <Button type="link" size="small">
+                  解决
+                </Button>
+              </Popconfirm>
+            )}
+            <Popconfirm
+              title="确定移除该异常？"
+              onConfirm={async () => {
+                if (!abnormalCaseOrder?.id || !record.id) return;
+                await orderAbnormalCaseServiceRemoveAbnormalCase({
+                  orderId: abnormalCaseOrder.id,
+                  id: record.id,
+                });
+                message.success('移除异常成功');
+                abnormalCaseActionRef.current?.reload();
+              }}
+            >
+              <Button type="link" danger size="small">
+                移除
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
 
   const shippingDocumentColumns: ProColumns<API.OrderShippingDocument>[] = [
     {
@@ -1101,7 +1269,7 @@ export default function Orders() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 540,
+      width: 600,
       render: (_, record) => {
         if (!access.canReadOrders && !access.canManageOrders) return null;
         return (
@@ -1173,6 +1341,14 @@ export default function Orders() {
               onClick={() => openShippingDocuments(record)}
             >
               提单
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<WarningOutlined />}
+              onClick={() => openAbnormalCases(record)}
+            >
+              异常
             </Button>
           </Space>
         );
@@ -2412,6 +2588,89 @@ export default function Orders() {
           label="备注"
           placeholder="请输入备注 (可选)"
           fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
+
+      <Drawer
+        title={
+          abnormalCaseOrder
+            ? `订单异常 - ${abnormalCaseOrder.orderNo || abnormalCaseOrder.id}`
+            : '订单异常'
+        }
+        open={abnormalCaseDrawerOpen}
+        onClose={() => {
+          setAbnormalCaseDrawerOpen(false);
+          setAbnormalCaseOrder(undefined);
+        }}
+        width={900}
+        destroyOnHidden
+      >
+        {abnormalCaseOrder?.id && (
+          <ProTable<API.OrderAbnormalCase>
+            actionRef={abnormalCaseActionRef}
+            rowKey="id"
+            columns={abnormalCaseColumns}
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response =
+                await orderAbnormalCaseServiceListAbnormalCases({
+                  orderId: abnormalCaseOrder.id as string,
+                });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            toolBarRender={() => [
+              access.canManageOrders && (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={openMarkAbnormalCase}
+                >
+                  标记异常
+                </Button>
+              ),
+            ]}
+          />
+        )}
+      </Drawer>
+
+      <ModalForm<AbnormalCaseFormValues>
+        title="标记异常"
+        open={abnormalCaseModalOpen}
+        formRef={abnormalCaseFormRef}
+        modalProps={{
+          destroyOnHidden: true,
+          width: 520,
+          onCancel: () => setAbnormalCaseModalOpen(false),
+        }}
+        onOpenChange={setAbnormalCaseModalOpen}
+        onFinish={async (values) => {
+          if (!abnormalCaseOrder?.id) return false;
+          await orderAbnormalCaseServiceMarkAbnormalCase(
+            {
+              orderId: abnormalCaseOrder.id,
+            },
+            {
+              orderId: abnormalCaseOrder.id,
+              abnormalCaseId: values.abnormalCaseId,
+            },
+          );
+          message.success('标记异常成功');
+          setAbnormalCaseModalOpen(false);
+          abnormalCaseActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormSelect
+          name="abnormalCaseId"
+          label="异常类型"
+          rules={[{ required: true, message: '请选择异常类型' }]}
+          options={abnormalCaseOptions}
+          placeholder="请选择异常类型"
         />
       </ModalForm>
     </>
