@@ -9,7 +9,7 @@ const Settings: ProLayoutProps & {
 } = {
   navTheme: 'realDark',
   colorPrimary: '#1677ff',
-  layout: 'mix',
+  layout: 'side',
   contentWidth: 'Fluid',
   fixedHeader: true,
   fixSiderbar: true,
@@ -26,7 +26,7 @@ const Settings: ProLayoutProps & {
       colorTextCollapsedButtonHover: '#f8fafc',
       colorBgMenuItemCollapsedElevated: '#0f172a',
       colorBgMenuItemHover: 'rgba(255, 255, 255, 0.06)',
-      colorBgMenuItemSelected: 'rgba(59, 130, 246, 0.16)',
+      colorBgMenuItemSelected: 'rgba(22, 119, 255, 0.18)',
       colorTextMenu: '#94a3b8',
       colorTextMenuSelected: '#60a5fa',
       colorTextMenuItemHover: '#f8fafc',

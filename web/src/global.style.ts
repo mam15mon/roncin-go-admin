@@ -8,9 +8,6 @@ const useStyles = createStyles(() => {
     'ant-layout': {
       minHeight: '100vh',
     },
-    'ant-pro-sider.ant-layout-sider.ant-pro-sider-fixed': {
-      left: 'unset',
-    },
     '.ant-pro-sider-collapsed .ant-pro-sider-link span:not([role="img"])': {
       display: 'none',
     },
