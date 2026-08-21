@@ -9,14 +9,13 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 )
 
 var (
-	ErrPartnerContractNotFound        = errors.NotFound(v1.ErrorReason_PARTNER_CONTRACT_NOT_FOUND.String(), "合同不存在")
-	ErrPartnerContractNoExists        = errors.Conflict(v1.ErrorReason_PARTNER_CONTRACT_NO_EXISTS.String(), "合同编号已存在")
-	ErrPartnerContractInvalidArgument = errors.BadRequest(v1.ErrorReason_PARTNER_CONTRACT_INVALID_ARGUMENT.String(), "合同字段不合法")
-	ErrPartnerContractStatusConflict  = errors.Conflict(v1.ErrorReason_PARTNER_CONTRACT_STATUS_CONFLICT.String(), "合同状态不允许该变更")
+	ErrPartnerContractNotFound        = errors.NotFound("PARTNER_CONTRACT_NOT_FOUND", "合同不存在")
+	ErrPartnerContractNoExists        = errors.Conflict("PARTNER_CONTRACT_NO_EXISTS", "合同编号已存在")
+	ErrPartnerContractInvalidArgument = errors.BadRequest("PARTNER_CONTRACT_INVALID_ARGUMENT", "合同字段不合法")
+	ErrPartnerContractStatusConflict  = errors.Conflict("PARTNER_CONTRACT_STATUS_CONFLICT", "合同状态不允许该变更")
 )
 
 type PartnerContractStatus string

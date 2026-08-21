@@ -7,14 +7,13 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderPersonnelNotFound        = errors.NotFound(v1.ErrorReason_ORDER_PERSONNEL_NOT_FOUND.String(), "订单协作人员不存在")
-	ErrOrderPersonnelExists          = errors.Conflict(v1.ErrorReason_ORDER_PERSONNEL_EXISTS.String(), "订单协作人员已存在")
-	ErrOrderPersonnelInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_PERSONNEL_INVALID_ARGUMENT.String(), "订单协作人员字段不合法")
-	ErrOrderPersonnelUserInvalid     = errors.BadRequest(v1.ErrorReason_ORDER_PERSONNEL_USER_INVALID.String(), "协作人员必须是当前组织启用的用户")
+	ErrOrderPersonnelNotFound        = errors.NotFound("ORDER_PERSONNEL_NOT_FOUND", "订单协作人员不存在")
+	ErrOrderPersonnelExists          = errors.Conflict("ORDER_PERSONNEL_EXISTS", "订单协作人员已存在")
+	ErrOrderPersonnelInvalidArgument = errors.BadRequest("ORDER_PERSONNEL_INVALID_ARGUMENT", "订单协作人员字段不合法")
+	ErrOrderPersonnelUserInvalid     = errors.BadRequest("ORDER_PERSONNEL_USER_INVALID", "协作人员必须是当前组织启用的用户")
 )
 
 type OrderPersonnelRole string

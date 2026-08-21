@@ -7,15 +7,14 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderAbnormalCaseNotFound        = errors.NotFound(v1.ErrorReason_ORDER_ABNORMAL_CASE_NOT_FOUND.String(), "订单异常标记不存在")
-	ErrOrderAbnormalCaseExists          = errors.Conflict(v1.ErrorReason_ORDER_ABNORMAL_CASE_EXISTS.String(), "该异常已在订单上标记且未解决")
-	ErrOrderAbnormalCaseInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_ABNORMAL_CASE_INVALID_ARGUMENT.String(), "订单异常标记字段不合法")
-	ErrOrderAbnormalCaseKindInvalid     = errors.BadRequest(v1.ErrorReason_ORDER_ABNORMAL_CASE_KIND_INVALID.String(), "异常类型必须是当前组织启用的异常类型主数据")
-	ErrOrderAbnormalCaseStatusConflict  = errors.Conflict(v1.ErrorReason_ORDER_ABNORMAL_CASE_STATUS_CONFLICT.String(), "异常状态已被并发修改")
+	ErrOrderAbnormalCaseNotFound        = errors.NotFound("ORDER_ABNORMAL_CASE_NOT_FOUND", "订单异常标记不存在")
+	ErrOrderAbnormalCaseExists          = errors.Conflict("ORDER_ABNORMAL_CASE_EXISTS", "该异常已在订单上标记且未解决")
+	ErrOrderAbnormalCaseInvalidArgument = errors.BadRequest("ORDER_ABNORMAL_CASE_INVALID_ARGUMENT", "订单异常标记字段不合法")
+	ErrOrderAbnormalCaseKindInvalid     = errors.BadRequest("ORDER_ABNORMAL_CASE_KIND_INVALID", "异常类型必须是当前组织启用的异常类型主数据")
+	ErrOrderAbnormalCaseStatusConflict  = errors.Conflict("ORDER_ABNORMAL_CASE_STATUS_CONFLICT", "异常状态已被并发修改")
 )
 
 type OrderAbnormalCaseStatus string

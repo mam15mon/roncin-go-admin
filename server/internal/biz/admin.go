@@ -3,25 +3,23 @@ package biz
 import (
 	"context"
 	"fmt"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 	"strings"
 	"time"
-
-	v1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrAdminOrganizationNotFound   = errors.NotFound(v1.ErrorReason_ADMIN_ORGANIZATION_NOT_FOUND.String(), "组织不存在")
-	ErrAdminOrganizationCodeExists = errors.Conflict(v1.ErrorReason_ADMIN_ORGANIZATION_CODE_EXISTS.String(), "组织编码已存在")
-	ErrAdminUserNotFound           = errors.NotFound(v1.ErrorReason_ADMIN_USER_NOT_FOUND.String(), "用户不存在")
-	ErrAdminUsernameExists         = errors.Conflict(v1.ErrorReason_ADMIN_USERNAME_EXISTS.String(), "用户名已存在")
-	ErrAdminRoleNotFound           = errors.NotFound(v1.ErrorReason_ADMIN_ROLE_NOT_FOUND.String(), "角色不存在")
-	ErrAdminRoleCodeExists         = errors.Conflict(v1.ErrorReason_ADMIN_ROLE_CODE_EXISTS.String(), "角色编码已存在")
-	ErrAdminPermissionInvalid      = errors.BadRequest(v1.ErrorReason_ADMIN_PERMISSION_INVALID.String(), "权限不存在或不属于当前请求")
-	ErrAdminInvalidArgument        = errors.BadRequest(v1.ErrorReason_ADMIN_INVALID_ARGUMENT.String(), "管理参数不合法")
+	ErrAdminOrganizationNotFound   = errors.NotFound("ADMIN_ORGANIZATION_NOT_FOUND", "组织不存在")
+	ErrAdminOrganizationCodeExists = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
+	ErrAdminUserNotFound           = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
+	ErrAdminUsernameExists         = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
+	ErrAdminRoleNotFound           = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
+	ErrAdminRoleCodeExists         = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
+	ErrAdminPermissionInvalid      = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
+	ErrAdminInvalidArgument        = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "管理参数不合法")
 )
 
 type AdminOrganization struct {

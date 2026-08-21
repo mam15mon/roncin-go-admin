@@ -8,17 +8,15 @@ import (
 	"time"
 	"unicode/utf8"
 
-	v1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
-
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrMilestoneTemplateNotFound        = errors.NotFound(v1.ErrorReason_MILESTONE_TEMPLATE_NOT_FOUND.String(), "里程碑模板不存在")
-	ErrMilestoneTemplateExists          = errors.Conflict(v1.ErrorReason_MILESTONE_TEMPLATE_EXISTS.String(), "里程碑模板版本已存在")
-	ErrMilestoneTemplateInvalid         = errors.BadRequest(v1.ErrorReason_MILESTONE_TEMPLATE_INVALID.String(), "里程碑模板不合法")
-	ErrMilestoneTemplateDefaultConflict = errors.Conflict(v1.ErrorReason_MILESTONE_TEMPLATE_DEFAULT_CONFLICT.String(), "默认里程碑模板设置冲突")
+	ErrMilestoneTemplateNotFound        = errors.NotFound("MILESTONE_TEMPLATE_NOT_FOUND", "里程碑模板不存在")
+	ErrMilestoneTemplateExists          = errors.Conflict("MILESTONE_TEMPLATE_EXISTS", "里程碑模板版本已存在")
+	ErrMilestoneTemplateInvalid         = errors.BadRequest("MILESTONE_TEMPLATE_INVALID", "里程碑模板不合法")
+	ErrMilestoneTemplateDefaultConflict = errors.Conflict("MILESTONE_TEMPLATE_DEFAULT_CONFLICT", "默认里程碑模板设置冲突")
 )
 
 type MilestoneTemplateItem struct {

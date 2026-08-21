@@ -10,15 +10,14 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 )
 
 const maxPartnerAttachmentSize int64 = 100 << 20
 
 var (
-	ErrPartnerAttachmentNotFound        = errors.NotFound(v1.ErrorReason_PARTNER_ATTACHMENT_NOT_FOUND.String(), "附件不存在")
-	ErrPartnerAttachmentExists          = errors.Conflict(v1.ErrorReason_PARTNER_ATTACHMENT_EXISTS.String(), "附件幂等键已存在")
-	ErrPartnerAttachmentInvalidArgument = errors.BadRequest(v1.ErrorReason_PARTNER_ATTACHMENT_INVALID_ARGUMENT.String(), "附件字段不合法")
+	ErrPartnerAttachmentNotFound        = errors.NotFound("PARTNER_ATTACHMENT_NOT_FOUND", "附件不存在")
+	ErrPartnerAttachmentExists          = errors.Conflict("PARTNER_ATTACHMENT_EXISTS", "附件幂等键已存在")
+	ErrPartnerAttachmentInvalidArgument = errors.BadRequest("PARTNER_ATTACHMENT_INVALID_ARGUMENT", "附件字段不合法")
 )
 
 type PartnerAttachment struct {

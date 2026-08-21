@@ -9,17 +9,16 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderNotFound        = errors.NotFound(v1.ErrorReason_ORDER_NOT_FOUND.String(), "订单不存在")
-	ErrOrderInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_INVALID_ARGUMENT.String(), "订单字段不合法")
-	ErrOrderNumberExists    = errors.Conflict(v1.ErrorReason_ORDER_NUMBER_EXISTS.String(), "订单编号已存在")
-	ErrOrderCustomerInvalid = errors.BadRequest(v1.ErrorReason_ORDER_CUSTOMER_INVALID.String(), "订单客户必须是启用的客户角色")
-	ErrOrderStatusInvalid   = errors.BadRequest(v1.ErrorReason_ORDER_STATUS_INVALID.String(), "订单状态不合法")
-	ErrOrderStatusConflict  = errors.Conflict(v1.ErrorReason_ORDER_STATUS_CONFLICT.String(), "订单状态已被其他操作修改")
-	ErrOrderStatusTemplate  = errors.BadRequest(v1.ErrorReason_ORDER_STATUS_TEMPLATE_REQUIRED.String(), "订单必须使用已发布状态模板")
+	ErrOrderNotFound        = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")
+	ErrOrderInvalidArgument = errors.BadRequest("ORDER_INVALID_ARGUMENT", "订单字段不合法")
+	ErrOrderNumberExists    = errors.Conflict("ORDER_NUMBER_EXISTS", "订单编号已存在")
+	ErrOrderCustomerInvalid = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
+	ErrOrderStatusInvalid   = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
+	ErrOrderStatusConflict  = errors.Conflict("ORDER_STATUS_CONFLICT", "订单状态已被其他操作修改")
+	ErrOrderStatusTemplate  = errors.BadRequest("ORDER_STATUS_TEMPLATE_REQUIRED", "订单必须使用已发布状态模板")
 )
 
 type OrderBusinessType string

@@ -9,15 +9,14 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 const maxOrderAttachmentSize int64 = 100 << 20
 
 var (
-	ErrOrderAttachmentNotFound        = errors.NotFound(v1.ErrorReason_ORDER_ATTACHMENT_NOT_FOUND.String(), "订单附件不存在")
-	ErrOrderAttachmentExists          = errors.Conflict(v1.ErrorReason_ORDER_ATTACHMENT_EXISTS.String(), "订单附件幂等键已存在")
-	ErrOrderAttachmentInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_ATTACHMENT_INVALID_ARGUMENT.String(), "订单附件字段不合法")
+	ErrOrderAttachmentNotFound        = errors.NotFound("ORDER_ATTACHMENT_NOT_FOUND", "订单附件不存在")
+	ErrOrderAttachmentExists          = errors.Conflict("ORDER_ATTACHMENT_EXISTS", "订单附件幂等键已存在")
+	ErrOrderAttachmentInvalidArgument = errors.BadRequest("ORDER_ATTACHMENT_INVALID_ARGUMENT", "订单附件字段不合法")
 )
 
 type OrderAttachment struct {

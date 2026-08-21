@@ -8,20 +8,18 @@ import (
 	"time"
 	"unicode/utf8"
 
-	v1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
-
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrNumberRuleNotFound            = errors.NotFound(v1.ErrorReason_NUMBER_RULE_NOT_FOUND.String(), "编号规则不存在")
-	ErrNumberRuleExists              = errors.Conflict(v1.ErrorReason_NUMBER_RULE_EXISTS.String(), "单据类型的编号规则已存在")
-	ErrStatusTemplateNotFound        = errors.NotFound(v1.ErrorReason_STATUS_TEMPLATE_NOT_FOUND.String(), "状态模板不存在")
-	ErrStatusTemplateExists          = errors.Conflict(v1.ErrorReason_STATUS_TEMPLATE_EXISTS.String(), "状态模板版本已存在")
-	ErrStatusTemplateInvalid         = errors.BadRequest(v1.ErrorReason_STATUS_TEMPLATE_INVALID.String(), "状态模板不合法")
-	ErrNumberSequenceExhausted       = errors.Conflict(v1.ErrorReason_NUMBER_SEQUENCE_EXHAUSTED.String(), "当前编号周期的序列已耗尽")
-	ErrStatusTemplateDefaultConflict = errors.Conflict(v1.ErrorReason_STATUS_TEMPLATE_DEFAULT_CONFLICT.String(), "默认状态模板设置冲突")
+	ErrNumberRuleNotFound            = errors.NotFound("NUMBER_RULE_NOT_FOUND", "编号规则不存在")
+	ErrNumberRuleExists              = errors.Conflict("NUMBER_RULE_EXISTS", "单据类型的编号规则已存在")
+	ErrStatusTemplateNotFound        = errors.NotFound("STATUS_TEMPLATE_NOT_FOUND", "状态模板不存在")
+	ErrStatusTemplateExists          = errors.Conflict("STATUS_TEMPLATE_EXISTS", "状态模板版本已存在")
+	ErrStatusTemplateInvalid         = errors.BadRequest("STATUS_TEMPLATE_INVALID", "状态模板不合法")
+	ErrNumberSequenceExhausted       = errors.Conflict("NUMBER_SEQUENCE_EXHAUSTED", "当前编号周期的序列已耗尽")
+	ErrStatusTemplateDefaultConflict = errors.Conflict("STATUS_TEMPLATE_DEFAULT_CONFLICT", "默认状态模板设置冲突")
 )
 
 type DocumentType string

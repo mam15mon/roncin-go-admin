@@ -9,26 +9,24 @@ import (
 	"time"
 	"unicode/utf8"
 
-	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
-
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrPartnerNotFound                = errors.NotFound(v1.ErrorReason_PARTNER_NOT_FOUND.String(), "往来单位不存在")
-	ErrPartnerCodeExists              = errors.Conflict(v1.ErrorReason_PARTNER_CODE_EXISTS.String(), "往来单位编码已存在")
-	ErrPartnerNameExists              = errors.Conflict(v1.ErrorReason_PARTNER_NAME_EXISTS.String(), "往来单位名称已存在")
-	ErrPartnerUSCCExists              = errors.Conflict(v1.ErrorReason_PARTNER_USCC_EXISTS.String(), "统一社会信用代码已存在")
-	ErrPartnerRoleRequired            = errors.BadRequest(v1.ErrorReason_PARTNER_ROLE_REQUIRED.String(), "往来单位至少需要一个有效角色")
-	ErrPartnerInvalidRole             = errors.BadRequest(v1.ErrorReason_PARTNER_INVALID_ROLE.String(), "往来单位角色不合法")
-	ErrPartnerInvalidArgument         = errors.BadRequest(v1.ErrorReason_PARTNER_INVALID_ARGUMENT.String(), "往来单位字段不合法")
-	ErrPartnerPrimaryContactConflict  = errors.BadRequest(v1.ErrorReason_PARTNER_PRIMARY_CONTACT_CONFLICT.String(), "只能设置一个主联系人")
-	ErrPartnerAliasExists             = errors.Conflict(v1.ErrorReason_PARTNER_ALIAS_EXISTS.String(), "往来单位别名重复")
-	ErrPartnerSupplierRoleRequired    = errors.BadRequest(v1.ErrorReason_PARTNER_SUPPLIER_ROLE_REQUIRED.String(), "往来单位没有供应商角色")
-	ErrPartnerBlacklistReasonRequired = errors.BadRequest(v1.ErrorReason_PARTNER_BLACKLIST_REASON_REQUIRED.String(), "黑名单变更原因不能为空")
-	ErrPartnerBlacklistedSupplierRole = errors.BadRequest(v1.ErrorReason_PARTNER_BLACKLISTED_SUPPLIER_ROLE.String(), "清除黑名单前不能移除供应商角色")
-	ErrPartnerImportInvalidArgument   = errors.BadRequest(v1.ErrorReason_PARTNER_INVALID_ARGUMENT.String(), "往来单位导入参数不合法")
+	ErrPartnerNotFound                = errors.NotFound("PARTNER_NOT_FOUND", "往来单位不存在")
+	ErrPartnerCodeExists              = errors.Conflict("PARTNER_CODE_EXISTS", "往来单位编码已存在")
+	ErrPartnerNameExists              = errors.Conflict("PARTNER_NAME_EXISTS", "往来单位名称已存在")
+	ErrPartnerUSCCExists              = errors.Conflict("PARTNER_USCC_EXISTS", "统一社会信用代码已存在")
+	ErrPartnerRoleRequired            = errors.BadRequest("PARTNER_ROLE_REQUIRED", "往来单位至少需要一个有效角色")
+	ErrPartnerInvalidRole             = errors.BadRequest("PARTNER_INVALID_ROLE", "往来单位角色不合法")
+	ErrPartnerInvalidArgument         = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位字段不合法")
+	ErrPartnerPrimaryContactConflict  = errors.BadRequest("PARTNER_PRIMARY_CONTACT_CONFLICT", "只能设置一个主联系人")
+	ErrPartnerAliasExists             = errors.Conflict("PARTNER_ALIAS_EXISTS", "往来单位别名重复")
+	ErrPartnerSupplierRoleRequired    = errors.BadRequest("PARTNER_SUPPLIER_ROLE_REQUIRED", "往来单位没有供应商角色")
+	ErrPartnerBlacklistReasonRequired = errors.BadRequest("PARTNER_BLACKLIST_REASON_REQUIRED", "黑名单变更原因不能为空")
+	ErrPartnerBlacklistedSupplierRole = errors.BadRequest("PARTNER_BLACKLISTED_SUPPLIER_ROLE", "清除黑名单前不能移除供应商角色")
+	ErrPartnerImportInvalidArgument   = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
 )
 
 type PartnerRoleType string

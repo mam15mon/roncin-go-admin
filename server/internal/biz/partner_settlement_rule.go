@@ -7,13 +7,12 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 )
 
 var (
-	ErrPartnerSettlementRuleNotFound        = errors.NotFound(v1.ErrorReason_PARTNER_SETTLEMENT_RULE_NOT_FOUND.String(), "结算规则不存在")
-	ErrPartnerSettlementRuleExists          = errors.Conflict(v1.ErrorReason_PARTNER_SETTLEMENT_RULE_EXISTS.String(), "结算规则已存在")
-	ErrPartnerSettlementRuleInvalidArgument = errors.BadRequest(v1.ErrorReason_PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT.String(), "结算规则字段不合法")
+	ErrPartnerSettlementRuleNotFound        = errors.NotFound("PARTNER_SETTLEMENT_RULE_NOT_FOUND", "结算规则不存在")
+	ErrPartnerSettlementRuleExists          = errors.Conflict("PARTNER_SETTLEMENT_RULE_EXISTS", "结算规则已存在")
+	ErrPartnerSettlementRuleInvalidArgument = errors.BadRequest("PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT", "结算规则字段不合法")
 )
 
 type PartnerStatementMode string

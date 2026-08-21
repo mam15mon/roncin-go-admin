@@ -9,14 +9,13 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderContainerNotFound        = errors.NotFound(v1.ErrorReason_ORDER_CONTAINER_NOT_FOUND.String(), "订单集装箱不存在")
-	ErrOrderContainerExists          = errors.Conflict(v1.ErrorReason_ORDER_CONTAINER_EXISTS.String(), "订单集装箱已存在")
-	ErrOrderContainerInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_CONTAINER_INVALID_ARGUMENT.String(), "订单集装箱字段不合法")
-	ErrOrderContainerSpecInvalid     = errors.BadRequest(v1.ErrorReason_ORDER_CONTAINER_SPEC_INVALID.String(), "箱型必须是当前组织启用的箱型主数据")
+	ErrOrderContainerNotFound        = errors.NotFound("ORDER_CONTAINER_NOT_FOUND", "订单集装箱不存在")
+	ErrOrderContainerExists          = errors.Conflict("ORDER_CONTAINER_EXISTS", "订单集装箱已存在")
+	ErrOrderContainerInvalidArgument = errors.BadRequest("ORDER_CONTAINER_INVALID_ARGUMENT", "订单集装箱字段不合法")
+	ErrOrderContainerSpecInvalid     = errors.BadRequest("ORDER_CONTAINER_SPEC_INVALID", "箱型必须是当前组织启用的箱型主数据")
 )
 
 type OrderContainer struct {

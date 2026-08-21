@@ -7,22 +7,20 @@ import (
 	"encoding/hex"
 	stderrors "errors"
 	"fmt"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 	"strings"
 	"time"
-
-	v1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidCredentials    = errors.Unauthorized(v1.ErrorReason_AUTH_INVALID_CREDENTIALS.String(), "用户名或密码错误")
-	ErrSessionRequired       = errors.Unauthorized(v1.ErrorReason_AUTH_SESSION_REQUIRED.String(), "请先登录")
-	ErrSessionExpired        = errors.Unauthorized(v1.ErrorReason_AUTH_SESSION_EXPIRED.String(), "登录已过期")
-	ErrPermissionDenied      = errors.Forbidden(v1.ErrorReason_AUTH_PERMISSION_DENIED.String(), "无权执行此操作")
-	ErrOrganizationForbidden = errors.Forbidden(v1.ErrorReason_AUTH_ORGANIZATION_FORBIDDEN.String(), "无权访问该组织")
+	ErrInvalidCredentials    = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
+	ErrSessionRequired       = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
+	ErrSessionExpired        = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
+	ErrPermissionDenied      = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
+	ErrOrganizationForbidden = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
 )
 
 type DataScope string

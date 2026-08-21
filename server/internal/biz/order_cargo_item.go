@@ -9,12 +9,11 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderCargoItemNotFound        = errors.NotFound(v1.ErrorReason_ORDER_CARGO_ITEM_NOT_FOUND.String(), "订单货物明细不存在")
-	ErrOrderCargoItemInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_CARGO_ITEM_INVALID_ARGUMENT.String(), "订单货物明细字段不合法")
+	ErrOrderCargoItemNotFound        = errors.NotFound("ORDER_CARGO_ITEM_NOT_FOUND", "订单货物明细不存在")
+	ErrOrderCargoItemInvalidArgument = errors.BadRequest("ORDER_CARGO_ITEM_INVALID_ARGUMENT", "订单货物明细字段不合法")
 )
 
 type OrderCargoItem struct {

@@ -9,13 +9,12 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 )
 
 var (
-	ErrPartnerAccountNotFound        = errors.NotFound(v1.ErrorReason_PARTNER_ACCOUNT_NOT_FOUND.String(), "结算账户不存在")
-	ErrPartnerAccountInvalidArgument = errors.BadRequest(v1.ErrorReason_PARTNER_ACCOUNT_INVALID_ARGUMENT.String(), "结算账户字段不合法")
-	ErrPartnerAccountDefaultConflict = errors.Conflict(v1.ErrorReason_PARTNER_ACCOUNT_DEFAULT_CONFLICT.String(), "角色只能有一个默认结算账户")
+	ErrPartnerAccountNotFound        = errors.NotFound("PARTNER_ACCOUNT_NOT_FOUND", "结算账户不存在")
+	ErrPartnerAccountInvalidArgument = errors.BadRequest("PARTNER_ACCOUNT_INVALID_ARGUMENT", "结算账户字段不合法")
+	ErrPartnerAccountDefaultConflict = errors.Conflict("PARTNER_ACCOUNT_DEFAULT_CONFLICT", "角色只能有一个默认结算账户")
 )
 
 type PartnerAccountStatus string

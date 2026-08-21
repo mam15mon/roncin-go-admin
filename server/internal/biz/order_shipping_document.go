@@ -9,15 +9,14 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderShippingDocumentNotFound        = errors.NotFound(v1.ErrorReason_ORDER_SHIPPING_DOCUMENT_NOT_FOUND.String(), "订单提单不存在")
-	ErrOrderShippingDocumentExists          = errors.Conflict(v1.ErrorReason_ORDER_SHIPPING_DOCUMENT_EXISTS.String(), "订单提单已存在")
-	ErrOrderShippingDocumentInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT.String(), "订单提单字段不合法")
-	ErrOrderShippingDocumentInvalidStatus   = errors.BadRequest(v1.ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_STATUS.String(), "提单当前状态不允许该操作")
-	ErrOrderShippingDocumentStatusConflict  = errors.Conflict(v1.ErrorReason_ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT.String(), "提单状态已被并发修改")
+	ErrOrderShippingDocumentNotFound        = errors.NotFound("ORDER_SHIPPING_DOCUMENT_NOT_FOUND", "订单提单不存在")
+	ErrOrderShippingDocumentExists          = errors.Conflict("ORDER_SHIPPING_DOCUMENT_EXISTS", "订单提单已存在")
+	ErrOrderShippingDocumentInvalidArgument = errors.BadRequest("ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT", "订单提单字段不合法")
+	ErrOrderShippingDocumentInvalidStatus   = errors.BadRequest("ORDER_SHIPPING_DOCUMENT_INVALID_STATUS", "提单当前状态不允许该操作")
+	ErrOrderShippingDocumentStatusConflict  = errors.Conflict("ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT", "提单状态已被并发修改")
 )
 
 type OrderShippingDocumentStatus string

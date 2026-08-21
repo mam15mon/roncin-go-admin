@@ -9,15 +9,14 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 )
 
 var (
-	ErrOrderReleasePodNotFound        = errors.NotFound(v1.ErrorReason_ORDER_RELEASE_POD_NOT_FOUND.String(), "放货凭证不存在")
-	ErrOrderReleasePodInvalidArgument = errors.BadRequest(v1.ErrorReason_ORDER_RELEASE_POD_INVALID_ARGUMENT.String(), "放货凭证字段不合法")
-	ErrOrderReleasePodInvalidStatus   = errors.BadRequest(v1.ErrorReason_ORDER_RELEASE_POD_INVALID_STATUS.String(), "放货凭证当前状态不允许该操作")
-	ErrOrderReleasePodStatusConflict  = errors.Conflict(v1.ErrorReason_ORDER_RELEASE_POD_STATUS_CONFLICT.String(), "放货凭证状态已被并发修改")
-	ErrOrderReleasePodDocumentInvalid = errors.BadRequest(v1.ErrorReason_ORDER_RELEASE_POD_DOCUMENT_INVALID.String(), "关联提单必须是同一订单下的提单")
+	ErrOrderReleasePodNotFound        = errors.NotFound("ORDER_RELEASE_POD_NOT_FOUND", "放货凭证不存在")
+	ErrOrderReleasePodInvalidArgument = errors.BadRequest("ORDER_RELEASE_POD_INVALID_ARGUMENT", "放货凭证字段不合法")
+	ErrOrderReleasePodInvalidStatus   = errors.BadRequest("ORDER_RELEASE_POD_INVALID_STATUS", "放货凭证当前状态不允许该操作")
+	ErrOrderReleasePodStatusConflict  = errors.Conflict("ORDER_RELEASE_POD_STATUS_CONFLICT", "放货凭证状态已被并发修改")
+	ErrOrderReleasePodDocumentInvalid = errors.BadRequest("ORDER_RELEASE_POD_DOCUMENT_INVALID", "关联提单必须是同一订单下的提单")
 )
 
 type OrderReleasePodStatus string
