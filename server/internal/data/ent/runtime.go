@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
@@ -648,6 +649,31 @@ func init() {
 	orderDescID := orderMixinFields0[0].Descriptor()
 	// order.DefaultID holds the default value on creation for the id field.
 	order.DefaultID = orderDescID.Default.(func() uuid.UUID)
+	orderabnormalcaseMixin := schema.OrderAbnormalCase{}.Mixin()
+	orderabnormalcaseMixinFields0 := orderabnormalcaseMixin[0].Fields()
+	_ = orderabnormalcaseMixinFields0
+	orderabnormalcaseMixinFields1 := orderabnormalcaseMixin[1].Fields()
+	_ = orderabnormalcaseMixinFields1
+	orderabnormalcaseFields := schema.OrderAbnormalCase{}.Fields()
+	_ = orderabnormalcaseFields
+	// orderabnormalcaseDescCreatedAt is the schema descriptor for created_at field.
+	orderabnormalcaseDescCreatedAt := orderabnormalcaseMixinFields1[0].Descriptor()
+	// orderabnormalcase.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderabnormalcase.DefaultCreatedAt = orderabnormalcaseDescCreatedAt.Default.(func() time.Time)
+	// orderabnormalcaseDescUpdatedAt is the schema descriptor for updated_at field.
+	orderabnormalcaseDescUpdatedAt := orderabnormalcaseMixinFields1[1].Descriptor()
+	// orderabnormalcase.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderabnormalcase.DefaultUpdatedAt = orderabnormalcaseDescUpdatedAt.Default.(func() time.Time)
+	// orderabnormalcase.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderabnormalcase.UpdateDefaultUpdatedAt = orderabnormalcaseDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderabnormalcaseDescMarkedAt is the schema descriptor for marked_at field.
+	orderabnormalcaseDescMarkedAt := orderabnormalcaseFields[3].Descriptor()
+	// orderabnormalcase.DefaultMarkedAt holds the default value on creation for the marked_at field.
+	orderabnormalcase.DefaultMarkedAt = orderabnormalcaseDescMarkedAt.Default.(func() time.Time)
+	// orderabnormalcaseDescID is the schema descriptor for id field.
+	orderabnormalcaseDescID := orderabnormalcaseMixinFields0[0].Descriptor()
+	// orderabnormalcase.DefaultID holds the default value on creation for the id field.
+	orderabnormalcase.DefaultID = orderabnormalcaseDescID.Default.(func() uuid.UUID)
 	orderattachmentMixin := schema.OrderAttachment{}.Mixin()
 	orderattachmentMixinFields0 := orderattachmentMixin[0].Fields()
 	_ = orderattachmentMixinFields0

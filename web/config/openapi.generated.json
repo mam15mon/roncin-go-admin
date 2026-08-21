@@ -1433,6 +1433,164 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/abnormal-cases": {
+      "get": {
+        "tags": [
+          "OrderAbnormalCaseService"
+        ],
+        "description": "ListAbnormalCases 获取指定订单的异常标记列表。",
+        "operationId": "OrderAbnormalCaseService_ListAbnormalCases",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OrderAbnormalCaseService"
+        ],
+        "description": "MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。",
+        "operationId": "OrderAbnormalCaseService_MarkAbnormalCase",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.MarkAbnormalCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/abnormal-cases/{id}": {
+      "delete": {
+        "tags": [
+          "OrderAbnormalCaseService"
+        ],
+        "description": "RemoveAbnormalCase 移除订单异常标记。",
+        "operationId": "OrderAbnormalCaseService_RemoveAbnormalCase",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseOperationReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/abnormal-cases/{id}/resolve": {
+      "post": {
+        "tags": [
+          "OrderAbnormalCaseService"
+        ],
+        "description": "ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。",
+        "operationId": "OrderAbnormalCaseService_ResolveAbnormalCase",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ResolveAbnormalCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/attachments": {
       "get": {
         "tags": [
@@ -4741,6 +4899,22 @@
         },
         "description": "CreateOrderRequest 创建订单请求。"
       },
+      "order.v1.MarkAbnormalCaseRequest": {
+        "required": [
+          "orderId",
+          "abnormalCaseId"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "abnormalCaseId": {
+            "type": "string"
+          }
+        },
+        "description": "MarkAbnormalCaseRequest 标记订单异常请求。"
+      },
       "order.v1.Order": {
         "type": "object",
         "properties": {
@@ -4868,6 +5042,109 @@
           }
         },
         "description": "Order 订单核心信息。"
+      },
+      "order.v1.OrderAbnormalCase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "abnormalCaseId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "markedAt": {
+            "type": "string"
+          },
+          "markedBy": {
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "resolvedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "description": "OrderAbnormalCase 订单异常标记信息。"
+      },
+      "order.v1.OrderAbnormalCaseListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderAbnormalCaseListReply 异常标记列表响应。"
+      },
+      "order.v1.OrderAbnormalCaseOperationReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderAbnormalCaseOperationReply 异常标记操作响应。"
+      },
+      "order.v1.OrderAbnormalCaseReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderAbnormalCaseReply 单条异常标记响应。"
       },
       "order.v1.OrderAttachment": {
         "type": "object",
@@ -5542,6 +5819,22 @@
           }
         },
         "description": "RegisterAttachmentRequest 注册订单附件请求。"
+      },
+      "order.v1.ResolveAbnormalCaseRequest": {
+        "required": [
+          "orderId",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "description": "ResolveAbnormalCaseRequest 解决订单异常请求。"
       },
       "order.v1.SetMilestoneRequest": {
         "required": [
@@ -7093,6 +7386,10 @@
     },
     {
       "name": "MasterDataService"
+    },
+    {
+      "name": "OrderAbnormalCaseService",
+      "description": "OrderAbnormalCaseService 订单异常标记服务。\n 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。"
     },
     {
       "name": "OrderAttachmentService",

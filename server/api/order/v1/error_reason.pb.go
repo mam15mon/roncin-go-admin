@@ -51,6 +51,11 @@ const (
 	ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT ErrorReason = 23
 	ErrorReason_ORDER_SHIPPING_DOCUMENT_INVALID_STATUS   ErrorReason = 24
 	ErrorReason_ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT  ErrorReason = 25
+	ErrorReason_ORDER_ABNORMAL_CASE_NOT_FOUND            ErrorReason = 26
+	ErrorReason_ORDER_ABNORMAL_CASE_EXISTS               ErrorReason = 27
+	ErrorReason_ORDER_ABNORMAL_CASE_INVALID_ARGUMENT     ErrorReason = 28
+	ErrorReason_ORDER_ABNORMAL_CASE_KIND_INVALID         ErrorReason = 29
+	ErrorReason_ORDER_ABNORMAL_CASE_STATUS_CONFLICT      ErrorReason = 30
 )
 
 // Enum value maps for ErrorReason.
@@ -82,6 +87,11 @@ var (
 		23: "ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT",
 		24: "ORDER_SHIPPING_DOCUMENT_INVALID_STATUS",
 		25: "ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT",
+		26: "ORDER_ABNORMAL_CASE_NOT_FOUND",
+		27: "ORDER_ABNORMAL_CASE_EXISTS",
+		28: "ORDER_ABNORMAL_CASE_INVALID_ARGUMENT",
+		29: "ORDER_ABNORMAL_CASE_KIND_INVALID",
+		30: "ORDER_ABNORMAL_CASE_STATUS_CONFLICT",
 	}
 	ErrorReason_value = map[string]int32{
 		"ORDER_UNSPECIFIED":                        0,
@@ -110,6 +120,11 @@ var (
 		"ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT": 23,
 		"ORDER_SHIPPING_DOCUMENT_INVALID_STATUS":   24,
 		"ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT":  25,
+		"ORDER_ABNORMAL_CASE_NOT_FOUND":            26,
+		"ORDER_ABNORMAL_CASE_EXISTS":               27,
+		"ORDER_ABNORMAL_CASE_INVALID_ARGUMENT":     28,
+		"ORDER_ABNORMAL_CASE_KIND_INVALID":         29,
+		"ORDER_ABNORMAL_CASE_STATUS_CONFLICT":      30,
 	}
 )
 
@@ -144,7 +159,7 @@ var File_order_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1border/v1/error_reason.proto\x12\border.v1*\xe6\x06\n" +
+	"\x1border/v1/error_reason.proto\x12\border.v1*\xa2\b\n" +
 	"\vErrorReason\x12\x15\n" +
 	"\x11ORDER_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fORDER_NOT_FOUND\x10\x01\x12\x1a\n" +
@@ -172,7 +187,12 @@ const file_order_v1_error_reason_proto_rawDesc = "" +
 	"\x1eORDER_SHIPPING_DOCUMENT_EXISTS\x10\x16\x12,\n" +
 	"(ORDER_SHIPPING_DOCUMENT_INVALID_ARGUMENT\x10\x17\x12*\n" +
 	"&ORDER_SHIPPING_DOCUMENT_INVALID_STATUS\x10\x18\x12+\n" +
-	"'ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT\x10\x19B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"'ORDER_SHIPPING_DOCUMENT_STATUS_CONFLICT\x10\x19\x12!\n" +
+	"\x1dORDER_ABNORMAL_CASE_NOT_FOUND\x10\x1a\x12\x1e\n" +
+	"\x1aORDER_ABNORMAL_CASE_EXISTS\x10\x1b\x12(\n" +
+	"$ORDER_ABNORMAL_CASE_INVALID_ARGUMENT\x10\x1c\x12$\n" +
+	" ORDER_ABNORMAL_CASE_KIND_INVALID\x10\x1d\x12'\n" +
+	"#ORDER_ABNORMAL_CASE_STATUS_CONFLICT\x10\x1eB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_error_reason_proto_rawDescOnce sync.Once

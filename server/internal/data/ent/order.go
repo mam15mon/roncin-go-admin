@@ -119,9 +119,11 @@ type OrderEdges struct {
 	CargoItems []*OrderCargoItem `json:"cargo_items,omitempty"`
 	// ShippingDocuments holds the value of the shipping_documents edge.
 	ShippingDocuments []*OrderShippingDocument `json:"shipping_documents,omitempty"`
+	// AbnormalCases holds the value of the abnormal_cases edge.
+	AbnormalCases []*OrderAbnormalCase `json:"abnormal_cases,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -236,6 +238,15 @@ func (e OrderEdges) ShippingDocumentsOrErr() ([]*OrderShippingDocument, error) {
 		return e.ShippingDocuments, nil
 	}
 	return nil, &NotLoadedError{edge: "shipping_documents"}
+}
+
+// AbnormalCasesOrErr returns the AbnormalCases value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
+	if e.loadedTypes[12] {
+		return e.AbnormalCases, nil
+	}
+	return nil, &NotLoadedError{edge: "abnormal_cases"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -553,6 +564,11 @@ func (_m *Order) QueryCargoItems() *OrderCargoItemQuery {
 // QueryShippingDocuments queries the "shipping_documents" edge of the Order entity.
 func (_m *Order) QueryShippingDocuments() *OrderShippingDocumentQuery {
 	return NewOrderClient(_m.config).QueryShippingDocuments(_m)
+}
+
+// QueryAbnormalCases queries the "abnormal_cases" edge of the Order entity.
+func (_m *Order) QueryAbnormalCases() *OrderAbnormalCaseQuery {
+	return NewOrderClient(_m.config).QueryAbnormalCases(_m)
 }
 
 // Update returns a builder for updating this Order.

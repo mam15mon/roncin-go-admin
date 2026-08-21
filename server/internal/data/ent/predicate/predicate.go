@@ -33,6 +33,9 @@ type NumberSequence func(*sql.Selector)
 // Order is the predicate function for order builders.
 type Order func(*sql.Selector)
 
+// OrderAbnormalCase is the predicate function for orderabnormalcase builders.
+type OrderAbnormalCase func(*sql.Selector)
+
 // OrderAttachment is the predicate function for orderattachment builders.
 type OrderAttachment func(*sql.Selector)
 

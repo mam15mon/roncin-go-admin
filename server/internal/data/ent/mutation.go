@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
@@ -68,6 +69,7 @@ const (
 	TypeNumberRule            = "NumberRule"
 	TypeNumberSequence        = "NumberSequence"
 	TypeOrder                 = "Order"
+	TypeOrderAbnormalCase     = "OrderAbnormalCase"
 	TypeOrderAttachment       = "OrderAttachment"
 	TypeOrderCargoCategory    = "OrderCargoCategory"
 	TypeOrderCargoItem        = "OrderCargoItem"
@@ -7940,6 +7942,9 @@ type OrderMutation struct {
 	shipping_documents        map[uuid.UUID]struct{}
 	removedshipping_documents map[uuid.UUID]struct{}
 	clearedshipping_documents bool
+	abnormal_cases            map[uuid.UUID]struct{}
+	removedabnormal_cases     map[uuid.UUID]struct{}
+	clearedabnormal_cases     bool
 	done                      bool
 	oldValue                  func(context.Context) (*Order, error)
 	predicates                []predicate.Order
@@ -10111,6 +10116,60 @@ func (m *OrderMutation) ResetShippingDocuments() {
 	m.removedshipping_documents = nil
 }
 
+// AddAbnormalCaseIDs adds the "abnormal_cases" edge to the OrderAbnormalCase entity by ids.
+func (m *OrderMutation) AddAbnormalCaseIDs(ids ...uuid.UUID) {
+	if m.abnormal_cases == nil {
+		m.abnormal_cases = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.abnormal_cases[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAbnormalCases clears the "abnormal_cases" edge to the OrderAbnormalCase entity.
+func (m *OrderMutation) ClearAbnormalCases() {
+	m.clearedabnormal_cases = true
+}
+
+// AbnormalCasesCleared reports if the "abnormal_cases" edge to the OrderAbnormalCase entity was cleared.
+func (m *OrderMutation) AbnormalCasesCleared() bool {
+	return m.clearedabnormal_cases
+}
+
+// RemoveAbnormalCaseIDs removes the "abnormal_cases" edge to the OrderAbnormalCase entity by IDs.
+func (m *OrderMutation) RemoveAbnormalCaseIDs(ids ...uuid.UUID) {
+	if m.removedabnormal_cases == nil {
+		m.removedabnormal_cases = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.abnormal_cases, ids[i])
+		m.removedabnormal_cases[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAbnormalCases returns the removed IDs of the "abnormal_cases" edge to the OrderAbnormalCase entity.
+func (m *OrderMutation) RemovedAbnormalCasesIDs() (ids []uuid.UUID) {
+	for id := range m.removedabnormal_cases {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AbnormalCasesIDs returns the "abnormal_cases" edge IDs in the mutation.
+func (m *OrderMutation) AbnormalCasesIDs() (ids []uuid.UUID) {
+	for id := range m.abnormal_cases {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAbnormalCases resets all changes to the "abnormal_cases" edge.
+func (m *OrderMutation) ResetAbnormalCases() {
+	m.abnormal_cases = nil
+	m.clearedabnormal_cases = false
+	m.removedabnormal_cases = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -10938,7 +10997,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -10974,6 +11033,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.shipping_documents != nil {
 		edges = append(edges, order.EdgeShippingDocuments)
+	}
+	if m.abnormal_cases != nil {
+		edges = append(edges, order.EdgeAbnormalCases)
 	}
 	return edges
 }
@@ -11048,13 +11110,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeAbnormalCases:
+		ids := make([]ent.Value, 0, len(m.abnormal_cases))
+		for id := range m.abnormal_cases {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -11081,6 +11149,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedshipping_documents != nil {
 		edges = append(edges, order.EdgeShippingDocuments)
+	}
+	if m.removedabnormal_cases != nil {
+		edges = append(edges, order.EdgeAbnormalCases)
 	}
 	return edges
 }
@@ -11143,13 +11214,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeAbnormalCases:
+		ids := make([]ent.Value, 0, len(m.removedabnormal_cases))
+		for id := range m.removedabnormal_cases {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -11186,6 +11263,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedshipping_documents {
 		edges = append(edges, order.EdgeShippingDocuments)
 	}
+	if m.clearedabnormal_cases {
+		edges = append(edges, order.EdgeAbnormalCases)
+	}
 	return edges
 }
 
@@ -11217,6 +11297,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedcargo_items
 	case order.EdgeShippingDocuments:
 		return m.clearedshipping_documents
+	case order.EdgeAbnormalCases:
+		return m.clearedabnormal_cases
 	}
 	return false
 }
@@ -11278,8 +11360,870 @@ func (m *OrderMutation) ResetEdge(name string) error {
 	case order.EdgeShippingDocuments:
 		m.ResetShippingDocuments()
 		return nil
+	case order.EdgeAbnormalCases:
+		m.ResetAbnormalCases()
+		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
+}
+
+// OrderAbnormalCaseMutation represents an operation that mutates the OrderAbnormalCase nodes in the graph.
+type OrderAbnormalCaseMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	updated_at       *time.Time
+	abnormal_case_id *uuid.UUID
+	status           *orderabnormalcase.Status
+	marked_at        *time.Time
+	marked_by        *uuid.UUID
+	resolved_at      *time.Time
+	resolved_by      *uuid.UUID
+	clearedFields    map[string]struct{}
+	_order           *uuid.UUID
+	cleared_order    bool
+	done             bool
+	oldValue         func(context.Context) (*OrderAbnormalCase, error)
+	predicates       []predicate.OrderAbnormalCase
+}
+
+var _ ent.Mutation = (*OrderAbnormalCaseMutation)(nil)
+
+// orderabnormalcaseOption allows management of the mutation configuration using functional options.
+type orderabnormalcaseOption func(*OrderAbnormalCaseMutation)
+
+// newOrderAbnormalCaseMutation creates new mutation for the OrderAbnormalCase entity.
+func newOrderAbnormalCaseMutation(c config, op Op, opts ...orderabnormalcaseOption) *OrderAbnormalCaseMutation {
+	m := &OrderAbnormalCaseMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderAbnormalCase,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderAbnormalCaseID sets the ID field of the mutation.
+func withOrderAbnormalCaseID(id uuid.UUID) orderabnormalcaseOption {
+	return func(m *OrderAbnormalCaseMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderAbnormalCase
+		)
+		m.oldValue = func(ctx context.Context) (*OrderAbnormalCase, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderAbnormalCase.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderAbnormalCase sets the old OrderAbnormalCase of the mutation.
+func withOrderAbnormalCase(node *OrderAbnormalCase) orderabnormalcaseOption {
+	return func(m *OrderAbnormalCaseMutation) {
+		m.oldValue = func(context.Context) (*OrderAbnormalCase, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderAbnormalCaseMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderAbnormalCaseMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderAbnormalCase entities.
+func (m *OrderAbnormalCaseMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderAbnormalCaseMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderAbnormalCaseMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderAbnormalCase.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderAbnormalCaseMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderAbnormalCaseMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderAbnormalCaseMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderAbnormalCaseMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderAbnormalCaseMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderAbnormalCaseMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderAbnormalCaseMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderAbnormalCaseMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderAbnormalCaseMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetAbnormalCaseID sets the "abnormal_case_id" field.
+func (m *OrderAbnormalCaseMutation) SetAbnormalCaseID(u uuid.UUID) {
+	m.abnormal_case_id = &u
+}
+
+// AbnormalCaseID returns the value of the "abnormal_case_id" field in the mutation.
+func (m *OrderAbnormalCaseMutation) AbnormalCaseID() (r uuid.UUID, exists bool) {
+	v := m.abnormal_case_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbnormalCaseID returns the old "abnormal_case_id" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldAbnormalCaseID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbnormalCaseID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbnormalCaseID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbnormalCaseID: %w", err)
+	}
+	return oldValue.AbnormalCaseID, nil
+}
+
+// ResetAbnormalCaseID resets all changes to the "abnormal_case_id" field.
+func (m *OrderAbnormalCaseMutation) ResetAbnormalCaseID() {
+	m.abnormal_case_id = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *OrderAbnormalCaseMutation) SetStatus(o orderabnormalcase.Status) {
+	m.status = &o
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *OrderAbnormalCaseMutation) Status() (r orderabnormalcase.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldStatus(ctx context.Context) (v orderabnormalcase.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *OrderAbnormalCaseMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetMarkedAt sets the "marked_at" field.
+func (m *OrderAbnormalCaseMutation) SetMarkedAt(t time.Time) {
+	m.marked_at = &t
+}
+
+// MarkedAt returns the value of the "marked_at" field in the mutation.
+func (m *OrderAbnormalCaseMutation) MarkedAt() (r time.Time, exists bool) {
+	v := m.marked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarkedAt returns the old "marked_at" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldMarkedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarkedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarkedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarkedAt: %w", err)
+	}
+	return oldValue.MarkedAt, nil
+}
+
+// ResetMarkedAt resets all changes to the "marked_at" field.
+func (m *OrderAbnormalCaseMutation) ResetMarkedAt() {
+	m.marked_at = nil
+}
+
+// SetMarkedBy sets the "marked_by" field.
+func (m *OrderAbnormalCaseMutation) SetMarkedBy(u uuid.UUID) {
+	m.marked_by = &u
+}
+
+// MarkedBy returns the value of the "marked_by" field in the mutation.
+func (m *OrderAbnormalCaseMutation) MarkedBy() (r uuid.UUID, exists bool) {
+	v := m.marked_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarkedBy returns the old "marked_by" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldMarkedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarkedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarkedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarkedBy: %w", err)
+	}
+	return oldValue.MarkedBy, nil
+}
+
+// ResetMarkedBy resets all changes to the "marked_by" field.
+func (m *OrderAbnormalCaseMutation) ResetMarkedBy() {
+	m.marked_by = nil
+}
+
+// SetResolvedAt sets the "resolved_at" field.
+func (m *OrderAbnormalCaseMutation) SetResolvedAt(t time.Time) {
+	m.resolved_at = &t
+}
+
+// ResolvedAt returns the value of the "resolved_at" field in the mutation.
+func (m *OrderAbnormalCaseMutation) ResolvedAt() (r time.Time, exists bool) {
+	v := m.resolved_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolvedAt returns the old "resolved_at" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldResolvedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolvedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolvedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolvedAt: %w", err)
+	}
+	return oldValue.ResolvedAt, nil
+}
+
+// ClearResolvedAt clears the value of the "resolved_at" field.
+func (m *OrderAbnormalCaseMutation) ClearResolvedAt() {
+	m.resolved_at = nil
+	m.clearedFields[orderabnormalcase.FieldResolvedAt] = struct{}{}
+}
+
+// ResolvedAtCleared returns if the "resolved_at" field was cleared in this mutation.
+func (m *OrderAbnormalCaseMutation) ResolvedAtCleared() bool {
+	_, ok := m.clearedFields[orderabnormalcase.FieldResolvedAt]
+	return ok
+}
+
+// ResetResolvedAt resets all changes to the "resolved_at" field.
+func (m *OrderAbnormalCaseMutation) ResetResolvedAt() {
+	m.resolved_at = nil
+	delete(m.clearedFields, orderabnormalcase.FieldResolvedAt)
+}
+
+// SetResolvedBy sets the "resolved_by" field.
+func (m *OrderAbnormalCaseMutation) SetResolvedBy(u uuid.UUID) {
+	m.resolved_by = &u
+}
+
+// ResolvedBy returns the value of the "resolved_by" field in the mutation.
+func (m *OrderAbnormalCaseMutation) ResolvedBy() (r uuid.UUID, exists bool) {
+	v := m.resolved_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolvedBy returns the old "resolved_by" field's value of the OrderAbnormalCase entity.
+// If the OrderAbnormalCase object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderAbnormalCaseMutation) OldResolvedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolvedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolvedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolvedBy: %w", err)
+	}
+	return oldValue.ResolvedBy, nil
+}
+
+// ClearResolvedBy clears the value of the "resolved_by" field.
+func (m *OrderAbnormalCaseMutation) ClearResolvedBy() {
+	m.resolved_by = nil
+	m.clearedFields[orderabnormalcase.FieldResolvedBy] = struct{}{}
+}
+
+// ResolvedByCleared returns if the "resolved_by" field was cleared in this mutation.
+func (m *OrderAbnormalCaseMutation) ResolvedByCleared() bool {
+	_, ok := m.clearedFields[orderabnormalcase.FieldResolvedBy]
+	return ok
+}
+
+// ResetResolvedBy resets all changes to the "resolved_by" field.
+func (m *OrderAbnormalCaseMutation) ResetResolvedBy() {
+	m.resolved_by = nil
+	delete(m.clearedFields, orderabnormalcase.FieldResolvedBy)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderAbnormalCaseMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderabnormalcase.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderAbnormalCaseMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderAbnormalCaseMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderAbnormalCaseMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderAbnormalCaseMutation builder.
+func (m *OrderAbnormalCaseMutation) Where(ps ...predicate.OrderAbnormalCase) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderAbnormalCaseMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderAbnormalCaseMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderAbnormalCase, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderAbnormalCaseMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderAbnormalCaseMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderAbnormalCase).
+func (m *OrderAbnormalCaseMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderAbnormalCaseMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, orderabnormalcase.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderabnormalcase.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, orderabnormalcase.FieldOrderID)
+	}
+	if m.abnormal_case_id != nil {
+		fields = append(fields, orderabnormalcase.FieldAbnormalCaseID)
+	}
+	if m.status != nil {
+		fields = append(fields, orderabnormalcase.FieldStatus)
+	}
+	if m.marked_at != nil {
+		fields = append(fields, orderabnormalcase.FieldMarkedAt)
+	}
+	if m.marked_by != nil {
+		fields = append(fields, orderabnormalcase.FieldMarkedBy)
+	}
+	if m.resolved_at != nil {
+		fields = append(fields, orderabnormalcase.FieldResolvedAt)
+	}
+	if m.resolved_by != nil {
+		fields = append(fields, orderabnormalcase.FieldResolvedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderAbnormalCaseMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderabnormalcase.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderabnormalcase.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderabnormalcase.FieldOrderID:
+		return m.OrderID()
+	case orderabnormalcase.FieldAbnormalCaseID:
+		return m.AbnormalCaseID()
+	case orderabnormalcase.FieldStatus:
+		return m.Status()
+	case orderabnormalcase.FieldMarkedAt:
+		return m.MarkedAt()
+	case orderabnormalcase.FieldMarkedBy:
+		return m.MarkedBy()
+	case orderabnormalcase.FieldResolvedAt:
+		return m.ResolvedAt()
+	case orderabnormalcase.FieldResolvedBy:
+		return m.ResolvedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderAbnormalCaseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderabnormalcase.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderabnormalcase.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderabnormalcase.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderabnormalcase.FieldAbnormalCaseID:
+		return m.OldAbnormalCaseID(ctx)
+	case orderabnormalcase.FieldStatus:
+		return m.OldStatus(ctx)
+	case orderabnormalcase.FieldMarkedAt:
+		return m.OldMarkedAt(ctx)
+	case orderabnormalcase.FieldMarkedBy:
+		return m.OldMarkedBy(ctx)
+	case orderabnormalcase.FieldResolvedAt:
+		return m.OldResolvedAt(ctx)
+	case orderabnormalcase.FieldResolvedBy:
+		return m.OldResolvedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderAbnormalCase field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAbnormalCaseMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderabnormalcase.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderabnormalcase.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderabnormalcase.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderabnormalcase.FieldAbnormalCaseID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbnormalCaseID(v)
+		return nil
+	case orderabnormalcase.FieldStatus:
+		v, ok := value.(orderabnormalcase.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case orderabnormalcase.FieldMarkedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarkedAt(v)
+		return nil
+	case orderabnormalcase.FieldMarkedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarkedBy(v)
+		return nil
+	case orderabnormalcase.FieldResolvedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolvedAt(v)
+		return nil
+	case orderabnormalcase.FieldResolvedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolvedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderAbnormalCaseMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderAbnormalCaseMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderAbnormalCaseMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderAbnormalCaseMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderabnormalcase.FieldResolvedAt) {
+		fields = append(fields, orderabnormalcase.FieldResolvedAt)
+	}
+	if m.FieldCleared(orderabnormalcase.FieldResolvedBy) {
+		fields = append(fields, orderabnormalcase.FieldResolvedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderAbnormalCaseMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderAbnormalCaseMutation) ClearField(name string) error {
+	switch name {
+	case orderabnormalcase.FieldResolvedAt:
+		m.ClearResolvedAt()
+		return nil
+	case orderabnormalcase.FieldResolvedBy:
+		m.ClearResolvedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderAbnormalCaseMutation) ResetField(name string) error {
+	switch name {
+	case orderabnormalcase.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderabnormalcase.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderabnormalcase.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderabnormalcase.FieldAbnormalCaseID:
+		m.ResetAbnormalCaseID()
+		return nil
+	case orderabnormalcase.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case orderabnormalcase.FieldMarkedAt:
+		m.ResetMarkedAt()
+		return nil
+	case orderabnormalcase.FieldMarkedBy:
+		m.ResetMarkedBy()
+		return nil
+	case orderabnormalcase.FieldResolvedAt:
+		m.ResetResolvedAt()
+		return nil
+	case orderabnormalcase.FieldResolvedBy:
+		m.ResetResolvedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderAbnormalCaseMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, orderabnormalcase.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderAbnormalCaseMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderabnormalcase.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderAbnormalCaseMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderAbnormalCaseMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderAbnormalCaseMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, orderabnormalcase.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderAbnormalCaseMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderabnormalcase.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderAbnormalCaseMutation) ClearEdge(name string) error {
+	switch name {
+	case orderabnormalcase.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderAbnormalCaseMutation) ResetEdge(name string) error {
+	switch name {
+	case orderabnormalcase.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderAbnormalCase edge %s", name)
 }
 
 // OrderAttachmentMutation represents an operation that mutates the OrderAttachment nodes in the graph.

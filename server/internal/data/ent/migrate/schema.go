@@ -120,7 +120,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category", "abnormal_case"}},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
@@ -480,6 +480,50 @@ var (
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrdersColumns[31], OrdersColumns[32]},
+			},
+		},
+	}
+	// OrderAbnormalCasesColumns holds the columns for the "order_abnormal_cases" table.
+	OrderAbnormalCasesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "abnormal_case_id", Type: field.TypeUUID},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "RESOLVED"}, Default: "ACTIVE"},
+		{Name: "marked_at", Type: field.TypeTime},
+		{Name: "marked_by", Type: field.TypeUUID},
+		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
+		{Name: "resolved_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderAbnormalCasesTable holds the schema information for the "order_abnormal_cases" table.
+	OrderAbnormalCasesTable = &schema.Table{
+		Name:       "order_abnormal_cases",
+		Columns:    OrderAbnormalCasesColumns,
+		PrimaryKey: []*schema.Column{OrderAbnormalCasesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_abnormal_cases_orders_abnormal_cases",
+				Columns:    []*schema.Column{OrderAbnormalCasesColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderabnormalcase_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAbnormalCasesColumns[2]},
+			},
+			{
+				Name:    "orderabnormalcase_order_id_abnormal_case_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderAbnormalCasesColumns[9], OrderAbnormalCasesColumns[3]},
+			},
+			{
+				Name:    "orderabnormalcase_order_id_status_marked_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderAbnormalCasesColumns[9], OrderAbnormalCasesColumns[4], OrderAbnormalCasesColumns[5]},
 			},
 		},
 	}
@@ -1624,6 +1668,7 @@ var (
 		NumberRulesTable,
 		NumberSequencesTable,
 		OrdersTable,
+		OrderAbnormalCasesTable,
 		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
@@ -1665,6 +1710,7 @@ func init() {
 	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
 	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
+	OrderAbnormalCasesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable

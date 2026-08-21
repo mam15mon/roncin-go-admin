@@ -408,6 +408,11 @@ declare namespace API {
     password: string;
   };
 
+  type MarkAbnormalCaseRequest = {
+    orderId: string;
+    abnormalCaseId: string;
+  };
+
   type MasterDataImportItemInput = {
     code: string;
     name: string;
@@ -650,6 +655,60 @@ declare namespace API {
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type OrderAbnormalCase = {
+    id?: string;
+    orderId?: string;
+    abnormalCaseId?: string;
+    status?: number;
+    markedAt?: string;
+    markedBy?: string;
+    resolvedAt?: string;
+    resolvedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderAbnormalCaseListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAbnormalCase[];
+    traceId?: string;
+  };
+
+  type OrderAbnormalCaseOperationReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type OrderAbnormalCaseReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAbnormalCase;
+    traceId?: string;
+  };
+
+  type OrderAbnormalCaseServiceListAbnormalCasesParams = {
+    orderId: string;
+  };
+
+  type OrderAbnormalCaseServiceMarkAbnormalCaseParams = {
+    orderId: string;
+  };
+
+  type OrderAbnormalCaseServiceRemoveAbnormalCaseParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderAbnormalCaseServiceResolveAbnormalCaseParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderAttachment = {
@@ -1369,6 +1428,11 @@ declare namespace API {
   type ResetUserPasswordRequest = {
     id: string;
     password: string;
+  };
+
+  type ResolveAbnormalCaseRequest = {
+    orderId: string;
+    id: string;
   };
 
   type RoleScope = {

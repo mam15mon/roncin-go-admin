@@ -106,6 +106,8 @@ const (
 	EdgeCargoItems = "cargo_items"
 	// EdgeShippingDocuments holds the string denoting the shipping_documents edge name in mutations.
 	EdgeShippingDocuments = "shipping_documents"
+	// EdgeAbnormalCases holds the string denoting the abnormal_cases edge name in mutations.
+	EdgeAbnormalCases = "abnormal_cases"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -192,6 +194,13 @@ const (
 	ShippingDocumentsInverseTable = "order_shipping_documents"
 	// ShippingDocumentsColumn is the table column denoting the shipping_documents relation/edge.
 	ShippingDocumentsColumn = "order_id"
+	// AbnormalCasesTable is the table that holds the abnormal_cases relation/edge.
+	AbnormalCasesTable = "order_abnormal_cases"
+	// AbnormalCasesInverseTable is the table name for the OrderAbnormalCase entity.
+	// It exists in this package in order to avoid circular dependency with the "orderabnormalcase" package.
+	AbnormalCasesInverseTable = "order_abnormal_cases"
+	// AbnormalCasesColumn is the table column denoting the abnormal_cases relation/edge.
+	AbnormalCasesColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -778,6 +787,20 @@ func ByShippingDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newShippingDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAbnormalCasesCount orders the results by abnormal_cases count.
+func ByAbnormalCasesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAbnormalCasesStep(), opts...)
+	}
+}
+
+// ByAbnormalCases orders the results by abnormal_cases terms.
+func ByAbnormalCases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAbnormalCasesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -860,5 +883,12 @@ func newShippingDocumentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShippingDocumentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ShippingDocumentsTable, ShippingDocumentsColumn),
+	)
+}
+func newAbnormalCasesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AbnormalCasesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AbnormalCasesTable, AbnormalCasesColumn),
 	)
 }

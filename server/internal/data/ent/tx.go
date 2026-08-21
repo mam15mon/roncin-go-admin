@@ -30,6 +30,8 @@ type Tx struct {
 	NumberSequence *NumberSequenceClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
+	// OrderAbnormalCase is the client for interacting with the OrderAbnormalCase builders.
+	OrderAbnormalCase *OrderAbnormalCaseClient
 	// OrderAttachment is the client for interacting with the OrderAttachment builders.
 	OrderAttachment *OrderAttachmentClient
 	// OrderCargoCategory is the client for interacting with the OrderCargoCategory builders.
@@ -220,6 +222,7 @@ func (tx *Tx) init() {
 	tx.NumberRule = NewNumberRuleClient(tx.config)
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
+	tx.OrderAbnormalCase = NewOrderAbnormalCaseClient(tx.config)
 	tx.OrderAttachment = NewOrderAttachmentClient(tx.config)
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderCargoItem = NewOrderCargoItemClient(tx.config)

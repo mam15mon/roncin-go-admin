@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderAbnormalCaseService 订单异常标记服务。
+// 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
+service OrderAbnormalCaseService {
+  // ListAbnormalCases 获取指定订单的异常标记列表。
+  rpc ListAbnormalCases(ListAbnormalCasesRequest) returns (OrderAbnormalCaseListReply) {
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/abnormal-cases"};
+  }
+
+  // MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
+  rpc MarkAbnormalCase(MarkAbnormalCaseRequest) returns (OrderAbnormalCaseReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/abnormal-cases"
+      body: "*"
+    };
+  }
+
+  // ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
+  rpc ResolveAbnormalCase(ResolveAbnormalCaseRequest) returns (OrderAbnormalCaseReply) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve"
+      body: "*"
+    };
+  }
+
+  // RemoveAbnormalCase 移除订单异常标记。
+  rpc RemoveAbnormalCase(RemoveAbnormalCaseRequest) returns (OrderAbnormalCaseOperationReply) {
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/abnormal-cases/{id}"};
+  }
+}
+
+// OrderAbnormalCaseStatus 异常标记状态枚举。
+enum OrderAbnormalCaseStatus {
+  ORDER_ABNORMAL_CASE_STATUS_UNSPECIFIED = 0;
+  ORDER_ABNORMAL_CASE_STATUS_ACTIVE = 1;
+  ORDER_ABNORMAL_CASE_STATUS_RESOLVED = 2;
+}
+
+// OrderAbnormalCase 订单异常标记信息。
+message OrderAbnormalCase {
+  string id = 1;
+  string order_id = 2;
+  string abnormal_case_id = 3;
+  OrderAbnormalCaseStatus status = 4;
+  string marked_at = 5;
+  string marked_by = 6;
+  optional string resolved_at = 7;
+  optional string resolved_by = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// ListAbnormalCasesRequest 获取异常标记列表请求。
+message ListAbnormalCasesRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// MarkAbnormalCaseRequest 标记订单异常请求。
+message MarkAbnormalCaseRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string abnormal_case_id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ResolveAbnormalCaseRequest 解决订单异常请求。
+message ResolveAbnormalCaseRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemoveAbnormalCaseRequest 移除异常标记请求。
+message RemoveAbnormalCaseRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderAbnormalCaseReply 单条异常标记响应。
+message OrderAbnormalCaseReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderAbnormalCase data = 4;
+  string trace_id = 5;
+}
+
+// OrderAbnormalCaseListReply 异常标记列表响应。
+message OrderAbnormalCaseListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderAbnormalCase data = 4;
+  string trace_id = 5;
+}
+
+// OrderAbnormalCaseOperationReply 异常标记操作响应。
+message OrderAbnormalCaseOperationReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

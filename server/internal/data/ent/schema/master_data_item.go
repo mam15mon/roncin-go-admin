@@ -17,7 +17,7 @@ func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 func (MasterDataItem) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("kind").Values("currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category"),
+		field.Enum("kind").Values("currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category", "abnormal_case"),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
 		field.String("name_en").MaxLen(200).Optional().Nillable(),

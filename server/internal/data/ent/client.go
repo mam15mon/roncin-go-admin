@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
@@ -75,6 +76,8 @@ type Client struct {
 	NumberSequence *NumberSequenceClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
+	// OrderAbnormalCase is the client for interacting with the OrderAbnormalCase builders.
+	OrderAbnormalCase *OrderAbnormalCaseClient
 	// OrderAttachment is the client for interacting with the OrderAttachment builders.
 	OrderAttachment *OrderAttachmentClient
 	// OrderCargoCategory is the client for interacting with the OrderCargoCategory builders.
@@ -145,6 +148,7 @@ func (c *Client) init() {
 	c.NumberRule = NewNumberRuleClient(c.config)
 	c.NumberSequence = NewNumberSequenceClient(c.config)
 	c.Order = NewOrderClient(c.config)
+	c.OrderAbnormalCase = NewOrderAbnormalCaseClient(c.config)
 	c.OrderAttachment = NewOrderAttachmentClient(c.config)
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
 	c.OrderCargoItem = NewOrderCargoItemClient(c.config)
@@ -271,6 +275,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NumberRule:            NewNumberRuleClient(cfg),
 		NumberSequence:        NewNumberSequenceClient(cfg),
 		Order:                 NewOrderClient(cfg),
+		OrderAbnormalCase:     NewOrderAbnormalCaseClient(cfg),
 		OrderAttachment:       NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:        NewOrderCargoItemClient(cfg),
@@ -324,6 +329,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NumberRule:            NewNumberRuleClient(cfg),
 		NumberSequence:        NewNumberSequenceClient(cfg),
 		Order:                 NewOrderClient(cfg),
+		OrderAbnormalCase:     NewOrderAbnormalCaseClient(cfg),
 		OrderAttachment:       NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:        NewOrderCargoItemClient(cfg),
@@ -380,13 +386,13 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderContainer, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -398,13 +404,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuditLog, c.BackgroundTask, c.MasterDataItem, c.Membership,
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule, c.Permission,
-		c.Role, c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem,
-		c.User,
+		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderContainer, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerRole, c.PartnerSettlementRule,
+		c.Permission, c.Role, c.RoleAssignment, c.Session, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -431,6 +437,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NumberSequence.mutate(ctx, m)
 	case *OrderMutation:
 		return c.Order.mutate(ctx, m)
+	case *OrderAbnormalCaseMutation:
+		return c.OrderAbnormalCase.mutate(ctx, m)
 	case *OrderAttachmentMutation:
 		return c.OrderAttachment.mutate(ctx, m)
 	case *OrderCargoCategoryMutation:
@@ -2026,6 +2034,22 @@ func (c *OrderClient) QueryShippingDocuments(_m *Order) *OrderShippingDocumentQu
 	return query
 }
 
+// QueryAbnormalCases queries the abnormal_cases edge of a Order.
+func (c *OrderClient) QueryAbnormalCases(_m *Order) *OrderAbnormalCaseQuery {
+	query := (&OrderAbnormalCaseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderabnormalcase.Table, orderabnormalcase.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.AbnormalCasesTable, order.AbnormalCasesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -2048,6 +2072,155 @@ func (c *OrderClient) mutate(ctx context.Context, m *OrderMutation) (Value, erro
 		return (&OrderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Order mutation op: %q", m.Op())
+	}
+}
+
+// OrderAbnormalCaseClient is a client for the OrderAbnormalCase schema.
+type OrderAbnormalCaseClient struct {
+	config
+}
+
+// NewOrderAbnormalCaseClient returns a client for the OrderAbnormalCase from the given config.
+func NewOrderAbnormalCaseClient(c config) *OrderAbnormalCaseClient {
+	return &OrderAbnormalCaseClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderabnormalcase.Hooks(f(g(h())))`.
+func (c *OrderAbnormalCaseClient) Use(hooks ...Hook) {
+	c.hooks.OrderAbnormalCase = append(c.hooks.OrderAbnormalCase, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderabnormalcase.Intercept(f(g(h())))`.
+func (c *OrderAbnormalCaseClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderAbnormalCase = append(c.inters.OrderAbnormalCase, interceptors...)
+}
+
+// Create returns a builder for creating a OrderAbnormalCase entity.
+func (c *OrderAbnormalCaseClient) Create() *OrderAbnormalCaseCreate {
+	mutation := newOrderAbnormalCaseMutation(c.config, OpCreate)
+	return &OrderAbnormalCaseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderAbnormalCase entities.
+func (c *OrderAbnormalCaseClient) CreateBulk(builders ...*OrderAbnormalCaseCreate) *OrderAbnormalCaseCreateBulk {
+	return &OrderAbnormalCaseCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderAbnormalCaseClient) MapCreateBulk(slice any, setFunc func(*OrderAbnormalCaseCreate, int)) *OrderAbnormalCaseCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderAbnormalCaseCreateBulk{err: fmt.Errorf("calling to OrderAbnormalCaseClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderAbnormalCaseCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderAbnormalCaseCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderAbnormalCase.
+func (c *OrderAbnormalCaseClient) Update() *OrderAbnormalCaseUpdate {
+	mutation := newOrderAbnormalCaseMutation(c.config, OpUpdate)
+	return &OrderAbnormalCaseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderAbnormalCaseClient) UpdateOne(_m *OrderAbnormalCase) *OrderAbnormalCaseUpdateOne {
+	mutation := newOrderAbnormalCaseMutation(c.config, OpUpdateOne, withOrderAbnormalCase(_m))
+	return &OrderAbnormalCaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderAbnormalCaseClient) UpdateOneID(id uuid.UUID) *OrderAbnormalCaseUpdateOne {
+	mutation := newOrderAbnormalCaseMutation(c.config, OpUpdateOne, withOrderAbnormalCaseID(id))
+	return &OrderAbnormalCaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderAbnormalCase.
+func (c *OrderAbnormalCaseClient) Delete() *OrderAbnormalCaseDelete {
+	mutation := newOrderAbnormalCaseMutation(c.config, OpDelete)
+	return &OrderAbnormalCaseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderAbnormalCaseClient) DeleteOne(_m *OrderAbnormalCase) *OrderAbnormalCaseDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderAbnormalCaseClient) DeleteOneID(id uuid.UUID) *OrderAbnormalCaseDeleteOne {
+	builder := c.Delete().Where(orderabnormalcase.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderAbnormalCaseDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderAbnormalCase.
+func (c *OrderAbnormalCaseClient) Query() *OrderAbnormalCaseQuery {
+	return &OrderAbnormalCaseQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderAbnormalCase},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderAbnormalCase entity by its id.
+func (c *OrderAbnormalCaseClient) Get(ctx context.Context, id uuid.UUID) (*OrderAbnormalCase, error) {
+	return c.Query().Where(orderabnormalcase.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderAbnormalCaseClient) GetX(ctx context.Context, id uuid.UUID) *OrderAbnormalCase {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderAbnormalCase.
+func (c *OrderAbnormalCaseClient) QueryOrder(_m *OrderAbnormalCase) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderabnormalcase.Table, orderabnormalcase.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderabnormalcase.OrderTable, orderabnormalcase.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderAbnormalCaseClient) Hooks() []Hook {
+	return c.hooks.OrderAbnormalCase
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderAbnormalCaseClient) Interceptors() []Interceptor {
+	return c.inters.OrderAbnormalCase
+}
+
+func (c *OrderAbnormalCaseClient) mutate(ctx context.Context, m *OrderAbnormalCaseMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderAbnormalCaseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderAbnormalCaseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderAbnormalCaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderAbnormalCaseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderAbnormalCase mutation op: %q", m.Op())
 	}
 }
 
@@ -6228,22 +6401,22 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
-		OrderPersonnel, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerRole, PartnerSettlementRule,
-		Permission, Role, RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
-		User []ent.Hook
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
+		OrderMilestone, OrderPersonnel, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AuditLog, BackgroundTask, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
-		OrderPersonnel, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerRole, PartnerSettlementRule,
-		Permission, Role, RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
-		User []ent.Interceptor
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
+		OrderMilestone, OrderPersonnel, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerRole,
+		PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
+		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
 	}
 )

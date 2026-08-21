@@ -7,6 +7,7 @@ import * as authService from "./authService";
 import * as backgroundTaskService from "./backgroundTaskService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
+import * as orderAbnormalCaseService from "./orderAbnormalCaseService";
 import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderCargoItemService from "./orderCargoItemService";
 import * as orderContainerService from "./orderContainerService";
@@ -20,6 +21,7 @@ export default {
   backgroundTaskService,
   masterDataService,
   orderService,
+  orderAbnormalCaseService,
   orderAttachmentService,
   orderCargoItemService,
   orderContainerService,

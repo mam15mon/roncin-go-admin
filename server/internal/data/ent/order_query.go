@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
@@ -49,6 +50,7 @@ type OrderQuery struct {
 	withContainers        *OrderContainerQuery
 	withCargoItems        *OrderCargoItemQuery
 	withShippingDocuments *OrderShippingDocumentQuery
+	withAbnormalCases     *OrderAbnormalCaseQuery
 	modifiers             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -350,6 +352,28 @@ func (_q *OrderQuery) QueryShippingDocuments() *OrderShippingDocumentQuery {
 	return query
 }
 
+// QueryAbnormalCases chains the current query on the "abnormal_cases" edge.
+func (_q *OrderQuery) QueryAbnormalCases() *OrderAbnormalCaseQuery {
+	query := (&OrderAbnormalCaseClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(orderabnormalcase.Table, orderabnormalcase.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.AbnormalCasesTable, order.AbnormalCasesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Order entity from the query.
 // Returns a *NotFoundError when no Order was found.
 func (_q *OrderQuery) First(ctx context.Context) (*Order, error) {
@@ -554,6 +578,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withContainers:        _q.withContainers.Clone(),
 		withCargoItems:        _q.withCargoItems.Clone(),
 		withShippingDocuments: _q.withShippingDocuments.Clone(),
+		withAbnormalCases:     _q.withAbnormalCases.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -692,6 +717,17 @@ func (_q *OrderQuery) WithShippingDocuments(opts ...func(*OrderShippingDocumentQ
 	return _q
 }
 
+// WithAbnormalCases tells the query-builder to eager-load the nodes that are connected to
+// the "abnormal_cases" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithAbnormalCases(opts ...func(*OrderAbnormalCaseQuery)) *OrderQuery {
+	query := (&OrderAbnormalCaseClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAbnormalCases = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -770,7 +806,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withStatusTemplate != nil,
@@ -783,6 +819,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withContainers != nil,
 			_q.withCargoItems != nil,
 			_q.withShippingDocuments != nil,
+			_q.withAbnormalCases != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -886,6 +923,13 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			func(n *Order, e *OrderShippingDocument) {
 				n.Edges.ShippingDocuments = append(n.Edges.ShippingDocuments, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAbnormalCases; query != nil {
+		if err := _q.loadAbnormalCases(ctx, query, nodes,
+			func(n *Order) { n.Edges.AbnormalCases = []*OrderAbnormalCase{} },
+			func(n *Order, e *OrderAbnormalCase) { n.Edges.AbnormalCases = append(n.Edges.AbnormalCases, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1234,6 +1278,36 @@ func (_q *OrderQuery) loadShippingDocuments(ctx context.Context, query *OrderShi
 	}
 	query.Where(predicate.OrderShippingDocument(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.ShippingDocumentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadAbnormalCases(ctx context.Context, query *OrderAbnormalCaseQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderAbnormalCase)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderabnormalcase.FieldOrderID)
+	}
+	query.Where(predicate.OrderAbnormalCase(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.AbnormalCasesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

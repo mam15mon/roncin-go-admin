@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
@@ -756,6 +757,21 @@ func (_u *OrderUpdate) AddShippingDocuments(v ...*OrderShippingDocument) *OrderU
 	return _u.AddShippingDocumentIDs(ids...)
 }
 
+// AddAbnormalCaseIDs adds the "abnormal_cases" edge to the OrderAbnormalCase entity by IDs.
+func (_u *OrderUpdate) AddAbnormalCaseIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddAbnormalCaseIDs(ids...)
+	return _u
+}
+
+// AddAbnormalCases adds the "abnormal_cases" edges to the OrderAbnormalCase entity.
+func (_u *OrderUpdate) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbnormalCaseIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -966,6 +982,27 @@ func (_u *OrderUpdate) RemoveShippingDocuments(v ...*OrderShippingDocument) *Ord
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveShippingDocumentIDs(ids...)
+}
+
+// ClearAbnormalCases clears all "abnormal_cases" edges to the OrderAbnormalCase entity.
+func (_u *OrderUpdate) ClearAbnormalCases() *OrderUpdate {
+	_u.mutation.ClearAbnormalCases()
+	return _u
+}
+
+// RemoveAbnormalCaseIDs removes the "abnormal_cases" edge to OrderAbnormalCase entities by IDs.
+func (_u *OrderUpdate) RemoveAbnormalCaseIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveAbnormalCaseIDs(ids...)
+	return _u
+}
+
+// RemoveAbnormalCases removes "abnormal_cases" edges to OrderAbnormalCase entities.
+func (_u *OrderUpdate) RemoveAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbnormalCaseIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1775,6 +1812,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AbnormalCasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbnormalCasesIDs(); len(nodes) > 0 && !_u.mutation.AbnormalCasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbnormalCasesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{order.Label}
@@ -2510,6 +2592,21 @@ func (_u *OrderUpdateOne) AddShippingDocuments(v ...*OrderShippingDocument) *Ord
 	return _u.AddShippingDocumentIDs(ids...)
 }
 
+// AddAbnormalCaseIDs adds the "abnormal_cases" edge to the OrderAbnormalCase entity by IDs.
+func (_u *OrderUpdateOne) AddAbnormalCaseIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddAbnormalCaseIDs(ids...)
+	return _u
+}
+
+// AddAbnormalCases adds the "abnormal_cases" edges to the OrderAbnormalCase entity.
+func (_u *OrderUpdateOne) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbnormalCaseIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -2720,6 +2817,27 @@ func (_u *OrderUpdateOne) RemoveShippingDocuments(v ...*OrderShippingDocument) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveShippingDocumentIDs(ids...)
+}
+
+// ClearAbnormalCases clears all "abnormal_cases" edges to the OrderAbnormalCase entity.
+func (_u *OrderUpdateOne) ClearAbnormalCases() *OrderUpdateOne {
+	_u.mutation.ClearAbnormalCases()
+	return _u
+}
+
+// RemoveAbnormalCaseIDs removes the "abnormal_cases" edge to OrderAbnormalCase entities by IDs.
+func (_u *OrderUpdateOne) RemoveAbnormalCaseIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveAbnormalCaseIDs(ids...)
+	return _u
+}
+
+// RemoveAbnormalCases removes "abnormal_cases" edges to OrderAbnormalCase entities.
+func (_u *OrderUpdateOne) RemoveAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbnormalCaseIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -3552,6 +3670,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordershippingdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbnormalCasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbnormalCasesIDs(); len(nodes) > 0 && !_u.mutation.AbnormalCasesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbnormalCasesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.AbnormalCasesTable,
+			Columns: []string{order.AbnormalCasesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
