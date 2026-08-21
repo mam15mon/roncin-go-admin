@@ -67,3 +67,23 @@ export const getCityOptions = (provinceKey: string): GeographicOption[] => {
     key: `${provinceCode}${String(index + 1).padStart(2, '0')}00`,
   }));
 };
+
+export type CascaderOption = {
+  value: string;
+  label: string;
+  children?: CascaderOption[];
+};
+
+export const pcaCascaderOptions: CascaderOption[] = (pcaSource as DivisionNode[]).map((p) => ({
+  value: p.code,
+  label: p.name,
+  children: p.children?.map((c) => ({
+    value: c.code,
+    label: c.name,
+    children: c.children?.map((d) => ({
+      value: d.code,
+      label: d.name,
+    })),
+  })),
+}));
+

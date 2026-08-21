@@ -16,11 +16,7 @@ import type {
 import {
   ModalForm,
   PageContainer,
-  ProFormDependency,
-  ProFormDigit,
-  ProFormList,
   ProFormRadio,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -30,13 +26,12 @@ import { useAccess, useLocation } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
-  partnerServiceCreatePartner,
   partnerServiceExportPartners,
   partnerServiceImportPartners,
   partnerServiceListPartners,
   partnerServiceSetSupplierBlacklist,
-  partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
+import PartnerFormDrawer from './partner-form-drawer';
 import PartnerSecondary from './partner-secondary';
 
 const { Text } = Typography;
@@ -78,17 +73,6 @@ const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
 );
 
-type PartnerFormValues = {
-  code?: string;
-  legalName?: string;
-  unifiedSocialCreditCode?: string;
-  registeredAddress?: string;
-  enabled?: boolean;
-  roles?: API.PartnerRoleInput[];
-  contacts?: API.PartnerContactInput[];
-  aliases?: API.PartnerAliasInput[];
-};
-
 type BlacklistFormValues = {
   blacklisted?: boolean;
   reason?: string;
@@ -116,7 +100,6 @@ function roleTags(roles?: API.PartnerRole[]) {
 
 export default function Partners() {
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const formRef = useRef<ProFormInstance | undefined>(undefined);
   const blacklistFormRef = useRef<ProFormInstance | undefined>(undefined);
   const importFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
@@ -133,7 +116,6 @@ export default function Partners() {
 
   const openCreate = () => {
     setEditing(undefined);
-    formRef.current?.resetFields();
     setModalOpen(true);
   };
 
@@ -417,144 +399,18 @@ export default function Partners() {
         ].filter(Boolean) as React.ReactNode[]}
       />
 
-      <ModalForm<PartnerFormValues>
-        title={editing ? `编辑往来单位：${editing.legalName} (${editing.code})` : `新增${currentView.title}`}
+      <PartnerFormDrawer
         open={modalOpen}
-        formRef={formRef}
-        modalProps={{
-          destroyOnClose: true,
-          width: 780,
-          onCancel: () => setModalOpen(false),
-        }}
-        initialValues={
-          editing
-            ? {
-                ...editing,
-                roles: editing.roles
-                  ?.filter((role) => role.enabled)
-                  .map((role) => ({ type: role.type, enabled: true })),
-              }
-            : {
-                roles: [{ type: currentView.roleType, enabled: true }],
-                contacts: [],
-                aliases: [],
-              }
-        }
-        onOpenChange={setModalOpen}
-        onFinish={async (values) => {
-          const roles = values.roles ?? [];
-          const contacts = values.contacts ?? [];
-          const aliases = values.aliases ?? [];
-          if (editing?.id) {
-            await partnerServiceUpdatePartner(
-              { id: editing.id },
-              {
-                id: editing.id,
-                legalName: values.legalName ?? '',
-                unifiedSocialCreditCode: values.unifiedSocialCreditCode,
-                registeredAddress: values.registeredAddress,
-                enabled: values.enabled ?? true,
-                roles,
-                contacts,
-                aliases,
-              },
-            );
-            message.success('往来单位已成功更新');
-          } else {
-            await partnerServiceCreatePartner({
-              code: values.code ?? '',
-              legalName: values.legalName ?? '',
-              unifiedSocialCreditCode: values.unifiedSocialCreditCode,
-              registeredAddress: values.registeredAddress,
-              roles,
-              contacts,
-              aliases,
-            });
-            message.success('往来单位已成功创建');
-          }
+        partnerId={editing?.id}
+        roleType={currentView.roleType}
+        onClose={() => {
           setModalOpen(false);
-          actionRef.current?.reload();
-          return true;
+          setEditing(undefined);
         }}
-      >
-        <ProFormText
-          name="code"
-          label="单位唯一编码"
-          placeholder={`请输入组织内唯一编码（如 ${currentView.codeExample}）`}
-          disabled={Boolean(editing)}
-          rules={[{ required: true, message: '请输入往来单位编码' }]}
-        />
-        <ProFormText
-          name="legalName"
-          label="企业法人全称"
-          placeholder="请输入完整企业法人营业执照名称"
-          rules={[{ required: true, message: '请输入法人名称' }]}
-        />
-        <ProFormDependency name={['roles']}>
-          {({ roles }: PartnerFormValues) => {
-            const requiresTaxIdentifier = (roles ?? []).some(
-              (role) =>
-                role.enabled !== false && (role.type === 1 || role.type === 2),
-            );
-            return requiresTaxIdentifier ? (
-              <ProFormText
-                name="unifiedSocialCreditCode"
-                label="纳税人识别号"
-                placeholder="请输入18位统一社会信用代码"
-                rules={[
-                  { required: true, message: '客户或供应商必须填写纳税人识别号' },
-                  {
-                    pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
-                    message: '请输入正确的18位统一社会信用代码',
-                  },
-                ]}
-              />
-            ) : null;
-          }}
-        </ProFormDependency>
-        <ProFormTextArea name="registeredAddress" label="注册办公地址" fieldProps={{ rows: 2 }} placeholder="请输入企业法定注册地址" />
-        <ProFormSwitch name="enabled" label="企业合作状态" initialValue />
-        <ProFormList
-          name="roles"
-          label="业务角色身份分配"
-          creatorButtonProps={{ creatorButtonText: '添加业务角色' }}
-          min={1}
-        >
-          <Space align="start">
-            <ProFormSelect
-              name="type"
-              label="角色"
-              options={roleOptions}
-              width="sm"
-              rules={[{ required: true, message: '请选择角色' }]}
-            />
-            <ProFormSwitch name="enabled" label="启用状态" initialValue />
-          </Space>
-        </ProFormList>
-        <ProFormList
-          name="contacts"
-          label="联系人通讯录"
-          creatorButtonProps={{ creatorButtonText: '添加联系人' }}
-        >
-          <Space align="start" wrap>
-            <ProFormText name="name" label="姓名" rules={[{ required: true, message: '请输入联系人姓名' }]} />
-            <ProFormText name="phone" label="联系电话" />
-            <ProFormText name="email" label="电子邮箱" rules={[{ type: 'email', message: '请输入正确的邮箱地址' }]} />
-            <ProFormSwitch name="isPrimary" label="主要联系人" />
-            <ProFormText name="note" label="职务/备注" />
-          </Space>
-        </ProFormList>
-        <ProFormList
-          name="aliases"
-          label="常用企业简称 / 别名"
-          creatorButtonProps={{ creatorButtonText: '添加别名' }}
-        >
-          <Space align="start">
-            <ProFormText name="aliasName" label="简称/别名" rules={[{ required: true, message: '请输入别名' }]} />
-            <ProFormDigit name="sortOrder" label="排序权重" min={0} fieldProps={{ precision: 0 }} />
-          </Space>
-        </ProFormList>
-      </ModalForm>
+        onSuccess={() => {
+          actionRef.current?.reload();
+        }}
+      />
 
       <ModalForm<PartnerImportFormValues>
         title="批量导入往来单位数据"
