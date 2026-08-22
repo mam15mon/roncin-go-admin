@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -224,6 +225,21 @@ func (_u *PartnerUpdate) AddAssignments(v ...*PartnerAssignment) *PartnerUpdate 
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddShippingPresetIDs adds the "shipping_presets" edge to the PartnerShippingPreset entity by IDs.
+func (_u *PartnerUpdate) AddShippingPresetIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddShippingPresetIDs(ids...)
+	return _u
+}
+
+// AddShippingPresets adds the "shipping_presets" edges to the PartnerShippingPreset entity.
+func (_u *PartnerUpdate) AddShippingPresets(v ...*PartnerShippingPreset) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShippingPresetIDs(ids...)
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
 func (_u *PartnerUpdate) AddContractIDs(ids ...uuid.UUID) *PartnerUpdate {
 	_u.mutation.AddContractIDs(ids...)
@@ -368,6 +384,27 @@ func (_u *PartnerUpdate) RemoveAssignments(v ...*PartnerAssignment) *PartnerUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearShippingPresets clears all "shipping_presets" edges to the PartnerShippingPreset entity.
+func (_u *PartnerUpdate) ClearShippingPresets() *PartnerUpdate {
+	_u.mutation.ClearShippingPresets()
+	return _u
+}
+
+// RemoveShippingPresetIDs removes the "shipping_presets" edge to PartnerShippingPreset entities by IDs.
+func (_u *PartnerUpdate) RemoveShippingPresetIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveShippingPresetIDs(ids...)
+	return _u
+}
+
+// RemoveShippingPresets removes "shipping_presets" edges to PartnerShippingPreset entities.
+func (_u *PartnerUpdate) RemoveShippingPresets(v ...*PartnerShippingPreset) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShippingPresetIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -771,6 +808,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ShippingPresetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShippingPresetsIDs(); len(nodes) > 0 && !_u.mutation.ShippingPresetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingPresetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ContractsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1112,6 +1194,21 @@ func (_u *PartnerUpdateOne) AddAssignments(v ...*PartnerAssignment) *PartnerUpda
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddShippingPresetIDs adds the "shipping_presets" edge to the PartnerShippingPreset entity by IDs.
+func (_u *PartnerUpdateOne) AddShippingPresetIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddShippingPresetIDs(ids...)
+	return _u
+}
+
+// AddShippingPresets adds the "shipping_presets" edges to the PartnerShippingPreset entity.
+func (_u *PartnerUpdateOne) AddShippingPresets(v ...*PartnerShippingPreset) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShippingPresetIDs(ids...)
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
 func (_u *PartnerUpdateOne) AddContractIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddContractIDs(ids...)
@@ -1256,6 +1353,27 @@ func (_u *PartnerUpdateOne) RemoveAssignments(v ...*PartnerAssignment) *PartnerU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearShippingPresets clears all "shipping_presets" edges to the PartnerShippingPreset entity.
+func (_u *PartnerUpdateOne) ClearShippingPresets() *PartnerUpdateOne {
+	_u.mutation.ClearShippingPresets()
+	return _u
+}
+
+// RemoveShippingPresetIDs removes the "shipping_presets" edge to PartnerShippingPreset entities by IDs.
+func (_u *PartnerUpdateOne) RemoveShippingPresetIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveShippingPresetIDs(ids...)
+	return _u
+}
+
+// RemoveShippingPresets removes "shipping_presets" edges to PartnerShippingPreset entities.
+func (_u *PartnerUpdateOne) RemoveShippingPresets(v ...*PartnerShippingPreset) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShippingPresetIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -1682,6 +1800,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShippingPresetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShippingPresetsIDs(); len(nodes) > 0 && !_u.mutation.ShippingPresetsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShippingPresetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

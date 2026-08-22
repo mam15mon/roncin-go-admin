@@ -45,6 +45,8 @@ const (
 	EdgeProfile = "profile"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
+	// EdgeShippingPresets holds the string denoting the shipping_presets edge name in mutations.
+	EdgeShippingPresets = "shipping_presets"
 	// EdgeContracts holds the string denoting the contracts edge name in mutations.
 	EdgeContracts = "contracts"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
@@ -95,6 +97,13 @@ const (
 	AssignmentsInverseTable = "partner_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "partner_id"
+	// ShippingPresetsTable is the table that holds the shipping_presets relation/edge.
+	ShippingPresetsTable = "partner_shipping_presets"
+	// ShippingPresetsInverseTable is the table name for the PartnerShippingPreset entity.
+	// It exists in this package in order to avoid circular dependency with the "partnershippingpreset" package.
+	ShippingPresetsInverseTable = "partner_shipping_presets"
+	// ShippingPresetsColumn is the table column denoting the shipping_presets relation/edge.
+	ShippingPresetsColumn = "partner_id"
 	// ContractsTable is the table that holds the contracts relation/edge.
 	ContractsTable = "partner_contracts"
 	// ContractsInverseTable is the table name for the PartnerContract entity.
@@ -288,6 +297,20 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByShippingPresetsCount orders the results by shipping_presets count.
+func ByShippingPresetsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShippingPresetsStep(), opts...)
+	}
+}
+
+// ByShippingPresets orders the results by shipping_presets terms.
+func ByShippingPresets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingPresetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByContractsCount orders the results by contracts count.
 func ByContractsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -369,6 +392,13 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+	)
+}
+func newShippingPresetsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingPresetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShippingPresetsTable, ShippingPresetsColumn),
 	)
 }
 func newContractsStep() *sqlgraph.Step {

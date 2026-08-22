@@ -58,6 +58,8 @@ type PartnerEdges struct {
 	Profile *PartnerProfile `json:"profile,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*PartnerAssignment `json:"assignments,omitempty"`
+	// ShippingPresets holds the value of the shipping_presets edge.
+	ShippingPresets []*PartnerShippingPreset `json:"shipping_presets,omitempty"`
 	// Contracts holds the value of the contracts edge.
 	Contracts []*PartnerContract `json:"contracts,omitempty"`
 	// Attachments holds the value of the attachments edge.
@@ -66,7 +68,7 @@ type PartnerEdges struct {
 	Orders []*Order `json:"orders,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -127,10 +129,19 @@ func (e PartnerEdges) AssignmentsOrErr() ([]*PartnerAssignment, error) {
 	return nil, &NotLoadedError{edge: "assignments"}
 }
 
+// ShippingPresetsOrErr returns the ShippingPresets value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) ShippingPresetsOrErr() ([]*PartnerShippingPreset, error) {
+	if e.loadedTypes[6] {
+		return e.ShippingPresets, nil
+	}
+	return nil, &NotLoadedError{edge: "shipping_presets"}
+}
+
 // ContractsOrErr returns the Contracts value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Contracts, nil
 	}
 	return nil, &NotLoadedError{edge: "contracts"}
@@ -139,7 +150,7 @@ func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
 // AttachmentsOrErr returns the Attachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Attachments, nil
 	}
 	return nil, &NotLoadedError{edge: "attachments"}
@@ -148,7 +159,7 @@ func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -284,6 +295,11 @@ func (_m *Partner) QueryProfile() *PartnerProfileQuery {
 // QueryAssignments queries the "assignments" edge of the Partner entity.
 func (_m *Partner) QueryAssignments() *PartnerAssignmentQuery {
 	return NewPartnerClient(_m.config).QueryAssignments(_m)
+}
+
+// QueryShippingPresets queries the "shipping_presets" edge of the Partner entity.
+func (_m *Partner) QueryShippingPresets() *PartnerShippingPresetQuery {
+	return NewPartnerClient(_m.config).QueryShippingPresets(_m)
 }
 
 // QueryContracts queries the "contracts" edge of the Partner entity.

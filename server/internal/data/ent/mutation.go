@@ -46,6 +46,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -98,6 +99,7 @@ const (
 	TypePartnerProfile        = "PartnerProfile"
 	TypePartnerRole           = "PartnerRole"
 	TypePartnerSettlementRule = "PartnerSettlementRule"
+	TypePartnerShippingPreset = "PartnerShippingPreset"
 	TypePermission            = "Permission"
 	TypeRole                  = "Role"
 	TypeRoleAssignment        = "RoleAssignment"
@@ -24210,6 +24212,9 @@ type PartnerMutation struct {
 	assignments                map[uuid.UUID]struct{}
 	removedassignments         map[uuid.UUID]struct{}
 	clearedassignments         bool
+	shipping_presets           map[uuid.UUID]struct{}
+	removedshipping_presets    map[uuid.UUID]struct{}
+	clearedshipping_presets    bool
 	contracts                  map[uuid.UUID]struct{}
 	removedcontracts           map[uuid.UUID]struct{}
 	clearedcontracts           bool
@@ -24960,6 +24965,60 @@ func (m *PartnerMutation) ResetAssignments() {
 	m.removedassignments = nil
 }
 
+// AddShippingPresetIDs adds the "shipping_presets" edge to the PartnerShippingPreset entity by ids.
+func (m *PartnerMutation) AddShippingPresetIDs(ids ...uuid.UUID) {
+	if m.shipping_presets == nil {
+		m.shipping_presets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.shipping_presets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShippingPresets clears the "shipping_presets" edge to the PartnerShippingPreset entity.
+func (m *PartnerMutation) ClearShippingPresets() {
+	m.clearedshipping_presets = true
+}
+
+// ShippingPresetsCleared reports if the "shipping_presets" edge to the PartnerShippingPreset entity was cleared.
+func (m *PartnerMutation) ShippingPresetsCleared() bool {
+	return m.clearedshipping_presets
+}
+
+// RemoveShippingPresetIDs removes the "shipping_presets" edge to the PartnerShippingPreset entity by IDs.
+func (m *PartnerMutation) RemoveShippingPresetIDs(ids ...uuid.UUID) {
+	if m.removedshipping_presets == nil {
+		m.removedshipping_presets = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.shipping_presets, ids[i])
+		m.removedshipping_presets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShippingPresets returns the removed IDs of the "shipping_presets" edge to the PartnerShippingPreset entity.
+func (m *PartnerMutation) RemovedShippingPresetsIDs() (ids []uuid.UUID) {
+	for id := range m.removedshipping_presets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShippingPresetsIDs returns the "shipping_presets" edge IDs in the mutation.
+func (m *PartnerMutation) ShippingPresetsIDs() (ids []uuid.UUID) {
+	for id := range m.shipping_presets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShippingPresets resets all changes to the "shipping_presets" edge.
+func (m *PartnerMutation) ResetShippingPresets() {
+	m.shipping_presets = nil
+	m.clearedshipping_presets = false
+	m.removedshipping_presets = nil
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by ids.
 func (m *PartnerMutation) AddContractIDs(ids ...uuid.UUID) {
 	if m.contracts == nil {
@@ -25406,7 +25465,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -25424,6 +25483,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.assignments != nil {
 		edges = append(edges, partner.EdgeAssignments)
+	}
+	if m.shipping_presets != nil {
+		edges = append(edges, partner.EdgeShippingPresets)
 	}
 	if m.contracts != nil {
 		edges = append(edges, partner.EdgeContracts)
@@ -25473,6 +25535,12 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeShippingPresets:
+		ids := make([]ent.Value, 0, len(m.shipping_presets))
+		for id := range m.shipping_presets {
+			ids = append(ids, id)
+		}
+		return ids
 	case partner.EdgeContracts:
 		ids := make([]ent.Value, 0, len(m.contracts))
 		for id := range m.contracts {
@@ -25497,7 +25565,7 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -25509,6 +25577,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedassignments != nil {
 		edges = append(edges, partner.EdgeAssignments)
+	}
+	if m.removedshipping_presets != nil {
+		edges = append(edges, partner.EdgeShippingPresets)
 	}
 	if m.removedcontracts != nil {
 		edges = append(edges, partner.EdgeContracts)
@@ -25550,6 +25621,12 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeShippingPresets:
+		ids := make([]ent.Value, 0, len(m.removedshipping_presets))
+		for id := range m.removedshipping_presets {
+			ids = append(ids, id)
+		}
+		return ids
 	case partner.EdgeContracts:
 		ids := make([]ent.Value, 0, len(m.removedcontracts))
 		for id := range m.removedcontracts {
@@ -25574,7 +25651,7 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -25592,6 +25669,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	}
 	if m.clearedassignments {
 		edges = append(edges, partner.EdgeAssignments)
+	}
+	if m.clearedshipping_presets {
+		edges = append(edges, partner.EdgeShippingPresets)
 	}
 	if m.clearedcontracts {
 		edges = append(edges, partner.EdgeContracts)
@@ -25621,6 +25701,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedprofile
 	case partner.EdgeAssignments:
 		return m.clearedassignments
+	case partner.EdgeShippingPresets:
+		return m.clearedshipping_presets
 	case partner.EdgeContracts:
 		return m.clearedcontracts
 	case partner.EdgeAttachments:
@@ -25666,6 +25748,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeAssignments:
 		m.ResetAssignments()
+		return nil
+	case partner.EdgeShippingPresets:
+		m.ResetShippingPresets()
 		return nil
 	case partner.EdgeContracts:
 		m.ResetContracts()
@@ -34862,6 +34947,1539 @@ func (m *PartnerSettlementRuleMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerSettlementRule edge %s", name)
+}
+
+// PartnerShippingPresetMutation represents an operation that mutates the PartnerShippingPreset nodes in the graph.
+type PartnerShippingPresetMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	created_at     *time.Time
+	updated_at     *time.Time
+	preset_type    *partnershippingpreset.PresetType
+	title          *string
+	company_name   *string
+	address        *string
+	contact_name   *string
+	phone          *string
+	email          *string
+	country_code   *string
+	tax_identifier *string
+	content        *string
+	code           *string
+	is_default     *bool
+	sort_order     *int
+	addsort_order  *int
+	remark         *string
+	enabled        *bool
+	clearedFields  map[string]struct{}
+	partner        *uuid.UUID
+	clearedpartner bool
+	done           bool
+	oldValue       func(context.Context) (*PartnerShippingPreset, error)
+	predicates     []predicate.PartnerShippingPreset
+}
+
+var _ ent.Mutation = (*PartnerShippingPresetMutation)(nil)
+
+// partnershippingpresetOption allows management of the mutation configuration using functional options.
+type partnershippingpresetOption func(*PartnerShippingPresetMutation)
+
+// newPartnerShippingPresetMutation creates new mutation for the PartnerShippingPreset entity.
+func newPartnerShippingPresetMutation(c config, op Op, opts ...partnershippingpresetOption) *PartnerShippingPresetMutation {
+	m := &PartnerShippingPresetMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePartnerShippingPreset,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPartnerShippingPresetID sets the ID field of the mutation.
+func withPartnerShippingPresetID(id uuid.UUID) partnershippingpresetOption {
+	return func(m *PartnerShippingPresetMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PartnerShippingPreset
+		)
+		m.oldValue = func(ctx context.Context) (*PartnerShippingPreset, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PartnerShippingPreset.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPartnerShippingPreset sets the old PartnerShippingPreset of the mutation.
+func withPartnerShippingPreset(node *PartnerShippingPreset) partnershippingpresetOption {
+	return func(m *PartnerShippingPresetMutation) {
+		m.oldValue = func(context.Context) (*PartnerShippingPreset, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PartnerShippingPresetMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PartnerShippingPresetMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PartnerShippingPreset entities.
+func (m *PartnerShippingPresetMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PartnerShippingPresetMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PartnerShippingPresetMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PartnerShippingPreset.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PartnerShippingPresetMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PartnerShippingPresetMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PartnerShippingPresetMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PartnerShippingPresetMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PartnerShippingPresetMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PartnerShippingPresetMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (m *PartnerShippingPresetMutation) SetPartnerID(u uuid.UUID) {
+	m.partner = &u
+}
+
+// PartnerID returns the value of the "partner_id" field in the mutation.
+func (m *PartnerShippingPresetMutation) PartnerID() (r uuid.UUID, exists bool) {
+	v := m.partner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartnerID returns the old "partner_id" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldPartnerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartnerID: %w", err)
+	}
+	return oldValue.PartnerID, nil
+}
+
+// ResetPartnerID resets all changes to the "partner_id" field.
+func (m *PartnerShippingPresetMutation) ResetPartnerID() {
+	m.partner = nil
+}
+
+// SetPresetType sets the "preset_type" field.
+func (m *PartnerShippingPresetMutation) SetPresetType(pt partnershippingpreset.PresetType) {
+	m.preset_type = &pt
+}
+
+// PresetType returns the value of the "preset_type" field in the mutation.
+func (m *PartnerShippingPresetMutation) PresetType() (r partnershippingpreset.PresetType, exists bool) {
+	v := m.preset_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPresetType returns the old "preset_type" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldPresetType(ctx context.Context) (v partnershippingpreset.PresetType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPresetType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPresetType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPresetType: %w", err)
+	}
+	return oldValue.PresetType, nil
+}
+
+// ResetPresetType resets all changes to the "preset_type" field.
+func (m *PartnerShippingPresetMutation) ResetPresetType() {
+	m.preset_type = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *PartnerShippingPresetMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *PartnerShippingPresetMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *PartnerShippingPresetMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetCompanyName sets the "company_name" field.
+func (m *PartnerShippingPresetMutation) SetCompanyName(s string) {
+	m.company_name = &s
+}
+
+// CompanyName returns the value of the "company_name" field in the mutation.
+func (m *PartnerShippingPresetMutation) CompanyName() (r string, exists bool) {
+	v := m.company_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompanyName returns the old "company_name" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldCompanyName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompanyName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompanyName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompanyName: %w", err)
+	}
+	return oldValue.CompanyName, nil
+}
+
+// ClearCompanyName clears the value of the "company_name" field.
+func (m *PartnerShippingPresetMutation) ClearCompanyName() {
+	m.company_name = nil
+	m.clearedFields[partnershippingpreset.FieldCompanyName] = struct{}{}
+}
+
+// CompanyNameCleared returns if the "company_name" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) CompanyNameCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldCompanyName]
+	return ok
+}
+
+// ResetCompanyName resets all changes to the "company_name" field.
+func (m *PartnerShippingPresetMutation) ResetCompanyName() {
+	m.company_name = nil
+	delete(m.clearedFields, partnershippingpreset.FieldCompanyName)
+}
+
+// SetAddress sets the "address" field.
+func (m *PartnerShippingPresetMutation) SetAddress(s string) {
+	m.address = &s
+}
+
+// Address returns the value of the "address" field in the mutation.
+func (m *PartnerShippingPresetMutation) Address() (r string, exists bool) {
+	v := m.address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddress returns the old "address" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldAddress(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
+	}
+	return oldValue.Address, nil
+}
+
+// ClearAddress clears the value of the "address" field.
+func (m *PartnerShippingPresetMutation) ClearAddress() {
+	m.address = nil
+	m.clearedFields[partnershippingpreset.FieldAddress] = struct{}{}
+}
+
+// AddressCleared returns if the "address" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) AddressCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldAddress]
+	return ok
+}
+
+// ResetAddress resets all changes to the "address" field.
+func (m *PartnerShippingPresetMutation) ResetAddress() {
+	m.address = nil
+	delete(m.clearedFields, partnershippingpreset.FieldAddress)
+}
+
+// SetContactName sets the "contact_name" field.
+func (m *PartnerShippingPresetMutation) SetContactName(s string) {
+	m.contact_name = &s
+}
+
+// ContactName returns the value of the "contact_name" field in the mutation.
+func (m *PartnerShippingPresetMutation) ContactName() (r string, exists bool) {
+	v := m.contact_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactName returns the old "contact_name" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldContactName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactName: %w", err)
+	}
+	return oldValue.ContactName, nil
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (m *PartnerShippingPresetMutation) ClearContactName() {
+	m.contact_name = nil
+	m.clearedFields[partnershippingpreset.FieldContactName] = struct{}{}
+}
+
+// ContactNameCleared returns if the "contact_name" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) ContactNameCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldContactName]
+	return ok
+}
+
+// ResetContactName resets all changes to the "contact_name" field.
+func (m *PartnerShippingPresetMutation) ResetContactName() {
+	m.contact_name = nil
+	delete(m.clearedFields, partnershippingpreset.FieldContactName)
+}
+
+// SetPhone sets the "phone" field.
+func (m *PartnerShippingPresetMutation) SetPhone(s string) {
+	m.phone = &s
+}
+
+// Phone returns the value of the "phone" field in the mutation.
+func (m *PartnerShippingPresetMutation) Phone() (r string, exists bool) {
+	v := m.phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhone returns the old "phone" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldPhone(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhone: %w", err)
+	}
+	return oldValue.Phone, nil
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (m *PartnerShippingPresetMutation) ClearPhone() {
+	m.phone = nil
+	m.clearedFields[partnershippingpreset.FieldPhone] = struct{}{}
+}
+
+// PhoneCleared returns if the "phone" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) PhoneCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldPhone]
+	return ok
+}
+
+// ResetPhone resets all changes to the "phone" field.
+func (m *PartnerShippingPresetMutation) ResetPhone() {
+	m.phone = nil
+	delete(m.clearedFields, partnershippingpreset.FieldPhone)
+}
+
+// SetEmail sets the "email" field.
+func (m *PartnerShippingPresetMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *PartnerShippingPresetMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldEmail(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ClearEmail clears the value of the "email" field.
+func (m *PartnerShippingPresetMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[partnershippingpreset.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the "email" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldEmail]
+	return ok
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *PartnerShippingPresetMutation) ResetEmail() {
+	m.email = nil
+	delete(m.clearedFields, partnershippingpreset.FieldEmail)
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *PartnerShippingPresetMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *PartnerShippingPresetMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldCountryCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ClearCountryCode clears the value of the "country_code" field.
+func (m *PartnerShippingPresetMutation) ClearCountryCode() {
+	m.country_code = nil
+	m.clearedFields[partnershippingpreset.FieldCountryCode] = struct{}{}
+}
+
+// CountryCodeCleared returns if the "country_code" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) CountryCodeCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldCountryCode]
+	return ok
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *PartnerShippingPresetMutation) ResetCountryCode() {
+	m.country_code = nil
+	delete(m.clearedFields, partnershippingpreset.FieldCountryCode)
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (m *PartnerShippingPresetMutation) SetTaxIdentifier(s string) {
+	m.tax_identifier = &s
+}
+
+// TaxIdentifier returns the value of the "tax_identifier" field in the mutation.
+func (m *PartnerShippingPresetMutation) TaxIdentifier() (r string, exists bool) {
+	v := m.tax_identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxIdentifier returns the old "tax_identifier" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldTaxIdentifier(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxIdentifier: %w", err)
+	}
+	return oldValue.TaxIdentifier, nil
+}
+
+// ClearTaxIdentifier clears the value of the "tax_identifier" field.
+func (m *PartnerShippingPresetMutation) ClearTaxIdentifier() {
+	m.tax_identifier = nil
+	m.clearedFields[partnershippingpreset.FieldTaxIdentifier] = struct{}{}
+}
+
+// TaxIdentifierCleared returns if the "tax_identifier" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) TaxIdentifierCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldTaxIdentifier]
+	return ok
+}
+
+// ResetTaxIdentifier resets all changes to the "tax_identifier" field.
+func (m *PartnerShippingPresetMutation) ResetTaxIdentifier() {
+	m.tax_identifier = nil
+	delete(m.clearedFields, partnershippingpreset.FieldTaxIdentifier)
+}
+
+// SetContent sets the "content" field.
+func (m *PartnerShippingPresetMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *PartnerShippingPresetMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldContent(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ClearContent clears the value of the "content" field.
+func (m *PartnerShippingPresetMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[partnershippingpreset.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldContent]
+	return ok
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *PartnerShippingPresetMutation) ResetContent() {
+	m.content = nil
+	delete(m.clearedFields, partnershippingpreset.FieldContent)
+}
+
+// SetCode sets the "code" field.
+func (m *PartnerShippingPresetMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *PartnerShippingPresetMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ClearCode clears the value of the "code" field.
+func (m *PartnerShippingPresetMutation) ClearCode() {
+	m.code = nil
+	m.clearedFields[partnershippingpreset.FieldCode] = struct{}{}
+}
+
+// CodeCleared returns if the "code" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) CodeCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldCode]
+	return ok
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *PartnerShippingPresetMutation) ResetCode() {
+	m.code = nil
+	delete(m.clearedFields, partnershippingpreset.FieldCode)
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *PartnerShippingPresetMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *PartnerShippingPresetMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *PartnerShippingPresetMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *PartnerShippingPresetMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *PartnerShippingPresetMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *PartnerShippingPresetMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *PartnerShippingPresetMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *PartnerShippingPresetMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *PartnerShippingPresetMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *PartnerShippingPresetMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *PartnerShippingPresetMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[partnershippingpreset.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[partnershippingpreset.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *PartnerShippingPresetMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, partnershippingpreset.FieldRemark)
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *PartnerShippingPresetMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *PartnerShippingPresetMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the PartnerShippingPreset entity.
+// If the PartnerShippingPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerShippingPresetMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *PartnerShippingPresetMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearPartner clears the "partner" edge to the Partner entity.
+func (m *PartnerShippingPresetMutation) ClearPartner() {
+	m.clearedpartner = true
+	m.clearedFields[partnershippingpreset.FieldPartnerID] = struct{}{}
+}
+
+// PartnerCleared reports if the "partner" edge to the Partner entity was cleared.
+func (m *PartnerShippingPresetMutation) PartnerCleared() bool {
+	return m.clearedpartner
+}
+
+// PartnerIDs returns the "partner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartnerID instead. It exists only for internal usage by the builders.
+func (m *PartnerShippingPresetMutation) PartnerIDs() (ids []uuid.UUID) {
+	if id := m.partner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPartner resets all changes to the "partner" edge.
+func (m *PartnerShippingPresetMutation) ResetPartner() {
+	m.partner = nil
+	m.clearedpartner = false
+}
+
+// Where appends a list predicates to the PartnerShippingPresetMutation builder.
+func (m *PartnerShippingPresetMutation) Where(ps ...predicate.PartnerShippingPreset) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PartnerShippingPresetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PartnerShippingPresetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PartnerShippingPreset, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PartnerShippingPresetMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PartnerShippingPresetMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PartnerShippingPreset).
+func (m *PartnerShippingPresetMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PartnerShippingPresetMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.created_at != nil {
+		fields = append(fields, partnershippingpreset.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, partnershippingpreset.FieldUpdatedAt)
+	}
+	if m.partner != nil {
+		fields = append(fields, partnershippingpreset.FieldPartnerID)
+	}
+	if m.preset_type != nil {
+		fields = append(fields, partnershippingpreset.FieldPresetType)
+	}
+	if m.title != nil {
+		fields = append(fields, partnershippingpreset.FieldTitle)
+	}
+	if m.company_name != nil {
+		fields = append(fields, partnershippingpreset.FieldCompanyName)
+	}
+	if m.address != nil {
+		fields = append(fields, partnershippingpreset.FieldAddress)
+	}
+	if m.contact_name != nil {
+		fields = append(fields, partnershippingpreset.FieldContactName)
+	}
+	if m.phone != nil {
+		fields = append(fields, partnershippingpreset.FieldPhone)
+	}
+	if m.email != nil {
+		fields = append(fields, partnershippingpreset.FieldEmail)
+	}
+	if m.country_code != nil {
+		fields = append(fields, partnershippingpreset.FieldCountryCode)
+	}
+	if m.tax_identifier != nil {
+		fields = append(fields, partnershippingpreset.FieldTaxIdentifier)
+	}
+	if m.content != nil {
+		fields = append(fields, partnershippingpreset.FieldContent)
+	}
+	if m.code != nil {
+		fields = append(fields, partnershippingpreset.FieldCode)
+	}
+	if m.is_default != nil {
+		fields = append(fields, partnershippingpreset.FieldIsDefault)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, partnershippingpreset.FieldSortOrder)
+	}
+	if m.remark != nil {
+		fields = append(fields, partnershippingpreset.FieldRemark)
+	}
+	if m.enabled != nil {
+		fields = append(fields, partnershippingpreset.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PartnerShippingPresetMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case partnershippingpreset.FieldCreatedAt:
+		return m.CreatedAt()
+	case partnershippingpreset.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case partnershippingpreset.FieldPartnerID:
+		return m.PartnerID()
+	case partnershippingpreset.FieldPresetType:
+		return m.PresetType()
+	case partnershippingpreset.FieldTitle:
+		return m.Title()
+	case partnershippingpreset.FieldCompanyName:
+		return m.CompanyName()
+	case partnershippingpreset.FieldAddress:
+		return m.Address()
+	case partnershippingpreset.FieldContactName:
+		return m.ContactName()
+	case partnershippingpreset.FieldPhone:
+		return m.Phone()
+	case partnershippingpreset.FieldEmail:
+		return m.Email()
+	case partnershippingpreset.FieldCountryCode:
+		return m.CountryCode()
+	case partnershippingpreset.FieldTaxIdentifier:
+		return m.TaxIdentifier()
+	case partnershippingpreset.FieldContent:
+		return m.Content()
+	case partnershippingpreset.FieldCode:
+		return m.Code()
+	case partnershippingpreset.FieldIsDefault:
+		return m.IsDefault()
+	case partnershippingpreset.FieldSortOrder:
+		return m.SortOrder()
+	case partnershippingpreset.FieldRemark:
+		return m.Remark()
+	case partnershippingpreset.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PartnerShippingPresetMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case partnershippingpreset.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case partnershippingpreset.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case partnershippingpreset.FieldPartnerID:
+		return m.OldPartnerID(ctx)
+	case partnershippingpreset.FieldPresetType:
+		return m.OldPresetType(ctx)
+	case partnershippingpreset.FieldTitle:
+		return m.OldTitle(ctx)
+	case partnershippingpreset.FieldCompanyName:
+		return m.OldCompanyName(ctx)
+	case partnershippingpreset.FieldAddress:
+		return m.OldAddress(ctx)
+	case partnershippingpreset.FieldContactName:
+		return m.OldContactName(ctx)
+	case partnershippingpreset.FieldPhone:
+		return m.OldPhone(ctx)
+	case partnershippingpreset.FieldEmail:
+		return m.OldEmail(ctx)
+	case partnershippingpreset.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case partnershippingpreset.FieldTaxIdentifier:
+		return m.OldTaxIdentifier(ctx)
+	case partnershippingpreset.FieldContent:
+		return m.OldContent(ctx)
+	case partnershippingpreset.FieldCode:
+		return m.OldCode(ctx)
+	case partnershippingpreset.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case partnershippingpreset.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case partnershippingpreset.FieldRemark:
+		return m.OldRemark(ctx)
+	case partnershippingpreset.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown PartnerShippingPreset field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartnerShippingPresetMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case partnershippingpreset.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case partnershippingpreset.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case partnershippingpreset.FieldPartnerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartnerID(v)
+		return nil
+	case partnershippingpreset.FieldPresetType:
+		v, ok := value.(partnershippingpreset.PresetType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPresetType(v)
+		return nil
+	case partnershippingpreset.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case partnershippingpreset.FieldCompanyName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompanyName(v)
+		return nil
+	case partnershippingpreset.FieldAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddress(v)
+		return nil
+	case partnershippingpreset.FieldContactName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactName(v)
+		return nil
+	case partnershippingpreset.FieldPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhone(v)
+		return nil
+	case partnershippingpreset.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case partnershippingpreset.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case partnershippingpreset.FieldTaxIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxIdentifier(v)
+		return nil
+	case partnershippingpreset.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case partnershippingpreset.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case partnershippingpreset.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case partnershippingpreset.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case partnershippingpreset.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	case partnershippingpreset.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PartnerShippingPresetMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, partnershippingpreset.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PartnerShippingPresetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case partnershippingpreset.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartnerShippingPresetMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case partnershippingpreset.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PartnerShippingPresetMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(partnershippingpreset.FieldCompanyName) {
+		fields = append(fields, partnershippingpreset.FieldCompanyName)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldAddress) {
+		fields = append(fields, partnershippingpreset.FieldAddress)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldContactName) {
+		fields = append(fields, partnershippingpreset.FieldContactName)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldPhone) {
+		fields = append(fields, partnershippingpreset.FieldPhone)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldEmail) {
+		fields = append(fields, partnershippingpreset.FieldEmail)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldCountryCode) {
+		fields = append(fields, partnershippingpreset.FieldCountryCode)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldTaxIdentifier) {
+		fields = append(fields, partnershippingpreset.FieldTaxIdentifier)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldContent) {
+		fields = append(fields, partnershippingpreset.FieldContent)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldCode) {
+		fields = append(fields, partnershippingpreset.FieldCode)
+	}
+	if m.FieldCleared(partnershippingpreset.FieldRemark) {
+		fields = append(fields, partnershippingpreset.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PartnerShippingPresetMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PartnerShippingPresetMutation) ClearField(name string) error {
+	switch name {
+	case partnershippingpreset.FieldCompanyName:
+		m.ClearCompanyName()
+		return nil
+	case partnershippingpreset.FieldAddress:
+		m.ClearAddress()
+		return nil
+	case partnershippingpreset.FieldContactName:
+		m.ClearContactName()
+		return nil
+	case partnershippingpreset.FieldPhone:
+		m.ClearPhone()
+		return nil
+	case partnershippingpreset.FieldEmail:
+		m.ClearEmail()
+		return nil
+	case partnershippingpreset.FieldCountryCode:
+		m.ClearCountryCode()
+		return nil
+	case partnershippingpreset.FieldTaxIdentifier:
+		m.ClearTaxIdentifier()
+		return nil
+	case partnershippingpreset.FieldContent:
+		m.ClearContent()
+		return nil
+	case partnershippingpreset.FieldCode:
+		m.ClearCode()
+		return nil
+	case partnershippingpreset.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PartnerShippingPresetMutation) ResetField(name string) error {
+	switch name {
+	case partnershippingpreset.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case partnershippingpreset.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case partnershippingpreset.FieldPartnerID:
+		m.ResetPartnerID()
+		return nil
+	case partnershippingpreset.FieldPresetType:
+		m.ResetPresetType()
+		return nil
+	case partnershippingpreset.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case partnershippingpreset.FieldCompanyName:
+		m.ResetCompanyName()
+		return nil
+	case partnershippingpreset.FieldAddress:
+		m.ResetAddress()
+		return nil
+	case partnershippingpreset.FieldContactName:
+		m.ResetContactName()
+		return nil
+	case partnershippingpreset.FieldPhone:
+		m.ResetPhone()
+		return nil
+	case partnershippingpreset.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case partnershippingpreset.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case partnershippingpreset.FieldTaxIdentifier:
+		m.ResetTaxIdentifier()
+		return nil
+	case partnershippingpreset.FieldContent:
+		m.ResetContent()
+		return nil
+	case partnershippingpreset.FieldCode:
+		m.ResetCode()
+		return nil
+	case partnershippingpreset.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case partnershippingpreset.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case partnershippingpreset.FieldRemark:
+		m.ResetRemark()
+		return nil
+	case partnershippingpreset.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PartnerShippingPresetMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.partner != nil {
+		edges = append(edges, partnershippingpreset.EdgePartner)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PartnerShippingPresetMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case partnershippingpreset.EdgePartner:
+		if id := m.partner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PartnerShippingPresetMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PartnerShippingPresetMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PartnerShippingPresetMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedpartner {
+		edges = append(edges, partnershippingpreset.EdgePartner)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PartnerShippingPresetMutation) EdgeCleared(name string) bool {
+	switch name {
+	case partnershippingpreset.EdgePartner:
+		return m.clearedpartner
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PartnerShippingPresetMutation) ClearEdge(name string) error {
+	switch name {
+	case partnershippingpreset.EdgePartner:
+		m.ClearPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PartnerShippingPresetMutation) ResetEdge(name string) error {
+	switch name {
+	case partnershippingpreset.EdgePartner:
+		m.ResetPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown PartnerShippingPreset edge %s", name)
 }
 
 // PermissionMutation represents an operation that mutates the Permission nodes in the graph.

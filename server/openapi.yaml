@@ -2019,6 +2019,85 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleReply'
+    /api/v1/partners/{partnerId}/shipping-presets:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerShippingPresets
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: presetType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: enabled
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerShippingPresetListReply'
+        post:
+            tags:
+                - PartnerService
+            operationId: PartnerService_CreatePartnerShippingPreset
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.CreatePartnerShippingPresetRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerShippingPresetReply'
+    /api/v1/partners/{partnerId}/shipping-presets/{id}:
+        put:
+            tags:
+                - PartnerService
+            operationId: PartnerService_UpdatePartnerShippingPreset
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.UpdatePartnerShippingPresetRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerShippingPresetReply'
     /api/v1/reference/administrative-regions:
         get:
             tags:
@@ -4448,6 +4527,16 @@ components:
                     format: enum
                 rule:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
+        partner.v1.CreatePartnerShippingPresetRequest:
+            required:
+                - partnerId
+                - preset
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                preset:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingPresetInput'
         partner.v1.ImportPartnersRequest:
             required:
                 - source
@@ -5106,6 +5195,113 @@ components:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRule'
                 traceId:
                     type: string
+        partner.v1.PartnerShippingPartyPayload:
+            type: object
+            properties:
+                companyName:
+                    type: string
+                address:
+                    type: string
+                contactName:
+                    type: string
+                phone:
+                    type: string
+                email:
+                    type: string
+                countryCode:
+                    type: string
+                taxIdentifier:
+                    type: string
+        partner.v1.PartnerShippingPreset:
+            type: object
+            properties:
+                id:
+                    type: string
+                partnerId:
+                    type: string
+                presetType:
+                    type: integer
+                    format: enum
+                title:
+                    type: string
+                party:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingPartyPayload'
+                text:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingTextPayload'
+                isDefault:
+                    type: boolean
+                sortOrder:
+                    type: integer
+                    format: int32
+                remark:
+                    type: string
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        partner.v1.PartnerShippingPresetInput:
+            required:
+                - presetType
+                - title
+            type: object
+            properties:
+                presetType:
+                    type: integer
+                    format: enum
+                title:
+                    type: string
+                party:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingPartyPayload'
+                text:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingTextPayload'
+                isDefault:
+                    type: boolean
+                sortOrder:
+                    type: integer
+                    format: int32
+                remark:
+                    type: string
+                enabled:
+                    type: boolean
+        partner.v1.PartnerShippingPresetListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerShippingPreset'
+                traceId:
+                    type: string
+        partner.v1.PartnerShippingPresetReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingPreset'
+                traceId:
+                    type: string
+        partner.v1.PartnerShippingTextPayload:
+            type: object
+            properties:
+                content:
+                    type: string
+                code:
+                    type: string
         partner.v1.RegisterPartnerAttachmentRequest:
             required:
                 - partnerId
@@ -5242,6 +5438,19 @@ components:
                     type: string
                 rule:
                     $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
+        partner.v1.UpdatePartnerShippingPresetRequest:
+            required:
+                - partnerId
+                - id
+                - preset
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                id:
+                    type: string
+                preset:
+                    $ref: '#/components/schemas/partner.v1.PartnerShippingPresetInput'
         task.v1.BackgroundTask:
             type: object
             properties:

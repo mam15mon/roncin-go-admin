@@ -38,6 +38,9 @@ const (
 	PartnerService_RegisterPartnerAttachment_FullMethodName    = "/partner.v1.PartnerService/RegisterPartnerAttachment"
 	PartnerService_ImportPartners_FullMethodName               = "/partner.v1.PartnerService/ImportPartners"
 	PartnerService_ExportPartners_FullMethodName               = "/partner.v1.PartnerService/ExportPartners"
+	PartnerService_ListPartnerShippingPresets_FullMethodName   = "/partner.v1.PartnerService/ListPartnerShippingPresets"
+	PartnerService_CreatePartnerShippingPreset_FullMethodName  = "/partner.v1.PartnerService/CreatePartnerShippingPreset"
+	PartnerService_UpdatePartnerShippingPreset_FullMethodName  = "/partner.v1.PartnerService/UpdatePartnerShippingPreset"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -63,6 +66,9 @@ type PartnerServiceClient interface {
 	RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error)
 	ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error)
 	ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error)
+	ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*PartnerShippingPresetListReply, error)
+	CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
+	UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
 }
 
 type partnerServiceClient struct {
@@ -263,6 +269,36 @@ func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPar
 	return out, nil
 }
 
+func (c *partnerServiceClient) ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*PartnerShippingPresetListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerShippingPresetListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerShippingPresets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerShippingPresetReply)
+	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerShippingPreset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerShippingPresetReply)
+	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerShippingPreset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartnerServiceServer is the server API for PartnerService service.
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
@@ -286,6 +322,9 @@ type PartnerServiceServer interface {
 	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error)
 	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
 	ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error)
+	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error)
+	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
+	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -352,6 +391,15 @@ func (UnimplementedPartnerServiceServer) ImportPartners(context.Context, *Import
 }
 func (UnimplementedPartnerServiceServer) ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportPartners not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerShippingPresets not implemented")
+}
+func (UnimplementedPartnerServiceServer) CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePartnerShippingPreset not implemented")
+}
+func (UnimplementedPartnerServiceServer) UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerShippingPreset not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}
 func (UnimplementedPartnerServiceServer) testEmbeddedByValue()                        {}
@@ -716,6 +764,60 @@ func _PartnerService_ExportPartners_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ListPartnerShippingPresets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerShippingPresetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerShippingPresets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerShippingPresets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerShippingPresets(ctx, req.(*ListPartnerShippingPresetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_CreatePartnerShippingPreset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePartnerShippingPresetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).CreatePartnerShippingPreset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_CreatePartnerShippingPreset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).CreatePartnerShippingPreset(ctx, req.(*CreatePartnerShippingPresetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_UpdatePartnerShippingPreset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePartnerShippingPresetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).UpdatePartnerShippingPreset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_UpdatePartnerShippingPreset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).UpdatePartnerShippingPreset(ctx, req.(*UpdatePartnerShippingPresetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartnerService_ServiceDesc is the grpc.ServiceDesc for PartnerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -798,6 +900,18 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportPartners",
 			Handler:    _PartnerService_ExportPartners_Handler,
+		},
+		{
+			MethodName: "ListPartnerShippingPresets",
+			Handler:    _PartnerService_ListPartnerShippingPresets_Handler,
+		},
+		{
+			MethodName: "CreatePartnerShippingPreset",
+			Handler:    _PartnerService_CreatePartnerShippingPreset_Handler,
+		},
+		{
+			MethodName: "UpdatePartnerShippingPreset",
+			Handler:    _PartnerService_UpdatePartnerShippingPreset_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

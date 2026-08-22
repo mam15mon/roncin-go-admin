@@ -382,6 +382,11 @@ declare namespace API {
     rule: PartnerSettlementRuleInput;
   };
 
+  type CreatePartnerShippingPresetRequest = {
+    partnerId: string;
+    preset: PartnerShippingPresetInput;
+  };
+
   type CreateRoleRequest = {
     code: string;
     name: string;
@@ -1458,6 +1463,10 @@ declare namespace API {
     roleType: number;
   };
 
+  type PartnerServiceCreatePartnerShippingPresetParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceExportPartnersParams = {
     keyword?: string;
     role?: number;
@@ -1485,6 +1494,12 @@ declare namespace API {
   type PartnerServiceListPartnerSettlementRulesParams = {
     partnerId: string;
     roleType: number;
+  };
+
+  type PartnerServiceListPartnerShippingPresetsParams = {
+    partnerId: string;
+    presetType?: number;
+    enabled?: boolean;
   };
 
   type PartnerServiceListPartnersParams = {
@@ -1520,6 +1535,11 @@ declare namespace API {
   type PartnerServiceUpdatePartnerSettlementRuleParams = {
     partnerId: string;
     roleType: number;
+    id: string;
+  };
+
+  type PartnerServiceUpdatePartnerShippingPresetParams = {
+    partnerId: string;
     id: string;
   };
 
@@ -1565,6 +1585,63 @@ declare namespace API {
     message?: string;
     data?: PartnerSettlementRule;
     traceId?: string;
+  };
+
+  type PartnerShippingPartyPayload = {
+    companyName?: string;
+    address?: string;
+    contactName?: string;
+    phone?: string;
+    email?: string;
+    countryCode?: string;
+    taxIdentifier?: string;
+  };
+
+  type PartnerShippingPreset = {
+    id?: string;
+    partnerId?: string;
+    presetType?: number;
+    title?: string;
+    party?: PartnerShippingPartyPayload;
+    text?: PartnerShippingTextPayload;
+    isDefault?: boolean;
+    sortOrder?: number;
+    remark?: string;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerShippingPresetInput = {
+    presetType: number;
+    title: string;
+    party?: PartnerShippingPartyPayload;
+    text?: PartnerShippingTextPayload;
+    isDefault?: boolean;
+    sortOrder?: number;
+    remark?: string;
+    enabled?: boolean;
+  };
+
+  type PartnerShippingPresetListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerShippingPreset[];
+    traceId?: string;
+  };
+
+  type PartnerShippingPresetReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerShippingPreset;
+    traceId?: string;
+  };
+
+  type PartnerShippingTextPayload = {
+    content?: string;
+    code?: string;
   };
 
   type PublishMilestoneTemplateRequest = {
@@ -1840,6 +1917,12 @@ declare namespace API {
     roleType: number;
     id: string;
     rule: PartnerSettlementRuleInput;
+  };
+
+  type UpdatePartnerShippingPresetRequest = {
+    partnerId: string;
+    id: string;
+    preset: PartnerShippingPresetInput;
   };
 
   type UpdateReleasePodRequest = {

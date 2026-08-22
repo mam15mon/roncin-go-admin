@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 )
 
 // PartnerCreate is the builder for creating a Partner entity.
@@ -220,6 +221,21 @@ func (_c *PartnerCreate) AddAssignments(v ...*PartnerAssignment) *PartnerCreate 
 		ids[i] = v[i].ID
 	}
 	return _c.AddAssignmentIDs(ids...)
+}
+
+// AddShippingPresetIDs adds the "shipping_presets" edge to the PartnerShippingPreset entity by IDs.
+func (_c *PartnerCreate) AddShippingPresetIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddShippingPresetIDs(ids...)
+	return _c
+}
+
+// AddShippingPresets adds the "shipping_presets" edges to the PartnerShippingPreset entity.
+func (_c *PartnerCreate) AddShippingPresets(v ...*PartnerShippingPreset) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddShippingPresetIDs(ids...)
 }
 
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
@@ -528,6 +544,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingPresetsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.ShippingPresetsTable,
+			Columns: []string{partner.ShippingPresetsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

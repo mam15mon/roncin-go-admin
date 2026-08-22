@@ -296,6 +296,69 @@ export async function partnerServiceUpdatePartnerSettlementRule(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/shipping-presets */
+export async function partnerServiceListPartnerShippingPresets(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceListPartnerShippingPresetsParams,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.PartnerShippingPresetListReply>(
+    `/api/v1/partners/${param0}/shipping-presets`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/shipping-presets */
+export async function partnerServiceCreatePartnerShippingPreset(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceCreatePartnerShippingPresetParams,
+  body: API.CreatePartnerShippingPresetRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.PartnerShippingPresetReply>(
+    `/api/v1/partners/${param0}/shipping-presets`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/shipping-presets/${param1} */
+export async function partnerServiceUpdatePartnerShippingPreset(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceUpdatePartnerShippingPresetParams,
+  body: API.UpdatePartnerShippingPresetRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, id: param1, ...queryParams } = params;
+  return request<API.PartnerShippingPresetReply>(
+    `/api/v1/partners/${param0}/shipping-presets/${param1}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/partners/${param0}/supplier-blacklist */
 export async function partnerServiceSetSupplierBlacklist(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

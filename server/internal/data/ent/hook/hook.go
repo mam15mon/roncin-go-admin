@@ -405,6 +405,18 @@ func (f PartnerSettlementRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerSettlementRuleMutation", m)
 }
 
+// The PartnerShippingPresetFunc type is an adapter to allow the use of ordinary
+// function as PartnerShippingPreset mutator.
+type PartnerShippingPresetFunc func(context.Context, *ent.PartnerShippingPresetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerShippingPresetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerShippingPresetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerShippingPresetMutation", m)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

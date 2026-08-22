@@ -49,6 +49,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
@@ -129,6 +130,8 @@ type Client struct {
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
 	PartnerSettlementRule *PartnerSettlementRuleClient
+	// PartnerShippingPreset is the client for interacting with the PartnerShippingPreset builders.
+	PartnerShippingPreset *PartnerShippingPresetClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Role is the client for interacting with the Role builders.
@@ -187,6 +190,7 @@ func (c *Client) init() {
 	c.PartnerProfile = NewPartnerProfileClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
+	c.PartnerShippingPreset = NewPartnerShippingPresetClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
@@ -319,6 +323,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartnerProfile:        NewPartnerProfileClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
 		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset: NewPartnerShippingPresetClient(cfg),
 		Permission:            NewPermissionClient(cfg),
 		Role:                  NewRoleClient(cfg),
 		RoleAssignment:        NewRoleAssignmentClient(cfg),
@@ -378,6 +383,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartnerProfile:        NewPartnerProfileClient(cfg),
 		PartnerRole:           NewPartnerRoleClient(cfg),
 		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset: NewPartnerShippingPresetClient(cfg),
 		Permission:            NewPermissionClient(cfg),
 		Role:                  NewRoleClient(cfg),
 		RoleAssignment:        NewRoleAssignmentClient(cfg),
@@ -422,8 +428,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Role,
+		c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -441,8 +447,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Role, c.RoleAssignment, c.Session,
-		c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Role,
+		c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -517,6 +523,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerRole.mutate(ctx, m)
 	case *PartnerSettlementRuleMutation:
 		return c.PartnerSettlementRule.mutate(ctx, m)
+	case *PartnerShippingPresetMutation:
+		return c.PartnerShippingPreset.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
 	case *RoleMutation:
@@ -4663,6 +4671,22 @@ func (c *PartnerClient) QueryAssignments(_m *Partner) *PartnerAssignmentQuery {
 	return query
 }
 
+// QueryShippingPresets queries the shipping_presets edge of a Partner.
+func (c *PartnerClient) QueryShippingPresets(_m *Partner) *PartnerShippingPresetQuery {
+	query := (&PartnerShippingPresetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partnershippingpreset.Table, partnershippingpreset.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.ShippingPresetsTable, partner.ShippingPresetsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryContracts queries the contracts edge of a Partner.
 func (c *PartnerClient) QueryContracts(_m *Partner) *PartnerContractQuery {
 	query := (&PartnerContractClient{config: c.config}).Query()
@@ -6141,6 +6165,155 @@ func (c *PartnerSettlementRuleClient) mutate(ctx context.Context, m *PartnerSett
 	}
 }
 
+// PartnerShippingPresetClient is a client for the PartnerShippingPreset schema.
+type PartnerShippingPresetClient struct {
+	config
+}
+
+// NewPartnerShippingPresetClient returns a client for the PartnerShippingPreset from the given config.
+func NewPartnerShippingPresetClient(c config) *PartnerShippingPresetClient {
+	return &PartnerShippingPresetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnershippingpreset.Hooks(f(g(h())))`.
+func (c *PartnerShippingPresetClient) Use(hooks ...Hook) {
+	c.hooks.PartnerShippingPreset = append(c.hooks.PartnerShippingPreset, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnershippingpreset.Intercept(f(g(h())))`.
+func (c *PartnerShippingPresetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerShippingPreset = append(c.inters.PartnerShippingPreset, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerShippingPreset entity.
+func (c *PartnerShippingPresetClient) Create() *PartnerShippingPresetCreate {
+	mutation := newPartnerShippingPresetMutation(c.config, OpCreate)
+	return &PartnerShippingPresetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerShippingPreset entities.
+func (c *PartnerShippingPresetClient) CreateBulk(builders ...*PartnerShippingPresetCreate) *PartnerShippingPresetCreateBulk {
+	return &PartnerShippingPresetCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerShippingPresetClient) MapCreateBulk(slice any, setFunc func(*PartnerShippingPresetCreate, int)) *PartnerShippingPresetCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerShippingPresetCreateBulk{err: fmt.Errorf("calling to PartnerShippingPresetClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerShippingPresetCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerShippingPresetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerShippingPreset.
+func (c *PartnerShippingPresetClient) Update() *PartnerShippingPresetUpdate {
+	mutation := newPartnerShippingPresetMutation(c.config, OpUpdate)
+	return &PartnerShippingPresetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerShippingPresetClient) UpdateOne(_m *PartnerShippingPreset) *PartnerShippingPresetUpdateOne {
+	mutation := newPartnerShippingPresetMutation(c.config, OpUpdateOne, withPartnerShippingPreset(_m))
+	return &PartnerShippingPresetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerShippingPresetClient) UpdateOneID(id uuid.UUID) *PartnerShippingPresetUpdateOne {
+	mutation := newPartnerShippingPresetMutation(c.config, OpUpdateOne, withPartnerShippingPresetID(id))
+	return &PartnerShippingPresetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerShippingPreset.
+func (c *PartnerShippingPresetClient) Delete() *PartnerShippingPresetDelete {
+	mutation := newPartnerShippingPresetMutation(c.config, OpDelete)
+	return &PartnerShippingPresetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerShippingPresetClient) DeleteOne(_m *PartnerShippingPreset) *PartnerShippingPresetDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerShippingPresetClient) DeleteOneID(id uuid.UUID) *PartnerShippingPresetDeleteOne {
+	builder := c.Delete().Where(partnershippingpreset.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerShippingPresetDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerShippingPreset.
+func (c *PartnerShippingPresetClient) Query() *PartnerShippingPresetQuery {
+	return &PartnerShippingPresetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerShippingPreset},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerShippingPreset entity by its id.
+func (c *PartnerShippingPresetClient) Get(ctx context.Context, id uuid.UUID) (*PartnerShippingPreset, error) {
+	return c.Query().Where(partnershippingpreset.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerShippingPresetClient) GetX(ctx context.Context, id uuid.UUID) *PartnerShippingPreset {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPartner queries the partner edge of a PartnerShippingPreset.
+func (c *PartnerShippingPresetClient) QueryPartner(_m *PartnerShippingPreset) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnershippingpreset.Table, partnershippingpreset.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnershippingpreset.PartnerTable, partnershippingpreset.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerShippingPresetClient) Hooks() []Hook {
+	return c.hooks.PartnerShippingPreset
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerShippingPresetClient) Interceptors() []Interceptor {
+	return c.inters.PartnerShippingPreset
+}
+
+func (c *PartnerShippingPresetClient) mutate(ctx context.Context, m *PartnerShippingPresetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerShippingPresetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerShippingPresetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerShippingPresetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerShippingPresetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerShippingPreset mutation op: %q", m.Op())
+	}
+}
+
 // PermissionClient is a client for the Permission schema.
 type PermissionClient struct {
 	config
@@ -7338,8 +7511,8 @@ type (
 		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
 		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
 		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
-		StatusTemplate, StatusTemplateItem, User []ent.Hook
+		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Role,
+		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, AuditLog, BackgroundTask, Currency, MasterDataItem,
@@ -7349,7 +7522,8 @@ type (
 		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
 		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
 		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, Permission, Role, RoleAssignment, Session,
-		StatusTemplate, StatusTemplateItem, User []ent.Interceptor
+		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Role,
+		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
+		User []ent.Interceptor
 	}
 )
