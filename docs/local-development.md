@@ -2,27 +2,28 @@
 
 ## 推荐运行方式
 
-本地开发直接运行 Go 服务、Ant Design Pro 和 WSL PostgreSQL，不要求 Docker。
+本地开发直接运行 Go 服务、Ant Design Pro 和 Windows PostgreSQL，不要求 Docker。
 
 ```text
-Windows/WSL
+Windows
 ├── Go Kratos 服务：8000（HTTP）、9000（gRPC）
 ├── Ant Design Pro：8001（开发服务器）
-└── PostgreSQL：5432（WSL）
+└── PostgreSQL：5432（Windows 本机）
 ```
 
 Dockerfile 仅用于以后需要单镜像部署时的构建，不是本地开发前置条件。
 
-## WSL PostgreSQL
+## Windows PostgreSQL
 
-先在 WSL 中确认数据库已经启动，并确认数据库、用户和密码与项目配置一致：
+开发环境使用 Scoop 安装的 Windows PostgreSQL，数据目录为
+`C:\Users\admin\scoop\persist\postgresql\data`。可手工查看运行状态：
 
-```bash
-sudo service postgresql status
-psql -h 127.0.0.1 -U roncin -d roncin
+```powershell
+pg_ctl status -D C:\Users\admin\scoop\persist\postgresql\data
+pg_isready -h 127.0.0.1 -p 5432
 ```
 
-如果 Go 服务也在 WSL 中运行，优先使用 `127.0.0.1`。如果 Go 服务在 Windows 中运行，现代 WSL2 通常也会转发到 `127.0.0.1`；连接失败时，再使用 `hostname -I` 查看 WSL 地址，并确保 PostgreSQL 的 `listen_addresses` 和 `pg_hba.conf` 允许该连接。
+`pnpm dev` 会自动检查并启动该实例，无需日常手工执行上述命令。
 
 ## 环境文件
 
@@ -57,15 +58,15 @@ pnpm run bootstrap:admin
 
 ## 启动服务
 
-开两个终端：
+在仓库根目录执行一条命令：
 
 ```powershell
-pnpm run dev:server
+pnpm dev
 ```
 
-```powershell
-pnpm run dev:web
-```
+该命令会依次启动 Windows PostgreSQL、执行数据库迁移，然后并行启动后端 Air
+热重载和前端开发服务。Air 会监听 Go、YAML 和 SQL 文件；每次后端重载前
+都会执行幂等迁移。修改 Ent Schema 时仍需要按项目约束生成对应迁移 SQL。
 
 打开 `http://localhost:8001/user/login`。前端开发服务器会把 `/api/*` 请求代理到 Go 的 `http://127.0.0.1:8000`。
 
@@ -78,4 +79,4 @@ Invoke-WebRequest http://127.0.0.1:8000/health/ready
 
 ## Docker 的边界
 
-如果本地已经有 WSL PostgreSQL，不要执行 `docker compose up -d postgres`，否则会额外启动一套 PostgreSQL。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。
+本地已经使用 Windows PostgreSQL，不要执行 `docker compose up -d postgres`，否则会额外启动一套 PostgreSQL。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。

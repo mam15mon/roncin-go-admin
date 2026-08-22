@@ -95,6 +95,7 @@ scripts/                  根目录开发与构建辅助脚本
 
 ```powershell
 pnpm install
+pnpm dev
 pnpm run dev:web
 pnpm run dev:server
 pnpm run dev:permit

@@ -7,6 +7,7 @@
     "node": ">=24.14.1"
   },
   "scripts": {
+    "dev": "node scripts/dev.mjs",
     "dev:web": "pnpm --dir web dev",
     "dev:server": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run github.com/air-verse/air@v1.67.4 -c .air.toml",
     "dev:permit": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/bootstrap-admin --sync-permissions",
