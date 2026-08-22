@@ -177,7 +177,7 @@ export default function PartnerDetailPage() {
     const fetchOptions = async () => {
       try {
         const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled([
-          adminServiceListUsers({ page: 1, pageSize: 200 }),
+          adminServiceListUsers({ page: 1, pageSize: 100 }),
           adminServiceListOrganizations(),
           masterDataServiceListCurrencies(),
           partnerServiceListPartnerAssignmentOptions(),
@@ -345,14 +345,26 @@ export default function PartnerDetailPage() {
   }, [partnerId, roleType, roleLabel, message]);
 
   // User and Organization Select Options
-  const userSelectOptions = useMemo(
-    () =>
-      users.map((u) => ({
-        label: `${u.displayName || u.username} (${u.username})`,
-        value: u.id ?? '',
-      })),
-    [users],
-  );
+  const userSelectOptions = useMemo(() => {
+    if (assignmentOptions.length > 0) {
+      const map = new Map<string, string>();
+      for (const item of assignmentOptions) {
+        if (item.userId && item.displayName && !map.has(item.userId)) {
+          map.set(item.userId, item.displayName);
+        }
+      }
+      if (map.size > 0) {
+        return Array.from(map.entries()).map(([value, label]) => ({
+          label,
+          value,
+        }));
+      }
+    }
+    return users.map((u) => ({
+      label: `${u.displayName || u.username} (${u.username})`,
+      value: u.id ?? '',
+    }));
+  }, [assignmentOptions, users]);
 
   const orgSelectOptions = useMemo(
     () =>
