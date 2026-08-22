@@ -155,7 +155,7 @@ export default function PartnerFormDrawer({
     const fetchOptions = async () => {
       try {
         const [usersRes, orgsRes, curRes] = await Promise.allSettled([
-          adminServiceListUsers({ page: 1, pageSize: 200 }),
+          adminServiceListUsers({ page: 1, pageSize: 100 }),
           adminServiceListOrganizations(),
           masterDataServiceListCurrencies(),
         ]);
