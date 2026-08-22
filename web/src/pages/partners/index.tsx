@@ -22,7 +22,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess, useLocation } from '@umijs/max';
+import { history, useAccess, useLocation } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
@@ -31,7 +31,6 @@ import {
   partnerServiceListPartners,
   partnerServiceSetSupplierBlacklist,
 } from '@/services/roncin/partnerService';
-import PartnerFormDrawer from './partner-form-drawer';
 import PartnerSecondary from './partner-secondary';
 
 const { Text } = Typography;
@@ -106,17 +105,14 @@ export default function Partners() {
   const access = useAccess();
   const location = useLocation();
   const currentView = partnerViews[location.pathname] ?? partnerViews['/partners/customers'];
-  const [modalOpen, setModalOpen] = useState(false);
   const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [editing, setEditing] = useState<API.Partner>();
   const [blacklistPartner, setBlacklistPartner] = useState<API.Partner>();
   const [secondaryPartner, setSecondaryPartner] = useState<API.Partner>();
 
   const openCreate = () => {
-    setEditing(undefined);
-    setModalOpen(true);
+    history.push(`${location.pathname}/create`);
   };
 
   const openImport = () => {
@@ -183,8 +179,7 @@ export default function Partners() {
   };
 
   const openEdit = (partner: API.Partner) => {
-    setEditing(partner);
-    setModalOpen(true);
+    history.push(`${location.pathname}/${partner.id}`);
   };
 
   const openBlacklist = (partner: API.Partner) => {
@@ -397,19 +392,6 @@ export default function Partners() {
             </Button>
           ) : null,
         ].filter(Boolean) as React.ReactNode[]}
-      />
-
-      <PartnerFormDrawer
-        open={modalOpen}
-        partnerId={editing?.id}
-        roleType={currentView.roleType}
-        onClose={() => {
-          setModalOpen(false);
-          setEditing(undefined);
-        }}
-        onSuccess={() => {
-          actionRef.current?.reload();
-        }}
       />
 
       <ModalForm<PartnerImportFormValues>
