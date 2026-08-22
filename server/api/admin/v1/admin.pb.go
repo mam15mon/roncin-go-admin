@@ -1705,6 +1705,8 @@ type ListAuditLogsRequest struct {
 	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	StartTime     string                 `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime       string                 `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	ResourceType  string                 `protobuf:"bytes,7,opt,name=resource_type,json=resourceType,proto3" json:"resource_type,omitempty"`
+	ResourceId    string                 `protobuf:"bytes,8,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1777,6 +1779,20 @@ func (x *ListAuditLogsRequest) GetStartTime() string {
 func (x *ListAuditLogsRequest) GetEndTime() string {
 	if x != nil {
 		return x.EndTime
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetResourceType() string {
+	if x != nil {
+		return x.ResourceType
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetResourceId() string {
+	if x != nil {
+		return x.ResourceId
 	}
 	return ""
 }
@@ -2152,7 +2168,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.admin.v1.AdminPermissionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb2\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf8\x01\n" +
 	"\x14ListAuditLogsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
@@ -2160,7 +2176,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x05 \x01(\tR\tstartTime\x12\x19\n" +
-	"\bend_time\x18\x06 \x01(\tR\aendTime\"\xa1\x04\n" +
+	"\bend_time\x18\x06 \x01(\tR\aendTime\x12#\n" +
+	"\rresource_type\x18\a \x01(\tR\fresourceType\x12\x1f\n" +
+	"\vresource_id\x18\b \x01(\tR\n" +
+	"resourceId\"\xa1\x04\n" +
 	"\rAdminAuditLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x1c\n" +

@@ -6,6 +6,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -76,12 +77,14 @@ type AdminUserList struct {
 }
 
 type AdminAuditLogListOptions struct {
-	Page      int
-	PageSize  int
-	Action    string
-	UserID    *uuid.UUID
-	StartTime *time.Time
-	EndTime   *time.Time
+	Page         int
+	PageSize     int
+	Action       string
+	UserID       *uuid.UUID
+	StartTime    *time.Time
+	EndTime      *time.Time
+	ResourceType string
+	ResourceID   string
 }
 
 type AdminAuditLogList struct {
@@ -252,6 +255,11 @@ func (uc *AdminUsecase) ListAuditLogs(ctx context.Context, organizationID uuid.U
 		return nil, ErrAdminInvalidArgument
 	}
 	options.Action = strings.TrimSpace(options.Action)
+	options.ResourceType = strings.TrimSpace(options.ResourceType)
+	options.ResourceID = strings.TrimSpace(options.ResourceID)
+	if utf8.RuneCountInString(options.ResourceType) > 100 || utf8.RuneCountInString(options.ResourceID) > 160 {
+		return nil, ErrAdminInvalidArgument
+	}
 	if options.StartTime != nil && options.EndTime != nil && options.StartTime.After(*options.EndTime) {
 		return nil, ErrAdminInvalidArgument
 	}

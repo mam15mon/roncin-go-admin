@@ -461,6 +461,33 @@ func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request
 	return &v1.PartnerShippingPresetListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.PartnerAuditLogListReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerInvalidArgument
+	}
+	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	list, err := s.usecase.ListAuditLogs(ctx, principal.Organization.ID, partnerID, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.PartnerAuditLog, 0, len(list.Items))
+	for _, item := range list.Items {
+		data = append(data, partnerAuditLogToAPI(item))
+	}
+	return &v1.PartnerAuditLogListReply{
+		Success: true, Code: 0, Message: "OK", Data: data,
+		Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
 func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, request *v1.CreatePartnerShippingPresetRequest) (*v1.PartnerShippingPresetReply, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -695,6 +722,18 @@ func partnerShippingPresetToAPI(value *biz.PartnerShippingPreset) *v1.PartnerShi
 
 func partnerShippingPresetReply(ctx context.Context, value *biz.PartnerShippingPreset) *v1.PartnerShippingPresetReply {
 	return &v1.PartnerShippingPresetReply{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+}
+
+func partnerAuditLogToAPI(value *biz.PartnerAuditLog) *v1.PartnerAuditLog {
+	result := &v1.PartnerAuditLog{
+		Id: value.Log.ID.String(), UserDisplayName: value.UserDisplayName, Action: value.Log.Action,
+		Result: value.Log.Result, TraceId: value.Log.TraceID, Details: value.Log.Details, CreatedAt: value.Log.CreatedAt.Format(time.RFC3339),
+	}
+	if value.Log.UserID != nil {
+		userID := value.Log.UserID.String()
+		result.UserId = &userID
+	}
+	return result
 }
 
 func partnerRoleTypeFromAPI(value v1.PartnerRoleType) biz.PartnerRoleType {

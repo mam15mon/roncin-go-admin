@@ -165,6 +165,8 @@ declare namespace API {
     userId?: string;
     startTime?: string;
     endTime?: string;
+    resourceType?: string;
+    resourceId?: string;
   };
 
   type AdminServiceListUsersParams = {
@@ -1312,6 +1314,28 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PartnerAuditLog = {
+    id?: string;
+    userId?: string;
+    userDisplayName?: string;
+    action?: string;
+    result?: string;
+    traceId?: string;
+    details?: Record<string, any>;
+    createdAt?: string;
+  };
+
+  type PartnerAuditLogListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAuditLog[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
   type PartnerContact = {
     id?: string;
     name?: string;
@@ -1484,6 +1508,12 @@ declare namespace API {
 
   type PartnerServiceListPartnerAttachmentsParams = {
     partnerId: string;
+  };
+
+  type PartnerServiceListPartnerAuditLogsParams = {
+    partnerId: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type PartnerServiceListPartnerContractsParams = {

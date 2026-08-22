@@ -294,6 +294,12 @@ func (r *adminRepo) ListAuditLogs(ctx context.Context, organizationID uuid.UUID,
 	if options.UserID != nil {
 		query.Where(auditlog.UserIDEQ(*options.UserID))
 	}
+	if options.ResourceType != "" {
+		query.Where(auditlog.ResourceTypeEQ(options.ResourceType))
+	}
+	if options.ResourceID != "" {
+		query.Where(auditlog.ResourceIDEQ(options.ResourceID))
+	}
 	if options.StartTime != nil {
 		query.Where(auditlog.CreatedAtGTE(*options.StartTime))
 	}

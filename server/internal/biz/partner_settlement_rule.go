@@ -105,7 +105,7 @@ func (uc *PartnerSettlementRuleUsecase) Create(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.create", Result: "success", Details: map[string]string{"rule.id": created.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"rule.id": created.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
 		return nil, fmt.Errorf("write partner settlement rule create audit: %w", err)
 	}
 	return created, nil
@@ -123,7 +123,7 @@ func (uc *PartnerSettlementRuleUsecase) Update(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.update", Result: "success", Details: map[string]string{"rule.id": updated.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"rule.id": updated.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
 		return nil, fmt.Errorf("write partner settlement rule update audit: %w", err)
 	}
 	return updated, nil

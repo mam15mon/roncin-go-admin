@@ -38,6 +38,14 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: resourceType
+                  in: query
+                  schema:
+                    type: string
+                - name: resourceId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1856,6 +1864,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerAttachmentReply'
+    /api/v1/partners/{partnerId}/audit-logs:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerAuditLogs
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerAuditLogListReply'
     /api/v1/partners/{partnerId}/contracts:
         get:
             tags:
@@ -4825,6 +4861,52 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/partner.v1.PartnerAttachment'
+                traceId:
+                    type: string
+        partner.v1.PartnerAuditLog:
+            type: object
+            properties:
+                id:
+                    type: string
+                userId:
+                    type: string
+                userDisplayName:
+                    type: string
+                action:
+                    type: string
+                result:
+                    type: string
+                traceId:
+                    type: string
+                details:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: string
+        partner.v1.PartnerAuditLogListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAuditLog'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
                 traceId:
                     type: string
         partner.v1.PartnerContact:

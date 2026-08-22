@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -155,6 +156,15 @@ func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
 	start := time.Date(2026, 8, 20, 12, 0, 0, 0, time.UTC)
 	end := start.Add(-time.Minute)
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{Page: 1, PageSize: 20, StartTime: &start, EndTime: &end}); err != ErrAdminInvalidArgument {
+		t.Fatalf("ListAuditLogs() error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseListAuditLogsRejectsLongResourceFilter(t *testing.T) {
+	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{
+		Page: 1, PageSize: 20, ResourceType: strings.Repeat("x", 101),
+	}); err != ErrAdminInvalidArgument {
 		t.Fatalf("ListAuditLogs() error = %v, want ErrAdminInvalidArgument", err)
 	}
 }

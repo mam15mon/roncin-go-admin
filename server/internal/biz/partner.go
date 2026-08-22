@@ -191,6 +191,18 @@ type PartnerList struct {
 	PageSize int
 }
 
+type PartnerAuditLog struct {
+	Log             *AuditLog
+	UserDisplayName string
+}
+
+type PartnerAuditLogList struct {
+	Items    []*PartnerAuditLog
+	Total    int
+	Page     int
+	PageSize int
+}
+
 type PartnerImportMode string
 
 const (
@@ -234,6 +246,7 @@ type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
 	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
 	ListAssignmentOptions(context.Context, uuid.UUID) ([]*PartnerAssignmentOption, error)
+	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner) (*PartnerUpdateResult, error)
 	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate) (*PartnerBlacklistResult, error)
@@ -273,6 +286,13 @@ func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizatio
 		return nil, ErrPartnerInvalidArgument
 	}
 	return uc.repo.ListAssignmentOptions(ctx, organizationID)
+}
+
+func (uc *PartnerUsecase) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*PartnerAuditLogList, error) {
+	if organizationID == uuid.Nil || partnerID == uuid.Nil || page < 1 || pageSize < 1 || pageSize > 100 {
+		return nil, ErrPartnerInvalidArgument
+	}
+	return uc.repo.ListAuditLogs(ctx, organizationID, partnerID, page, pageSize)
 }
 
 func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uuid.UUID, input PartnerImportInput) (*PartnerImportResult, error) {
@@ -328,6 +348,8 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.create",
+		ResourceType:   "partner",
+		ResourceID:     created.ID.String(),
 		Result:         "success",
 		Details: map[string]string{
 			"partner.id":   created.ID.String(),
@@ -357,6 +379,8 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.update",
+		ResourceType:   "partner",
+		ResourceID:     result.Partner.ID.String(),
 		Result:         "success",
 		Details: map[string]string{
 			"partner.id": result.Partner.ID.String(),
@@ -390,6 +414,8 @@ func (uc *PartnerUsecase) SetSupplierBlacklist(ctx context.Context, organization
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.supplier_blacklist.set",
+		ResourceType:   "partner",
+		ResourceID:     id.String(),
 		Result:         "success",
 		Details: map[string]string{
 			"partner.id":             result.Partner.ID.String(),

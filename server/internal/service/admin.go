@@ -223,7 +223,10 @@ func (s *AdminService) ListAuditLogs(ctx context.Context, request *v1.ListAuditL
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	list, err := s.usecase.ListAuditLogs(ctx, principal.Organization.ID, biz.AdminAuditLogListOptions{Page: page, PageSize: pageSize, Action: request.GetAction(), UserID: userID, StartTime: startTime, EndTime: endTime})
+	list, err := s.usecase.ListAuditLogs(ctx, principal.Organization.ID, biz.AdminAuditLogListOptions{
+		Page: page, PageSize: pageSize, Action: request.GetAction(), UserID: userID, StartTime: startTime, EndTime: endTime,
+		ResourceType: request.GetResourceType(), ResourceID: request.GetResourceId(),
+	})
 	if err != nil {
 		return nil, err
 	}

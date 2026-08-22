@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	administrativeregionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -122,6 +123,62 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 		return result[i].DisplayName < result[j].DisplayName
 	})
 	return result, nil
+}
+
+func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*biz.PartnerAuditLogList, error) {
+	partnerExists, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !partnerExists {
+		return nil, biz.ErrPartnerNotFound
+	}
+	query := r.data.db.AuditLog.Query().Where(
+		auditlogent.OrganizationIDEQ(organizationID),
+		auditlogent.ResourceTypeEQ("partner"),
+		auditlogent.ResourceIDEQ(partnerID.String()),
+	)
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.Order(auditlogent.ByCreatedAt(entsql.OrderDesc())).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userIDs := make([]uuid.UUID, 0, len(items))
+	seenUserIDs := make(map[uuid.UUID]struct{}, len(items))
+	for _, item := range items {
+		if item.UserID != nil {
+			if _, exists := seenUserIDs[*item.UserID]; !exists {
+				seenUserIDs[*item.UserID] = struct{}{}
+				userIDs = append(userIDs, *item.UserID)
+			}
+		}
+	}
+	displayNames := make(map[uuid.UUID]string, len(userIDs))
+	if len(userIDs) > 0 {
+		users, err := r.data.db.User.Query().Where(userent.IDIn(userIDs...)).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users {
+			displayNames[user.ID] = user.DisplayName
+		}
+	}
+	result := make([]*biz.PartnerAuditLog, 0, len(items))
+	for _, item := range items {
+		log, err := auditLogToBiz(item)
+		if err != nil {
+			return nil, err
+		}
+		entry := &biz.PartnerAuditLog{Log: log}
+		if item.UserID != nil {
+			entry.UserDisplayName = displayNames[*item.UserID]
+		}
+		result = append(result, entry)
+	}
+	return &biz.PartnerAuditLogList{Items: result, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
 func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner) (*biz.Partner, error) {

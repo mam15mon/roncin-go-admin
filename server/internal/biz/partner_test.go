@@ -28,6 +28,10 @@ func (s *partnerRepoStub) ListAssignmentOptions(context.Context, uuid.UUID) ([]*
 	return nil, nil
 }
 
+func (s *partnerRepoStub) ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error) {
+	return &PartnerAuditLogList{}, nil
+}
+
 func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner) (*Partner, error) {
 	s.created = input
 	input.ID = uuid.New()
@@ -85,8 +89,18 @@ func TestPartnerCreateNormalizesAggregateAndAudits(t *testing.T) {
 	if created.RegisteredAddress != "上海市" || created.Contacts[0].Name != "张三" || created.Aliases[0].NormalizedAliasName != "ACME LOGISTICS" {
 		t.Fatalf("normalized children = contacts %#v aliases %#v", created.Contacts, created.Aliases)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "partner.create" || audit.events[0].Details["roles"] != "customer:true,supplier:true" {
+	if len(audit.events) != 1 || audit.events[0].Action != "partner.create" || audit.events[0].ResourceType != "partner" || audit.events[0].ResourceID != created.ID.String() || audit.events[0].Details["roles"] != "customer:true,supplier:true" {
 		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
+	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 0, 20); err != ErrPartnerInvalidArgument {
+		t.Fatalf("invalid page error = %v, want ErrPartnerInvalidArgument", err)
+	}
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 1, 101); err != ErrPartnerInvalidArgument {
+		t.Fatalf("invalid page size error = %v, want ErrPartnerInvalidArgument", err)
 	}
 }
 

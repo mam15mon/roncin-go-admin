@@ -120,6 +120,8 @@ type AuditEvent struct {
 	OrganizationID *uuid.UUID
 	UserID         *uuid.UUID
 	Action         string
+	ResourceType   string
+	ResourceID     string
 	Result         string
 	RequestID      string
 	TraceID        string

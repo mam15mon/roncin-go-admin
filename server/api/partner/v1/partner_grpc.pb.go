@@ -39,6 +39,7 @@ const (
 	PartnerService_ImportPartners_FullMethodName               = "/partner.v1.PartnerService/ImportPartners"
 	PartnerService_ExportPartners_FullMethodName               = "/partner.v1.PartnerService/ExportPartners"
 	PartnerService_ListPartnerShippingPresets_FullMethodName   = "/partner.v1.PartnerService/ListPartnerShippingPresets"
+	PartnerService_ListPartnerAuditLogs_FullMethodName         = "/partner.v1.PartnerService/ListPartnerAuditLogs"
 	PartnerService_CreatePartnerShippingPreset_FullMethodName  = "/partner.v1.PartnerService/CreatePartnerShippingPreset"
 	PartnerService_UpdatePartnerShippingPreset_FullMethodName  = "/partner.v1.PartnerService/UpdatePartnerShippingPreset"
 )
@@ -67,6 +68,7 @@ type PartnerServiceClient interface {
 	ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error)
 	ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error)
 	ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*PartnerShippingPresetListReply, error)
+	ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*PartnerAuditLogListReply, error)
 	CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
 	UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
 }
@@ -279,6 +281,16 @@ func (c *partnerServiceClient) ListPartnerShippingPresets(ctx context.Context, i
 	return out, nil
 }
 
+func (c *partnerServiceClient) ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*PartnerAuditLogListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAuditLogListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAuditLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *partnerServiceClient) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PartnerShippingPresetReply)
@@ -323,6 +335,7 @@ type PartnerServiceServer interface {
 	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
 	ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error)
 	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error)
+	ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*PartnerAuditLogListReply, error)
 	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
 	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
 	mustEmbedUnimplementedPartnerServiceServer()
@@ -394,6 +407,9 @@ func (UnimplementedPartnerServiceServer) ExportPartners(context.Context, *Export
 }
 func (UnimplementedPartnerServiceServer) ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerShippingPresets not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*PartnerAuditLogListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerAuditLogs not implemented")
 }
 func (UnimplementedPartnerServiceServer) CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartnerShippingPreset not implemented")
@@ -782,6 +798,24 @@ func _PartnerService_ListPartnerShippingPresets_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartnerService_ListPartnerAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerAuditLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerAuditLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerAuditLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerAuditLogs(ctx, req.(*ListPartnerAuditLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PartnerService_CreatePartnerShippingPreset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePartnerShippingPresetRequest)
 	if err := dec(in); err != nil {
@@ -904,6 +938,10 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPartnerShippingPresets",
 			Handler:    _PartnerService_ListPartnerShippingPresets_Handler,
+		},
+		{
+			MethodName: "ListPartnerAuditLogs",
+			Handler:    _PartnerService_ListPartnerAuditLogs_Handler,
 		},
 		{
 			MethodName: "CreatePartnerShippingPreset",

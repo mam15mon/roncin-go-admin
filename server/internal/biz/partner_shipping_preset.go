@@ -110,7 +110,7 @@ func (uc *PartnerShippingPresetUsecase) Create(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.create", Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": created.ID.String(), "preset.type": string(created.PresetType)}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": created.ID.String(), "preset.type": string(created.PresetType)}}); err != nil {
 		return nil, fmt.Errorf("write partner shipping preset create audit: %w", err)
 	}
 	return created, nil
@@ -128,7 +128,7 @@ func (uc *PartnerShippingPresetUsecase) Update(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.update", Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": updated.ID.String(), "preset.type": string(updated.PresetType)}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": updated.ID.String(), "preset.type": string(updated.PresetType)}}); err != nil {
 		return nil, fmt.Errorf("write partner shipping preset update audit: %w", err)
 	}
 	return updated, nil

@@ -67,7 +67,7 @@ func (uc *PartnerAttachmentUsecase) Register(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.attachment.register", Result: "success", Details: map[string]string{"attachment.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.attachment.register", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"attachment.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
 		return nil, fmt.Errorf("write partner attachment register audit: %w", err)
 	}
 	return created, nil

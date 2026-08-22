@@ -31,6 +31,12 @@ func writeAudit(ctx context.Context, client *ent.AuditLogClient, event *biz.Audi
 		SetRequestID(requestID).
 		SetTraceID(traceID).
 		SetIPAddress(ipAddress)
+	if event.ResourceType != "" {
+		create.SetResourceType(event.ResourceType)
+	}
+	if event.ResourceID != "" {
+		create.SetResourceID(event.ResourceID)
+	}
 	if len(event.Details) > 0 {
 		details, err := json.Marshal(event.Details)
 		if err != nil {

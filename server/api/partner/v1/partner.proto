@@ -121,6 +121,10 @@ service PartnerService {
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/shipping-presets"};
   }
 
+  rpc ListPartnerAuditLogs(ListPartnerAuditLogsRequest) returns (PartnerAuditLogListReply) {
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/audit-logs"};
+  }
+
   rpc CreatePartnerShippingPreset(CreatePartnerShippingPresetRequest) returns (PartnerShippingPresetReply) {
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/shipping-presets"
@@ -464,6 +468,34 @@ message PartnerShippingPresetListReply {
   string message = 3;
   repeated PartnerShippingPreset data = 4;
   string trace_id = 5;
+}
+
+message PartnerAuditLog {
+  string id = 1;
+  optional string user_id = 2;
+  string user_display_name = 3;
+  string action = 4;
+  string result = 5;
+  string trace_id = 6;
+  map<string, string> details = 7;
+  string created_at = 8;
+}
+
+message ListPartnerAuditLogsRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message PartnerAuditLogListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerAuditLog data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
 }
 
 message SetSupplierBlacklistRequest {

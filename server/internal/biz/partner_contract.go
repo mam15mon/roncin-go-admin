@@ -81,7 +81,7 @@ func (uc *PartnerContractUsecase) Create(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.create", Result: "success", Details: map[string]string{"contract.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"contract.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
 		return nil, fmt.Errorf("write partner contract create audit: %w", err)
 	}
 	return created, nil
@@ -103,7 +103,7 @@ func (uc *PartnerContractUsecase) Update(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.update", Result: "success", Details: map[string]string{"contract.id": updated.ID.String(), "partner.id": partnerID.String()}}); err != nil {
+	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"contract.id": updated.ID.String(), "partner.id": partnerID.String()}}); err != nil {
 		return nil, fmt.Errorf("write partner contract update audit: %w", err)
 	}
 	return updated, nil

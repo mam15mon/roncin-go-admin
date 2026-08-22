@@ -258,6 +258,8 @@ message ListAuditLogsRequest {
   string user_id = 4;
   string start_time = 5;
   string end_time = 6;
+  string resource_type = 7;
+  string resource_id = 8;
 }
 
 message AdminAuditLog {

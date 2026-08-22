@@ -73,6 +73,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		partnerv1.OperationPartnerServiceImportPartners:                               {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceExportPartners:                               {key: access.PartnerRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceListPartnerShippingPresets:                   {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceListPartnerAuditLogs:                         {key: access.PartnerRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceCreatePartnerShippingPreset:                  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceUpdatePartnerShippingPreset:                  {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		masterdatav1.OperationMasterDataServiceListCurrencies:                         {key: access.MasterDataRead, scope: biz.DataScopeOrganization},

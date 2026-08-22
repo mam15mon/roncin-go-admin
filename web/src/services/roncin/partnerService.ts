@@ -167,6 +167,25 @@ export async function partnerServiceRegisterPartnerAttachment(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/audit-logs */
+export async function partnerServiceListPartnerAuditLogs(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceListPartnerAuditLogsParams,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.PartnerAuditLogListReply>(
+    `/api/v1/partners/${param0}/audit-logs`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/${param0}/contracts */
 export async function partnerServiceListPartnerContracts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
