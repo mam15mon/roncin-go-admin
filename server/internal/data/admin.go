@@ -50,15 +50,27 @@ func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.Adm
 }
 
 func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
-	create := r.data.db.Organization.Create().SetCode(input.Code).SetName(input.Name)
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name)
 	if input.ParentID != nil {
 		create.SetParentID(*input.ParentID)
 	}
 	created, err := create.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
 			return nil, biz.ErrAdminOrganizationCodeExists
 		}
+		return nil, err
+	}
+	if err := CreateDefaultNumberRules(ctx, tx, created.ID); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return organizationToBiz(created), nil

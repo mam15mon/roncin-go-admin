@@ -26,7 +26,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   masterDataServiceCreateNumberRule,
   masterDataServiceListNumberRules,
@@ -80,21 +80,21 @@ export default function NumberRulesPanel() {
   const [editingItem, setEditingItem] = useState<API.NumberRule | null>(null);
   const [form] = Form.useForm();
 
-  const fetchRules = async () => {
+  const fetchRules = useCallback(async () => {
     setLoading(true);
     try {
       const res = await masterDataServiceListNumberRules({});
       setData(res.data || []);
     } catch {
-      // Mock fallback
+      message.error('单号规则加载失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, [message]);
 
   useEffect(() => {
     fetchRules();
-  }, []);
+  }, [fetchRules]);
 
   const handleCreateOrUpdate = async (values: any) => {
     try {
@@ -122,7 +122,7 @@ export default function NumberRulesPanel() {
         message.success('单号规则创建成功');
       }
       setModalOpen(false);
-      fetchRules();
+      await fetchRules();
       return true;
     } catch {
       message.error('操作失败');

@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"time"
 
@@ -18,6 +19,23 @@ import (
 type orderConfigRepo struct{ data *Data }
 
 func NewOrderConfigRepo(data *Data) biz.OrderConfigRepo { return &orderConfigRepo{data: data} }
+
+func CreateDefaultNumberRules(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+	for _, rule := range biz.DefaultNumberRules() {
+		if _, err := tx.NumberRule.Create().
+			SetOrganizationID(organizationID).
+			SetDocumentType(numberrule.DocumentType(rule.DocumentType)).
+			SetPrefix(rule.Prefix).
+			SetDateFormat(numberrule.DateFormat(rule.DateFormat)).
+			SetSequenceLength(rule.SequenceLength).
+			SetResetPolicy(numberrule.ResetPolicy(rule.ResetPolicy)).
+			SetEnabled(rule.Enabled).
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建默认单号规则 %s: %w", rule.DocumentType, err)
+		}
+	}
+	return nil
+}
 
 func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uuid.UUID) ([]*biz.NumberRule, error) {
 	items, err := r.data.db.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID)).Order(numberrule.ByDocumentType()).All(ctx)

@@ -13,6 +13,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
+	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
@@ -103,6 +104,10 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("create organization: %w", err)
+	}
+	if err := data.CreateDefaultNumberRules(ctx, tx, organization.ID); err != nil {
+		tx.Rollback()
+		return err
 	}
 	permissions := make([]*ent.Permission, 0, len(access.Manifest()))
 	for _, definition := range access.Manifest() {

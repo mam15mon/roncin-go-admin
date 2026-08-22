@@ -103,6 +103,19 @@ type NumberRule struct {
 	UpdatedAt      time.Time
 }
 
+func DefaultNumberRules() []NumberRule {
+	return []NumberRule{
+		{DocumentType: DocumentTypeOrder, Prefix: "OR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeBooking, Prefix: "BK", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeHBL, Prefix: "HBL", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeMBL, Prefix: "MBL", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeStatement, Prefix: "ST", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypePayment, Prefix: "PY", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeInvoice, Prefix: "IV", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+	}
+}
+
 type StatusTemplateItem struct {
 	ID         uuid.UUID
 	Code       string
