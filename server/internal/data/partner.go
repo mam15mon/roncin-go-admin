@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -10,8 +11,8 @@ import (
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	partnerprofileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -77,6 +78,49 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 		partners = append(partners, partnerToBiz(item))
 	}
 	return &biz.PartnerList{Items: partners, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.PartnerAssignmentOption, error) {
+	organizations, err := r.data.db.Organization.Query().
+		Select(organizationent.FieldID, organizationent.FieldParentID).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+	for _, organization := range organizations {
+		parentByID[organization.ID] = organization.ParentID
+	}
+	organizationIDs := make([]uuid.UUID, 0, len(organizations))
+	for _, organization := range organizations {
+		if organizationWithinRoot(parentByID, organizationID, organization.ID) {
+			organizationIDs = append(organizationIDs, organization.ID)
+		}
+	}
+	memberships, err := r.data.db.Membership.Query().Where(
+		membershipent.OrganizationIDIn(organizationIDs...),
+		membershipent.EnabledEQ(true),
+		membershipent.HasUserWith(userent.EnabledEQ(true)),
+		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
+	).WithUser().WithOrganization().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.PartnerAssignmentOption, 0, len(memberships))
+	for _, item := range memberships {
+		result = append(result, &biz.PartnerAssignmentOption{
+			UserID: item.UserID, DisplayName: item.Edges.User.DisplayName,
+			OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name,
+			MembershipEnabled: item.Enabled,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].DisplayName == result[j].DisplayName {
+			return result[i].OrganizationName < result[j].OrganizationName
+		}
+		return result[i].DisplayName < result[j].DisplayName
+	})
+	return result, nil
 }
 
 func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner) (*biz.Partner, error) {
@@ -315,7 +359,17 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 	if err := replacePartnerProfile(ctx, tx, existing.ID, input.Profile); err != nil {
 		return err
 	}
-	return replacePartnerAssignments(ctx, tx, organizationID, existing.ID, input.Assignments)
+	return replacePartnerAssignments(ctx, tx, organizationID, existing.ID, editablePartnerAssignments(input.Assignments))
+}
+
+func editablePartnerAssignments(assignments []*biz.PartnerAssignment) []*biz.PartnerAssignment {
+	result := make([]*biz.PartnerAssignment, 0, len(assignments))
+	for _, assignment := range assignments {
+		if assignment.Role != biz.PartnerAssignmentCreator {
+			result = append(result, assignment)
+		}
+	}
+	return result
 }
 
 func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
@@ -331,7 +385,7 @@ func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
 		}).
 		WithProfile().
 		WithAssignments(func(query *ent.PartnerAssignmentQuery) {
-			query.Order(partnerassignmentent.ByRole())
+			query.Order(partnerassignmentent.ByRole(), partnerassignmentent.BySortOrder())
 		})
 }
 
@@ -434,7 +488,10 @@ func validatePartnerProfileRegions(ctx context.Context, tx *ent.Tx, profile *biz
 }
 
 func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganizationID, partnerID uuid.UUID, assignments []*biz.PartnerAssignment) error {
-	if _, err := tx.PartnerAssignment.Delete().Where(partnerassignmentent.PartnerIDEQ(partnerID)).Exec(ctx); err != nil {
+	if _, err := tx.PartnerAssignment.Delete().Where(
+		partnerassignmentent.PartnerIDEQ(partnerID),
+		partnerassignmentent.RoleNEQ(partnerassignmentent.RoleCREATOR),
+	).Exec(ctx); err != nil {
 		return err
 	}
 	if len(assignments) == 0 {
@@ -463,7 +520,8 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 			return biz.ErrPartnerInvalidArgument
 		}
 		if _, err := tx.PartnerAssignment.Create().SetPartnerID(partnerID).SetUserID(assignment.UserID).
-			SetOrganizationID(assignment.OrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).Save(ctx); err != nil {
+			SetOrganizationID(assignment.OrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).
+			SetSortOrder(assignment.SortOrder).Save(ctx); err != nil {
 			return mapPartnerConstraint(err)
 		}
 	}
@@ -565,7 +623,7 @@ func mapPartnerConstraint(err error) error {
 		return biz.ErrPartnerAliasExists
 	case strings.Contains(message, "partner_role_type_key"):
 		return biz.ErrPartnerInvalidRole
-	case strings.Contains(message, "partnerassignment_partner_id_role"):
+	case strings.Contains(message, "partnerassignment_partner_id_role_sort_order"):
 		return biz.ErrPartnerInvalidArgument
 	default:
 		return err
@@ -615,7 +673,7 @@ func partnerToBiz(item *ent.Partner) *biz.Partner {
 	for _, assignment := range item.Edges.Assignments {
 		result.Assignments = append(result.Assignments, &biz.PartnerAssignment{
 			ID: assignment.ID, Role: biz.PartnerAssignmentRole(assignment.Role), UserID: assignment.UserID,
-			OrganizationID: assignment.OrganizationID, CreatedAt: assignment.CreatedAt, UpdatedAt: assignment.UpdatedAt,
+			OrganizationID: assignment.OrganizationID, SortOrder: assignment.SortOrder, CreatedAt: assignment.CreatedAt, UpdatedAt: assignment.UpdatedAt,
 		})
 	}
 	return result

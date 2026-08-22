@@ -33,6 +33,8 @@ type PartnerAssignment struct {
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Role holds the value of the "role" field.
 	Role partnerassignment.Role `json:"role,omitempty"`
+	// SortOrder holds the value of the "sort_order" field.
+	SortOrder int `json:"sort_order,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PartnerAssignmentQuery when eager-loading is set.
 	Edges        PartnerAssignmentEdges `json:"edges"`
@@ -90,6 +92,8 @@ func (*PartnerAssignment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case partnerassignment.FieldSortOrder:
+			values[i] = new(sql.NullInt64)
 		case partnerassignment.FieldRole:
 			values[i] = new(sql.NullString)
 		case partnerassignment.FieldCreatedAt, partnerassignment.FieldUpdatedAt:
@@ -152,6 +156,12 @@ func (_m *PartnerAssignment) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				_m.Role = partnerassignment.Role(value.String)
+			}
+		case partnerassignment.FieldSortOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field sort_order", values[i])
+			} else if value.Valid {
+				_m.SortOrder = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -221,6 +231,9 @@ func (_m *PartnerAssignment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))
+	builder.WriteString(", ")
+	builder.WriteString("sort_order=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))
 	builder.WriteByte(')')
 	return builder.String()
 }

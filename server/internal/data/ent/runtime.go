@@ -1700,6 +1700,12 @@ func init() {
 	partnerassignment.DefaultUpdatedAt = partnerassignmentDescUpdatedAt.Default.(func() time.Time)
 	// partnerassignment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partnerassignment.UpdateDefaultUpdatedAt = partnerassignmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnerassignmentDescSortOrder is the schema descriptor for sort_order field.
+	partnerassignmentDescSortOrder := partnerassignmentFields[4].Descriptor()
+	// partnerassignment.DefaultSortOrder holds the default value on creation for the sort_order field.
+	partnerassignment.DefaultSortOrder = partnerassignmentDescSortOrder.Default.(int)
+	// partnerassignment.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	partnerassignment.SortOrderValidator = partnerassignmentDescSortOrder.Validators[0].(func(int) error)
 	// partnerassignmentDescID is the schema descriptor for id field.
 	partnerassignmentDescID := partnerassignmentMixinFields0[0].Descriptor()
 	// partnerassignment.DefaultID holds the default value on creation for the id field.

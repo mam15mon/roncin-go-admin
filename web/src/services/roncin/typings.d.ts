@@ -1252,12 +1252,29 @@ declare namespace API {
     organizationId?: string;
     createdAt?: string;
     updatedAt?: string;
+    sortOrder?: number;
   };
 
   type PartnerAssignmentInput = {
     role: number;
     userId: string;
     organizationId: string;
+  };
+
+  type PartnerAssignmentOption = {
+    userId?: string;
+    displayName?: string;
+    organizationId?: string;
+    organizationName?: string;
+    membershipEnabled?: boolean;
+  };
+
+  type PartnerAssignmentOptionListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAssignmentOption[];
+    traceId?: string;
   };
 
   type PartnerAttachment = {

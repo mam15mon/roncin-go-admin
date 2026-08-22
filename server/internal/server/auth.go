@@ -55,6 +55,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		adminv1.OperationAdminServiceListAuditLogs:                                    {key: access.AuditRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceGetPartner:                                   {key: access.PartnerRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceListPartners:                                 {key: access.PartnerRead, scope: biz.DataScopeOrganization},
+		partnerv1.OperationPartnerServiceListPartnerAssignmentOptions:                 {key: access.PartnerRead, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceCreatePartner:                                {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceUpdatePartner:                                {key: access.PartnerManage, scope: biz.DataScopeOrganization},
 		partnerv1.OperationPartnerServiceSetSupplierBlacklist:                         {key: access.PartnerManage, scope: biz.DataScopeOrganization},

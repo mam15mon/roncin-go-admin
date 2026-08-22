@@ -25,6 +25,7 @@ const OperationPartnerServiceExportPartners = "/partner.v1.PartnerService/Export
 const OperationPartnerServiceGetPartner = "/partner.v1.PartnerService/GetPartner"
 const OperationPartnerServiceImportPartners = "/partner.v1.PartnerService/ImportPartners"
 const OperationPartnerServiceListPartnerAccounts = "/partner.v1.PartnerService/ListPartnerAccounts"
+const OperationPartnerServiceListPartnerAssignmentOptions = "/partner.v1.PartnerService/ListPartnerAssignmentOptions"
 const OperationPartnerServiceListPartnerAttachments = "/partner.v1.PartnerService/ListPartnerAttachments"
 const OperationPartnerServiceListPartnerContracts = "/partner.v1.PartnerService/ListPartnerContracts"
 const OperationPartnerServiceListPartnerSettlementRules = "/partner.v1.PartnerService/ListPartnerSettlementRules"
@@ -45,6 +46,7 @@ type PartnerServiceHTTPServer interface {
 	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
 	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
 	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
+	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error)
 	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error)
 	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
 	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
@@ -61,6 +63,7 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/partners/{id}", _PartnerService_GetPartner0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners", _PartnerService_ListPartners0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partners/assignment-options", _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{id}/supplier-blacklist", _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv))
@@ -116,6 +119,25 @@ func _PartnerService_ListPartners0_HTTP_Handler(srv PartnerServiceHTTPServer) fu
 			return err
 		}
 		reply := out.(*PartnerListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPartnerAssignmentOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceListPartnerAssignmentOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPartnerAssignmentOptions(ctx, req.(*ListPartnerAssignmentOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PartnerAssignmentOptionListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -472,6 +494,7 @@ type PartnerServiceHTTPClient interface {
 	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
 	ImportPartners(ctx context.Context, req *ImportPartnersRequest, opts ...http.CallOption) (rsp *PartnerImportReply, err error)
 	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *PartnerAccountListReply, err error)
+	ListPartnerAssignmentOptions(ctx context.Context, req *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *PartnerAssignmentOptionListReply, err error)
 	ListPartnerAttachments(ctx context.Context, req *ListPartnerAttachmentsRequest, opts ...http.CallOption) (rsp *PartnerAttachmentListReply, err error)
 	ListPartnerContracts(ctx context.Context, req *ListPartnerContractsRequest, opts ...http.CallOption) (rsp *PartnerContractListReply, err error)
 	ListPartnerSettlementRules(ctx context.Context, req *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleListReply, err error)
@@ -616,6 +639,22 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationPartnerServiceListPartnerAccounts),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*PartnerAssignmentOptionListReply, error) {
+	var out PartnerAssignmentOptionListReply
+	pattern := "/api/v1/partners/assignment-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceListPartnerAssignmentOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

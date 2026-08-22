@@ -24,6 +24,10 @@ func (s *partnerRepoStub) List(_ context.Context, _ uuid.UUID, options PartnerLi
 	return &PartnerList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
+func (s *partnerRepoStub) ListAssignmentOptions(context.Context, uuid.UUID) ([]*PartnerAssignmentOption, error) {
+	return nil, nil
+}
+
 func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner) (*Partner, error) {
 	s.created = input
 	input.ID = uuid.New()
@@ -179,7 +183,7 @@ func TestPartnerNormalizesProfileAndAssignments(t *testing.T) {
 	if created.Profile == nil || created.Profile.NameEN != "ACME Logistics" || created.Profile.CountryCode != "CN" {
 		t.Fatalf("normalized profile = %#v", created.Profile)
 	}
-	if len(created.Assignments) != 1 || created.Assignments[0].Role != PartnerAssignmentSales {
+	if len(created.Assignments) != 2 || created.Assignments[0].Role != PartnerAssignmentSales || created.Assignments[1].Role != PartnerAssignmentCreator {
 		t.Fatalf("normalized assignments = %#v", created.Assignments)
 	}
 }
@@ -215,6 +219,40 @@ func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
 	}
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
 		t.Fatalf("duplicate assignment role error = %v, want ErrPartnerInvalidArgument", err)
+	}
+
+	input.Assignments = []*PartnerAssignment{{Role: PartnerAssignmentCreator, UserID: actorID, OrganizationID: organizationID}}
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+		t.Fatalf("client creator assignment error = %v, want ErrPartnerInvalidArgument", err)
+	}
+}
+
+func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	input := &Partner{
+		Code: "CUSTOMER", LegalName: "境内客户", UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		Assignments: []*PartnerAssignment{
+			{Role: PartnerAssignmentInternalContact, UserID: uuid.New(), OrganizationID: organizationID},
+			{Role: PartnerAssignmentInternalContact, UserID: uuid.New(), OrganizationID: organizationID},
+		},
+	}
+	created, err := usecase.Create(context.Background(), organizationID, actorID, input)
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if created.Assignments[0].SortOrder != 1 || created.Assignments[1].SortOrder != 2 {
+		t.Fatalf("internal contact sort orders = %d, %d", created.Assignments[0].SortOrder, created.Assignments[1].SortOrder)
+	}
+
+	input.Assignments = append(input.Assignments, &PartnerAssignment{
+		Role: PartnerAssignmentInternalContact, UserID: uuid.New(), OrganizationID: organizationID,
+	})
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, input); err != ErrPartnerInvalidArgument {
+		t.Fatalf("third internal contact error = %v, want ErrPartnerInvalidArgument", err)
 	}
 }
 

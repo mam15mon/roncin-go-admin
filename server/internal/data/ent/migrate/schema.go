@@ -1249,6 +1249,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "INTERNAL_CONTACT"}},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "partner_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
@@ -1261,19 +1262,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_assignments_organizations_partner_assignments",
-				Columns:    []*schema.Column{PartnerAssignmentsColumns[4]},
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[5]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "partner_assignments_partners_assignments",
-				Columns:    []*schema.Column{PartnerAssignmentsColumns[5]},
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[6]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "partner_assignments_users_partner_assignments",
-				Columns:    []*schema.Column{PartnerAssignmentsColumns[6]},
+				Columns:    []*schema.Column{PartnerAssignmentsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1285,19 +1286,19 @@ var (
 				Columns: []*schema.Column{PartnerAssignmentsColumns[2]},
 			},
 			{
-				Name:    "partnerassignment_partner_id_role",
+				Name:    "partnerassignment_partner_id_role_sort_order",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerAssignmentsColumns[5], PartnerAssignmentsColumns[3]},
+				Columns: []*schema.Column{PartnerAssignmentsColumns[6], PartnerAssignmentsColumns[3], PartnerAssignmentsColumns[4]},
 			},
 			{
 				Name:    "partnerassignment_user_id_role",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAssignmentsColumns[6], PartnerAssignmentsColumns[3]},
+				Columns: []*schema.Column{PartnerAssignmentsColumns[7], PartnerAssignmentsColumns[3]},
 			},
 			{
 				Name:    "partnerassignment_organization_id_role",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAssignmentsColumns[4], PartnerAssignmentsColumns[3]},
+				Columns: []*schema.Column{PartnerAssignmentsColumns[5], PartnerAssignmentsColumns[3]},
 			},
 		},
 	}

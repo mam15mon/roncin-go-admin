@@ -27659,6 +27659,8 @@ type PartnerAssignmentMutation struct {
 	created_at          *time.Time
 	updated_at          *time.Time
 	role                *partnerassignment.Role
+	sort_order          *int
+	addsort_order       *int
 	clearedFields       map[string]struct{}
 	partner             *uuid.UUID
 	clearedpartner      bool
@@ -27991,6 +27993,62 @@ func (m *PartnerAssignmentMutation) ResetRole() {
 	m.role = nil
 }
 
+// SetSortOrder sets the "sort_order" field.
+func (m *PartnerAssignmentMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *PartnerAssignmentMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the PartnerAssignment entity.
+// If the PartnerAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerAssignmentMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *PartnerAssignmentMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *PartnerAssignmentMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *PartnerAssignmentMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
 // ClearPartner clears the "partner" edge to the Partner entity.
 func (m *PartnerAssignmentMutation) ClearPartner() {
 	m.clearedpartner = true
@@ -28106,7 +28164,7 @@ func (m *PartnerAssignmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerAssignmentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, partnerassignment.FieldCreatedAt)
 	}
@@ -28124,6 +28182,9 @@ func (m *PartnerAssignmentMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, partnerassignment.FieldRole)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, partnerassignment.FieldSortOrder)
 	}
 	return fields
 }
@@ -28145,6 +28206,8 @@ func (m *PartnerAssignmentMutation) Field(name string) (ent.Value, bool) {
 		return m.OrganizationID()
 	case partnerassignment.FieldRole:
 		return m.Role()
+	case partnerassignment.FieldSortOrder:
+		return m.SortOrder()
 	}
 	return nil, false
 }
@@ -28166,6 +28229,8 @@ func (m *PartnerAssignmentMutation) OldField(ctx context.Context, name string) (
 		return m.OldOrganizationID(ctx)
 	case partnerassignment.FieldRole:
 		return m.OldRole(ctx)
+	case partnerassignment.FieldSortOrder:
+		return m.OldSortOrder(ctx)
 	}
 	return nil, fmt.Errorf("unknown PartnerAssignment field %s", name)
 }
@@ -28217,6 +28282,13 @@ func (m *PartnerAssignmentMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetRole(v)
 		return nil
+	case partnerassignment.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PartnerAssignment field %s", name)
 }
@@ -28224,13 +28296,21 @@ func (m *PartnerAssignmentMutation) SetField(name string, value ent.Value) error
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PartnerAssignmentMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, partnerassignment.FieldSortOrder)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PartnerAssignmentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case partnerassignment.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
 	return nil, false
 }
 
@@ -28239,6 +28319,13 @@ func (m *PartnerAssignmentMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PartnerAssignmentMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case partnerassignment.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PartnerAssignment numeric field %s", name)
 }
@@ -28283,6 +28370,9 @@ func (m *PartnerAssignmentMutation) ResetField(name string) error {
 		return nil
 	case partnerassignment.FieldRole:
 		m.ResetRole()
+		return nil
+	case partnerassignment.FieldSortOrder:
+		m.ResetSortOrder()
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerAssignment field %s", name)

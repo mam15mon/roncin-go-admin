@@ -94,6 +94,27 @@ func (_u *PartnerAssignmentUpdate) SetNillableRole(v *partnerassignment.Role) *P
 	return _u
 }
 
+// SetSortOrder sets the "sort_order" field.
+func (_u *PartnerAssignmentUpdate) SetSortOrder(v int) *PartnerAssignmentUpdate {
+	_u.mutation.ResetSortOrder()
+	_u.mutation.SetSortOrder(v)
+	return _u
+}
+
+// SetNillableSortOrder sets the "sort_order" field if the given value is not nil.
+func (_u *PartnerAssignmentUpdate) SetNillableSortOrder(v *int) *PartnerAssignmentUpdate {
+	if v != nil {
+		_u.SetSortOrder(*v)
+	}
+	return _u
+}
+
+// AddSortOrder adds value to the "sort_order" field.
+func (_u *PartnerAssignmentUpdate) AddSortOrder(v int) *PartnerAssignmentUpdate {
+	_u.mutation.AddSortOrder(v)
+	return _u
+}
+
 // SetPartner sets the "partner" edge to the Partner entity.
 func (_u *PartnerAssignmentUpdate) SetPartner(v *Partner) *PartnerAssignmentUpdate {
 	return _u.SetPartnerID(v.ID)
@@ -175,6 +196,11 @@ func (_u *PartnerAssignmentUpdate) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.role": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SortOrder(); ok {
+		if err := partnerassignment.SortOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.sort_order": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerCleared() && len(_u.mutation.PartnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerAssignment.partner"`)
 	}
@@ -204,6 +230,12 @@ func (_u *PartnerAssignmentUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(partnerassignment.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.SortOrder(); ok {
+		_spec.SetField(partnerassignment.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSortOrder(); ok {
+		_spec.AddField(partnerassignment.FieldSortOrder, field.TypeInt, value)
 	}
 	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -374,6 +406,27 @@ func (_u *PartnerAssignmentUpdateOne) SetNillableRole(v *partnerassignment.Role)
 	return _u
 }
 
+// SetSortOrder sets the "sort_order" field.
+func (_u *PartnerAssignmentUpdateOne) SetSortOrder(v int) *PartnerAssignmentUpdateOne {
+	_u.mutation.ResetSortOrder()
+	_u.mutation.SetSortOrder(v)
+	return _u
+}
+
+// SetNillableSortOrder sets the "sort_order" field if the given value is not nil.
+func (_u *PartnerAssignmentUpdateOne) SetNillableSortOrder(v *int) *PartnerAssignmentUpdateOne {
+	if v != nil {
+		_u.SetSortOrder(*v)
+	}
+	return _u
+}
+
+// AddSortOrder adds value to the "sort_order" field.
+func (_u *PartnerAssignmentUpdateOne) AddSortOrder(v int) *PartnerAssignmentUpdateOne {
+	_u.mutation.AddSortOrder(v)
+	return _u
+}
+
 // SetPartner sets the "partner" edge to the Partner entity.
 func (_u *PartnerAssignmentUpdateOne) SetPartner(v *Partner) *PartnerAssignmentUpdateOne {
 	return _u.SetPartnerID(v.ID)
@@ -468,6 +521,11 @@ func (_u *PartnerAssignmentUpdateOne) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.role": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SortOrder(); ok {
+		if err := partnerassignment.SortOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.sort_order": %w`, err)}
+		}
+	}
 	if _u.mutation.PartnerCleared() && len(_u.mutation.PartnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "PartnerAssignment.partner"`)
 	}
@@ -514,6 +572,12 @@ func (_u *PartnerAssignmentUpdateOne) sqlSave(ctx context.Context) (_node *Partn
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(partnerassignment.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.SortOrder(); ok {
+		_spec.SetField(partnerassignment.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSortOrder(); ok {
+		_spec.AddField(partnerassignment.FieldSortOrder, field.TypeInt, value)
 	}
 	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

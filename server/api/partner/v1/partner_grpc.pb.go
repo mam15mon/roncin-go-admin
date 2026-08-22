@@ -19,24 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartnerService_GetPartner_FullMethodName                  = "/partner.v1.PartnerService/GetPartner"
-	PartnerService_ListPartners_FullMethodName                = "/partner.v1.PartnerService/ListPartners"
-	PartnerService_CreatePartner_FullMethodName               = "/partner.v1.PartnerService/CreatePartner"
-	PartnerService_UpdatePartner_FullMethodName               = "/partner.v1.PartnerService/UpdatePartner"
-	PartnerService_SetSupplierBlacklist_FullMethodName        = "/partner.v1.PartnerService/SetSupplierBlacklist"
-	PartnerService_ListPartnerAccounts_FullMethodName         = "/partner.v1.PartnerService/ListPartnerAccounts"
-	PartnerService_CreatePartnerAccount_FullMethodName        = "/partner.v1.PartnerService/CreatePartnerAccount"
-	PartnerService_UpdatePartnerAccount_FullMethodName        = "/partner.v1.PartnerService/UpdatePartnerAccount"
-	PartnerService_ListPartnerContracts_FullMethodName        = "/partner.v1.PartnerService/ListPartnerContracts"
-	PartnerService_CreatePartnerContract_FullMethodName       = "/partner.v1.PartnerService/CreatePartnerContract"
-	PartnerService_UpdatePartnerContract_FullMethodName       = "/partner.v1.PartnerService/UpdatePartnerContract"
-	PartnerService_ListPartnerSettlementRules_FullMethodName  = "/partner.v1.PartnerService/ListPartnerSettlementRules"
-	PartnerService_CreatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/CreatePartnerSettlementRule"
-	PartnerService_UpdatePartnerSettlementRule_FullMethodName = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
-	PartnerService_ListPartnerAttachments_FullMethodName      = "/partner.v1.PartnerService/ListPartnerAttachments"
-	PartnerService_RegisterPartnerAttachment_FullMethodName   = "/partner.v1.PartnerService/RegisterPartnerAttachment"
-	PartnerService_ImportPartners_FullMethodName              = "/partner.v1.PartnerService/ImportPartners"
-	PartnerService_ExportPartners_FullMethodName              = "/partner.v1.PartnerService/ExportPartners"
+	PartnerService_GetPartner_FullMethodName                   = "/partner.v1.PartnerService/GetPartner"
+	PartnerService_ListPartners_FullMethodName                 = "/partner.v1.PartnerService/ListPartners"
+	PartnerService_ListPartnerAssignmentOptions_FullMethodName = "/partner.v1.PartnerService/ListPartnerAssignmentOptions"
+	PartnerService_CreatePartner_FullMethodName                = "/partner.v1.PartnerService/CreatePartner"
+	PartnerService_UpdatePartner_FullMethodName                = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_SetSupplierBlacklist_FullMethodName         = "/partner.v1.PartnerService/SetSupplierBlacklist"
+	PartnerService_ListPartnerAccounts_FullMethodName          = "/partner.v1.PartnerService/ListPartnerAccounts"
+	PartnerService_CreatePartnerAccount_FullMethodName         = "/partner.v1.PartnerService/CreatePartnerAccount"
+	PartnerService_UpdatePartnerAccount_FullMethodName         = "/partner.v1.PartnerService/UpdatePartnerAccount"
+	PartnerService_ListPartnerContracts_FullMethodName         = "/partner.v1.PartnerService/ListPartnerContracts"
+	PartnerService_CreatePartnerContract_FullMethodName        = "/partner.v1.PartnerService/CreatePartnerContract"
+	PartnerService_UpdatePartnerContract_FullMethodName        = "/partner.v1.PartnerService/UpdatePartnerContract"
+	PartnerService_ListPartnerSettlementRules_FullMethodName   = "/partner.v1.PartnerService/ListPartnerSettlementRules"
+	PartnerService_CreatePartnerSettlementRule_FullMethodName  = "/partner.v1.PartnerService/CreatePartnerSettlementRule"
+	PartnerService_UpdatePartnerSettlementRule_FullMethodName  = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
+	PartnerService_ListPartnerAttachments_FullMethodName       = "/partner.v1.PartnerService/ListPartnerAttachments"
+	PartnerService_RegisterPartnerAttachment_FullMethodName    = "/partner.v1.PartnerService/RegisterPartnerAttachment"
+	PartnerService_ImportPartners_FullMethodName               = "/partner.v1.PartnerService/ImportPartners"
+	PartnerService_ExportPartners_FullMethodName               = "/partner.v1.PartnerService/ExportPartners"
 )
 
 // PartnerServiceClient is the client API for PartnerService service.
@@ -45,6 +46,7 @@ const (
 type PartnerServiceClient interface {
 	GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*PartnerListReply, error)
+	ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*PartnerAssignmentOptionListReply, error)
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
 	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error)
@@ -85,6 +87,16 @@ func (c *partnerServiceClient) ListPartners(ctx context.Context, in *ListPartner
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PartnerListReply)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartners_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*PartnerAssignmentOptionListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartnerAssignmentOptionListReply)
+	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAssignmentOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,6 +269,7 @@ func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPar
 type PartnerServiceServer interface {
 	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
+	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error)
 	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
@@ -288,6 +301,9 @@ func (UnimplementedPartnerServiceServer) GetPartner(context.Context, *GetPartner
 }
 func (UnimplementedPartnerServiceServer) ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartners not implemented")
+}
+func (UnimplementedPartnerServiceServer) ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartnerAssignmentOptions not implemented")
 }
 func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartner not implemented")
@@ -390,6 +406,24 @@ func _PartnerService_ListPartners_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PartnerServiceServer).ListPartners(ctx, req.(*ListPartnersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_ListPartnerAssignmentOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartnerAssignmentOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).ListPartnerAssignmentOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_ListPartnerAssignmentOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).ListPartnerAssignmentOptions(ctx, req.(*ListPartnerAssignmentOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -696,6 +730,10 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPartners",
 			Handler:    _PartnerService_ListPartners_Handler,
+		},
+		{
+			MethodName: "ListPartnerAssignmentOptions",
+			Handler:    _PartnerService_ListPartnerAssignmentOptions_Handler,
 		},
 		{
 			MethodName: "CreatePartner",

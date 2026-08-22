@@ -1620,6 +1620,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.PartnerReply'
+    /api/v1/partners/assignment-options:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerAssignmentOptions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.PartnerAssignmentOptionListReply'
     /api/v1/partners/export:
         get:
             tags:
@@ -4625,6 +4637,9 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                sortOrder:
+                    type: integer
+                    format: int32
         partner.v1.PartnerAssignmentInput:
             required:
                 - role
@@ -4638,6 +4653,35 @@ components:
                 userId:
                     type: string
                 organizationId:
+                    type: string
+        partner.v1.PartnerAssignmentOption:
+            type: object
+            properties:
+                userId:
+                    type: string
+                displayName:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                membershipEnabled:
+                    type: boolean
+        partner.v1.PartnerAssignmentOptionListReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignmentOption'
+                traceId:
                     type: string
         partner.v1.PartnerAttachment:
             type: object

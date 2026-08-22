@@ -28,6 +28,8 @@ const (
 	FieldOrganizationID = "organization_id"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldSortOrder holds the string denoting the sort_order field in the database.
+	FieldSortOrder = "sort_order"
 	// EdgePartner holds the string denoting the partner edge name in mutations.
 	EdgePartner = "partner"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldOrganizationID,
 	FieldRole,
+	FieldSortOrder,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,6 +90,10 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultSortOrder holds the default value on creation for the "sort_order" field.
+	DefaultSortOrder int
+	// SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	SortOrderValidator func(int) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -155,6 +162,11 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// BySortOrder orders the results by the sort_order field.
+func BySortOrder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSortOrder, opts...).ToFunc()
 }
 
 // ByPartnerField orders the results by partner field.

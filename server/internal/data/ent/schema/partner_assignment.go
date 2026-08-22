@@ -19,6 +19,7 @@ func (PartnerAssignment) Fields() []ent.Field {
 		field.UUID("user_id", uuid.Nil),
 		field.UUID("organization_id", uuid.Nil),
 		field.Enum("role").Values("CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "INTERNAL_CONTACT"),
+		field.Int("sort_order").Default(0).NonNegative(),
 	}
 }
 
@@ -32,7 +33,7 @@ func (PartnerAssignment) Edges() []ent.Edge {
 
 func (PartnerAssignment) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("partner_id", "role").Unique(),
+		index.Fields("partner_id", "role", "sort_order").Unique(),
 		index.Fields("user_id", "role"),
 		index.Fields("organization_id", "role"),
 	}

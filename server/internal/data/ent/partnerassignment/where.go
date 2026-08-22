@@ -81,6 +81,11 @@ func OrganizationID(v uuid.UUID) predicate.PartnerAssignment {
 	return predicate.PartnerAssignment(sql.FieldEQ(FieldOrganizationID, v))
 }
 
+// SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
+func SortOrder(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldEQ(FieldSortOrder, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.PartnerAssignment {
 	return predicate.PartnerAssignment(sql.FieldEQ(FieldCreatedAt, v))
@@ -239,6 +244,46 @@ func RoleIn(vs ...Role) predicate.PartnerAssignment {
 // RoleNotIn applies the NotIn predicate on the "role" field.
 func RoleNotIn(vs ...Role) predicate.PartnerAssignment {
 	return predicate.PartnerAssignment(sql.FieldNotIn(FieldRole, vs...))
+}
+
+// SortOrderEQ applies the EQ predicate on the "sort_order" field.
+func SortOrderEQ(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldEQ(FieldSortOrder, v))
+}
+
+// SortOrderNEQ applies the NEQ predicate on the "sort_order" field.
+func SortOrderNEQ(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldNEQ(FieldSortOrder, v))
+}
+
+// SortOrderIn applies the In predicate on the "sort_order" field.
+func SortOrderIn(vs ...int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldIn(FieldSortOrder, vs...))
+}
+
+// SortOrderNotIn applies the NotIn predicate on the "sort_order" field.
+func SortOrderNotIn(vs ...int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldNotIn(FieldSortOrder, vs...))
+}
+
+// SortOrderGT applies the GT predicate on the "sort_order" field.
+func SortOrderGT(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldGT(FieldSortOrder, v))
+}
+
+// SortOrderGTE applies the GTE predicate on the "sort_order" field.
+func SortOrderGTE(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldGTE(FieldSortOrder, v))
+}
+
+// SortOrderLT applies the LT predicate on the "sort_order" field.
+func SortOrderLT(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldLT(FieldSortOrder, v))
+}
+
+// SortOrderLTE applies the LTE predicate on the "sort_order" field.
+func SortOrderLTE(v int) predicate.PartnerAssignment {
+	return predicate.PartnerAssignment(sql.FieldLTE(FieldSortOrder, v))
 }
 
 // HasPartner applies the HasEdge predicate on the "partner" edge.

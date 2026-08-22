@@ -76,6 +76,20 @@ func (_c *PartnerAssignmentCreate) SetRole(v partnerassignment.Role) *PartnerAss
 	return _c
 }
 
+// SetSortOrder sets the "sort_order" field.
+func (_c *PartnerAssignmentCreate) SetSortOrder(v int) *PartnerAssignmentCreate {
+	_c.mutation.SetSortOrder(v)
+	return _c
+}
+
+// SetNillableSortOrder sets the "sort_order" field if the given value is not nil.
+func (_c *PartnerAssignmentCreate) SetNillableSortOrder(v *int) *PartnerAssignmentCreate {
+	if v != nil {
+		_c.SetSortOrder(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PartnerAssignmentCreate) SetID(v uuid.UUID) *PartnerAssignmentCreate {
 	_c.mutation.SetID(v)
@@ -148,6 +162,10 @@ func (_c *PartnerAssignmentCreate) defaults() {
 		v := partnerassignment.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.SortOrder(); !ok {
+		v := partnerassignment.DefaultSortOrder
+		_c.mutation.SetSortOrder(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := partnerassignment.DefaultID()
 		_c.mutation.SetID(v)
@@ -177,6 +195,14 @@ func (_c *PartnerAssignmentCreate) check() error {
 	if v, ok := _c.mutation.Role(); ok {
 		if err := partnerassignment.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.role": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SortOrder(); !ok {
+		return &ValidationError{Name: "sort_order", err: errors.New(`ent: missing required field "PartnerAssignment.sort_order"`)}
+	}
+	if v, ok := _c.mutation.SortOrder(); ok {
+		if err := partnerassignment.SortOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "PartnerAssignment.sort_order": %w`, err)}
 		}
 	}
 	if len(_c.mutation.PartnerIDs()) == 0 {
@@ -234,6 +260,10 @@ func (_c *PartnerAssignmentCreate) createSpec() (*PartnerAssignment, *sqlgraph.C
 	if value, ok := _c.mutation.Role(); ok {
 		_spec.SetField(partnerassignment.FieldRole, field.TypeEnum, value)
 		_node.Role = value
+	}
+	if value, ok := _c.mutation.SortOrder(); ok {
+		_spec.SetField(partnerassignment.FieldSortOrder, field.TypeInt, value)
+		_node.SortOrder = value
 	}
 	if nodes := _c.mutation.PartnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

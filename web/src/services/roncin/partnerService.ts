@@ -318,6 +318,19 @@ export async function partnerServiceSetSupplierBlacklist(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/assignment-options */
+export async function partnerServiceListPartnerAssignmentOptions(options?: {
+  [key: string]: any;
+}) {
+  return request<API.PartnerAssignmentOptionListReply>(
+    "/api/v1/partners/assignment-options",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/export */
 export async function partnerServiceExportPartners(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

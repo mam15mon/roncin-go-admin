@@ -73,6 +73,26 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 	}, nil
 }
 
+func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.PartnerAssignmentOptionListReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	items, err := s.usecase.ListAssignmentOptions(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.PartnerAssignmentOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.PartnerAssignmentOption{
+			UserId: item.UserID.String(), DisplayName: item.DisplayName,
+			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
+			MembershipEnabled: item.MembershipEnabled,
+		})
+	}
+	return &v1.PartnerAssignmentOptionListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.PartnerReply, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -802,6 +822,7 @@ func partnerAssignmentsToAPI(items []*biz.PartnerAssignment) []*v1.PartnerAssign
 		result = append(result, &v1.PartnerAssignment{
 			Id: item.ID.String(), Role: partnerAssignmentRoleToAPI(item.Role), UserId: item.UserID.String(),
 			OrganizationId: item.OrganizationID.String(), CreatedAt: item.CreatedAt.Format(time.RFC3339), UpdatedAt: item.UpdatedAt.Format(time.RFC3339),
+			SortOrder: int32(item.SortOrder),
 		})
 	}
 	return result

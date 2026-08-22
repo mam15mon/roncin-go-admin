@@ -144,8 +144,17 @@ type PartnerAssignment struct {
 	Role           PartnerAssignmentRole
 	UserID         uuid.UUID
 	OrganizationID uuid.UUID
+	SortOrder      int
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type PartnerAssignmentOption struct {
+	UserID            uuid.UUID
+	DisplayName       string
+	OrganizationID    uuid.UUID
+	OrganizationName  string
+	MembershipEnabled bool
 }
 
 type Partner struct {
@@ -223,6 +232,7 @@ type PartnerBlacklistResult struct {
 type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
 	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
+	ListAssignmentOptions(context.Context, uuid.UUID) ([]*PartnerAssignmentOption, error)
 	Create(context.Context, uuid.UUID, *Partner) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner) (*PartnerUpdateResult, error)
 	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate) (*PartnerBlacklistResult, error)
@@ -257,6 +267,13 @@ func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, op
 	return uc.repo.List(ctx, organizationID, options)
 }
 
+func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID) ([]*PartnerAssignmentOption, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrPartnerInvalidArgument
+	}
+	return uc.repo.ListAssignmentOptions(ctx, organizationID)
+}
+
 func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uuid.UUID, input PartnerImportInput) (*PartnerImportResult, error) {
 	if organizationID == uuid.Nil || userID == uuid.Nil || strings.TrimSpace(input.Source) == "" || !input.Mode.Valid() || len(input.Items) == 0 || len(input.Items) > 500 {
 		return nil, ErrPartnerImportInvalidArgument
@@ -272,6 +289,7 @@ func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uui
 			return nil, ErrPartnerImportInvalidArgument
 		}
 		seenCodes[value.Code] = struct{}{}
+		value.Assignments = append(value.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 		normalized = append(normalized, value)
 	}
 	result, err := uc.repo.Import(ctx, organizationID, input.Mode, normalized)
@@ -300,6 +318,7 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 	if err != nil {
 		return nil, err
 	}
+	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 	created, err := uc.repo.Create(ctx, organizationID, normalized)
 	if err != nil {
 		return nil, err
@@ -497,17 +516,32 @@ func normalizeUniqueValues[T comparable](values []T, valid func(T) bool) ([]T, e
 }
 
 func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignment, error) {
-	seen := make(map[PartnerAssignmentRole]struct{}, len(input))
+	counts := make(map[PartnerAssignmentRole]int, len(input))
+	seenMembers := make(map[string]struct{}, len(input))
 	result := make([]*PartnerAssignment, 0, len(input))
 	for _, item := range input {
-		if item == nil || !item.Role.Valid() || item.UserID == uuid.Nil || item.OrganizationID == uuid.Nil {
+		if item == nil || !item.Role.Valid() || item.Role == PartnerAssignmentCreator || item.UserID == uuid.Nil || item.OrganizationID == uuid.Nil {
 			return nil, ErrPartnerInvalidArgument
 		}
-		if _, exists := seen[item.Role]; exists {
+		counts[item.Role]++
+		if item.Role == PartnerAssignmentInternalContact {
+			if counts[item.Role] > 2 {
+				return nil, ErrPartnerInvalidArgument
+			}
+		} else if counts[item.Role] > 1 {
 			return nil, ErrPartnerInvalidArgument
 		}
-		seen[item.Role] = struct{}{}
+		memberKey := item.UserID.String() + ":" + item.OrganizationID.String()
+		if _, exists := seenMembers[memberKey]; exists {
+			return nil, ErrPartnerInvalidArgument
+		}
+		seenMembers[memberKey] = struct{}{}
 		copy := *item
+		if copy.Role == PartnerAssignmentInternalContact {
+			copy.SortOrder = counts[item.Role]
+		} else {
+			copy.SortOrder = 0
+		}
 		result = append(result, &copy)
 	}
 	return result, nil
