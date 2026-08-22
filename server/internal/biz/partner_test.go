@@ -256,6 +256,39 @@ func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 	}
 }
 
+func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	creditCurrency := " cny "
+	creditLimit := int64(50000000)
+
+	created, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
+		Code: "CUSTOMER", LegalName: "境内客户", UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
+		Roles: []*PartnerRole{{
+			Type: PartnerRoleCustomer, Enabled: true,
+			SettlementRule: &PartnerSettlementRule{
+				StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
+				SettlementCurrency: " cny ", CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency, IsActive: true,
+			},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	rule := created.Roles[0].SettlementRule
+	if rule == nil || rule.SettlementCurrency != "CNY" || rule.CreditCurrency == nil || *rule.CreditCurrency != "CNY" {
+		t.Fatalf("normalized settlement rule = %#v", rule)
+	}
+
+	created.Roles[0].SettlementRule.SettlementMethod = PartnerSettlementMonthly
+	created.Assignments = nil
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, created); err != ErrPartnerSettlementRuleInvalidArgument {
+		t.Fatalf("monthly rule without settlement base error = %v, want ErrPartnerSettlementRuleInvalidArgument", err)
+	}
+}
+
 func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 	organizationID := uuid.New()

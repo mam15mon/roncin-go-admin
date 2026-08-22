@@ -160,6 +160,7 @@ message PartnerRole {
   string blacklist_reason = 4;
   string blacklisted_at = 5;
   string blacklisted_by = 6;
+  PartnerSettlementRule settlement_rule = 7;
 }
 
 message PartnerContact {
@@ -250,6 +251,7 @@ message Partner {
 message PartnerRoleInput {
   PartnerRoleType type = 1;
   bool enabled = 2;
+  PartnerSettlementRuleInput settlement_rule = 3;
 }
 
 message PartnerContactInput {

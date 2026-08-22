@@ -50,6 +50,7 @@ type PartnerRole struct {
 	BlacklistReason string
 	BlacklistedAt   *time.Time
 	BlacklistedBy   *uuid.UUID
+	SettlementRule  *PartnerSettlementRule
 }
 
 type PartnerContact struct {
@@ -572,7 +573,15 @@ func normalizePartnerRoles(input []*PartnerRole, partnerEnabled bool) ([]*Partne
 		}
 		seen[item.Type] = struct{}{}
 		hasEnabled = hasEnabled || item.Enabled
-		roles = append(roles, &PartnerRole{Type: item.Type, Enabled: item.Enabled})
+		role := &PartnerRole{Type: item.Type, Enabled: item.Enabled}
+		if item.SettlementRule != nil {
+			settlementRule, err := normalizePartnerSettlementRule(item.SettlementRule)
+			if err != nil {
+				return nil, err
+			}
+			role.SettlementRule = settlementRule
+		}
+		roles = append(roles, role)
 	}
 	if partnerEnabled && !hasEnabled {
 		return nil, ErrPartnerRoleRequired

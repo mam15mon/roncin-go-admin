@@ -694,7 +694,10 @@ func partnerRolesFromAPI(items []*v1.PartnerRoleInput) []*biz.PartnerRole {
 			roles = append(roles, nil)
 			continue
 		}
-		roles = append(roles, &biz.PartnerRole{Type: partnerRoleTypeFromAPI(item.GetType()), Enabled: item.GetEnabled()})
+		roles = append(roles, &biz.PartnerRole{
+			Type: partnerRoleTypeFromAPI(item.GetType()), Enabled: item.GetEnabled(),
+			SettlementRule: partnerSettlementRuleFromAPI(item.GetSettlementRule()),
+		})
 	}
 	return roles
 }
@@ -771,6 +774,7 @@ func partnerToAPI(value *biz.Partner) *v1.Partner {
 		roles = append(roles, &v1.PartnerRole{
 			Type: partnerRoleTypeToAPI(role.Type), Enabled: role.Enabled, Blacklisted: role.Blacklisted,
 			BlacklistReason: role.BlacklistReason, BlacklistedAt: formatOptionalTime(role.BlacklistedAt), BlacklistedBy: formatOptionalUUID(role.BlacklistedBy),
+			SettlementRule: partnerSettlementRuleToAPI(role.SettlementRule),
 		})
 	}
 	contacts := make([]*v1.PartnerContact, 0, len(value.Contacts))
@@ -926,6 +930,9 @@ func partnerSettlementBaseToAPI(value *biz.PartnerSettlementBase) *v1.PartnerSet
 }
 
 func partnerSettlementRuleFromAPI(value *v1.PartnerSettlementRuleInput) *biz.PartnerSettlementRule {
+	if value == nil {
+		return nil
+	}
 	result := &biz.PartnerSettlementRule{
 		StatementMode: partnerStatementModeFromAPI(value.GetStatementMode()), SettlementMethod: partnerSettlementMethodFromAPI(value.GetSettlementMethod()),
 		SettlementCurrency: value.GetSettlementCurrency(), IsActive: value.GetIsActive(),
@@ -953,6 +960,9 @@ func partnerSettlementRuleFromAPI(value *v1.PartnerSettlementRuleInput) *biz.Par
 }
 
 func partnerSettlementRuleToAPI(value *biz.PartnerSettlementRule) *v1.PartnerSettlementRule {
+	if value == nil {
+		return nil
+	}
 	result := &v1.PartnerSettlementRule{
 		Id: value.ID.String(), PartnerRoleId: value.PartnerRoleID.String(), StatementMode: partnerStatementModeToAPI(value.StatementMode),
 		SettlementMethod: partnerSettlementMethodToAPI(value.SettlementMethod), SettlementCurrency: value.SettlementCurrency, IsActive: value.IsActive,

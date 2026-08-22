@@ -57,12 +57,37 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	if err := validateSettlementCurrencies(ctx, r.data.db, input); err != nil {
+	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
 		return nil, err
 	}
-	builder := r.data.db.PartnerSettlementRule.Create().
-		SetPartnerRoleID(role.ID).
-		SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
+	created, err := createPartnerSettlementRule(ctx, r.data.db.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
+	if err != nil {
+		return nil, mapPartnerSettlementRuleConstraint(err)
+	}
+	return partnerSettlementRuleToBiz(created), nil
+}
+
+func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule) (*biz.PartnerSettlementRule, error) {
+	role, err := r.role(ctx, organizationID, partnerID, roleType)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
+		return nil, err
+	}
+	update := r.data.db.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID))
+	updated, err := updatePartnerSettlementRule(ctx, update, input)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrPartnerSettlementRuleNotFound
+		}
+		return nil, mapPartnerSettlementRuleConstraint(err)
+	}
+	return partnerSettlementRuleToBiz(updated), nil
+}
+
+func createPartnerSettlementRule(ctx context.Context, builder *ent.PartnerSettlementRuleCreate, input *biz.PartnerSettlementRule) (*ent.PartnerSettlementRule, error) {
+	builder.SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
 		SetSettlementMethod(partnerfilterent.SettlementMethod(input.SettlementMethod)).
 		SetSettlementCurrency(input.SettlementCurrency).
 		SetIsActive(input.IsActive)
@@ -78,23 +103,11 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if input.CreditLimitMinor != nil {
 		builder.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
-	created, err := builder.Save(ctx)
-	if err != nil {
-		return nil, mapPartnerSettlementRuleConstraint(err)
-	}
-	return partnerSettlementRuleToBiz(created), nil
+	return builder.Save(ctx)
 }
 
-func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule) (*biz.PartnerSettlementRule, error) {
-	role, err := r.role(ctx, organizationID, partnerID, roleType)
-	if err != nil {
-		return nil, err
-	}
-	if err := validateSettlementCurrencies(ctx, r.data.db, input); err != nil {
-		return nil, err
-	}
-	update := r.data.db.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID)).
-		SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
+func updatePartnerSettlementRule(ctx context.Context, update *ent.PartnerSettlementRuleUpdateOne, input *biz.PartnerSettlementRule) (*ent.PartnerSettlementRule, error) {
+	update.SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
 		SetSettlementMethod(partnerfilterent.SettlementMethod(input.SettlementMethod)).
 		SetSettlementCurrency(input.SettlementCurrency).
 		SetIsActive(input.IsActive)
@@ -118,14 +131,7 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 	} else {
 		update.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerSettlementRuleNotFound
-		}
-		return nil, mapPartnerSettlementRuleConstraint(err)
-	}
-	return partnerSettlementRuleToBiz(updated), nil
+	return update.Save(ctx)
 }
 
 func mapPartnerSettlementRuleConstraint(err error) error {
@@ -158,12 +164,12 @@ func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSet
 	return result
 }
 
-func validateSettlementCurrencies(ctx context.Context, client *ent.Client, input *biz.PartnerSettlementRule) error {
+func validateSettlementCurrencies(ctx context.Context, query *ent.CurrencyQuery, input *biz.PartnerSettlementRule) error {
 	codes := []string{input.SettlementCurrency}
 	if input.CreditCurrency != nil && *input.CreditCurrency != input.SettlementCurrency {
 		codes = append(codes, *input.CreditCurrency)
 	}
-	count, err := client.Currency.Query().Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
+	count, err := query.Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
 	if err != nil {
 		return err
 	}

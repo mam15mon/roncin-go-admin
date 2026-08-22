@@ -5000,6 +5000,8 @@ components:
                     type: string
                 blacklistedBy:
                     type: string
+                settlementRule:
+                    $ref: '#/components/schemas/partner.v1.PartnerSettlementRule'
         partner.v1.PartnerRoleInput:
             type: object
             properties:
@@ -5008,6 +5010,8 @@ components:
                     format: enum
                 enabled:
                     type: boolean
+                settlementRule:
+                    $ref: '#/components/schemas/partner.v1.PartnerSettlementRuleInput'
         partner.v1.PartnerSettlementRule:
             type: object
             properties:

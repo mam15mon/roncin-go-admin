@@ -1436,11 +1436,13 @@ declare namespace API {
     blacklistReason?: string;
     blacklistedAt?: string;
     blacklistedBy?: string;
+    settlementRule?: PartnerSettlementRule;
   };
 
   type PartnerRoleInput = {
     type?: number;
     enabled?: boolean;
+    settlementRule?: PartnerSettlementRuleInput;
   };
 
   type PartnerServiceCreatePartnerAccountParams = {

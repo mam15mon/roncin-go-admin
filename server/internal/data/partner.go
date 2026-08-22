@@ -16,6 +16,7 @@ import (
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	partnerprofileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -189,6 +190,10 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := savePartnerRoleSettlementRules(ctx, tx, id, input.Roles); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(id)).Exec(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -344,6 +349,9 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 	if err := replacePartnerRoles(ctx, tx, existing.ID, existing.Edges.Roles, input.Roles); err != nil {
 		return err
 	}
+	if err := savePartnerRoleSettlementRules(ctx, tx, existing.ID, input.Roles); err != nil {
+		return err
+	}
 	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(existing.ID)).Exec(ctx); err != nil {
 		return err
 	}
@@ -375,7 +383,9 @@ func editablePartnerAssignments(assignments []*biz.PartnerAssignment) []*biz.Par
 func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
 	return query.
 		WithRoles(func(roleQuery *ent.PartnerRoleQuery) {
-			roleQuery.Order(partnerroleent.ByRoleType())
+			roleQuery.Order(partnerroleent.ByRoleType()).WithSettlementRules(func(query *ent.PartnerSettlementRuleQuery) {
+				query.Order(partnersettlementruleent.ByCreatedAt())
+			})
 		}).
 		WithContacts(func(contactQuery *ent.PartnerContactQuery) {
 			contactQuery.Order(partnercontactent.ByIsPrimary(entsql.OrderDesc()), partnercontactent.ByName())
@@ -398,6 +408,9 @@ func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, part
 			Save(ctx); err != nil {
 			return mapPartnerConstraint(err)
 		}
+	}
+	if err := savePartnerRoleSettlementRules(ctx, tx, partnerID, input.Roles); err != nil {
+		return err
 	}
 	if err := createPartnerContacts(ctx, tx, partnerID, input.Contacts); err != nil {
 		return err
@@ -605,6 +618,43 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 	return nil
 }
 
+func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, roles []*biz.PartnerRole) error {
+	for _, role := range roles {
+		if role.SettlementRule == nil {
+			continue
+		}
+		partnerRole, err := tx.PartnerRole.Query().Where(
+			partnerroleent.PartnerIDEQ(partnerID),
+			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(role.Type)),
+		).Only(ctx)
+		if err != nil {
+			return err
+		}
+		if err := validateSettlementCurrencies(ctx, tx.Currency.Query(), role.SettlementRule); err != nil {
+			return err
+		}
+		existingRules, err := tx.PartnerSettlementRule.Query().Where(
+			partnersettlementruleent.PartnerRoleIDEQ(partnerRole.ID),
+		).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(existingRules) > 1 {
+			return biz.ErrPartnerSettlementRuleInvalidArgument
+		}
+		if len(existingRules) == 0 {
+			if _, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(partnerRole.ID), role.SettlementRule); err != nil {
+				return mapPartnerSettlementRuleConstraint(err)
+			}
+			continue
+		}
+		if _, err := updatePartnerSettlementRule(ctx, existingRules[0].Update(), role.SettlementRule); err != nil {
+			return mapPartnerSettlementRuleConstraint(err)
+		}
+	}
+	return nil
+}
+
 func mapPartnerConstraint(err error) error {
 	if !ent.IsConstraintError(err) {
 		return err
@@ -698,10 +748,14 @@ func partnerBusinessTypesToBiz(values []string) []biz.PartnerBusinessType {
 func partnerRolesToBiz(items []*ent.PartnerRole) []*biz.PartnerRole {
 	roles := make([]*biz.PartnerRole, 0, len(items))
 	for _, role := range items {
-		roles = append(roles, &biz.PartnerRole{
+		result := &biz.PartnerRole{
 			Type: biz.PartnerRoleType(role.RoleType), Enabled: role.Enabled, Blacklisted: role.Blacklisted,
 			BlacklistReason: role.BlacklistReason, BlacklistedAt: role.BlacklistedAt, BlacklistedBy: role.BlacklistedBy,
-		})
+		}
+		if len(role.Edges.SettlementRules) == 1 {
+			result.SettlementRule = partnerSettlementRuleToBiz(role.Edges.SettlementRules[0])
+		}
+		roles = append(roles, result)
 	}
 	return roles
 }
