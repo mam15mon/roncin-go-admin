@@ -1,127 +1,118 @@
 import { GlobalOutlined, LinkOutlined } from '@ant-design/icons';
-import { Button, Tag, Tooltip } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import { App, Button, Tag, Tooltip } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
-import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import {
   masterDataServiceCreateItem,
   masterDataServiceListItems,
+  masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import {
+  mapPersistedMasterDataItem,
+  type PersistedMasterDataItem,
+  requireMasterDataResponse,
+} from './masterDataMapper';
 
-export interface ShippingLineItem extends BaseMasterDataItem {
-  scacCode: string; // SCAC Standard Carrier Alpha Code
+export interface ShippingLineItem extends PersistedMasterDataItem {
+  scacCode: string;
   trackingUrl?: string;
   countryCode: string;
   countryName?: string;
-  alliance?: string; // 2M, Ocean Alliance, THE Alliance, Premier Alliance
+  alliance?: string;
 }
 
-const INITIAL_SHIPPING_LINES: ShippingLineItem[] = [
-  { id: 'MSKU', code: 'MSKU', scacCode: 'MAEU', name: '马士基航运', nameEn: 'Maersk Line', trackingUrl: 'https://www.maersk.com/tracking/', countryCode: 'DK', countryName: '丹麦', alliance: 'Gemini', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'MSCU', code: 'MSCU', scacCode: 'MSCU', name: '地中海航运', nameEn: 'MSC Mediterranean Shipping Company', trackingUrl: 'https://www.msc.com/en/track-a-shipment', countryCode: 'CH', countryName: '瑞士', alliance: 'Independent', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'COSU', code: 'COSU', scacCode: 'COSU', name: '中远海运集运', nameEn: 'COSCO SHIPPING Lines', trackingUrl: 'https://lines.coscoshipping.com/ebusiness/cargoTracking', countryCode: 'CN', countryName: '中国', alliance: 'Ocean Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CMDU', code: 'CMDU', scacCode: 'CMDU', name: '达飞轮船', nameEn: 'CMA CGM', trackingUrl: 'https://www.cma-cgm.com/ebusiness/tracking', countryCode: 'FR', countryName: '法国', alliance: 'Ocean Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'HLCU', code: 'HLCU', scacCode: 'HLCU', name: '赫伯罗特', nameEn: 'Hapag-Lloyd', trackingUrl: 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html', countryCode: 'DE', countryName: '德国', alliance: 'Gemini', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'ONEY', code: 'ONEY', scacCode: 'ONEY', name: '海洋网联船务', nameEn: 'Ocean Network Express (ONE)', trackingUrl: 'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking', countryCode: 'JP', countryName: '日本', alliance: 'Premier Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'EMCU', code: 'EMCU', scacCode: 'EGLV', name: '长荣海运', nameEn: 'Evergreen Marine Corp.', trackingUrl: 'https://www.evergreen-line.com/', countryCode: 'TW', countryName: '中国台湾', alliance: 'Ocean Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'HDMU', code: 'HDMU', scacCode: 'HDMU', name: '韩新海运', nameEn: 'HMM Company Limited', trackingUrl: 'https://www.hmm21.com/cms/company/engn/index.jsp', countryCode: 'KR', countryName: '韩国', alliance: 'Premier Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'YMLU', code: 'YMLU', scacCode: 'YMLU', name: '阳明海运', nameEn: 'Yang Ming Marine Transport', trackingUrl: 'https://www.yangming.com/', countryCode: 'TW', countryName: '中国台湾', alliance: 'Premier Alliance', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'ZIMU', code: 'ZIMU', scacCode: 'ZIMU', name: '以星综合航运', nameEn: 'ZIM Integrated Shipping Services', trackingUrl: 'https://www.zim.com/tools/track-a-shipment', countryCode: 'IL', countryName: '以色列', alliance: 'Independent', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'WHLU', code: 'WHLU', scacCode: 'WHLU', name: '万海航运', nameEn: 'Wan Hai Lines', trackingUrl: 'https://www.wanhai.com/', countryCode: 'TW', countryName: '中国台湾', alliance: 'Independent', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'SITC', code: 'SITC', scacCode: 'SITC', name: '海丰国际', nameEn: 'SITC International Holdings', trackingUrl: 'https://www.sitc.com/', countryCode: 'CN', countryName: '中国', alliance: 'Intra-Asia', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-];
+const mapShippingLine = (item: API.MasterDataItem): ShippingLineItem => ({
+  ...mapPersistedMasterDataItem(item),
+  scacCode: item.attributes?.scacCode ?? '',
+  trackingUrl: item.attributes?.trackingUrl,
+  countryCode: item.attributes?.countryCode ?? '',
+  alliance: item.attributes?.alliance,
+});
 
 export default function ShippingLinesPanel() {
-  const [data, setData] = useState<ShippingLineItem[]>(INITIAL_SHIPPING_LINES);
+  const { message } = App.useApp();
+  const [data, setData] = useState<ShippingLineItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchServerData = async () => {
+  const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await masterDataServiceListItems({
-        kind: 6, // Carrier / Shipping Line
+      const response = await masterDataServiceListItems({
+        kind: 6,
+        transportMode: 'SEA',
         page: 1,
         pageSize: 100,
       });
-      if (res.data && res.data.length > 0) {
-        const mapped: ShippingLineItem[] = res.data.map((item) => ({
-          id: item.id || item.code || '',
-          code: item.code || '',
-          scacCode: item.parentCode || item.code || '',
-          name: item.name || '',
-          nameEn: item.nameEn,
-          trackingUrl: item.source || '',
-          countryCode: 'CN',
-          enabled: item.enabled ?? true,
-          updatedAt: item.updatedAt,
-        }));
-        setData(mapped);
-      }
-    } catch {
-      // Keep local preset
+      setData((response.data ?? []).map(mapShippingLine));
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServerData();
   }, []);
 
+  useEffect(() => {
+    void fetchServerData().catch((error: Error) => message.error(error.message || '船司主数据加载失败'));
+  }, [fetchServerData, message]);
+
+  const saveResponse = (response: API.MasterDataItemReply) => {
+    const saved = mapShippingLine(requireMasterDataResponse(response));
+    setData((current) => {
+      const exists = current.some((item) => item.id === saved.id);
+      return exists
+        ? current.map((item) => (item.id === saved.id ? saved : item))
+        : [saved, ...current];
+    });
+  };
+
   const handleCreate = async (values: any) => {
-    const newLine: ShippingLineItem = {
-      id: values.code?.toUpperCase().trim(),
-      code: values.code?.toUpperCase().trim(),
-      scacCode: values.scacCode?.toUpperCase().trim() || values.code?.toUpperCase().trim(),
-      name: values.name?.trim(),
-      nameEn: values.nameEn?.trim(),
-      trackingUrl: values.trackingUrl?.trim(),
-      countryCode: values.countryCode?.toUpperCase().trim() || 'CN',
-      alliance: values.alliance || 'Independent',
-      enabled: true,
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const response = await masterDataServiceCreateItem({
+      kind: 6,
+      code: values.code.toUpperCase().trim(),
+      name: values.name.trim(),
+      nameEn: values.nameEn.trim(),
+      transportMode: 'SEA',
+      source: 'manual',
+      sortOrder: 100,
+      attributes: {
+        scacCode: values.scacCode.toUpperCase().trim(),
+        trackingUrl: values.trackingUrl?.trim(),
+        countryCode: values.countryCode.toUpperCase().trim(),
+        alliance: values.alliance,
+      },
+    });
+    saveResponse(response);
+  };
 
-    try {
-      await masterDataServiceCreateItem({
+  const updateItem = async (record: ShippingLineItem, values: any, enabled: boolean) => {
+    const response = await masterDataServiceUpdateItem(
+      { id: record.id },
+      {
+        id: record.id,
         kind: 6,
-        code: newLine.code,
-        name: newLine.name,
-        nameEn: newLine.nameEn,
-        parentCode: newLine.scacCode,
-        source: newLine.trackingUrl,
-      });
-    } catch {
-      // Fallback
-    }
-
-    setData([newLine, ...data]);
+        name: values.name.trim(),
+        nameEn: values.nameEn.trim(),
+        transportMode: 'SEA',
+        source: record.source,
+        sortOrder: record.sortOrder,
+        enabled,
+        attributes: {
+          scacCode: values.scacCode.toUpperCase().trim(),
+          trackingUrl: values.trackingUrl?.trim(),
+          countryCode: values.countryCode.toUpperCase().trim(),
+          alliance: values.alliance,
+        },
+      },
+    );
+    saveResponse(response);
   };
 
   const handleUpdate = async (id: string, values: any) => {
-    const next = data.map((d) =>
-      d.id === id
-        ? {
-            ...d,
-            name: values.name?.trim(),
-            nameEn: values.nameEn?.trim(),
-            scacCode: values.scacCode?.toUpperCase().trim() || d.scacCode,
-            trackingUrl: values.trackingUrl?.trim() || d.trackingUrl,
-            countryCode: values.countryCode?.toUpperCase().trim() || d.countryCode,
-            alliance: values.alliance || d.alliance,
-            updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          }
-        : d,
-    );
-    setData(next);
+    const record = data.find((item) => item.id === id);
+    if (!record) throw new Error('待更新船司不存在');
+    await updateItem(record, values, record.enabled);
   };
 
-  const handleToggleActive = (record: ShippingLineItem) => {
-    const next = data.map((d) =>
-      d.id === record.id ? { ...d, enabled: !d.enabled } : d,
-    );
-    setData(next);
+  const handleToggleActive = async (record: ShippingLineItem) => {
+    await updateItem(record, record, !record.enabled);
   };
 
   return (
@@ -174,7 +165,7 @@ export default function ShippingLinesPanel() {
             if (alliance === 'Ocean Alliance') return <Tag color="blue">Ocean Alliance</Tag>;
             if (alliance === 'Gemini') return <Tag color="purple">Gemini</Tag>;
             if (alliance === 'Premier Alliance') return <Tag color="cyan">Premier Alliance</Tag>;
-            return <Tag color="default">{alliance || '独立船司'}</Tag>;
+            return <Tag color="default">{alliance || '-'}</Tag>;
           },
         },
         {
@@ -231,6 +222,7 @@ export default function ShippingLinesPanel() {
           name: 'alliance',
           label: '所属联盟',
           type: 'select',
+          required: true,
           initialValue: 'Independent',
           options: [
             { label: 'Ocean Alliance (海洋联盟 - 中远/达飞/长荣)', value: 'Ocean Alliance' },
@@ -248,6 +240,7 @@ export default function ShippingLinesPanel() {
           name: 'countryCode',
           label: '总部国家代码',
           placeholder: '例如：DK、CN、FR、CH (2位代码)',
+          required: true,
           initialValue: 'CN',
         },
       ]}

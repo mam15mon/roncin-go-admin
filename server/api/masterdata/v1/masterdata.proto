@@ -178,6 +178,24 @@ message ListMasterDataItemsRequest {
   MasterDataKind kind = 3;
   string keyword = 4;
   optional bool enabled = 5;
+  optional string transport_mode = 6;
+}
+
+// MasterDataAttributes 承载不同主数据类型的专属属性，避免借用上级编码、来源等通用字段。
+message MasterDataAttributes {
+  optional string country_code = 1;
+  repeated string modes = 2;
+  optional bool is_border = 3;
+  optional string icao_code = 4;
+  optional string city_name = 5;
+  optional string awb_prefix = 6;
+  optional bool is_cargo_only = 7;
+  optional string scac_code = 8;
+  optional string tracking_url = 9;
+  optional string alliance = 10;
+  optional string continent = 11;
+  optional string currency_code = 12;
+  optional int32 region_level = 13;
 }
 
 message CreateMasterDataItemRequest {
@@ -190,6 +208,7 @@ message CreateMasterDataItemRequest {
   optional string teu_factor = 7;
   string source = 8;
   int32 sort_order = 9;
+  MasterDataAttributes attributes = 10;
 }
 
 message UpdateMasterDataItemRequest {
@@ -203,6 +222,7 @@ message UpdateMasterDataItemRequest {
   int32 sort_order = 8;
   bool enabled = 9;
   MasterDataKind kind = 10 [(google.api.field_behavior) = REQUIRED];
+  MasterDataAttributes attributes = 11;
 }
 
 message MasterDataImportItemInput {
@@ -214,6 +234,7 @@ message MasterDataImportItemInput {
   optional string teu_factor = 6;
   int32 sort_order = 7;
   optional bool enabled = 8;
+  MasterDataAttributes attributes = 9;
 }
 
 message ImportMasterDataItemsRequest {
@@ -250,6 +271,7 @@ message MasterDataItem {
   bool enabled = 12;
   string created_at = 13;
   string updated_at = 14;
+  MasterDataAttributes attributes = 15;
 }
 
 message MasterDataItemListReply {

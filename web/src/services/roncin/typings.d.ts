@@ -287,6 +287,7 @@ declare namespace API {
     teuFactor?: string;
     source?: string;
     sortOrder?: number;
+    attributes?: MasterDataAttributes;
   };
 
   type CreateMilestoneTemplateRequest = {
@@ -473,6 +474,22 @@ declare namespace API {
     abnormalCaseId: string;
   };
 
+  type MasterDataAttributes = {
+    countryCode?: string;
+    modes?: string[];
+    isBorder?: boolean;
+    icaoCode?: string;
+    cityName?: string;
+    awbPrefix?: string;
+    isCargoOnly?: boolean;
+    scacCode?: string;
+    trackingUrl?: string;
+    alliance?: string;
+    continent?: string;
+    currencyCode?: string;
+    regionLevel?: number;
+  };
+
   type MasterDataImportItemInput = {
     code: string;
     name: string;
@@ -482,6 +499,7 @@ declare namespace API {
     teuFactor?: string;
     sortOrder?: number;
     enabled?: boolean;
+    attributes?: MasterDataAttributes;
   };
 
   type MasterDataImportReply = {
@@ -509,6 +527,7 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    attributes?: MasterDataAttributes;
   };
 
   type MasterDataItemListReply = {
@@ -550,6 +569,7 @@ declare namespace API {
     kind?: number;
     keyword?: string;
     enabled?: boolean;
+    transportMode?: string;
   };
 
   type MasterDataServiceListMilestoneTemplatesParams = {
@@ -1856,6 +1876,7 @@ declare namespace API {
     sortOrder?: number;
     enabled?: boolean;
     kind: number;
+    attributes?: MasterDataAttributes;
   };
 
   type UpdateNumberRuleRequest = {

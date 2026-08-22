@@ -460,6 +460,10 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: transportMode
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2705,6 +2709,8 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
+                attributes:
+                    $ref: '#/components/schemas/masterdata.v1.MasterDataAttributes'
         masterdata.v1.CreateMilestoneTemplateRequest:
             required:
                 - code
@@ -2831,6 +2837,39 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/masterdata.v1.MasterDataImportItemInput'
+        masterdata.v1.MasterDataAttributes:
+            type: object
+            properties:
+                countryCode:
+                    type: string
+                modes:
+                    type: array
+                    items:
+                        type: string
+                isBorder:
+                    type: boolean
+                icaoCode:
+                    type: string
+                cityName:
+                    type: string
+                awbPrefix:
+                    type: string
+                isCargoOnly:
+                    type: boolean
+                scacCode:
+                    type: string
+                trackingUrl:
+                    type: string
+                alliance:
+                    type: string
+                continent:
+                    type: string
+                currencyCode:
+                    type: string
+                regionLevel:
+                    type: integer
+                    format: int32
+            description: MasterDataAttributes 承载不同主数据类型的专属属性，避免借用上级编码、来源等通用字段。
         masterdata.v1.MasterDataImportItemInput:
             required:
                 - code
@@ -2854,6 +2893,8 @@ components:
                     format: int32
                 enabled:
                     type: boolean
+                attributes:
+                    $ref: '#/components/schemas/masterdata.v1.MasterDataAttributes'
         masterdata.v1.MasterDataImportReply:
             type: object
             properties:
@@ -2909,6 +2950,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                attributes:
+                    $ref: '#/components/schemas/masterdata.v1.MasterDataAttributes'
         masterdata.v1.MasterDataItemListReply:
             type: object
             properties:
@@ -3288,6 +3331,8 @@ components:
                 kind:
                     type: integer
                     format: enum
+                attributes:
+                    $ref: '#/components/schemas/masterdata.v1.MasterDataAttributes'
         masterdata.v1.UpdateNumberRuleRequest:
             required:
                 - id

@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItemUpdate is the builder for updating MasterDataItem entities.
@@ -207,6 +208,12 @@ func (_u *MasterDataItemUpdate) SetNillableEnabled(v *bool) *MasterDataItemUpdat
 	return _u
 }
 
+// SetAttributes sets the "attributes" field.
+func (_u *MasterDataItemUpdate) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemUpdate {
+	_u.mutation.SetAttributes(v)
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *MasterDataItemUpdate) SetOrganization(v *Organization) *MasterDataItemUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -358,6 +365,9 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(masterdataitem.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Attributes(); ok {
+		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -585,6 +595,12 @@ func (_u *MasterDataItemUpdateOne) SetNillableEnabled(v *bool) *MasterDataItemUp
 	return _u
 }
 
+// SetAttributes sets the "attributes" field.
+func (_u *MasterDataItemUpdateOne) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemUpdateOne {
+	_u.mutation.SetAttributes(v)
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *MasterDataItemUpdateOne) SetOrganization(v *Organization) *MasterDataItemUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -766,6 +782,9 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(masterdataitem.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Attributes(); ok {
+		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

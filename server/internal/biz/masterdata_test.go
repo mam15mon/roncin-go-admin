@@ -9,6 +9,7 @@ import (
 )
 
 type masterDataRepoStub struct {
+	listOptions  MasterDataListOptions
 	created      *MasterDataItem
 	updated      *MasterDataItem
 	importOrgID  uuid.UUID
@@ -19,6 +20,7 @@ type masterDataRepoStub struct {
 }
 
 func (s *masterDataRepoStub) List(_ context.Context, _ uuid.UUID, options MasterDataListOptions) (*MasterDataList, error) {
+	s.listOptions = options
 	return &MasterDataList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
@@ -94,6 +96,61 @@ func TestMasterDataListRejectsInvalidPage(t *testing.T) {
 	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
 	if _, err := usecase.List(context.Background(), uuid.New(), MasterDataListOptions{Page: 0, PageSize: 20}); err != ErrMasterDataInvalidArgument {
 		t.Fatalf("List() error = %v, want ErrMasterDataInvalidArgument", err)
+	}
+}
+
+func TestMasterDataListNormalizesTransportMode(t *testing.T) {
+	repo := &masterDataRepoStub{}
+	usecase := NewMasterDataUsecase(repo, &auditRepoStub{})
+	mode := " air "
+	if _, err := usecase.List(context.Background(), uuid.New(), MasterDataListOptions{Page: 1, PageSize: 20, Kind: MasterDataKindCarrier, TransportMode: &mode}); err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.TransportMode == nil || *repo.listOptions.TransportMode != "AIR" {
+		t.Fatalf("TransportMode = %v, want AIR", repo.listOptions.TransportMode)
+	}
+}
+
+func TestMasterDataAttributesNormalizeByKind(t *testing.T) {
+	repo := &masterDataRepoStub{}
+	usecase := NewMasterDataUsecase(repo, &auditRepoStub{})
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	countryCode := " cn "
+	awbPrefix := "999"
+	cargoOnly := false
+	transportMode := " air "
+
+	_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
+		Kind: MasterDataKindCarrier, Code: "ca", Name: "中国国际航空", TransportMode: &transportMode,
+		Attributes: MasterDataAttributes{CountryCode: &countryCode, AWBPrefix: &awbPrefix, IsCargoOnly: &cargoOnly},
+	})
+	if err != nil {
+		t.Fatalf("Create() error = %v", err)
+	}
+	if repo.created.TransportMode == nil || *repo.created.TransportMode != "AIR" || repo.created.Attributes.CountryCode == nil || *repo.created.Attributes.CountryCode != "CN" {
+		t.Fatalf("normalized item = %#v", repo.created)
+	}
+}
+
+func TestMasterDataAttributesRejectCrossKindFields(t *testing.T) {
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	continent := "亚洲"
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &MasterDataItem{
+		Kind: MasterDataKindAirport, Code: "PVG", Name: "上海浦东国际机场", Attributes: MasterDataAttributes{Continent: &continent},
+	}); err != ErrMasterDataInvalidArgument {
+		t.Fatalf("Create() error = %v, want ErrMasterDataInvalidArgument", err)
+	}
+}
+
+func TestMasterDataAttributesRejectInvalidTrackingURL(t *testing.T) {
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	transportMode := "SEA"
+	trackingURL := "javascript:alert(1)"
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &MasterDataItem{
+		Kind: MasterDataKindCarrier, Code: "MSKU", Name: "马士基航运", TransportMode: &transportMode, Attributes: MasterDataAttributes{TrackingURL: &trackingURL},
+	}); err != ErrMasterDataInvalidArgument {
+		t.Fatalf("Create() error = %v, want ErrMasterDataInvalidArgument", err)
 	}
 }
 

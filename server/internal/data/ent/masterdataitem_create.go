@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItemCreate is the builder for creating a MasterDataItem entity.
@@ -172,6 +173,12 @@ func (_c *MasterDataItemCreate) SetNillableEnabled(v *bool) *MasterDataItemCreat
 	return _c
 }
 
+// SetAttributes sets the "attributes" field.
+func (_c *MasterDataItemCreate) SetAttributes(v *schema.MasterDataAttributes) *MasterDataItemCreate {
+	_c.mutation.SetAttributes(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MasterDataItemCreate) SetID(v uuid.UUID) *MasterDataItemCreate {
 	_c.mutation.SetID(v)
@@ -245,6 +252,10 @@ func (_c *MasterDataItemCreate) defaults() {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := masterdataitem.DefaultEnabled
 		_c.mutation.SetEnabled(v)
+	}
+	if _, ok := _c.mutation.Attributes(); !ok {
+		v := masterdataitem.DefaultAttributes
+		_c.mutation.SetAttributes(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := masterdataitem.DefaultID()
@@ -320,6 +331,9 @@ func (_c *MasterDataItemCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "MasterDataItem.enabled"`)}
+	}
+	if _, ok := _c.mutation.Attributes(); !ok {
+		return &ValidationError{Name: "attributes", err: errors.New(`ent: missing required field "MasterDataItem.attributes"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "MasterDataItem.organization"`)}
@@ -406,6 +420,10 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(masterdataitem.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.Attributes(); ok {
+		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
+		_node.Attributes = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

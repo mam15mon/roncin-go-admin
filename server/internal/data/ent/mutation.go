@@ -51,6 +51,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
@@ -3963,6 +3964,7 @@ type MasterDataItemMutation struct {
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
+	attributes          **schema.MasterDataAttributes
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -4615,6 +4617,42 @@ func (m *MasterDataItemMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetAttributes sets the "attributes" field.
+func (m *MasterDataItemMutation) SetAttributes(sda *schema.MasterDataAttributes) {
+	m.attributes = &sda
+}
+
+// Attributes returns the value of the "attributes" field in the mutation.
+func (m *MasterDataItemMutation) Attributes() (r *schema.MasterDataAttributes, exists bool) {
+	v := m.attributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttributes returns the old "attributes" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldAttributes(ctx context.Context) (v *schema.MasterDataAttributes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttributes: %w", err)
+	}
+	return oldValue.Attributes, nil
+}
+
+// ResetAttributes resets all changes to the "attributes" field.
+func (m *MasterDataItemMutation) ResetAttributes() {
+	m.attributes = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *MasterDataItemMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -4676,7 +4714,7 @@ func (m *MasterDataItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MasterDataItemMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, masterdataitem.FieldCreatedAt)
 	}
@@ -4716,6 +4754,9 @@ func (m *MasterDataItemMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, masterdataitem.FieldEnabled)
 	}
+	if m.attributes != nil {
+		fields = append(fields, masterdataitem.FieldAttributes)
+	}
 	return fields
 }
 
@@ -4750,6 +4791,8 @@ func (m *MasterDataItemMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case masterdataitem.FieldEnabled:
 		return m.Enabled()
+	case masterdataitem.FieldAttributes:
+		return m.Attributes()
 	}
 	return nil, false
 }
@@ -4785,6 +4828,8 @@ func (m *MasterDataItemMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldSortOrder(ctx)
 	case masterdataitem.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case masterdataitem.FieldAttributes:
+		return m.OldAttributes(ctx)
 	}
 	return nil, fmt.Errorf("unknown MasterDataItem field %s", name)
 }
@@ -4884,6 +4929,13 @@ func (m *MasterDataItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case masterdataitem.FieldAttributes:
+		v, ok := value.(*schema.MasterDataAttributes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttributes(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MasterDataItem field %s", name)
@@ -5014,6 +5066,9 @@ func (m *MasterDataItemMutation) ResetField(name string) error {
 		return nil
 	case masterdataitem.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case masterdataitem.FieldAttributes:
+		m.ResetAttributes()
 		return nil
 	}
 	return fmt.Errorf("unknown MasterDataItem field %s", name)

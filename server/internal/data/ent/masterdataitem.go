@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItem is the model entity for the MasterDataItem schema.
@@ -45,6 +47,8 @@ type MasterDataItem struct {
 	SortOrder int `json:"sort_order,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// Attributes holds the value of the "attributes" field.
+	Attributes *schema.MasterDataAttributes `json:"attributes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MasterDataItemQuery when eager-loading is set.
 	Edges        MasterDataItemEdges `json:"edges"`
@@ -76,6 +80,8 @@ func (*MasterDataItem) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case masterdataitem.FieldAttributes:
+			values[i] = new([]byte)
 		case masterdataitem.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case masterdataitem.FieldSortOrder:
@@ -189,6 +195,14 @@ func (_m *MasterDataItem) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case masterdataitem.FieldAttributes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field attributes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Attributes); err != nil {
+					return fmt.Errorf("unmarshal field attributes: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -276,6 +290,9 @@ func (_m *MasterDataItem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("attributes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Attributes))
 	builder.WriteByte(')')
 	return builder.String()
 }

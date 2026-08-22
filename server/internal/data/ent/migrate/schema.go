@@ -211,6 +211,7 @@ var (
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "attributes", Type: field.TypeJSON},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// MasterDataItemsTable holds the schema information for the "master_data_items" table.
@@ -221,7 +222,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "master_data_items_organizations_master_data_items",
-				Columns:    []*schema.Column{MasterDataItemsColumns[13]},
+				Columns:    []*schema.Column{MasterDataItemsColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -235,17 +236,17 @@ var (
 			{
 				Name:    "masterdataitem_organization_id_kind_code",
 				Unique:  true,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[12], MasterDataItemsColumns[11]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[12], MasterDataItemsColumns[11]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_name",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
 			},
 		},
 	}

@@ -1,123 +1,102 @@
 import { GlobalOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import { App, Tag } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
-import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import {
   masterDataServiceCreateItem,
   masterDataServiceListItems,
+  masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import {
+  mapPersistedMasterDataItem,
+  type PersistedMasterDataItem,
+  requireMasterDataResponse,
+} from './masterDataMapper';
 
-export interface CountryItem extends BaseMasterDataItem {
-  continent?: string; // 亚洲, 欧洲, 北美洲, 南美洲, 大洋洲, 非洲
-  currencyCode?: string; // CNY, USD, EUR, JPY, GBP
+export interface CountryItem extends PersistedMasterDataItem {
+  continent?: string;
+  currencyCode?: string;
 }
 
-const INITIAL_COUNTRIES: CountryItem[] = [
-  { id: 'CN', code: 'CN', name: '中国', nameEn: 'China', continent: '亚洲', currencyCode: 'CNY', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'US', code: 'US', name: '美国', nameEn: 'United States', continent: '北美洲', currencyCode: 'USD', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'DE', code: 'DE', name: '德国', nameEn: 'Germany', continent: '欧洲', currencyCode: 'EUR', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'JP', code: 'JP', name: '日本', nameEn: 'Japan', continent: '亚洲', currencyCode: 'JPY', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'GB', code: 'GB', name: '英国', nameEn: 'United Kingdom', continent: '欧洲', currencyCode: 'GBP', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'SG', code: 'SG', name: '新加坡', nameEn: 'Singapore', continent: '亚洲', currencyCode: 'SGD', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'NL', code: 'NL', name: '荷兰', nameEn: 'Netherlands', continent: '欧洲', currencyCode: 'EUR', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'FR', code: 'FR', name: '法国', nameEn: 'France', continent: '欧洲', currencyCode: 'EUR', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'AU', code: 'AU', name: '澳大利亚', nameEn: 'Australia', continent: '大洋洲', currencyCode: 'AUD', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CA', code: 'CA', name: '加拿大', nameEn: 'Canada', continent: '北美洲', currencyCode: 'CAD', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'KR', code: 'KR', name: '韩国', nameEn: 'South Korea', continent: '亚洲', currencyCode: 'KRW', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'VN', code: 'VN', name: '越南', nameEn: 'Vietnam', continent: '亚洲', currencyCode: 'VND', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'TH', code: 'TH', name: '泰国', nameEn: 'Thailand', continent: '亚洲', currencyCode: 'THB', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'MY', code: 'MY', name: '马来西亚', nameEn: 'Malaysia', continent: '亚洲', currencyCode: 'MYR', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'AE', code: 'AE', name: '阿联酋', nameEn: 'United Arab Emirates', continent: '亚洲', currencyCode: 'AED', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'BR', code: 'BR', name: '巴西', nameEn: 'Brazil', continent: '南美洲', currencyCode: 'BRL', enabled: true, updatedAt: '2026-08-15 12:00:00' },
-];
+const mapCountry = (item: API.MasterDataItem): CountryItem => ({
+  ...mapPersistedMasterDataItem(item),
+  continent: item.attributes?.continent,
+  currencyCode: item.attributes?.currencyCode,
+});
 
 export default function CountriesPanel() {
-  const [data, setData] = useState<CountryItem[]>(INITIAL_COUNTRIES);
+  const { message } = App.useApp();
+  const [data, setData] = useState<CountryItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchServerData = async () => {
+  const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await masterDataServiceListItems({
-        kind: 2, // Country
-        page: 1,
-        pageSize: 100,
-      });
-      if (res.data && res.data.length > 0) {
-        const mapped: CountryItem[] = res.data.map((item) => ({
-          id: item.id || item.code || '',
-          code: item.code || '',
-          name: item.name || '',
-          nameEn: item.nameEn,
-          continent: item.parentCode || '亚洲',
-          currencyCode: item.transportMode || 'USD',
-          enabled: item.enabled ?? true,
-          updatedAt: item.updatedAt,
-        }));
-        setData(mapped);
-      }
-    } catch {
-      // Fallback
+      const response = await masterDataServiceListItems({ kind: 2, page: 1, pageSize: 100 });
+      setData((response.data ?? []).map(mapCountry));
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServerData();
   }, []);
 
+  useEffect(() => {
+    void fetchServerData().catch((error: Error) => message.error(error.message || '国家主数据加载失败'));
+  }, [fetchServerData, message]);
+
+  const saveResponse = (response: API.MasterDataItemReply) => {
+    const saved = mapCountry(requireMasterDataResponse(response));
+    setData((current) => {
+      const exists = current.some((item) => item.id === saved.id);
+      return exists
+        ? current.map((item) => (item.id === saved.id ? saved : item))
+        : [saved, ...current];
+    });
+  };
+
   const handleCreate = async (values: any) => {
-    const newCountry: CountryItem = {
-      id: values.code?.toUpperCase().trim(),
-      code: values.code?.toUpperCase().trim(),
-      name: values.name?.trim(),
-      nameEn: values.nameEn?.trim(),
-      continent: values.continent || '亚洲',
-      currencyCode: values.currencyCode?.toUpperCase().trim() || 'USD',
-      enabled: true,
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const response = await masterDataServiceCreateItem({
+      kind: 2,
+      code: values.code.toUpperCase().trim(),
+      name: values.name.trim(),
+      nameEn: values.nameEn.trim(),
+      source: 'manual',
+      sortOrder: 100,
+      attributes: {
+        continent: values.continent,
+        currencyCode: values.currencyCode.toUpperCase().trim(),
+      },
+    });
+    saveResponse(response);
+  };
 
-    try {
-      await masterDataServiceCreateItem({
+  const updateItem = async (record: CountryItem, values: any, enabled: boolean) => {
+    const response = await masterDataServiceUpdateItem(
+      { id: record.id },
+      {
+        id: record.id,
         kind: 2,
-        code: newCountry.code,
-        name: newCountry.name,
-        nameEn: newCountry.nameEn,
-        parentCode: newCountry.continent,
-        transportMode: newCountry.currencyCode,
-      });
-    } catch {
-      // Fallback
-    }
-
-    setData([newCountry, ...data]);
+        name: values.name.trim(),
+        nameEn: values.nameEn.trim(),
+        source: record.source,
+        sortOrder: record.sortOrder,
+        enabled,
+        attributes: {
+          continent: values.continent,
+          currencyCode: values.currencyCode.toUpperCase().trim(),
+        },
+      },
+    );
+    saveResponse(response);
   };
 
   const handleUpdate = async (id: string, values: any) => {
-    const next = data.map((d) =>
-      d.id === id
-        ? {
-            ...d,
-            name: values.name?.trim(),
-            nameEn: values.nameEn?.trim(),
-            continent: values.continent || d.continent,
-            currencyCode: values.currencyCode?.toUpperCase().trim() || d.currencyCode,
-            updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          }
-        : d,
-    );
-    setData(next);
+    const record = data.find((item) => item.id === id);
+    if (!record) throw new Error('待更新国家不存在');
+    await updateItem(record, values, record.enabled);
   };
 
-  const handleToggleActive = (record: CountryItem) => {
-    const next = data.map((d) =>
-      d.id === record.id ? { ...d, enabled: !d.enabled } : d,
-    );
-    setData(next);
+  const handleToggleActive = async (record: CountryItem) => {
+    await updateItem(record, record, !record.enabled);
   };
 
   return (
@@ -157,7 +136,7 @@ export default function CountriesPanel() {
           dataIndex: 'continent',
           key: 'continent',
           width: 110,
-          render: (continent: string) => <Tag color="blue">{continent || '亚洲'}</Tag>,
+          render: (continent: string) => <Tag color="blue">{continent || '-'}</Tag>,
         },
         {
           title: '官方货币',
@@ -166,7 +145,7 @@ export default function CountriesPanel() {
           width: 100,
           render: (curr: string) => (
             <Tag color="gold" style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-              {curr || 'USD'}
+              {curr || '-'}
             </Tag>
           ),
         },
@@ -199,6 +178,7 @@ export default function CountriesPanel() {
           name: 'continent',
           label: '所属大洲',
           type: 'select',
+          required: true,
           initialValue: '亚洲',
           options: [
             { label: '亚洲', value: '亚洲' },
@@ -213,6 +193,7 @@ export default function CountriesPanel() {
           name: 'currencyCode',
           label: '主要结算货币',
           placeholder: '例如：CNY, USD, EUR (3位货币代码)',
+          required: true,
           initialValue: 'USD',
         },
       ]}

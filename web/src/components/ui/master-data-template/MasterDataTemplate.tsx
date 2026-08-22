@@ -195,6 +195,24 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
     }
   };
 
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    try {
+      await onRefresh();
+    } catch (err: any) {
+      message.error(err?.message || '刷新失败');
+    }
+  };
+
+  const handleToggleActive = async (record: T) => {
+    if (!onToggleActive) return;
+    try {
+      await onToggleActive(record);
+    } catch (err: any) {
+      message.error(err?.message || '操作失败');
+    }
+  };
+
   // Build Columns
   const columns: ColumnsType<T> = [
     {
@@ -291,7 +309,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           {onToggleActive && (
             <Popconfirm
               title={`确定要${record.enabled ? '停用' : '启用'}【${record.name}】吗？`}
-              onConfirm={() => onToggleActive(record)}
+              onConfirm={() => handleToggleActive(record)}
               okText="确定"
               cancelText="取消"
             >
@@ -517,7 +535,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
                   setActiveFilter('all');
                   setFilterValues({});
                   setPage(1);
-                  if (onRefresh) onRefresh();
+                  void handleRefresh();
                 }}
               >
                 重置

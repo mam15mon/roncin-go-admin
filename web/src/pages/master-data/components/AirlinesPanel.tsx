@@ -1,123 +1,114 @@
 import { RocketOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import { App, Tag } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
-import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import {
   masterDataServiceCreateItem,
   masterDataServiceListItems,
+  masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import {
+  mapPersistedMasterDataItem,
+  type PersistedMasterDataItem,
+  requireMasterDataResponse,
+} from './masterDataMapper';
 
-export interface AirlineItem extends BaseMasterDataItem {
-  awbPrefix: string; // 3位结算运单前缀，如 999, 781, 784
+export interface AirlineItem extends PersistedMasterDataItem {
+  awbPrefix: string;
   countryCode: string;
   countryName?: string;
   isCargoOnly?: boolean;
 }
 
-const INITIAL_AIRLINES: AirlineItem[] = [
-  { id: 'CA', code: 'CA', awbPrefix: '999', name: '中国国际航空', nameEn: 'Air China', countryCode: 'CN', countryName: '中国', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'MU', code: 'MU', awbPrefix: '781', name: '中国东方航空', nameEn: 'China Eastern Airlines', countryCode: 'CN', countryName: '中国', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CZ', code: 'CZ', awbPrefix: '784', name: '中国南方航空', nameEn: 'China Southern Airlines', countryCode: 'CN', countryName: '中国', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'HU', code: 'HU', awbPrefix: '880', name: '海南航空', nameEn: 'Hainan Airlines', countryCode: 'CN', countryName: '中国', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CX', code: 'CX', awbPrefix: '160', name: '国泰航空', nameEn: 'Cathay Pacific', countryCode: 'HK', countryName: '中国香港', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'SQ', code: 'SQ', awbPrefix: '618', name: '新加坡航空', nameEn: 'Singapore Airlines', countryCode: 'SG', countryName: '新加坡', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'LH', code: 'LH', awbPrefix: '020', name: '德国汉莎航空', nameEn: 'Lufthansa Cargo', countryCode: 'DE', countryName: '德国', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'EK', code: 'EK', awbPrefix: '176', name: '阿联酋航空', nameEn: 'Emirates SkyCargo', countryCode: 'AE', countryName: '阿联酋', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'QR', code: 'QR', awbPrefix: '157', name: '卡塔尔航空', nameEn: 'Qatar Airways Cargo', countryCode: 'QA', countryName: '卡塔尔', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'NH', code: 'NH', awbPrefix: '205', name: '全日空航空', nameEn: 'All Nippon Airways', countryCode: 'JP', countryName: '日本', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'JL', code: 'JL', awbPrefix: '131', name: '日本航空', nameEn: 'Japan Airlines', countryCode: 'JP', countryName: '日本', isCargoOnly: false, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'FX', code: 'FX', awbPrefix: '023', name: '联邦快递航空', nameEn: 'FedEx Express', countryCode: 'US', countryName: '美国', isCargoOnly: true, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: '5X', code: '5X', awbPrefix: '406', name: '优比速航空', nameEn: 'UPS Airlines', countryCode: 'US', countryName: '美国', isCargoOnly: true, enabled: true, updatedAt: '2026-08-15 12:00:00' },
-];
+const mapAirline = (item: API.MasterDataItem): AirlineItem => ({
+  ...mapPersistedMasterDataItem(item),
+  awbPrefix: item.attributes?.awbPrefix ?? '',
+  countryCode: item.attributes?.countryCode ?? '',
+  isCargoOnly: item.attributes?.isCargoOnly,
+});
 
 export default function AirlinesPanel() {
-  const [data, setData] = useState<AirlineItem[]>(INITIAL_AIRLINES);
+  const { message } = App.useApp();
+  const [data, setData] = useState<AirlineItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchServerData = async () => {
+  const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await masterDataServiceListItems({
-        kind: 6, // Carrier / Airline
+      const response = await masterDataServiceListItems({
+        kind: 6,
+        transportMode: 'AIR',
         page: 1,
         pageSize: 100,
       });
-      if (res.data && res.data.length > 0) {
-        const mapped: AirlineItem[] = res.data.map((item) => ({
-          id: item.id || item.code || '',
-          code: item.code || '',
-          awbPrefix: item.parentCode || '',
-          name: item.name || '',
-          nameEn: item.nameEn,
-          countryCode: 'CN',
-          enabled: item.enabled ?? true,
-          updatedAt: item.updatedAt,
-        }));
-        setData(mapped);
-      }
-    } catch {
-      // Keep local preset
+      setData((response.data ?? []).map(mapAirline));
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServerData();
   }, []);
 
+  useEffect(() => {
+    void fetchServerData().catch((error: Error) => message.error(error.message || '航司主数据加载失败'));
+  }, [fetchServerData, message]);
+
+  const saveResponse = (response: API.MasterDataItemReply) => {
+    const saved = mapAirline(requireMasterDataResponse(response));
+    setData((current) => {
+      const exists = current.some((item) => item.id === saved.id);
+      return exists
+        ? current.map((item) => (item.id === saved.id ? saved : item))
+        : [saved, ...current];
+    });
+  };
+
   const handleCreate = async (values: any) => {
-    const newAirline: AirlineItem = {
-      id: values.code?.toUpperCase().trim(),
-      code: values.code?.toUpperCase().trim(),
-      awbPrefix: values.awbPrefix?.trim(),
-      name: values.name?.trim(),
-      nameEn: values.nameEn?.trim(),
-      countryCode: values.countryCode?.toUpperCase().trim() || 'CN',
-      isCargoOnly: values.isCargoOnly || false,
-      enabled: true,
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const response = await masterDataServiceCreateItem({
+      kind: 6,
+      code: values.code.toUpperCase().trim(),
+      name: values.name.trim(),
+      nameEn: values.nameEn.trim(),
+      transportMode: 'AIR',
+      source: 'manual',
+      sortOrder: 100,
+      attributes: {
+        awbPrefix: values.awbPrefix.trim(),
+        countryCode: values.countryCode.toUpperCase().trim(),
+        isCargoOnly: values.isCargoOnly === true,
+      },
+    });
+    saveResponse(response);
+  };
 
-    try {
-      await masterDataServiceCreateItem({
+  const updateItem = async (record: AirlineItem, values: any, enabled: boolean) => {
+    const response = await masterDataServiceUpdateItem(
+      { id: record.id },
+      {
+        id: record.id,
         kind: 6,
-        code: newAirline.code,
-        name: newAirline.name,
-        nameEn: newAirline.nameEn,
-        parentCode: newAirline.awbPrefix,
-      });
-    } catch {
-      // Fallback
-    }
-
-    setData([newAirline, ...data]);
+        name: values.name.trim(),
+        nameEn: values.nameEn.trim(),
+        transportMode: 'AIR',
+        source: record.source,
+        sortOrder: record.sortOrder,
+        enabled,
+        attributes: {
+          awbPrefix: values.awbPrefix.trim(),
+          countryCode: values.countryCode.toUpperCase().trim(),
+          isCargoOnly: values.isCargoOnly === true,
+        },
+      },
+    );
+    saveResponse(response);
   };
 
   const handleUpdate = async (id: string, values: any) => {
-    const next = data.map((d) =>
-      d.id === id
-        ? {
-            ...d,
-            name: values.name?.trim(),
-            nameEn: values.nameEn?.trim(),
-            awbPrefix: values.awbPrefix?.trim() || d.awbPrefix,
-            countryCode: values.countryCode?.toUpperCase().trim() || d.countryCode,
-            isCargoOnly: values.isCargoOnly !== undefined ? values.isCargoOnly : d.isCargoOnly,
-            updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          }
-        : d,
-    );
-    setData(next);
+    const record = data.find((item) => item.id === id);
+    if (!record) throw new Error('待更新航司不存在');
+    await updateItem(record, values, record.enabled);
   };
 
-  const handleToggleActive = (record: AirlineItem) => {
-    const next = data.map((d) =>
-      d.id === record.id ? { ...d, enabled: !d.enabled } : d,
-    );
-    setData(next);
+  const handleToggleActive = async (record: AirlineItem) => {
+    await updateItem(record, record, !record.enabled);
   };
 
   return (
@@ -238,6 +229,16 @@ export default function AirlinesPanel() {
           placeholder: '例如：CN、DE (2位代码)',
           required: true,
           initialValue: 'CN',
+        },
+        {
+          name: 'isCargoOnly',
+          label: '承运类型',
+          type: 'radio',
+          initialValue: false,
+          options: [
+            { label: '客货混装', value: false },
+            { label: '全货机', value: true },
+          ],
         },
       ]}
       onCreate={handleCreate}

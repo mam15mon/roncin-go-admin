@@ -44,7 +44,7 @@ export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMast
   items: T[];
   loading?: boolean;
   total?: number;
-  onRefresh?: () => void;
+  onRefresh?: () => Promise<void> | void;
 
   // Search & Filter
   searchPlaceholder?: string;

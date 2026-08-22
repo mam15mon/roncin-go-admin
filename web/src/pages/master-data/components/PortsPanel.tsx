@@ -1,35 +1,24 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { Space, Tag } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import { App, Space, Tag } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
-import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import {
   masterDataServiceCreateItem,
   masterDataServiceListItems,
+  masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import {
+  mapPersistedMasterDataItem,
+  type PersistedMasterDataItem,
+  requireMasterDataResponse,
+} from './masterDataMapper';
 
-export interface PortItem extends BaseMasterDataItem {
+export interface PortItem extends PersistedMasterDataItem {
   countryCode: string;
   countryName?: string;
-  modes: string[]; // PORT, RAIL, ROAD, AIRPORT
+  modes: string[];
   isBorder?: boolean;
 }
-
-const INITIAL_PORTS: PortItem[] = [
-  { id: 'CNSHG', code: 'CNSHG', name: '上海港', nameEn: 'SHANGHAI', countryCode: 'CN', countryName: '中国', modes: ['PORT', 'RAIL', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CNNGB', code: 'CNNGB', name: '宁波舟山港', nameEn: 'NINGBO', countryCode: 'CN', countryName: '中国', modes: ['PORT', 'RAIL', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CNYTN', code: 'CNYTN', name: '深圳盐田港', nameEn: 'YANTIAN', countryCode: 'CN', countryName: '中国', modes: ['PORT', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CNTAO', code: 'CNTAO', name: '青岛港', nameEn: 'QINGDAO', countryCode: 'CN', countryName: '中国', modes: ['PORT', 'RAIL'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'CNXMN', code: 'CNXMN', name: '厦门港', nameEn: 'XIAMEN', countryCode: 'CN', countryName: '中国', modes: ['PORT'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'SGSIN', code: 'SGSIN', name: '新加坡港', nameEn: 'SINGAPORE', countryCode: 'SG', countryName: '新加坡', modes: ['PORT', 'AIRPORT'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'NLRTM', code: 'NLRTM', name: '鹿特丹港', nameEn: 'ROTTERDAM', countryCode: 'NL', countryName: '荷兰', modes: ['PORT', 'RAIL', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'USLAX', code: 'USLAX', name: '洛杉矶港', nameEn: 'LOS ANGELES', countryCode: 'US', countryName: '美国', modes: ['PORT', 'RAIL', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'USLGB', code: 'USLGB', name: '长滩港', nameEn: 'LONG BEACH', countryCode: 'US', countryName: '美国', modes: ['PORT', 'RAIL'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'DEHAM', code: 'DEHAM', name: '汉堡港', nameEn: 'HAMBURG', countryCode: 'DE', countryName: '德国', modes: ['PORT', 'RAIL', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'AEDXB', code: 'AEDXB', name: '迪拜杰贝阿里港', nameEn: 'JEBEL ALI', countryCode: 'AE', countryName: '阿联酋', modes: ['PORT', 'ROAD'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-  { id: 'JPYOK', code: 'JPYOK', name: '横滨港', nameEn: 'YOKOHAMA', countryCode: 'JP', countryName: '日本', modes: ['PORT'], enabled: true, updatedAt: '2026-08-15 12:00:00' },
-];
 
 const MODE_LABELS: Record<string, { label: string; color: string }> = {
   PORT: { label: '海港', color: 'blue' },
@@ -38,96 +27,87 @@ const MODE_LABELS: Record<string, { label: string; color: string }> = {
   AIRPORT: { label: '空运联运', color: 'purple' },
 };
 
+const mapPort = (item: API.MasterDataItem): PortItem => ({
+  ...mapPersistedMasterDataItem(item),
+  countryCode: item.attributes?.countryCode ?? '',
+  modes: item.attributes?.modes ?? [],
+  isBorder: item.attributes?.isBorder,
+});
+
 export default function PortsPanel() {
-  const [data, setData] = useState<PortItem[]>(INITIAL_PORTS);
+  const { message } = App.useApp();
+  const [data, setData] = useState<PortItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchServerData = async () => {
+  const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await masterDataServiceListItems({
-        kind: 4, // Port
-        page: 1,
-        pageSize: 100,
-      });
-      if (res.data && res.data.length > 0) {
-        const mapped: PortItem[] = res.data.map((item) => ({
-          id: item.id || item.code || '',
-          code: item.code || '',
-          name: item.name || '',
-          nameEn: item.nameEn,
-          countryCode: item.parentCode || 'CN',
-          modes: item.transportMode ? item.transportMode.split(',') : ['PORT'],
-          enabled: item.enabled ?? true,
-          updatedAt: item.updatedAt,
-        }));
-        setData(mapped);
-      }
-    } catch {
-      // Keep local preset data
+      const response = await masterDataServiceListItems({ kind: 4, page: 1, pageSize: 100 });
+      setData((response.data ?? []).map(mapPort));
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServerData();
   }, []);
 
+  useEffect(() => {
+    void fetchServerData().catch((error: Error) => message.error(error.message || '港口主数据加载失败'));
+  }, [fetchServerData, message]);
+
+  const saveResponse = (response: API.MasterDataItemReply) => {
+    const saved = mapPort(requireMasterDataResponse(response));
+    setData((current) => {
+      const exists = current.some((item) => item.id === saved.id);
+      return exists
+        ? current.map((item) => (item.id === saved.id ? saved : item))
+        : [saved, ...current];
+    });
+  };
+
   const handleCreate = async (values: any) => {
-    const newPort: PortItem = {
-      id: values.code?.toUpperCase().trim(),
-      code: values.code?.toUpperCase().trim(),
-      name: values.name?.trim(),
-      nameEn: values.nameEn?.toUpperCase().trim(),
-      countryCode: values.countryCode?.toUpperCase().trim() || 'CN',
-      modes: values.modes || ['PORT'],
-      enabled: true,
-      updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const response = await masterDataServiceCreateItem({
+      kind: 4,
+      code: values.code.toUpperCase().trim(),
+      name: values.name.trim(),
+      nameEn: values.nameEn.trim().toUpperCase(),
+      source: 'manual',
+      sortOrder: 100,
+      attributes: {
+        countryCode: values.countryCode.toUpperCase().trim(),
+        modes: values.modes ?? [],
+      },
+    });
+    saveResponse(response);
+  };
 
-    try {
-      await masterDataServiceCreateItem({
+  const updateItem = async (record: PortItem, values: any, enabled: boolean) => {
+    const response = await masterDataServiceUpdateItem(
+      { id: record.id },
+      {
+        id: record.id,
         kind: 4,
-        code: newPort.code,
-        name: newPort.name,
-        nameEn: newPort.nameEn,
-        parentCode: newPort.countryCode,
-        transportMode: newPort.modes.join(','),
-      });
-    } catch {
-      // Fallback local state
-    }
-
-    setData([newPort, ...data]);
+        name: values.name.trim(),
+        nameEn: values.nameEn.trim().toUpperCase(),
+        source: record.source,
+        sortOrder: record.sortOrder,
+        enabled,
+        attributes: {
+          countryCode: values.countryCode.toUpperCase().trim(),
+          modes: values.modes ?? [],
+          isBorder: record.isBorder,
+        },
+      },
+    );
+    saveResponse(response);
   };
 
   const handleUpdate = async (id: string, values: any) => {
-    const next = data.map((d) =>
-      d.id === id
-        ? {
-            ...d,
-            name: values.name?.trim(),
-            nameEn: values.nameEn?.toUpperCase().trim(),
-            countryCode: values.countryCode?.toUpperCase().trim() || d.countryCode,
-            modes: values.modes || d.modes,
-            updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          }
-        : d,
-    );
-    setData(next);
+    const record = data.find((item) => item.id === id);
+    if (!record) throw new Error('待更新港口不存在');
+    await updateItem(record, values, record.enabled);
   };
 
-  const handleToggleActive = (record: PortItem) => {
-    const next = data.map((d) =>
-      d.id === record.id ? { ...d, enabled: !d.enabled } : d,
-    );
-    setData(next);
-  };
-
-  const handleSync = async () => {
-    // 模拟同步 UN/LOCODE 港口代码
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  const handleToggleActive = async (record: PortItem) => {
+    await updateItem(record, record, !record.enabled);
   };
 
   return (
@@ -240,7 +220,6 @@ export default function PortsPanel() {
       onCreate={handleCreate}
       onUpdate={handleUpdate}
       onToggleActive={handleToggleActive}
-      onSync={handleSync}
     />
   );
 }

@@ -78,7 +78,7 @@ func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListMaste
 	if err != nil {
 		return nil, biz.ErrMasterDataInvalidArgument
 	}
-	options := biz.MasterDataListOptions{Page: page, PageSize: pageSize, Kind: masterDataKindFromAPI(request.GetKind()), Keyword: request.GetKeyword()}
+	options := biz.MasterDataListOptions{Page: page, PageSize: pageSize, Kind: masterDataKindFromAPI(request.GetKind()), Keyword: request.GetKeyword(), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil)}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
@@ -95,7 +95,7 @@ func (s *MasterDataService) CreateItem(ctx context.Context, request *v1.CreateMa
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Code: request.GetCode(), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: true})
+	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Code: request.GetCode(), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: true})
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (s *MasterDataService) UpdateItem(ctx context.Context, request *v1.UpdateMa
 	if err != nil {
 		return nil, biz.ErrMasterDataInvalidArgument
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, id, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, id, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +147,7 @@ func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportM
 			ParentCode:    optionalString(item.GetParentCode(), item.ParentCode != nil),
 			TransportMode: optionalString(item.GetTransportMode(), item.TransportMode != nil),
 			TEUFactor:     optionalString(item.GetTeuFactor(), item.TeuFactor != nil),
+			Attributes:    masterDataAttributesFromAPI(item.GetAttributes()),
 			SortOrder:     int(item.GetSortOrder()),
 			Enabled:       item.Enabled == nil || item.GetEnabled(),
 		})
@@ -556,7 +557,62 @@ func masterDataItemToAPI(item *biz.MasterDataItem) *v1.MasterDataItem {
 		Enabled:        item.Enabled,
 		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
+		Attributes:     masterDataAttributesToAPI(item.Attributes),
 	}
+}
+
+func masterDataAttributesFromAPI(attributes *v1.MasterDataAttributes) biz.MasterDataAttributes {
+	if attributes == nil {
+		return biz.MasterDataAttributes{}
+	}
+	return biz.MasterDataAttributes{
+		CountryCode:  optionalString(attributes.GetCountryCode(), attributes.CountryCode != nil),
+		Modes:        append([]string(nil), attributes.GetModes()...),
+		IsBorder:     optionalBool(attributes.GetIsBorder(), attributes.IsBorder != nil),
+		ICAOCode:     optionalString(attributes.GetIcaoCode(), attributes.IcaoCode != nil),
+		CityName:     optionalString(attributes.GetCityName(), attributes.CityName != nil),
+		AWBPrefix:    optionalString(attributes.GetAwbPrefix(), attributes.AwbPrefix != nil),
+		IsCargoOnly:  optionalBool(attributes.GetIsCargoOnly(), attributes.IsCargoOnly != nil),
+		SCACCode:     optionalString(attributes.GetScacCode(), attributes.ScacCode != nil),
+		TrackingURL:  optionalString(attributes.GetTrackingUrl(), attributes.TrackingUrl != nil),
+		Alliance:     optionalString(attributes.GetAlliance(), attributes.Alliance != nil),
+		Continent:    optionalString(attributes.GetContinent(), attributes.Continent != nil),
+		CurrencyCode: optionalString(attributes.GetCurrencyCode(), attributes.CurrencyCode != nil),
+		RegionLevel:  optionalInt(attributes.GetRegionLevel(), attributes.RegionLevel != nil),
+	}
+}
+
+func masterDataAttributesToAPI(attributes biz.MasterDataAttributes) *v1.MasterDataAttributes {
+	return &v1.MasterDataAttributes{
+		CountryCode: attributes.CountryCode, Modes: append([]string(nil), attributes.Modes...), IsBorder: attributes.IsBorder,
+		IcaoCode: attributes.ICAOCode, CityName: attributes.CityName, AwbPrefix: attributes.AWBPrefix,
+		IsCargoOnly: attributes.IsCargoOnly, ScacCode: attributes.SCACCode, TrackingUrl: attributes.TrackingURL,
+		Alliance: attributes.Alliance, Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
+		RegionLevel: intPointerToInt32(attributes.RegionLevel),
+	}
+}
+
+func optionalBool(value bool, present bool) *bool {
+	if !present {
+		return nil
+	}
+	return &value
+}
+
+func optionalInt(value int32, present bool) *int {
+	if !present {
+		return nil
+	}
+	converted := int(value)
+	return &converted
+}
+
+func intPointerToInt32(value *int) *int32 {
+	if value == nil {
+		return nil
+	}
+	converted := int32(*value)
+	return &converted
 }
 
 func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {

@@ -485,6 +485,10 @@ func init() {
 	masterdataitemDescEnabled := masterdataitemFields[10].Descriptor()
 	// masterdataitem.DefaultEnabled holds the default value on creation for the enabled field.
 	masterdataitem.DefaultEnabled = masterdataitemDescEnabled.Default.(bool)
+	// masterdataitemDescAttributes is the schema descriptor for attributes field.
+	masterdataitemDescAttributes := masterdataitemFields[11].Descriptor()
+	// masterdataitem.DefaultAttributes holds the default value on creation for the attributes field.
+	masterdataitem.DefaultAttributes = masterdataitemDescAttributes.Default.(*schema.MasterDataAttributes)
 	// masterdataitemDescID is the schema descriptor for id field.
 	masterdataitemDescID := masterdataitemMixinFields0[0].Descriptor()
 	// masterdataitem.DefaultID holds the default value on creation for the id field.

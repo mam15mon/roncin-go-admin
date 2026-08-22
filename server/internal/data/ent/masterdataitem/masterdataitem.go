@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 const (
@@ -42,6 +43,8 @@ const (
 	FieldSortOrder = "sort_order"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldAttributes holds the string denoting the attributes field in the database.
+	FieldAttributes = "attributes"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// Table holds the table name of the masterdataitem in the database.
@@ -71,6 +74,7 @@ var Columns = []string{
 	FieldSource,
 	FieldSortOrder,
 	FieldEnabled,
+	FieldAttributes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -110,6 +114,8 @@ var (
 	DefaultSortOrder int
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// DefaultAttributes holds the default value on creation for the "attributes" field.
+	DefaultAttributes *schema.MasterDataAttributes
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

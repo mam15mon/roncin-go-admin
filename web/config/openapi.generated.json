@@ -755,6 +755,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "transportMode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4368,6 +4375,9 @@
           "sortOrder": {
             "type": "integer",
             "format": "int32"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataAttributes"
           }
         }
       },
@@ -4550,6 +4560,55 @@
           }
         }
       },
+      "masterdata.v1.MasterDataAttributes": {
+        "type": "object",
+        "properties": {
+          "countryCode": {
+            "type": "string"
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isBorder": {
+            "type": "boolean"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "cityName": {
+            "type": "string"
+          },
+          "awbPrefix": {
+            "type": "string"
+          },
+          "isCargoOnly": {
+            "type": "boolean"
+          },
+          "scacCode": {
+            "type": "string"
+          },
+          "trackingUrl": {
+            "type": "string"
+          },
+          "alliance": {
+            "type": "string"
+          },
+          "continent": {
+            "type": "string"
+          },
+          "currencyCode": {
+            "type": "string"
+          },
+          "regionLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "MasterDataAttributes 承载不同主数据类型的专属属性，避免借用上级编码、来源等通用字段。"
+      },
       "masterdata.v1.MasterDataImportItemInput": {
         "required": [
           "code",
@@ -4581,6 +4640,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataAttributes"
           }
         }
       },
@@ -4662,6 +4724,9 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataAttributes"
           }
         }
       },
@@ -5226,6 +5291,9 @@
           "kind": {
             "type": "integer",
             "format": "enum"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataAttributes"
           }
         }
       },
