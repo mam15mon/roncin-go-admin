@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
@@ -41,10 +43,13 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -180,6 +185,272 @@ func init() {
 	administrativeregionDescID := administrativeregionMixinFields0[0].Descriptor()
 	// administrativeregion.DefaultID holds the default value on creation for the id field.
 	administrativeregion.DefaultID = administrativeregionDescID.Default.(func() uuid.UUID)
+	airlineMixin := schema.Airline{}.Mixin()
+	airlineMixinFields0 := airlineMixin[0].Fields()
+	_ = airlineMixinFields0
+	airlineMixinFields1 := airlineMixin[1].Fields()
+	_ = airlineMixinFields1
+	airlineFields := schema.Airline{}.Fields()
+	_ = airlineFields
+	// airlineDescCreatedAt is the schema descriptor for created_at field.
+	airlineDescCreatedAt := airlineMixinFields1[0].Descriptor()
+	// airline.DefaultCreatedAt holds the default value on creation for the created_at field.
+	airline.DefaultCreatedAt = airlineDescCreatedAt.Default.(func() time.Time)
+	// airlineDescUpdatedAt is the schema descriptor for updated_at field.
+	airlineDescUpdatedAt := airlineMixinFields1[1].Descriptor()
+	// airline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	airline.DefaultUpdatedAt = airlineDescUpdatedAt.Default.(func() time.Time)
+	// airline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	airline.UpdateDefaultUpdatedAt = airlineDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// airlineDescIataCode is the schema descriptor for iata_code field.
+	airlineDescIataCode := airlineFields[1].Descriptor()
+	// airline.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
+	airline.IataCodeValidator = func() func(string) error {
+		validators := airlineDescIataCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(iata_code string) error {
+			for _, fn := range fns {
+				if err := fn(iata_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airlineDescIcaoCode is the schema descriptor for icao_code field.
+	airlineDescIcaoCode := airlineFields[2].Descriptor()
+	// airline.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
+	airline.IcaoCodeValidator = airlineDescIcaoCode.Validators[0].(func(string) error)
+	// airlineDescAwbPrefix is the schema descriptor for awb_prefix field.
+	airlineDescAwbPrefix := airlineFields[3].Descriptor()
+	// airline.AwbPrefixValidator is a validator for the "awb_prefix" field. It is called by the builders before save.
+	airline.AwbPrefixValidator = func() func(string) error {
+		validators := airlineDescAwbPrefix.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(awb_prefix string) error {
+			for _, fn := range fns {
+				if err := fn(awb_prefix); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airlineDescNameZh is the schema descriptor for name_zh field.
+	airlineDescNameZh := airlineFields[4].Descriptor()
+	// airline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	airline.NameZhValidator = func() func(string) error {
+		validators := airlineDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airlineDescNameEn is the schema descriptor for name_en field.
+	airlineDescNameEn := airlineFields[5].Descriptor()
+	// airline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	airline.NameEnValidator = func() func(string) error {
+		validators := airlineDescNameEn.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_en string) error {
+			for _, fn := range fns {
+				if err := fn(name_en); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airlineDescCountryCode is the schema descriptor for country_code field.
+	airlineDescCountryCode := airlineFields[6].Descriptor()
+	// airline.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	airline.CountryCodeValidator = func() func(string) error {
+		validators := airlineDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airlineDescCargoOnly is the schema descriptor for cargo_only field.
+	airlineDescCargoOnly := airlineFields[7].Descriptor()
+	// airline.DefaultCargoOnly holds the default value on creation for the cargo_only field.
+	airline.DefaultCargoOnly = airlineDescCargoOnly.Default.(bool)
+	// airlineDescSource is the schema descriptor for source field.
+	airlineDescSource := airlineFields[8].Descriptor()
+	// airline.DefaultSource holds the default value on creation for the source field.
+	airline.DefaultSource = airlineDescSource.Default.(string)
+	// airline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	airline.SourceValidator = airlineDescSource.Validators[0].(func(string) error)
+	// airlineDescSortOrder is the schema descriptor for sort_order field.
+	airlineDescSortOrder := airlineFields[9].Descriptor()
+	// airline.DefaultSortOrder holds the default value on creation for the sort_order field.
+	airline.DefaultSortOrder = airlineDescSortOrder.Default.(int)
+	// airlineDescEnabled is the schema descriptor for enabled field.
+	airlineDescEnabled := airlineFields[10].Descriptor()
+	// airline.DefaultEnabled holds the default value on creation for the enabled field.
+	airline.DefaultEnabled = airlineDescEnabled.Default.(bool)
+	// airlineDescID is the schema descriptor for id field.
+	airlineDescID := airlineMixinFields0[0].Descriptor()
+	// airline.DefaultID holds the default value on creation for the id field.
+	airline.DefaultID = airlineDescID.Default.(func() uuid.UUID)
+	airportMixin := schema.Airport{}.Mixin()
+	airportMixinFields0 := airportMixin[0].Fields()
+	_ = airportMixinFields0
+	airportMixinFields1 := airportMixin[1].Fields()
+	_ = airportMixinFields1
+	airportFields := schema.Airport{}.Fields()
+	_ = airportFields
+	// airportDescCreatedAt is the schema descriptor for created_at field.
+	airportDescCreatedAt := airportMixinFields1[0].Descriptor()
+	// airport.DefaultCreatedAt holds the default value on creation for the created_at field.
+	airport.DefaultCreatedAt = airportDescCreatedAt.Default.(func() time.Time)
+	// airportDescUpdatedAt is the schema descriptor for updated_at field.
+	airportDescUpdatedAt := airportMixinFields1[1].Descriptor()
+	// airport.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	airport.DefaultUpdatedAt = airportDescUpdatedAt.Default.(func() time.Time)
+	// airport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	airport.UpdateDefaultUpdatedAt = airportDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// airportDescIataCode is the schema descriptor for iata_code field.
+	airportDescIataCode := airportFields[1].Descriptor()
+	// airport.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
+	airport.IataCodeValidator = func() func(string) error {
+		validators := airportDescIataCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(iata_code string) error {
+			for _, fn := range fns {
+				if err := fn(iata_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airportDescIcaoCode is the schema descriptor for icao_code field.
+	airportDescIcaoCode := airportFields[2].Descriptor()
+	// airport.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
+	airport.IcaoCodeValidator = airportDescIcaoCode.Validators[0].(func(string) error)
+	// airportDescNameZh is the schema descriptor for name_zh field.
+	airportDescNameZh := airportFields[3].Descriptor()
+	// airport.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	airport.NameZhValidator = func() func(string) error {
+		validators := airportDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airportDescNameEn is the schema descriptor for name_en field.
+	airportDescNameEn := airportFields[4].Descriptor()
+	// airport.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	airport.NameEnValidator = func() func(string) error {
+		validators := airportDescNameEn.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_en string) error {
+			for _, fn := range fns {
+				if err := fn(name_en); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airportDescCityNameZh is the schema descriptor for city_name_zh field.
+	airportDescCityNameZh := airportFields[5].Descriptor()
+	// airport.CityNameZhValidator is a validator for the "city_name_zh" field. It is called by the builders before save.
+	airport.CityNameZhValidator = func() func(string) error {
+		validators := airportDescCityNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(city_name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(city_name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airportDescCityNameEn is the schema descriptor for city_name_en field.
+	airportDescCityNameEn := airportFields[6].Descriptor()
+	// airport.CityNameEnValidator is a validator for the "city_name_en" field. It is called by the builders before save.
+	airport.CityNameEnValidator = airportDescCityNameEn.Validators[0].(func(string) error)
+	// airportDescCountryCode is the schema descriptor for country_code field.
+	airportDescCountryCode := airportFields[7].Descriptor()
+	// airport.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	airport.CountryCodeValidator = func() func(string) error {
+		validators := airportDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// airportDescSource is the schema descriptor for source field.
+	airportDescSource := airportFields[8].Descriptor()
+	// airport.DefaultSource holds the default value on creation for the source field.
+	airport.DefaultSource = airportDescSource.Default.(string)
+	// airport.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	airport.SourceValidator = airportDescSource.Validators[0].(func(string) error)
+	// airportDescSortOrder is the schema descriptor for sort_order field.
+	airportDescSortOrder := airportFields[9].Descriptor()
+	// airport.DefaultSortOrder holds the default value on creation for the sort_order field.
+	airport.DefaultSortOrder = airportDescSortOrder.Default.(int)
+	// airportDescEnabled is the schema descriptor for enabled field.
+	airportDescEnabled := airportFields[10].Descriptor()
+	// airport.DefaultEnabled holds the default value on creation for the enabled field.
+	airport.DefaultEnabled = airportDescEnabled.Default.(bool)
+	// airportDescID is the schema descriptor for id field.
+	airportDescID := airportMixinFields0[0].Descriptor()
+	// airport.DefaultID holds the default value on creation for the id field.
+	airport.DefaultID = airportDescID.Default.(func() uuid.UUID)
 	auditlogMixin := schema.AuditLog{}.Mixin()
 	auditlogMixinFields0 := auditlogMixin[0].Fields()
 	_ = auditlogMixinFields0
@@ -463,30 +734,26 @@ func init() {
 	masterdataitemDescParentCode := masterdataitemFields[5].Descriptor()
 	// masterdataitem.ParentCodeValidator is a validator for the "parent_code" field. It is called by the builders before save.
 	masterdataitem.ParentCodeValidator = masterdataitemDescParentCode.Validators[0].(func(string) error)
-	// masterdataitemDescTransportMode is the schema descriptor for transport_mode field.
-	masterdataitemDescTransportMode := masterdataitemFields[6].Descriptor()
-	// masterdataitem.TransportModeValidator is a validator for the "transport_mode" field. It is called by the builders before save.
-	masterdataitem.TransportModeValidator = masterdataitemDescTransportMode.Validators[0].(func(string) error)
 	// masterdataitemDescTeuFactor is the schema descriptor for teu_factor field.
-	masterdataitemDescTeuFactor := masterdataitemFields[7].Descriptor()
+	masterdataitemDescTeuFactor := masterdataitemFields[6].Descriptor()
 	// masterdataitem.TeuFactorValidator is a validator for the "teu_factor" field. It is called by the builders before save.
 	masterdataitem.TeuFactorValidator = masterdataitemDescTeuFactor.Validators[0].(func(string) error)
 	// masterdataitemDescSource is the schema descriptor for source field.
-	masterdataitemDescSource := masterdataitemFields[8].Descriptor()
+	masterdataitemDescSource := masterdataitemFields[7].Descriptor()
 	// masterdataitem.DefaultSource holds the default value on creation for the source field.
 	masterdataitem.DefaultSource = masterdataitemDescSource.Default.(string)
 	// masterdataitem.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	masterdataitem.SourceValidator = masterdataitemDescSource.Validators[0].(func(string) error)
 	// masterdataitemDescSortOrder is the schema descriptor for sort_order field.
-	masterdataitemDescSortOrder := masterdataitemFields[9].Descriptor()
+	masterdataitemDescSortOrder := masterdataitemFields[8].Descriptor()
 	// masterdataitem.DefaultSortOrder holds the default value on creation for the sort_order field.
 	masterdataitem.DefaultSortOrder = masterdataitemDescSortOrder.Default.(int)
 	// masterdataitemDescEnabled is the schema descriptor for enabled field.
-	masterdataitemDescEnabled := masterdataitemFields[10].Descriptor()
+	masterdataitemDescEnabled := masterdataitemFields[9].Descriptor()
 	// masterdataitem.DefaultEnabled holds the default value on creation for the enabled field.
 	masterdataitem.DefaultEnabled = masterdataitemDescEnabled.Default.(bool)
 	// masterdataitemDescAttributes is the schema descriptor for attributes field.
-	masterdataitemDescAttributes := masterdataitemFields[11].Descriptor()
+	masterdataitemDescAttributes := masterdataitemFields[10].Descriptor()
 	// masterdataitem.DefaultAttributes holds the default value on creation for the attributes field.
 	masterdataitem.DefaultAttributes = masterdataitemDescAttributes.Default.(*schema.MasterDataAttributes)
 	// masterdataitemDescID is the schema descriptor for id field.
@@ -2303,6 +2570,113 @@ func init() {
 	permissionDescID := permissionMixinFields0[0].Descriptor()
 	// permission.DefaultID holds the default value on creation for the id field.
 	permission.DefaultID = permissionDescID.Default.(func() uuid.UUID)
+	portMixin := schema.Port{}.Mixin()
+	portMixinFields0 := portMixin[0].Fields()
+	_ = portMixinFields0
+	portMixinFields1 := portMixin[1].Fields()
+	_ = portMixinFields1
+	portFields := schema.Port{}.Fields()
+	_ = portFields
+	// portDescCreatedAt is the schema descriptor for created_at field.
+	portDescCreatedAt := portMixinFields1[0].Descriptor()
+	// port.DefaultCreatedAt holds the default value on creation for the created_at field.
+	port.DefaultCreatedAt = portDescCreatedAt.Default.(func() time.Time)
+	// portDescUpdatedAt is the schema descriptor for updated_at field.
+	portDescUpdatedAt := portMixinFields1[1].Descriptor()
+	// port.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	port.DefaultUpdatedAt = portDescUpdatedAt.Default.(func() time.Time)
+	// port.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	port.UpdateDefaultUpdatedAt = portDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// portDescUnLocode is the schema descriptor for un_locode field.
+	portDescUnLocode := portFields[1].Descriptor()
+	// port.UnLocodeValidator is a validator for the "un_locode" field. It is called by the builders before save.
+	port.UnLocodeValidator = func() func(string) error {
+		validators := portDescUnLocode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(un_locode string) error {
+			for _, fn := range fns {
+				if err := fn(un_locode); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// portDescNameZh is the schema descriptor for name_zh field.
+	portDescNameZh := portFields[2].Descriptor()
+	// port.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	port.NameZhValidator = func() func(string) error {
+		validators := portDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// portDescNameEn is the schema descriptor for name_en field.
+	portDescNameEn := portFields[3].Descriptor()
+	// port.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	port.NameEnValidator = func() func(string) error {
+		validators := portDescNameEn.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_en string) error {
+			for _, fn := range fns {
+				if err := fn(name_en); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// portDescCountryCode is the schema descriptor for country_code field.
+	portDescCountryCode := portFields[4].Descriptor()
+	// port.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	port.CountryCodeValidator = func() func(string) error {
+		validators := portDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// portDescSource is the schema descriptor for source field.
+	portDescSource := portFields[6].Descriptor()
+	// port.DefaultSource holds the default value on creation for the source field.
+	port.DefaultSource = portDescSource.Default.(string)
+	// port.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	port.SourceValidator = portDescSource.Validators[0].(func(string) error)
+	// portDescSortOrder is the schema descriptor for sort_order field.
+	portDescSortOrder := portFields[7].Descriptor()
+	// port.DefaultSortOrder holds the default value on creation for the sort_order field.
+	port.DefaultSortOrder = portDescSortOrder.Default.(int)
+	// portDescEnabled is the schema descriptor for enabled field.
+	portDescEnabled := portFields[8].Descriptor()
+	// port.DefaultEnabled holds the default value on creation for the enabled field.
+	port.DefaultEnabled = portDescEnabled.Default.(bool)
+	// portDescID is the schema descriptor for id field.
+	portDescID := portMixinFields0[0].Descriptor()
+	// port.DefaultID holds the default value on creation for the id field.
+	port.DefaultID = portDescID.Default.(func() uuid.UUID)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0
@@ -2436,6 +2810,160 @@ func init() {
 	sessionDescID := sessionMixinFields0[0].Descriptor()
 	// session.DefaultID holds the default value on creation for the id field.
 	session.DefaultID = sessionDescID.Default.(func() uuid.UUID)
+	shippinglineMixin := schema.ShippingLine{}.Mixin()
+	shippinglineMixinFields0 := shippinglineMixin[0].Fields()
+	_ = shippinglineMixinFields0
+	shippinglineMixinFields1 := shippinglineMixin[1].Fields()
+	_ = shippinglineMixinFields1
+	shippinglineFields := schema.ShippingLine{}.Fields()
+	_ = shippinglineFields
+	// shippinglineDescCreatedAt is the schema descriptor for created_at field.
+	shippinglineDescCreatedAt := shippinglineMixinFields1[0].Descriptor()
+	// shippingline.DefaultCreatedAt holds the default value on creation for the created_at field.
+	shippingline.DefaultCreatedAt = shippinglineDescCreatedAt.Default.(func() time.Time)
+	// shippinglineDescUpdatedAt is the schema descriptor for updated_at field.
+	shippinglineDescUpdatedAt := shippinglineMixinFields1[1].Descriptor()
+	// shippingline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	shippingline.DefaultUpdatedAt = shippinglineDescUpdatedAt.Default.(func() time.Time)
+	// shippingline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	shippingline.UpdateDefaultUpdatedAt = shippinglineDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// shippinglineDescScacCode is the schema descriptor for scac_code field.
+	shippinglineDescScacCode := shippinglineFields[1].Descriptor()
+	// shippingline.ScacCodeValidator is a validator for the "scac_code" field. It is called by the builders before save.
+	shippingline.ScacCodeValidator = func() func(string) error {
+		validators := shippinglineDescScacCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(scac_code string) error {
+			for _, fn := range fns {
+				if err := fn(scac_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippinglineDescNameZh is the schema descriptor for name_zh field.
+	shippinglineDescNameZh := shippinglineFields[2].Descriptor()
+	// shippingline.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	shippingline.NameZhValidator = func() func(string) error {
+		validators := shippinglineDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippinglineDescNameEn is the schema descriptor for name_en field.
+	shippinglineDescNameEn := shippinglineFields[3].Descriptor()
+	// shippingline.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	shippingline.NameEnValidator = func() func(string) error {
+		validators := shippinglineDescNameEn.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_en string) error {
+			for _, fn := range fns {
+				if err := fn(name_en); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippinglineDescCountryCode is the schema descriptor for country_code field.
+	shippinglineDescCountryCode := shippinglineFields[4].Descriptor()
+	// shippingline.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	shippingline.CountryCodeValidator = func() func(string) error {
+		validators := shippinglineDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippinglineDescTrackingURL is the schema descriptor for tracking_url field.
+	shippinglineDescTrackingURL := shippinglineFields[5].Descriptor()
+	// shippingline.TrackingURLValidator is a validator for the "tracking_url" field. It is called by the builders before save.
+	shippingline.TrackingURLValidator = shippinglineDescTrackingURL.Validators[0].(func(string) error)
+	// shippinglineDescAlliance is the schema descriptor for alliance field.
+	shippinglineDescAlliance := shippinglineFields[6].Descriptor()
+	// shippingline.AllianceValidator is a validator for the "alliance" field. It is called by the builders before save.
+	shippingline.AllianceValidator = shippinglineDescAlliance.Validators[0].(func(string) error)
+	// shippinglineDescSource is the schema descriptor for source field.
+	shippinglineDescSource := shippinglineFields[7].Descriptor()
+	// shippingline.DefaultSource holds the default value on creation for the source field.
+	shippingline.DefaultSource = shippinglineDescSource.Default.(string)
+	// shippingline.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	shippingline.SourceValidator = shippinglineDescSource.Validators[0].(func(string) error)
+	// shippinglineDescSortOrder is the schema descriptor for sort_order field.
+	shippinglineDescSortOrder := shippinglineFields[8].Descriptor()
+	// shippingline.DefaultSortOrder holds the default value on creation for the sort_order field.
+	shippingline.DefaultSortOrder = shippinglineDescSortOrder.Default.(int)
+	// shippinglineDescEnabled is the schema descriptor for enabled field.
+	shippinglineDescEnabled := shippinglineFields[9].Descriptor()
+	// shippingline.DefaultEnabled holds the default value on creation for the enabled field.
+	shippingline.DefaultEnabled = shippinglineDescEnabled.Default.(bool)
+	// shippinglineDescID is the schema descriptor for id field.
+	shippinglineDescID := shippinglineMixinFields0[0].Descriptor()
+	// shippingline.DefaultID holds the default value on creation for the id field.
+	shippingline.DefaultID = shippinglineDescID.Default.(func() uuid.UUID)
+	shippinglinecontainerprefixMixin := schema.ShippingLineContainerPrefix{}.Mixin()
+	shippinglinecontainerprefixMixinFields0 := shippinglinecontainerprefixMixin[0].Fields()
+	_ = shippinglinecontainerprefixMixinFields0
+	shippinglinecontainerprefixMixinFields1 := shippinglinecontainerprefixMixin[1].Fields()
+	_ = shippinglinecontainerprefixMixinFields1
+	shippinglinecontainerprefixFields := schema.ShippingLineContainerPrefix{}.Fields()
+	_ = shippinglinecontainerprefixFields
+	// shippinglinecontainerprefixDescCreatedAt is the schema descriptor for created_at field.
+	shippinglinecontainerprefixDescCreatedAt := shippinglinecontainerprefixMixinFields1[0].Descriptor()
+	// shippinglinecontainerprefix.DefaultCreatedAt holds the default value on creation for the created_at field.
+	shippinglinecontainerprefix.DefaultCreatedAt = shippinglinecontainerprefixDescCreatedAt.Default.(func() time.Time)
+	// shippinglinecontainerprefixDescUpdatedAt is the schema descriptor for updated_at field.
+	shippinglinecontainerprefixDescUpdatedAt := shippinglinecontainerprefixMixinFields1[1].Descriptor()
+	// shippinglinecontainerprefix.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	shippinglinecontainerprefix.DefaultUpdatedAt = shippinglinecontainerprefixDescUpdatedAt.Default.(func() time.Time)
+	// shippinglinecontainerprefix.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	shippinglinecontainerprefix.UpdateDefaultUpdatedAt = shippinglinecontainerprefixDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// shippinglinecontainerprefixDescPrefix is the schema descriptor for prefix field.
+	shippinglinecontainerprefixDescPrefix := shippinglinecontainerprefixFields[2].Descriptor()
+	// shippinglinecontainerprefix.PrefixValidator is a validator for the "prefix" field. It is called by the builders before save.
+	shippinglinecontainerprefix.PrefixValidator = func() func(string) error {
+		validators := shippinglinecontainerprefixDescPrefix.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(prefix string) error {
+			for _, fn := range fns {
+				if err := fn(prefix); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippinglinecontainerprefixDescID is the schema descriptor for id field.
+	shippinglinecontainerprefixDescID := shippinglinecontainerprefixMixinFields0[0].Descriptor()
+	// shippinglinecontainerprefix.DefaultID holds the default value on creation for the id field.
+	shippinglinecontainerprefix.DefaultID = shippinglinecontainerprefixDescID.Default.(func() uuid.UUID)
 	statustemplateMixin := schema.StatusTemplate{}.Mixin()
 	statustemplateMixinFields0 := statustemplateMixin[0].Fields()
 	_ = statustemplateMixinFields0

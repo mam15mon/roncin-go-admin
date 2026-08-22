@@ -8,12 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	airportent "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	statustemplateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	statustemplateitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 )
@@ -270,13 +272,40 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		return err
 	}
 	locationIDs := nonNilUUIDs(input.OriginLocationID, input.DestinationLocationID, input.DischargeLocationID, input.TransitLocationID)
-	locationKind := masterdataent.KindRegion
 	if input.BusinessType == biz.OrderBusinessSE || input.BusinessType == biz.OrderBusinessSI {
-		locationKind = masterdataent.KindPort
+		return validatePortIDs(ctx, tx, organizationID, locationIDs)
 	} else if input.BusinessType == biz.OrderBusinessAE || input.BusinessType == biz.OrderBusinessAI {
-		locationKind = masterdataent.KindAirport
+		return validateAirportIDs(ctx, tx, organizationID, locationIDs)
 	}
-	return validateMasterDataIDs(ctx, tx, organizationID, locationIDs, locationKind)
+	return validateMasterDataIDs(ctx, tx, organizationID, locationIDs, masterdataent.KindRegion)
+}
+
+func validatePortIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	count, err := tx.Port.Query().Where(portent.IDIn(ids...), portent.OrganizationIDEQ(organizationID), portent.EnabledEQ(true)).Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count != len(ids) {
+		return biz.ErrOrderInvalidArgument
+	}
+	return nil
+}
+
+func validateAirportIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	count, err := tx.Airport.Query().Where(airportent.IDIn(ids...), airportent.OrganizationIDEQ(organizationID), airportent.EnabledEQ(true)).Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count != len(ids) {
+		return biz.ErrOrderInvalidArgument
+	}
+	return nil
 }
 
 func validatePartnerRole(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, roleType partnerroleent.RoleType) error {

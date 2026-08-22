@@ -222,6 +222,78 @@ declare namespace API {
     traceId?: string;
   };
 
+  type Airline = {
+    id?: string;
+    organizationId?: string;
+    iataCode?: string;
+    icaoCode?: string;
+    awbPrefix?: string;
+    nameZh?: string;
+    nameEn?: string;
+    countryCode?: string;
+    cargoOnly?: boolean;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AirlineListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airline[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type AirlineReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airline;
+    traceId?: string;
+  };
+
+  type Airport = {
+    id?: string;
+    organizationId?: string;
+    iataCode?: string;
+    icaoCode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    cityNameZh?: string;
+    cityNameEn?: string;
+    countryCode?: string;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AirportListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airport[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type AirportReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airport;
+    traceId?: string;
+  };
+
   type AssignPersonnelRequest = {
     orderId: string;
     userId: string;
@@ -277,13 +349,36 @@ declare namespace API {
     id: string;
   };
 
+  type CreateAirlineRequest = {
+    iataCode: string;
+    icaoCode?: string;
+    awbPrefix: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    cargoOnly?: boolean;
+    source?: string;
+    sortOrder?: number;
+  };
+
+  type CreateAirportRequest = {
+    iataCode: string;
+    icaoCode?: string;
+    nameZh: string;
+    nameEn: string;
+    cityNameZh: string;
+    cityNameEn?: string;
+    countryCode: string;
+    source?: string;
+    sortOrder?: number;
+  };
+
   type CreateMasterDataItemRequest = {
     kind: number;
     code: string;
     name: string;
     nameEn?: string;
     parentCode?: string;
-    transportMode?: string;
     teuFactor?: string;
     source?: string;
     sortOrder?: number;
@@ -390,11 +485,33 @@ declare namespace API {
     preset: PartnerShippingPresetInput;
   };
 
+  type CreatePortRequest = {
+    unLocode: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    transportModes?: string[];
+    source?: string;
+    sortOrder?: number;
+  };
+
   type CreateRoleRequest = {
     code: string;
     name: string;
     dataScope: number;
     permissionKeys?: string[];
+  };
+
+  type CreateShippingLineRequest = {
+    scacCode: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    trackingUrl?: string;
+    alliance?: string;
+    containerPrefixes?: string[];
+    source?: string;
+    sortOrder?: number;
   };
 
   type CreateStatusTemplateRequest = {
@@ -475,16 +592,6 @@ declare namespace API {
   };
 
   type MasterDataAttributes = {
-    countryCode?: string;
-    modes?: string[];
-    isBorder?: boolean;
-    icaoCode?: string;
-    cityName?: string;
-    awbPrefix?: string;
-    isCargoOnly?: boolean;
-    scacCode?: string;
-    trackingUrl?: string;
-    alliance?: string;
     continent?: string;
     currencyCode?: string;
     regionLevel?: number;
@@ -495,7 +602,6 @@ declare namespace API {
     name: string;
     nameEn?: string;
     parentCode?: string;
-    transportMode?: string;
     teuFactor?: string;
     sortOrder?: number;
     enabled?: boolean;
@@ -520,7 +626,6 @@ declare namespace API {
     name?: string;
     nameEn?: string;
     parentCode?: string;
-    transportMode?: string;
     teuFactor?: string;
     source?: string;
     sortOrder?: number;
@@ -563,19 +668,46 @@ declare namespace API {
     keyword?: string;
   };
 
+  type MasterDataServiceListAirlinesParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    enabled?: boolean;
+  };
+
+  type MasterDataServiceListAirportsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    enabled?: boolean;
+  };
+
   type MasterDataServiceListItemsParams = {
     page?: number;
     pageSize?: number;
     kind?: number;
     keyword?: string;
     enabled?: boolean;
-    transportMode?: string;
   };
 
   type MasterDataServiceListMilestoneTemplatesParams = {
     businessType?: number;
     tradeTerm?: string;
     published?: boolean;
+  };
+
+  type MasterDataServiceListPortsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    enabled?: boolean;
+  };
+
+  type MasterDataServiceListShippingLinesParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    enabled?: boolean;
   };
 
   type MasterDataServiceListStatusTemplatesParams = {
@@ -599,11 +731,27 @@ declare namespace API {
     id: string;
   };
 
+  type MasterDataServiceUpdateAirlineParams = {
+    id: string;
+  };
+
+  type MasterDataServiceUpdateAirportParams = {
+    id: string;
+  };
+
   type MasterDataServiceUpdateItemParams = {
     id: string;
   };
 
   type MasterDataServiceUpdateNumberRuleParams = {
+    id: string;
+  };
+
+  type MasterDataServiceUpdatePortParams = {
+    id: string;
+  };
+
+  type MasterDataServiceUpdateShippingLineParams = {
     id: string;
   };
 
@@ -1694,6 +1842,40 @@ declare namespace API {
     code?: string;
   };
 
+  type Port = {
+    id?: string;
+    organizationId?: string;
+    unLocode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    countryCode?: string;
+    transportModes?: string[];
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PortListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Port[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type PortReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Port;
+    traceId?: string;
+  };
+
   type PublishMilestoneTemplateRequest = {
     id: string;
     isDefault?: boolean;
@@ -1765,6 +1947,42 @@ declare namespace API {
     id: string;
     blacklisted?: boolean;
     reason: string;
+  };
+
+  type ShippingLine = {
+    id?: string;
+    organizationId?: string;
+    scacCode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    countryCode?: string;
+    trackingUrl?: string;
+    alliance?: string;
+    containerPrefixes?: string[];
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type ShippingLineListReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ShippingLine[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ShippingLineReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ShippingLine;
+    traceId?: string;
   };
 
   type StatusTemplate = {
@@ -1842,6 +2060,32 @@ declare namespace API {
     toStatus: number;
   };
 
+  type UpdateAirlineRequest = {
+    id: string;
+    icaoCode?: string;
+    awbPrefix: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    cargoOnly?: boolean;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+  };
+
+  type UpdateAirportRequest = {
+    id: string;
+    icaoCode?: string;
+    nameZh: string;
+    nameEn: string;
+    cityNameZh: string;
+    cityNameEn?: string;
+    countryCode: string;
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+  };
+
   type UpdateCargoItemRequest = {
     orderId: string;
     id: string;
@@ -1870,7 +2114,6 @@ declare namespace API {
     name: string;
     nameEn?: string;
     parentCode?: string;
-    transportMode?: string;
     teuFactor?: string;
     source?: string;
     sortOrder?: number;
@@ -1976,6 +2219,17 @@ declare namespace API {
     preset: PartnerShippingPresetInput;
   };
 
+  type UpdatePortRequest = {
+    id: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    transportModes?: string[];
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+  };
+
   type UpdateReleasePodRequest = {
     orderId: string;
     id: string;
@@ -2000,6 +2254,19 @@ declare namespace API {
     houseNo: string;
     releaseType?: string;
     note?: string;
+  };
+
+  type UpdateShippingLineRequest = {
+    id: string;
+    nameZh: string;
+    nameEn: string;
+    countryCode: string;
+    trackingUrl?: string;
+    alliance?: string;
+    containerPrefixes?: string[];
+    source?: string;
+    sortOrder?: number;
+    enabled?: boolean;
   };
 
   type UpdateUserRequest = {

@@ -21,6 +21,30 @@ func (f AdministrativeRegionFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdministrativeRegionMutation", m)
 }
 
+// The AirlineFunc type is an adapter to allow the use of ordinary
+// function as Airline mutator.
+type AirlineFunc func(context.Context, *ent.AirlineMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirlineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirlineMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirlineMutation", m)
+}
+
+// The AirportFunc type is an adapter to allow the use of ordinary
+// function as Airport mutator.
+type AirportFunc func(context.Context, *ent.AirportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirportMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirportMutation", m)
+}
+
 // The AuditLogFunc type is an adapter to allow the use of ordinary
 // function as AuditLog mutator.
 type AuditLogFunc func(context.Context, *ent.AuditLogMutation) (ent.Value, error)
@@ -429,6 +453,18 @@ func (f PermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PermissionMutation", m)
 }
 
+// The PortFunc type is an adapter to allow the use of ordinary
+// function as Port mutator.
+type PortFunc func(context.Context, *ent.PortMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PortFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PortMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PortMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)
@@ -463,6 +499,30 @@ func (f SessionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SessionMutation", m)
+}
+
+// The ShippingLineFunc type is an adapter to allow the use of ordinary
+// function as ShippingLine mutator.
+type ShippingLineFunc func(context.Context, *ent.ShippingLineMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShippingLineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ShippingLineMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ShippingLineMutation", m)
+}
+
+// The ShippingLineContainerPrefixFunc type is an adapter to allow the use of ordinary
+// function as ShippingLineContainerPrefix mutator.
+type ShippingLineContainerPrefixFunc func(context.Context, *ent.ShippingLineContainerPrefixMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShippingLineContainerPrefixFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ShippingLineContainerPrefixMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ShippingLineContainerPrefixMutation", m)
 }
 
 // The StatusTemplateFunc type is an adapter to allow the use of ordinary

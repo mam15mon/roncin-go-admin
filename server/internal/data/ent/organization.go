@@ -54,6 +54,14 @@ type OrganizationEdges struct {
 	PartnerAssignments []*PartnerAssignment `json:"partner_assignments,omitempty"`
 	// MasterDataItems holds the value of the master_data_items edge.
 	MasterDataItems []*MasterDataItem `json:"master_data_items,omitempty"`
+	// Ports holds the value of the ports edge.
+	Ports []*Port `json:"ports,omitempty"`
+	// Airports holds the value of the airports edge.
+	Airports []*Airport `json:"airports,omitempty"`
+	// Airlines holds the value of the airlines edge.
+	Airlines []*Airline `json:"airlines,omitempty"`
+	// ShippingLines holds the value of the shipping_lines edge.
+	ShippingLines []*ShippingLine `json:"shipping_lines,omitempty"`
 	// NumberRules holds the value of the number_rules edge.
 	NumberRules []*NumberRule `json:"number_rules,omitempty"`
 	// StatusTemplates holds the value of the status_templates edge.
@@ -66,7 +74,7 @@ type OrganizationEdges struct {
 	BackgroundTasks []*BackgroundTask `json:"background_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [13]bool
+	loadedTypes [17]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -143,10 +151,46 @@ func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
 	return nil, &NotLoadedError{edge: "master_data_items"}
 }
 
+// PortsOrErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) PortsOrErr() ([]*Port, error) {
+	if e.loadedTypes[8] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// AirportsOrErr returns the Airports value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) AirportsOrErr() ([]*Airport, error) {
+	if e.loadedTypes[9] {
+		return e.Airports, nil
+	}
+	return nil, &NotLoadedError{edge: "airports"}
+}
+
+// AirlinesOrErr returns the Airlines value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) AirlinesOrErr() ([]*Airline, error) {
+	if e.loadedTypes[10] {
+		return e.Airlines, nil
+	}
+	return nil, &NotLoadedError{edge: "airlines"}
+}
+
+// ShippingLinesOrErr returns the ShippingLines value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) ShippingLinesOrErr() ([]*ShippingLine, error) {
+	if e.loadedTypes[11] {
+		return e.ShippingLines, nil
+	}
+	return nil, &NotLoadedError{edge: "shipping_lines"}
+}
+
 // NumberRulesOrErr returns the NumberRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[12] {
 		return e.NumberRules, nil
 	}
 	return nil, &NotLoadedError{edge: "number_rules"}
@@ -155,7 +199,7 @@ func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
 // StatusTemplatesOrErr returns the StatusTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[13] {
 		return e.StatusTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "status_templates"}
@@ -164,7 +208,7 @@ func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
 // MilestoneTemplatesOrErr returns the MilestoneTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[14] {
 		return e.MilestoneTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "milestone_templates"}
@@ -173,7 +217,7 @@ func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, erro
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[15] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -182,7 +226,7 @@ func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[16] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -312,6 +356,26 @@ func (_m *Organization) QueryPartnerAssignments() *PartnerAssignmentQuery {
 // QueryMasterDataItems queries the "master_data_items" edge of the Organization entity.
 func (_m *Organization) QueryMasterDataItems() *MasterDataItemQuery {
 	return NewOrganizationClient(_m.config).QueryMasterDataItems(_m)
+}
+
+// QueryPorts queries the "ports" edge of the Organization entity.
+func (_m *Organization) QueryPorts() *PortQuery {
+	return NewOrganizationClient(_m.config).QueryPorts(_m)
+}
+
+// QueryAirports queries the "airports" edge of the Organization entity.
+func (_m *Organization) QueryAirports() *AirportQuery {
+	return NewOrganizationClient(_m.config).QueryAirports(_m)
+}
+
+// QueryAirlines queries the "airlines" edge of the Organization entity.
+func (_m *Organization) QueryAirlines() *AirlineQuery {
+	return NewOrganizationClient(_m.config).QueryAirlines(_m)
+}
+
+// QueryShippingLines queries the "shipping_lines" edge of the Organization entity.
+func (_m *Organization) QueryShippingLines() *ShippingLineQuery {
+	return NewOrganizationClient(_m.config).QueryShippingLines(_m)
 }
 
 // QueryNumberRules queries the "number_rules" edge of the Organization entity.

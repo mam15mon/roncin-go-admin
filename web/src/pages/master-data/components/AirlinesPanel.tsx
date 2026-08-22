@@ -3,29 +3,26 @@ import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import {
-  masterDataServiceCreateItem,
-  masterDataServiceListItems,
-  masterDataServiceUpdateItem,
+  masterDataServiceCreateAirline,
+  masterDataServiceListAirlines,
+  masterDataServiceUpdateAirline,
 } from '@/services/roncin/masterDataService';
-import {
-  mapPersistedMasterDataItem,
-  type PersistedMasterDataItem,
-  requireMasterDataResponse,
-} from './masterDataMapper';
+import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface AirlineItem extends PersistedMasterDataItem {
   awbPrefix: string;
+  icaoCode?: string;
   countryCode: string;
   countryName?: string;
   isCargoOnly?: boolean;
 }
 
-const mapAirline = (item: API.MasterDataItem): AirlineItem => ({
-  ...mapPersistedMasterDataItem(item),
-  awbPrefix: item.attributes?.awbPrefix ?? '',
-  countryCode: item.attributes?.countryCode ?? '',
-  isCargoOnly: item.attributes?.isCargoOnly,
-});
+const mapAirline = (item: API.Airline): AirlineItem => {
+  if (!item.id || !item.iataCode || !item.awbPrefix || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+    throw new Error('航司响应缺少必填字段');
+  }
+  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode, awbPrefix: item.awbPrefix, name: item.nameZh, nameEn: item.nameEn, countryCode: item.countryCode, isCargoOnly: item.cargoOnly, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+};
 
 export default function AirlinesPanel() {
   const { message } = App.useApp();
@@ -35,12 +32,7 @@ export default function AirlinesPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListItems({
-        kind: 6,
-        transportMode: 'AIR',
-        page: 1,
-        pageSize: 100,
-      });
+      const response = await masterDataServiceListAirlines({ page: 1, pageSize: 100 });
       setData((response.data ?? []).map(mapAirline));
     } finally {
       setLoading(false);
@@ -51,8 +43,9 @@ export default function AirlinesPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '航司主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.MasterDataItemReply) => {
-    const saved = mapAirline(requireMasterDataResponse(response));
+  const saveResponse = (response: API.AirlineReply) => {
+    if (!response.data) throw new Error('航司响应缺少数据');
+    const saved = mapAirline(response.data);
     setData((current) => {
       const exists = current.some((item) => item.id === saved.id);
       return exists
@@ -62,40 +55,34 @@ export default function AirlinesPanel() {
   };
 
   const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateItem({
-      kind: 6,
-      code: values.code.toUpperCase().trim(),
-      name: values.name.trim(),
+    const response = await masterDataServiceCreateAirline({
+      iataCode: values.code.toUpperCase().trim(),
+      icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+      nameZh: values.name.trim(),
       nameEn: values.nameEn.trim(),
-      transportMode: 'AIR',
+      awbPrefix: values.awbPrefix.trim(),
+      countryCode: values.countryCode.toUpperCase().trim(),
+      cargoOnly: values.isCargoOnly === true,
       source: 'manual',
       sortOrder: 100,
-      attributes: {
-        awbPrefix: values.awbPrefix.trim(),
-        countryCode: values.countryCode.toUpperCase().trim(),
-        isCargoOnly: values.isCargoOnly === true,
-      },
     });
     saveResponse(response);
   };
 
   const updateItem = async (record: AirlineItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateItem(
+    const response = await masterDataServiceUpdateAirline(
       { id: record.id },
       {
         id: record.id,
-        kind: 6,
-        name: values.name.trim(),
+        icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+        nameZh: values.name.trim(),
         nameEn: values.nameEn.trim(),
-        transportMode: 'AIR',
+        awbPrefix: values.awbPrefix.trim(),
+        countryCode: values.countryCode.toUpperCase().trim(),
+        cargoOnly: values.isCargoOnly === true,
         source: record.source,
         sortOrder: record.sortOrder,
         enabled,
-        attributes: {
-          awbPrefix: values.awbPrefix.trim(),
-          countryCode: values.countryCode.toUpperCase().trim(),
-          isCargoOnly: values.isCargoOnly === true,
-        },
       },
     );
     saveResponse(response);
@@ -144,6 +131,13 @@ export default function AirlinesPanel() {
         },
       ]}
       extraColumns={[
+        {
+          title: 'ICAO 三字码',
+          dataIndex: 'icaoCode',
+          key: 'icaoCode',
+          width: 110,
+          render: (code: string) => <Tag color="purple">{code || '-'}</Tag>,
+        },
         {
           title: '运单前缀 (AWB Prefix)',
           dataIndex: 'awbPrefix',
@@ -210,6 +204,12 @@ export default function AirlinesPanel() {
             { required: true, message: '请输入运单结算前缀' },
             { pattern: /^\d{3}$/, message: '运单前缀必须为3位纯数字' },
           ],
+        },
+        {
+          name: 'icaoCode',
+          label: 'ICAO 三字码',
+          placeholder: '例如：CCA、CES、DLH',
+          rules: [{ pattern: /^[A-Za-z0-9]{3}$/, message: '请输入标准的3位 ICAO 航司代码' }],
         },
         {
           name: 'name',

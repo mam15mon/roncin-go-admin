@@ -17,44 +17,68 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationMasterDataServiceCreateAirline = "/masterdata.v1.MasterDataService/CreateAirline"
+const OperationMasterDataServiceCreateAirport = "/masterdata.v1.MasterDataService/CreateAirport"
 const OperationMasterDataServiceCreateItem = "/masterdata.v1.MasterDataService/CreateItem"
 const OperationMasterDataServiceCreateMilestoneTemplate = "/masterdata.v1.MasterDataService/CreateMilestoneTemplate"
 const OperationMasterDataServiceCreateNumberRule = "/masterdata.v1.MasterDataService/CreateNumberRule"
+const OperationMasterDataServiceCreatePort = "/masterdata.v1.MasterDataService/CreatePort"
+const OperationMasterDataServiceCreateShippingLine = "/masterdata.v1.MasterDataService/CreateShippingLine"
 const OperationMasterDataServiceCreateStatusTemplate = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
 const OperationMasterDataServiceImportItems = "/masterdata.v1.MasterDataService/ImportItems"
 const OperationMasterDataServiceListAdministrativeRegions = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
+const OperationMasterDataServiceListAirlines = "/masterdata.v1.MasterDataService/ListAirlines"
+const OperationMasterDataServiceListAirports = "/masterdata.v1.MasterDataService/ListAirports"
 const OperationMasterDataServiceListCurrencies = "/masterdata.v1.MasterDataService/ListCurrencies"
 const OperationMasterDataServiceListItems = "/masterdata.v1.MasterDataService/ListItems"
 const OperationMasterDataServiceListMilestoneTemplates = "/masterdata.v1.MasterDataService/ListMilestoneTemplates"
 const OperationMasterDataServiceListNumberRules = "/masterdata.v1.MasterDataService/ListNumberRules"
 const OperationMasterDataServiceListOptions = "/masterdata.v1.MasterDataService/ListOptions"
+const OperationMasterDataServiceListPorts = "/masterdata.v1.MasterDataService/ListPorts"
+const OperationMasterDataServiceListShippingLines = "/masterdata.v1.MasterDataService/ListShippingLines"
 const OperationMasterDataServiceListStatusTemplates = "/masterdata.v1.MasterDataService/ListStatusTemplates"
 const OperationMasterDataServicePublishMilestoneTemplate = "/masterdata.v1.MasterDataService/PublishMilestoneTemplate"
 const OperationMasterDataServicePublishStatusTemplate = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
 const OperationMasterDataServiceSetDefaultMilestoneTemplate = "/masterdata.v1.MasterDataService/SetDefaultMilestoneTemplate"
 const OperationMasterDataServiceSetDefaultStatusTemplate = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
+const OperationMasterDataServiceUpdateAirline = "/masterdata.v1.MasterDataService/UpdateAirline"
+const OperationMasterDataServiceUpdateAirport = "/masterdata.v1.MasterDataService/UpdateAirport"
 const OperationMasterDataServiceUpdateItem = "/masterdata.v1.MasterDataService/UpdateItem"
 const OperationMasterDataServiceUpdateNumberRule = "/masterdata.v1.MasterDataService/UpdateNumberRule"
+const OperationMasterDataServiceUpdatePort = "/masterdata.v1.MasterDataService/UpdatePort"
+const OperationMasterDataServiceUpdateShippingLine = "/masterdata.v1.MasterDataService/UpdateShippingLine"
 
 type MasterDataServiceHTTPServer interface {
+	CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error)
+	CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error)
 	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
 	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
+	CreatePort(context.Context, *CreatePortRequest) (*PortReply, error)
+	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error)
 	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
 	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*AdministrativeRegionListReply, error)
+	ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error)
+	ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error)
 	ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error)
 	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
 	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*MilestoneTemplateListReply, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
 	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
+	ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error)
+	ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error)
 	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error)
 	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
 	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error)
 	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
 	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error)
+	UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error)
+	UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error)
 	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
 	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error)
+	UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error)
+	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error)
 }
 
 func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHTTPServer) {
@@ -64,6 +88,18 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("PUT", "/api/v1/master-data/items/{id}", _MasterDataService_UpdateItem0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/import", _MasterDataService_ImportItems0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/options", _MasterDataService_ListOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/ports", _MasterDataService_ListPorts0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/ports", _MasterDataService_CreatePort0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/master-data/ports/{id}", _MasterDataService_UpdatePort0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/airports", _MasterDataService_ListAirports0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/airports", _MasterDataService_CreateAirport0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/master-data/airports/{id}", _MasterDataService_UpdateAirport0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/airlines", _MasterDataService_ListAirlines0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/airlines", _MasterDataService_CreateAirline0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/master-data/airlines/{id}", _MasterDataService_UpdateAirline0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/shipping-lines", _MasterDataService_ListShippingLines0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/master-data/shipping-lines", _MasterDataService_CreateShippingLine0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/master-data/shipping-lines/{id}", _MasterDataService_UpdateShippingLine0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/currencies", _MasterDataService_ListCurrencies0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/administrative-regions", _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
@@ -173,6 +209,246 @@ func _MasterDataService_ListOptions0_HTTP_Handler(srv MasterDataServiceHTTPServe
 			return err
 		}
 		reply := out.(*MasterDataOptionsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListPorts0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListIndustryReferencesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListPorts)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPorts(ctx, req.(*ListIndustryReferencesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PortListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreatePort0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreatePortRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreatePort)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePort(ctx, req.(*CreatePortRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PortReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_UpdatePort0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePortRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceUpdatePort)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePort(ctx, req.(*UpdatePortRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PortReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListAirports0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListIndustryReferencesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListAirports)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAirports(ctx, req.(*ListIndustryReferencesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirportListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreateAirport0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateAirportRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreateAirport)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateAirport(ctx, req.(*CreateAirportRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirportReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_UpdateAirport0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAirportRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceUpdateAirport)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAirport(ctx, req.(*UpdateAirportRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirportReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListAirlines0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListIndustryReferencesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListAirlines)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAirlines(ctx, req.(*ListIndustryReferencesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirlineListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreateAirline0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateAirlineRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreateAirline)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateAirline(ctx, req.(*CreateAirlineRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirlineReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_UpdateAirline0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAirlineRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceUpdateAirline)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAirline(ctx, req.(*UpdateAirlineRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AirlineReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListShippingLines0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListIndustryReferencesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListShippingLines)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListShippingLines(ctx, req.(*ListIndustryReferencesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ShippingLineListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_CreateShippingLine0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateShippingLineRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceCreateShippingLine)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateShippingLine(ctx, req.(*CreateShippingLineRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ShippingLineReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_UpdateShippingLine0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateShippingLineRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceUpdateShippingLine)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateShippingLine(ctx, req.(*UpdateShippingLineRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ShippingLineReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -440,24 +716,36 @@ func _MasterDataService_SetDefaultMilestoneTemplate0_HTTP_Handler(srv MasterData
 }
 
 type MasterDataServiceHTTPClient interface {
+	CreateAirline(ctx context.Context, req *CreateAirlineRequest, opts ...http.CallOption) (rsp *AirlineReply, err error)
+	CreateAirport(ctx context.Context, req *CreateAirportRequest, opts ...http.CallOption) (rsp *AirportReply, err error)
 	CreateItem(ctx context.Context, req *CreateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
 	CreateMilestoneTemplate(ctx context.Context, req *CreateMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
 	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
+	CreatePort(ctx context.Context, req *CreatePortRequest, opts ...http.CallOption) (rsp *PortReply, err error)
+	CreateShippingLine(ctx context.Context, req *CreateShippingLineRequest, opts ...http.CallOption) (rsp *ShippingLineReply, err error)
 	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
 	ImportItems(ctx context.Context, req *ImportMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataImportReply, err error)
 	ListAdministrativeRegions(ctx context.Context, req *ListAdministrativeRegionsRequest, opts ...http.CallOption) (rsp *AdministrativeRegionListReply, err error)
+	ListAirlines(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *AirlineListReply, err error)
+	ListAirports(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *AirportListReply, err error)
 	ListCurrencies(ctx context.Context, req *ListCurrenciesRequest, opts ...http.CallOption) (rsp *CurrencyListReply, err error)
 	ListItems(ctx context.Context, req *ListMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataItemListReply, err error)
 	ListMilestoneTemplates(ctx context.Context, req *ListMilestoneTemplatesRequest, opts ...http.CallOption) (rsp *MilestoneTemplateListReply, err error)
 	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *NumberRuleListReply, err error)
 	ListOptions(ctx context.Context, req *ListMasterDataOptionsRequest, opts ...http.CallOption) (rsp *MasterDataOptionsReply, err error)
+	ListPorts(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *PortListReply, err error)
+	ListShippingLines(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *ShippingLineListReply, err error)
 	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *StatusTemplateListReply, err error)
 	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
 	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
 	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
 	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
+	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *AirlineReply, err error)
+	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *AirportReply, err error)
 	UpdateItem(ctx context.Context, req *UpdateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
 	UpdateNumberRule(ctx context.Context, req *UpdateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
+	UpdatePort(ctx context.Context, req *UpdatePortRequest, opts ...http.CallOption) (rsp *PortReply, err error)
+	UpdateShippingLine(ctx context.Context, req *UpdateShippingLineRequest, opts ...http.CallOption) (rsp *ShippingLineReply, err error)
 }
 
 type MasterDataServiceHTTPClientImpl struct {
@@ -466,6 +754,40 @@ type MasterDataServiceHTTPClientImpl struct {
 
 func NewMasterDataServiceHTTPClient(client *http.Client) MasterDataServiceHTTPClient {
 	return &MasterDataServiceHTTPClientImpl{client}
+}
+
+func (c *MasterDataServiceHTTPClientImpl) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...http.CallOption) (*AirlineReply, error) {
+	var out AirlineReply
+	pattern := "/api/v1/master-data/airlines"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreateAirline),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...http.CallOption) (*AirportReply, error) {
+	var out AirportReply
+	pattern := "/api/v1/master-data/airports"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreateAirport),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *MasterDataServiceHTTPClientImpl) CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...http.CallOption) (*MasterDataItemReply, error) {
@@ -519,6 +841,40 @@ func (c *MasterDataServiceHTTPClientImpl) CreateNumberRule(ctx context.Context, 
 	return &out, nil
 }
 
+func (c *MasterDataServiceHTTPClientImpl) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...http.CallOption) (*PortReply, error) {
+	var out PortReply
+	pattern := "/api/v1/master-data/ports"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreatePort),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...http.CallOption) (*ShippingLineReply, error) {
+	var out ShippingLineReply
+	pattern := "/api/v1/master-data/shipping-lines"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceCreateShippingLine),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
 	var out StatusTemplateReply
 	pattern := "/api/v1/master-data/status-templates"
@@ -560,6 +916,38 @@ func (c *MasterDataServiceHTTPClientImpl) ListAdministrativeRegions(ctx context.
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationMasterDataServiceListAdministrativeRegions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*AirlineListReply, error) {
+	var out AirlineListReply
+	pattern := "/api/v1/master-data/airlines"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListAirlines),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*AirportListReply, error) {
+	var out AirportListReply
+	pattern := "/api/v1/master-data/airports"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListAirports),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -640,6 +1028,38 @@ func (c *MasterDataServiceHTTPClientImpl) ListOptions(ctx context.Context, in *L
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationMasterDataServiceListOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*PortListReply, error) {
+	var out PortListReply
+	pattern := "/api/v1/master-data/ports"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListPorts),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*ShippingLineListReply, error) {
+	var out ShippingLineListReply
+	pattern := "/api/v1/master-data/shipping-lines"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListShippingLines),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -733,6 +1153,40 @@ func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.C
 	return &out, nil
 }
 
+func (c *MasterDataServiceHTTPClientImpl) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...http.CallOption) (*AirlineReply, error) {
+	var out AirlineReply
+	pattern := "/api/v1/master-data/airlines/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceUpdateAirline),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...http.CallOption) (*AirportReply, error) {
+	var out AirportReply
+	pattern := "/api/v1/master-data/airports/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceUpdateAirport),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...http.CallOption) (*MasterDataItemReply, error) {
 	var out MasterDataItemReply
 	pattern := "/api/v1/master-data/items/{id}"
@@ -758,6 +1212,40 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateNumberRule(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServiceUpdateNumberRule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...http.CallOption) (*PortReply, error) {
+	var out PortReply
+	pattern := "/api/v1/master-data/ports/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceUpdatePort),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...http.CallOption) (*ShippingLineReply, error) {
+	var out ShippingLineReply
+	pattern := "/api/v1/master-data/shipping-lines/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationMasterDataServiceUpdateShippingLine),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

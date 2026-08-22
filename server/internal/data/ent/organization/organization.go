@@ -43,6 +43,14 @@ const (
 	EdgePartnerAssignments = "partner_assignments"
 	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
 	EdgeMasterDataItems = "master_data_items"
+	// EdgePorts holds the string denoting the ports edge name in mutations.
+	EdgePorts = "ports"
+	// EdgeAirports holds the string denoting the airports edge name in mutations.
+	EdgeAirports = "airports"
+	// EdgeAirlines holds the string denoting the airlines edge name in mutations.
+	EdgeAirlines = "airlines"
+	// EdgeShippingLines holds the string denoting the shipping_lines edge name in mutations.
+	EdgeShippingLines = "shipping_lines"
 	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
 	EdgeNumberRules = "number_rules"
 	// EdgeStatusTemplates holds the string denoting the status_templates edge name in mutations.
@@ -105,6 +113,34 @@ const (
 	MasterDataItemsInverseTable = "master_data_items"
 	// MasterDataItemsColumn is the table column denoting the master_data_items relation/edge.
 	MasterDataItemsColumn = "organization_id"
+	// PortsTable is the table that holds the ports relation/edge.
+	PortsTable = "ports"
+	// PortsInverseTable is the table name for the Port entity.
+	// It exists in this package in order to avoid circular dependency with the "port" package.
+	PortsInverseTable = "ports"
+	// PortsColumn is the table column denoting the ports relation/edge.
+	PortsColumn = "organization_id"
+	// AirportsTable is the table that holds the airports relation/edge.
+	AirportsTable = "airports"
+	// AirportsInverseTable is the table name for the Airport entity.
+	// It exists in this package in order to avoid circular dependency with the "airport" package.
+	AirportsInverseTable = "airports"
+	// AirportsColumn is the table column denoting the airports relation/edge.
+	AirportsColumn = "organization_id"
+	// AirlinesTable is the table that holds the airlines relation/edge.
+	AirlinesTable = "airlines"
+	// AirlinesInverseTable is the table name for the Airline entity.
+	// It exists in this package in order to avoid circular dependency with the "airline" package.
+	AirlinesInverseTable = "airlines"
+	// AirlinesColumn is the table column denoting the airlines relation/edge.
+	AirlinesColumn = "organization_id"
+	// ShippingLinesTable is the table that holds the shipping_lines relation/edge.
+	ShippingLinesTable = "shipping_lines"
+	// ShippingLinesInverseTable is the table name for the ShippingLine entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingline" package.
+	ShippingLinesInverseTable = "shipping_lines"
+	// ShippingLinesColumn is the table column denoting the shipping_lines relation/edge.
+	ShippingLinesColumn = "organization_id"
 	// NumberRulesTable is the table that holds the number_rules relation/edge.
 	NumberRulesTable = "number_rules"
 	// NumberRulesInverseTable is the table name for the NumberRule entity.
@@ -323,6 +359,62 @@ func ByMasterDataItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByPortsCount orders the results by ports count.
+func ByPortsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPortsStep(), opts...)
+	}
+}
+
+// ByPorts orders the results by ports terms.
+func ByPorts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPortsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAirportsCount orders the results by airports count.
+func ByAirportsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAirportsStep(), opts...)
+	}
+}
+
+// ByAirports orders the results by airports terms.
+func ByAirports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAirportsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAirlinesCount orders the results by airlines count.
+func ByAirlinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAirlinesStep(), opts...)
+	}
+}
+
+// ByAirlines orders the results by airlines terms.
+func ByAirlines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAirlinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByShippingLinesCount orders the results by shipping_lines count.
+func ByShippingLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShippingLinesStep(), opts...)
+	}
+}
+
+// ByShippingLines orders the results by shipping_lines terms.
+func ByShippingLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByNumberRulesCount orders the results by number_rules count.
 func ByNumberRulesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -446,6 +538,34 @@ func newMasterDataItemsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MasterDataItemsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
+	)
+}
+func newPortsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PortsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PortsTable, PortsColumn),
+	)
+}
+func newAirportsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AirportsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AirportsTable, AirportsColumn),
+	)
+}
+func newAirlinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AirlinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AirlinesTable, AirlinesColumn),
+	)
+}
+func newShippingLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShippingLinesTable, ShippingLinesColumn),
 	)
 }
 func newNumberRulesStep() *sqlgraph.Step {

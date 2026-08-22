@@ -17,6 +17,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
@@ -51,9 +53,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -66,6 +71,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
 	AdministrativeRegion *AdministrativeRegionClient
+	// Airline is the client for interacting with the Airline builders.
+	Airline *AirlineClient
+	// Airport is the client for interacting with the Airport builders.
+	Airport *AirportClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
@@ -134,12 +143,18 @@ type Client struct {
 	PartnerShippingPreset *PartnerShippingPresetClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
+	// Port is the client for interacting with the Port builders.
+	Port *PortClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// ShippingLine is the client for interacting with the ShippingLine builders.
+	ShippingLine *ShippingLineClient
+	// ShippingLineContainerPrefix is the client for interacting with the ShippingLineContainerPrefix builders.
+	ShippingLineContainerPrefix *ShippingLineContainerPrefixClient
 	// StatusTemplate is the client for interacting with the StatusTemplate builders.
 	StatusTemplate *StatusTemplateClient
 	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
@@ -158,6 +173,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AdministrativeRegion = NewAdministrativeRegionClient(c.config)
+	c.Airline = NewAirlineClient(c.config)
+	c.Airport = NewAirportClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
@@ -192,9 +209,12 @@ func (c *Client) init() {
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
 	c.PartnerShippingPreset = NewPartnerShippingPresetClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
+	c.Port = NewPortClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.Session = NewSessionClient(c.config)
+	c.ShippingLine = NewShippingLineClient(c.config)
+	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
 	c.StatusTemplate = NewStatusTemplateClient(c.config)
 	c.StatusTemplateItem = NewStatusTemplateItemClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -288,49 +308,54 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                   ctx,
-		config:                cfg,
-		AdministrativeRegion:  NewAdministrativeRegionClient(cfg),
-		AuditLog:              NewAuditLogClient(cfg),
-		BackgroundTask:        NewBackgroundTaskClient(cfg),
-		Currency:              NewCurrencyClient(cfg),
-		MasterDataItem:        NewMasterDataItemClient(cfg),
-		Membership:            NewMembershipClient(cfg),
-		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
-		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
-		NumberRule:            NewNumberRuleClient(cfg),
-		NumberSequence:        NewNumberSequenceClient(cfg),
-		Order:                 NewOrderClient(cfg),
-		OrderAbnormalCase:     NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:       NewOrderAttachmentClient(cfg),
-		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:        NewOrderCargoItemClient(cfg),
-		OrderContainer:        NewOrderContainerClient(cfg),
-		OrderMilestone:        NewOrderMilestoneClient(cfg),
-		OrderPersonnel:        NewOrderPersonnelClient(cfg),
-		OrderReleasePod:       NewOrderReleasePodClient(cfg),
-		OrderServiceType:      NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument: NewOrderShippingDocumentClient(cfg),
-		OrderStatusLog:        NewOrderStatusLogClient(cfg),
-		Organization:          NewOrganizationClient(cfg),
-		Partner:               NewPartnerClient(cfg),
-		PartnerAccount:        NewPartnerAccountClient(cfg),
-		PartnerAlias:          NewPartnerAliasClient(cfg),
-		PartnerAssignment:     NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
-		PartnerContact:        NewPartnerContactClient(cfg),
-		PartnerContract:       NewPartnerContractClient(cfg),
-		PartnerProfile:        NewPartnerProfileClient(cfg),
-		PartnerRole:           NewPartnerRoleClient(cfg),
-		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
-		PartnerShippingPreset: NewPartnerShippingPresetClient(cfg),
-		Permission:            NewPermissionClient(cfg),
-		Role:                  NewRoleClient(cfg),
-		RoleAssignment:        NewRoleAssignmentClient(cfg),
-		Session:               NewSessionClient(cfg),
-		StatusTemplate:        NewStatusTemplateClient(cfg),
-		StatusTemplateItem:    NewStatusTemplateItemClient(cfg),
-		User:                  NewUserClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		AdministrativeRegion:        NewAdministrativeRegionClient(cfg),
+		Airline:                     NewAirlineClient(cfg),
+		Airport:                     NewAirportClient(cfg),
+		AuditLog:                    NewAuditLogClient(cfg),
+		BackgroundTask:              NewBackgroundTaskClient(cfg),
+		Currency:                    NewCurrencyClient(cfg),
+		MasterDataItem:              NewMasterDataItemClient(cfg),
+		Membership:                  NewMembershipClient(cfg),
+		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
+		MilestoneTemplateItem:       NewMilestoneTemplateItemClient(cfg),
+		NumberRule:                  NewNumberRuleClient(cfg),
+		NumberSequence:              NewNumberSequenceClient(cfg),
+		Order:                       NewOrderClient(cfg),
+		OrderAbnormalCase:           NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:             NewOrderAttachmentClient(cfg),
+		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:              NewOrderCargoItemClient(cfg),
+		OrderContainer:              NewOrderContainerClient(cfg),
+		OrderMilestone:              NewOrderMilestoneClient(cfg),
+		OrderPersonnel:              NewOrderPersonnelClient(cfg),
+		OrderReleasePod:             NewOrderReleasePodClient(cfg),
+		OrderServiceType:            NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:       NewOrderShippingDocumentClient(cfg),
+		OrderStatusLog:              NewOrderStatusLogClient(cfg),
+		Organization:                NewOrganizationClient(cfg),
+		Partner:                     NewPartnerClient(cfg),
+		PartnerAccount:              NewPartnerAccountClient(cfg),
+		PartnerAlias:                NewPartnerAliasClient(cfg),
+		PartnerAssignment:           NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:           NewPartnerAttachmentClient(cfg),
+		PartnerContact:              NewPartnerContactClient(cfg),
+		PartnerContract:             NewPartnerContractClient(cfg),
+		PartnerProfile:              NewPartnerProfileClient(cfg),
+		PartnerRole:                 NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:       NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset:       NewPartnerShippingPresetClient(cfg),
+		Permission:                  NewPermissionClient(cfg),
+		Port:                        NewPortClient(cfg),
+		Role:                        NewRoleClient(cfg),
+		RoleAssignment:              NewRoleAssignmentClient(cfg),
+		Session:                     NewSessionClient(cfg),
+		ShippingLine:                NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
+		StatusTemplate:              NewStatusTemplateClient(cfg),
+		StatusTemplateItem:          NewStatusTemplateItemClient(cfg),
+		User:                        NewUserClient(cfg),
 	}, nil
 }
 
@@ -348,49 +373,54 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                   ctx,
-		config:                cfg,
-		AdministrativeRegion:  NewAdministrativeRegionClient(cfg),
-		AuditLog:              NewAuditLogClient(cfg),
-		BackgroundTask:        NewBackgroundTaskClient(cfg),
-		Currency:              NewCurrencyClient(cfg),
-		MasterDataItem:        NewMasterDataItemClient(cfg),
-		Membership:            NewMembershipClient(cfg),
-		MilestoneTemplate:     NewMilestoneTemplateClient(cfg),
-		MilestoneTemplateItem: NewMilestoneTemplateItemClient(cfg),
-		NumberRule:            NewNumberRuleClient(cfg),
-		NumberSequence:        NewNumberSequenceClient(cfg),
-		Order:                 NewOrderClient(cfg),
-		OrderAbnormalCase:     NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:       NewOrderAttachmentClient(cfg),
-		OrderCargoCategory:    NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:        NewOrderCargoItemClient(cfg),
-		OrderContainer:        NewOrderContainerClient(cfg),
-		OrderMilestone:        NewOrderMilestoneClient(cfg),
-		OrderPersonnel:        NewOrderPersonnelClient(cfg),
-		OrderReleasePod:       NewOrderReleasePodClient(cfg),
-		OrderServiceType:      NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument: NewOrderShippingDocumentClient(cfg),
-		OrderStatusLog:        NewOrderStatusLogClient(cfg),
-		Organization:          NewOrganizationClient(cfg),
-		Partner:               NewPartnerClient(cfg),
-		PartnerAccount:        NewPartnerAccountClient(cfg),
-		PartnerAlias:          NewPartnerAliasClient(cfg),
-		PartnerAssignment:     NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:     NewPartnerAttachmentClient(cfg),
-		PartnerContact:        NewPartnerContactClient(cfg),
-		PartnerContract:       NewPartnerContractClient(cfg),
-		PartnerProfile:        NewPartnerProfileClient(cfg),
-		PartnerRole:           NewPartnerRoleClient(cfg),
-		PartnerSettlementRule: NewPartnerSettlementRuleClient(cfg),
-		PartnerShippingPreset: NewPartnerShippingPresetClient(cfg),
-		Permission:            NewPermissionClient(cfg),
-		Role:                  NewRoleClient(cfg),
-		RoleAssignment:        NewRoleAssignmentClient(cfg),
-		Session:               NewSessionClient(cfg),
-		StatusTemplate:        NewStatusTemplateClient(cfg),
-		StatusTemplateItem:    NewStatusTemplateItemClient(cfg),
-		User:                  NewUserClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		AdministrativeRegion:        NewAdministrativeRegionClient(cfg),
+		Airline:                     NewAirlineClient(cfg),
+		Airport:                     NewAirportClient(cfg),
+		AuditLog:                    NewAuditLogClient(cfg),
+		BackgroundTask:              NewBackgroundTaskClient(cfg),
+		Currency:                    NewCurrencyClient(cfg),
+		MasterDataItem:              NewMasterDataItemClient(cfg),
+		Membership:                  NewMembershipClient(cfg),
+		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
+		MilestoneTemplateItem:       NewMilestoneTemplateItemClient(cfg),
+		NumberRule:                  NewNumberRuleClient(cfg),
+		NumberSequence:              NewNumberSequenceClient(cfg),
+		Order:                       NewOrderClient(cfg),
+		OrderAbnormalCase:           NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:             NewOrderAttachmentClient(cfg),
+		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:              NewOrderCargoItemClient(cfg),
+		OrderContainer:              NewOrderContainerClient(cfg),
+		OrderMilestone:              NewOrderMilestoneClient(cfg),
+		OrderPersonnel:              NewOrderPersonnelClient(cfg),
+		OrderReleasePod:             NewOrderReleasePodClient(cfg),
+		OrderServiceType:            NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:       NewOrderShippingDocumentClient(cfg),
+		OrderStatusLog:              NewOrderStatusLogClient(cfg),
+		Organization:                NewOrganizationClient(cfg),
+		Partner:                     NewPartnerClient(cfg),
+		PartnerAccount:              NewPartnerAccountClient(cfg),
+		PartnerAlias:                NewPartnerAliasClient(cfg),
+		PartnerAssignment:           NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:           NewPartnerAttachmentClient(cfg),
+		PartnerContact:              NewPartnerContactClient(cfg),
+		PartnerContract:             NewPartnerContractClient(cfg),
+		PartnerProfile:              NewPartnerProfileClient(cfg),
+		PartnerRole:                 NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:       NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset:       NewPartnerShippingPresetClient(cfg),
+		Permission:                  NewPermissionClient(cfg),
+		Port:                        NewPortClient(cfg),
+		Role:                        NewRoleClient(cfg),
+		RoleAssignment:              NewRoleAssignmentClient(cfg),
+		Session:                     NewSessionClient(cfg),
+		ShippingLine:                NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
+		StatusTemplate:              NewStatusTemplateClient(cfg),
+		StatusTemplateItem:          NewStatusTemplateItemClient(cfg),
+		User:                        NewUserClient(cfg),
 	}, nil
 }
 
@@ -420,16 +450,17 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AdministrativeRegion, c.AuditLog, c.BackgroundTask, c.Currency,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
+		c.Currency, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -439,16 +470,17 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AdministrativeRegion, c.AuditLog, c.BackgroundTask, c.Currency,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Role,
-		c.RoleAssignment, c.Session, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
+		c.Currency, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -459,6 +491,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AdministrativeRegionMutation:
 		return c.AdministrativeRegion.mutate(ctx, m)
+	case *AirlineMutation:
+		return c.Airline.mutate(ctx, m)
+	case *AirportMutation:
+		return c.Airport.mutate(ctx, m)
 	case *AuditLogMutation:
 		return c.AuditLog.mutate(ctx, m)
 	case *BackgroundTaskMutation:
@@ -527,12 +563,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerShippingPreset.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
+	case *PortMutation:
+		return c.Port.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *RoleAssignmentMutation:
 		return c.RoleAssignment.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
+	case *ShippingLineMutation:
+		return c.ShippingLine.mutate(ctx, m)
+	case *ShippingLineContainerPrefixMutation:
+		return c.ShippingLineContainerPrefix.mutate(ctx, m)
 	case *StatusTemplateMutation:
 		return c.StatusTemplate.mutate(ctx, m)
 	case *StatusTemplateItemMutation:
@@ -674,6 +716,304 @@ func (c *AdministrativeRegionClient) mutate(ctx context.Context, m *Administrati
 		return (&AdministrativeRegionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AdministrativeRegion mutation op: %q", m.Op())
+	}
+}
+
+// AirlineClient is a client for the Airline schema.
+type AirlineClient struct {
+	config
+}
+
+// NewAirlineClient returns a client for the Airline from the given config.
+func NewAirlineClient(c config) *AirlineClient {
+	return &AirlineClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airline.Hooks(f(g(h())))`.
+func (c *AirlineClient) Use(hooks ...Hook) {
+	c.hooks.Airline = append(c.hooks.Airline, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airline.Intercept(f(g(h())))`.
+func (c *AirlineClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Airline = append(c.inters.Airline, interceptors...)
+}
+
+// Create returns a builder for creating a Airline entity.
+func (c *AirlineClient) Create() *AirlineCreate {
+	mutation := newAirlineMutation(c.config, OpCreate)
+	return &AirlineCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Airline entities.
+func (c *AirlineClient) CreateBulk(builders ...*AirlineCreate) *AirlineCreateBulk {
+	return &AirlineCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirlineClient) MapCreateBulk(slice any, setFunc func(*AirlineCreate, int)) *AirlineCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirlineCreateBulk{err: fmt.Errorf("calling to AirlineClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirlineCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirlineCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Airline.
+func (c *AirlineClient) Update() *AirlineUpdate {
+	mutation := newAirlineMutation(c.config, OpUpdate)
+	return &AirlineUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirlineClient) UpdateOne(_m *Airline) *AirlineUpdateOne {
+	mutation := newAirlineMutation(c.config, OpUpdateOne, withAirline(_m))
+	return &AirlineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirlineClient) UpdateOneID(id uuid.UUID) *AirlineUpdateOne {
+	mutation := newAirlineMutation(c.config, OpUpdateOne, withAirlineID(id))
+	return &AirlineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Airline.
+func (c *AirlineClient) Delete() *AirlineDelete {
+	mutation := newAirlineMutation(c.config, OpDelete)
+	return &AirlineDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirlineClient) DeleteOne(_m *Airline) *AirlineDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirlineClient) DeleteOneID(id uuid.UUID) *AirlineDeleteOne {
+	builder := c.Delete().Where(airline.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirlineDeleteOne{builder}
+}
+
+// Query returns a query builder for Airline.
+func (c *AirlineClient) Query() *AirlineQuery {
+	return &AirlineQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirline},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Airline entity by its id.
+func (c *AirlineClient) Get(ctx context.Context, id uuid.UUID) (*Airline, error) {
+	return c.Query().Where(airline.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirlineClient) GetX(ctx context.Context, id uuid.UUID) *Airline {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a Airline.
+func (c *AirlineClient) QueryOrganization(_m *Airline) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airline.Table, airline.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, airline.OrganizationTable, airline.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirlineClient) Hooks() []Hook {
+	return c.hooks.Airline
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirlineClient) Interceptors() []Interceptor {
+	return c.inters.Airline
+}
+
+func (c *AirlineClient) mutate(ctx context.Context, m *AirlineMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirlineCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirlineUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirlineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirlineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Airline mutation op: %q", m.Op())
+	}
+}
+
+// AirportClient is a client for the Airport schema.
+type AirportClient struct {
+	config
+}
+
+// NewAirportClient returns a client for the Airport from the given config.
+func NewAirportClient(c config) *AirportClient {
+	return &AirportClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airport.Hooks(f(g(h())))`.
+func (c *AirportClient) Use(hooks ...Hook) {
+	c.hooks.Airport = append(c.hooks.Airport, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airport.Intercept(f(g(h())))`.
+func (c *AirportClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Airport = append(c.inters.Airport, interceptors...)
+}
+
+// Create returns a builder for creating a Airport entity.
+func (c *AirportClient) Create() *AirportCreate {
+	mutation := newAirportMutation(c.config, OpCreate)
+	return &AirportCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Airport entities.
+func (c *AirportClient) CreateBulk(builders ...*AirportCreate) *AirportCreateBulk {
+	return &AirportCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirportClient) MapCreateBulk(slice any, setFunc func(*AirportCreate, int)) *AirportCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirportCreateBulk{err: fmt.Errorf("calling to AirportClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirportCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirportCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Airport.
+func (c *AirportClient) Update() *AirportUpdate {
+	mutation := newAirportMutation(c.config, OpUpdate)
+	return &AirportUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirportClient) UpdateOne(_m *Airport) *AirportUpdateOne {
+	mutation := newAirportMutation(c.config, OpUpdateOne, withAirport(_m))
+	return &AirportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirportClient) UpdateOneID(id uuid.UUID) *AirportUpdateOne {
+	mutation := newAirportMutation(c.config, OpUpdateOne, withAirportID(id))
+	return &AirportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Airport.
+func (c *AirportClient) Delete() *AirportDelete {
+	mutation := newAirportMutation(c.config, OpDelete)
+	return &AirportDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirportClient) DeleteOne(_m *Airport) *AirportDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirportClient) DeleteOneID(id uuid.UUID) *AirportDeleteOne {
+	builder := c.Delete().Where(airport.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirportDeleteOne{builder}
+}
+
+// Query returns a query builder for Airport.
+func (c *AirportClient) Query() *AirportQuery {
+	return &AirportQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirport},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Airport entity by its id.
+func (c *AirportClient) Get(ctx context.Context, id uuid.UUID) (*Airport, error) {
+	return c.Query().Where(airport.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirportClient) GetX(ctx context.Context, id uuid.UUID) *Airport {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a Airport.
+func (c *AirportClient) QueryOrganization(_m *Airport) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, airport.OrganizationTable, airport.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirportClient) Hooks() []Hook {
+	return c.hooks.Airport
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirportClient) Interceptors() []Interceptor {
+	return c.inters.Airport
+}
+
+func (c *AirportClient) mutate(ctx context.Context, m *AirportMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirportCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirportUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirportDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Airport mutation op: %q", m.Op())
 	}
 }
 
@@ -4362,6 +4702,70 @@ func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataI
 	return query
 }
 
+// QueryPorts queries the ports edge of a Organization.
+func (c *OrganizationClient) QueryPorts(_m *Organization) *PortQuery {
+	query := (&PortClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(port.Table, port.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PortsTable, organization.PortsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAirports queries the airports edge of a Organization.
+func (c *OrganizationClient) QueryAirports(_m *Organization) *AirportQuery {
+	query := (&AirportClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirportsTable, organization.AirportsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAirlines queries the airlines edge of a Organization.
+func (c *OrganizationClient) QueryAirlines(_m *Organization) *AirlineQuery {
+	query := (&AirlineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirlinesTable, organization.AirlinesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShippingLines queries the shipping_lines edge of a Organization.
+func (c *OrganizationClient) QueryShippingLines(_m *Organization) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.ShippingLinesTable, organization.ShippingLinesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryNumberRules queries the number_rules edge of a Organization.
 func (c *OrganizationClient) QueryNumberRules(_m *Organization) *NumberRuleQuery {
 	query := (&NumberRuleClient{config: c.config}).Query()
@@ -6463,6 +6867,155 @@ func (c *PermissionClient) mutate(ctx context.Context, m *PermissionMutation) (V
 	}
 }
 
+// PortClient is a client for the Port schema.
+type PortClient struct {
+	config
+}
+
+// NewPortClient returns a client for the Port from the given config.
+func NewPortClient(c config) *PortClient {
+	return &PortClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `port.Hooks(f(g(h())))`.
+func (c *PortClient) Use(hooks ...Hook) {
+	c.hooks.Port = append(c.hooks.Port, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `port.Intercept(f(g(h())))`.
+func (c *PortClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Port = append(c.inters.Port, interceptors...)
+}
+
+// Create returns a builder for creating a Port entity.
+func (c *PortClient) Create() *PortCreate {
+	mutation := newPortMutation(c.config, OpCreate)
+	return &PortCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Port entities.
+func (c *PortClient) CreateBulk(builders ...*PortCreate) *PortCreateBulk {
+	return &PortCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PortClient) MapCreateBulk(slice any, setFunc func(*PortCreate, int)) *PortCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PortCreateBulk{err: fmt.Errorf("calling to PortClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PortCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PortCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Port.
+func (c *PortClient) Update() *PortUpdate {
+	mutation := newPortMutation(c.config, OpUpdate)
+	return &PortUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PortClient) UpdateOne(_m *Port) *PortUpdateOne {
+	mutation := newPortMutation(c.config, OpUpdateOne, withPort(_m))
+	return &PortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PortClient) UpdateOneID(id uuid.UUID) *PortUpdateOne {
+	mutation := newPortMutation(c.config, OpUpdateOne, withPortID(id))
+	return &PortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Port.
+func (c *PortClient) Delete() *PortDelete {
+	mutation := newPortMutation(c.config, OpDelete)
+	return &PortDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PortClient) DeleteOne(_m *Port) *PortDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PortClient) DeleteOneID(id uuid.UUID) *PortDeleteOne {
+	builder := c.Delete().Where(port.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PortDeleteOne{builder}
+}
+
+// Query returns a query builder for Port.
+func (c *PortClient) Query() *PortQuery {
+	return &PortQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePort},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Port entity by its id.
+func (c *PortClient) Get(ctx context.Context, id uuid.UUID) (*Port, error) {
+	return c.Query().Where(port.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PortClient) GetX(ctx context.Context, id uuid.UUID) *Port {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a Port.
+func (c *PortClient) QueryOrganization(_m *Port) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(port.Table, port.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, port.OrganizationTable, port.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PortClient) Hooks() []Hook {
+	return c.hooks.Port
+}
+
+// Interceptors returns the client interceptors.
+func (c *PortClient) Interceptors() []Interceptor {
+	return c.inters.Port
+}
+
+func (c *PortClient) mutate(ctx context.Context, m *PortMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PortCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PortUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PortDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Port mutation op: %q", m.Op())
+	}
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -6971,6 +7524,320 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 		return (&SessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Session mutation op: %q", m.Op())
+	}
+}
+
+// ShippingLineClient is a client for the ShippingLine schema.
+type ShippingLineClient struct {
+	config
+}
+
+// NewShippingLineClient returns a client for the ShippingLine from the given config.
+func NewShippingLineClient(c config) *ShippingLineClient {
+	return &ShippingLineClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shippingline.Hooks(f(g(h())))`.
+func (c *ShippingLineClient) Use(hooks ...Hook) {
+	c.hooks.ShippingLine = append(c.hooks.ShippingLine, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shippingline.Intercept(f(g(h())))`.
+func (c *ShippingLineClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShippingLine = append(c.inters.ShippingLine, interceptors...)
+}
+
+// Create returns a builder for creating a ShippingLine entity.
+func (c *ShippingLineClient) Create() *ShippingLineCreate {
+	mutation := newShippingLineMutation(c.config, OpCreate)
+	return &ShippingLineCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShippingLine entities.
+func (c *ShippingLineClient) CreateBulk(builders ...*ShippingLineCreate) *ShippingLineCreateBulk {
+	return &ShippingLineCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ShippingLineClient) MapCreateBulk(slice any, setFunc func(*ShippingLineCreate, int)) *ShippingLineCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ShippingLineCreateBulk{err: fmt.Errorf("calling to ShippingLineClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ShippingLineCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ShippingLineCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShippingLine.
+func (c *ShippingLineClient) Update() *ShippingLineUpdate {
+	mutation := newShippingLineMutation(c.config, OpUpdate)
+	return &ShippingLineUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShippingLineClient) UpdateOne(_m *ShippingLine) *ShippingLineUpdateOne {
+	mutation := newShippingLineMutation(c.config, OpUpdateOne, withShippingLine(_m))
+	return &ShippingLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShippingLineClient) UpdateOneID(id uuid.UUID) *ShippingLineUpdateOne {
+	mutation := newShippingLineMutation(c.config, OpUpdateOne, withShippingLineID(id))
+	return &ShippingLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShippingLine.
+func (c *ShippingLineClient) Delete() *ShippingLineDelete {
+	mutation := newShippingLineMutation(c.config, OpDelete)
+	return &ShippingLineDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShippingLineClient) DeleteOne(_m *ShippingLine) *ShippingLineDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShippingLineClient) DeleteOneID(id uuid.UUID) *ShippingLineDeleteOne {
+	builder := c.Delete().Where(shippingline.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShippingLineDeleteOne{builder}
+}
+
+// Query returns a query builder for ShippingLine.
+func (c *ShippingLineClient) Query() *ShippingLineQuery {
+	return &ShippingLineQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShippingLine},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShippingLine entity by its id.
+func (c *ShippingLineClient) Get(ctx context.Context, id uuid.UUID) (*ShippingLine, error) {
+	return c.Query().Where(shippingline.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShippingLineClient) GetX(ctx context.Context, id uuid.UUID) *ShippingLine {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a ShippingLine.
+func (c *ShippingLineClient) QueryOrganization(_m *ShippingLine) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shippingline.OrganizationTable, shippingline.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContainerPrefixes queries the container_prefixes edge of a ShippingLine.
+func (c *ShippingLineClient) QueryContainerPrefixes(_m *ShippingLine) *ShippingLineContainerPrefixQuery {
+	query := (&ShippingLineContainerPrefixClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingline.Table, shippingline.FieldID, id),
+			sqlgraph.To(shippinglinecontainerprefix.Table, shippinglinecontainerprefix.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingline.ContainerPrefixesTable, shippingline.ContainerPrefixesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShippingLineClient) Hooks() []Hook {
+	return c.hooks.ShippingLine
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShippingLineClient) Interceptors() []Interceptor {
+	return c.inters.ShippingLine
+}
+
+func (c *ShippingLineClient) mutate(ctx context.Context, m *ShippingLineMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShippingLineCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShippingLineUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShippingLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShippingLineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShippingLine mutation op: %q", m.Op())
+	}
+}
+
+// ShippingLineContainerPrefixClient is a client for the ShippingLineContainerPrefix schema.
+type ShippingLineContainerPrefixClient struct {
+	config
+}
+
+// NewShippingLineContainerPrefixClient returns a client for the ShippingLineContainerPrefix from the given config.
+func NewShippingLineContainerPrefixClient(c config) *ShippingLineContainerPrefixClient {
+	return &ShippingLineContainerPrefixClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shippinglinecontainerprefix.Hooks(f(g(h())))`.
+func (c *ShippingLineContainerPrefixClient) Use(hooks ...Hook) {
+	c.hooks.ShippingLineContainerPrefix = append(c.hooks.ShippingLineContainerPrefix, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shippinglinecontainerprefix.Intercept(f(g(h())))`.
+func (c *ShippingLineContainerPrefixClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShippingLineContainerPrefix = append(c.inters.ShippingLineContainerPrefix, interceptors...)
+}
+
+// Create returns a builder for creating a ShippingLineContainerPrefix entity.
+func (c *ShippingLineContainerPrefixClient) Create() *ShippingLineContainerPrefixCreate {
+	mutation := newShippingLineContainerPrefixMutation(c.config, OpCreate)
+	return &ShippingLineContainerPrefixCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShippingLineContainerPrefix entities.
+func (c *ShippingLineContainerPrefixClient) CreateBulk(builders ...*ShippingLineContainerPrefixCreate) *ShippingLineContainerPrefixCreateBulk {
+	return &ShippingLineContainerPrefixCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ShippingLineContainerPrefixClient) MapCreateBulk(slice any, setFunc func(*ShippingLineContainerPrefixCreate, int)) *ShippingLineContainerPrefixCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ShippingLineContainerPrefixCreateBulk{err: fmt.Errorf("calling to ShippingLineContainerPrefixClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ShippingLineContainerPrefixCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ShippingLineContainerPrefixCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShippingLineContainerPrefix.
+func (c *ShippingLineContainerPrefixClient) Update() *ShippingLineContainerPrefixUpdate {
+	mutation := newShippingLineContainerPrefixMutation(c.config, OpUpdate)
+	return &ShippingLineContainerPrefixUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShippingLineContainerPrefixClient) UpdateOne(_m *ShippingLineContainerPrefix) *ShippingLineContainerPrefixUpdateOne {
+	mutation := newShippingLineContainerPrefixMutation(c.config, OpUpdateOne, withShippingLineContainerPrefix(_m))
+	return &ShippingLineContainerPrefixUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShippingLineContainerPrefixClient) UpdateOneID(id uuid.UUID) *ShippingLineContainerPrefixUpdateOne {
+	mutation := newShippingLineContainerPrefixMutation(c.config, OpUpdateOne, withShippingLineContainerPrefixID(id))
+	return &ShippingLineContainerPrefixUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShippingLineContainerPrefix.
+func (c *ShippingLineContainerPrefixClient) Delete() *ShippingLineContainerPrefixDelete {
+	mutation := newShippingLineContainerPrefixMutation(c.config, OpDelete)
+	return &ShippingLineContainerPrefixDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShippingLineContainerPrefixClient) DeleteOne(_m *ShippingLineContainerPrefix) *ShippingLineContainerPrefixDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShippingLineContainerPrefixClient) DeleteOneID(id uuid.UUID) *ShippingLineContainerPrefixDeleteOne {
+	builder := c.Delete().Where(shippinglinecontainerprefix.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShippingLineContainerPrefixDeleteOne{builder}
+}
+
+// Query returns a query builder for ShippingLineContainerPrefix.
+func (c *ShippingLineContainerPrefixClient) Query() *ShippingLineContainerPrefixQuery {
+	return &ShippingLineContainerPrefixQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShippingLineContainerPrefix},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShippingLineContainerPrefix entity by its id.
+func (c *ShippingLineContainerPrefixClient) Get(ctx context.Context, id uuid.UUID) (*ShippingLineContainerPrefix, error) {
+	return c.Query().Where(shippinglinecontainerprefix.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShippingLineContainerPrefixClient) GetX(ctx context.Context, id uuid.UUID) *ShippingLineContainerPrefix {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryShippingLine queries the shipping_line edge of a ShippingLineContainerPrefix.
+func (c *ShippingLineContainerPrefixClient) QueryShippingLine(_m *ShippingLineContainerPrefix) *ShippingLineQuery {
+	query := (&ShippingLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippinglinecontainerprefix.Table, shippinglinecontainerprefix.FieldID, id),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shippinglinecontainerprefix.ShippingLineTable, shippinglinecontainerprefix.ShippingLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShippingLineContainerPrefixClient) Hooks() []Hook {
+	return c.hooks.ShippingLineContainerPrefix
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShippingLineContainerPrefixClient) Interceptors() []Interceptor {
+	return c.inters.ShippingLineContainerPrefix
+}
+
+func (c *ShippingLineContainerPrefixClient) mutate(ctx context.Context, m *ShippingLineContainerPrefixMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShippingLineContainerPrefixCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShippingLineContainerPrefixUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShippingLineContainerPrefixUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShippingLineContainerPrefixDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShippingLineContainerPrefix mutation op: %q", m.Op())
 	}
 }
 
@@ -7504,26 +8371,29 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AdministrativeRegion, AuditLog, BackgroundTask, Currency, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderContainer, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem, User []ent.Hook
+		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
+		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, Session, ShippingLine,
+		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		User []ent.Hook
 	}
 	inters struct {
-		AdministrativeRegion, AuditLog, BackgroundTask, Currency, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderContainer, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Role,
-		RoleAssignment, Session, StatusTemplate, StatusTemplateItem,
+		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
+		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, Session, ShippingLine,
+		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		User []ent.Interceptor
 	}
 )

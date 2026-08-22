@@ -13,6 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
@@ -47,9 +49,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -113,47 +118,52 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			administrativeregion.Table:  administrativeregion.ValidColumn,
-			auditlog.Table:              auditlog.ValidColumn,
-			backgroundtask.Table:        backgroundtask.ValidColumn,
-			currency.Table:              currency.ValidColumn,
-			masterdataitem.Table:        masterdataitem.ValidColumn,
-			membership.Table:            membership.ValidColumn,
-			milestonetemplate.Table:     milestonetemplate.ValidColumn,
-			milestonetemplateitem.Table: milestonetemplateitem.ValidColumn,
-			numberrule.Table:            numberrule.ValidColumn,
-			numbersequence.Table:        numbersequence.ValidColumn,
-			order.Table:                 order.ValidColumn,
-			orderabnormalcase.Table:     orderabnormalcase.ValidColumn,
-			orderattachment.Table:       orderattachment.ValidColumn,
-			ordercargocategory.Table:    ordercargocategory.ValidColumn,
-			ordercargoitem.Table:        ordercargoitem.ValidColumn,
-			ordercontainer.Table:        ordercontainer.ValidColumn,
-			ordermilestone.Table:        ordermilestone.ValidColumn,
-			orderpersonnel.Table:        orderpersonnel.ValidColumn,
-			orderreleasepod.Table:       orderreleasepod.ValidColumn,
-			orderservicetype.Table:      orderservicetype.ValidColumn,
-			ordershippingdocument.Table: ordershippingdocument.ValidColumn,
-			orderstatuslog.Table:        orderstatuslog.ValidColumn,
-			organization.Table:          organization.ValidColumn,
-			partner.Table:               partner.ValidColumn,
-			partneraccount.Table:        partneraccount.ValidColumn,
-			partneralias.Table:          partneralias.ValidColumn,
-			partnerassignment.Table:     partnerassignment.ValidColumn,
-			partnerattachment.Table:     partnerattachment.ValidColumn,
-			partnercontact.Table:        partnercontact.ValidColumn,
-			partnercontract.Table:       partnercontract.ValidColumn,
-			partnerprofile.Table:        partnerprofile.ValidColumn,
-			partnerrole.Table:           partnerrole.ValidColumn,
-			partnersettlementrule.Table: partnersettlementrule.ValidColumn,
-			partnershippingpreset.Table: partnershippingpreset.ValidColumn,
-			permission.Table:            permission.ValidColumn,
-			role.Table:                  role.ValidColumn,
-			roleassignment.Table:        roleassignment.ValidColumn,
-			session.Table:               session.ValidColumn,
-			statustemplate.Table:        statustemplate.ValidColumn,
-			statustemplateitem.Table:    statustemplateitem.ValidColumn,
-			user.Table:                  user.ValidColumn,
+			administrativeregion.Table:        administrativeregion.ValidColumn,
+			airline.Table:                     airline.ValidColumn,
+			airport.Table:                     airport.ValidColumn,
+			auditlog.Table:                    auditlog.ValidColumn,
+			backgroundtask.Table:              backgroundtask.ValidColumn,
+			currency.Table:                    currency.ValidColumn,
+			masterdataitem.Table:              masterdataitem.ValidColumn,
+			membership.Table:                  membership.ValidColumn,
+			milestonetemplate.Table:           milestonetemplate.ValidColumn,
+			milestonetemplateitem.Table:       milestonetemplateitem.ValidColumn,
+			numberrule.Table:                  numberrule.ValidColumn,
+			numbersequence.Table:              numbersequence.ValidColumn,
+			order.Table:                       order.ValidColumn,
+			orderabnormalcase.Table:           orderabnormalcase.ValidColumn,
+			orderattachment.Table:             orderattachment.ValidColumn,
+			ordercargocategory.Table:          ordercargocategory.ValidColumn,
+			ordercargoitem.Table:              ordercargoitem.ValidColumn,
+			ordercontainer.Table:              ordercontainer.ValidColumn,
+			ordermilestone.Table:              ordermilestone.ValidColumn,
+			orderpersonnel.Table:              orderpersonnel.ValidColumn,
+			orderreleasepod.Table:             orderreleasepod.ValidColumn,
+			orderservicetype.Table:            orderservicetype.ValidColumn,
+			ordershippingdocument.Table:       ordershippingdocument.ValidColumn,
+			orderstatuslog.Table:              orderstatuslog.ValidColumn,
+			organization.Table:                organization.ValidColumn,
+			partner.Table:                     partner.ValidColumn,
+			partneraccount.Table:              partneraccount.ValidColumn,
+			partneralias.Table:                partneralias.ValidColumn,
+			partnerassignment.Table:           partnerassignment.ValidColumn,
+			partnerattachment.Table:           partnerattachment.ValidColumn,
+			partnercontact.Table:              partnercontact.ValidColumn,
+			partnercontract.Table:             partnercontract.ValidColumn,
+			partnerprofile.Table:              partnerprofile.ValidColumn,
+			partnerrole.Table:                 partnerrole.ValidColumn,
+			partnersettlementrule.Table:       partnersettlementrule.ValidColumn,
+			partnershippingpreset.Table:       partnershippingpreset.ValidColumn,
+			permission.Table:                  permission.ValidColumn,
+			port.Table:                        port.ValidColumn,
+			role.Table:                        role.ValidColumn,
+			roleassignment.Table:              roleassignment.ValidColumn,
+			session.Table:                     session.ValidColumn,
+			shippingline.Table:                shippingline.ValidColumn,
+			shippinglinecontainerprefix.Table: shippinglinecontainerprefix.ValidColumn,
+			statustemplate.Table:              statustemplate.ValidColumn,
+			statustemplateitem.Table:          statustemplateitem.ValidColumn,
+			user.Table:                        user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

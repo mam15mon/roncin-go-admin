@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -20,8 +22,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
@@ -222,6 +226,66 @@ func (_c *OrganizationCreate) AddMasterDataItems(v ...*MasterDataItem) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddMasterDataItemIDs(ids...)
+}
+
+// AddPortIDs adds the "ports" edge to the Port entity by IDs.
+func (_c *OrganizationCreate) AddPortIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddPortIDs(ids...)
+	return _c
+}
+
+// AddPorts adds the "ports" edges to the Port entity.
+func (_c *OrganizationCreate) AddPorts(v ...*Port) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPortIDs(ids...)
+}
+
+// AddAirportIDs adds the "airports" edge to the Airport entity by IDs.
+func (_c *OrganizationCreate) AddAirportIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddAirportIDs(ids...)
+	return _c
+}
+
+// AddAirports adds the "airports" edges to the Airport entity.
+func (_c *OrganizationCreate) AddAirports(v ...*Airport) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAirportIDs(ids...)
+}
+
+// AddAirlineIDs adds the "airlines" edge to the Airline entity by IDs.
+func (_c *OrganizationCreate) AddAirlineIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddAirlineIDs(ids...)
+	return _c
+}
+
+// AddAirlines adds the "airlines" edges to the Airline entity.
+func (_c *OrganizationCreate) AddAirlines(v ...*Airline) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAirlineIDs(ids...)
+}
+
+// AddShippingLineIDs adds the "shipping_lines" edge to the ShippingLine entity by IDs.
+func (_c *OrganizationCreate) AddShippingLineIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddShippingLineIDs(ids...)
+	return _c
+}
+
+// AddShippingLines adds the "shipping_lines" edges to the ShippingLine entity.
+func (_c *OrganizationCreate) AddShippingLines(v ...*ShippingLine) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddShippingLineIDs(ids...)
 }
 
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
@@ -556,6 +620,70 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PortsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PortsTable,
+			Columns: []string{organization.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AirportsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AirportsTable,
+			Columns: []string{organization.AirportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AirlinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AirlinesTable,
+			Columns: []string{organization.AirlinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(airline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShippingLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.ShippingLinesTable,
+			Columns: []string{organization.ShippingLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

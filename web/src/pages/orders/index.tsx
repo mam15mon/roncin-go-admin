@@ -46,7 +46,9 @@ import {
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  masterDataServiceListAirports,
   masterDataServiceListOptions,
+  masterDataServiceListPorts,
   masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
 import {
@@ -149,8 +151,6 @@ const shipmentTypeOptions = [
 
 const MASTER_DATA_KINDS = {
   REGION: 3,
-  PORT: 4,
-  AIRPORT: 5,
   CONTAINER_SPEC: 7,
   SERVICE_TYPE: 8,
   CARGO_CATEGORY: 9,
@@ -321,13 +321,21 @@ export default function Orders() {
   >([]);
 
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
+  const [ports, setPorts] = useState<API.Port[]>([]);
+  const [airports, setAirports] = useState<API.Airport[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    masterDataServiceListOptions().then((res) => {
-      setMasterOptions(res.data ?? []);
-    });
-  }, []);
+    void Promise.all([
+      masterDataServiceListOptions(),
+      masterDataServiceListPorts({ page: 1, pageSize: 100 }),
+      masterDataServiceListAirports({ page: 1, pageSize: 100 }),
+    ]).then(([optionsResponse, portsResponse, airportsResponse]) => {
+      setMasterOptions(optionsResponse.data ?? []);
+      setPorts(portsResponse.data ?? []);
+      setAirports(airportsResponse.data ?? []);
+    }).catch((error: Error) => message.error(error.message || '订单主数据加载失败'));
+  }, [message]);
 
   const containerSpecOptions = masterOptions
     .filter(
@@ -372,21 +380,22 @@ export default function Orders() {
       value: item.id ?? '',
     }));
 
-  const locationOptions = masterOptions
+  const regionLocationOptions = masterOptions
     .filter(
       (item) =>
-        item.kind !== undefined &&
-        [
-          MASTER_DATA_KINDS.REGION,
-          MASTER_DATA_KINDS.PORT,
-          MASTER_DATA_KINDS.AIRPORT,
-        ].includes(item.kind as 3 | 4 | 5) &&
+        item.kind === MASTER_DATA_KINDS.REGION &&
         item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
       value: item.id ?? '',
     }));
+
+  const locationOptions = [
+    ...regionLocationOptions,
+    ...ports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh} (${item.unLocode})`, value: item.id ?? '' })),
+    ...airports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh} (${item.iataCode})`, value: item.id ?? '' })),
+  ];
 
   const searchCustomers = async (keyword?: string) => {
     const res = await partnerServiceListPartners({

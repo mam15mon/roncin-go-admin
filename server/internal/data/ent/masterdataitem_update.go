@@ -119,26 +119,6 @@ func (_u *MasterDataItemUpdate) ClearParentCode() *MasterDataItemUpdate {
 	return _u
 }
 
-// SetTransportMode sets the "transport_mode" field.
-func (_u *MasterDataItemUpdate) SetTransportMode(v string) *MasterDataItemUpdate {
-	_u.mutation.SetTransportMode(v)
-	return _u
-}
-
-// SetNillableTransportMode sets the "transport_mode" field if the given value is not nil.
-func (_u *MasterDataItemUpdate) SetNillableTransportMode(v *string) *MasterDataItemUpdate {
-	if v != nil {
-		_u.SetTransportMode(*v)
-	}
-	return _u
-}
-
-// ClearTransportMode clears the value of the "transport_mode" field.
-func (_u *MasterDataItemUpdate) ClearTransportMode() *MasterDataItemUpdate {
-	_u.mutation.ClearTransportMode()
-	return _u
-}
-
 // SetTeuFactor sets the "teu_factor" field.
 func (_u *MasterDataItemUpdate) SetTeuFactor(v string) *MasterDataItemUpdate {
 	_u.mutation.SetTeuFactor(v)
@@ -288,11 +268,6 @@ func (_u *MasterDataItemUpdate) check() error {
 			return &ValidationError{Name: "parent_code", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.parent_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TransportMode(); ok {
-		if err := masterdataitem.TransportModeValidator(v); err != nil {
-			return &ValidationError{Name: "transport_mode", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.transport_mode": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.TeuFactor(); ok {
 		if err := masterdataitem.TeuFactorValidator(v); err != nil {
 			return &ValidationError{Name: "teu_factor", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.teu_factor": %w`, err)}
@@ -341,12 +316,6 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if _u.mutation.ParentCodeCleared() {
 		_spec.ClearField(masterdataitem.FieldParentCode, field.TypeString)
-	}
-	if value, ok := _u.mutation.TransportMode(); ok {
-		_spec.SetField(masterdataitem.FieldTransportMode, field.TypeString, value)
-	}
-	if _u.mutation.TransportModeCleared() {
-		_spec.ClearField(masterdataitem.FieldTransportMode, field.TypeString)
 	}
 	if value, ok := _u.mutation.TeuFactor(); ok {
 		_spec.SetField(masterdataitem.FieldTeuFactor, field.TypeString, value)
@@ -503,26 +472,6 @@ func (_u *MasterDataItemUpdateOne) SetNillableParentCode(v *string) *MasterDataI
 // ClearParentCode clears the value of the "parent_code" field.
 func (_u *MasterDataItemUpdateOne) ClearParentCode() *MasterDataItemUpdateOne {
 	_u.mutation.ClearParentCode()
-	return _u
-}
-
-// SetTransportMode sets the "transport_mode" field.
-func (_u *MasterDataItemUpdateOne) SetTransportMode(v string) *MasterDataItemUpdateOne {
-	_u.mutation.SetTransportMode(v)
-	return _u
-}
-
-// SetNillableTransportMode sets the "transport_mode" field if the given value is not nil.
-func (_u *MasterDataItemUpdateOne) SetNillableTransportMode(v *string) *MasterDataItemUpdateOne {
-	if v != nil {
-		_u.SetTransportMode(*v)
-	}
-	return _u
-}
-
-// ClearTransportMode clears the value of the "transport_mode" field.
-func (_u *MasterDataItemUpdateOne) ClearTransportMode() *MasterDataItemUpdateOne {
-	_u.mutation.ClearTransportMode()
 	return _u
 }
 
@@ -688,11 +637,6 @@ func (_u *MasterDataItemUpdateOne) check() error {
 			return &ValidationError{Name: "parent_code", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.parent_code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TransportMode(); ok {
-		if err := masterdataitem.TransportModeValidator(v); err != nil {
-			return &ValidationError{Name: "transport_mode", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.transport_mode": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.TeuFactor(); ok {
 		if err := masterdataitem.TeuFactorValidator(v); err != nil {
 			return &ValidationError{Name: "teu_factor", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.teu_factor": %w`, err)}
@@ -758,12 +702,6 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 	}
 	if _u.mutation.ParentCodeCleared() {
 		_spec.ClearField(masterdataitem.FieldParentCode, field.TypeString)
-	}
-	if value, ok := _u.mutation.TransportMode(); ok {
-		_spec.SetField(masterdataitem.FieldTransportMode, field.TypeString, value)
-	}
-	if _u.mutation.TransportModeCleared() {
-		_spec.ClearField(masterdataitem.FieldTransportMode, field.TypeString)
 	}
 	if value, ok := _u.mutation.TeuFactor(); ok {
 		_spec.SetField(masterdataitem.FieldTeuFactor, field.TypeString, value)

@@ -681,6 +681,246 @@
         }
       }
     },
+    "/api/v1/master-data/airlines": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListAirlines",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirlineListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_CreateAirline",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.CreateAirlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirlineReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/airlines/{id}": {
+      "put": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_UpdateAirline",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.UpdateAirlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirlineReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/airports": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListAirports",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirportListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_CreateAirport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.CreateAirportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirportReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/airports/{id}": {
+      "put": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_UpdateAirport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.UpdateAirportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.AirportReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/master-data/import": {
       "post": {
         "tags": [
@@ -754,13 +994,6 @@
             "in": "query",
             "schema": {
               "type": "boolean"
-            }
-          },
-          {
-            "name": "transportMode",
-            "in": "query",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -1099,6 +1332,246 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/masterdata.v1.MasterDataOptionsReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/ports": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListPorts",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.PortListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_CreatePort",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.CreatePortRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.PortReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/ports/{id}": {
+      "put": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_UpdatePort",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.UpdatePortRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.PortReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/shipping-lines": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_ListShippingLines",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineListReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_CreateShippingLine",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.CreateShippingLineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/master-data/shipping-lines/{id}": {
+      "put": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_UpdateShippingLine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/masterdata.v1.UpdateShippingLineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineReply"
                 }
               }
             }
@@ -4339,6 +4812,296 @@
           }
         }
       },
+      "masterdata.v1.Airline": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "iataCode": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "awbPrefix": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "cargoOnly": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.AirlineListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Airline"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.AirlineReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airline"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.Airport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "iataCode": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "cityNameZh": {
+            "type": "string"
+          },
+          "cityNameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.AirportListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Airport"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.AirportReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airport"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.CreateAirlineRequest": {
+        "required": [
+          "iataCode",
+          "awbPrefix",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "iataCode": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "awbPrefix": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "cargoOnly": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "masterdata.v1.CreateAirportRequest": {
+        "required": [
+          "iataCode",
+          "nameZh",
+          "nameEn",
+          "cityNameZh",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "iataCode": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "cityNameZh": {
+            "type": "string"
+          },
+          "cityNameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "masterdata.v1.CreateMasterDataItemRequest": {
         "required": [
           "kind",
@@ -4361,9 +5124,6 @@
             "type": "string"
           },
           "parentCode": {
-            "type": "string"
-          },
-          "transportMode": {
             "type": "string"
           },
           "teuFactor": {
@@ -4443,6 +5203,84 @@
           "resetPolicy": {
             "type": "integer",
             "format": "enum"
+          }
+        }
+      },
+      "masterdata.v1.CreatePortRequest": {
+        "required": [
+          "unLocode",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "unLocode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "transportModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "masterdata.v1.CreateShippingLineRequest": {
+        "required": [
+          "scacCode",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "scacCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "trackingUrl": {
+            "type": "string"
+          },
+          "alliance": {
+            "type": "string"
+          },
+          "containerPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -4563,39 +5401,6 @@
       "masterdata.v1.MasterDataAttributes": {
         "type": "object",
         "properties": {
-          "countryCode": {
-            "type": "string"
-          },
-          "modes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isBorder": {
-            "type": "boolean"
-          },
-          "icaoCode": {
-            "type": "string"
-          },
-          "cityName": {
-            "type": "string"
-          },
-          "awbPrefix": {
-            "type": "string"
-          },
-          "isCargoOnly": {
-            "type": "boolean"
-          },
-          "scacCode": {
-            "type": "string"
-          },
-          "trackingUrl": {
-            "type": "string"
-          },
-          "alliance": {
-            "type": "string"
-          },
           "continent": {
             "type": "string"
           },
@@ -4607,7 +5412,7 @@
             "format": "int32"
           }
         },
-        "description": "MasterDataAttributes 承载不同主数据类型的专属属性，避免借用上级编码、来源等通用字段。"
+        "description": "MasterDataAttributes 只承载仍由通用主数据管理的少量专属属性。"
       },
       "masterdata.v1.MasterDataImportItemInput": {
         "required": [
@@ -4626,9 +5431,6 @@
             "type": "string"
           },
           "parentCode": {
-            "type": "string"
-          },
-          "transportMode": {
             "type": "string"
           },
           "teuFactor": {
@@ -4701,9 +5503,6 @@
             "type": "string"
           },
           "parentCode": {
-            "type": "string"
-          },
-          "transportMode": {
             "type": "string"
           },
           "teuFactor": {
@@ -5056,6 +5855,108 @@
           }
         }
       },
+      "masterdata.v1.Port": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "unLocode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "transportModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.PortListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Port"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.PortReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Port"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.PublishMilestoneTemplateRequest": {
         "required": [
           "id"
@@ -5102,6 +6003,114 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ShippingLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "scacCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "trackingUrl": {
+            "type": "string"
+          },
+          "alliance": {
+            "type": "string"
+          },
+          "containerPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ShippingLineListReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ShippingLineReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -5252,6 +6261,92 @@
           }
         }
       },
+      "masterdata.v1.UpdateAirlineRequest": {
+        "required": [
+          "id",
+          "awbPrefix",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "awbPrefix": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "cargoOnly": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.UpdateAirportRequest": {
+        "required": [
+          "id",
+          "nameZh",
+          "nameEn",
+          "cityNameZh",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "icaoCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "cityNameZh": {
+            "type": "string"
+          },
+          "cityNameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "masterdata.v1.UpdateMasterDataItemRequest": {
         "required": [
           "id",
@@ -5270,9 +6365,6 @@
             "type": "string"
           },
           "parentCode": {
-            "type": "string"
-          },
-          "transportMode": {
             "type": "string"
           },
           "teuFactor": {
@@ -5323,6 +6415,90 @@
           "resetPolicy": {
             "type": "integer",
             "format": "enum"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.UpdatePortRequest": {
+        "required": [
+          "id",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "transportModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.UpdateShippingLineRequest": {
+        "required": [
+          "id",
+          "nameZh",
+          "nameEn",
+          "countryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "trackingUrl": {
+            "type": "string"
+          },
+          "alliance": {
+            "type": "string"
+          },
+          "containerPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
           },
           "enabled": {
             "type": "boolean"

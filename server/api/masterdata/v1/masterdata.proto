@@ -37,6 +37,54 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
+  rpc ListPorts(ListIndustryReferencesRequest) returns (PortListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/ports"};
+  }
+
+  rpc CreatePort(CreatePortRequest) returns (PortReply) {
+    option (google.api.http) = {post: "/api/v1/master-data/ports" body: "*"};
+  }
+
+  rpc UpdatePort(UpdatePortRequest) returns (PortReply) {
+    option (google.api.http) = {put: "/api/v1/master-data/ports/{id}" body: "*"};
+  }
+
+  rpc ListAirports(ListIndustryReferencesRequest) returns (AirportListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/airports"};
+  }
+
+  rpc CreateAirport(CreateAirportRequest) returns (AirportReply) {
+    option (google.api.http) = {post: "/api/v1/master-data/airports" body: "*"};
+  }
+
+  rpc UpdateAirport(UpdateAirportRequest) returns (AirportReply) {
+    option (google.api.http) = {put: "/api/v1/master-data/airports/{id}" body: "*"};
+  }
+
+  rpc ListAirlines(ListIndustryReferencesRequest) returns (AirlineListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/airlines"};
+  }
+
+  rpc CreateAirline(CreateAirlineRequest) returns (AirlineReply) {
+    option (google.api.http) = {post: "/api/v1/master-data/airlines" body: "*"};
+  }
+
+  rpc UpdateAirline(UpdateAirlineRequest) returns (AirlineReply) {
+    option (google.api.http) = {put: "/api/v1/master-data/airlines/{id}" body: "*"};
+  }
+
+  rpc ListShippingLines(ListIndustryReferencesRequest) returns (ShippingLineListReply) {
+    option (google.api.http) = {get: "/api/v1/master-data/shipping-lines"};
+  }
+
+  rpc CreateShippingLine(CreateShippingLineRequest) returns (ShippingLineReply) {
+    option (google.api.http) = {post: "/api/v1/master-data/shipping-lines" body: "*"};
+  }
+
+  rpc UpdateShippingLine(UpdateShippingLineRequest) returns (ShippingLineReply) {
+    option (google.api.http) = {put: "/api/v1/master-data/shipping-lines/{id}" body: "*"};
+  }
+
   rpc ListCurrencies(ListCurrenciesRequest) returns (CurrencyListReply) {
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
@@ -125,9 +173,6 @@ enum MasterDataKind {
   MASTER_DATA_KIND_CURRENCY = 1;
   MASTER_DATA_KIND_COUNTRY = 2;
   MASTER_DATA_KIND_REGION = 3;
-  MASTER_DATA_KIND_PORT = 4;
-  MASTER_DATA_KIND_AIRPORT = 5;
-  MASTER_DATA_KIND_CARRIER = 6;
   MASTER_DATA_KIND_CONTAINER_SPEC = 7;
   MASTER_DATA_KIND_SERVICE_TYPE = 8;
   MASTER_DATA_KIND_CARGO_CATEGORY = 9;
@@ -178,21 +223,10 @@ message ListMasterDataItemsRequest {
   MasterDataKind kind = 3;
   string keyword = 4;
   optional bool enabled = 5;
-  optional string transport_mode = 6;
 }
 
-// MasterDataAttributes 承载不同主数据类型的专属属性，避免借用上级编码、来源等通用字段。
+// MasterDataAttributes 只承载仍由通用主数据管理的少量专属属性。
 message MasterDataAttributes {
-  optional string country_code = 1;
-  repeated string modes = 2;
-  optional bool is_border = 3;
-  optional string icao_code = 4;
-  optional string city_name = 5;
-  optional string awb_prefix = 6;
-  optional bool is_cargo_only = 7;
-  optional string scac_code = 8;
-  optional string tracking_url = 9;
-  optional string alliance = 10;
   optional string continent = 11;
   optional string currency_code = 12;
   optional int32 region_level = 13;
@@ -204,7 +238,6 @@ message CreateMasterDataItemRequest {
   string name = 3 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 4;
   optional string parent_code = 5;
-  optional string transport_mode = 6;
   optional string teu_factor = 7;
   string source = 8;
   int32 sort_order = 9;
@@ -216,7 +249,6 @@ message UpdateMasterDataItemRequest {
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 3;
   optional string parent_code = 4;
-  optional string transport_mode = 5;
   optional string teu_factor = 6;
   string source = 7;
   int32 sort_order = 8;
@@ -230,7 +262,6 @@ message MasterDataImportItemInput {
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 3;
   optional string parent_code = 4;
-  optional string transport_mode = 5;
   optional string teu_factor = 6;
   int32 sort_order = 7;
   optional bool enabled = 8;
@@ -264,7 +295,6 @@ message MasterDataItem {
   string name = 5;
   optional string name_en = 6;
   optional string parent_code = 7;
-  optional string transport_mode = 8;
   optional string teu_factor = 9;
   string source = 10;
   int32 sort_order = 11;
@@ -298,6 +328,251 @@ message MasterDataOptionsReply {
   int32 code = 2;
   string message = 3;
   repeated MasterDataItem data = 4;
+  string trace_id = 5;
+}
+
+message ListIndustryReferencesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  optional bool enabled = 4;
+}
+
+message Port {
+  string id = 1;
+  string organization_id = 2;
+  string un_locode = 3;
+  string name_zh = 4;
+  string name_en = 5;
+  string country_code = 6;
+  repeated string transport_modes = 7;
+  string source = 8;
+  int32 sort_order = 9;
+  bool enabled = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message CreatePortRequest {
+  string un_locode = 1 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 3 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 4 [(google.api.field_behavior) = REQUIRED];
+  repeated string transport_modes = 5;
+  string source = 6;
+  int32 sort_order = 7;
+}
+
+message UpdatePortRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 3 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 4 [(google.api.field_behavior) = REQUIRED];
+  repeated string transport_modes = 5;
+  string source = 6;
+  int32 sort_order = 7;
+  bool enabled = 8;
+}
+
+message PortListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Port data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message PortReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Port data = 4;
+  string trace_id = 5;
+}
+
+message Airport {
+  string id = 1;
+  string organization_id = 2;
+  string iata_code = 3;
+  optional string icao_code = 4;
+  string name_zh = 5;
+  string name_en = 6;
+  string city_name_zh = 7;
+  optional string city_name_en = 8;
+  string country_code = 9;
+  string source = 10;
+  int32 sort_order = 11;
+  bool enabled = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message CreateAirportRequest {
+  string iata_code = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string icao_code = 2;
+  string name_zh = 3 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 4 [(google.api.field_behavior) = REQUIRED];
+  string city_name_zh = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string city_name_en = 6;
+  string country_code = 7 [(google.api.field_behavior) = REQUIRED];
+  string source = 8;
+  int32 sort_order = 9;
+}
+
+message UpdateAirportRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string icao_code = 2;
+  string name_zh = 3 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 4 [(google.api.field_behavior) = REQUIRED];
+  string city_name_zh = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string city_name_en = 6;
+  string country_code = 7 [(google.api.field_behavior) = REQUIRED];
+  string source = 8;
+  int32 sort_order = 9;
+  bool enabled = 10;
+}
+
+message AirportListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Airport data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message AirportReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Airport data = 4;
+  string trace_id = 5;
+}
+
+message Airline {
+  string id = 1;
+  string organization_id = 2;
+  string iata_code = 3;
+  optional string icao_code = 4;
+  string awb_prefix = 5;
+  string name_zh = 6;
+  string name_en = 7;
+  string country_code = 8;
+  bool cargo_only = 9;
+  string source = 10;
+  int32 sort_order = 11;
+  bool enabled = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message CreateAirlineRequest {
+  string iata_code = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string icao_code = 2;
+  string awb_prefix = 3 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 4 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 5 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 6 [(google.api.field_behavior) = REQUIRED];
+  bool cargo_only = 7;
+  string source = 8;
+  int32 sort_order = 9;
+}
+
+message UpdateAirlineRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string icao_code = 2;
+  string awb_prefix = 3 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 4 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 5 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 6 [(google.api.field_behavior) = REQUIRED];
+  bool cargo_only = 7;
+  string source = 8;
+  int32 sort_order = 9;
+  bool enabled = 10;
+}
+
+message AirlineListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Airline data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message AirlineReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Airline data = 4;
+  string trace_id = 5;
+}
+
+message ShippingLine {
+  string id = 1;
+  string organization_id = 2;
+  string scac_code = 3;
+  string name_zh = 4;
+  string name_en = 5;
+  string country_code = 6;
+  optional string tracking_url = 7;
+  optional string alliance = 8;
+  repeated string container_prefixes = 9;
+  string source = 10;
+  int32 sort_order = 11;
+  bool enabled = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message CreateShippingLineRequest {
+  string scac_code = 1 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 3 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string tracking_url = 5;
+  optional string alliance = 6;
+  repeated string container_prefixes = 7;
+  string source = 8;
+  int32 sort_order = 9;
+}
+
+message UpdateShippingLineRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
+  string name_en = 3 [(google.api.field_behavior) = REQUIRED];
+  string country_code = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string tracking_url = 5;
+  optional string alliance = 6;
+  repeated string container_prefixes = 7;
+  string source = 8;
+  int32 sort_order = 9;
+  bool enabled = 10;
+}
+
+message ShippingLineListReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated ShippingLine data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
+
+message ShippingLineReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ShippingLine data = 4;
   string trace_id = 5;
 }
 

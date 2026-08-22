@@ -24,6 +24,18 @@ const (
 	MasterDataService_UpdateItem_FullMethodName                  = "/masterdata.v1.MasterDataService/UpdateItem"
 	MasterDataService_ImportItems_FullMethodName                 = "/masterdata.v1.MasterDataService/ImportItems"
 	MasterDataService_ListOptions_FullMethodName                 = "/masterdata.v1.MasterDataService/ListOptions"
+	MasterDataService_ListPorts_FullMethodName                   = "/masterdata.v1.MasterDataService/ListPorts"
+	MasterDataService_CreatePort_FullMethodName                  = "/masterdata.v1.MasterDataService/CreatePort"
+	MasterDataService_UpdatePort_FullMethodName                  = "/masterdata.v1.MasterDataService/UpdatePort"
+	MasterDataService_ListAirports_FullMethodName                = "/masterdata.v1.MasterDataService/ListAirports"
+	MasterDataService_CreateAirport_FullMethodName               = "/masterdata.v1.MasterDataService/CreateAirport"
+	MasterDataService_UpdateAirport_FullMethodName               = "/masterdata.v1.MasterDataService/UpdateAirport"
+	MasterDataService_ListAirlines_FullMethodName                = "/masterdata.v1.MasterDataService/ListAirlines"
+	MasterDataService_CreateAirline_FullMethodName               = "/masterdata.v1.MasterDataService/CreateAirline"
+	MasterDataService_UpdateAirline_FullMethodName               = "/masterdata.v1.MasterDataService/UpdateAirline"
+	MasterDataService_ListShippingLines_FullMethodName           = "/masterdata.v1.MasterDataService/ListShippingLines"
+	MasterDataService_CreateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/CreateShippingLine"
+	MasterDataService_UpdateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/UpdateShippingLine"
 	MasterDataService_ListCurrencies_FullMethodName              = "/masterdata.v1.MasterDataService/ListCurrencies"
 	MasterDataService_ListAdministrativeRegions_FullMethodName   = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
 	MasterDataService_ListNumberRules_FullMethodName             = "/masterdata.v1.MasterDataService/ListNumberRules"
@@ -48,6 +60,18 @@ type MasterDataServiceClient interface {
 	UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
 	ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataImportReply, error)
 	ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...grpc.CallOption) (*MasterDataOptionsReply, error)
+	ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*PortListReply, error)
+	CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*PortReply, error)
+	UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*PortReply, error)
+	ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirportListReply, error)
+	CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error)
+	UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error)
+	ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirlineListReply, error)
+	CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error)
+	UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error)
+	ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*ShippingLineListReply, error)
+	CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error)
+	UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error)
 	ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*CurrencyListReply, error)
 	ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*AdministrativeRegionListReply, error)
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error)
@@ -115,6 +139,126 @@ func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListMaste
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MasterDataOptionsReply)
 	err := c.cc.Invoke(ctx, MasterDataService_ListOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*PortListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PortListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListPorts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*PortReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PortReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreatePort_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*PortReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PortReply)
+	err := c.cc.Invoke(ctx, MasterDataService_UpdatePort_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirportListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirportListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListAirports_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirportReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreateAirport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirportReply)
+	err := c.cc.Invoke(ctx, MasterDataService_UpdateAirport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirlineListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirlineListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListAirlines_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirlineReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreateAirline_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AirlineReply)
+	err := c.cc.Invoke(ctx, MasterDataService_UpdateAirline_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*ShippingLineListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ShippingLineListReply)
+	err := c.cc.Invoke(ctx, MasterDataService_ListShippingLines_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ShippingLineReply)
+	err := c.cc.Invoke(ctx, MasterDataService_CreateShippingLine_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ShippingLineReply)
+	err := c.cc.Invoke(ctx, MasterDataService_UpdateShippingLine_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -260,6 +404,18 @@ type MasterDataServiceServer interface {
 	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
 	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
 	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
+	ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error)
+	CreatePort(context.Context, *CreatePortRequest) (*PortReply, error)
+	UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error)
+	ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error)
+	CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error)
+	UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error)
+	ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error)
+	CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error)
+	UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error)
+	ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error)
+	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error)
+	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error)
 	ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error)
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*AdministrativeRegionListReply, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
@@ -297,6 +453,42 @@ func (UnimplementedMasterDataServiceServer) ImportItems(context.Context, *Import
 }
 func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOptions not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPorts not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreatePort(context.Context, *CreatePortRequest) (*PortReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePort not implemented")
+}
+func (UnimplementedMasterDataServiceServer) UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePort not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAirports not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAirport not implemented")
+}
+func (UnimplementedMasterDataServiceServer) UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAirport not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAirlines not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAirline not implemented")
+}
+func (UnimplementedMasterDataServiceServer) UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAirline not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListShippingLines not implemented")
+}
+func (UnimplementedMasterDataServiceServer) CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateShippingLine not implemented")
+}
+func (UnimplementedMasterDataServiceServer) UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateShippingLine not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCurrencies not implemented")
@@ -444,6 +636,222 @@ func _MasterDataService_ListOptions_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterDataServiceServer).ListOptions(ctx, req.(*ListMasterDataOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListPorts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIndustryReferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListPorts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListPorts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListPorts(ctx, req.(*ListIndustryReferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreatePort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePortRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreatePort(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreatePort_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreatePort(ctx, req.(*CreatePortRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_UpdatePort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePortRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).UpdatePort(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_UpdatePort_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).UpdatePort(ctx, req.(*UpdatePortRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListAirports_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIndustryReferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListAirports(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListAirports_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListAirports(ctx, req.(*ListIndustryReferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreateAirport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAirportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreateAirport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreateAirport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreateAirport(ctx, req.(*CreateAirportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_UpdateAirport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAirportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).UpdateAirport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_UpdateAirport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).UpdateAirport(ctx, req.(*UpdateAirportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListAirlines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIndustryReferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListAirlines(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListAirlines_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListAirlines(ctx, req.(*ListIndustryReferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreateAirline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAirlineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreateAirline(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreateAirline_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreateAirline(ctx, req.(*CreateAirlineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_UpdateAirline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAirlineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).UpdateAirline(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_UpdateAirline_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).UpdateAirline(ctx, req.(*UpdateAirlineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListShippingLines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIndustryReferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListShippingLines(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListShippingLines_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListShippingLines(ctx, req.(*ListIndustryReferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_CreateShippingLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateShippingLineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).CreateShippingLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_CreateShippingLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).CreateShippingLine(ctx, req.(*CreateShippingLineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_UpdateShippingLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateShippingLineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).UpdateShippingLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_UpdateShippingLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).UpdateShippingLine(ctx, req.(*UpdateShippingLineRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -708,6 +1116,54 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOptions",
 			Handler:    _MasterDataService_ListOptions_Handler,
+		},
+		{
+			MethodName: "ListPorts",
+			Handler:    _MasterDataService_ListPorts_Handler,
+		},
+		{
+			MethodName: "CreatePort",
+			Handler:    _MasterDataService_CreatePort_Handler,
+		},
+		{
+			MethodName: "UpdatePort",
+			Handler:    _MasterDataService_UpdatePort_Handler,
+		},
+		{
+			MethodName: "ListAirports",
+			Handler:    _MasterDataService_ListAirports_Handler,
+		},
+		{
+			MethodName: "CreateAirport",
+			Handler:    _MasterDataService_CreateAirport_Handler,
+		},
+		{
+			MethodName: "UpdateAirport",
+			Handler:    _MasterDataService_UpdateAirport_Handler,
+		},
+		{
+			MethodName: "ListAirlines",
+			Handler:    _MasterDataService_ListAirlines_Handler,
+		},
+		{
+			MethodName: "CreateAirline",
+			Handler:    _MasterDataService_CreateAirline_Handler,
+		},
+		{
+			MethodName: "UpdateAirline",
+			Handler:    _MasterDataService_UpdateAirline_Handler,
+		},
+		{
+			MethodName: "ListShippingLines",
+			Handler:    _MasterDataService_ListShippingLines_Handler,
+		},
+		{
+			MethodName: "CreateShippingLine",
+			Handler:    _MasterDataService_CreateShippingLine_Handler,
+		},
+		{
+			MethodName: "UpdateShippingLine",
+			Handler:    _MasterDataService_UpdateShippingLine_Handler,
 		},
 		{
 			MethodName: "ListCurrencies",

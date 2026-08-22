@@ -103,20 +103,6 @@ func (_c *MasterDataItemCreate) SetNillableParentCode(v *string) *MasterDataItem
 	return _c
 }
 
-// SetTransportMode sets the "transport_mode" field.
-func (_c *MasterDataItemCreate) SetTransportMode(v string) *MasterDataItemCreate {
-	_c.mutation.SetTransportMode(v)
-	return _c
-}
-
-// SetNillableTransportMode sets the "transport_mode" field if the given value is not nil.
-func (_c *MasterDataItemCreate) SetNillableTransportMode(v *string) *MasterDataItemCreate {
-	if v != nil {
-		_c.SetTransportMode(*v)
-	}
-	return _c
-}
-
 // SetTeuFactor sets the "teu_factor" field.
 func (_c *MasterDataItemCreate) SetTeuFactor(v string) *MasterDataItemCreate {
 	_c.mutation.SetTeuFactor(v)
@@ -308,11 +294,6 @@ func (_c *MasterDataItemCreate) check() error {
 			return &ValidationError{Name: "parent_code", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.parent_code": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.TransportMode(); ok {
-		if err := masterdataitem.TransportModeValidator(v); err != nil {
-			return &ValidationError{Name: "transport_mode", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.transport_mode": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.TeuFactor(); ok {
 		if err := masterdataitem.TeuFactorValidator(v); err != nil {
 			return &ValidationError{Name: "teu_factor", err: fmt.Errorf(`ent: validator failed for field "MasterDataItem.teu_factor": %w`, err)}
@@ -400,10 +381,6 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 	if value, ok := _c.mutation.ParentCode(); ok {
 		_spec.SetField(masterdataitem.FieldParentCode, field.TypeString, value)
 		_node.ParentCode = &value
-	}
-	if value, ok := _c.mutation.TransportMode(); ok {
-		_spec.SetField(masterdataitem.FieldTransportMode, field.TypeString, value)
-		_node.TransportMode = &value
 	}
 	if value, ok := _c.mutation.TeuFactor(); ok {
 		_spec.SetField(masterdataitem.FieldTeuFactor, field.TypeString, value)

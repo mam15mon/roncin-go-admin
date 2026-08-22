@@ -3,36 +3,30 @@ import { App, Space, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import {
-  masterDataServiceCreateItem,
-  masterDataServiceListItems,
-  masterDataServiceUpdateItem,
+  masterDataServiceCreatePort,
+  masterDataServiceListPorts,
+  masterDataServiceUpdatePort,
 } from '@/services/roncin/masterDataService';
-import {
-  mapPersistedMasterDataItem,
-  type PersistedMasterDataItem,
-  requireMasterDataResponse,
-} from './masterDataMapper';
+import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface PortItem extends PersistedMasterDataItem {
   countryCode: string;
   countryName?: string;
   modes: string[];
-  isBorder?: boolean;
 }
 
 const MODE_LABELS: Record<string, { label: string; color: string }> = {
-  PORT: { label: '海港', color: 'blue' },
+  SEA: { label: '海港', color: 'blue' },
   RAIL: { label: '铁路枢纽', color: 'volcano' },
   ROAD: { label: '公路集散', color: 'green' },
-  AIRPORT: { label: '空运联运', color: 'purple' },
 };
 
-const mapPort = (item: API.MasterDataItem): PortItem => ({
-  ...mapPersistedMasterDataItem(item),
-  countryCode: item.attributes?.countryCode ?? '',
-  modes: item.attributes?.modes ?? [],
-  isBorder: item.attributes?.isBorder,
-});
+const mapPort = (item: API.Port): PortItem => {
+  if (!item.id || !item.unLocode || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+    throw new Error('港口响应缺少必填字段');
+  }
+  return { id: item.id, code: item.unLocode, name: item.nameZh, nameEn: item.nameEn, countryCode: item.countryCode, modes: item.transportModes ?? [], enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+};
 
 export default function PortsPanel() {
   const { message } = App.useApp();
@@ -42,7 +36,7 @@ export default function PortsPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListItems({ kind: 4, page: 1, pageSize: 100 });
+      const response = await masterDataServiceListPorts({ page: 1, pageSize: 100 });
       setData((response.data ?? []).map(mapPort));
     } finally {
       setLoading(false);
@@ -53,8 +47,9 @@ export default function PortsPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '港口主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.MasterDataItemReply) => {
-    const saved = mapPort(requireMasterDataResponse(response));
+  const saveResponse = (response: API.PortReply) => {
+    if (!response.data) throw new Error('港口响应缺少数据');
+    const saved = mapPort(response.data);
     setData((current) => {
       const exists = current.some((item) => item.id === saved.id);
       return exists
@@ -64,37 +59,30 @@ export default function PortsPanel() {
   };
 
   const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateItem({
-      kind: 4,
-      code: values.code.toUpperCase().trim(),
-      name: values.name.trim(),
+    const response = await masterDataServiceCreatePort({
+      unLocode: values.code.toUpperCase().trim(),
+      nameZh: values.name.trim(),
       nameEn: values.nameEn.trim().toUpperCase(),
       source: 'manual',
       sortOrder: 100,
-      attributes: {
-        countryCode: values.countryCode.toUpperCase().trim(),
-        modes: values.modes ?? [],
-      },
+      countryCode: values.countryCode.toUpperCase().trim(),
+      transportModes: values.modes ?? [],
     });
     saveResponse(response);
   };
 
   const updateItem = async (record: PortItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateItem(
+    const response = await masterDataServiceUpdatePort(
       { id: record.id },
       {
         id: record.id,
-        kind: 4,
-        name: values.name.trim(),
+        nameZh: values.name.trim(),
         nameEn: values.nameEn.trim().toUpperCase(),
         source: record.source,
         sortOrder: record.sortOrder,
         enabled,
-        attributes: {
-          countryCode: values.countryCode.toUpperCase().trim(),
-          modes: values.modes ?? [],
-          isBorder: record.isBorder,
-        },
+        countryCode: values.countryCode.toUpperCase().trim(),
+        transportModes: values.modes ?? [],
       },
     );
     saveResponse(response);
@@ -182,7 +170,7 @@ export default function PortsPanel() {
           disabledOnEdit: true,
           rules: [
             { required: true, message: '请输入五字码' },
-            { pattern: /^[A-Za-z]{5}$/, message: '请输入标准的5位字母UN/LOCODE' },
+            { pattern: /^[A-Za-z]{2}[A-Za-z0-9]{3}$/, message: 'UN/LOCODE 应为2位国家码加3位地点码' },
           ],
         },
         {
@@ -208,12 +196,11 @@ export default function PortsPanel() {
           name: 'modes',
           label: '枢纽类型',
           type: 'checkboxGroup',
-          initialValue: ['PORT'],
+          initialValue: ['SEA'],
           options: [
-            { label: '海港 (PORT)', value: 'PORT' },
+            { label: '海港 (SEA)', value: 'SEA' },
             { label: '铁路枢纽 (RAIL)', value: 'RAIL' },
             { label: '公路集散 (ROAD)', value: 'ROAD' },
-            { label: '空运联运 (AIRPORT)', value: 'AIRPORT' },
           ],
         },
       ]}

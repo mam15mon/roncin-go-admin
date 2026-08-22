@@ -9,6 +9,12 @@ import (
 // AdministrativeRegion is the predicate function for administrativeregion builders.
 type AdministrativeRegion func(*sql.Selector)
 
+// Airline is the predicate function for airline builders.
+type Airline func(*sql.Selector)
+
+// Airport is the predicate function for airport builders.
+type Airport func(*sql.Selector)
+
 // AuditLog is the predicate function for auditlog builders.
 type AuditLog func(*sql.Selector)
 
@@ -111,6 +117,9 @@ type PartnerShippingPreset func(*sql.Selector)
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 
+// Port is the predicate function for port builders.
+type Port func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 
@@ -119,6 +128,12 @@ type RoleAssignment func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
+
+// ShippingLine is the predicate function for shippingline builders.
+type ShippingLine func(*sql.Selector)
+
+// ShippingLineContainerPrefix is the predicate function for shippinglinecontainerprefix builders.
+type ShippingLineContainerPrefix func(*sql.Selector)
 
 // StatusTemplate is the predicate function for statustemplate builders.
 type StatusTemplate func(*sql.Selector)

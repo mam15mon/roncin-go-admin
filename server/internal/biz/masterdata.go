@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"net/url"
-	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -27,9 +25,6 @@ const (
 	MasterDataKindCurrency      MasterDataKind = "currency"
 	MasterDataKindCountry       MasterDataKind = "country"
 	MasterDataKindRegion        MasterDataKind = "region"
-	MasterDataKindPort          MasterDataKind = "port"
-	MasterDataKindAirport       MasterDataKind = "airport"
-	MasterDataKindCarrier       MasterDataKind = "carrier"
 	MasterDataKindContainerSpec MasterDataKind = "container_spec"
 	MasterDataKindServiceType   MasterDataKind = "service_type"
 	MasterDataKindCargoCategory MasterDataKind = "cargo_category"
@@ -38,7 +33,7 @@ const (
 
 func (kind MasterDataKind) Valid() bool {
 	switch kind {
-	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindPort, MasterDataKindAirport, MasterDataKindCarrier, MasterDataKindContainerSpec, MasterDataKindServiceType, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
+	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindServiceType, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
 		return true
 	default:
 		return false
@@ -53,7 +48,6 @@ type MasterDataItem struct {
 	Name           string
 	NameEN         *string
 	ParentCode     *string
-	TransportMode  *string
 	TEUFactor      *string
 	Attributes     MasterDataAttributes
 	Source         string
@@ -64,28 +58,17 @@ type MasterDataItem struct {
 }
 
 type MasterDataAttributes struct {
-	CountryCode  *string
-	Modes        []string
-	IsBorder     *bool
-	ICAOCode     *string
-	CityName     *string
-	AWBPrefix    *string
-	IsCargoOnly  *bool
-	SCACCode     *string
-	TrackingURL  *string
-	Alliance     *string
 	Continent    *string
 	CurrencyCode *string
 	RegionLevel  *int
 }
 
 type MasterDataListOptions struct {
-	Page          int
-	PageSize      int
-	Kind          MasterDataKind
-	Keyword       string
-	Enabled       *bool
-	TransportMode *string
+	Page     int
+	PageSize int
+	Kind     MasterDataKind
+	Keyword  string
+	Enabled  *bool
 }
 
 type MasterDataList struct {
@@ -144,10 +127,6 @@ func (uc *MasterDataUsecase) List(ctx context.Context, organizationID uuid.UUID,
 		return nil, ErrMasterDataInvalidKind
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
-	options.TransportMode = normalizedUpperOptionalString(options.TransportMode)
-	if optionalStringTooLong(options.TransportMode, 32) {
-		return nil, ErrMasterDataInvalidArgument
-	}
 	return uc.repo.List(ctx, organizationID, options)
 }
 
@@ -241,9 +220,8 @@ func normalizeMasterDataItem(input *MasterDataItem, creating bool) (*MasterDataI
 	}
 	output.NameEN = normalizedOptionalString(output.NameEN)
 	output.ParentCode = normalizedUpperOptionalString(output.ParentCode)
-	output.TransportMode = normalizedUpperOptionalString(output.TransportMode)
 	output.TEUFactor = normalizedOptionalString(output.TEUFactor)
-	if err := normalizeMasterDataAttributes(output.Kind, output.TransportMode, &output.Attributes); err != nil {
+	if err := normalizeMasterDataAttributes(output.Kind, &output.Attributes); err != nil {
 		return nil, err
 	}
 	if !output.Kind.Valid() || output.Name == "" || utf8.RuneCountInString(output.Name) > 200 || output.SortOrder < 0 || utf8.RuneCountInString(output.Source) > 100 {
@@ -252,13 +230,10 @@ func normalizeMasterDataItem(input *MasterDataItem, creating bool) (*MasterDataI
 	if creating && (output.Code == "" || utf8.RuneCountInString(output.Code) > 64) {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	if optionalStringTooLong(output.NameEN, 200) || optionalStringTooLong(output.ParentCode, 64) || optionalStringTooLong(output.TransportMode, 32) || optionalStringTooLong(output.TEUFactor, 32) {
+	if optionalStringTooLong(output.NameEN, 200) || optionalStringTooLong(output.ParentCode, 64) || optionalStringTooLong(output.TEUFactor, 32) {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	if output.ParentCode != nil && output.Kind != MasterDataKindRegion && output.Kind != MasterDataKindPort && output.Kind != MasterDataKindAirport {
-		return nil, ErrMasterDataInvalidArgument
-	}
-	if output.TransportMode != nil && output.Kind != MasterDataKindCarrier {
+	if output.ParentCode != nil && output.Kind != MasterDataKindRegion {
 		return nil, ErrMasterDataInvalidArgument
 	}
 	if output.TEUFactor != nil {
@@ -273,47 +248,10 @@ func normalizeMasterDataItem(input *MasterDataItem, creating bool) (*MasterDataI
 	return &output, nil
 }
 
-var awbPrefixPattern = regexp.MustCompile(`^\d{3}$`)
-
-func normalizeMasterDataAttributes(kind MasterDataKind, transportMode *string, attributes *MasterDataAttributes) error {
-	attributes.CountryCode = normalizedUpperOptionalString(attributes.CountryCode)
-	attributes.ICAOCode = normalizedUpperOptionalString(attributes.ICAOCode)
-	attributes.CityName = normalizedOptionalString(attributes.CityName)
-	attributes.AWBPrefix = normalizedOptionalString(attributes.AWBPrefix)
-	attributes.SCACCode = normalizedUpperOptionalString(attributes.SCACCode)
-	attributes.TrackingURL = normalizedOptionalString(attributes.TrackingURL)
-	attributes.Alliance = normalizedOptionalString(attributes.Alliance)
+func normalizeMasterDataAttributes(kind MasterDataKind, attributes *MasterDataAttributes) error {
 	attributes.Continent = normalizedOptionalString(attributes.Continent)
 	attributes.CurrencyCode = normalizedUpperOptionalString(attributes.CurrencyCode)
-
-	seenModes := make(map[string]struct{}, len(attributes.Modes))
-	normalizedModes := make([]string, 0, len(attributes.Modes))
-	for _, mode := range attributes.Modes {
-		mode = strings.ToUpper(strings.TrimSpace(mode))
-		if mode == "" {
-			continue
-		}
-		if mode != "PORT" && mode != "RAIL" && mode != "ROAD" && mode != "AIRPORT" {
-			return ErrMasterDataInvalidArgument
-		}
-		if _, exists := seenModes[mode]; exists {
-			continue
-		}
-		seenModes[mode] = struct{}{}
-		normalizedModes = append(normalizedModes, mode)
-	}
-	attributes.Modes = normalizedModes
-
-	if optionalStringTooLong(attributes.CountryCode, 8) || optionalStringTooLong(attributes.ICAOCode, 4) || optionalStringTooLong(attributes.CityName, 100) || optionalStringTooLong(attributes.AWBPrefix, 3) || optionalStringTooLong(attributes.SCACCode, 8) || optionalStringTooLong(attributes.TrackingURL, 500) || optionalStringTooLong(attributes.Alliance, 100) || optionalStringTooLong(attributes.Continent, 32) || optionalStringTooLong(attributes.CurrencyCode, 3) {
-		return ErrMasterDataInvalidArgument
-	}
-	if attributes.TrackingURL != nil {
-		parsed, err := url.ParseRequestURI(*attributes.TrackingURL)
-		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-			return ErrMasterDataInvalidArgument
-		}
-	}
-	if attributes.AWBPrefix != nil && !awbPrefixPattern.MatchString(*attributes.AWBPrefix) {
+	if optionalStringTooLong(attributes.Continent, 32) || optionalStringTooLong(attributes.CurrencyCode, 3) {
 		return ErrMasterDataInvalidArgument
 	}
 	if attributes.RegionLevel != nil && (*attributes.RegionLevel < 1 || *attributes.RegionLevel > 3) {
@@ -322,42 +260,15 @@ func normalizeMasterDataAttributes(kind MasterDataKind, transportMode *string, a
 
 	switch kind {
 	case MasterDataKindCountry:
-		if attributes.CountryCode != nil || len(attributes.Modes) > 0 || attributes.IsBorder != nil || attributes.ICAOCode != nil || attributes.CityName != nil || attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil || attributes.RegionLevel != nil {
+		if attributes.RegionLevel != nil {
 			return ErrMasterDataInvalidArgument
 		}
 	case MasterDataKindRegion:
-		if attributes.CountryCode != nil || len(attributes.Modes) > 0 || attributes.IsBorder != nil || attributes.ICAOCode != nil || attributes.CityName != nil || attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil || attributes.Continent != nil || attributes.CurrencyCode != nil {
-			return ErrMasterDataInvalidArgument
-		}
-	case MasterDataKindPort:
-		if attributes.ICAOCode != nil || attributes.CityName != nil || attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil || attributes.Continent != nil || attributes.CurrencyCode != nil || attributes.RegionLevel != nil {
-			return ErrMasterDataInvalidArgument
-		}
-	case MasterDataKindAirport:
-		if len(attributes.Modes) > 0 || attributes.IsBorder != nil || attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil || attributes.Continent != nil || attributes.CurrencyCode != nil || attributes.RegionLevel != nil {
-			return ErrMasterDataInvalidArgument
-		}
-	case MasterDataKindCarrier:
-		if len(attributes.Modes) > 0 || attributes.IsBorder != nil || attributes.ICAOCode != nil || attributes.CityName != nil || attributes.Continent != nil || attributes.CurrencyCode != nil || attributes.RegionLevel != nil {
-			return ErrMasterDataInvalidArgument
-		}
-		mode := ""
-		if transportMode != nil {
-			mode = *transportMode
-		}
-		if mode == "AIR" {
-			if attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil {
-				return ErrMasterDataInvalidArgument
-			}
-		} else if mode == "SEA" {
-			if attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil {
-				return ErrMasterDataInvalidArgument
-			}
-		} else if attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil {
+		if attributes.Continent != nil || attributes.CurrencyCode != nil {
 			return ErrMasterDataInvalidArgument
 		}
 	default:
-		if attributes.CountryCode != nil || len(attributes.Modes) > 0 || attributes.IsBorder != nil || attributes.ICAOCode != nil || attributes.CityName != nil || attributes.AWBPrefix != nil || attributes.IsCargoOnly != nil || attributes.SCACCode != nil || attributes.TrackingURL != nil || attributes.Alliance != nil || attributes.Continent != nil || attributes.CurrencyCode != nil || attributes.RegionLevel != nil {
+		if attributes.Continent != nil || attributes.CurrencyCode != nil || attributes.RegionLevel != nil {
 			return ErrMasterDataInvalidArgument
 		}
 	}

@@ -56,6 +56,117 @@ var (
 			},
 		},
 	}
+	// AirlinesColumns holds the columns for the "airlines" table.
+	AirlinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "iata_code", Type: field.TypeString, Size: 2},
+		{Name: "icao_code", Type: field.TypeString, Nullable: true, Size: 3},
+		{Name: "awb_prefix", Type: field.TypeString, Size: 3},
+		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Size: 200},
+		{Name: "country_code", Type: field.TypeString, Size: 2},
+		{Name: "cargo_only", Type: field.TypeBool, Default: false},
+		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// AirlinesTable holds the schema information for the "airlines" table.
+	AirlinesTable = &schema.Table{
+		Name:       "airlines",
+		Columns:    AirlinesColumns,
+		PrimaryKey: []*schema.Column{AirlinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "airlines_organizations_airlines",
+				Columns:    []*schema.Column{AirlinesColumns[13]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airline_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirlinesColumns[2]},
+			},
+			{
+				Name:    "airline_organization_id_iata_code",
+				Unique:  true,
+				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[3]},
+			},
+			{
+				Name:    "airline_organization_id_icao_code",
+				Unique:  true,
+				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[4]},
+			},
+			{
+				Name:    "airline_organization_id_awb_prefix",
+				Unique:  true,
+				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[5]},
+			},
+			{
+				Name:    "airline_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[12], AirlinesColumns[11]},
+			},
+		},
+	}
+	// AirportsColumns holds the columns for the "airports" table.
+	AirportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "iata_code", Type: field.TypeString, Size: 3},
+		{Name: "icao_code", Type: field.TypeString, Nullable: true, Size: 4},
+		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Size: 200},
+		{Name: "city_name_zh", Type: field.TypeString, Size: 100},
+		{Name: "city_name_en", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "country_code", Type: field.TypeString, Size: 2},
+		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// AirportsTable holds the schema information for the "airports" table.
+	AirportsTable = &schema.Table{
+		Name:       "airports",
+		Columns:    AirportsColumns,
+		PrimaryKey: []*schema.Column{AirportsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "airports_organizations_airports",
+				Columns:    []*schema.Column{AirportsColumns[13]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airport_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirportsColumns[2]},
+			},
+			{
+				Name:    "airport_organization_id_iata_code",
+				Unique:  true,
+				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[3]},
+			},
+			{
+				Name:    "airport_organization_id_icao_code",
+				Unique:  true,
+				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[4]},
+			},
+			{
+				Name:    "airport_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[12], AirportsColumns[11]},
+			},
+		},
+	}
 	// AuditLogsColumns holds the columns for the "audit_logs" table.
 	AuditLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -201,12 +312,11 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category", "abnormal_case"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "container_spec", "service_type", "cargo_category", "abnormal_case"}},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "parent_code", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "transport_mode", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "teu_factor", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
@@ -222,7 +332,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "master_data_items_organizations_master_data_items",
-				Columns:    []*schema.Column{MasterDataItemsColumns[14]},
+				Columns:    []*schema.Column{MasterDataItemsColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -236,17 +346,17 @@ var (
 			{
 				Name:    "masterdataitem_organization_id_kind_code",
 				Unique:  true,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[12], MasterDataItemsColumns[11]},
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[11], MasterDataItemsColumns[10]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_name",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
+				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
 			},
 		},
 	}
@@ -1672,6 +1782,52 @@ var (
 			},
 		},
 	}
+	// PortsColumns holds the columns for the "ports" table.
+	PortsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "un_locode", Type: field.TypeString, Size: 5},
+		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Size: 200},
+		{Name: "country_code", Type: field.TypeString, Size: 2},
+		{Name: "transport_modes", Type: field.TypeJSON},
+		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// PortsTable holds the schema information for the "ports" table.
+	PortsTable = &schema.Table{
+		Name:       "ports",
+		Columns:    PortsColumns,
+		PrimaryKey: []*schema.Column{PortsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ports_organizations_ports",
+				Columns:    []*schema.Column{PortsColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "port_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PortsColumns[2]},
+			},
+			{
+				Name:    "port_organization_id_un_locode",
+				Unique:  true,
+				Columns: []*schema.Column{PortsColumns[11], PortsColumns[3]},
+			},
+			{
+				Name:    "port_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{PortsColumns[11], PortsColumns[10], PortsColumns[9]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1807,6 +1963,93 @@ var (
 				Name:    "session_expires_at_revoked_at",
 				Unique:  false,
 				Columns: []*schema.Column{SessionsColumns[4], SessionsColumns[6]},
+			},
+		},
+	}
+	// ShippingLinesColumns holds the columns for the "shipping_lines" table.
+	ShippingLinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "scac_code", Type: field.TypeString, Size: 4},
+		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Size: 200},
+		{Name: "country_code", Type: field.TypeString, Size: 2},
+		{Name: "tracking_url", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "alliance", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// ShippingLinesTable holds the schema information for the "shipping_lines" table.
+	ShippingLinesTable = &schema.Table{
+		Name:       "shipping_lines",
+		Columns:    ShippingLinesColumns,
+		PrimaryKey: []*schema.Column{ShippingLinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shipping_lines_organizations_shipping_lines",
+				Columns:    []*schema.Column{ShippingLinesColumns[12]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "shippingline_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ShippingLinesColumns[2]},
+			},
+			{
+				Name:    "shippingline_organization_id_scac_code",
+				Unique:  true,
+				Columns: []*schema.Column{ShippingLinesColumns[12], ShippingLinesColumns[3]},
+			},
+			{
+				Name:    "shippingline_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{ShippingLinesColumns[12], ShippingLinesColumns[11], ShippingLinesColumns[10]},
+			},
+		},
+	}
+	// ShippingLineContainerPrefixesColumns holds the columns for the "shipping_line_container_prefixes" table.
+	ShippingLineContainerPrefixesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "prefix", Type: field.TypeString, Size: 4},
+		{Name: "shipping_line_id", Type: field.TypeUUID},
+	}
+	// ShippingLineContainerPrefixesTable holds the schema information for the "shipping_line_container_prefixes" table.
+	ShippingLineContainerPrefixesTable = &schema.Table{
+		Name:       "shipping_line_container_prefixes",
+		Columns:    ShippingLineContainerPrefixesColumns,
+		PrimaryKey: []*schema.Column{ShippingLineContainerPrefixesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shipping_line_container_prefixes_shipping_lines_container_prefixes",
+				Columns:    []*schema.Column{ShippingLineContainerPrefixesColumns[5]},
+				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "shippinglinecontainerprefix_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[2]},
+			},
+			{
+				Name:    "shippinglinecontainerprefix_organization_id_prefix",
+				Unique:  true,
+				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[3], ShippingLineContainerPrefixesColumns[4]},
+			},
+			{
+				Name:    "shippinglinecontainerprefix_shipping_line_id_prefix",
+				Unique:  true,
+				Columns: []*schema.Column{ShippingLineContainerPrefixesColumns[5], ShippingLineContainerPrefixesColumns[4]},
 			},
 		},
 	}
@@ -1969,6 +2212,8 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AdministrativeRegionsTable,
+		AirlinesTable,
+		AirportsTable,
 		AuditLogsTable,
 		BackgroundTasksTable,
 		CurrenciesTable,
@@ -2003,9 +2248,12 @@ var (
 		PartnerSettlementRulesTable,
 		PartnerShippingPresetsTable,
 		PermissionsTable,
+		PortsTable,
 		RolesTable,
 		RoleAssignmentsTable,
 		SessionsTable,
+		ShippingLinesTable,
+		ShippingLineContainerPrefixesTable,
 		StatusTemplatesTable,
 		StatusTemplateItemsTable,
 		UsersTable,
@@ -2014,6 +2262,8 @@ var (
 )
 
 func init() {
+	AirlinesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
@@ -2053,11 +2303,14 @@ func init() {
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
 	PartnerShippingPresetsTable.ForeignKeys[0].RefTable = PartnersTable
+	PortsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
+	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	StatusTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	StatusTemplateItemsTable.ForeignKeys[0].RefTable = StatusTemplatesTable
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable

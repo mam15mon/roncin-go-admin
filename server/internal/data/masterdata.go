@@ -26,9 +26,6 @@ func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, opt
 	if options.Enabled != nil {
 		query.Where(masterdataent.EnabledEQ(*options.Enabled))
 	}
-	if options.TransportMode != nil {
-		query.Where(masterdataent.TransportModeEQ(*options.TransportMode))
-	}
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, err
@@ -49,7 +46,7 @@ func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UU
 }
 
 func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.MasterDataItem) (*biz.MasterDataItem, error) {
-	create := r.data.db.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTransportMode(input.TransportMode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
+	create := r.data.db.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 	created, err := create.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -68,15 +65,12 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 		}
 		return nil, err
 	}
-	update := existing.Update().SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTransportMode(input.TransportMode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).SetAttributes(masterDataAttributesToEnt(input.Attributes))
+	update := existing.Update().SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 	if input.NameEN == nil {
 		update.ClearNameEn()
 	}
 	if input.ParentCode == nil {
 		update.ClearParentCode()
-	}
-	if input.TransportMode == nil {
-		update.ClearTransportMode()
 	}
 	if input.TEUFactor == nil {
 		update.ClearTeuFactor()
@@ -104,7 +98,6 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 				SetName(input.Name).
 				SetNillableNameEn(input.NameEN).
 				SetNillableParentCode(input.ParentCode).
-				SetNillableTransportMode(input.TransportMode).
 				SetNillableTeuFactor(input.TEUFactor).
 				SetSource(input.Source).
 				SetSortOrder(input.SortOrder).
@@ -134,7 +127,6 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 			SetName(input.Name).
 			SetNillableNameEn(input.NameEN).
 			SetNillableParentCode(input.ParentCode).
-			SetNillableTransportMode(input.TransportMode).
 			SetNillableTeuFactor(input.TEUFactor).
 			SetSource(input.Source).
 			SetSortOrder(input.SortOrder).
@@ -145,9 +137,6 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 		}
 		if input.ParentCode == nil {
 			update.ClearParentCode()
-		}
-		if input.TransportMode == nil {
-			update.ClearTransportMode()
 		}
 		if input.TEUFactor == nil {
 			update.ClearTeuFactor()
@@ -175,15 +164,12 @@ func masterDataItemsToBiz(items []*ent.MasterDataItem) []*biz.MasterDataItem {
 }
 
 func masterDataItemToBiz(item *ent.MasterDataItem) *biz.MasterDataItem {
-	return &biz.MasterDataItem{ID: item.ID, OrganizationID: item.OrganizationID, Kind: biz.MasterDataKind(item.Kind), Code: item.Code, Name: item.Name, NameEN: item.NameEn, ParentCode: item.ParentCode, TransportMode: item.TransportMode, TEUFactor: item.TeuFactor, Attributes: masterDataAttributesToBiz(item.Attributes), Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.MasterDataItem{ID: item.ID, OrganizationID: item.OrganizationID, Kind: biz.MasterDataKind(item.Kind), Code: item.Code, Name: item.Name, NameEN: item.NameEn, ParentCode: item.ParentCode, TEUFactor: item.TeuFactor, Attributes: masterDataAttributesToBiz(item.Attributes), Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func masterDataAttributesToEnt(attributes biz.MasterDataAttributes) *entschema.MasterDataAttributes {
 	return &entschema.MasterDataAttributes{
-		CountryCode: attributes.CountryCode, Modes: attributes.Modes, IsBorder: attributes.IsBorder,
-		ICAOCode: attributes.ICAOCode, CityName: attributes.CityName, AWBPrefix: attributes.AWBPrefix,
-		IsCargoOnly: attributes.IsCargoOnly, SCACCode: attributes.SCACCode, TrackingURL: attributes.TrackingURL,
-		Alliance: attributes.Alliance, Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
+		Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
 		RegionLevel: attributes.RegionLevel,
 	}
 }
@@ -193,10 +179,7 @@ func masterDataAttributesToBiz(attributes *entschema.MasterDataAttributes) biz.M
 		return biz.MasterDataAttributes{}
 	}
 	return biz.MasterDataAttributes{
-		CountryCode: attributes.CountryCode, Modes: attributes.Modes, IsBorder: attributes.IsBorder,
-		ICAOCode: attributes.ICAOCode, CityName: attributes.CityName, AWBPrefix: attributes.AWBPrefix,
-		IsCargoOnly: attributes.IsCargoOnly, SCACCode: attributes.SCACCode, TrackingURL: attributes.TrackingURL,
-		Alliance: attributes.Alliance, Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
+		Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
 		RegionLevel: attributes.RegionLevel,
 	}
 }

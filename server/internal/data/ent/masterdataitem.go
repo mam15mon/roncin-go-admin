@@ -37,8 +37,6 @@ type MasterDataItem struct {
 	NameEn *string `json:"name_en,omitempty"`
 	// ParentCode holds the value of the "parent_code" field.
 	ParentCode *string `json:"parent_code,omitempty"`
-	// TransportMode holds the value of the "transport_mode" field.
-	TransportMode *string `json:"transport_mode,omitempty"`
 	// TeuFactor holds the value of the "teu_factor" field.
 	TeuFactor *string `json:"teu_factor,omitempty"`
 	// Source holds the value of the "source" field.
@@ -86,7 +84,7 @@ func (*MasterDataItem) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case masterdataitem.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case masterdataitem.FieldKind, masterdataitem.FieldCode, masterdataitem.FieldName, masterdataitem.FieldNameEn, masterdataitem.FieldParentCode, masterdataitem.FieldTransportMode, masterdataitem.FieldTeuFactor, masterdataitem.FieldSource:
+		case masterdataitem.FieldKind, masterdataitem.FieldCode, masterdataitem.FieldName, masterdataitem.FieldNameEn, masterdataitem.FieldParentCode, masterdataitem.FieldTeuFactor, masterdataitem.FieldSource:
 			values[i] = new(sql.NullString)
 		case masterdataitem.FieldCreatedAt, masterdataitem.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -162,13 +160,6 @@ func (_m *MasterDataItem) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ParentCode = new(string)
 				*_m.ParentCode = value.String
-			}
-		case masterdataitem.FieldTransportMode:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field transport_mode", values[i])
-			} else if value.Valid {
-				_m.TransportMode = new(string)
-				*_m.TransportMode = value.String
 			}
 		case masterdataitem.FieldTeuFactor:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -269,11 +260,6 @@ func (_m *MasterDataItem) String() string {
 	builder.WriteString(", ")
 	if v := _m.ParentCode; v != nil {
 		builder.WriteString("parent_code=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.TransportMode; v != nil {
-		builder.WriteString("transport_mode=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

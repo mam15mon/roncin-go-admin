@@ -33,8 +33,6 @@ const (
 	FieldNameEn = "name_en"
 	// FieldParentCode holds the string denoting the parent_code field in the database.
 	FieldParentCode = "parent_code"
-	// FieldTransportMode holds the string denoting the transport_mode field in the database.
-	FieldTransportMode = "transport_mode"
 	// FieldTeuFactor holds the string denoting the teu_factor field in the database.
 	FieldTeuFactor = "teu_factor"
 	// FieldSource holds the string denoting the source field in the database.
@@ -69,7 +67,6 @@ var Columns = []string{
 	FieldName,
 	FieldNameEn,
 	FieldParentCode,
-	FieldTransportMode,
 	FieldTeuFactor,
 	FieldSource,
 	FieldSortOrder,
@@ -102,8 +99,6 @@ var (
 	NameEnValidator func(string) error
 	// ParentCodeValidator is a validator for the "parent_code" field. It is called by the builders before save.
 	ParentCodeValidator func(string) error
-	// TransportModeValidator is a validator for the "transport_mode" field. It is called by the builders before save.
-	TransportModeValidator func(string) error
 	// TeuFactorValidator is a validator for the "teu_factor" field. It is called by the builders before save.
 	TeuFactorValidator func(string) error
 	// DefaultSource holds the default value on creation for the "source" field.
@@ -128,9 +123,6 @@ const (
 	KindCurrency      Kind = "currency"
 	KindCountry       Kind = "country"
 	KindRegion        Kind = "region"
-	KindPort          Kind = "port"
-	KindAirport       Kind = "airport"
-	KindCarrier       Kind = "carrier"
 	KindContainerSpec Kind = "container_spec"
 	KindServiceType   Kind = "service_type"
 	KindCargoCategory Kind = "cargo_category"
@@ -144,7 +136,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindCurrency, KindCountry, KindRegion, KindPort, KindAirport, KindCarrier, KindContainerSpec, KindServiceType, KindCargoCategory, KindAbnormalCase:
+	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindServiceType, KindCargoCategory, KindAbnormalCase:
 		return nil
 	default:
 		return fmt.Errorf("masterdataitem: invalid enum value for kind field: %q", k)
@@ -197,11 +189,6 @@ func ByNameEn(opts ...sql.OrderTermOption) OrderOption {
 // ByParentCode orders the results by the parent_code field.
 func ByParentCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldParentCode, opts...).ToFunc()
-}
-
-// ByTransportMode orders the results by the transport_mode field.
-func ByTransportMode(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTransportMode, opts...).ToFunc()
 }
 
 // ByTeuFactor orders the results by the teu_factor field.

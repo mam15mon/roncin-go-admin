@@ -99,61 +99,6 @@ func TestMasterDataListRejectsInvalidPage(t *testing.T) {
 	}
 }
 
-func TestMasterDataListNormalizesTransportMode(t *testing.T) {
-	repo := &masterDataRepoStub{}
-	usecase := NewMasterDataUsecase(repo, &auditRepoStub{})
-	mode := " air "
-	if _, err := usecase.List(context.Background(), uuid.New(), MasterDataListOptions{Page: 1, PageSize: 20, Kind: MasterDataKindCarrier, TransportMode: &mode}); err != nil {
-		t.Fatalf("List() error = %v", err)
-	}
-	if repo.listOptions.TransportMode == nil || *repo.listOptions.TransportMode != "AIR" {
-		t.Fatalf("TransportMode = %v, want AIR", repo.listOptions.TransportMode)
-	}
-}
-
-func TestMasterDataAttributesNormalizeByKind(t *testing.T) {
-	repo := &masterDataRepoStub{}
-	usecase := NewMasterDataUsecase(repo, &auditRepoStub{})
-	organizationID := uuid.New()
-	actorID := uuid.New()
-	countryCode := " cn "
-	awbPrefix := "999"
-	cargoOnly := false
-	transportMode := " air "
-
-	_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
-		Kind: MasterDataKindCarrier, Code: "ca", Name: "中国国际航空", TransportMode: &transportMode,
-		Attributes: MasterDataAttributes{CountryCode: &countryCode, AWBPrefix: &awbPrefix, IsCargoOnly: &cargoOnly},
-	})
-	if err != nil {
-		t.Fatalf("Create() error = %v", err)
-	}
-	if repo.created.TransportMode == nil || *repo.created.TransportMode != "AIR" || repo.created.Attributes.CountryCode == nil || *repo.created.Attributes.CountryCode != "CN" {
-		t.Fatalf("normalized item = %#v", repo.created)
-	}
-}
-
-func TestMasterDataAttributesRejectCrossKindFields(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
-	continent := "亚洲"
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &MasterDataItem{
-		Kind: MasterDataKindAirport, Code: "PVG", Name: "上海浦东国际机场", Attributes: MasterDataAttributes{Continent: &continent},
-	}); err != ErrMasterDataInvalidArgument {
-		t.Fatalf("Create() error = %v, want ErrMasterDataInvalidArgument", err)
-	}
-}
-
-func TestMasterDataAttributesRejectInvalidTrackingURL(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
-	transportMode := "SEA"
-	trackingURL := "javascript:alert(1)"
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), &MasterDataItem{
-		Kind: MasterDataKindCarrier, Code: "MSKU", Name: "马士基航运", TransportMode: &transportMode, Attributes: MasterDataAttributes{TrackingURL: &trackingURL},
-	}); err != ErrMasterDataInvalidArgument {
-		t.Fatalf("Create() error = %v, want ErrMasterDataInvalidArgument", err)
-	}
-}
-
 // 测试 Import 批量导入：将批次 kind/source 写入每项，编码大写，调用 repo 并记录 master_data.import 审计
 func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 	repo := &masterDataRepoStub{
@@ -173,7 +118,7 @@ func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 		Mode:   MasterDataImportModeCreateOnly,
 		Items: []*MasterDataItem{
 			{
-				Kind:   MasterDataKindPort, // 应被批次 kind 覆盖
+				Kind:   MasterDataKindCountry, // 应被批次 kind 覆盖
 				Code:   " cny ",
 				Name:   " 人民币 ",
 				Source: " other ", // 应被批次 source 覆盖
@@ -357,18 +302,14 @@ func TestMasterDataImportRejectsInvalidArguments(t *testing.T) {
 	}
 }
 
-// 验证字段专属规则：ParentCode 只允许 region/port/airport，TransportMode 只允许 carrier，TEUFactor 只允许 container_spec
+// 验证字段专属规则：ParentCode 只允许 region，TEUFactor 只允许 container_spec
 func TestMasterDataFieldConstraints(t *testing.T) {
 	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
-	// 1. ParentCode 测试：只允许 region/port/airport
-	validParentCodeKinds := []MasterDataKind{
-		MasterDataKindRegion,
-		MasterDataKindPort,
-		MasterDataKindAirport,
-	}
+	// 1. ParentCode 测试：只允许 region
+	validParentCodeKinds := []MasterDataKind{MasterDataKindRegion}
 	for _, kind := range validParentCodeKinds {
 		_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
 			Kind:       kind,
@@ -384,7 +325,6 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 	invalidParentCodeKinds := []MasterDataKind{
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
-		MasterDataKindCarrier,
 		MasterDataKindContainerSpec,
 		MasterDataKindServiceType,
 		MasterDataKindCargoCategory,
@@ -401,41 +341,8 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		}
 	}
 
-	// 2. TransportMode 测试：只允许 carrier
+	// 2. TEUFactor 测试：只允许 container_spec
 	_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
-		Kind:          MasterDataKindCarrier,
-		Code:          "COSCO",
-		Name:          "中远海运",
-		TransportMode: stringPtr("OCEAN"),
-	})
-	if err != nil {
-		t.Fatalf("Create() with TransportMode on carrier error = %v", err)
-	}
-
-	invalidTransportModeKinds := []MasterDataKind{
-		MasterDataKindCurrency,
-		MasterDataKindCountry,
-		MasterDataKindRegion,
-		MasterDataKindPort,
-		MasterDataKindAirport,
-		MasterDataKindContainerSpec,
-		MasterDataKindServiceType,
-		MasterDataKindCargoCategory,
-	}
-	for _, kind := range invalidTransportModeKinds {
-		_, err := usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
-			Kind:          kind,
-			Code:          "TEST",
-			Name:          "测试",
-			TransportMode: stringPtr("OCEAN"),
-		})
-		if err != ErrMasterDataInvalidArgument {
-			t.Fatalf("Create() with TransportMode on invalid kind %v error = %v, want %v", kind, err, ErrMasterDataInvalidArgument)
-		}
-	}
-
-	// 3. TEUFactor 测试：只允许 container_spec
-	_, err = usecase.Create(context.Background(), organizationID, actorID, &MasterDataItem{
 		Kind:      MasterDataKindContainerSpec,
 		Code:      "20GP",
 		Name:      "20尺普柜",
@@ -449,9 +356,6 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
 		MasterDataKindRegion,
-		MasterDataKindPort,
-		MasterDataKindAirport,
-		MasterDataKindCarrier,
 		MasterDataKindServiceType,
 		MasterDataKindCargoCategory,
 	}

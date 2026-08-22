@@ -14,19 +14,9 @@ type MasterDataItem struct{ ent.Schema }
 
 // MasterDataAttributes 是主数据专属属性的 JSONB 持久化结构。
 type MasterDataAttributes struct {
-	CountryCode  *string  `json:"country_code,omitempty"`
-	Modes        []string `json:"modes,omitempty"`
-	IsBorder     *bool    `json:"is_border,omitempty"`
-	ICAOCode     *string  `json:"icao_code,omitempty"`
-	CityName     *string  `json:"city_name,omitempty"`
-	AWBPrefix    *string  `json:"awb_prefix,omitempty"`
-	IsCargoOnly  *bool    `json:"is_cargo_only,omitempty"`
-	SCACCode     *string  `json:"scac_code,omitempty"`
-	TrackingURL  *string  `json:"tracking_url,omitempty"`
-	Alliance     *string  `json:"alliance,omitempty"`
-	Continent    *string  `json:"continent,omitempty"`
-	CurrencyCode *string  `json:"currency_code,omitempty"`
-	RegionLevel  *int     `json:"region_level,omitempty"`
+	Continent    *string `json:"continent,omitempty"`
+	CurrencyCode *string `json:"currency_code,omitempty"`
+	RegionLevel  *int    `json:"region_level,omitempty"`
 }
 
 func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -34,12 +24,11 @@ func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 func (MasterDataItem) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("kind").Values("currency", "country", "region", "port", "airport", "carrier", "container_spec", "service_type", "cargo_category", "abnormal_case"),
+		field.Enum("kind").Values("currency", "country", "region", "container_spec", "service_type", "cargo_category", "abnormal_case"),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
 		field.String("name_en").MaxLen(200).Optional().Nillable(),
 		field.String("parent_code").MaxLen(64).Optional().Nillable(),
-		field.String("transport_mode").MaxLen(32).Optional().Nillable(),
 		field.String("teu_factor").MaxLen(32).Optional().Nillable(),
 		field.String("source").MaxLen(100).Default("manual"),
 		field.Int("sort_order").Default(100),

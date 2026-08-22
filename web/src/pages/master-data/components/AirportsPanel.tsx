@@ -3,29 +3,26 @@ import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import {
-  masterDataServiceCreateItem,
-  masterDataServiceListItems,
-  masterDataServiceUpdateItem,
+  masterDataServiceCreateAirport,
+  masterDataServiceListAirports,
+  masterDataServiceUpdateAirport,
 } from '@/services/roncin/masterDataService';
-import {
-  mapPersistedMasterDataItem,
-  type PersistedMasterDataItem,
-  requireMasterDataResponse,
-} from './masterDataMapper';
+import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface AirportItem extends PersistedMasterDataItem {
   icaoCode: string;
   cityName: string;
+  cityNameEn?: string;
   countryCode: string;
   countryName?: string;
 }
 
-const mapAirport = (item: API.MasterDataItem): AirportItem => ({
-  ...mapPersistedMasterDataItem(item),
-  icaoCode: item.attributes?.icaoCode ?? '',
-  cityName: item.attributes?.cityName ?? '',
-  countryCode: item.attributes?.countryCode ?? '',
-});
+const mapAirport = (item: API.Airport): AirportItem => {
+  if (!item.id || !item.iataCode || !item.nameZh || !item.nameEn || !item.cityNameZh || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+    throw new Error('机场响应缺少必填字段');
+  }
+  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode ?? '', name: item.nameZh, nameEn: item.nameEn, cityName: item.cityNameZh, cityNameEn: item.cityNameEn, countryCode: item.countryCode, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+};
 
 export default function AirportsPanel() {
   const { message } = App.useApp();
@@ -35,7 +32,7 @@ export default function AirportsPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListItems({ kind: 5, page: 1, pageSize: 100 });
+      const response = await masterDataServiceListAirports({ page: 1, pageSize: 100 });
       setData((response.data ?? []).map(mapAirport));
     } finally {
       setLoading(false);
@@ -46,8 +43,9 @@ export default function AirportsPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '机场主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.MasterDataItemReply) => {
-    const saved = mapAirport(requireMasterDataResponse(response));
+  const saveResponse = (response: API.AirportReply) => {
+    if (!response.data) throw new Error('机场响应缺少数据');
+    const saved = mapAirport(response.data);
     setData((current) => {
       const exists = current.some((item) => item.id === saved.id);
       return exists
@@ -57,38 +55,34 @@ export default function AirportsPanel() {
   };
 
   const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateItem({
-      kind: 5,
-      code: values.code.toUpperCase().trim(),
-      name: values.name.trim(),
+    const response = await masterDataServiceCreateAirport({
+      iataCode: values.code.toUpperCase().trim(),
+      nameZh: values.name.trim(),
       nameEn: values.nameEn.trim(),
+      icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+      cityNameZh: values.cityName.trim(),
+      cityNameEn: values.cityNameEn?.trim() || undefined,
+      countryCode: values.countryCode.toUpperCase().trim(),
       source: 'manual',
       sortOrder: 100,
-      attributes: {
-        icaoCode: values.icaoCode?.toUpperCase().trim(),
-        cityName: values.cityName.trim(),
-        countryCode: values.countryCode.toUpperCase().trim(),
-      },
     });
     saveResponse(response);
   };
 
   const updateItem = async (record: AirportItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateItem(
+    const response = await masterDataServiceUpdateAirport(
       { id: record.id },
       {
         id: record.id,
-        kind: 5,
-        name: values.name.trim(),
+        nameZh: values.name.trim(),
         nameEn: values.nameEn.trim(),
+        icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+        cityNameZh: values.cityName.trim(),
+        cityNameEn: values.cityNameEn?.trim() || undefined,
+        countryCode: values.countryCode.toUpperCase().trim(),
         source: record.source,
         sortOrder: record.sortOrder,
         enabled,
-        attributes: {
-          icaoCode: values.icaoCode?.toUpperCase().trim(),
-          cityName: values.cityName.trim(),
-          countryCode: values.countryCode.toUpperCase().trim(),
-        },
       },
     );
     saveResponse(response);
@@ -202,9 +196,14 @@ export default function AirportsPanel() {
         },
         {
           name: 'cityName',
-          label: '所在城市',
+          label: '所在城市中文名',
           placeholder: '例如：上海、洛杉矶',
           required: true,
+        },
+        {
+          name: 'cityNameEn',
+          label: '所在城市英文名',
+          placeholder: '例如：Shanghai、Los Angeles',
         },
         {
           name: 'countryCode',

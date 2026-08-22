@@ -14,6 +14,10 @@ type Tx struct {
 	config
 	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
 	AdministrativeRegion *AdministrativeRegionClient
+	// Airline is the client for interacting with the Airline builders.
+	Airline *AirlineClient
+	// Airport is the client for interacting with the Airport builders.
+	Airport *AirportClient
 	// AuditLog is the client for interacting with the AuditLog builders.
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
@@ -82,12 +86,18 @@ type Tx struct {
 	PartnerShippingPreset *PartnerShippingPresetClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
+	// Port is the client for interacting with the Port builders.
+	Port *PortClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// ShippingLine is the client for interacting with the ShippingLine builders.
+	ShippingLine *ShippingLineClient
+	// ShippingLineContainerPrefix is the client for interacting with the ShippingLineContainerPrefix builders.
+	ShippingLineContainerPrefix *ShippingLineContainerPrefixClient
 	// StatusTemplate is the client for interacting with the StatusTemplate builders.
 	StatusTemplate *StatusTemplateClient
 	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
@@ -226,6 +236,8 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AdministrativeRegion = NewAdministrativeRegionClient(tx.config)
+	tx.Airline = NewAirlineClient(tx.config)
+	tx.Airport = NewAirportClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
@@ -260,9 +272,12 @@ func (tx *Tx) init() {
 	tx.PartnerSettlementRule = NewPartnerSettlementRuleClient(tx.config)
 	tx.PartnerShippingPreset = NewPartnerShippingPresetClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
+	tx.Port = NewPortClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
+	tx.ShippingLine = NewShippingLineClient(tx.config)
+	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)
 	tx.StatusTemplate = NewStatusTemplateClient(tx.config)
 	tx.StatusTemplateItem = NewStatusTemplateItemClient(tx.config)
 	tx.User = NewUserClient(tx.config)

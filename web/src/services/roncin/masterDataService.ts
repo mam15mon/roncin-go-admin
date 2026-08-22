@@ -2,6 +2,104 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** 此处后端没有提供注释 GET /api/v1/master-data/airlines */
+export async function masterDataServiceListAirlines(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListAirlinesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.AirlineListReply>("/api/v1/master-data/airlines", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/airlines */
+export async function masterDataServiceCreateAirline(
+  body: API.CreateAirlineRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.AirlineReply>("/api/v1/master-data/airlines", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/master-data/airlines/${param0} */
+export async function masterDataServiceUpdateAirline(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceUpdateAirlineParams,
+  body: API.UpdateAirlineRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.AirlineReply>(`/api/v1/master-data/airlines/${param0}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/master-data/airports */
+export async function masterDataServiceListAirports(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListAirportsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.AirportListReply>("/api/v1/master-data/airports", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/airports */
+export async function masterDataServiceCreateAirport(
+  body: API.CreateAirportRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.AirportReply>("/api/v1/master-data/airports", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/master-data/airports/${param0} */
+export async function masterDataServiceUpdateAirport(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceUpdateAirportParams,
+  body: API.UpdateAirportRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.AirportReply>(`/api/v1/master-data/airports/${param0}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 POST /api/v1/master-data/import */
 export async function masterDataServiceImportItems(
   body: API.ImportMasterDataItemsRequest,
@@ -204,6 +302,110 @@ export async function masterDataServiceListOptions(options?: {
     method: "GET",
     ...(options || {}),
   });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/master-data/ports */
+export async function masterDataServiceListPorts(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListPortsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.PortListReply>("/api/v1/master-data/ports", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/ports */
+export async function masterDataServiceCreatePort(
+  body: API.CreatePortRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.PortReply>("/api/v1/master-data/ports", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/master-data/ports/${param0} */
+export async function masterDataServiceUpdatePort(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceUpdatePortParams,
+  body: API.UpdatePortRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.PortReply>(`/api/v1/master-data/ports/${param0}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/master-data/shipping-lines */
+export async function masterDataServiceListShippingLines(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListShippingLinesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ShippingLineListReply>(
+    "/api/v1/master-data/shipping-lines",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/master-data/shipping-lines */
+export async function masterDataServiceCreateShippingLine(
+  body: API.CreateShippingLineRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ShippingLineReply>("/api/v1/master-data/shipping-lines", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/master-data/shipping-lines/${param0} */
+export async function masterDataServiceUpdateShippingLine(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceUpdateShippingLineParams,
+  body: API.UpdateShippingLineRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.ShippingLineReply>(
+    `/api/v1/master-data/shipping-lines/${param0}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
 }
 
 /** 此处后端没有提供注释 GET /api/v1/master-data/status-templates */

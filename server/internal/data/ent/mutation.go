@@ -14,6 +14,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
@@ -48,11 +50,14 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -67,47 +72,52 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdministrativeRegion  = "AdministrativeRegion"
-	TypeAuditLog              = "AuditLog"
-	TypeBackgroundTask        = "BackgroundTask"
-	TypeCurrency              = "Currency"
-	TypeMasterDataItem        = "MasterDataItem"
-	TypeMembership            = "Membership"
-	TypeMilestoneTemplate     = "MilestoneTemplate"
-	TypeMilestoneTemplateItem = "MilestoneTemplateItem"
-	TypeNumberRule            = "NumberRule"
-	TypeNumberSequence        = "NumberSequence"
-	TypeOrder                 = "Order"
-	TypeOrderAbnormalCase     = "OrderAbnormalCase"
-	TypeOrderAttachment       = "OrderAttachment"
-	TypeOrderCargoCategory    = "OrderCargoCategory"
-	TypeOrderCargoItem        = "OrderCargoItem"
-	TypeOrderContainer        = "OrderContainer"
-	TypeOrderMilestone        = "OrderMilestone"
-	TypeOrderPersonnel        = "OrderPersonnel"
-	TypeOrderReleasePod       = "OrderReleasePod"
-	TypeOrderServiceType      = "OrderServiceType"
-	TypeOrderShippingDocument = "OrderShippingDocument"
-	TypeOrderStatusLog        = "OrderStatusLog"
-	TypeOrganization          = "Organization"
-	TypePartner               = "Partner"
-	TypePartnerAccount        = "PartnerAccount"
-	TypePartnerAlias          = "PartnerAlias"
-	TypePartnerAssignment     = "PartnerAssignment"
-	TypePartnerAttachment     = "PartnerAttachment"
-	TypePartnerContact        = "PartnerContact"
-	TypePartnerContract       = "PartnerContract"
-	TypePartnerProfile        = "PartnerProfile"
-	TypePartnerRole           = "PartnerRole"
-	TypePartnerSettlementRule = "PartnerSettlementRule"
-	TypePartnerShippingPreset = "PartnerShippingPreset"
-	TypePermission            = "Permission"
-	TypeRole                  = "Role"
-	TypeRoleAssignment        = "RoleAssignment"
-	TypeSession               = "Session"
-	TypeStatusTemplate        = "StatusTemplate"
-	TypeStatusTemplateItem    = "StatusTemplateItem"
-	TypeUser                  = "User"
+	TypeAdministrativeRegion        = "AdministrativeRegion"
+	TypeAirline                     = "Airline"
+	TypeAirport                     = "Airport"
+	TypeAuditLog                    = "AuditLog"
+	TypeBackgroundTask              = "BackgroundTask"
+	TypeCurrency                    = "Currency"
+	TypeMasterDataItem              = "MasterDataItem"
+	TypeMembership                  = "Membership"
+	TypeMilestoneTemplate           = "MilestoneTemplate"
+	TypeMilestoneTemplateItem       = "MilestoneTemplateItem"
+	TypeNumberRule                  = "NumberRule"
+	TypeNumberSequence              = "NumberSequence"
+	TypeOrder                       = "Order"
+	TypeOrderAbnormalCase           = "OrderAbnormalCase"
+	TypeOrderAttachment             = "OrderAttachment"
+	TypeOrderCargoCategory          = "OrderCargoCategory"
+	TypeOrderCargoItem              = "OrderCargoItem"
+	TypeOrderContainer              = "OrderContainer"
+	TypeOrderMilestone              = "OrderMilestone"
+	TypeOrderPersonnel              = "OrderPersonnel"
+	TypeOrderReleasePod             = "OrderReleasePod"
+	TypeOrderServiceType            = "OrderServiceType"
+	TypeOrderShippingDocument       = "OrderShippingDocument"
+	TypeOrderStatusLog              = "OrderStatusLog"
+	TypeOrganization                = "Organization"
+	TypePartner                     = "Partner"
+	TypePartnerAccount              = "PartnerAccount"
+	TypePartnerAlias                = "PartnerAlias"
+	TypePartnerAssignment           = "PartnerAssignment"
+	TypePartnerAttachment           = "PartnerAttachment"
+	TypePartnerContact              = "PartnerContact"
+	TypePartnerContract             = "PartnerContract"
+	TypePartnerProfile              = "PartnerProfile"
+	TypePartnerRole                 = "PartnerRole"
+	TypePartnerSettlementRule       = "PartnerSettlementRule"
+	TypePartnerShippingPreset       = "PartnerShippingPreset"
+	TypePermission                  = "Permission"
+	TypePort                        = "Port"
+	TypeRole                        = "Role"
+	TypeRoleAssignment              = "RoleAssignment"
+	TypeSession                     = "Session"
+	TypeShippingLine                = "ShippingLine"
+	TypeShippingLineContainerPrefix = "ShippingLineContainerPrefix"
+	TypeStatusTemplate              = "StatusTemplate"
+	TypeStatusTemplateItem          = "StatusTemplateItem"
+	TypeUser                        = "User"
 )
 
 // AdministrativeRegionMutation represents an operation that mutates the AdministrativeRegion nodes in the graph.
@@ -1022,6 +1032,2209 @@ func (m *AdministrativeRegionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AdministrativeRegionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AdministrativeRegion edge %s", name)
+}
+
+// AirlineMutation represents an operation that mutates the Airline nodes in the graph.
+type AirlineMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	iata_code           *string
+	icao_code           *string
+	awb_prefix          *string
+	name_zh             *string
+	name_en             *string
+	country_code        *string
+	cargo_only          *bool
+	source              *string
+	sort_order          *int
+	addsort_order       *int
+	enabled             *bool
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*Airline, error)
+	predicates          []predicate.Airline
+}
+
+var _ ent.Mutation = (*AirlineMutation)(nil)
+
+// airlineOption allows management of the mutation configuration using functional options.
+type airlineOption func(*AirlineMutation)
+
+// newAirlineMutation creates new mutation for the Airline entity.
+func newAirlineMutation(c config, op Op, opts ...airlineOption) *AirlineMutation {
+	m := &AirlineMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirline,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirlineID sets the ID field of the mutation.
+func withAirlineID(id uuid.UUID) airlineOption {
+	return func(m *AirlineMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Airline
+		)
+		m.oldValue = func(ctx context.Context) (*Airline, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Airline.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirline sets the old Airline of the mutation.
+func withAirline(node *Airline) airlineOption {
+	return func(m *AirlineMutation) {
+		m.oldValue = func(context.Context) (*Airline, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirlineMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirlineMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Airline entities.
+func (m *AirlineMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirlineMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirlineMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Airline.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirlineMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirlineMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirlineMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirlineMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirlineMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirlineMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirlineMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirlineMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirlineMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetIataCode sets the "iata_code" field.
+func (m *AirlineMutation) SetIataCode(s string) {
+	m.iata_code = &s
+}
+
+// IataCode returns the value of the "iata_code" field in the mutation.
+func (m *AirlineMutation) IataCode() (r string, exists bool) {
+	v := m.iata_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIataCode returns the old "iata_code" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldIataCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIataCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIataCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIataCode: %w", err)
+	}
+	return oldValue.IataCode, nil
+}
+
+// ResetIataCode resets all changes to the "iata_code" field.
+func (m *AirlineMutation) ResetIataCode() {
+	m.iata_code = nil
+}
+
+// SetIcaoCode sets the "icao_code" field.
+func (m *AirlineMutation) SetIcaoCode(s string) {
+	m.icao_code = &s
+}
+
+// IcaoCode returns the value of the "icao_code" field in the mutation.
+func (m *AirlineMutation) IcaoCode() (r string, exists bool) {
+	v := m.icao_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcaoCode returns the old "icao_code" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldIcaoCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcaoCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcaoCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcaoCode: %w", err)
+	}
+	return oldValue.IcaoCode, nil
+}
+
+// ClearIcaoCode clears the value of the "icao_code" field.
+func (m *AirlineMutation) ClearIcaoCode() {
+	m.icao_code = nil
+	m.clearedFields[airline.FieldIcaoCode] = struct{}{}
+}
+
+// IcaoCodeCleared returns if the "icao_code" field was cleared in this mutation.
+func (m *AirlineMutation) IcaoCodeCleared() bool {
+	_, ok := m.clearedFields[airline.FieldIcaoCode]
+	return ok
+}
+
+// ResetIcaoCode resets all changes to the "icao_code" field.
+func (m *AirlineMutation) ResetIcaoCode() {
+	m.icao_code = nil
+	delete(m.clearedFields, airline.FieldIcaoCode)
+}
+
+// SetAwbPrefix sets the "awb_prefix" field.
+func (m *AirlineMutation) SetAwbPrefix(s string) {
+	m.awb_prefix = &s
+}
+
+// AwbPrefix returns the value of the "awb_prefix" field in the mutation.
+func (m *AirlineMutation) AwbPrefix() (r string, exists bool) {
+	v := m.awb_prefix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAwbPrefix returns the old "awb_prefix" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldAwbPrefix(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAwbPrefix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAwbPrefix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAwbPrefix: %w", err)
+	}
+	return oldValue.AwbPrefix, nil
+}
+
+// ResetAwbPrefix resets all changes to the "awb_prefix" field.
+func (m *AirlineMutation) ResetAwbPrefix() {
+	m.awb_prefix = nil
+}
+
+// SetNameZh sets the "name_zh" field.
+func (m *AirlineMutation) SetNameZh(s string) {
+	m.name_zh = &s
+}
+
+// NameZh returns the value of the "name_zh" field in the mutation.
+func (m *AirlineMutation) NameZh() (r string, exists bool) {
+	v := m.name_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameZh returns the old "name_zh" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldNameZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameZh: %w", err)
+	}
+	return oldValue.NameZh, nil
+}
+
+// ResetNameZh resets all changes to the "name_zh" field.
+func (m *AirlineMutation) ResetNameZh() {
+	m.name_zh = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *AirlineMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *AirlineMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldNameEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *AirlineMutation) ResetNameEn() {
+	m.name_en = nil
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *AirlineMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *AirlineMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *AirlineMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetCargoOnly sets the "cargo_only" field.
+func (m *AirlineMutation) SetCargoOnly(b bool) {
+	m.cargo_only = &b
+}
+
+// CargoOnly returns the value of the "cargo_only" field in the mutation.
+func (m *AirlineMutation) CargoOnly() (r bool, exists bool) {
+	v := m.cargo_only
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoOnly returns the old "cargo_only" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldCargoOnly(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoOnly is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoOnly requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoOnly: %w", err)
+	}
+	return oldValue.CargoOnly, nil
+}
+
+// ResetCargoOnly resets all changes to the "cargo_only" field.
+func (m *AirlineMutation) ResetCargoOnly() {
+	m.cargo_only = nil
+}
+
+// SetSource sets the "source" field.
+func (m *AirlineMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *AirlineMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *AirlineMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *AirlineMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *AirlineMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *AirlineMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *AirlineMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *AirlineMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *AirlineMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *AirlineMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *AirlineMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *AirlineMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[airline.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *AirlineMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *AirlineMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *AirlineMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the AirlineMutation builder.
+func (m *AirlineMutation) Where(ps ...predicate.Airline) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirlineMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirlineMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Airline, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirlineMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirlineMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Airline).
+func (m *AirlineMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirlineMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.created_at != nil {
+		fields = append(fields, airline.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airline.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, airline.FieldOrganizationID)
+	}
+	if m.iata_code != nil {
+		fields = append(fields, airline.FieldIataCode)
+	}
+	if m.icao_code != nil {
+		fields = append(fields, airline.FieldIcaoCode)
+	}
+	if m.awb_prefix != nil {
+		fields = append(fields, airline.FieldAwbPrefix)
+	}
+	if m.name_zh != nil {
+		fields = append(fields, airline.FieldNameZh)
+	}
+	if m.name_en != nil {
+		fields = append(fields, airline.FieldNameEn)
+	}
+	if m.country_code != nil {
+		fields = append(fields, airline.FieldCountryCode)
+	}
+	if m.cargo_only != nil {
+		fields = append(fields, airline.FieldCargoOnly)
+	}
+	if m.source != nil {
+		fields = append(fields, airline.FieldSource)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, airline.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, airline.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirlineMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airline.FieldCreatedAt:
+		return m.CreatedAt()
+	case airline.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airline.FieldOrganizationID:
+		return m.OrganizationID()
+	case airline.FieldIataCode:
+		return m.IataCode()
+	case airline.FieldIcaoCode:
+		return m.IcaoCode()
+	case airline.FieldAwbPrefix:
+		return m.AwbPrefix()
+	case airline.FieldNameZh:
+		return m.NameZh()
+	case airline.FieldNameEn:
+		return m.NameEn()
+	case airline.FieldCountryCode:
+		return m.CountryCode()
+	case airline.FieldCargoOnly:
+		return m.CargoOnly()
+	case airline.FieldSource:
+		return m.Source()
+	case airline.FieldSortOrder:
+		return m.SortOrder()
+	case airline.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirlineMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airline.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airline.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airline.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airline.FieldIataCode:
+		return m.OldIataCode(ctx)
+	case airline.FieldIcaoCode:
+		return m.OldIcaoCode(ctx)
+	case airline.FieldAwbPrefix:
+		return m.OldAwbPrefix(ctx)
+	case airline.FieldNameZh:
+		return m.OldNameZh(ctx)
+	case airline.FieldNameEn:
+		return m.OldNameEn(ctx)
+	case airline.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case airline.FieldCargoOnly:
+		return m.OldCargoOnly(ctx)
+	case airline.FieldSource:
+		return m.OldSource(ctx)
+	case airline.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case airline.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown Airline field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirlineMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airline.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airline.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airline.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airline.FieldIataCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIataCode(v)
+		return nil
+	case airline.FieldIcaoCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcaoCode(v)
+		return nil
+	case airline.FieldAwbPrefix:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAwbPrefix(v)
+		return nil
+	case airline.FieldNameZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameZh(v)
+		return nil
+	case airline.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
+		return nil
+	case airline.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case airline.FieldCargoOnly:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoOnly(v)
+		return nil
+	case airline.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case airline.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case airline.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Airline field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirlineMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, airline.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirlineMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airline.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirlineMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airline.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Airline numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirlineMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(airline.FieldIcaoCode) {
+		fields = append(fields, airline.FieldIcaoCode)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirlineMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirlineMutation) ClearField(name string) error {
+	switch name {
+	case airline.FieldIcaoCode:
+		m.ClearIcaoCode()
+		return nil
+	}
+	return fmt.Errorf("unknown Airline nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirlineMutation) ResetField(name string) error {
+	switch name {
+	case airline.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airline.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airline.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airline.FieldIataCode:
+		m.ResetIataCode()
+		return nil
+	case airline.FieldIcaoCode:
+		m.ResetIcaoCode()
+		return nil
+	case airline.FieldAwbPrefix:
+		m.ResetAwbPrefix()
+		return nil
+	case airline.FieldNameZh:
+		m.ResetNameZh()
+		return nil
+	case airline.FieldNameEn:
+		m.ResetNameEn()
+		return nil
+	case airline.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case airline.FieldCargoOnly:
+		m.ResetCargoOnly()
+		return nil
+	case airline.FieldSource:
+		m.ResetSource()
+		return nil
+	case airline.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case airline.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown Airline field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirlineMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.organization != nil {
+		edges = append(edges, airline.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirlineMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airline.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirlineMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirlineMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirlineMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedorganization {
+		edges = append(edges, airline.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirlineMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airline.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirlineMutation) ClearEdge(name string) error {
+	switch name {
+	case airline.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Airline unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirlineMutation) ResetEdge(name string) error {
+	switch name {
+	case airline.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Airline edge %s", name)
+}
+
+// AirportMutation represents an operation that mutates the Airport nodes in the graph.
+type AirportMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	iata_code           *string
+	icao_code           *string
+	name_zh             *string
+	name_en             *string
+	city_name_zh        *string
+	city_name_en        *string
+	country_code        *string
+	source              *string
+	sort_order          *int
+	addsort_order       *int
+	enabled             *bool
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*Airport, error)
+	predicates          []predicate.Airport
+}
+
+var _ ent.Mutation = (*AirportMutation)(nil)
+
+// airportOption allows management of the mutation configuration using functional options.
+type airportOption func(*AirportMutation)
+
+// newAirportMutation creates new mutation for the Airport entity.
+func newAirportMutation(c config, op Op, opts ...airportOption) *AirportMutation {
+	m := &AirportMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirport,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirportID sets the ID field of the mutation.
+func withAirportID(id uuid.UUID) airportOption {
+	return func(m *AirportMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Airport
+		)
+		m.oldValue = func(ctx context.Context) (*Airport, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Airport.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirport sets the old Airport of the mutation.
+func withAirport(node *Airport) airportOption {
+	return func(m *AirportMutation) {
+		m.oldValue = func(context.Context) (*Airport, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirportMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirportMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Airport entities.
+func (m *AirportMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirportMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirportMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Airport.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirportMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirportMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirportMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirportMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirportMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirportMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirportMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirportMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirportMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetIataCode sets the "iata_code" field.
+func (m *AirportMutation) SetIataCode(s string) {
+	m.iata_code = &s
+}
+
+// IataCode returns the value of the "iata_code" field in the mutation.
+func (m *AirportMutation) IataCode() (r string, exists bool) {
+	v := m.iata_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIataCode returns the old "iata_code" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldIataCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIataCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIataCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIataCode: %w", err)
+	}
+	return oldValue.IataCode, nil
+}
+
+// ResetIataCode resets all changes to the "iata_code" field.
+func (m *AirportMutation) ResetIataCode() {
+	m.iata_code = nil
+}
+
+// SetIcaoCode sets the "icao_code" field.
+func (m *AirportMutation) SetIcaoCode(s string) {
+	m.icao_code = &s
+}
+
+// IcaoCode returns the value of the "icao_code" field in the mutation.
+func (m *AirportMutation) IcaoCode() (r string, exists bool) {
+	v := m.icao_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcaoCode returns the old "icao_code" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldIcaoCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcaoCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcaoCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcaoCode: %w", err)
+	}
+	return oldValue.IcaoCode, nil
+}
+
+// ClearIcaoCode clears the value of the "icao_code" field.
+func (m *AirportMutation) ClearIcaoCode() {
+	m.icao_code = nil
+	m.clearedFields[airport.FieldIcaoCode] = struct{}{}
+}
+
+// IcaoCodeCleared returns if the "icao_code" field was cleared in this mutation.
+func (m *AirportMutation) IcaoCodeCleared() bool {
+	_, ok := m.clearedFields[airport.FieldIcaoCode]
+	return ok
+}
+
+// ResetIcaoCode resets all changes to the "icao_code" field.
+func (m *AirportMutation) ResetIcaoCode() {
+	m.icao_code = nil
+	delete(m.clearedFields, airport.FieldIcaoCode)
+}
+
+// SetNameZh sets the "name_zh" field.
+func (m *AirportMutation) SetNameZh(s string) {
+	m.name_zh = &s
+}
+
+// NameZh returns the value of the "name_zh" field in the mutation.
+func (m *AirportMutation) NameZh() (r string, exists bool) {
+	v := m.name_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameZh returns the old "name_zh" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldNameZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameZh: %w", err)
+	}
+	return oldValue.NameZh, nil
+}
+
+// ResetNameZh resets all changes to the "name_zh" field.
+func (m *AirportMutation) ResetNameZh() {
+	m.name_zh = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *AirportMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *AirportMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldNameEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *AirportMutation) ResetNameEn() {
+	m.name_en = nil
+}
+
+// SetCityNameZh sets the "city_name_zh" field.
+func (m *AirportMutation) SetCityNameZh(s string) {
+	m.city_name_zh = &s
+}
+
+// CityNameZh returns the value of the "city_name_zh" field in the mutation.
+func (m *AirportMutation) CityNameZh() (r string, exists bool) {
+	v := m.city_name_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCityNameZh returns the old "city_name_zh" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldCityNameZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCityNameZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCityNameZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCityNameZh: %w", err)
+	}
+	return oldValue.CityNameZh, nil
+}
+
+// ResetCityNameZh resets all changes to the "city_name_zh" field.
+func (m *AirportMutation) ResetCityNameZh() {
+	m.city_name_zh = nil
+}
+
+// SetCityNameEn sets the "city_name_en" field.
+func (m *AirportMutation) SetCityNameEn(s string) {
+	m.city_name_en = &s
+}
+
+// CityNameEn returns the value of the "city_name_en" field in the mutation.
+func (m *AirportMutation) CityNameEn() (r string, exists bool) {
+	v := m.city_name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCityNameEn returns the old "city_name_en" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldCityNameEn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCityNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCityNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCityNameEn: %w", err)
+	}
+	return oldValue.CityNameEn, nil
+}
+
+// ClearCityNameEn clears the value of the "city_name_en" field.
+func (m *AirportMutation) ClearCityNameEn() {
+	m.city_name_en = nil
+	m.clearedFields[airport.FieldCityNameEn] = struct{}{}
+}
+
+// CityNameEnCleared returns if the "city_name_en" field was cleared in this mutation.
+func (m *AirportMutation) CityNameEnCleared() bool {
+	_, ok := m.clearedFields[airport.FieldCityNameEn]
+	return ok
+}
+
+// ResetCityNameEn resets all changes to the "city_name_en" field.
+func (m *AirportMutation) ResetCityNameEn() {
+	m.city_name_en = nil
+	delete(m.clearedFields, airport.FieldCityNameEn)
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *AirportMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *AirportMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *AirportMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetSource sets the "source" field.
+func (m *AirportMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *AirportMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *AirportMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *AirportMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *AirportMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *AirportMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *AirportMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *AirportMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *AirportMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *AirportMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *AirportMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *AirportMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[airport.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *AirportMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *AirportMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *AirportMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the AirportMutation builder.
+func (m *AirportMutation) Where(ps ...predicate.Airport) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirportMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirportMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Airport, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirportMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirportMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Airport).
+func (m *AirportMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirportMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.created_at != nil {
+		fields = append(fields, airport.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airport.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, airport.FieldOrganizationID)
+	}
+	if m.iata_code != nil {
+		fields = append(fields, airport.FieldIataCode)
+	}
+	if m.icao_code != nil {
+		fields = append(fields, airport.FieldIcaoCode)
+	}
+	if m.name_zh != nil {
+		fields = append(fields, airport.FieldNameZh)
+	}
+	if m.name_en != nil {
+		fields = append(fields, airport.FieldNameEn)
+	}
+	if m.city_name_zh != nil {
+		fields = append(fields, airport.FieldCityNameZh)
+	}
+	if m.city_name_en != nil {
+		fields = append(fields, airport.FieldCityNameEn)
+	}
+	if m.country_code != nil {
+		fields = append(fields, airport.FieldCountryCode)
+	}
+	if m.source != nil {
+		fields = append(fields, airport.FieldSource)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, airport.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, airport.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirportMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airport.FieldCreatedAt:
+		return m.CreatedAt()
+	case airport.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airport.FieldOrganizationID:
+		return m.OrganizationID()
+	case airport.FieldIataCode:
+		return m.IataCode()
+	case airport.FieldIcaoCode:
+		return m.IcaoCode()
+	case airport.FieldNameZh:
+		return m.NameZh()
+	case airport.FieldNameEn:
+		return m.NameEn()
+	case airport.FieldCityNameZh:
+		return m.CityNameZh()
+	case airport.FieldCityNameEn:
+		return m.CityNameEn()
+	case airport.FieldCountryCode:
+		return m.CountryCode()
+	case airport.FieldSource:
+		return m.Source()
+	case airport.FieldSortOrder:
+		return m.SortOrder()
+	case airport.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirportMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airport.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airport.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airport.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airport.FieldIataCode:
+		return m.OldIataCode(ctx)
+	case airport.FieldIcaoCode:
+		return m.OldIcaoCode(ctx)
+	case airport.FieldNameZh:
+		return m.OldNameZh(ctx)
+	case airport.FieldNameEn:
+		return m.OldNameEn(ctx)
+	case airport.FieldCityNameZh:
+		return m.OldCityNameZh(ctx)
+	case airport.FieldCityNameEn:
+		return m.OldCityNameEn(ctx)
+	case airport.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case airport.FieldSource:
+		return m.OldSource(ctx)
+	case airport.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case airport.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown Airport field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirportMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airport.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airport.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airport.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airport.FieldIataCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIataCode(v)
+		return nil
+	case airport.FieldIcaoCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcaoCode(v)
+		return nil
+	case airport.FieldNameZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameZh(v)
+		return nil
+	case airport.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
+		return nil
+	case airport.FieldCityNameZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCityNameZh(v)
+		return nil
+	case airport.FieldCityNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCityNameEn(v)
+		return nil
+	case airport.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case airport.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case airport.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case airport.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Airport field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirportMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, airport.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirportMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airport.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirportMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airport.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Airport numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirportMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(airport.FieldIcaoCode) {
+		fields = append(fields, airport.FieldIcaoCode)
+	}
+	if m.FieldCleared(airport.FieldCityNameEn) {
+		fields = append(fields, airport.FieldCityNameEn)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirportMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirportMutation) ClearField(name string) error {
+	switch name {
+	case airport.FieldIcaoCode:
+		m.ClearIcaoCode()
+		return nil
+	case airport.FieldCityNameEn:
+		m.ClearCityNameEn()
+		return nil
+	}
+	return fmt.Errorf("unknown Airport nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirportMutation) ResetField(name string) error {
+	switch name {
+	case airport.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airport.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airport.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airport.FieldIataCode:
+		m.ResetIataCode()
+		return nil
+	case airport.FieldIcaoCode:
+		m.ResetIcaoCode()
+		return nil
+	case airport.FieldNameZh:
+		m.ResetNameZh()
+		return nil
+	case airport.FieldNameEn:
+		m.ResetNameEn()
+		return nil
+	case airport.FieldCityNameZh:
+		m.ResetCityNameZh()
+		return nil
+	case airport.FieldCityNameEn:
+		m.ResetCityNameEn()
+		return nil
+	case airport.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case airport.FieldSource:
+		m.ResetSource()
+		return nil
+	case airport.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case airport.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown Airport field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirportMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.organization != nil {
+		edges = append(edges, airport.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirportMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airport.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirportMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirportMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirportMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedorganization {
+		edges = append(edges, airport.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirportMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airport.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirportMutation) ClearEdge(name string) error {
+	switch name {
+	case airport.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Airport unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirportMutation) ResetEdge(name string) error {
+	switch name {
+	case airport.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Airport edge %s", name)
 }
 
 // AuditLogMutation represents an operation that mutates the AuditLog nodes in the graph.
@@ -3958,7 +6171,6 @@ type MasterDataItemMutation struct {
 	name                *string
 	name_en             *string
 	parent_code         *string
-	transport_mode      *string
 	teu_factor          *string
 	source              *string
 	sort_order          *int
@@ -4391,55 +6603,6 @@ func (m *MasterDataItemMutation) ResetParentCode() {
 	delete(m.clearedFields, masterdataitem.FieldParentCode)
 }
 
-// SetTransportMode sets the "transport_mode" field.
-func (m *MasterDataItemMutation) SetTransportMode(s string) {
-	m.transport_mode = &s
-}
-
-// TransportMode returns the value of the "transport_mode" field in the mutation.
-func (m *MasterDataItemMutation) TransportMode() (r string, exists bool) {
-	v := m.transport_mode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTransportMode returns the old "transport_mode" field's value of the MasterDataItem entity.
-// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MasterDataItemMutation) OldTransportMode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTransportMode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTransportMode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTransportMode: %w", err)
-	}
-	return oldValue.TransportMode, nil
-}
-
-// ClearTransportMode clears the value of the "transport_mode" field.
-func (m *MasterDataItemMutation) ClearTransportMode() {
-	m.transport_mode = nil
-	m.clearedFields[masterdataitem.FieldTransportMode] = struct{}{}
-}
-
-// TransportModeCleared returns if the "transport_mode" field was cleared in this mutation.
-func (m *MasterDataItemMutation) TransportModeCleared() bool {
-	_, ok := m.clearedFields[masterdataitem.FieldTransportMode]
-	return ok
-}
-
-// ResetTransportMode resets all changes to the "transport_mode" field.
-func (m *MasterDataItemMutation) ResetTransportMode() {
-	m.transport_mode = nil
-	delete(m.clearedFields, masterdataitem.FieldTransportMode)
-}
-
 // SetTeuFactor sets the "teu_factor" field.
 func (m *MasterDataItemMutation) SetTeuFactor(s string) {
 	m.teu_factor = &s
@@ -4714,7 +6877,7 @@ func (m *MasterDataItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MasterDataItemMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, masterdataitem.FieldCreatedAt)
 	}
@@ -4738,9 +6901,6 @@ func (m *MasterDataItemMutation) Fields() []string {
 	}
 	if m.parent_code != nil {
 		fields = append(fields, masterdataitem.FieldParentCode)
-	}
-	if m.transport_mode != nil {
-		fields = append(fields, masterdataitem.FieldTransportMode)
 	}
 	if m.teu_factor != nil {
 		fields = append(fields, masterdataitem.FieldTeuFactor)
@@ -4781,8 +6941,6 @@ func (m *MasterDataItemMutation) Field(name string) (ent.Value, bool) {
 		return m.NameEn()
 	case masterdataitem.FieldParentCode:
 		return m.ParentCode()
-	case masterdataitem.FieldTransportMode:
-		return m.TransportMode()
 	case masterdataitem.FieldTeuFactor:
 		return m.TeuFactor()
 	case masterdataitem.FieldSource:
@@ -4818,8 +6976,6 @@ func (m *MasterDataItemMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldNameEn(ctx)
 	case masterdataitem.FieldParentCode:
 		return m.OldParentCode(ctx)
-	case masterdataitem.FieldTransportMode:
-		return m.OldTransportMode(ctx)
 	case masterdataitem.FieldTeuFactor:
 		return m.OldTeuFactor(ctx)
 	case masterdataitem.FieldSource:
@@ -4894,13 +7050,6 @@ func (m *MasterDataItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentCode(v)
-		return nil
-	case masterdataitem.FieldTransportMode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTransportMode(v)
 		return nil
 	case masterdataitem.FieldTeuFactor:
 		v, ok := value.(string)
@@ -4988,9 +7137,6 @@ func (m *MasterDataItemMutation) ClearedFields() []string {
 	if m.FieldCleared(masterdataitem.FieldParentCode) {
 		fields = append(fields, masterdataitem.FieldParentCode)
 	}
-	if m.FieldCleared(masterdataitem.FieldTransportMode) {
-		fields = append(fields, masterdataitem.FieldTransportMode)
-	}
 	if m.FieldCleared(masterdataitem.FieldTeuFactor) {
 		fields = append(fields, masterdataitem.FieldTeuFactor)
 	}
@@ -5013,9 +7159,6 @@ func (m *MasterDataItemMutation) ClearField(name string) error {
 		return nil
 	case masterdataitem.FieldParentCode:
 		m.ClearParentCode()
-		return nil
-	case masterdataitem.FieldTransportMode:
-		m.ClearTransportMode()
 		return nil
 	case masterdataitem.FieldTeuFactor:
 		m.ClearTeuFactor()
@@ -5051,9 +7194,6 @@ func (m *MasterDataItemMutation) ResetField(name string) error {
 		return nil
 	case masterdataitem.FieldParentCode:
 		m.ResetParentCode()
-		return nil
-	case masterdataitem.FieldTransportMode:
-		m.ResetTransportMode()
 		return nil
 	case masterdataitem.FieldTeuFactor:
 		m.ResetTeuFactor()
@@ -22595,6 +24735,18 @@ type OrganizationMutation struct {
 	master_data_items          map[uuid.UUID]struct{}
 	removedmaster_data_items   map[uuid.UUID]struct{}
 	clearedmaster_data_items   bool
+	ports                      map[uuid.UUID]struct{}
+	removedports               map[uuid.UUID]struct{}
+	clearedports               bool
+	airports                   map[uuid.UUID]struct{}
+	removedairports            map[uuid.UUID]struct{}
+	clearedairports            bool
+	airlines                   map[uuid.UUID]struct{}
+	removedairlines            map[uuid.UUID]struct{}
+	clearedairlines            bool
+	shipping_lines             map[uuid.UUID]struct{}
+	removedshipping_lines      map[uuid.UUID]struct{}
+	clearedshipping_lines      bool
 	number_rules               map[uuid.UUID]struct{}
 	removednumber_rules        map[uuid.UUID]struct{}
 	clearednumber_rules        bool
@@ -23353,6 +25505,222 @@ func (m *OrganizationMutation) ResetMasterDataItems() {
 	m.removedmaster_data_items = nil
 }
 
+// AddPortIDs adds the "ports" edge to the Port entity by ids.
+func (m *OrganizationMutation) AddPortIDs(ids ...uuid.UUID) {
+	if m.ports == nil {
+		m.ports = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.ports[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPorts clears the "ports" edge to the Port entity.
+func (m *OrganizationMutation) ClearPorts() {
+	m.clearedports = true
+}
+
+// PortsCleared reports if the "ports" edge to the Port entity was cleared.
+func (m *OrganizationMutation) PortsCleared() bool {
+	return m.clearedports
+}
+
+// RemovePortIDs removes the "ports" edge to the Port entity by IDs.
+func (m *OrganizationMutation) RemovePortIDs(ids ...uuid.UUID) {
+	if m.removedports == nil {
+		m.removedports = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.ports, ids[i])
+		m.removedports[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPorts returns the removed IDs of the "ports" edge to the Port entity.
+func (m *OrganizationMutation) RemovedPortsIDs() (ids []uuid.UUID) {
+	for id := range m.removedports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PortsIDs returns the "ports" edge IDs in the mutation.
+func (m *OrganizationMutation) PortsIDs() (ids []uuid.UUID) {
+	for id := range m.ports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPorts resets all changes to the "ports" edge.
+func (m *OrganizationMutation) ResetPorts() {
+	m.ports = nil
+	m.clearedports = false
+	m.removedports = nil
+}
+
+// AddAirportIDs adds the "airports" edge to the Airport entity by ids.
+func (m *OrganizationMutation) AddAirportIDs(ids ...uuid.UUID) {
+	if m.airports == nil {
+		m.airports = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.airports[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAirports clears the "airports" edge to the Airport entity.
+func (m *OrganizationMutation) ClearAirports() {
+	m.clearedairports = true
+}
+
+// AirportsCleared reports if the "airports" edge to the Airport entity was cleared.
+func (m *OrganizationMutation) AirportsCleared() bool {
+	return m.clearedairports
+}
+
+// RemoveAirportIDs removes the "airports" edge to the Airport entity by IDs.
+func (m *OrganizationMutation) RemoveAirportIDs(ids ...uuid.UUID) {
+	if m.removedairports == nil {
+		m.removedairports = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.airports, ids[i])
+		m.removedairports[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAirports returns the removed IDs of the "airports" edge to the Airport entity.
+func (m *OrganizationMutation) RemovedAirportsIDs() (ids []uuid.UUID) {
+	for id := range m.removedairports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AirportsIDs returns the "airports" edge IDs in the mutation.
+func (m *OrganizationMutation) AirportsIDs() (ids []uuid.UUID) {
+	for id := range m.airports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAirports resets all changes to the "airports" edge.
+func (m *OrganizationMutation) ResetAirports() {
+	m.airports = nil
+	m.clearedairports = false
+	m.removedairports = nil
+}
+
+// AddAirlineIDs adds the "airlines" edge to the Airline entity by ids.
+func (m *OrganizationMutation) AddAirlineIDs(ids ...uuid.UUID) {
+	if m.airlines == nil {
+		m.airlines = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.airlines[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAirlines clears the "airlines" edge to the Airline entity.
+func (m *OrganizationMutation) ClearAirlines() {
+	m.clearedairlines = true
+}
+
+// AirlinesCleared reports if the "airlines" edge to the Airline entity was cleared.
+func (m *OrganizationMutation) AirlinesCleared() bool {
+	return m.clearedairlines
+}
+
+// RemoveAirlineIDs removes the "airlines" edge to the Airline entity by IDs.
+func (m *OrganizationMutation) RemoveAirlineIDs(ids ...uuid.UUID) {
+	if m.removedairlines == nil {
+		m.removedairlines = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.airlines, ids[i])
+		m.removedairlines[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAirlines returns the removed IDs of the "airlines" edge to the Airline entity.
+func (m *OrganizationMutation) RemovedAirlinesIDs() (ids []uuid.UUID) {
+	for id := range m.removedairlines {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AirlinesIDs returns the "airlines" edge IDs in the mutation.
+func (m *OrganizationMutation) AirlinesIDs() (ids []uuid.UUID) {
+	for id := range m.airlines {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAirlines resets all changes to the "airlines" edge.
+func (m *OrganizationMutation) ResetAirlines() {
+	m.airlines = nil
+	m.clearedairlines = false
+	m.removedairlines = nil
+}
+
+// AddShippingLineIDs adds the "shipping_lines" edge to the ShippingLine entity by ids.
+func (m *OrganizationMutation) AddShippingLineIDs(ids ...uuid.UUID) {
+	if m.shipping_lines == nil {
+		m.shipping_lines = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.shipping_lines[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShippingLines clears the "shipping_lines" edge to the ShippingLine entity.
+func (m *OrganizationMutation) ClearShippingLines() {
+	m.clearedshipping_lines = true
+}
+
+// ShippingLinesCleared reports if the "shipping_lines" edge to the ShippingLine entity was cleared.
+func (m *OrganizationMutation) ShippingLinesCleared() bool {
+	return m.clearedshipping_lines
+}
+
+// RemoveShippingLineIDs removes the "shipping_lines" edge to the ShippingLine entity by IDs.
+func (m *OrganizationMutation) RemoveShippingLineIDs(ids ...uuid.UUID) {
+	if m.removedshipping_lines == nil {
+		m.removedshipping_lines = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.shipping_lines, ids[i])
+		m.removedshipping_lines[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShippingLines returns the removed IDs of the "shipping_lines" edge to the ShippingLine entity.
+func (m *OrganizationMutation) RemovedShippingLinesIDs() (ids []uuid.UUID) {
+	for id := range m.removedshipping_lines {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShippingLinesIDs returns the "shipping_lines" edge IDs in the mutation.
+func (m *OrganizationMutation) ShippingLinesIDs() (ids []uuid.UUID) {
+	for id := range m.shipping_lines {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShippingLines resets all changes to the "shipping_lines" edge.
+func (m *OrganizationMutation) ResetShippingLines() {
+	m.shipping_lines = nil
+	m.clearedshipping_lines = false
+	m.removedshipping_lines = nil
+}
+
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by ids.
 func (m *OrganizationMutation) AddNumberRuleIDs(ids ...uuid.UUID) {
 	if m.number_rules == nil {
@@ -23850,7 +26218,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 17)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -23874,6 +26242,18 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.master_data_items != nil {
 		edges = append(edges, organization.EdgeMasterDataItems)
+	}
+	if m.ports != nil {
+		edges = append(edges, organization.EdgePorts)
+	}
+	if m.airports != nil {
+		edges = append(edges, organization.EdgeAirports)
+	}
+	if m.airlines != nil {
+		edges = append(edges, organization.EdgeAirlines)
+	}
+	if m.shipping_lines != nil {
+		edges = append(edges, organization.EdgeShippingLines)
 	}
 	if m.number_rules != nil {
 		edges = append(edges, organization.EdgeNumberRules)
@@ -23943,6 +26323,30 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgePorts:
+		ids := make([]ent.Value, 0, len(m.ports))
+		for id := range m.ports {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeAirports:
+		ids := make([]ent.Value, 0, len(m.airports))
+		for id := range m.airports {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeAirlines:
+		ids := make([]ent.Value, 0, len(m.airlines))
+		for id := range m.airlines {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeShippingLines:
+		ids := make([]ent.Value, 0, len(m.shipping_lines))
+		for id := range m.shipping_lines {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeNumberRules:
 		ids := make([]ent.Value, 0, len(m.number_rules))
 		for id := range m.number_rules {
@@ -23979,7 +26383,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 17)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -24000,6 +26404,18 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedmaster_data_items != nil {
 		edges = append(edges, organization.EdgeMasterDataItems)
+	}
+	if m.removedports != nil {
+		edges = append(edges, organization.EdgePorts)
+	}
+	if m.removedairports != nil {
+		edges = append(edges, organization.EdgeAirports)
+	}
+	if m.removedairlines != nil {
+		edges = append(edges, organization.EdgeAirlines)
+	}
+	if m.removedshipping_lines != nil {
+		edges = append(edges, organization.EdgeShippingLines)
 	}
 	if m.removednumber_rules != nil {
 		edges = append(edges, organization.EdgeNumberRules)
@@ -24065,6 +26481,30 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgePorts:
+		ids := make([]ent.Value, 0, len(m.removedports))
+		for id := range m.removedports {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeAirports:
+		ids := make([]ent.Value, 0, len(m.removedairports))
+		for id := range m.removedairports {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeAirlines:
+		ids := make([]ent.Value, 0, len(m.removedairlines))
+		for id := range m.removedairlines {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeShippingLines:
+		ids := make([]ent.Value, 0, len(m.removedshipping_lines))
+		for id := range m.removedshipping_lines {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeNumberRules:
 		ids := make([]ent.Value, 0, len(m.removednumber_rules))
 		for id := range m.removednumber_rules {
@@ -24101,7 +26541,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 17)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -24125,6 +26565,18 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedmaster_data_items {
 		edges = append(edges, organization.EdgeMasterDataItems)
+	}
+	if m.clearedports {
+		edges = append(edges, organization.EdgePorts)
+	}
+	if m.clearedairports {
+		edges = append(edges, organization.EdgeAirports)
+	}
+	if m.clearedairlines {
+		edges = append(edges, organization.EdgeAirlines)
+	}
+	if m.clearedshipping_lines {
+		edges = append(edges, organization.EdgeShippingLines)
 	}
 	if m.clearednumber_rules {
 		edges = append(edges, organization.EdgeNumberRules)
@@ -24164,6 +26616,14 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedpartner_assignments
 	case organization.EdgeMasterDataItems:
 		return m.clearedmaster_data_items
+	case organization.EdgePorts:
+		return m.clearedports
+	case organization.EdgeAirports:
+		return m.clearedairports
+	case organization.EdgeAirlines:
+		return m.clearedairlines
+	case organization.EdgeShippingLines:
+		return m.clearedshipping_lines
 	case organization.EdgeNumberRules:
 		return m.clearednumber_rules
 	case organization.EdgeStatusTemplates:
@@ -24216,6 +26676,18 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeMasterDataItems:
 		m.ResetMasterDataItems()
+		return nil
+	case organization.EdgePorts:
+		m.ResetPorts()
+		return nil
+	case organization.EdgeAirports:
+		m.ResetAirports()
+		return nil
+	case organization.EdgeAirlines:
+		m.ResetAirlines()
+		return nil
+	case organization.EdgeShippingLines:
+		m.ResetShippingLines()
 		return nil
 	case organization.EdgeNumberRules:
 		m.ResetNumberRules()
@@ -37254,6 +39726,984 @@ func (m *PermissionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Permission edge %s", name)
 }
 
+// PortMutation represents an operation that mutates the Port nodes in the graph.
+type PortMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	un_locode             *string
+	name_zh               *string
+	name_en               *string
+	country_code          *string
+	transport_modes       *[]string
+	appendtransport_modes []string
+	source                *string
+	sort_order            *int
+	addsort_order         *int
+	enabled               *bool
+	clearedFields         map[string]struct{}
+	organization          *uuid.UUID
+	clearedorganization   bool
+	done                  bool
+	oldValue              func(context.Context) (*Port, error)
+	predicates            []predicate.Port
+}
+
+var _ ent.Mutation = (*PortMutation)(nil)
+
+// portOption allows management of the mutation configuration using functional options.
+type portOption func(*PortMutation)
+
+// newPortMutation creates new mutation for the Port entity.
+func newPortMutation(c config, op Op, opts ...portOption) *PortMutation {
+	m := &PortMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePort,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPortID sets the ID field of the mutation.
+func withPortID(id uuid.UUID) portOption {
+	return func(m *PortMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Port
+		)
+		m.oldValue = func(ctx context.Context) (*Port, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Port.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPort sets the old Port of the mutation.
+func withPort(node *Port) portOption {
+	return func(m *PortMutation) {
+		m.oldValue = func(context.Context) (*Port, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PortMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PortMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Port entities.
+func (m *PortMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PortMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PortMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Port.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PortMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PortMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PortMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PortMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PortMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PortMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *PortMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *PortMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *PortMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetUnLocode sets the "un_locode" field.
+func (m *PortMutation) SetUnLocode(s string) {
+	m.un_locode = &s
+}
+
+// UnLocode returns the value of the "un_locode" field in the mutation.
+func (m *PortMutation) UnLocode() (r string, exists bool) {
+	v := m.un_locode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnLocode returns the old "un_locode" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldUnLocode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnLocode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnLocode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnLocode: %w", err)
+	}
+	return oldValue.UnLocode, nil
+}
+
+// ResetUnLocode resets all changes to the "un_locode" field.
+func (m *PortMutation) ResetUnLocode() {
+	m.un_locode = nil
+}
+
+// SetNameZh sets the "name_zh" field.
+func (m *PortMutation) SetNameZh(s string) {
+	m.name_zh = &s
+}
+
+// NameZh returns the value of the "name_zh" field in the mutation.
+func (m *PortMutation) NameZh() (r string, exists bool) {
+	v := m.name_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameZh returns the old "name_zh" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldNameZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameZh: %w", err)
+	}
+	return oldValue.NameZh, nil
+}
+
+// ResetNameZh resets all changes to the "name_zh" field.
+func (m *PortMutation) ResetNameZh() {
+	m.name_zh = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *PortMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *PortMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldNameEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *PortMutation) ResetNameEn() {
+	m.name_en = nil
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *PortMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *PortMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *PortMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetTransportModes sets the "transport_modes" field.
+func (m *PortMutation) SetTransportModes(s []string) {
+	m.transport_modes = &s
+	m.appendtransport_modes = nil
+}
+
+// TransportModes returns the value of the "transport_modes" field in the mutation.
+func (m *PortMutation) TransportModes() (r []string, exists bool) {
+	v := m.transport_modes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTransportModes returns the old "transport_modes" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldTransportModes(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTransportModes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTransportModes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTransportModes: %w", err)
+	}
+	return oldValue.TransportModes, nil
+}
+
+// AppendTransportModes adds s to the "transport_modes" field.
+func (m *PortMutation) AppendTransportModes(s []string) {
+	m.appendtransport_modes = append(m.appendtransport_modes, s...)
+}
+
+// AppendedTransportModes returns the list of values that were appended to the "transport_modes" field in this mutation.
+func (m *PortMutation) AppendedTransportModes() ([]string, bool) {
+	if len(m.appendtransport_modes) == 0 {
+		return nil, false
+	}
+	return m.appendtransport_modes, true
+}
+
+// ResetTransportModes resets all changes to the "transport_modes" field.
+func (m *PortMutation) ResetTransportModes() {
+	m.transport_modes = nil
+	m.appendtransport_modes = nil
+}
+
+// SetSource sets the "source" field.
+func (m *PortMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *PortMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *PortMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *PortMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *PortMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *PortMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *PortMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *PortMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *PortMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *PortMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *PortMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *PortMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[port.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *PortMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *PortMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *PortMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the PortMutation builder.
+func (m *PortMutation) Where(ps ...predicate.Port) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PortMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PortMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Port, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PortMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PortMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Port).
+func (m *PortMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PortMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, port.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, port.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, port.FieldOrganizationID)
+	}
+	if m.un_locode != nil {
+		fields = append(fields, port.FieldUnLocode)
+	}
+	if m.name_zh != nil {
+		fields = append(fields, port.FieldNameZh)
+	}
+	if m.name_en != nil {
+		fields = append(fields, port.FieldNameEn)
+	}
+	if m.country_code != nil {
+		fields = append(fields, port.FieldCountryCode)
+	}
+	if m.transport_modes != nil {
+		fields = append(fields, port.FieldTransportModes)
+	}
+	if m.source != nil {
+		fields = append(fields, port.FieldSource)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, port.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, port.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PortMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case port.FieldCreatedAt:
+		return m.CreatedAt()
+	case port.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case port.FieldOrganizationID:
+		return m.OrganizationID()
+	case port.FieldUnLocode:
+		return m.UnLocode()
+	case port.FieldNameZh:
+		return m.NameZh()
+	case port.FieldNameEn:
+		return m.NameEn()
+	case port.FieldCountryCode:
+		return m.CountryCode()
+	case port.FieldTransportModes:
+		return m.TransportModes()
+	case port.FieldSource:
+		return m.Source()
+	case port.FieldSortOrder:
+		return m.SortOrder()
+	case port.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PortMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case port.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case port.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case port.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case port.FieldUnLocode:
+		return m.OldUnLocode(ctx)
+	case port.FieldNameZh:
+		return m.OldNameZh(ctx)
+	case port.FieldNameEn:
+		return m.OldNameEn(ctx)
+	case port.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case port.FieldTransportModes:
+		return m.OldTransportModes(ctx)
+	case port.FieldSource:
+		return m.OldSource(ctx)
+	case port.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case port.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown Port field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PortMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case port.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case port.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case port.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case port.FieldUnLocode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnLocode(v)
+		return nil
+	case port.FieldNameZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameZh(v)
+		return nil
+	case port.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
+		return nil
+	case port.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case port.FieldTransportModes:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTransportModes(v)
+		return nil
+	case port.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case port.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case port.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Port field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PortMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, port.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PortMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case port.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PortMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case port.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Port numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PortMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PortMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PortMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Port nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PortMutation) ResetField(name string) error {
+	switch name {
+	case port.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case port.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case port.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case port.FieldUnLocode:
+		m.ResetUnLocode()
+		return nil
+	case port.FieldNameZh:
+		m.ResetNameZh()
+		return nil
+	case port.FieldNameEn:
+		m.ResetNameEn()
+		return nil
+	case port.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case port.FieldTransportModes:
+		m.ResetTransportModes()
+		return nil
+	case port.FieldSource:
+		m.ResetSource()
+		return nil
+	case port.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case port.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown Port field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PortMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.organization != nil {
+		edges = append(edges, port.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PortMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case port.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PortMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PortMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PortMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedorganization {
+		edges = append(edges, port.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PortMutation) EdgeCleared(name string) bool {
+	switch name {
+	case port.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PortMutation) ClearEdge(name string) error {
+	switch name {
+	case port.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Port unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PortMutation) ResetEdge(name string) error {
+	switch name {
+	case port.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown Port edge %s", name)
+}
+
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
 type RoleMutation struct {
 	config
@@ -39702,6 +43152,1750 @@ func (m *SessionMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Session edge %s", name)
+}
+
+// ShippingLineMutation represents an operation that mutates the ShippingLine nodes in the graph.
+type ShippingLineMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	scac_code                 *string
+	name_zh                   *string
+	name_en                   *string
+	country_code              *string
+	tracking_url              *string
+	alliance                  *string
+	source                    *string
+	sort_order                *int
+	addsort_order             *int
+	enabled                   *bool
+	clearedFields             map[string]struct{}
+	organization              *uuid.UUID
+	clearedorganization       bool
+	container_prefixes        map[uuid.UUID]struct{}
+	removedcontainer_prefixes map[uuid.UUID]struct{}
+	clearedcontainer_prefixes bool
+	done                      bool
+	oldValue                  func(context.Context) (*ShippingLine, error)
+	predicates                []predicate.ShippingLine
+}
+
+var _ ent.Mutation = (*ShippingLineMutation)(nil)
+
+// shippinglineOption allows management of the mutation configuration using functional options.
+type shippinglineOption func(*ShippingLineMutation)
+
+// newShippingLineMutation creates new mutation for the ShippingLine entity.
+func newShippingLineMutation(c config, op Op, opts ...shippinglineOption) *ShippingLineMutation {
+	m := &ShippingLineMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeShippingLine,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withShippingLineID sets the ID field of the mutation.
+func withShippingLineID(id uuid.UUID) shippinglineOption {
+	return func(m *ShippingLineMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ShippingLine
+		)
+		m.oldValue = func(ctx context.Context) (*ShippingLine, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ShippingLine.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withShippingLine sets the old ShippingLine of the mutation.
+func withShippingLine(node *ShippingLine) shippinglineOption {
+	return func(m *ShippingLineMutation) {
+		m.oldValue = func(context.Context) (*ShippingLine, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ShippingLineMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ShippingLineMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ShippingLine entities.
+func (m *ShippingLineMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ShippingLineMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ShippingLineMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ShippingLine.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ShippingLineMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ShippingLineMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ShippingLineMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ShippingLineMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ShippingLineMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ShippingLineMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *ShippingLineMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *ShippingLineMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *ShippingLineMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetScacCode sets the "scac_code" field.
+func (m *ShippingLineMutation) SetScacCode(s string) {
+	m.scac_code = &s
+}
+
+// ScacCode returns the value of the "scac_code" field in the mutation.
+func (m *ShippingLineMutation) ScacCode() (r string, exists bool) {
+	v := m.scac_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScacCode returns the old "scac_code" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldScacCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScacCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScacCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScacCode: %w", err)
+	}
+	return oldValue.ScacCode, nil
+}
+
+// ResetScacCode resets all changes to the "scac_code" field.
+func (m *ShippingLineMutation) ResetScacCode() {
+	m.scac_code = nil
+}
+
+// SetNameZh sets the "name_zh" field.
+func (m *ShippingLineMutation) SetNameZh(s string) {
+	m.name_zh = &s
+}
+
+// NameZh returns the value of the "name_zh" field in the mutation.
+func (m *ShippingLineMutation) NameZh() (r string, exists bool) {
+	v := m.name_zh
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameZh returns the old "name_zh" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldNameZh(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameZh requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameZh: %w", err)
+	}
+	return oldValue.NameZh, nil
+}
+
+// ResetNameZh resets all changes to the "name_zh" field.
+func (m *ShippingLineMutation) ResetNameZh() {
+	m.name_zh = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *ShippingLineMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *ShippingLineMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldNameEn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *ShippingLineMutation) ResetNameEn() {
+	m.name_en = nil
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *ShippingLineMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *ShippingLineMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *ShippingLineMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetTrackingURL sets the "tracking_url" field.
+func (m *ShippingLineMutation) SetTrackingURL(s string) {
+	m.tracking_url = &s
+}
+
+// TrackingURL returns the value of the "tracking_url" field in the mutation.
+func (m *ShippingLineMutation) TrackingURL() (r string, exists bool) {
+	v := m.tracking_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTrackingURL returns the old "tracking_url" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldTrackingURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTrackingURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTrackingURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTrackingURL: %w", err)
+	}
+	return oldValue.TrackingURL, nil
+}
+
+// ClearTrackingURL clears the value of the "tracking_url" field.
+func (m *ShippingLineMutation) ClearTrackingURL() {
+	m.tracking_url = nil
+	m.clearedFields[shippingline.FieldTrackingURL] = struct{}{}
+}
+
+// TrackingURLCleared returns if the "tracking_url" field was cleared in this mutation.
+func (m *ShippingLineMutation) TrackingURLCleared() bool {
+	_, ok := m.clearedFields[shippingline.FieldTrackingURL]
+	return ok
+}
+
+// ResetTrackingURL resets all changes to the "tracking_url" field.
+func (m *ShippingLineMutation) ResetTrackingURL() {
+	m.tracking_url = nil
+	delete(m.clearedFields, shippingline.FieldTrackingURL)
+}
+
+// SetAlliance sets the "alliance" field.
+func (m *ShippingLineMutation) SetAlliance(s string) {
+	m.alliance = &s
+}
+
+// Alliance returns the value of the "alliance" field in the mutation.
+func (m *ShippingLineMutation) Alliance() (r string, exists bool) {
+	v := m.alliance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAlliance returns the old "alliance" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldAlliance(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAlliance is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAlliance requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAlliance: %w", err)
+	}
+	return oldValue.Alliance, nil
+}
+
+// ClearAlliance clears the value of the "alliance" field.
+func (m *ShippingLineMutation) ClearAlliance() {
+	m.alliance = nil
+	m.clearedFields[shippingline.FieldAlliance] = struct{}{}
+}
+
+// AllianceCleared returns if the "alliance" field was cleared in this mutation.
+func (m *ShippingLineMutation) AllianceCleared() bool {
+	_, ok := m.clearedFields[shippingline.FieldAlliance]
+	return ok
+}
+
+// ResetAlliance resets all changes to the "alliance" field.
+func (m *ShippingLineMutation) ResetAlliance() {
+	m.alliance = nil
+	delete(m.clearedFields, shippingline.FieldAlliance)
+}
+
+// SetSource sets the "source" field.
+func (m *ShippingLineMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *ShippingLineMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *ShippingLineMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *ShippingLineMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *ShippingLineMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *ShippingLineMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *ShippingLineMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *ShippingLineMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *ShippingLineMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *ShippingLineMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *ShippingLineMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *ShippingLineMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[shippingline.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *ShippingLineMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *ShippingLineMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *ShippingLineMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// AddContainerPrefixIDs adds the "container_prefixes" edge to the ShippingLineContainerPrefix entity by ids.
+func (m *ShippingLineMutation) AddContainerPrefixIDs(ids ...uuid.UUID) {
+	if m.container_prefixes == nil {
+		m.container_prefixes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.container_prefixes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearContainerPrefixes clears the "container_prefixes" edge to the ShippingLineContainerPrefix entity.
+func (m *ShippingLineMutation) ClearContainerPrefixes() {
+	m.clearedcontainer_prefixes = true
+}
+
+// ContainerPrefixesCleared reports if the "container_prefixes" edge to the ShippingLineContainerPrefix entity was cleared.
+func (m *ShippingLineMutation) ContainerPrefixesCleared() bool {
+	return m.clearedcontainer_prefixes
+}
+
+// RemoveContainerPrefixIDs removes the "container_prefixes" edge to the ShippingLineContainerPrefix entity by IDs.
+func (m *ShippingLineMutation) RemoveContainerPrefixIDs(ids ...uuid.UUID) {
+	if m.removedcontainer_prefixes == nil {
+		m.removedcontainer_prefixes = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.container_prefixes, ids[i])
+		m.removedcontainer_prefixes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContainerPrefixes returns the removed IDs of the "container_prefixes" edge to the ShippingLineContainerPrefix entity.
+func (m *ShippingLineMutation) RemovedContainerPrefixesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcontainer_prefixes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ContainerPrefixesIDs returns the "container_prefixes" edge IDs in the mutation.
+func (m *ShippingLineMutation) ContainerPrefixesIDs() (ids []uuid.UUID) {
+	for id := range m.container_prefixes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetContainerPrefixes resets all changes to the "container_prefixes" edge.
+func (m *ShippingLineMutation) ResetContainerPrefixes() {
+	m.container_prefixes = nil
+	m.clearedcontainer_prefixes = false
+	m.removedcontainer_prefixes = nil
+}
+
+// Where appends a list predicates to the ShippingLineMutation builder.
+func (m *ShippingLineMutation) Where(ps ...predicate.ShippingLine) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ShippingLineMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ShippingLineMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ShippingLine, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ShippingLineMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ShippingLineMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ShippingLine).
+func (m *ShippingLineMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ShippingLineMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, shippingline.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, shippingline.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, shippingline.FieldOrganizationID)
+	}
+	if m.scac_code != nil {
+		fields = append(fields, shippingline.FieldScacCode)
+	}
+	if m.name_zh != nil {
+		fields = append(fields, shippingline.FieldNameZh)
+	}
+	if m.name_en != nil {
+		fields = append(fields, shippingline.FieldNameEn)
+	}
+	if m.country_code != nil {
+		fields = append(fields, shippingline.FieldCountryCode)
+	}
+	if m.tracking_url != nil {
+		fields = append(fields, shippingline.FieldTrackingURL)
+	}
+	if m.alliance != nil {
+		fields = append(fields, shippingline.FieldAlliance)
+	}
+	if m.source != nil {
+		fields = append(fields, shippingline.FieldSource)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, shippingline.FieldSortOrder)
+	}
+	if m.enabled != nil {
+		fields = append(fields, shippingline.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ShippingLineMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case shippingline.FieldCreatedAt:
+		return m.CreatedAt()
+	case shippingline.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case shippingline.FieldOrganizationID:
+		return m.OrganizationID()
+	case shippingline.FieldScacCode:
+		return m.ScacCode()
+	case shippingline.FieldNameZh:
+		return m.NameZh()
+	case shippingline.FieldNameEn:
+		return m.NameEn()
+	case shippingline.FieldCountryCode:
+		return m.CountryCode()
+	case shippingline.FieldTrackingURL:
+		return m.TrackingURL()
+	case shippingline.FieldAlliance:
+		return m.Alliance()
+	case shippingline.FieldSource:
+		return m.Source()
+	case shippingline.FieldSortOrder:
+		return m.SortOrder()
+	case shippingline.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ShippingLineMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case shippingline.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case shippingline.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case shippingline.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case shippingline.FieldScacCode:
+		return m.OldScacCode(ctx)
+	case shippingline.FieldNameZh:
+		return m.OldNameZh(ctx)
+	case shippingline.FieldNameEn:
+		return m.OldNameEn(ctx)
+	case shippingline.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case shippingline.FieldTrackingURL:
+		return m.OldTrackingURL(ctx)
+	case shippingline.FieldAlliance:
+		return m.OldAlliance(ctx)
+	case shippingline.FieldSource:
+		return m.OldSource(ctx)
+	case shippingline.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case shippingline.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown ShippingLine field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShippingLineMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case shippingline.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case shippingline.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case shippingline.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case shippingline.FieldScacCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScacCode(v)
+		return nil
+	case shippingline.FieldNameZh:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameZh(v)
+		return nil
+	case shippingline.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
+		return nil
+	case shippingline.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case shippingline.FieldTrackingURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTrackingURL(v)
+		return nil
+	case shippingline.FieldAlliance:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAlliance(v)
+		return nil
+	case shippingline.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case shippingline.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case shippingline.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ShippingLineMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, shippingline.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ShippingLineMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case shippingline.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShippingLineMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case shippingline.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ShippingLineMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(shippingline.FieldTrackingURL) {
+		fields = append(fields, shippingline.FieldTrackingURL)
+	}
+	if m.FieldCleared(shippingline.FieldAlliance) {
+		fields = append(fields, shippingline.FieldAlliance)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ShippingLineMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ShippingLineMutation) ClearField(name string) error {
+	switch name {
+	case shippingline.FieldTrackingURL:
+		m.ClearTrackingURL()
+		return nil
+	case shippingline.FieldAlliance:
+		m.ClearAlliance()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ShippingLineMutation) ResetField(name string) error {
+	switch name {
+	case shippingline.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case shippingline.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case shippingline.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case shippingline.FieldScacCode:
+		m.ResetScacCode()
+		return nil
+	case shippingline.FieldNameZh:
+		m.ResetNameZh()
+		return nil
+	case shippingline.FieldNameEn:
+		m.ResetNameEn()
+		return nil
+	case shippingline.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case shippingline.FieldTrackingURL:
+		m.ResetTrackingURL()
+		return nil
+	case shippingline.FieldAlliance:
+		m.ResetAlliance()
+		return nil
+	case shippingline.FieldSource:
+		m.ResetSource()
+		return nil
+	case shippingline.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case shippingline.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ShippingLineMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, shippingline.EdgeOrganization)
+	}
+	if m.container_prefixes != nil {
+		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ShippingLineMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case shippingline.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case shippingline.EdgeContainerPrefixes:
+		ids := make([]ent.Value, 0, len(m.container_prefixes))
+		for id := range m.container_prefixes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ShippingLineMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedcontainer_prefixes != nil {
+		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ShippingLineMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case shippingline.EdgeContainerPrefixes:
+		ids := make([]ent.Value, 0, len(m.removedcontainer_prefixes))
+		for id := range m.removedcontainer_prefixes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ShippingLineMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, shippingline.EdgeOrganization)
+	}
+	if m.clearedcontainer_prefixes {
+		edges = append(edges, shippingline.EdgeContainerPrefixes)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ShippingLineMutation) EdgeCleared(name string) bool {
+	switch name {
+	case shippingline.EdgeOrganization:
+		return m.clearedorganization
+	case shippingline.EdgeContainerPrefixes:
+		return m.clearedcontainer_prefixes
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ShippingLineMutation) ClearEdge(name string) error {
+	switch name {
+	case shippingline.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ShippingLineMutation) ResetEdge(name string) error {
+	switch name {
+	case shippingline.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case shippingline.EdgeContainerPrefixes:
+		m.ResetContainerPrefixes()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLine edge %s", name)
+}
+
+// ShippingLineContainerPrefixMutation represents an operation that mutates the ShippingLineContainerPrefix nodes in the graph.
+type ShippingLineContainerPrefixMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	organization_id      *uuid.UUID
+	prefix               *string
+	clearedFields        map[string]struct{}
+	shipping_line        *uuid.UUID
+	clearedshipping_line bool
+	done                 bool
+	oldValue             func(context.Context) (*ShippingLineContainerPrefix, error)
+	predicates           []predicate.ShippingLineContainerPrefix
+}
+
+var _ ent.Mutation = (*ShippingLineContainerPrefixMutation)(nil)
+
+// shippinglinecontainerprefixOption allows management of the mutation configuration using functional options.
+type shippinglinecontainerprefixOption func(*ShippingLineContainerPrefixMutation)
+
+// newShippingLineContainerPrefixMutation creates new mutation for the ShippingLineContainerPrefix entity.
+func newShippingLineContainerPrefixMutation(c config, op Op, opts ...shippinglinecontainerprefixOption) *ShippingLineContainerPrefixMutation {
+	m := &ShippingLineContainerPrefixMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeShippingLineContainerPrefix,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withShippingLineContainerPrefixID sets the ID field of the mutation.
+func withShippingLineContainerPrefixID(id uuid.UUID) shippinglinecontainerprefixOption {
+	return func(m *ShippingLineContainerPrefixMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ShippingLineContainerPrefix
+		)
+		m.oldValue = func(ctx context.Context) (*ShippingLineContainerPrefix, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ShippingLineContainerPrefix.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withShippingLineContainerPrefix sets the old ShippingLineContainerPrefix of the mutation.
+func withShippingLineContainerPrefix(node *ShippingLineContainerPrefix) shippinglinecontainerprefixOption {
+	return func(m *ShippingLineContainerPrefixMutation) {
+		m.oldValue = func(context.Context) (*ShippingLineContainerPrefix, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ShippingLineContainerPrefixMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ShippingLineContainerPrefixMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ShippingLineContainerPrefix entities.
+func (m *ShippingLineContainerPrefixMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ShippingLineContainerPrefixMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ShippingLineContainerPrefixMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ShippingLineContainerPrefix.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ShippingLineContainerPrefixMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ShippingLineContainerPrefixMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ShippingLineContainerPrefix entity.
+// If the ShippingLineContainerPrefix object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineContainerPrefixMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ShippingLineContainerPrefixMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ShippingLineContainerPrefixMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ShippingLineContainerPrefixMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ShippingLineContainerPrefix entity.
+// If the ShippingLineContainerPrefix object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineContainerPrefixMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ShippingLineContainerPrefixMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *ShippingLineContainerPrefixMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *ShippingLineContainerPrefixMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the ShippingLineContainerPrefix entity.
+// If the ShippingLineContainerPrefix object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineContainerPrefixMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *ShippingLineContainerPrefixMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetShippingLineID sets the "shipping_line_id" field.
+func (m *ShippingLineContainerPrefixMutation) SetShippingLineID(u uuid.UUID) {
+	m.shipping_line = &u
+}
+
+// ShippingLineID returns the value of the "shipping_line_id" field in the mutation.
+func (m *ShippingLineContainerPrefixMutation) ShippingLineID() (r uuid.UUID, exists bool) {
+	v := m.shipping_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShippingLineID returns the old "shipping_line_id" field's value of the ShippingLineContainerPrefix entity.
+// If the ShippingLineContainerPrefix object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineContainerPrefixMutation) OldShippingLineID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShippingLineID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShippingLineID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShippingLineID: %w", err)
+	}
+	return oldValue.ShippingLineID, nil
+}
+
+// ResetShippingLineID resets all changes to the "shipping_line_id" field.
+func (m *ShippingLineContainerPrefixMutation) ResetShippingLineID() {
+	m.shipping_line = nil
+}
+
+// SetPrefix sets the "prefix" field.
+func (m *ShippingLineContainerPrefixMutation) SetPrefix(s string) {
+	m.prefix = &s
+}
+
+// Prefix returns the value of the "prefix" field in the mutation.
+func (m *ShippingLineContainerPrefixMutation) Prefix() (r string, exists bool) {
+	v := m.prefix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrefix returns the old "prefix" field's value of the ShippingLineContainerPrefix entity.
+// If the ShippingLineContainerPrefix object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineContainerPrefixMutation) OldPrefix(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrefix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrefix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrefix: %w", err)
+	}
+	return oldValue.Prefix, nil
+}
+
+// ResetPrefix resets all changes to the "prefix" field.
+func (m *ShippingLineContainerPrefixMutation) ResetPrefix() {
+	m.prefix = nil
+}
+
+// ClearShippingLine clears the "shipping_line" edge to the ShippingLine entity.
+func (m *ShippingLineContainerPrefixMutation) ClearShippingLine() {
+	m.clearedshipping_line = true
+	m.clearedFields[shippinglinecontainerprefix.FieldShippingLineID] = struct{}{}
+}
+
+// ShippingLineCleared reports if the "shipping_line" edge to the ShippingLine entity was cleared.
+func (m *ShippingLineContainerPrefixMutation) ShippingLineCleared() bool {
+	return m.clearedshipping_line
+}
+
+// ShippingLineIDs returns the "shipping_line" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingLineID instead. It exists only for internal usage by the builders.
+func (m *ShippingLineContainerPrefixMutation) ShippingLineIDs() (ids []uuid.UUID) {
+	if id := m.shipping_line; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingLine resets all changes to the "shipping_line" edge.
+func (m *ShippingLineContainerPrefixMutation) ResetShippingLine() {
+	m.shipping_line = nil
+	m.clearedshipping_line = false
+}
+
+// Where appends a list predicates to the ShippingLineContainerPrefixMutation builder.
+func (m *ShippingLineContainerPrefixMutation) Where(ps ...predicate.ShippingLineContainerPrefix) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ShippingLineContainerPrefixMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ShippingLineContainerPrefixMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ShippingLineContainerPrefix, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ShippingLineContainerPrefixMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ShippingLineContainerPrefixMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ShippingLineContainerPrefix).
+func (m *ShippingLineContainerPrefixMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ShippingLineContainerPrefixMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, shippinglinecontainerprefix.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, shippinglinecontainerprefix.FieldUpdatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, shippinglinecontainerprefix.FieldOrganizationID)
+	}
+	if m.shipping_line != nil {
+		fields = append(fields, shippinglinecontainerprefix.FieldShippingLineID)
+	}
+	if m.prefix != nil {
+		fields = append(fields, shippinglinecontainerprefix.FieldPrefix)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ShippingLineContainerPrefixMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case shippinglinecontainerprefix.FieldCreatedAt:
+		return m.CreatedAt()
+	case shippinglinecontainerprefix.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case shippinglinecontainerprefix.FieldOrganizationID:
+		return m.OrganizationID()
+	case shippinglinecontainerprefix.FieldShippingLineID:
+		return m.ShippingLineID()
+	case shippinglinecontainerprefix.FieldPrefix:
+		return m.Prefix()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ShippingLineContainerPrefixMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case shippinglinecontainerprefix.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case shippinglinecontainerprefix.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case shippinglinecontainerprefix.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case shippinglinecontainerprefix.FieldShippingLineID:
+		return m.OldShippingLineID(ctx)
+	case shippinglinecontainerprefix.FieldPrefix:
+		return m.OldPrefix(ctx)
+	}
+	return nil, fmt.Errorf("unknown ShippingLineContainerPrefix field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShippingLineContainerPrefixMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case shippinglinecontainerprefix.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case shippinglinecontainerprefix.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case shippinglinecontainerprefix.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case shippinglinecontainerprefix.FieldShippingLineID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShippingLineID(v)
+		return nil
+	case shippinglinecontainerprefix.FieldPrefix:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrefix(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLineContainerPrefix field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ShippingLineContainerPrefixMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ShippingLineContainerPrefixMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShippingLineContainerPrefixMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ShippingLineContainerPrefix numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ShippingLineContainerPrefixMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ShippingLineContainerPrefixMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ShippingLineContainerPrefixMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ShippingLineContainerPrefix nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ShippingLineContainerPrefixMutation) ResetField(name string) error {
+	switch name {
+	case shippinglinecontainerprefix.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case shippinglinecontainerprefix.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case shippinglinecontainerprefix.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case shippinglinecontainerprefix.FieldShippingLineID:
+		m.ResetShippingLineID()
+		return nil
+	case shippinglinecontainerprefix.FieldPrefix:
+		m.ResetPrefix()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLineContainerPrefix field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ShippingLineContainerPrefixMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.shipping_line != nil {
+		edges = append(edges, shippinglinecontainerprefix.EdgeShippingLine)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ShippingLineContainerPrefixMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case shippinglinecontainerprefix.EdgeShippingLine:
+		if id := m.shipping_line; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ShippingLineContainerPrefixMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ShippingLineContainerPrefixMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ShippingLineContainerPrefixMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedshipping_line {
+		edges = append(edges, shippinglinecontainerprefix.EdgeShippingLine)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ShippingLineContainerPrefixMutation) EdgeCleared(name string) bool {
+	switch name {
+	case shippinglinecontainerprefix.EdgeShippingLine:
+		return m.clearedshipping_line
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ShippingLineContainerPrefixMutation) ClearEdge(name string) error {
+	switch name {
+	case shippinglinecontainerprefix.EdgeShippingLine:
+		m.ClearShippingLine()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLineContainerPrefix unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ShippingLineContainerPrefixMutation) ResetEdge(name string) error {
+	switch name {
+	case shippinglinecontainerprefix.EdgeShippingLine:
+		m.ResetShippingLine()
+		return nil
+	}
+	return fmt.Errorf("unknown ShippingLineContainerPrefix edge %s", name)
 }
 
 // StatusTemplateMutation represents an operation that mutates the StatusTemplate nodes in the graph.

@@ -91,11 +91,6 @@ func ParentCode(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldEQ(FieldParentCode, v))
 }
 
-// TransportMode applies equality check predicate on the "transport_mode" field. It's identical to TransportModeEQ.
-func TransportMode(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldEQ(FieldTransportMode, v))
-}
-
 // TeuFactor applies equality check predicate on the "teu_factor" field. It's identical to TeuFactorEQ.
 func TeuFactor(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldEQ(FieldTeuFactor, v))
@@ -514,81 +509,6 @@ func ParentCodeEqualFold(v string) predicate.MasterDataItem {
 // ParentCodeContainsFold applies the ContainsFold predicate on the "parent_code" field.
 func ParentCodeContainsFold(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldContainsFold(FieldParentCode, v))
-}
-
-// TransportModeEQ applies the EQ predicate on the "transport_mode" field.
-func TransportModeEQ(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldEQ(FieldTransportMode, v))
-}
-
-// TransportModeNEQ applies the NEQ predicate on the "transport_mode" field.
-func TransportModeNEQ(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldNEQ(FieldTransportMode, v))
-}
-
-// TransportModeIn applies the In predicate on the "transport_mode" field.
-func TransportModeIn(vs ...string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldIn(FieldTransportMode, vs...))
-}
-
-// TransportModeNotIn applies the NotIn predicate on the "transport_mode" field.
-func TransportModeNotIn(vs ...string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldNotIn(FieldTransportMode, vs...))
-}
-
-// TransportModeGT applies the GT predicate on the "transport_mode" field.
-func TransportModeGT(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldGT(FieldTransportMode, v))
-}
-
-// TransportModeGTE applies the GTE predicate on the "transport_mode" field.
-func TransportModeGTE(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldGTE(FieldTransportMode, v))
-}
-
-// TransportModeLT applies the LT predicate on the "transport_mode" field.
-func TransportModeLT(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldLT(FieldTransportMode, v))
-}
-
-// TransportModeLTE applies the LTE predicate on the "transport_mode" field.
-func TransportModeLTE(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldLTE(FieldTransportMode, v))
-}
-
-// TransportModeContains applies the Contains predicate on the "transport_mode" field.
-func TransportModeContains(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldContains(FieldTransportMode, v))
-}
-
-// TransportModeHasPrefix applies the HasPrefix predicate on the "transport_mode" field.
-func TransportModeHasPrefix(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldHasPrefix(FieldTransportMode, v))
-}
-
-// TransportModeHasSuffix applies the HasSuffix predicate on the "transport_mode" field.
-func TransportModeHasSuffix(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldHasSuffix(FieldTransportMode, v))
-}
-
-// TransportModeIsNil applies the IsNil predicate on the "transport_mode" field.
-func TransportModeIsNil() predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldIsNull(FieldTransportMode))
-}
-
-// TransportModeNotNil applies the NotNil predicate on the "transport_mode" field.
-func TransportModeNotNil() predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldNotNull(FieldTransportMode))
-}
-
-// TransportModeEqualFold applies the EqualFold predicate on the "transport_mode" field.
-func TransportModeEqualFold(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldEqualFold(FieldTransportMode, v))
-}
-
-// TransportModeContainsFold applies the ContainsFold predicate on the "transport_mode" field.
-func TransportModeContainsFold(v string) predicate.MasterDataItem {
-	return predicate.MasterDataItem(sql.FieldContainsFold(FieldTransportMode, v))
 }
 
 // TeuFactorEQ applies the EQ predicate on the "teu_factor" field.

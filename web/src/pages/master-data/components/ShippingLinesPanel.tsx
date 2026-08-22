@@ -3,31 +3,30 @@ import { App, Button, Tag, Tooltip } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import {
-  masterDataServiceCreateItem,
-  masterDataServiceListItems,
-  masterDataServiceUpdateItem,
+  masterDataServiceCreateShippingLine,
+  masterDataServiceListShippingLines,
+  masterDataServiceUpdateShippingLine,
 } from '@/services/roncin/masterDataService';
-import {
-  mapPersistedMasterDataItem,
-  type PersistedMasterDataItem,
-  requireMasterDataResponse,
-} from './masterDataMapper';
+import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface ShippingLineItem extends PersistedMasterDataItem {
-  scacCode: string;
+  containerPrefixes: string[];
+  containerPrefixesText: string;
   trackingUrl?: string;
   countryCode: string;
   countryName?: string;
   alliance?: string;
 }
 
-const mapShippingLine = (item: API.MasterDataItem): ShippingLineItem => ({
-  ...mapPersistedMasterDataItem(item),
-  scacCode: item.attributes?.scacCode ?? '',
-  trackingUrl: item.attributes?.trackingUrl,
-  countryCode: item.attributes?.countryCode ?? '',
-  alliance: item.attributes?.alliance,
-});
+const mapShippingLine = (item: API.ShippingLine): ShippingLineItem => {
+  if (!item.id || !item.scacCode || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+    throw new Error('船司响应缺少必填字段');
+  }
+  const containerPrefixes = item.containerPrefixes ?? [];
+  return { id: item.id, code: item.scacCode, name: item.nameZh, nameEn: item.nameEn, trackingUrl: item.trackingUrl, countryCode: item.countryCode, alliance: item.alliance, containerPrefixes, containerPrefixesText: containerPrefixes.join(', '), enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+};
+
+const parseContainerPrefixes = (value?: string) => value?.split(/[,，\s]+/).map((item) => item.trim().toUpperCase()).filter(Boolean) ?? [];
 
 export default function ShippingLinesPanel() {
   const { message } = App.useApp();
@@ -37,12 +36,7 @@ export default function ShippingLinesPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListItems({
-        kind: 6,
-        transportMode: 'SEA',
-        page: 1,
-        pageSize: 100,
-      });
+      const response = await masterDataServiceListShippingLines({ page: 1, pageSize: 100 });
       setData((response.data ?? []).map(mapShippingLine));
     } finally {
       setLoading(false);
@@ -53,8 +47,9 @@ export default function ShippingLinesPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '船司主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.MasterDataItemReply) => {
-    const saved = mapShippingLine(requireMasterDataResponse(response));
+  const saveResponse = (response: API.ShippingLineReply) => {
+    if (!response.data) throw new Error('船司响应缺少数据');
+    const saved = mapShippingLine(response.data);
     setData((current) => {
       const exists = current.some((item) => item.id === saved.id);
       return exists
@@ -64,42 +59,34 @@ export default function ShippingLinesPanel() {
   };
 
   const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateItem({
-      kind: 6,
-      code: values.code.toUpperCase().trim(),
-      name: values.name.trim(),
+    const response = await masterDataServiceCreateShippingLine({
+      scacCode: values.code.toUpperCase().trim(),
+      nameZh: values.name.trim(),
       nameEn: values.nameEn.trim(),
-      transportMode: 'SEA',
+      countryCode: values.countryCode.toUpperCase().trim(),
+      trackingUrl: values.trackingUrl?.trim() || undefined,
+      alliance: values.alliance || undefined,
+      containerPrefixes: parseContainerPrefixes(values.containerPrefixesText),
       source: 'manual',
       sortOrder: 100,
-      attributes: {
-        scacCode: values.scacCode.toUpperCase().trim(),
-        trackingUrl: values.trackingUrl?.trim(),
-        countryCode: values.countryCode.toUpperCase().trim(),
-        alliance: values.alliance,
-      },
     });
     saveResponse(response);
   };
 
   const updateItem = async (record: ShippingLineItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateItem(
+    const response = await masterDataServiceUpdateShippingLine(
       { id: record.id },
       {
         id: record.id,
-        kind: 6,
-        name: values.name.trim(),
+        nameZh: values.name.trim(),
         nameEn: values.nameEn.trim(),
-        transportMode: 'SEA',
+        countryCode: values.countryCode.toUpperCase().trim(),
+        trackingUrl: values.trackingUrl?.trim() || undefined,
+        alliance: values.alliance || undefined,
+        containerPrefixes: parseContainerPrefixes(values.containerPrefixesText),
         source: record.source,
         sortOrder: record.sortOrder,
         enabled,
-        attributes: {
-          scacCode: values.scacCode.toUpperCase().trim(),
-          trackingUrl: values.trackingUrl?.trim(),
-          countryCode: values.countryCode.toUpperCase().trim(),
-          alliance: values.alliance,
-        },
       },
     );
     saveResponse(response);
@@ -120,11 +107,11 @@ export default function ShippingLinesPanel() {
       title="船公司管理"
       subtitle="维护全球主要班轮船公司 SCAC 代码、联盟分类与官方货柜轨迹追踪入口"
       icon={<GlobalOutlined />}
-      codeLabel="船司代码"
+      codeLabel="SCAC 标准代码"
       items={data}
       loading={loading}
       onRefresh={fetchServerData}
-      searchPlaceholder="搜索船司代码(如 MSKU) / SCAC / 船司中英文名称..."
+      searchPlaceholder="搜索 SCAC（如 MAEU）/ BIC 箱主前缀（如 MSKU）/ 船司中英文名称..."
       extraStats={[
         { label: '三大班轮联盟', value: data.filter((s) => s.alliance && s.alliance !== 'Independent').length, color: '#1677ff' },
         { label: '独立/近洋船司', value: data.filter((s) => !s.alliance || s.alliance === 'Independent' || s.alliance === 'Intra-Asia').length, color: '#52c41a' },
@@ -146,13 +133,13 @@ export default function ShippingLinesPanel() {
       ]}
       extraColumns={[
         {
-          title: 'SCAC 标准代码',
-          dataIndex: 'scacCode',
-          key: 'scacCode',
-          width: 130,
-          render: (scac: string) => (
+          title: 'BIC 箱主前缀',
+          dataIndex: 'containerPrefixes',
+          key: 'containerPrefixes',
+          width: 180,
+          render: (prefixes: string[]) => (
             <Tag style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0958d9', backgroundColor: '#e6f4ff', margin: 0 }}>
-              {scac || '-'}
+              {prefixes?.join(', ') || '-'}
             </Tag>
           ),
         },
@@ -194,17 +181,20 @@ export default function ShippingLinesPanel() {
       formFields={[
         {
           name: 'code',
-          label: '船司代码',
-          placeholder: '例如：MSKU、COSU (4位代码)',
+          label: 'SCAC 标准代码',
+          placeholder: '例如：MAEU、COSU',
           required: true,
           disabledOnEdit: true,
-          rules: [{ required: true, message: '请输入船司代码' }],
+          rules: [
+            { required: true, message: '请输入 SCAC 标准代码' },
+            { pattern: /^[A-Za-z]{2,4}$/, message: 'SCAC 应为2至4位字母' },
+          ],
         },
         {
-          name: 'scacCode',
-          label: 'SCAC 代码',
-          placeholder: '例如：MAEU、EGLV (美国标准承运人代码)',
-          required: true,
+          name: 'containerPrefixesText',
+          label: 'BIC 箱主前缀',
+          placeholder: '例如：MSKU, MRSU（多个使用逗号分隔）',
+          rules: [{ pattern: /^\s*$|^[A-Za-z]{3}[UJZujz](\s*[,，]\s*[A-Za-z]{3}[UJZujz])*$/, message: '每个箱主前缀应为3位字母加 U/J/Z，并用逗号分隔' }],
         },
         {
           name: 'name',

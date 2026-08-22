@@ -14,14 +14,16 @@ import (
 type MasterDataService struct {
 	v1.UnimplementedMasterDataServiceServer
 	usecase                *biz.MasterDataUsecase
+	industryUsecase        *biz.IndustryReferenceUsecase
 	referenceDataUsecase   *biz.ReferenceDataUsecase
 	orderConfigUsecase     *biz.OrderConfigUsecase
 	milestoneConfigUsecase *biz.MilestoneConfigUsecase
 }
 
-func NewMasterDataService(usecase *biz.MasterDataUsecase, referenceDataUsecase *biz.ReferenceDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase, milestoneConfigUsecase *biz.MilestoneConfigUsecase) *MasterDataService {
+func NewMasterDataService(usecase *biz.MasterDataUsecase, industryUsecase *biz.IndustryReferenceUsecase, referenceDataUsecase *biz.ReferenceDataUsecase, orderConfigUsecase *biz.OrderConfigUsecase, milestoneConfigUsecase *biz.MilestoneConfigUsecase) *MasterDataService {
 	return &MasterDataService{
 		usecase:                usecase,
+		industryUsecase:        industryUsecase,
 		referenceDataUsecase:   referenceDataUsecase,
 		orderConfigUsecase:     orderConfigUsecase,
 		milestoneConfigUsecase: milestoneConfigUsecase,
@@ -78,7 +80,7 @@ func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListMaste
 	if err != nil {
 		return nil, biz.ErrMasterDataInvalidArgument
 	}
-	options := biz.MasterDataListOptions{Page: page, PageSize: pageSize, Kind: masterDataKindFromAPI(request.GetKind()), Keyword: request.GetKeyword(), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil)}
+	options := biz.MasterDataListOptions{Page: page, PageSize: pageSize, Kind: masterDataKindFromAPI(request.GetKind()), Keyword: request.GetKeyword()}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
@@ -95,7 +97,7 @@ func (s *MasterDataService) CreateItem(ctx context.Context, request *v1.CreateMa
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Code: request.GetCode(), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: true})
+	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Code: request.GetCode(), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: true})
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +113,7 @@ func (s *MasterDataService) UpdateItem(ctx context.Context, request *v1.UpdateMa
 	if err != nil {
 		return nil, biz.ErrMasterDataInvalidArgument
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, id, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TransportMode: optionalString(request.GetTransportMode(), request.TransportMode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, id, &biz.MasterDataItem{Kind: masterDataKindFromAPI(request.GetKind()), Name: request.GetName(), NameEN: optionalString(request.GetNameEn(), request.NameEn != nil), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), TEUFactor: optionalString(request.GetTeuFactor(), request.TeuFactor != nil), Attributes: masterDataAttributesFromAPI(request.GetAttributes()), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +132,151 @@ func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListMasterDat
 	return &v1.MasterDataOptionsReply{Success: true, Code: 0, Message: "OK", Data: masterDataItemsToAPI(items), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *MasterDataService) ListPorts(ctx context.Context, request *v1.ListIndustryReferencesRequest) (*v1.PortListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	options := industryReferenceListOptions(request)
+	result, err := s.industryUsecase.ListPorts(ctx, principal.Organization.ID, options)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PortListReply{Success: true, Code: 0, Message: "OK", Data: portsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) CreatePort(ctx context.Context, request *v1.CreatePortRequest) (*v1.PortReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.industryUsecase.CreatePort(ctx, principal.Organization.ID, principal.UserID, &biz.Port{UNLocode: request.GetUnLocode(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PortReply{Success: true, Code: 0, Message: "OK", Data: portToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) UpdatePort(ctx context.Context, request *v1.UpdatePortRequest) (*v1.PortReply, error) {
+	principal, id, err := principalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.industryUsecase.UpdatePort(ctx, principal.Organization.ID, principal.UserID, id, &biz.Port{NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PortReply{Success: true, Code: 0, Message: "OK", Data: portToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) ListAirports(ctx context.Context, request *v1.ListIndustryReferencesRequest) (*v1.AirportListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.industryUsecase.ListAirports(ctx, principal.Organization.ID, industryReferenceListOptions(request))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirportListReply{Success: true, Code: 0, Message: "OK", Data: airportsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) CreateAirport(ctx context.Context, request *v1.CreateAirportRequest) (*v1.AirportReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.industryUsecase.CreateAirport(ctx, principal.Organization.ID, principal.UserID, &biz.Airport{IATACode: request.GetIataCode(), ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirportReply{Success: true, Code: 0, Message: "OK", Data: airportToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) UpdateAirport(ctx context.Context, request *v1.UpdateAirportRequest) (*v1.AirportReply, error) {
+	principal, id, err := principalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.industryUsecase.UpdateAirport(ctx, principal.Organization.ID, principal.UserID, id, &biz.Airport{ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirportReply{Success: true, Code: 0, Message: "OK", Data: airportToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) ListAirlines(ctx context.Context, request *v1.ListIndustryReferencesRequest) (*v1.AirlineListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.industryUsecase.ListAirlines(ctx, principal.Organization.ID, industryReferenceListOptions(request))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirlineListReply{Success: true, Code: 0, Message: "OK", Data: airlinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) CreateAirline(ctx context.Context, request *v1.CreateAirlineRequest) (*v1.AirlineReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.industryUsecase.CreateAirline(ctx, principal.Organization.ID, principal.UserID, &biz.Airline{IATACode: request.GetIataCode(), ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), AWBPrefix: request.GetAwbPrefix(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), CargoOnly: request.GetCargoOnly(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirlineReply{Success: true, Code: 0, Message: "OK", Data: airlineToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) UpdateAirline(ctx context.Context, request *v1.UpdateAirlineRequest) (*v1.AirlineReply, error) {
+	principal, id, err := principalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.industryUsecase.UpdateAirline(ctx, principal.Organization.ID, principal.UserID, id, &biz.Airline{ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), AWBPrefix: request.GetAwbPrefix(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), CargoOnly: request.GetCargoOnly(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AirlineReply{Success: true, Code: 0, Message: "OK", Data: airlineToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) ListShippingLines(ctx context.Context, request *v1.ListIndustryReferencesRequest) (*v1.ShippingLineListReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.industryUsecase.ListShippingLines(ctx, principal.Organization.ID, industryReferenceListOptions(request))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ShippingLineListReply{Success: true, Code: 0, Message: "OK", Data: shippingLinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) CreateShippingLine(ctx context.Context, request *v1.CreateShippingLineRequest) (*v1.ShippingLineReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.industryUsecase.CreateShippingLine(ctx, principal.Organization.ID, principal.UserID, &biz.ShippingLine{SCACCode: request.GetScacCode(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TrackingURL: optionalString(request.GetTrackingUrl(), request.TrackingUrl != nil), Alliance: optionalString(request.GetAlliance(), request.Alliance != nil), ContainerPrefixes: request.GetContainerPrefixes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ShippingLineReply{Success: true, Code: 0, Message: "OK", Data: shippingLineToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) UpdateShippingLine(ctx context.Context, request *v1.UpdateShippingLineRequest) (*v1.ShippingLineReply, error) {
+	principal, id, err := principalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.industryUsecase.UpdateShippingLine(ctx, principal.Organization.ID, principal.UserID, id, &biz.ShippingLine{NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TrackingURL: optionalString(request.GetTrackingUrl(), request.TrackingUrl != nil), Alliance: optionalString(request.GetAlliance(), request.Alliance != nil), ContainerPrefixes: request.GetContainerPrefixes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ShippingLineReply{Success: true, Code: 0, Message: "OK", Data: shippingLineToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportMasterDataItemsRequest) (*v1.MasterDataImportReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -141,15 +288,14 @@ func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportM
 			return nil, biz.ErrMasterDataInvalidArgument
 		}
 		items = append(items, &biz.MasterDataItem{
-			Code:          item.GetCode(),
-			Name:          item.GetName(),
-			NameEN:        optionalString(item.GetNameEn(), item.NameEn != nil),
-			ParentCode:    optionalString(item.GetParentCode(), item.ParentCode != nil),
-			TransportMode: optionalString(item.GetTransportMode(), item.TransportMode != nil),
-			TEUFactor:     optionalString(item.GetTeuFactor(), item.TeuFactor != nil),
-			Attributes:    masterDataAttributesFromAPI(item.GetAttributes()),
-			SortOrder:     int(item.GetSortOrder()),
-			Enabled:       item.Enabled == nil || item.GetEnabled(),
+			Code:       item.GetCode(),
+			Name:       item.GetName(),
+			NameEN:     optionalString(item.GetNameEn(), item.NameEn != nil),
+			ParentCode: optionalString(item.GetParentCode(), item.ParentCode != nil),
+			TEUFactor:  optionalString(item.GetTeuFactor(), item.TeuFactor != nil),
+			Attributes: masterDataAttributesFromAPI(item.GetAttributes()),
+			SortOrder:  int(item.GetSortOrder()),
+			Enabled:    item.Enabled == nil || item.GetEnabled(),
 		})
 	}
 	result, err := s.usecase.Import(ctx, principal.Organization.ID, principal.UserID, biz.MasterDataImportInput{
@@ -476,12 +622,6 @@ func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 		return biz.MasterDataKindCountry
 	case v1.MasterDataKind_MASTER_DATA_KIND_REGION:
 		return biz.MasterDataKindRegion
-	case v1.MasterDataKind_MASTER_DATA_KIND_PORT:
-		return biz.MasterDataKindPort
-	case v1.MasterDataKind_MASTER_DATA_KIND_AIRPORT:
-		return biz.MasterDataKindAirport
-	case v1.MasterDataKind_MASTER_DATA_KIND_CARRIER:
-		return biz.MasterDataKindCarrier
 	case v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC:
 		return biz.MasterDataKindContainerSpec
 	case v1.MasterDataKind_MASTER_DATA_KIND_SERVICE_TYPE:
@@ -503,12 +643,6 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_COUNTRY
 	case biz.MasterDataKindRegion:
 		return v1.MasterDataKind_MASTER_DATA_KIND_REGION
-	case biz.MasterDataKindPort:
-		return v1.MasterDataKind_MASTER_DATA_KIND_PORT
-	case biz.MasterDataKindAirport:
-		return v1.MasterDataKind_MASTER_DATA_KIND_AIRPORT
-	case biz.MasterDataKindCarrier:
-		return v1.MasterDataKind_MASTER_DATA_KIND_CARRIER
 	case biz.MasterDataKindContainerSpec:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC
 	case biz.MasterDataKindServiceType:
@@ -550,7 +684,6 @@ func masterDataItemToAPI(item *biz.MasterDataItem) *v1.MasterDataItem {
 		Name:           item.Name,
 		NameEn:         item.NameEN,
 		ParentCode:     item.ParentCode,
-		TransportMode:  item.TransportMode,
 		TeuFactor:      item.TEUFactor,
 		Source:         item.Source,
 		SortOrder:      int32(item.SortOrder),
@@ -566,16 +699,6 @@ func masterDataAttributesFromAPI(attributes *v1.MasterDataAttributes) biz.Master
 		return biz.MasterDataAttributes{}
 	}
 	return biz.MasterDataAttributes{
-		CountryCode:  optionalString(attributes.GetCountryCode(), attributes.CountryCode != nil),
-		Modes:        append([]string(nil), attributes.GetModes()...),
-		IsBorder:     optionalBool(attributes.GetIsBorder(), attributes.IsBorder != nil),
-		ICAOCode:     optionalString(attributes.GetIcaoCode(), attributes.IcaoCode != nil),
-		CityName:     optionalString(attributes.GetCityName(), attributes.CityName != nil),
-		AWBPrefix:    optionalString(attributes.GetAwbPrefix(), attributes.AwbPrefix != nil),
-		IsCargoOnly:  optionalBool(attributes.GetIsCargoOnly(), attributes.IsCargoOnly != nil),
-		SCACCode:     optionalString(attributes.GetScacCode(), attributes.ScacCode != nil),
-		TrackingURL:  optionalString(attributes.GetTrackingUrl(), attributes.TrackingUrl != nil),
-		Alliance:     optionalString(attributes.GetAlliance(), attributes.Alliance != nil),
 		Continent:    optionalString(attributes.GetContinent(), attributes.Continent != nil),
 		CurrencyCode: optionalString(attributes.GetCurrencyCode(), attributes.CurrencyCode != nil),
 		RegionLevel:  optionalInt(attributes.GetRegionLevel(), attributes.RegionLevel != nil),
@@ -584,12 +707,80 @@ func masterDataAttributesFromAPI(attributes *v1.MasterDataAttributes) biz.Master
 
 func masterDataAttributesToAPI(attributes biz.MasterDataAttributes) *v1.MasterDataAttributes {
 	return &v1.MasterDataAttributes{
-		CountryCode: attributes.CountryCode, Modes: append([]string(nil), attributes.Modes...), IsBorder: attributes.IsBorder,
-		IcaoCode: attributes.ICAOCode, CityName: attributes.CityName, AwbPrefix: attributes.AWBPrefix,
-		IsCargoOnly: attributes.IsCargoOnly, ScacCode: attributes.SCACCode, TrackingUrl: attributes.TrackingURL,
-		Alliance: attributes.Alliance, Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
+		Continent: attributes.Continent, CurrencyCode: attributes.CurrencyCode,
 		RegionLevel: intPointerToInt32(attributes.RegionLevel),
 	}
+}
+
+func industryReferenceListOptions(request *v1.ListIndustryReferencesRequest) biz.IndustryReferenceListOptions {
+	page, pageSize := int(request.GetPage()), int(request.GetPageSize())
+	if page == 0 {
+		page = 1
+	}
+	if pageSize == 0 {
+		pageSize = 100
+	}
+	return biz.IndustryReferenceListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), Enabled: optionalBool(request.GetEnabled(), request.Enabled != nil)}
+}
+
+func principalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, uuid.Nil, err
+	}
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		return nil, uuid.Nil, biz.ErrMasterDataInvalidArgument
+	}
+	return principal, id, nil
+}
+
+func portsToAPI(items []*biz.Port) []*v1.Port {
+	result := make([]*v1.Port, 0, len(items))
+	for _, item := range items {
+		result = append(result, portToAPI(item))
+	}
+	return result
+}
+
+func portToAPI(item *biz.Port) *v1.Port {
+	return &v1.Port{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), UnLocode: item.UNLocode, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func airportsToAPI(items []*biz.Airport) []*v1.Airport {
+	result := make([]*v1.Airport, 0, len(items))
+	for _, item := range items {
+		result = append(result, airportToAPI(item))
+	}
+	return result
+}
+
+func airportToAPI(item *biz.Airport) *v1.Airport {
+	return &v1.Airport{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: item.NameZH, NameEn: item.NameEN, CityNameZh: item.CityNameZH, CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
+	result := make([]*v1.Airline, 0, len(items))
+	for _, item := range items {
+		result = append(result, airlineToAPI(item))
+	}
+	return result
+}
+
+func airlineToAPI(item *biz.Airline) *v1.Airline {
+	return &v1.Airline{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, AwbPrefix: item.AWBPrefix, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, CargoOnly: item.CargoOnly, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func shippingLinesToAPI(items []*biz.ShippingLine) []*v1.ShippingLine {
+	result := make([]*v1.ShippingLine, 0, len(items))
+	for _, item := range items {
+		result = append(result, shippingLineToAPI(item))
+	}
+	return result
+}
+
+func shippingLineToAPI(item *biz.ShippingLine) *v1.ShippingLine {
+	return &v1.ShippingLine{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), ScacCode: item.SCACCode, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, TrackingUrl: item.TrackingURL, Alliance: item.Alliance, ContainerPrefixes: append([]string(nil), item.ContainerPrefixes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func optionalBool(value bool, present bool) *bool {

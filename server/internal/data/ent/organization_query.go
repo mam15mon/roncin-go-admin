@@ -14,6 +14,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -23,9 +25,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
@@ -44,6 +48,10 @@ type OrganizationQuery struct {
 	withPartners           *PartnerQuery
 	withPartnerAssignments *PartnerAssignmentQuery
 	withMasterDataItems    *MasterDataItemQuery
+	withPorts              *PortQuery
+	withAirports           *AirportQuery
+	withAirlines           *AirlineQuery
+	withShippingLines      *ShippingLineQuery
 	withNumberRules        *NumberRuleQuery
 	withStatusTemplates    *StatusTemplateQuery
 	withMilestoneTemplates *MilestoneTemplateQuery
@@ -255,6 +263,94 @@ func (_q *OrganizationQuery) QueryMasterDataItems() *MasterDataItemQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPorts chains the current query on the "ports" edge.
+func (_q *OrganizationQuery) QueryPorts() *PortQuery {
+	query := (&PortClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(port.Table, port.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PortsTable, organization.PortsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirports chains the current query on the "airports" edge.
+func (_q *OrganizationQuery) QueryAirports() *AirportQuery {
+	query := (&AirportClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirportsTable, organization.AirportsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirlines chains the current query on the "airlines" edge.
+func (_q *OrganizationQuery) QueryAirlines() *AirlineQuery {
+	query := (&AirlineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirlinesTable, organization.AirlinesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShippingLines chains the current query on the "shipping_lines" edge.
+func (_q *OrganizationQuery) QueryShippingLines() *ShippingLineQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(shippingline.Table, shippingline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.ShippingLinesTable, organization.ShippingLinesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -572,6 +668,10 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withPartners:           _q.withPartners.Clone(),
 		withPartnerAssignments: _q.withPartnerAssignments.Clone(),
 		withMasterDataItems:    _q.withMasterDataItems.Clone(),
+		withPorts:              _q.withPorts.Clone(),
+		withAirports:           _q.withAirports.Clone(),
+		withAirlines:           _q.withAirlines.Clone(),
+		withShippingLines:      _q.withShippingLines.Clone(),
 		withNumberRules:        _q.withNumberRules.Clone(),
 		withStatusTemplates:    _q.withStatusTemplates.Clone(),
 		withMilestoneTemplates: _q.withMilestoneTemplates.Clone(),
@@ -668,6 +768,50 @@ func (_q *OrganizationQuery) WithMasterDataItems(opts ...func(*MasterDataItemQue
 		opt(query)
 	}
 	_q.withMasterDataItems = query
+	return _q
+}
+
+// WithPorts tells the query-builder to eager-load the nodes that are connected to
+// the "ports" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithPorts(opts ...func(*PortQuery)) *OrganizationQuery {
+	query := (&PortClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPorts = query
+	return _q
+}
+
+// WithAirports tells the query-builder to eager-load the nodes that are connected to
+// the "airports" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithAirports(opts ...func(*AirportQuery)) *OrganizationQuery {
+	query := (&AirportClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAirports = query
+	return _q
+}
+
+// WithAirlines tells the query-builder to eager-load the nodes that are connected to
+// the "airlines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithAirlines(opts ...func(*AirlineQuery)) *OrganizationQuery {
+	query := (&AirlineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAirlines = query
+	return _q
+}
+
+// WithShippingLines tells the query-builder to eager-load the nodes that are connected to
+// the "shipping_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithShippingLines(opts ...func(*ShippingLineQuery)) *OrganizationQuery {
+	query := (&ShippingLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withShippingLines = query
 	return _q
 }
 
@@ -804,7 +948,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [13]bool{
+		loadedTypes = [17]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -813,6 +957,10 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withPartners != nil,
 			_q.withPartnerAssignments != nil,
 			_q.withMasterDataItems != nil,
+			_q.withPorts != nil,
+			_q.withAirports != nil,
+			_q.withAirlines != nil,
+			_q.withShippingLines != nil,
 			_q.withNumberRules != nil,
 			_q.withStatusTemplates != nil,
 			_q.withMilestoneTemplates != nil,
@@ -895,6 +1043,34 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadMasterDataItems(ctx, query, nodes,
 			func(n *Organization) { n.Edges.MasterDataItems = []*MasterDataItem{} },
 			func(n *Organization, e *MasterDataItem) { n.Edges.MasterDataItems = append(n.Edges.MasterDataItems, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPorts; query != nil {
+		if err := _q.loadPorts(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Ports = []*Port{} },
+			func(n *Organization, e *Port) { n.Edges.Ports = append(n.Edges.Ports, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAirports; query != nil {
+		if err := _q.loadAirports(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Airports = []*Airport{} },
+			func(n *Organization, e *Airport) { n.Edges.Airports = append(n.Edges.Airports, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAirlines; query != nil {
+		if err := _q.loadAirlines(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Airlines = []*Airline{} },
+			func(n *Organization, e *Airline) { n.Edges.Airlines = append(n.Edges.Airlines, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withShippingLines; query != nil {
+		if err := _q.loadShippingLines(ctx, query, nodes,
+			func(n *Organization) { n.Edges.ShippingLines = []*ShippingLine{} },
+			func(n *Organization, e *ShippingLine) { n.Edges.ShippingLines = append(n.Edges.ShippingLines, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1168,6 +1344,126 @@ func (_q *OrganizationQuery) loadMasterDataItems(ctx context.Context, query *Mas
 	}
 	query.Where(predicate.MasterDataItem(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.MasterDataItemsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadPorts(ctx context.Context, query *PortQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Port)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(port.FieldOrganizationID)
+	}
+	query.Where(predicate.Port(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.PortsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadAirports(ctx context.Context, query *AirportQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Airport)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(airport.FieldOrganizationID)
+	}
+	query.Where(predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.AirportsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadAirlines(ctx context.Context, query *AirlineQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Airline)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(airline.FieldOrganizationID)
+	}
+	query.Where(predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.AirlinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadShippingLines(ctx context.Context, query *ShippingLineQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *ShippingLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(shippingline.FieldOrganizationID)
+	}
+	query.Where(predicate.ShippingLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.ShippingLinesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
