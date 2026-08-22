@@ -90,7 +90,7 @@ export default [
   {
     path: '/orders',
     name: '订单管理',
-    icon: 'ordered-list',
+    icon: 'orderedList',
     access: 'canReadOrders',
     component: './orders',
   },
