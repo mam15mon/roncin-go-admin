@@ -16,7 +16,10 @@ if (!existsSync(postgresDataDir)) {
   throw new Error(`PostgreSQL 数据目录不存在: ${postgresDataDir}`);
 }
 
-const pnpmCommand = 'pnpm.cmd';
+const commandShell = process.env.ComSpec;
+if (!commandShell) {
+  throw new Error('ComSpec 环境变量不存在');
+}
 
 function runChecked(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -39,6 +42,10 @@ function runChecked(command, args, options = {}) {
       );
     });
   });
+}
+
+function runPnpmScript(script) {
+  return runChecked(commandShell, ['/d', '/s', '/c', `pnpm run ${script}`]);
 }
 
 function postgresIsRunning() {
@@ -75,7 +82,7 @@ async function prepareDatabase() {
   }
 
   console.log('[dev] 执行数据库迁移');
-  await runChecked(pnpmCommand, ['run', 'migrate:server']);
+  await runPnpmScript('migrate:server');
 }
 
 const children = new Map();
@@ -102,7 +109,11 @@ function stopAll(code) {
 }
 
 function startService(name, script) {
-  const child = spawn(pnpmCommand, ['run', script], { stdio: 'inherit' });
+  const child = spawn(
+    commandShell,
+    ['/d', '/s', '/c', `pnpm run ${script}`],
+    { stdio: 'inherit' },
+  );
   children.set(name, child);
 
   child.once('error', (error) => {
