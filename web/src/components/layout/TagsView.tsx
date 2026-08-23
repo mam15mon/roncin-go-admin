@@ -90,22 +90,6 @@ function getRouteIcon(path: string) {
 }
 
 /**
- * Chrome 经典贝塞尔光滑内凹双反角 SVG 矢量图形
- */
-const ChromeTabBg: React.FC = () => (
-  <svg
-    aria-hidden="true"
-    className="roncin-chrome-tab-svg"
-    viewBox="0 0 214 34"
-    preserveAspectRatio="none"
-  >
-    <path
-      d="M 0,34 Q 10,34 14,24 L 24,6 Q 28,0 38,0 L 176,0 Q 186,0 190,6 L 200,24 Q 204,34 214,34 Z"
-    />
-  </svg>
-);
-
-/**
  * 现代化 Chrome 风格多页签导航组件
  */
 export const TagsView: React.FC = () => {
@@ -178,7 +162,8 @@ export const TagsView: React.FC = () => {
     const currentIndex = tags.findIndex((t) => t.key === tag.key);
     const hasLeft = currentIndex > 1; // index 0 为固定工作台
     const hasRight = currentIndex < tags.length - 1;
-    const hasOther = tags.length > 2 || (tags.length === 2 && tag.key === '/welcome');
+    const hasOther =
+      tags.length > 2 || (tags.length === 2 && tag.key === '/welcome');
 
     return [
       {
@@ -287,12 +272,6 @@ export const TagsView: React.FC = () => {
                   }
                 }}
               >
-                {/* 激活状态下的经典贝塞尔反角背景 */}
-                {isActive && <ChromeTabBg />}
-
-                {/* 悬停微交互胶囊背景 */}
-                <div className="roncin-chrome-tab-hover-bg" />
-
                 {/* 标签主体内容 */}
                 <div className="roncin-chrome-tab-content">
                   {getRouteIcon(tag.path)}
@@ -309,7 +288,7 @@ export const TagsView: React.FC = () => {
                   )}
                 </div>
 
-                {/* 未激活标签之间的竖向细分割线（当前或下一标签激活时隐藏） */}
+                {/* 未激活标签之间的细分割线 */}
                 {!isActive && !isNextActive && (
                   <div className="roncin-chrome-tab-divider" />
                 )}
