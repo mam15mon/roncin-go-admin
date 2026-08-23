@@ -1,15 +1,12 @@
-import type { ReactNode } from 'react';
+import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 
 export interface SelectOption {
   label: string;
   value: string | number;
 }
 
-export interface TemplateSection {
-  key: string;
-  title: string;
-  content: ReactNode;
-}
+/** 区块结构由订单表单模板统一定义，页面模板只负责组装字段内容。 */
+export type TemplateSection = OrderFormTemplateSection;
 
 export interface TemplateProps {
   statusTemplateOptions: SelectOption[];

@@ -1,9 +1,10 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { PageContainer, ProForm } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
-import { App, Button, Card, Result, Row, Space, Spin } from 'antd';
+import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import { orderServiceCreateOrder } from '@/services/roncin/orderService';
 import {
   PARTNER_ROLES,
@@ -58,7 +59,6 @@ export default function NewOrderPage() {
   const config = parseOrderKind(params.kind);
 
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [statusTemplateOptions, setStatusTemplateOptions] = useState<SelectOption[]>([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
   const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
@@ -151,7 +151,6 @@ export default function NewOrderPage() {
     }
 
     try {
-      setSubmitting(true);
       const payload: API.CreateOrderRequest = {
         customerId: values.customerId,
         businessType: config.businessType,
@@ -210,70 +209,22 @@ export default function NewOrderPage() {
       const err = error as Error;
       message.error(err.message || '创建订单失败');
       return false;
-    } finally {
-      setSubmitting(false);
     }
   };
 
   return (
-    <PageContainer
-      header={{
-        title: `新建${config.title.replace('订单', '')}订单`,
-        subTitle: `录入${config.title}信息，套用${config.category === 'sea' ? '海运' : '空运'}专业业务模板`,
-        onBack: () => history.push(`/orders/${config.kind}`),
-      }}
-    >
-      {loading ? (
-        <Card bordered={false} style={{ textAlign: 'center', padding: '60px 0' }}>
-          <Spin size="large" tip="正在加载业务模板与主数据..." />
-        </Card>
-      ) : (
-        <ProForm<CreateOrderFormValues>
-          formRef={formRef}
-          grid
-          initialValues={{
-            tradeDirection: config.tradeDirection,
-          }}
-          onFinish={handleFinish}
-          submitter={{
-            searchConfig: {
-              submitText: '创建订单',
-              resetText: '重置表单',
-            },
-            submitButtonProps: {
-              loading: submitting,
-              size: 'large',
-              style: { minWidth: 120 },
-            },
-            resetButtonProps: {
-              size: 'large',
-              style: { minWidth: 100 },
-            },
-            render: (_, dom) => (
-              <div
-                style={{
-                  textAlign: 'center',
-                  marginTop: 24,
-                  padding: '16px 0 32px',
-                }}
-              >
-                <Space size="middle">{dom}</Space>
-              </div>
-            ),
-          }}
-        >
-          {sections.map((section) => (
-            <Card
-              key={section.key}
-              title={section.title}
-              bordered={false}
-              style={{ marginBottom: 16 }}
-            >
-              <Row gutter={16}>{section.content}</Row>
-            </Card>
-          ))}
-        </ProForm>
-      )}
-    </PageContainer>
+    <OrderFormTemplate<CreateOrderFormValues>
+      title={`新建${config.title.replace('订单', '')}订单`}
+      subTitle={`录入${config.title}信息，套用${config.category === 'sea' ? '海运' : '空运'}专业业务模板`}
+      onBack={() => history.push(`/orders/${config.kind}`)}
+      loading={loading}
+      loadingTip="正在加载业务模板与主数据..."
+      formRef={formRef}
+      sections={sections}
+      initialValues={{ tradeDirection: config.tradeDirection }}
+      onFinish={handleFinish}
+      submitText="创建订单"
+      resetText="重置表单"
+    />
   );
 }
