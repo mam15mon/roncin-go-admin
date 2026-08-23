@@ -62,7 +62,7 @@ export const paymentTermOptions = [
 export const shipmentTypeOptions = [
   { label: '整箱', value: 1 },
   { label: '拼箱', value: 2 },
-  { label: '散杂货', value: 3 },
+  { label: '散杂', value: 3 },
 ];
 
 export const containerOwnershipOptions = [

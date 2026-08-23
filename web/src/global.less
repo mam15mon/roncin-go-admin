@@ -790,3 +790,29 @@ ol {
     }
   }
 }
+
+// 5 列等宽自适应栅格辅助类
+.col-5 {
+  flex: 0 0 20% !important;
+  max-width: 20% !important;
+
+  @media (max-width: 1440px) {
+    flex: 0 0 25% !important;
+    max-width: 25% !important;
+  }
+
+  @media (max-width: 1200px) {
+    flex: 0 0 33.3333% !important;
+    max-width: 33.3333% !important;
+  }
+
+  @media (max-width: 768px) {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+
+  @media (max-width: 576px) {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}

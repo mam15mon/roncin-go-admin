@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Col, Form, Input, Select, Space } from 'antd';
+import { Button, Col, Form, Input, Row, Select, Space, message } from 'antd';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -39,100 +39,190 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
       title: '业务信息',
       content: (
         <>
-          {/* 第 1 行：业务核心标识（一行 5 个，紧凑排布） */}
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
-            name="orderNo"
-            label="订单编号"
-            placeholder="保存后自动生成"
-            fieldProps={{ disabled: true }}
-          />
-          <ProFormDatePicker
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
-            name="orderDate"
-            label="订单日期"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 24, lg: 12, xl: 7 }}
-            name="customerId"
-            label="委托单位"
-            rules={[{ required: true, message: '请选择客户单位' }]}
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索客户单位',
-              onChange: (_, option) =>
-                setCustomerCode((option as SelectOption | undefined)?.code),
-            }}
-            request={async ({ keyWords }) => searchCustomers(keyWords)}
-          />
-          <ProFormRadio.Group
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
-            name="shipmentMode"
-            label="集运 / 跨境"
-            options={shipmentModeOptions}
-          />
-          <ProFormRadio.Group
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
-            name="shipmentType"
-            label="托运类型"
-            options={shipmentTypeOptions}
-          />
+          {/* 第 1 行：订单编号、订单编号时间及提示语 */}
+          <Col span={24}>
+            <Row gutter={16} align="middle">
+              <Col className="col-5">
+                <ProFormText
+                  name="orderNo"
+                  label="订单编号"
+                  placeholder="保存后自动生成"
+                  fieldProps={{ disabled: true }}
+                />
+              </Col>
+              <Col className="col-5">
+                <ProFormDatePicker
+                  name="orderDate"
+                  label="订单编号时间"
+                  fieldProps={{ style: { width: '100%' } }}
+                />
+              </Col>
+              <Col flex="auto">
+                <div
+                  style={{
+                    color: '#ff4d4f',
+                    fontSize: 12,
+                    lineHeight: '32px',
+                    marginBottom: 24,
+                  }}
+                >
+                  *订单编号时间依据为订单编号生成时定义的时间，只可在该订单初次保存前修改
+                </div>
+              </Col>
+            </Row>
+          </Col>
 
-          {/* 第 2 行：服务类型与货物品类（一行 2 个，双列多选组） */}
-          <ProFormCheckbox.Group
-            colProps={{ xs: 24, lg: 12 }}
-            name="serviceTypeIds"
-            label="服务类型"
-            options={serviceTypeOptions}
-          />
-          <ProFormCheckbox.Group
-            colProps={{ xs: 24, lg: 12 }}
-            name="cargoCategoryIds"
-            label="货物品类"
-            options={cargoCategoryOptions}
-          />
+          {/* 第 2 行：委托单位、集运/跨境、托运类型（第二行整体左移） */}
+          <Col span={24}>
+            <Row gutter={16} align="middle">
+              <Col className="col-5">
+                <ProFormSelect
+                  name="customerId"
+                  label="委托单位"
+                  rules={[{ required: true, message: '请选择客户单位' }]}
+                  fieldProps={{
+                    showSearch: true,
+                    placeholder: '请选择',
+                    onChange: (_, option) =>
+                      setCustomerCode((option as SelectOption | undefined)?.code),
+                  }}
+                  request={async ({ keyWords }) => searchCustomers(keyWords)}
+                />
+              </Col>
+              <Col className="col-5">
+                <ProFormRadio.Group
+                  name="shipmentMode"
+                  label="集运/跨境"
+                  options={shipmentModeOptions}
+                />
+              </Col>
+              <Col className="col-5">
+                <ProFormRadio.Group
+                  name="shipmentType"
+                  label="托运类型"
+                  options={shipmentTypeOptions}
+                />
+              </Col>
+            </Row>
+          </Col>
 
-          {/* 第 3 行：业务编号（一行 4 个） */}
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="customerReferenceNo"
-            label="客户业务编号"
-            fieldProps={{ maxLength: 100 }}
-            placeholder="请输入客户业务编号"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="internalReferenceNo"
-            label="企业内部编号"
-            fieldProps={{ maxLength: 100 }}
-            placeholder="请输入企业内部编号"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="customerCode"
-            label="委托单位代码"
-            fieldProps={{ disabled: true }}
-            placeholder="选择委托单位后自动带出"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="contractNo"
-            label="合约号"
-            fieldProps={{ maxLength: 100 }}
-            placeholder="请输入合约号"
-          />
+          {/* 第 3 行：服务类型（整行复选框） */}
+          <Col span={24}>
+            <ProFormCheckbox.Group
+              name="serviceTypeIds"
+              label="服务类型"
+              options={serviceTypeOptions}
+            />
+          </Col>
 
-          {/* 第 4 行：商务条款与承运信息（一行 4 个） */}
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="tradeTerm"
-            label="贸易条款"
-            rules={[{ required: true, message: '请选择贸易条款' }]}
-            options={tradeTermOptions}
-            placeholder="请选择贸易条款"
-          />
-          <Col xs={24} sm={12} lg={6} xl={6}>
+          {/* 第 4 行：货物品类（整行复选框） */}
+          <Col span={24}>
+            <ProFormCheckbox.Group
+              name="cargoCategoryIds"
+              label="货物品类"
+              options={cargoCategoryOptions}
+            />
+          </Col>
+
+          {/* 第 5 行：一行 5 列（客户业务编号、企业内部编号、贸易条款、订舱代理、国外代理） */}
+          <Col className="col-5">
+            <Form.Item label="客户业务编号">
+              <Space.Compact block>
+                <Form.Item noStyle name="customerReferenceNo">
+                  <Input placeholder="请输入" maxLength={100} />
+                </Form.Item>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ fontSize: 12, padding: '0 4px', height: 32 }}
+                  onClick={() => message.info('正在校验客户业务编号')}
+                >
+                  重复校验
+                </Button>
+              </Space.Compact>
+            </Form.Item>
+          </Col>
+          <Col className="col-5">
+            <Form.Item label="企业内部编号">
+              <Space.Compact block>
+                <Form.Item noStyle name="internalReferenceNo">
+                  <Input placeholder="请输入" maxLength={100} />
+                </Form.Item>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ fontSize: 12, padding: '0 4px', height: 32 }}
+                  onClick={() => message.info('正在校验企业内部编号')}
+                >
+                  重复校验
+                </Button>
+              </Space.Compact>
+            </Form.Item>
+          </Col>
+          <Col className="col-5">
+            <ProFormSelect
+              name="tradeTerm"
+              label="贸易条款"
+              rules={[{ required: true, message: '请选择贸易条款' }]}
+              options={tradeTermOptions}
+              placeholder="请选择"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormSelect
+              name="bookingAgentId"
+              label="订舱代理"
+              fieldProps={{
+                showSearch: true,
+                placeholder: '请选择',
+              }}
+              request={async ({ keyWords }) => searchBookingAgents(keyWords)}
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormSelect
+              name="foreignAgentId"
+              label="国外代理"
+              fieldProps={{
+                showSearch: true,
+                placeholder: '请选择',
+              }}
+              request={async ({ keyWords }) => searchForeignAgents(keyWords)}
+            />
+          </Col>
+
+          {/* 第 6 行：一行 5 列（合约号、船公司、船代、货值、保费） */}
+          <Col className="col-5">
+            <ProFormText
+              name="contractNo"
+              label="合约号"
+              fieldProps={{ maxLength: 100 }}
+              placeholder="请输入"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormSelect
+              name="carrierId"
+              label="船公司"
+              fieldProps={{
+                showSearch: true,
+                placeholder: '请选择',
+              }}
+              request={async ({ keyWords }) => searchCarriers(keyWords)}
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormSelect
+              name="shippingAgentId"
+              label="船代"
+              fieldProps={{
+                showSearch: true,
+                placeholder: '请选择',
+              }}
+              request={async ({ keyWords }) => searchShippingAgents(keyWords)}
+            />
+          </Col>
+          <Col className="col-5">
             <Form.Item label="货值">
               <Space.Compact block>
                 <Form.Item
@@ -171,13 +261,13 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     optionFilterProp="label"
                     options={currencyOptions}
                     placeholder="币种"
-                    style={{ width: 110 }}
+                    style={{ width: 100 }}
                   />
                 </Form.Item>
               </Space.Compact>
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} lg={6} xl={6}>
+          <Col className="col-5">
             <Form.Item label="保费">
               <Space.Compact block>
                 <Form.Item
@@ -216,102 +306,75 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     optionFilterProp="label"
                     options={currencyOptions}
                     placeholder="币种"
-                    style={{ width: 110 }}
+                    style={{ width: 100 }}
                   />
                 </Form.Item>
               </Space.Compact>
             </Form.Item>
           </Col>
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="carrierId"
-            label="船公司"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索承运人/船东',
-            }}
-            request={async ({ keyWords }) => searchCarriers(keyWords)}
-          />
 
-          {/* 第 5 行：代理协作与接单时间（一行 4 个） */}
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="bookingAgentId"
-            label="订舱代理"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索订舱代理',
-            }}
-            request={async ({ keyWords }) => searchBookingAgents(keyWords)}
-          />
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="foreignAgentId"
-            label="国外代理"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索国外代理',
-            }}
-            request={async ({ keyWords }) => searchForeignAgents(keyWords)}
-          />
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="shippingAgentId"
-            label="船代"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索船代',
-            }}
-            request={async ({ keyWords }) => searchShippingAgents(keyWords)}
-          />
-          <ProFormDateTimePicker
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="receivedAt"
-            label="接单时间"
-            fieldProps={{ style: { width: '100%' } }}
-          />
+          {/* 第 7 行：一行 5 列（UN NO.、CLASS NO.、截申报时间、接单时间、工厂） */}
+          <Col className="col-5">
+            <ProFormText
+              name="unNumber"
+              label="UN NO."
+              rules={[
+                {
+                  pattern: /^\d{4}$/,
+                  message: 'UN NO. 应为 4 位数字',
+                },
+              ]}
+              fieldProps={{ maxLength: 4 }}
+              placeholder="4位数字"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormText
+              name="hazardClass"
+              label="CLASS NO."
+              fieldProps={{ maxLength: 16 }}
+              placeholder="类别"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormDateTimePicker
+              name="loadingTerms"
+              label="截申报时间"
+              fieldProps={{ style: { width: '100%' } }}
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormDateTimePicker
+              name="receivedAt"
+              label="接单时间"
+              fieldProps={{ style: { width: '100%' } }}
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormText
+              name="factoryName"
+              label="工厂"
+              fieldProps={{ maxLength: 200 }}
+              placeholder="请输入工厂"
+            />
+          </Col>
 
-          {/* 第 6 行：生产与危险品信息 */}
-          <ProFormDateTimePicker
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="cargoReadyAt"
-            label="货好时间"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="factoryName"
-            label="工厂"
-            fieldProps={{ maxLength: 200 }}
-            placeholder="请输入工厂名称"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="loadingTerms"
-            label="装卸条款"
-            fieldProps={{ maxLength: 100 }}
-            placeholder="请输入装卸条款"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 3 }}
-            name="unNumber"
-            label="UN NO."
-            rules={[
-              {
-                pattern: /^\d{4}$/,
-                message: 'UN NO. 应为 4 位数字',
-              },
-            ]}
-            fieldProps={{ maxLength: 4 }}
-            placeholder="4 位数字"
-          />
-          <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 3 }}
-            name="hazardClass"
-            label="CLASS NO."
-            fieldProps={{ maxLength: 16 }}
-            placeholder="危险品类别"
-          />
+          {/* 第 8 行：一行 5 列（委托单位代码、货好时间、后 3 列留白） */}
+          <Col className="col-5">
+            <ProFormText
+              name="customerCode"
+              label="委托单位代码"
+              fieldProps={{ disabled: true }}
+              placeholder="选择委托单位后自动带出"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormDateTimePicker
+              name="cargoReadyAt"
+              label="货好时间"
+              fieldProps={{ style: { width: '100%' } }}
+            />
+          </Col>
         </>
       ),
     },

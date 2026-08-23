@@ -48,7 +48,7 @@ describe('orders common and config', () => {
     expect(shipmentTypeOptions).toEqual([
       { label: '整箱', value: 1 },
       { label: '拼箱', value: 2 },
-      { label: '散杂货', value: 3 },
+      { label: '散杂', value: 3 },
     ]);
     expect(seaServiceTypeNames).toEqual([
       '订舱',
