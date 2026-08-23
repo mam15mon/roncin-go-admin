@@ -23,14 +23,24 @@ import {
 type CreateOrderFormValues = {
   customerId: string;
   customerReferenceNo?: string;
+  internalReferenceNo?: string;
+  customerCode?: string;
   tradeTerm: number;
   paymentTerm: number;
   carrierId?: string;
   bookingAgentId?: string;
   foreignAgentId?: string;
+  shippingAgentId?: string;
   contractNo?: string;
   cargoValue?: string;
   cargoCurrency?: string;
+  insurancePremium?: string;
+  insuranceCurrency?: string;
+  unNumber?: string;
+  hazardClass?: string;
+  factoryName?: string;
+  cargoReadyAt?: string | dayjs.Dayjs;
+  loadingTerms?: string;
   receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
   containerOwnership?: number;
@@ -129,6 +139,10 @@ export default function NewOrderPage() {
         searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
       searchForeignAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
+      searchShippingAgents: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      setCustomerCode: (code?: string) =>
+        formRef.current?.setFieldValue('customerCode', code ?? ''),
     }),
     [
       serviceTypeOptions,
@@ -176,6 +190,7 @@ export default function NewOrderPage() {
       const payload: API.CreateOrderRequest = {
         customerId: values.customerId,
         customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
+        internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
         businessType: config.businessType,
         tradeDirection: config.tradeDirection,
         tradeTerm: Number(values.tradeTerm),
@@ -184,9 +199,19 @@ export default function NewOrderPage() {
         carrierId: values.carrierId || undefined,
         bookingAgentId: values.bookingAgentId || undefined,
         foreignAgentId: values.foreignAgentId || undefined,
+        shippingAgentId: values.shippingAgentId || undefined,
         contractNo: values.contractNo?.trim() || undefined,
         cargoValue: values.cargoValue?.trim() || undefined,
         cargoCurrency: values.cargoCurrency || undefined,
+        insurancePremium: values.insurancePremium?.trim() || undefined,
+        insuranceCurrency: values.insuranceCurrency || undefined,
+        unNumber: values.unNumber?.trim() || undefined,
+        hazardClass: values.hazardClass?.trim() || undefined,
+        factoryName: values.factoryName?.trim() || undefined,
+        cargoReadyAt: values.cargoReadyAt
+          ? dayjs(values.cargoReadyAt).toISOString()
+          : undefined,
+        loadingTerms: values.loadingTerms?.trim() || undefined,
         receivedAt: values.receivedAt
           ? dayjs(values.receivedAt).toISOString()
           : undefined,

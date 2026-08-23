@@ -204,7 +204,7 @@ export function parseOrderKind(pathnameOrKind?: string): OrderKindConfig | undef
 export async function searchPartnersByRole(
   role: number,
   keyword?: string,
-): Promise<{ label: string; value: string }[]> {
+): Promise<{ label: string; value: string; code?: string }[]> {
   const res = await partnerServiceListPartners({
     role,
     enabled: true,
@@ -213,6 +213,7 @@ export async function searchPartnersByRole(
   return (res.data ?? []).map((p) => ({
     label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
     value: p.id ?? '',
+    code: p.code,
   }));
 }
 

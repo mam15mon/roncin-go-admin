@@ -3,6 +3,7 @@ import type { OrderFormTemplateSection } from '@/components/ui/order-template/ty
 export interface SelectOption {
   label: string;
   value: string | number;
+  code?: string;
 }
 
 /** 区块结构由订单表单模板统一定义，页面模板只负责组装字段内容。 */
@@ -17,4 +18,6 @@ export interface TemplateProps {
   searchCarriers: (keyword?: string) => Promise<SelectOption[]>;
   searchBookingAgents: (keyword?: string) => Promise<SelectOption[]>;
   searchForeignAgents: (keyword?: string) => Promise<SelectOption[]>;
+  searchShippingAgents: (keyword?: string) => Promise<SelectOption[]>;
+  setCustomerCode: (code?: string) => void;
 }

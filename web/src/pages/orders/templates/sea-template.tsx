@@ -17,7 +17,7 @@ import {
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../common';
-import type { TemplateProps, TemplateSection } from './types';
+import type { SelectOption, TemplateProps, TemplateSection } from './types';
 
 export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] {
   const {
@@ -29,6 +29,8 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
     searchCarriers,
     searchBookingAgents,
     searchForeignAgents,
+    searchShippingAgents,
+    setCustomerCode,
   } = props;
 
   return [
@@ -59,6 +61,8 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             fieldProps={{
               showSearch: true,
               placeholder: '搜索客户单位',
+              onChange: (_, option) =>
+                setCustomerCode((option as SelectOption | undefined)?.code),
             }}
             request={async ({ keyWords }) => searchCustomers(keyWords)}
           />
@@ -89,30 +93,46 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             options={cargoCategoryOptions}
           />
 
-          {/* 第 3 行：商务条款与船公司（一行 5 个） */}
+          {/* 第 3 行：业务编号（一行 4 个） */}
           <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="customerReferenceNo"
             label="客户业务编号"
             fieldProps={{ maxLength: 100 }}
             placeholder="请输入客户业务编号"
           />
           <ProFormText
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="internalReferenceNo"
+            label="企业内部编号"
+            fieldProps={{ maxLength: 100 }}
+            placeholder="请输入企业内部编号"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="customerCode"
+            label="委托单位代码"
+            fieldProps={{ disabled: true }}
+            placeholder="选择委托单位后自动带出"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="contractNo"
             label="合约号"
             fieldProps={{ maxLength: 100 }}
             placeholder="请输入合约号"
           />
+
+          {/* 第 4 行：商务条款与承运信息（一行 4 个） */}
           <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="tradeTerm"
             label="贸易条款"
             rules={[{ required: true, message: '请选择贸易条款' }]}
             options={tradeTermOptions}
             placeholder="请选择贸易条款"
           />
-          <Col xs={24} sm={12} lg={6} xl={5}>
+          <Col xs={24} sm={12} lg={6} xl={6}>
             <Form.Item label="货值">
               <Space.Compact block>
                 <Form.Item
@@ -157,6 +177,51 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
               </Space.Compact>
             </Form.Item>
           </Col>
+          <Col xs={24} sm={12} lg={6} xl={6}>
+            <Form.Item label="保费">
+              <Space.Compact block>
+                <Form.Item
+                  noStyle
+                  name="insurancePremium"
+                  dependencies={['insuranceCurrency']}
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator: async (_, value) => {
+                        if (!value && !getFieldValue('insuranceCurrency')) return;
+                        if (!value) throw new Error('请输入保费');
+                        if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
+                          throw new Error('请输入正确的保费，最多 4 位小数');
+                        }
+                      },
+                    }),
+                  ]}
+                >
+                  <Input placeholder="金额" maxLength={23} />
+                </Form.Item>
+                <Form.Item
+                  noStyle
+                  name="insuranceCurrency"
+                  dependencies={['insurancePremium']}
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator: async (_, value) => {
+                        if (!getFieldValue('insurancePremium') || value) return;
+                        throw new Error('请选择币种');
+                      },
+                    }),
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    optionFilterProp="label"
+                    options={currencyOptions}
+                    placeholder="币种"
+                    style={{ width: 110 }}
+                  />
+                </Form.Item>
+              </Space.Compact>
+            </Form.Item>
+          </Col>
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="carrierId"
@@ -168,9 +233,9 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             request={async ({ keyWords }) => searchCarriers(keyWords)}
           />
 
-          {/* 第 4 行：代理协作与接单时间（一行 3 个，各占 8 栅格） */}
+          {/* 第 5 行：代理协作与接单时间（一行 4 个） */}
           <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 8, xl: 8 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="bookingAgentId"
             label="订舱代理"
             fieldProps={{
@@ -180,7 +245,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             request={async ({ keyWords }) => searchBookingAgents(keyWords)}
           />
           <ProFormSelect
-            colProps={{ xs: 24, sm: 12, lg: 8, xl: 8 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="foreignAgentId"
             label="国外代理"
             fieldProps={{
@@ -189,11 +254,63 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             }}
             request={async ({ keyWords }) => searchForeignAgents(keyWords)}
           />
+          <ProFormSelect
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="shippingAgentId"
+            label="船代"
+            fieldProps={{
+              showSearch: true,
+              placeholder: '搜索船代',
+            }}
+            request={async ({ keyWords }) => searchShippingAgents(keyWords)}
+          />
           <ProFormDateTimePicker
-            colProps={{ xs: 24, sm: 12, lg: 8, xl: 8 }}
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="receivedAt"
             label="接单时间"
             fieldProps={{ style: { width: '100%' } }}
+          />
+
+          {/* 第 6 行：生产与危险品信息 */}
+          <ProFormDateTimePicker
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="cargoReadyAt"
+            label="货好时间"
+            fieldProps={{ style: { width: '100%' } }}
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="factoryName"
+            label="工厂"
+            fieldProps={{ maxLength: 200 }}
+            placeholder="请输入工厂名称"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+            name="loadingTerms"
+            label="装卸条款"
+            fieldProps={{ maxLength: 100 }}
+            placeholder="请输入装卸条款"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 3 }}
+            name="unNumber"
+            label="UN NO."
+            rules={[
+              {
+                pattern: /^\d{4}$/,
+                message: 'UN NO. 应为 4 位数字',
+              },
+            ]}
+            fieldProps={{ maxLength: 4 }}
+            placeholder="4 位数字"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 6, xl: 3 }}
+            name="hazardClass"
+            label="CLASS NO."
+            fieldProps={{ maxLength: 16 }}
+            placeholder="危险品类别"
           />
         </>
       ),
