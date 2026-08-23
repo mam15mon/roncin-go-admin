@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 )
 
 type AirportSyncRecord struct {
@@ -17,6 +18,14 @@ type AirportSyncRecord struct {
 	CityNameEN  *string
 	CountryCode string
 	Enabled     bool
+}
+
+type PortSyncRecord struct {
+	UNLocode       string
+	NameEN         string
+	CountryCode    string
+	TransportModes []string
+	Enabled        bool
 }
 
 type IndustryReferenceSyncConflict struct {
@@ -46,6 +55,18 @@ func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, organiza
 		return nil, fmt.Errorf("查询现有机场失败: %w", err)
 	}
 	return airportSyncConflicts(items, source, rows), nil
+}
+
+func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, organizationCode, source string, rows []PortSyncRecord) ([]IndustryReferenceSyncConflict, error) {
+	organizationID, err := s.organizationID(ctx, organizationCode)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.data.db.Port.Query().Where(port.OrganizationIDEQ(organizationID)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("查询现有港口失败: %w", err)
+	}
+	return portSyncConflicts(items, source, rows), nil
 }
 
 func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organizationCode, source, sourceVersion, sourceHash string, rows []AirportSyncRecord) (IndustryReferenceSyncResult, error) {
@@ -122,6 +143,73 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, organiza
 	return result, nil
 }
 
+func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizationCode, source, sourceVersion, sourceHash string, rows []PortSyncRecord) (IndustryReferenceSyncResult, error) {
+	organizationID, err := s.organizationID(ctx, organizationCode)
+	if err != nil {
+		return IndustryReferenceSyncResult{}, err
+	}
+	tx, err := s.data.db.Tx(ctx)
+	if err != nil {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("开启港口同步事务失败: %w", err)
+	}
+	defer tx.Rollback()
+
+	items, err := tx.Port.Query().Where(port.OrganizationIDEQ(organizationID)).All(ctx)
+	if err != nil {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("查询现有港口失败: %w", err)
+	}
+	conflicts := portSyncConflicts(items, source, rows)
+	if len(conflicts) > 0 {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("港口同步存在 %d 条数据库冲突", len(conflicts))
+	}
+	if _, err := tx.Port.Update().Where(port.OrganizationIDEQ(organizationID), port.SourceEQ(source)).SetEnabled(false).Save(ctx); err != nil {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("停用旧港口数据失败: %w", err)
+	}
+	existingByCode := make(map[string]*ent.Port, len(items))
+	for _, item := range items {
+		existingByCode[item.UnLocode] = item
+	}
+	result := IndustryReferenceSyncResult{}
+	for _, row := range rows {
+		if existing := existingByCode[row.UNLocode]; existing != nil {
+			if _, err := tx.Port.UpdateOneID(existing.ID).
+				SetNameEn(row.NameEN).
+				SetCountryCode(row.CountryCode).
+				SetTransportModes(row.TransportModes).
+				SetSourceVersion(sourceVersion).
+				SetSourceHash(sourceHash).
+				SetEnabled(row.Enabled).
+				Save(ctx); err != nil {
+				return IndustryReferenceSyncResult{}, fmt.Errorf("更新港口 %s 失败: %w", row.UNLocode, err)
+			}
+			result.Updated++
+			continue
+		}
+		if _, err := tx.Port.Create().
+			SetOrganizationID(organizationID).
+			SetUnLocode(row.UNLocode).
+			SetNameEn(row.NameEN).
+			SetCountryCode(row.CountryCode).
+			SetTransportModes(row.TransportModes).
+			SetSource(source).
+			SetSourceVersion(sourceVersion).
+			SetSourceHash(sourceHash).
+			SetEnabled(row.Enabled).
+			Save(ctx); err != nil {
+			return IndustryReferenceSyncResult{}, fmt.Errorf("新增港口 %s 失败: %w", row.UNLocode, err)
+		}
+		result.Created++
+	}
+	result.Disabled, err = tx.Port.Query().Where(port.OrganizationIDEQ(organizationID), port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
+	if err != nil {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("统计停用港口失败: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return IndustryReferenceSyncResult{}, fmt.Errorf("提交港口同步事务失败: %w", err)
+	}
+	return result, nil
+}
+
 func (s *IndustryReferenceSyncStore) organizationID(ctx context.Context, code string) ([16]byte, error) {
 	item, err := s.data.db.Organization.Query().Where(organization.CodeEQ(code), organization.EnabledEQ(true)).Only(ctx)
 	if err != nil {
@@ -160,5 +248,20 @@ func airportSyncConflicts(items []*ent.Airport, source string, rows []AirportSyn
 		}
 		return conflicts[i].Code < conflicts[j].Code
 	})
+	return conflicts
+}
+
+func portSyncConflicts(items []*ent.Port, source string, rows []PortSyncRecord) []IndustryReferenceSyncConflict {
+	byCode := make(map[string]*ent.Port, len(items))
+	for _, item := range items {
+		byCode[item.UnLocode] = item
+	}
+	conflicts := make([]IndustryReferenceSyncConflict, 0)
+	for _, row := range rows {
+		if existing := byCode[row.UNLocode]; existing != nil && existing.Source != source {
+			conflicts = append(conflicts, IndustryReferenceSyncConflict{Code: row.UNLocode, Message: fmt.Sprintf("UN/LOCODE 已由来源 %s 占用", existing.Source)})
+		}
+	}
+	sort.Slice(conflicts, func(i, j int) bool { return conflicts[i].Code < conflicts[j].Code })
 	return conflicts
 }
