@@ -1,5 +1,19 @@
-import { CloseOutlined, HomeOutlined } from '@ant-design/icons';
+import {
+  AppstoreOutlined,
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  CloseCircleOutlined,
+  CloseOutlined,
+  DatabaseOutlined,
+  HomeOutlined,
+  InboxOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { history, useLocation } from '@umijs/max';
+import type { MenuProps } from 'antd';
+import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { resolveRouteTitle } from './routeUtils';
 
@@ -54,7 +68,45 @@ export function computeNextActivePath(
 }
 
 /**
- * 简洁多页签导航组件
+ * 根据路径匹配 Tab 图标
+ */
+function getRouteIcon(path: string) {
+  if (path === '/welcome' || path === '/') {
+    return <HomeOutlined className="roncin-chrome-tab-icon" />;
+  }
+  if (path.startsWith('/orders')) {
+    return <InboxOutlined className="roncin-chrome-tab-icon" />;
+  }
+  if (path.startsWith('/partners')) {
+    return <TeamOutlined className="roncin-chrome-tab-icon" />;
+  }
+  if (path.startsWith('/master-data')) {
+    return <DatabaseOutlined className="roncin-chrome-tab-icon" />;
+  }
+  if (path.startsWith('/admin')) {
+    return <SettingOutlined className="roncin-chrome-tab-icon" />;
+  }
+  return <AppstoreOutlined className="roncin-chrome-tab-icon" />;
+}
+
+/**
+ * Chrome 经典双反角矢量背景图形组件
+ */
+const ChromeTabBg: React.FC<{ active?: boolean }> = ({ active }) => (
+  <svg
+    aria-hidden="true"
+    className={`roncin-chrome-tab-svg ${active ? 'active' : ''}`}
+    viewBox="0 0 214 36"
+    preserveAspectRatio="none"
+  >
+    <path
+      d="M17 0h180c4.4 0 8.3 2.5 10.1 6.4L214 36H0l6.9-29.6C8.7 2.5 12.6 0 17 0z"
+    />
+  </svg>
+);
+
+/**
+ * 现代化 Chrome 风格多页签导航组件
  */
 export const TagsView: React.FC = () => {
   const location = useLocation();
@@ -121,6 +173,82 @@ export const TagsView: React.FC = () => {
     }
   };
 
+  // 右键快捷菜单逻辑
+  const getContextMenuItems = (tag: TagItem): MenuProps['items'] => {
+    const currentIndex = tags.findIndex((t) => t.key === tag.key);
+    const hasLeft = currentIndex > 1; // index 0 为固定工作台
+    const hasRight = currentIndex < tags.length - 1;
+    const hasOther = tags.length > 2 || (tags.length === 2 && tag.key === '/welcome');
+
+    return [
+      {
+        key: 'refresh',
+        icon: <ReloadOutlined />,
+        label: '重新加载',
+        onClick: () => {
+          if (currentPath === tag.path) {
+            window.location.reload();
+          } else {
+            history.push(tag.path);
+          }
+        },
+      },
+      { type: 'divider' },
+      {
+        key: 'close-current',
+        icon: <CloseOutlined />,
+        label: '关闭标签页',
+        disabled: !tag.closable,
+        onClick: () => {
+          const nextPath = computeNextActivePath(tags, tag.key, currentPath);
+          setTags((prev) => prev.filter((t) => t.key !== tag.key));
+          if (nextPath && nextPath !== currentPath) {
+            history.push(nextPath);
+          }
+        },
+      },
+      {
+        key: 'close-other',
+        icon: <CloseCircleOutlined />,
+        label: '关闭其他标签页',
+        disabled: !hasOther,
+        onClick: () => {
+          if (tag.key === '/welcome') {
+            setTags([FIXED_TAB]);
+            history.push('/welcome');
+          } else {
+            setTags([FIXED_TAB, tag]);
+            history.push(tag.path);
+          }
+        },
+      },
+      {
+        key: 'close-right',
+        icon: <ArrowRightOutlined />,
+        label: '关闭右侧标签页',
+        disabled: !hasRight,
+        onClick: () => {
+          setTags((prev) => prev.slice(0, currentIndex + 1));
+          if (currentIndex < tags.findIndex((t) => t.key === currentPath)) {
+            history.push(tag.path);
+          }
+        },
+      },
+      {
+        key: 'close-left',
+        icon: <ArrowLeftOutlined />,
+        label: '关闭左侧标签页',
+        disabled: !hasLeft,
+        onClick: () => {
+          setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
+          if (tags.findIndex((t) => t.key === currentPath) < currentIndex) {
+            history.push(tag.path);
+          }
+        },
+      },
+    ];
+  };
+
   return (
     <nav className="roncin-tags-view" aria-label="多页签导航">
       <div className="roncin-tags-view-container" role="tablist">
@@ -132,39 +260,49 @@ export const TagsView: React.FC = () => {
                 currentPath.startsWith(`${tag.path}/`);
 
           return (
-            <div
-              role="tab"
-              tabIndex={0}
-              aria-selected={isActive}
+            <Dropdown
               key={tag.key}
-              className={`roncin-tag-item ${
-                isActive ? 'roncin-tag-item-active' : ''
-              }`}
-              onClick={() => handleTabClick(tag)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleTabClick(tag);
-                }
-              }}
+              menu={{ items: getContextMenuItems(tag) }}
+              trigger={['contextMenu']}
             >
-              {tag.key === '/welcome' ? (
-                <HomeOutlined className="roncin-tag-icon" />
-              ) : (
-                <span className="roncin-tag-dot" />
-              )}
-              <span className="roncin-tag-title">{tag.title}</span>
-              {tag.closable && (
-                <button
-                  type="button"
-                  aria-label={`关闭 ${tag.title}`}
-                  className="roncin-tag-close"
-                  onClick={(e) => handleClose(e, tag)}
-                >
-                  <CloseOutlined />
-                </button>
-              )}
-            </div>
+              <div
+                role="tab"
+                tabIndex={0}
+                aria-selected={isActive}
+                className={`roncin-chrome-tab ${
+                  isActive ? 'roncin-chrome-tab-active' : ''
+                }`}
+                onClick={() => handleTabClick(tag)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleTabClick(tag);
+                  }
+                }}
+              >
+                {/* SVG 矢量内凹双反角背景 */}
+                <ChromeTabBg active={isActive} />
+
+                {/* 标签主体内容 */}
+                <div className="roncin-chrome-tab-content">
+                  {getRouteIcon(tag.path)}
+                  <span className="roncin-chrome-tab-title">{tag.title}</span>
+                  {tag.closable && (
+                    <button
+                      type="button"
+                      aria-label={`关闭 ${tag.title}`}
+                      className="roncin-chrome-tab-close"
+                      onClick={(e) => handleClose(e, tag)}
+                    >
+                      <CloseOutlined style={{ fontSize: 10 }} />
+                    </button>
+                  )}
+                </div>
+
+                {/* 未激活标签之间的竖向细分割线 */}
+                <div className="roncin-chrome-tab-divider" />
+              </div>
+            </Dropdown>
           );
         })}
       </div>

@@ -423,22 +423,22 @@ body,
   position: sticky;
   top: 56px;
   z-index: 19;
-  height: 36px;
-  background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
+  height: 38px;
+  background: #f0f2f5;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
-  align-items: center;
-  padding: 0 12px;
+  align-items: flex-end;
+  padding: 0 8px;
   user-select: none;
   overflow: hidden;
 
   &-container {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-end;
     overflow-x: auto;
     scrollbar-width: none;
     width: 100%;
+    height: 100%;
 
     &::-webkit-scrollbar {
       display: none;
@@ -446,80 +446,128 @@ body,
   }
 }
 
-.roncin-tag-item {
+.roncin-chrome-tab {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 4px;
-  border: 1px solid #d9d9d9;
-  background: #fafafa;
-  color: rgba(0, 0, 0, 0.65);
-  font-size: 12px;
-  font-weight: 400;
+  justify-content: center;
+  height: 34px;
+  padding: 0 18px;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  flex-shrink: 0;
+  min-width: 100px;
+  max-width: 190px;
+  transition: color 0.15s ease;
 
-  &:hover {
-    background: #f5f5f5;
-    border-color: #4096ff;
-    color: #1677ff;
+  // SVG 矢量反角背景
+  .roncin-chrome-tab-svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    fill: transparent;
+    transition: fill 0.15s ease;
   }
 
-  &-active {
-    background: #e6f4ff !important;
-    border-color: #91caff !important;
-    color: #0958d9 !important;
-    font-weight: 500 !important;
-    box-shadow: 0 1px 2px rgba(22, 119, 255, 0.08);
-
-    .roncin-tag-dot {
-      background: #1677ff;
-    }
-  }
-
-  .roncin-tag-icon {
+  // 内部主体内容
+  .roncin-chrome-tab-content {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
     font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.65);
+    white-space: nowrap;
+    transition: color 0.15s ease;
   }
 
-  .roncin-tag-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.25);
+  .roncin-chrome-tab-icon {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.45);
     flex-shrink: 0;
-    transition: background 0.15s ease;
+    transition: color 0.15s ease;
   }
 
-  .roncin-tag-title {
-    max-width: 140px;
+  .roncin-chrome-tab-title {
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .roncin-tag-close {
+  .roncin-chrome-tab-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    margin-left: 2px;
-    font-size: 10px;
     color: rgba(0, 0, 0, 0.45);
     background: transparent;
     border: none;
     padding: 0;
     cursor: pointer;
     outline: none;
+    flex-shrink: 0;
     transition: all 0.15s ease;
 
     &:hover {
-      background: rgba(255, 77, 79, 0.12);
+      background: rgba(0, 0, 0, 0.08);
       color: #ff4d4f;
+    }
+  }
+
+  // 未激活标签之间的细分隔线
+  .roncin-chrome-tab-divider {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 14px;
+    background: #d0d5dd;
+    transition: opacity 0.15s ease;
+  }
+
+  // 悬浮状态（未激活）
+  &:hover:not(.roncin-chrome-tab-active) {
+    .roncin-chrome-tab-svg {
+      fill: rgba(0, 0, 0, 0.05);
+    }
+    .roncin-chrome-tab-content {
+      color: #1677ff;
+    }
+    .roncin-chrome-tab-icon {
+      color: #1677ff;
+    }
+  }
+
+  // 激活状态
+  &-active {
+    z-index: 3;
+
+    .roncin-chrome-tab-svg {
+      fill: #ffffff !important;
+      filter: drop-shadow(0 -1px 2px rgba(0, 0, 0, 0.03));
+    }
+
+    .roncin-chrome-tab-content {
+      color: #1677ff !important;
+      font-weight: 600 !important;
+    }
+
+    .roncin-chrome-tab-icon {
+      color: #1677ff !important;
+    }
+
+    .roncin-chrome-tab-divider {
+      opacity: 0;
     }
   }
 }
