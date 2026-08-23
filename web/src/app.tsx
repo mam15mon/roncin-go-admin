@@ -69,10 +69,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   headerContentRender: () => (
     <div className="roncin-header-content">
       <HeaderTitle />
-      <HeaderMenus />
     </div>
   ),
-  actionsRender: () => [<OrganizationSwitcher key="organization" />],
+  actionsRender: () => [
+    <HeaderMenus key="header-menus" />,
+    <OrganizationSwitcher key="organization" />,
+  ],
   avatarProps: {
     title:
       initialState?.currentUser?.displayName ??

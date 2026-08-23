@@ -143,31 +143,9 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
 
   return (
     <Space size={4} className={className} align="center">
-      {hasSettings && (
-        <HeaderDropdown
-          placement="bottomLeft"
-          menu={{
-            items: settingsItems,
-            onClick: handleMenuClick,
-            selectedKeys: [location.pathname],
-          }}
-        >
-          <Button
-            type="text"
-            size="small"
-            className={`roncin-header-menu-btn ${
-              isSettingsActive ? 'active' : ''
-            }`}
-          >
-            <span>设置中心</span>
-            <DownOutlined className="roncin-header-menu-icon" />
-          </Button>
-        </HeaderDropdown>
-      )}
-
       {hasEnterprise && (
         <HeaderDropdown
-          placement="bottomLeft"
+          placement="bottomRight"
           menu={{
             items: enterpriseResourceItems,
             onClick: handleMenuClick,
@@ -182,6 +160,28 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
             }`}
           >
             <span>企业资源</span>
+            <DownOutlined className="roncin-header-menu-icon" />
+          </Button>
+        </HeaderDropdown>
+      )}
+
+      {hasSettings && (
+        <HeaderDropdown
+          placement="bottomRight"
+          menu={{
+            items: settingsItems,
+            onClick: handleMenuClick,
+            selectedKeys: [location.pathname],
+          }}
+        >
+          <Button
+            type="text"
+            size="small"
+            className={`roncin-header-menu-btn ${
+              isSettingsActive ? 'active' : ''
+            }`}
+          >
+            <span>设置中心</span>
             <DownOutlined className="roncin-header-menu-icon" />
           </Button>
         </HeaderDropdown>
