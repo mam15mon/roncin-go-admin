@@ -218,6 +218,10 @@ export default function NewOrderPage() {
     }
   };
 
+  const defaultCargoCategoryId = cargoCategoryOptions.find(
+    (item) => item.label === '普货',
+  )?.value;
+
   return (
     <OrderFormTemplate<CreateOrderFormValues>
       title={`新建${config.title.replace('订单', '')}订单`}
@@ -235,8 +239,12 @@ export default function NewOrderPage() {
               shipmentType: 1,
               serviceTypeIds:
                 typeof serviceTypeOptions[0]?.value === 'string'
-                ? [serviceTypeOptions[0].value]
-                : undefined,
+                  ? [serviceTypeOptions[0].value]
+                  : undefined,
+              cargoCategoryIds:
+                typeof defaultCargoCategoryId === 'string'
+                  ? [defaultCargoCategoryId]
+                  : undefined,
             }
           : {}),
       }}
