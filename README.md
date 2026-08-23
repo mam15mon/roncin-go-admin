@@ -19,3 +19,16 @@ pnpm run build
 ```
 
 运行所需环境变量见 `.env.example`。本地开发不要求 Docker；如果 PostgreSQL 已运行在 WSL 中，按[本地开发说明](docs/local-development.md)配置 `.env.local` 即可。
+
+## 行政区划数据
+
+业务中的中国省、市、区县三级行政区划不随代码内置，需要单独同步。在完成
+[本地开发说明](docs/local-development.md)中的首次初始化后执行：
+
+```powershell
+pnpm run sync:regions
+```
+
+该命令实时调用民政部全国行政区划信息查询平台接口，抓取全量省市区数据并按
+编码幂等写入 `administrative_regions` 表，可重复执行以更新数据。运行时从
+`.env.local` 读取 `DATABASE_SOURCE`。
