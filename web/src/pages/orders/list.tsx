@@ -1,5 +1,6 @@
 import {
   ContainerOutlined,
+  DollarOutlined,
   DownOutlined,
   EditOutlined,
   FileDoneOutlined,
@@ -108,6 +109,7 @@ import {
   tradeDirectionValueEnum,
   tradeTermOptions,
 } from './common';
+import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 const { Text } = Typography;
@@ -207,6 +209,7 @@ export default function OrderListPage() {
   );
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
+  const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
   const { message } = App.useApp();
   const access = useAccess();
 
@@ -1222,7 +1225,7 @@ export default function OrderListPage() {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: 320,
+      width: 390,
       fixed: 'right',
       render: (_, record) => {
         if (!access.canOrder(config.businessType, 'read')) return null;
@@ -1307,6 +1310,17 @@ export default function OrderListPage() {
                 onClick={() => openTransition(record)}
               >
                 流转
+              </Button>
+            )}
+            {access.canOrder(config.businessType, 'fee.read') && (
+              <Button
+                type="link"
+                size="small"
+                icon={<DollarOutlined />}
+                style={{ padding: 0 }}
+                onClick={() => orderFeePanelRef.current?.open(record)}
+              >
+                费用录入
               </Button>
             )}
             <Dropdown menu={fulfillmentMenu}>
@@ -2399,6 +2413,7 @@ export default function OrderListPage() {
         ref={releasePodPanelRef}
         canManage={access.canOrder(config.businessType, 'release_pod.create')}
       />
+      <OrderFeePanel ref={orderFeePanelRef} />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
         canManage={access.canOrder(config.businessType, 'abnormal_case.create')}

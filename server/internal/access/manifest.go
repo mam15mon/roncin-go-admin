@@ -129,6 +129,10 @@ const (
 	OrderReleasePodUpdate           OrderOperation = "release_pod.update"
 	OrderReleasePodTransition       OrderOperation = "release_pod.transition"
 	OrderReleasePodDelete           OrderOperation = "release_pod.delete"
+	OrderFeeRead                    OrderOperation = "fee.read"
+	OrderFeeCreate                  OrderOperation = "fee.create"
+	OrderFeeUpdate                  OrderOperation = "fee.update"
+	OrderFeeDelete                  OrderOperation = "fee.delete"
 )
 
 var manifest = append([]Permission{
@@ -222,6 +226,7 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{OrderShippingDocumentRead, "查看提单", "提单", "查看订单提单"}, {OrderShippingDocumentCreate, "新增提单", "提单", "新增订单提单"}, {OrderShippingDocumentUpdate, "编辑提单", "提单", "修改订单提单"}, {OrderShippingDocumentTransition, "流转提单状态", "提单", "执行提单状态流转"}, {OrderShippingDocumentDelete, "删除提单", "提单", "删除订单提单"},
 	{OrderAbnormalCaseRead, "查看异常事件", "异常", "查看订单异常事件"}, {OrderAbnormalCaseCreate, "登记异常事件", "异常", "登记订单异常事件"}, {OrderAbnormalCaseResolve, "处理异常事件", "异常", "解决或重新打开订单异常事件"}, {OrderAbnormalCaseDelete, "删除异常事件", "异常", "删除订单异常事件"},
 	{OrderReleasePodRead, "查看放货凭证", "放货", "查看订单放货凭证"}, {OrderReleasePodCreate, "新增放货凭证", "放货", "新增订单放货凭证"}, {OrderReleasePodUpdate, "编辑放货凭证", "放货", "修改订单放货凭证"}, {OrderReleasePodTransition, "流转放货状态", "放货", "执行放货状态流转"}, {OrderReleasePodDelete, "删除放货凭证", "放货", "删除订单放货凭证"},
+	{OrderFeeRead, "查看费用", "费用", "查看订单应收应付费用"}, {OrderFeeCreate, "录入费用", "费用", "录入订单应收应付费用"}, {OrderFeeUpdate, "编辑费用", "费用", "修改订单应收应付费用"}, {OrderFeeDelete, "删除费用", "费用", "删除订单应收应付费用"},
 }
 
 func OrderPermission(businessType OrderBusinessType, operation OrderOperation) string {

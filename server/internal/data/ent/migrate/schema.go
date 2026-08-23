@@ -921,6 +921,62 @@ var (
 			},
 		},
 	}
+	// OrderFeesColumns holds the columns for the "order_fees" table.
+	OrderFeesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "fee_code", Type: field.TypeString, Size: 30},
+		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "billing_unit", Type: field.TypeString, Size: 32},
+		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "expense_date", Type: field.TypeString, Size: 10},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+	}
+	// OrderFeesTable holds the schema information for the "order_fees" table.
+	OrderFeesTable = &schema.Table{
+		Name:       "order_fees",
+		Columns:    OrderFeesColumns,
+		PrimaryKey: []*schema.Column{OrderFeesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_fees_orders_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[14]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_partners_order_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[15]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderfee_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[2]},
+			},
+			{
+				Name:    "orderfee_order_id_direction_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[14], OrderFeesColumns[3], OrderFeesColumns[1]},
+			},
+			{
+				Name:    "orderfee_settlement_party_id_direction_currency",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[15], OrderFeesColumns[3], OrderFeesColumns[10]},
+			},
+		},
+	}
 	// OrderMilestonesColumns holds the columns for the "order_milestones" table.
 	OrderMilestonesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2302,6 +2358,7 @@ var (
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
 		OrderContainersTable,
+		OrderFeesTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
 		OrderReleasePodsTable,
@@ -2355,6 +2412,8 @@ func init() {
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
+	OrderFeesTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderFeesTable.ForeignKeys[1].RefTable = PartnersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable

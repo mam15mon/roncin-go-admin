@@ -140,6 +140,8 @@ const (
 	EdgeReleasePods = "release_pods"
 	// EdgeAbnormalCases holds the string denoting the abnormal_cases edge name in mutations.
 	EdgeAbnormalCases = "abnormal_cases"
+	// EdgeFees holds the string denoting the fees edge name in mutations.
+	EdgeFees = "fees"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -240,6 +242,13 @@ const (
 	AbnormalCasesInverseTable = "order_abnormal_cases"
 	// AbnormalCasesColumn is the table column denoting the abnormal_cases relation/edge.
 	AbnormalCasesColumn = "order_id"
+	// FeesTable is the table that holds the fees relation/edge.
+	FeesTable = "order_fees"
+	// FeesInverseTable is the table name for the OrderFee entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfee" package.
+	FeesInverseTable = "order_fees"
+	// FeesColumn is the table column denoting the fees relation/edge.
+	FeesColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -970,6 +979,20 @@ func ByAbnormalCases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAbnormalCasesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFeesCount orders the results by fees count.
+func ByFeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeesStep(), opts...)
+	}
+}
+
+// ByFees orders the results by fees terms.
+func ByFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1066,5 +1089,12 @@ func newAbnormalCasesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AbnormalCasesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AbnormalCasesTable, AbnormalCasesColumn),
+	)
+}
+func newFeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeesTable, FeesColumn),
 	)
 }

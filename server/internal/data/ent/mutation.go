@@ -31,6 +31,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
@@ -91,6 +92,7 @@ const (
 	TypeOrderCargoCategory          = "OrderCargoCategory"
 	TypeOrderCargoItem              = "OrderCargoItem"
 	TypeOrderContainer              = "OrderContainer"
+	TypeOrderFee                    = "OrderFee"
 	TypeOrderMilestone              = "OrderMilestone"
 	TypeOrderPersonnel              = "OrderPersonnel"
 	TypeOrderReleasePod             = "OrderReleasePod"
@@ -11984,6 +11986,9 @@ type OrderMutation struct {
 	abnormal_cases            map[uuid.UUID]struct{}
 	removedabnormal_cases     map[uuid.UUID]struct{}
 	clearedabnormal_cases     bool
+	fees                      map[uuid.UUID]struct{}
+	removedfees               map[uuid.UUID]struct{}
+	clearedfees               bool
 	done                      bool
 	oldValue                  func(context.Context) (*Order, error)
 	predicates                []predicate.Order
@@ -14998,6 +15003,60 @@ func (m *OrderMutation) ResetAbnormalCases() {
 	m.removedabnormal_cases = nil
 }
 
+// AddFeeIDs adds the "fees" edge to the OrderFee entity by ids.
+func (m *OrderMutation) AddFeeIDs(ids ...uuid.UUID) {
+	if m.fees == nil {
+		m.fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.fees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFees clears the "fees" edge to the OrderFee entity.
+func (m *OrderMutation) ClearFees() {
+	m.clearedfees = true
+}
+
+// FeesCleared reports if the "fees" edge to the OrderFee entity was cleared.
+func (m *OrderMutation) FeesCleared() bool {
+	return m.clearedfees
+}
+
+// RemoveFeeIDs removes the "fees" edge to the OrderFee entity by IDs.
+func (m *OrderMutation) RemoveFeeIDs(ids ...uuid.UUID) {
+	if m.removedfees == nil {
+		m.removedfees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.fees, ids[i])
+		m.removedfees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFees returns the removed IDs of the "fees" edge to the OrderFee entity.
+func (m *OrderMutation) RemovedFeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedfees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeesIDs returns the "fees" edge IDs in the mutation.
+func (m *OrderMutation) FeesIDs() (ids []uuid.UUID) {
+	for id := range m.fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFees resets all changes to the "fees" edge.
+func (m *OrderMutation) ResetFees() {
+	m.fees = nil
+	m.clearedfees = false
+	m.removedfees = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -16170,7 +16229,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -16212,6 +16271,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.abnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
+	}
+	if m.fees != nil {
+		edges = append(edges, order.EdgeFees)
 	}
 	return edges
 }
@@ -16298,13 +16360,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFees:
+		ids := make([]ent.Value, 0, len(m.fees))
+		for id := range m.fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.removedstatus_logs != nil {
 		edges = append(edges, order.EdgeStatusLogs)
 	}
@@ -16337,6 +16405,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedabnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
+	}
+	if m.removedfees != nil {
+		edges = append(edges, order.EdgeFees)
 	}
 	return edges
 }
@@ -16411,13 +16482,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFees:
+		ids := make([]ent.Value, 0, len(m.removedfees))
+		for id := range m.removedfees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -16460,6 +16537,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedabnormal_cases {
 		edges = append(edges, order.EdgeAbnormalCases)
 	}
+	if m.clearedfees {
+		edges = append(edges, order.EdgeFees)
+	}
 	return edges
 }
 
@@ -16495,6 +16575,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedrelease_pods
 	case order.EdgeAbnormalCases:
 		return m.clearedabnormal_cases
+	case order.EdgeFees:
+		return m.clearedfees
 	}
 	return false
 }
@@ -16561,6 +16643,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeAbnormalCases:
 		m.ResetAbnormalCases()
+		return nil
+	case order.EdgeFees:
+		m.ResetFees()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -21016,6 +21101,1216 @@ func (m *OrderContainerMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderContainer edge %s", name)
+}
+
+// OrderFeeMutation represents an operation that mutates the OrderFee nodes in the graph.
+type OrderFeeMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	direction               *orderfee.Direction
+	fee_code                *string
+	fee_name                *string
+	billing_unit            *string
+	quantity                *string
+	unit_price              *string
+	total_amount            *string
+	currency                *string
+	exchange_rate           *string
+	expense_date            *string
+	note                    *string
+	clearedFields           map[string]struct{}
+	_order                  *uuid.UUID
+	cleared_order           bool
+	settlement_party        *uuid.UUID
+	clearedsettlement_party bool
+	done                    bool
+	oldValue                func(context.Context) (*OrderFee, error)
+	predicates              []predicate.OrderFee
+}
+
+var _ ent.Mutation = (*OrderFeeMutation)(nil)
+
+// orderfeeOption allows management of the mutation configuration using functional options.
+type orderfeeOption func(*OrderFeeMutation)
+
+// newOrderFeeMutation creates new mutation for the OrderFee entity.
+func newOrderFeeMutation(c config, op Op, opts ...orderfeeOption) *OrderFeeMutation {
+	m := &OrderFeeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderFee,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderFeeID sets the ID field of the mutation.
+func withOrderFeeID(id uuid.UUID) orderfeeOption {
+	return func(m *OrderFeeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderFee
+		)
+		m.oldValue = func(ctx context.Context) (*OrderFee, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderFee.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderFee sets the old OrderFee of the mutation.
+func withOrderFee(node *OrderFee) orderfeeOption {
+	return func(m *OrderFeeMutation) {
+		m.oldValue = func(context.Context) (*OrderFee, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderFeeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderFeeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderFee entities.
+func (m *OrderFeeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderFeeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderFeeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderFee.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderFeeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderFeeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderFeeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderFeeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderFeeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderFeeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderFeeMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderFeeMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderFeeMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetDirection sets the "direction" field.
+func (m *OrderFeeMutation) SetDirection(o orderfee.Direction) {
+	m.direction = &o
+}
+
+// Direction returns the value of the "direction" field in the mutation.
+func (m *OrderFeeMutation) Direction() (r orderfee.Direction, exists bool) {
+	v := m.direction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDirection returns the old "direction" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldDirection(ctx context.Context) (v orderfee.Direction, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDirection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDirection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDirection: %w", err)
+	}
+	return oldValue.Direction, nil
+}
+
+// ResetDirection resets all changes to the "direction" field.
+func (m *OrderFeeMutation) ResetDirection() {
+	m.direction = nil
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (m *OrderFeeMutation) SetFeeCode(s string) {
+	m.fee_code = &s
+}
+
+// FeeCode returns the value of the "fee_code" field in the mutation.
+func (m *OrderFeeMutation) FeeCode() (r string, exists bool) {
+	v := m.fee_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeCode returns the old "fee_code" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldFeeCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeCode: %w", err)
+	}
+	return oldValue.FeeCode, nil
+}
+
+// ResetFeeCode resets all changes to the "fee_code" field.
+func (m *OrderFeeMutation) ResetFeeCode() {
+	m.fee_code = nil
+}
+
+// SetFeeName sets the "fee_name" field.
+func (m *OrderFeeMutation) SetFeeName(s string) {
+	m.fee_name = &s
+}
+
+// FeeName returns the value of the "fee_name" field in the mutation.
+func (m *OrderFeeMutation) FeeName() (r string, exists bool) {
+	v := m.fee_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeName returns the old "fee_name" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldFeeName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeName: %w", err)
+	}
+	return oldValue.FeeName, nil
+}
+
+// ResetFeeName resets all changes to the "fee_name" field.
+func (m *OrderFeeMutation) ResetFeeName() {
+	m.fee_name = nil
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (m *OrderFeeMutation) SetSettlementPartyID(u uuid.UUID) {
+	m.settlement_party = &u
+}
+
+// SettlementPartyID returns the value of the "settlement_party_id" field in the mutation.
+func (m *OrderFeeMutation) SettlementPartyID() (r uuid.UUID, exists bool) {
+	v := m.settlement_party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementPartyID returns the old "settlement_party_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldSettlementPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementPartyID: %w", err)
+	}
+	return oldValue.SettlementPartyID, nil
+}
+
+// ResetSettlementPartyID resets all changes to the "settlement_party_id" field.
+func (m *OrderFeeMutation) ResetSettlementPartyID() {
+	m.settlement_party = nil
+}
+
+// SetBillingUnit sets the "billing_unit" field.
+func (m *OrderFeeMutation) SetBillingUnit(s string) {
+	m.billing_unit = &s
+}
+
+// BillingUnit returns the value of the "billing_unit" field in the mutation.
+func (m *OrderFeeMutation) BillingUnit() (r string, exists bool) {
+	v := m.billing_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingUnit returns the old "billing_unit" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldBillingUnit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingUnit: %w", err)
+	}
+	return oldValue.BillingUnit, nil
+}
+
+// ResetBillingUnit resets all changes to the "billing_unit" field.
+func (m *OrderFeeMutation) ResetBillingUnit() {
+	m.billing_unit = nil
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *OrderFeeMutation) SetQuantity(s string) {
+	m.quantity = &s
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *OrderFeeMutation) Quantity() (r string, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldQuantity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *OrderFeeMutation) ResetQuantity() {
+	m.quantity = nil
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (m *OrderFeeMutation) SetUnitPrice(s string) {
+	m.unit_price = &s
+}
+
+// UnitPrice returns the value of the "unit_price" field in the mutation.
+func (m *OrderFeeMutation) UnitPrice() (r string, exists bool) {
+	v := m.unit_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnitPrice returns the old "unit_price" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldUnitPrice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnitPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnitPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnitPrice: %w", err)
+	}
+	return oldValue.UnitPrice, nil
+}
+
+// ResetUnitPrice resets all changes to the "unit_price" field.
+func (m *OrderFeeMutation) ResetUnitPrice() {
+	m.unit_price = nil
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (m *OrderFeeMutation) SetTotalAmount(s string) {
+	m.total_amount = &s
+}
+
+// TotalAmount returns the value of the "total_amount" field in the mutation.
+func (m *OrderFeeMutation) TotalAmount() (r string, exists bool) {
+	v := m.total_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalAmount returns the old "total_amount" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldTotalAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalAmount: %w", err)
+	}
+	return oldValue.TotalAmount, nil
+}
+
+// ResetTotalAmount resets all changes to the "total_amount" field.
+func (m *OrderFeeMutation) ResetTotalAmount() {
+	m.total_amount = nil
+}
+
+// SetCurrency sets the "currency" field.
+func (m *OrderFeeMutation) SetCurrency(s string) {
+	m.currency = &s
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *OrderFeeMutation) Currency() (r string, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *OrderFeeMutation) ResetCurrency() {
+	m.currency = nil
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (m *OrderFeeMutation) SetExchangeRate(s string) {
+	m.exchange_rate = &s
+}
+
+// ExchangeRate returns the value of the "exchange_rate" field in the mutation.
+func (m *OrderFeeMutation) ExchangeRate() (r string, exists bool) {
+	v := m.exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRate returns the old "exchange_rate" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldExchangeRate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRate: %w", err)
+	}
+	return oldValue.ExchangeRate, nil
+}
+
+// ResetExchangeRate resets all changes to the "exchange_rate" field.
+func (m *OrderFeeMutation) ResetExchangeRate() {
+	m.exchange_rate = nil
+}
+
+// SetExpenseDate sets the "expense_date" field.
+func (m *OrderFeeMutation) SetExpenseDate(s string) {
+	m.expense_date = &s
+}
+
+// ExpenseDate returns the value of the "expense_date" field in the mutation.
+func (m *OrderFeeMutation) ExpenseDate() (r string, exists bool) {
+	v := m.expense_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpenseDate returns the old "expense_date" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldExpenseDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpenseDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpenseDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpenseDate: %w", err)
+	}
+	return oldValue.ExpenseDate, nil
+}
+
+// ResetExpenseDate resets all changes to the "expense_date" field.
+func (m *OrderFeeMutation) ResetExpenseDate() {
+	m.expense_date = nil
+}
+
+// SetNote sets the "note" field.
+func (m *OrderFeeMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *OrderFeeMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *OrderFeeMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[orderfee.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *OrderFeeMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *OrderFeeMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, orderfee.FieldNote)
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderFeeMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderfee.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderFeeMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderFeeMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearSettlementParty clears the "settlement_party" edge to the Partner entity.
+func (m *OrderFeeMutation) ClearSettlementParty() {
+	m.clearedsettlement_party = true
+	m.clearedFields[orderfee.FieldSettlementPartyID] = struct{}{}
+}
+
+// SettlementPartyCleared reports if the "settlement_party" edge to the Partner entity was cleared.
+func (m *OrderFeeMutation) SettlementPartyCleared() bool {
+	return m.clearedsettlement_party
+}
+
+// SettlementPartyIDs returns the "settlement_party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SettlementPartyID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeMutation) SettlementPartyIDs() (ids []uuid.UUID) {
+	if id := m.settlement_party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSettlementParty resets all changes to the "settlement_party" edge.
+func (m *OrderFeeMutation) ResetSettlementParty() {
+	m.settlement_party = nil
+	m.clearedsettlement_party = false
+}
+
+// Where appends a list predicates to the OrderFeeMutation builder.
+func (m *OrderFeeMutation) Where(ps ...predicate.OrderFee) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderFeeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderFeeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderFee, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderFeeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderFeeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderFee).
+func (m *OrderFeeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderFeeMutation) Fields() []string {
+	fields := make([]string, 0, 15)
+	if m.created_at != nil {
+		fields = append(fields, orderfee.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderfee.FieldUpdatedAt)
+	}
+	if m._order != nil {
+		fields = append(fields, orderfee.FieldOrderID)
+	}
+	if m.direction != nil {
+		fields = append(fields, orderfee.FieldDirection)
+	}
+	if m.fee_code != nil {
+		fields = append(fields, orderfee.FieldFeeCode)
+	}
+	if m.fee_name != nil {
+		fields = append(fields, orderfee.FieldFeeName)
+	}
+	if m.settlement_party != nil {
+		fields = append(fields, orderfee.FieldSettlementPartyID)
+	}
+	if m.billing_unit != nil {
+		fields = append(fields, orderfee.FieldBillingUnit)
+	}
+	if m.quantity != nil {
+		fields = append(fields, orderfee.FieldQuantity)
+	}
+	if m.unit_price != nil {
+		fields = append(fields, orderfee.FieldUnitPrice)
+	}
+	if m.total_amount != nil {
+		fields = append(fields, orderfee.FieldTotalAmount)
+	}
+	if m.currency != nil {
+		fields = append(fields, orderfee.FieldCurrency)
+	}
+	if m.exchange_rate != nil {
+		fields = append(fields, orderfee.FieldExchangeRate)
+	}
+	if m.expense_date != nil {
+		fields = append(fields, orderfee.FieldExpenseDate)
+	}
+	if m.note != nil {
+		fields = append(fields, orderfee.FieldNote)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderfee.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderfee.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderfee.FieldOrderID:
+		return m.OrderID()
+	case orderfee.FieldDirection:
+		return m.Direction()
+	case orderfee.FieldFeeCode:
+		return m.FeeCode()
+	case orderfee.FieldFeeName:
+		return m.FeeName()
+	case orderfee.FieldSettlementPartyID:
+		return m.SettlementPartyID()
+	case orderfee.FieldBillingUnit:
+		return m.BillingUnit()
+	case orderfee.FieldQuantity:
+		return m.Quantity()
+	case orderfee.FieldUnitPrice:
+		return m.UnitPrice()
+	case orderfee.FieldTotalAmount:
+		return m.TotalAmount()
+	case orderfee.FieldCurrency:
+		return m.Currency()
+	case orderfee.FieldExchangeRate:
+		return m.ExchangeRate()
+	case orderfee.FieldExpenseDate:
+		return m.ExpenseDate()
+	case orderfee.FieldNote:
+		return m.Note()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderfee.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderfee.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderfee.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderfee.FieldDirection:
+		return m.OldDirection(ctx)
+	case orderfee.FieldFeeCode:
+		return m.OldFeeCode(ctx)
+	case orderfee.FieldFeeName:
+		return m.OldFeeName(ctx)
+	case orderfee.FieldSettlementPartyID:
+		return m.OldSettlementPartyID(ctx)
+	case orderfee.FieldBillingUnit:
+		return m.OldBillingUnit(ctx)
+	case orderfee.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case orderfee.FieldUnitPrice:
+		return m.OldUnitPrice(ctx)
+	case orderfee.FieldTotalAmount:
+		return m.OldTotalAmount(ctx)
+	case orderfee.FieldCurrency:
+		return m.OldCurrency(ctx)
+	case orderfee.FieldExchangeRate:
+		return m.OldExchangeRate(ctx)
+	case orderfee.FieldExpenseDate:
+		return m.OldExpenseDate(ctx)
+	case orderfee.FieldNote:
+		return m.OldNote(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderFee field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderfee.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderfee.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderfee.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderfee.FieldDirection:
+		v, ok := value.(orderfee.Direction)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDirection(v)
+		return nil
+	case orderfee.FieldFeeCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeCode(v)
+		return nil
+	case orderfee.FieldFeeName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeName(v)
+		return nil
+	case orderfee.FieldSettlementPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementPartyID(v)
+		return nil
+	case orderfee.FieldBillingUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingUnit(v)
+		return nil
+	case orderfee.FieldQuantity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case orderfee.FieldUnitPrice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnitPrice(v)
+		return nil
+	case orderfee.FieldTotalAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalAmount(v)
+		return nil
+	case orderfee.FieldCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
+		return nil
+	case orderfee.FieldExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRate(v)
+		return nil
+	case orderfee.FieldExpenseDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpenseDate(v)
+		return nil
+	case orderfee.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFee field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderFeeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderFeeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderFee numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderFeeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderfee.FieldNote) {
+		fields = append(fields, orderfee.FieldNote)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderFeeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderFeeMutation) ClearField(name string) error {
+	switch name {
+	case orderfee.FieldNote:
+		m.ClearNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFee nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderFeeMutation) ResetField(name string) error {
+	switch name {
+	case orderfee.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderfee.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderfee.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderfee.FieldDirection:
+		m.ResetDirection()
+		return nil
+	case orderfee.FieldFeeCode:
+		m.ResetFeeCode()
+		return nil
+	case orderfee.FieldFeeName:
+		m.ResetFeeName()
+		return nil
+	case orderfee.FieldSettlementPartyID:
+		m.ResetSettlementPartyID()
+		return nil
+	case orderfee.FieldBillingUnit:
+		m.ResetBillingUnit()
+		return nil
+	case orderfee.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case orderfee.FieldUnitPrice:
+		m.ResetUnitPrice()
+		return nil
+	case orderfee.FieldTotalAmount:
+		m.ResetTotalAmount()
+		return nil
+	case orderfee.FieldCurrency:
+		m.ResetCurrency()
+		return nil
+	case orderfee.FieldExchangeRate:
+		m.ResetExchangeRate()
+		return nil
+	case orderfee.FieldExpenseDate:
+		m.ResetExpenseDate()
+		return nil
+	case orderfee.FieldNote:
+		m.ResetNote()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFee field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderFeeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._order != nil {
+		edges = append(edges, orderfee.EdgeOrder)
+	}
+	if m.settlement_party != nil {
+		edges = append(edges, orderfee.EdgeSettlementParty)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderfee.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfee.EdgeSettlementParty:
+		if id := m.settlement_party; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderFeeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderFeeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderFeeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_order {
+		edges = append(edges, orderfee.EdgeOrder)
+	}
+	if m.clearedsettlement_party {
+		edges = append(edges, orderfee.EdgeSettlementParty)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderFeeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderfee.EdgeOrder:
+		return m.cleared_order
+	case orderfee.EdgeSettlementParty:
+		return m.clearedsettlement_party
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderFeeMutation) ClearEdge(name string) error {
+	switch name {
+	case orderfee.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case orderfee.EdgeSettlementParty:
+		m.ClearSettlementParty()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFee unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderFeeMutation) ResetEdge(name string) error {
+	switch name {
+	case orderfee.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case orderfee.EdgeSettlementParty:
+		m.ResetSettlementParty()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFee edge %s", name)
 }
 
 // OrderMilestoneMutation represents an operation that mutates the OrderMilestone nodes in the graph.
@@ -28169,6 +29464,9 @@ type PartnerMutation struct {
 	orders                     map[uuid.UUID]struct{}
 	removedorders              map[uuid.UUID]struct{}
 	clearedorders              bool
+	order_fees                 map[uuid.UUID]struct{}
+	removedorder_fees          map[uuid.UUID]struct{}
+	clearedorder_fees          bool
 	done                       bool
 	oldValue                   func(context.Context) (*Partner, error)
 	predicates                 []predicate.Partner
@@ -29126,6 +30424,60 @@ func (m *PartnerMutation) ResetOrders() {
 	m.removedorders = nil
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by ids.
+func (m *PartnerMutation) AddOrderFeeIDs(ids ...uuid.UUID) {
+	if m.order_fees == nil {
+		m.order_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFees clears the "order_fees" edge to the OrderFee entity.
+func (m *PartnerMutation) ClearOrderFees() {
+	m.clearedorder_fees = true
+}
+
+// OrderFeesCleared reports if the "order_fees" edge to the OrderFee entity was cleared.
+func (m *PartnerMutation) OrderFeesCleared() bool {
+	return m.clearedorder_fees
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to the OrderFee entity by IDs.
+func (m *PartnerMutation) RemoveOrderFeeIDs(ids ...uuid.UUID) {
+	if m.removedorder_fees == nil {
+		m.removedorder_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fees, ids[i])
+		m.removedorder_fees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFees returns the removed IDs of the "order_fees" edge to the OrderFee entity.
+func (m *PartnerMutation) RemovedOrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeesIDs returns the "order_fees" edge IDs in the mutation.
+func (m *PartnerMutation) OrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.order_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFees resets all changes to the "order_fees" edge.
+func (m *PartnerMutation) ResetOrderFees() {
+	m.order_fees = nil
+	m.clearedorder_fees = false
+	m.removedorder_fees = nil
+}
+
 // Where appends a list predicates to the PartnerMutation builder.
 func (m *PartnerMutation) Where(ps ...predicate.Partner) {
 	m.predicates = append(m.predicates, ps...)
@@ -29410,7 +30762,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -29440,6 +30792,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.orders != nil {
 		edges = append(edges, partner.EdgeOrders)
+	}
+	if m.order_fees != nil {
+		edges = append(edges, partner.EdgeOrderFees)
 	}
 	return edges
 }
@@ -29504,13 +30859,19 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.order_fees))
+		for id := range m.order_fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -29534,6 +30895,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedorders != nil {
 		edges = append(edges, partner.EdgeOrders)
+	}
+	if m.removedorder_fees != nil {
+		edges = append(edges, partner.EdgeOrderFees)
 	}
 	return edges
 }
@@ -29590,13 +30954,19 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.removedorder_fees))
+		for id := range m.removedorder_fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -29627,6 +30997,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedorders {
 		edges = append(edges, partner.EdgeOrders)
 	}
+	if m.clearedorder_fees {
+		edges = append(edges, partner.EdgeOrderFees)
+	}
 	return edges
 }
 
@@ -29654,6 +31027,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedattachments
 	case partner.EdgeOrders:
 		return m.clearedorders
+	case partner.EdgeOrderFees:
+		return m.clearedorder_fees
 	}
 	return false
 }
@@ -29705,6 +31080,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeOrders:
 		m.ResetOrders()
+		return nil
+	case partner.EdgeOrderFees:
+		m.ResetOrderFees()
 		return nil
 	}
 	return fmt.Errorf("unknown Partner edge %s", name)

@@ -66,9 +66,11 @@ type PartnerEdges struct {
 	Attachments []*PartnerAttachment `json:"attachments,omitempty"`
 	// Orders holds the value of the orders edge.
 	Orders []*Order `json:"orders,omitempty"`
+	// OrderFees holds the value of the order_fees edge.
+	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -163,6 +165,15 @@ func (e PartnerEdges) OrdersOrErr() ([]*Order, error) {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
+}
+
+// OrderFeesOrErr returns the OrderFees value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) OrderFeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[10] {
+		return e.OrderFees, nil
+	}
+	return nil, &NotLoadedError{edge: "order_fees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -315,6 +326,11 @@ func (_m *Partner) QueryAttachments() *PartnerAttachmentQuery {
 // QueryOrders queries the "orders" edge of the Partner entity.
 func (_m *Partner) QueryOrders() *OrderQuery {
 	return NewPartnerClient(_m.config).QueryOrders(_m)
+}
+
+// QueryOrderFees queries the "order_fees" edge of the Partner entity.
+func (_m *Partner) QueryOrderFees() *OrderFeeQuery {
+	return NewPartnerClient(_m.config).QueryOrderFees(_m)
 }
 
 // Update returns a builder for updating this Partner.

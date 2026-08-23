@@ -153,9 +153,11 @@ type OrderEdges struct {
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// AbnormalCases holds the value of the abnormal_cases edge.
 	AbnormalCases []*OrderAbnormalCase `json:"abnormal_cases,omitempty"`
+	// Fees holds the value of the fees edge.
+	Fees []*OrderFee `json:"fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [14]bool
+	loadedTypes [15]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -288,6 +290,15 @@ func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
 		return e.AbnormalCases, nil
 	}
 	return nil, &NotLoadedError{edge: "abnormal_cases"}
+}
+
+// FeesOrErr returns the Fees value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) FeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[14] {
+		return e.Fees, nil
+	}
+	return nil, &NotLoadedError{edge: "fees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -707,6 +718,11 @@ func (_m *Order) QueryReleasePods() *OrderReleasePodQuery {
 // QueryAbnormalCases queries the "abnormal_cases" edge of the Order entity.
 func (_m *Order) QueryAbnormalCases() *OrderAbnormalCaseQuery {
 	return NewOrderClient(_m.config).QueryAbnormalCases(_m)
+}
+
+// QueryFees queries the "fees" edge of the Order entity.
+func (_m *Order) QueryFees() *OrderFeeQuery {
+	return NewOrderClient(_m.config).QueryFees(_m)
 }
 
 // Update returns a builder for updating this Order.

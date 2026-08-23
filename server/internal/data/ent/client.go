@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
@@ -106,6 +107,8 @@ type Client struct {
 	OrderCargoItem *OrderCargoItemClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
 	OrderContainer *OrderContainerClient
+	// OrderFee is the client for interacting with the OrderFee builders.
+	OrderFee *OrderFeeClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
@@ -193,6 +196,7 @@ func (c *Client) init() {
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
 	c.OrderCargoItem = NewOrderCargoItemClient(c.config)
 	c.OrderContainer = NewOrderContainerClient(c.config)
+	c.OrderFee = NewOrderFeeClient(c.config)
 	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderPersonnel = NewOrderPersonnelClient(c.config)
 	c.OrderReleasePod = NewOrderReleasePodClient(c.config)
@@ -332,6 +336,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:              NewOrderCargoItemClient(cfg),
 		OrderContainer:              NewOrderContainerClient(cfg),
+		OrderFee:                    NewOrderFeeClient(cfg),
 		OrderMilestone:              NewOrderMilestoneClient(cfg),
 		OrderPersonnel:              NewOrderPersonnelClient(cfg),
 		OrderReleasePod:             NewOrderReleasePodClient(cfg),
@@ -398,6 +403,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:              NewOrderCargoItemClient(cfg),
 		OrderContainer:              NewOrderContainerClient(cfg),
+		OrderFee:                    NewOrderFeeClient(cfg),
 		OrderMilestone:              NewOrderMilestoneClient(cfg),
 		OrderPersonnel:              NewOrderPersonnelClient(cfg),
 		OrderReleasePod:             NewOrderReleasePodClient(cfg),
@@ -460,14 +466,14 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Currency, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.User,
+		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -481,14 +487,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Currency, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.User,
+		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -533,6 +539,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderCargoItem.mutate(ctx, m)
 	case *OrderContainerMutation:
 		return c.OrderContainer.mutate(ctx, m)
+	case *OrderFeeMutation:
+		return c.OrderFee.mutate(ctx, m)
 	case *OrderMilestoneMutation:
 		return c.OrderMilestone.mutate(ctx, m)
 	case *OrderPersonnelMutation:
@@ -2732,6 +2740,22 @@ func (c *OrderClient) QueryAbnormalCases(_m *Order) *OrderAbnormalCaseQuery {
 	return query
 }
 
+// QueryFees queries the fees edge of a Order.
+func (c *OrderClient) QueryFees(_m *Order) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FeesTable, order.FeesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -3515,6 +3539,171 @@ func (c *OrderContainerClient) mutate(ctx context.Context, m *OrderContainerMuta
 		return (&OrderContainerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderContainer mutation op: %q", m.Op())
+	}
+}
+
+// OrderFeeClient is a client for the OrderFee schema.
+type OrderFeeClient struct {
+	config
+}
+
+// NewOrderFeeClient returns a client for the OrderFee from the given config.
+func NewOrderFeeClient(c config) *OrderFeeClient {
+	return &OrderFeeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderfee.Hooks(f(g(h())))`.
+func (c *OrderFeeClient) Use(hooks ...Hook) {
+	c.hooks.OrderFee = append(c.hooks.OrderFee, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderfee.Intercept(f(g(h())))`.
+func (c *OrderFeeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderFee = append(c.inters.OrderFee, interceptors...)
+}
+
+// Create returns a builder for creating a OrderFee entity.
+func (c *OrderFeeClient) Create() *OrderFeeCreate {
+	mutation := newOrderFeeMutation(c.config, OpCreate)
+	return &OrderFeeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderFee entities.
+func (c *OrderFeeClient) CreateBulk(builders ...*OrderFeeCreate) *OrderFeeCreateBulk {
+	return &OrderFeeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderFeeClient) MapCreateBulk(slice any, setFunc func(*OrderFeeCreate, int)) *OrderFeeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderFeeCreateBulk{err: fmt.Errorf("calling to OrderFeeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderFeeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderFeeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderFee.
+func (c *OrderFeeClient) Update() *OrderFeeUpdate {
+	mutation := newOrderFeeMutation(c.config, OpUpdate)
+	return &OrderFeeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderFeeClient) UpdateOne(_m *OrderFee) *OrderFeeUpdateOne {
+	mutation := newOrderFeeMutation(c.config, OpUpdateOne, withOrderFee(_m))
+	return &OrderFeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderFeeClient) UpdateOneID(id uuid.UUID) *OrderFeeUpdateOne {
+	mutation := newOrderFeeMutation(c.config, OpUpdateOne, withOrderFeeID(id))
+	return &OrderFeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderFee.
+func (c *OrderFeeClient) Delete() *OrderFeeDelete {
+	mutation := newOrderFeeMutation(c.config, OpDelete)
+	return &OrderFeeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderFeeClient) DeleteOne(_m *OrderFee) *OrderFeeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderFeeClient) DeleteOneID(id uuid.UUID) *OrderFeeDeleteOne {
+	builder := c.Delete().Where(orderfee.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderFeeDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderFee.
+func (c *OrderFeeClient) Query() *OrderFeeQuery {
+	return &OrderFeeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderFee},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderFee entity by its id.
+func (c *OrderFeeClient) Get(ctx context.Context, id uuid.UUID) (*OrderFee, error) {
+	return c.Query().Where(orderfee.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderFeeClient) GetX(ctx context.Context, id uuid.UUID) *OrderFee {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderFee.
+func (c *OrderFeeClient) QueryOrder(_m *OrderFee) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.OrderTable, orderfee.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySettlementParty queries the settlement_party edge of a OrderFee.
+func (c *OrderFeeClient) QuerySettlementParty(_m *OrderFee) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SettlementPartyTable, orderfee.SettlementPartyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderFeeClient) Hooks() []Hook {
+	return c.hooks.OrderFee
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderFeeClient) Interceptors() []Interceptor {
+	return c.inters.OrderFee
+}
+
+func (c *OrderFeeClient) mutate(ctx context.Context, m *OrderFeeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderFeeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderFeeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderFeeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderFeeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderFee mutation op: %q", m.Op())
 	}
 }
 
@@ -5158,6 +5347,22 @@ func (c *PartnerClient) QueryOrders(_m *Partner) *OrderQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrdersTable, partner.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderFees queries the order_fees edge of a Partner.
+func (c *PartnerClient) QueryOrderFees(_m *Partner) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrderFeesTable, partner.OrderFeesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8581,7 +8786,7 @@ type (
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
 		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
 		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
 		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
 		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
@@ -8594,7 +8799,7 @@ type (
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
 		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
 		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderMilestone,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
 		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
 		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
 		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,

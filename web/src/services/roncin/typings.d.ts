@@ -36,6 +36,29 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AddFeeRequest = {
+    orderId: string;
+    direction: number;
+    feeCode: string;
+    feeName: string;
+    settlementPartyId: string;
+    billingUnit: string;
+    quantity: string;
+    unitPrice: string;
+    currency: string;
+    exchangeRate: string;
+    expenseDate: string;
+    note?: string;
+  };
+
+  type AddFeeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFee;
+    traceId?: string;
+  };
+
   type AddReleasePodRequest = {
     orderId: string;
     shippingDocumentId?: string;
@@ -803,6 +826,23 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListFeeOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    settlementParties?: OrderFeeSettlementPartyOption[];
+    currencies?: OrderFeeCurrencyOption[];
+    traceId?: string;
+  };
+
+  type ListFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFee[];
+    traceId?: string;
+  };
+
   type ListItemsResponse = {
     success?: boolean;
     code?: number;
@@ -1415,6 +1455,60 @@ declare namespace API {
   type OrderContainerServiceUpdateContainerParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderFee = {
+    id?: string;
+    orderId?: string;
+    direction?: number;
+    feeCode?: string;
+    feeName?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    billingUnit?: string;
+    quantity?: string;
+    unitPrice?: string;
+    totalAmount?: string;
+    currency?: string;
+    exchangeRate?: string;
+    expenseDate?: string;
+    note?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderFeeCurrencyOption = {
+    code?: string;
+    name?: string;
+    minorUnit?: number;
+  };
+
+  type OrderFeeServiceAddFeeParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceListFeeOptionsParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceListFeesParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceRemoveFeeParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderFeeServiceUpdateFeeParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderFeeSettlementPartyOption = {
+    id?: string;
+    code?: string;
+    name?: string;
   };
 
   type OrderMilestone = {
@@ -2046,6 +2140,13 @@ declare namespace API {
     traceId?: string;
   };
 
+  type RemoveFeeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type RemovePersonnelResponse = {
     success?: boolean;
     code?: number;
@@ -2349,6 +2450,30 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderContainer;
+    traceId?: string;
+  };
+
+  type UpdateFeeRequest = {
+    orderId: string;
+    id: string;
+    direction: number;
+    feeCode: string;
+    feeName: string;
+    settlementPartyId: string;
+    billingUnit: string;
+    quantity: string;
+    unitPrice: string;
+    currency: string;
+    exchangeRate: string;
+    expenseDate: string;
+    note?: string;
+  };
+
+  type UpdateFeeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFee;
     traceId?: string;
   };
 

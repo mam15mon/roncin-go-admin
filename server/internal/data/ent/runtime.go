@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
@@ -1478,6 +1479,123 @@ func init() {
 	ordercontainerDescID := ordercontainerMixinFields0[0].Descriptor()
 	// ordercontainer.DefaultID holds the default value on creation for the id field.
 	ordercontainer.DefaultID = ordercontainerDescID.Default.(func() uuid.UUID)
+	orderfeeMixin := schema.OrderFee{}.Mixin()
+	orderfeeMixinFields0 := orderfeeMixin[0].Fields()
+	_ = orderfeeMixinFields0
+	orderfeeMixinFields1 := orderfeeMixin[1].Fields()
+	_ = orderfeeMixinFields1
+	orderfeeFields := schema.OrderFee{}.Fields()
+	_ = orderfeeFields
+	// orderfeeDescCreatedAt is the schema descriptor for created_at field.
+	orderfeeDescCreatedAt := orderfeeMixinFields1[0].Descriptor()
+	// orderfee.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderfee.DefaultCreatedAt = orderfeeDescCreatedAt.Default.(func() time.Time)
+	// orderfeeDescUpdatedAt is the schema descriptor for updated_at field.
+	orderfeeDescUpdatedAt := orderfeeMixinFields1[1].Descriptor()
+	// orderfee.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderfee.DefaultUpdatedAt = orderfeeDescUpdatedAt.Default.(func() time.Time)
+	// orderfee.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderfee.UpdateDefaultUpdatedAt = orderfeeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderfeeDescFeeCode is the schema descriptor for fee_code field.
+	orderfeeDescFeeCode := orderfeeFields[2].Descriptor()
+	// orderfee.FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
+	orderfee.FeeCodeValidator = func() func(string) error {
+		validators := orderfeeDescFeeCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(fee_code string) error {
+			for _, fn := range fns {
+				if err := fn(fee_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeeDescFeeName is the schema descriptor for fee_name field.
+	orderfeeDescFeeName := orderfeeFields[3].Descriptor()
+	// orderfee.FeeNameValidator is a validator for the "fee_name" field. It is called by the builders before save.
+	orderfee.FeeNameValidator = func() func(string) error {
+		validators := orderfeeDescFeeName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(fee_name string) error {
+			for _, fn := range fns {
+				if err := fn(fee_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeeDescBillingUnit is the schema descriptor for billing_unit field.
+	orderfeeDescBillingUnit := orderfeeFields[5].Descriptor()
+	// orderfee.BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
+	orderfee.BillingUnitValidator = func() func(string) error {
+		validators := orderfeeDescBillingUnit.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(billing_unit string) error {
+			for _, fn := range fns {
+				if err := fn(billing_unit); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeeDescCurrency is the schema descriptor for currency field.
+	orderfeeDescCurrency := orderfeeFields[9].Descriptor()
+	// orderfee.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	orderfee.CurrencyValidator = func() func(string) error {
+		validators := orderfeeDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeeDescExpenseDate is the schema descriptor for expense_date field.
+	orderfeeDescExpenseDate := orderfeeFields[11].Descriptor()
+	// orderfee.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
+	orderfee.ExpenseDateValidator = func() func(string) error {
+		validators := orderfeeDescExpenseDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(expense_date string) error {
+			for _, fn := range fns {
+				if err := fn(expense_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeeDescNote is the schema descriptor for note field.
+	orderfeeDescNote := orderfeeFields[12].Descriptor()
+	// orderfee.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	orderfee.NoteValidator = orderfeeDescNote.Validators[0].(func(string) error)
+	// orderfeeDescID is the schema descriptor for id field.
+	orderfeeDescID := orderfeeMixinFields0[0].Descriptor()
+	// orderfee.DefaultID holds the default value on creation for the id field.
+	orderfee.DefaultID = orderfeeDescID.Default.(func() uuid.UUID)
 	ordermilestoneMixin := schema.OrderMilestone{}.Mixin()
 	ordermilestoneMixinFields0 := ordermilestoneMixin[0].Fields()
 	_ = ordermilestoneMixinFields0

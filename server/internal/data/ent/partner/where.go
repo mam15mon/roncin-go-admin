@@ -786,6 +786,29 @@ func HasOrdersWith(preds ...predicate.Order) predicate.Partner {
 	})
 }
 
+// HasOrderFees applies the HasEdge predicate on the "order_fees" edge.
+func HasOrderFees() predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderFeesTable, OrderFeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderFeesWith applies the HasEdge predicate on the "order_fees" edge with a given conditions (other predicates).
+func HasOrderFeesWith(preds ...predicate.OrderFee) predicate.Partner {
+	return predicate.Partner(func(s *sql.Selector) {
+		step := newOrderFeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Partner) predicate.Partner {
 	return predicate.Partner(sql.AndPredicates(predicates...))

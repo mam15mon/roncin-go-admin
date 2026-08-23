@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
@@ -45,6 +46,7 @@ type PartnerQuery struct {
 	withContracts       *PartnerContractQuery
 	withAttachments     *PartnerAttachmentQuery
 	withOrders          *OrderQuery
+	withOrderFees       *OrderFeeQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -302,6 +304,28 @@ func (_q *PartnerQuery) QueryOrders() *OrderQuery {
 	return query
 }
 
+// QueryOrderFees chains the current query on the "order_fees" edge.
+func (_q *PartnerQuery) QueryOrderFees() *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrderFeesTable, partner.OrderFeesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Partner entity from the query.
 // Returns a *NotFoundError when no Partner was found.
 func (_q *PartnerQuery) First(ctx context.Context) (*Partner, error) {
@@ -504,6 +528,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withContracts:       _q.withContracts.Clone(),
 		withAttachments:     _q.withAttachments.Clone(),
 		withOrders:          _q.withOrders.Clone(),
+		withOrderFees:       _q.withOrderFees.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -620,6 +645,17 @@ func (_q *PartnerQuery) WithOrders(opts ...func(*OrderQuery)) *PartnerQuery {
 	return _q
 }
 
+// WithOrderFees tells the query-builder to eager-load the nodes that are connected to
+// the "order_fees" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithOrderFees(opts ...func(*OrderFeeQuery)) *PartnerQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderFees = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -698,7 +734,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [11]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -709,6 +745,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withContracts != nil,
 			_q.withAttachments != nil,
 			_q.withOrders != nil,
+			_q.withOrderFees != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -799,6 +836,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadOrders(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Orders = []*Order{} },
 			func(n *Partner, e *Order) { n.Edges.Orders = append(n.Edges.Orders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderFees; query != nil {
+		if err := _q.loadOrderFees(ctx, query, nodes,
+			func(n *Partner) { n.Edges.OrderFees = []*OrderFee{} },
+			func(n *Partner, e *OrderFee) { n.Edges.OrderFees = append(n.Edges.OrderFees, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1096,6 +1140,36 @@ func (_q *PartnerQuery) loadOrders(ctx context.Context, query *OrderQuery, nodes
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "customer_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadOrderFees(ctx context.Context, query *OrderFeeQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *OrderFee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfee.FieldSettlementPartyID)
+	}
+	query.Where(predicate.OrderFee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.OrderFeesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SettlementPartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "settlement_party_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

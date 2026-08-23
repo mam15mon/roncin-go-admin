@@ -80,6 +80,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("shipping_documents", OrderShippingDocument.Type),
 		edge.To("release_pods", OrderReleasePod.Type),
 		edge.To("abnormal_cases", OrderAbnormalCase.Type),
+		edge.To("fees", OrderFee.Type),
 	}
 }
 

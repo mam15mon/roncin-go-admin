@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
@@ -285,6 +286,21 @@ func (_u *PartnerUpdate) AddOrders(v ...*Order) *PartnerUpdate {
 	return _u.AddOrderIDs(ids...)
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_u *PartnerUpdate) AddOrderFeeIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddOrderFeeIDs(ids...)
+	return _u
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_u *PartnerUpdate) AddOrderFees(v ...*OrderFee) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -468,6 +484,27 @@ func (_u *PartnerUpdate) RemoveOrders(v ...*Order) *PartnerUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderFees clears all "order_fees" edges to the OrderFee entity.
+func (_u *PartnerUpdate) ClearOrderFees() *PartnerUpdate {
+	_u.mutation.ClearOrderFees()
+	return _u
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to OrderFee entities by IDs.
+func (_u *PartnerUpdate) RemoveOrderFeeIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveOrderFeeIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFees removes "order_fees" edges to OrderFee entities.
+func (_u *PartnerUpdate) RemoveOrderFees(v ...*OrderFee) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -988,6 +1025,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partner.Label}
@@ -1254,6 +1336,21 @@ func (_u *PartnerUpdateOne) AddOrders(v ...*Order) *PartnerUpdateOne {
 	return _u.AddOrderIDs(ids...)
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_u *PartnerUpdateOne) AddOrderFeeIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddOrderFeeIDs(ids...)
+	return _u
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_u *PartnerUpdateOne) AddOrderFees(v ...*OrderFee) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -1437,6 +1534,27 @@ func (_u *PartnerUpdateOne) RemoveOrders(v ...*Order) *PartnerUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderFees clears all "order_fees" edges to the OrderFee entity.
+func (_u *PartnerUpdateOne) ClearOrderFees() *PartnerUpdateOne {
+	_u.mutation.ClearOrderFees()
+	return _u
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to OrderFee entities by IDs.
+func (_u *PartnerUpdateOne) RemoveOrderFeeIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveOrderFeeIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFees removes "order_fees" edges to OrderFee entities.
+func (_u *PartnerUpdateOne) RemoveOrderFees(v ...*OrderFee) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -1980,6 +2098,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderFeesTable,
+			Columns: []string{partner.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

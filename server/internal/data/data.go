@@ -17,7 +17,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewBackgroundTaskRepo)
+var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewOrderFeeRepo, NewBackgroundTaskRepo)
 
 // Data holds the long-lived storage clients shared by repos.
 type Data struct {

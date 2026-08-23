@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
@@ -837,6 +838,21 @@ func (_c *OrderCreate) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderCreate {
 	return _c.AddAbnormalCaseIDs(ids...)
 }
 
+// AddFeeIDs adds the "fees" edge to the OrderFee entity by IDs.
+func (_c *OrderCreate) AddFeeIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddFeeIDs(ids...)
+	return _c
+}
+
+// AddFees adds the "fees" edges to the OrderFee entity.
+func (_c *OrderCreate) AddFees(v ...*OrderFee) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -1539,6 +1555,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeesTable,
+			Columns: []string{order.FeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

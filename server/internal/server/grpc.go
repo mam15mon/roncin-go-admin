@@ -20,7 +20,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, orderFee *service.OrderFeeService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -54,5 +54,6 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderShippingDocumentServiceServer(srv, shippingDocument)
 	orderv1.RegisterOrderAbnormalCaseServiceServer(srv, abnormalCase)
 	orderv1.RegisterOrderReleasePodServiceServer(srv, releasePod)
+	orderv1.RegisterOrderFeeServiceServer(srv, orderFee)
 	return srv
 }

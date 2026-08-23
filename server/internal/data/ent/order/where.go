@@ -3348,6 +3348,29 @@ func HasAbnormalCasesWith(preds ...predicate.OrderAbnormalCase) predicate.Order 
 	})
 }
 
+// HasFees applies the HasEdge predicate on the "fees" edge.
+func HasFees() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeesTable, FeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeesWith applies the HasEdge predicate on the "fees" edge with a given conditions (other predicates).
+func HasFeesWith(preds ...predicate.OrderFee) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newFeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Order) predicate.Order {
 	return predicate.Order(sql.AndPredicates(predicates...))

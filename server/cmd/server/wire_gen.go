@@ -99,8 +99,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderReleasePodRepo := data.NewOrderReleasePodRepo(dataData)
 	orderReleasePodUsecase := biz.NewOrderReleasePodUsecase(orderReleasePodRepo)
 	orderReleasePodService := service.NewOrderReleasePodService(orderReleasePodUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, orderUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)
+	orderFeeRepo := data.NewOrderFeeRepo(dataData)
+	orderFeeUsecase := biz.NewOrderFeeUsecase(orderFeeRepo)
+	orderFeeService := service.NewOrderFeeService(orderFeeUsecase)
+	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, orderFeeService, authUsecase, orderUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, orderFeeService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

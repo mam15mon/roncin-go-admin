@@ -2642,6 +2642,193 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fee-options": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "ListFeeOptions 获取费用录入所需的结算单位和币种候选项。",
+        "operationId": "OrderFeeService_ListFeeOptions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListFeeOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fees": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "ListFees 获取指定订单的费用列表。",
+        "operationId": "OrderFeeService_ListFees",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListFeesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。",
+        "operationId": "OrderFeeService_AddFee",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.AddFeeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.AddFeeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fees/{id}": {
+      "put": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "UpdateFee 更新订单费用，总金额由服务端重新精确计算。",
+        "operationId": "OrderFeeService_UpdateFee",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.UpdateFeeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.UpdateFeeResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "RemoveFee 删除尚未进入后续财务流程的订单费用。",
+        "operationId": "OrderFeeService_RemoveFee",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RemoveFeeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/milestones": {
       "get": {
         "tags": [
@@ -7288,6 +7475,82 @@
         },
         "description": "AddContainerResponse 单条订单集装箱响应。"
       },
+      "order.v1.AddFeeRequest": {
+        "required": [
+          "orderId",
+          "direction",
+          "feeCode",
+          "feeName",
+          "settlementPartyId",
+          "billingUnit",
+          "quantity",
+          "unitPrice",
+          "currency",
+          "exchangeRate",
+          "expenseDate"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "billingUnit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AddFeeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFee"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.AddReleasePodRequest": {
         "required": [
           "orderId"
@@ -7752,6 +8015,60 @@
           }
         },
         "description": "ListContainersResponse 订单集装箱列表响应。"
+      },
+      "order.v1.ListFeeOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "settlementParties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeSettlementPartyOption"
+            }
+          },
+          "currencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeCurrencyOption"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListFeesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFee"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListMilestonesResponse": {
         "type": "object",
@@ -8267,6 +8584,93 @@
         },
         "description": "OrderContainer 订单集装箱信息。"
       },
+      "order.v1.OrderFee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "billingUnit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"
+      },
+      "order.v1.OrderFeeCurrencyOption": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "minorUnit": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.OrderFeeSettlementPartyOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.OrderMilestone": {
         "type": "object",
         "properties": {
@@ -8537,6 +8941,24 @@
           }
         },
         "description": "RemoveContainerResponse 订单集装箱操作响应。"
+      },
+      "order.v1.RemoveFeeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.RemovePersonnelResponse": {
         "type": "object",
@@ -8942,6 +9364,86 @@
           },
           "data": {
             "$ref": "#/components/schemas/order.v1.OrderContainer"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.UpdateFeeRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "direction",
+          "feeCode",
+          "feeName",
+          "settlementPartyId",
+          "billingUnit",
+          "quantity",
+          "unitPrice",
+          "currency",
+          "exchangeRate",
+          "expenseDate"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "billingUnit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.UpdateFeeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFee"
           },
           "traceId": {
             "type": "string"
@@ -11115,6 +11617,10 @@
     {
       "name": "OrderContainerService",
       "description": "OrderContainerService 订单集装箱服务。\n 箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。"
+    },
+    {
+      "name": "OrderFeeService",
+      "description": "OrderFeeService 订单费用录入服务。\n 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。"
     },
     {
       "name": "OrderMilestoneService",

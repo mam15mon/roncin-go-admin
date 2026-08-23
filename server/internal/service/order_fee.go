@@ -1,0 +1,224 @@
+package service
+
+import (
+	"context"
+	"regexp"
+	"time"
+
+	"github.com/google/uuid"
+	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
+	"github.com/shopspring/decimal"
+)
+
+var plainDecimalPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)(\.[0-9]+)?$`)
+
+// OrderFeeService 订单费用服务，只做 DTO 转换、边界校验和用例调用。
+type OrderFeeService struct {
+	v1.UnimplementedOrderFeeServiceServer
+	usecase *biz.OrderFeeUsecase
+}
+
+func NewOrderFeeService(usecase *biz.OrderFeeUsecase) *OrderFeeService {
+	return &OrderFeeService{usecase: usecase}
+}
+
+func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFeeOptionsRequest) (*v1.ListFeeOptionsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	options, err := s.usecase.Options(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	parties := make([]*v1.OrderFeeSettlementPartyOption, 0, len(options.SettlementParties))
+	for _, item := range options.SettlementParties {
+		parties = append(parties, &v1.OrderFeeSettlementPartyOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
+	}
+	currencies := make([]*v1.OrderFeeCurrencyOption, 0, len(options.Currencies))
+	for _, item := range options.Currencies {
+		currencies = append(currencies, &v1.OrderFeeCurrencyOption{Code: item.Code, Name: item.Name, MinorUnit: int32(item.MinorUnit)})
+	}
+	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequest) (*v1.ListFeesResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	items, err := s.usecase.List(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.OrderFee, 0, len(items))
+	for _, item := range items {
+		data = append(data, orderFeeToAPI(item))
+	}
+	return &v1.ListFeesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest) (*v1.AddFeeResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExchangeRate(), request.GetExpenseDate(), request.GetNote())
+	if err != nil {
+		return nil, err
+	}
+	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AddFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRequest) (*v1.UpdateFeeResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExchangeRate(), request.GetExpenseDate(), request.GetNote())
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRequest) (*v1.RemoveFeeResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
+		return nil, err
+	}
+	return &v1.RemoveFeeResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
+	return &v1.OrderFee{
+		Id:                  value.ID.String(),
+		OrderId:             value.OrderID.String(),
+		Direction:           orderFeeDirectionToAPI(value.Direction),
+		FeeCode:             value.FeeCode,
+		FeeName:             value.FeeName,
+		SettlementPartyId:   value.SettlementPartyID.String(),
+		SettlementPartyName: value.SettlementPartyName,
+		BillingUnit:         value.BillingUnit,
+		Quantity:            value.Quantity.StringFixed(4),
+		UnitPrice:           value.UnitPrice.StringFixed(4),
+		TotalAmount:         value.TotalAmount.StringFixed(8),
+		Currency:            value.Currency,
+		ExchangeRate:        value.ExchangeRate.StringFixed(6),
+		ExpenseDate:         value.ExpenseDate,
+		Note:                value.Note,
+		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
+	}
+}
+
+func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeCode, feeName, partyIDText, billingUnit, quantityText, unitPriceText, currency, exchangeRateText, expenseDate, note string) (uuid.UUID, *biz.OrderFee, error) {
+	orderID, err := uuid.Parse(orderIDText)
+	if err != nil {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	partyID, err := uuid.Parse(partyIDText)
+	if err != nil {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	quantity, err := parsePlainDecimal(quantityText)
+	if err != nil {
+		return uuid.Nil, nil, err
+	}
+	unitPrice, err := parsePlainDecimal(unitPriceText)
+	if err != nil {
+		return uuid.Nil, nil, err
+	}
+	exchangeRate, err := parsePlainDecimal(exchangeRateText)
+	if err != nil {
+		return uuid.Nil, nil, err
+	}
+	feeDirection, ok := orderFeeDirectionFromAPI(direction)
+	if !ok {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	input := &biz.OrderFee{
+		Direction:         feeDirection,
+		FeeCode:           feeCode,
+		FeeName:           feeName,
+		SettlementPartyID: partyID,
+		BillingUnit:       billingUnit,
+		Quantity:          quantity,
+		UnitPrice:         unitPrice,
+		Currency:          currency,
+		ExchangeRate:      exchangeRate,
+		ExpenseDate:       expenseDate,
+	}
+	if note != "" {
+		input.Note = &note
+	}
+	return orderID, input, nil
+}
+
+func parsePlainDecimal(value string) (decimal.Decimal, error) {
+	if !plainDecimalPattern.MatchString(value) {
+		return decimal.Zero, biz.ErrOrderFeeInvalidArgument
+	}
+	parsed, err := decimal.NewFromString(value)
+	if err != nil {
+		return decimal.Zero, biz.ErrOrderFeeInvalidArgument
+	}
+	return parsed, nil
+}
+
+func orderFeeDirectionFromAPI(value v1.OrderFeeDirection) (biz.OrderFeeDirection, bool) {
+	switch value {
+	case v1.OrderFeeDirection_ORDER_FEE_DIRECTION_RECEIVABLE:
+		return biz.OrderFeeReceivable, true
+	case v1.OrderFeeDirection_ORDER_FEE_DIRECTION_PAYABLE:
+		return biz.OrderFeePayable, true
+	default:
+		return "", false
+	}
+}
+
+func orderFeeDirectionToAPI(value biz.OrderFeeDirection) v1.OrderFeeDirection {
+	switch value {
+	case biz.OrderFeeReceivable:
+		return v1.OrderFeeDirection_ORDER_FEE_DIRECTION_RECEIVABLE
+	case biz.OrderFeePayable:
+		return v1.OrderFeeDirection_ORDER_FEE_DIRECTION_PAYABLE
+	default:
+		return v1.OrderFeeDirection_ORDER_FEE_DIRECTION_UNSPECIFIED
+	}
+}
+
+var _ v1.OrderFeeServiceServer = (*OrderFeeService)(nil)
