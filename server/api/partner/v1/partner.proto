@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package partner.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -9,18 +10,22 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/partner/v1;v1"
 
 service PartnerService {
   rpc GetPartner(GetPartnerRequest) returns (PartnerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{id}"};
   }
 
   rpc ListPartners(ListPartnersRequest) returns (PartnerListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners"};
   }
 
   rpc ListPartnerAssignmentOptions(ListPartnerAssignmentOptionsRequest) returns (PartnerAssignmentOptionListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.assignment_option.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/assignment-options"};
   }
 
   rpc CreatePartner(CreatePartnerRequest) returns (PartnerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners"
       body: "*"
@@ -28,6 +33,7 @@ service PartnerService {
   }
 
   rpc UpdatePartner(UpdatePartnerRequest) returns (PartnerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{id}"
       body: "*"
@@ -35,6 +41,7 @@ service PartnerService {
   }
 
   rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (PartnerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.blacklist" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{id}/supplier-blacklist"
       body: "*"
@@ -42,10 +49,12 @@ service PartnerService {
   }
 
   rpc ListPartnerAccounts(ListPartnerAccountsRequest) returns (PartnerAccountListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/accounts"};
   }
 
   rpc CreatePartnerAccount(CreatePartnerAccountRequest) returns (PartnerAccountReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/accounts"
       body: "*"
@@ -53,6 +62,7 @@ service PartnerService {
   }
 
   rpc UpdatePartnerAccount(UpdatePartnerAccountRequest) returns (PartnerAccountReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/accounts/{id}"
       body: "*"
@@ -60,10 +70,12 @@ service PartnerService {
   }
 
   rpc ListPartnerContracts(ListPartnerContractsRequest) returns (PartnerContractListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/contracts"};
   }
 
   rpc CreatePartnerContract(CreatePartnerContractRequest) returns (PartnerContractReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/contracts"
       body: "*"
@@ -71,6 +83,7 @@ service PartnerService {
   }
 
   rpc UpdatePartnerContract(UpdatePartnerContractRequest) returns (PartnerContractReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/contracts/{id}"
       body: "*"
@@ -78,10 +91,12 @@ service PartnerService {
   }
 
   rpc ListPartnerSettlementRules(ListPartnerSettlementRulesRequest) returns (PartnerSettlementRuleListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"};
   }
 
   rpc CreatePartnerSettlementRule(CreatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
       body: "*"
@@ -89,6 +104,7 @@ service PartnerService {
   }
 
   rpc UpdatePartnerSettlementRule(UpdatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}"
       body: "*"
@@ -96,10 +112,12 @@ service PartnerService {
   }
 
   rpc ListPartnerAttachments(ListPartnerAttachmentsRequest) returns (PartnerAttachmentListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.attachment.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/attachments"};
   }
 
   rpc RegisterPartnerAttachment(RegisterPartnerAttachmentRequest) returns (PartnerAttachmentReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.attachment.register" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/attachments"
       body: "*"
@@ -107,6 +125,7 @@ service PartnerService {
   }
 
   rpc ImportPartners(ImportPartnersRequest) returns (PartnerImportReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.import" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/import"
       body: "*"
@@ -114,18 +133,22 @@ service PartnerService {
   }
 
   rpc ExportPartners(ExportPartnersRequest) returns (PartnerExportReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.export" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/export"};
   }
 
   rpc ListPartnerShippingPresets(ListPartnerShippingPresetsRequest) returns (PartnerShippingPresetListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/shipping-presets"};
   }
 
   rpc ListPartnerAuditLogs(ListPartnerAuditLogsRequest) returns (PartnerAuditLogListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.audit.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/audit-logs"};
   }
 
   rpc CreatePartnerShippingPreset(CreatePartnerShippingPresetRequest) returns (PartnerShippingPresetReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/shipping-presets"
       body: "*"
@@ -133,6 +156,7 @@ service PartnerService {
   }
 
   rpc UpdatePartnerShippingPreset(UpdatePartnerShippingPresetRequest) returns (PartnerShippingPresetReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/shipping-presets/{id}"
       body: "*"

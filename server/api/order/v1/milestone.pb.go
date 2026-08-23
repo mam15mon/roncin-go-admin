@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -427,7 +428,7 @@ var File_order_v1_milestone_proto protoreflect.FileDescriptor
 
 const file_order_v1_milestone_proto_rawDesc = "" +
 	"\n" +
-	"\x18order/v1/milestone.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xaf\x03\n" +
+	"\x18order/v1/milestone.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xaf\x03\n" +
 	"\x0eOrderMilestone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x12\n" +
@@ -473,10 +474,10 @@ const file_order_v1_milestone_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderMilestoneR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xa3\x02\n" +
-	"\x15OrderMilestoneService\x12\x82\x01\n" +
-	"\x0eListMilestones\x12\x1f.order.v1.ListMilestonesRequest\x1a!.order.v1.OrderMilestoneListReply\",\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/milestones\x12\x84\x01\n" +
-	"\fSetMilestone\x12\x1d.order.v1.SetMilestoneRequest\x1a\x1d.order.v1.OrderMilestoneReply\"6\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/milestones/{type}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd2\x02\n" +
+	"\x15OrderMilestoneService\x12\x9a\x01\n" +
+	"\x0eListMilestones\x12\x1f.order.v1.ListMilestonesRequest\x1a!.order.v1.OrderMilestoneListReply\"D\x82\xb5\x18\x14\b\x04\x1a\x0emilestone.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/milestones\x12\x9b\x01\n" +
+	"\fSetMilestone\x12\x1d.order.v1.SetMilestoneRequest\x1a\x1d.order.v1.OrderMilestoneReply\"M\x82\xb5\x18\x13\b\x04\x1a\rmilestone.set \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/milestones/{type}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_milestone_proto_rawDescOnce sync.Once

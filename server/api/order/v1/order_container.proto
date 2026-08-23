@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package order.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -12,11 +13,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 service OrderContainerService {
   // ListContainers 获取指定订单的集装箱列表。
   rpc ListContainers(ListContainersRequest) returns (OrderContainerListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/containers"};
   }
 
   // AddContainer 添加订单集装箱。
   rpc AddContainer(AddContainerRequest) returns (OrderContainerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/containers"
       body: "*"
@@ -25,6 +28,7 @@ service OrderContainerService {
 
   // UpdateContainer 更新订单集装箱，采用全量字段替换语义。
   rpc UpdateContainer(UpdateContainerRequest) returns (OrderContainerReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/containers/{id}"
       body: "*"
@@ -33,6 +37,7 @@ service OrderContainerService {
 
   // RemoveContainer 移除订单集装箱。
   rpc RemoveContainer(RemoveContainerRequest) returns (OrderContainerOperationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/containers/{id}"};
   }
 }

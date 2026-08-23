@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package access.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/access/v1;v1";
+
+// AccessMode 定义接口进入业务处理前需要执行的访问控制模式。
+enum AccessMode {
+  ACCESS_MODE_UNSPECIFIED = 0;
+  ACCESS_MODE_PUBLIC = 1;
+  ACCESS_MODE_AUTHENTICATED = 2;
+  ACCESS_MODE_PERMISSION = 3;
+  ACCESS_MODE_ORDER_PERMISSION = 4;
+}
+
+// DataScope 定义执行接口所需的最小数据范围。
+enum DataScope {
+  DATA_SCOPE_UNSPECIFIED = 0;
+  DATA_SCOPE_ALL = 1;
+  DATA_SCOPE_ORGANIZATION = 2;
+  DATA_SCOPE_ORGANIZATION_TREE = 3;
+  DATA_SCOPE_SELF = 4;
+}
+
+// Rule 是 RPC 的访问控制声明。
+message Rule {
+  AccessMode mode = 1;
+  string permission = 2;
+  string order_operation = 3;
+  DataScope scope = 4;
+}
+
+extend google.protobuf.MethodOptions {
+  Rule rule = 50000;
+}

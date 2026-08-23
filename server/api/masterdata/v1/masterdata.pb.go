@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -5990,7 +5991,7 @@ var File_masterdata_v1_masterdata_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
-	"\x1emasterdata/v1/masterdata.proto\x12\rmasterdata.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc5\x01\n" +
+	"\x1emasterdata/v1/masterdata.proto\x12\rmasterdata.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc5\x01\n" +
 	"\x1aListMasterDataItemsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x121\n" +
@@ -6696,42 +6697,42 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
 	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
 	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
-	"\x12BUSINESS_TYPE_RAIL\x10\x062\xfe!\n" +
-	"\x11MasterDataService\x12\x81\x01\n" +
-	"\tListItems\x12).masterdata.v1.ListMasterDataItemsRequest\x1a&.masterdata.v1.MasterDataItemListReply\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x82\x01\n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\xe9,\n" +
+	"\x11MasterDataService\x12\xa7\x01\n" +
+	"\tListItems\x12).masterdata.v1.ListMasterDataItemsRequest\x1a&.masterdata.v1.MasterDataItemListReply\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.item.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\xaa\x01\n" +
 	"\n" +
-	"CreateItem\x12*.masterdata.v1.CreateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\x87\x01\n" +
+	"CreateItem\x12*.masterdata.v1.CreateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\xaf\x01\n" +
 	"\n" +
-	"UpdateItem\x12*.masterdata.v1.UpdateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\x87\x01\n" +
-	"\vImportItems\x12+.masterdata.v1.ImportMasterDataItemsRequest\x1a$.masterdata.v1.MasterDataImportReply\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\x86\x01\n" +
-	"\vListOptions\x12+.masterdata.v1.ListMasterDataOptionsRequest\x1a%.masterdata.v1.MasterDataOptionsReply\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12z\n" +
-	"\tListPorts\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1c.masterdata.v1.PortListReply\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12n\n" +
+	"UpdateItem\x12*.masterdata.v1.UpdateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\xaf\x01\n" +
+	"\vImportItems\x12+.masterdata.v1.ImportMasterDataItemsRequest\x1a$.masterdata.v1.MasterDataImportReply\"M\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.import \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\xae\x01\n" +
+	"\vListOptions\x12+.masterdata.v1.ListMasterDataOptionsRequest\x1a%.masterdata.v1.MasterDataOptionsReply\"K\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.option.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12\xa0\x01\n" +
+	"\tListPorts\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1c.masterdata.v1.PortListReply\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.port.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12\x96\x01\n" +
 	"\n" +
-	"CreatePort\x12 .masterdata.v1.CreatePortRequest\x1a\x18.masterdata.v1.PortReply\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/ports\x12s\n" +
+	"CreatePort\x12 .masterdata.v1.CreatePortRequest\x1a\x18.masterdata.v1.PortReply\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/ports\x12\x9b\x01\n" +
 	"\n" +
-	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a\x18.masterdata.v1.PortReply\")\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\x83\x01\n" +
-	"\fListAirports\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirportListReply\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12z\n" +
-	"\rCreateAirport\x12#.masterdata.v1.CreateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airports\x12\x7f\n" +
-	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\x83\x01\n" +
-	"\fListAirlines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirlineListReply\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12z\n" +
-	"\rCreateAirline\x12#.masterdata.v1.CreateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airlines\x12\x7f\n" +
-	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\x93\x01\n" +
-	"\x11ListShippingLines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a$.masterdata.v1.ShippingLineListReply\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\x8f\x01\n" +
-	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\x94\x01\n" +
-	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"2\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12~\n" +
-	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a .masterdata.v1.CurrencyListReply\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xac\x01\n" +
-	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a,.masterdata.v1.AdministrativeRegionListReply\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\x86\x01\n" +
-	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a\".masterdata.v1.NumberRuleListReply\"(\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\x87\x01\n" +
-	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\x8c\x01\n" +
-	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"0\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}\x12\x96\x01\n" +
-	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a&.masterdata.v1.StatusTemplateListReply\",\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\x97\x01\n" +
-	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xa6\x01\n" +
-	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"<\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xb0\x01\n" +
-	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-default\x12\xa2\x01\n" +
-	"\x16ListMilestoneTemplates\x12,.masterdata.v1.ListMilestoneTemplatesRequest\x1a).masterdata.v1.MilestoneTemplateListReply\"/\x82\xd3\xe4\x93\x02)\x12'/api/v1/master-data/milestone-templates\x12\xa3\x01\n" +
-	"\x17CreateMilestoneTemplate\x12-.masterdata.v1.CreateMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/master-data/milestone-templates\x12\xb2\x01\n" +
-	"\x18PublishMilestoneTemplate\x12..masterdata.v1.PublishMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/master-data/milestone-templates/{id}/publish\x12\xbc\x01\n" +
-	"\x1bSetDefaultMilestoneTemplate\x121.masterdata.v1.SetDefaultMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/master-data/milestone-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a\x18.masterdata.v1.PortReply\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\xac\x01\n" +
+	"\fListAirports\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirportListReply\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airport.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12\xa5\x01\n" +
+	"\rCreateAirport\x12#.masterdata.v1.CreateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airport.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airports\x12\xaa\x01\n" +
+	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airport.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\xac\x01\n" +
+	"\fListAirlines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirlineListReply\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airline.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12\xa5\x01\n" +
+	"\rCreateAirline\x12#.masterdata.v1.CreateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airline.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airlines\x12\xaa\x01\n" +
+	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airline.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\xc2\x01\n" +
+	"\x11ListShippingLines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a$.masterdata.v1.ShippingLineListReply\"Y\x82\xb5\x18+\b\x03\x12%system.master_data.shipping_line.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc0\x01\n" +
+	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"^\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.create \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\xc5\x01\n" +
+	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\xa8\x01\n" +
+	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a .masterdata.v1.CurrencyListReply\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xe3\x01\n" +
+	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a,.masterdata.v1.AdministrativeRegionListReply\"g\x82\xb5\x183\b\x03\x12-system.master_data.administrative_region.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb3\x01\n" +
+	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a\".masterdata.v1.NumberRuleListReply\"U\x82\xb5\x18)\b\x03\x12#system.master_data.number_rule.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\xb6\x01\n" +
+	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"Z\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\xbb\x01\n" +
+	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"_\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.update \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}\x12\xc7\x01\n" +
+	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a&.masterdata.v1.StatusTemplateListReply\"]\x82\xb5\x18-\b\x03\x12'system.master_data.status_template.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\xca\x01\n" +
+	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"b\x82\xb5\x18/\b\x03\x12)system.master_data.status_template.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xda\x01\n" +
+	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"p\x82\xb5\x180\b\x03\x12*system.master_data.status_template.publish \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xe8\x01\n" +
+	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"x\x82\xb5\x184\b\x03\x12.system.master_data.status_template.set_default \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-default\x12\xd6\x01\n" +
+	"\x16ListMilestoneTemplates\x12,.masterdata.v1.ListMilestoneTemplatesRequest\x1a).masterdata.v1.MilestoneTemplateListReply\"c\x82\xb5\x180\b\x03\x12*system.master_data.milestone_template.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/master-data/milestone-templates\x12\xd9\x01\n" +
+	"\x17CreateMilestoneTemplate\x12-.masterdata.v1.CreateMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"h\x82\xb5\x182\b\x03\x12,system.master_data.milestone_template.create \x02\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/master-data/milestone-templates\x12\xe9\x01\n" +
+	"\x18PublishMilestoneTemplate\x12..masterdata.v1.PublishMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"v\x82\xb5\x183\b\x03\x12-system.master_data.milestone_template.publish \x02\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/master-data/milestone-templates/{id}/publish\x12\xf7\x01\n" +
+	"\x1bSetDefaultMilestoneTemplate\x121.masterdata.v1.SetDefaultMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"~\x82\xb5\x187\b\x03\x121system.master_data.milestone_template.set_default \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/master-data/milestone-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_masterdata_proto_rawDescOnce sync.Once

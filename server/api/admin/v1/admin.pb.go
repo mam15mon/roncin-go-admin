@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -2316,7 +2317,7 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
+	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
 	"\x18ListOrganizationsRequest\"\xa4\x01\n" +
 	"\x19CreateOrganizationRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
@@ -2533,26 +2534,26 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xae\r\n" +
-	"\fAdminService\x12\x82\x01\n" +
-	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a$.admin.v1.AdminOrganizationListReply\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\x83\x01\n" +
-	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a .admin.v1.AdminOrganizationReply\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\x88\x01\n" +
-	"\x12UpdateOrganization\x12#.admin.v1.UpdateOrganizationRequest\x1a .admin.v1.AdminOrganizationReply\"+\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/admin/organizations/{id}\x12b\n" +
-	"\tListUsers\x12\x1a.admin.v1.ListUsersRequest\x1a\x1c.admin.v1.AdminUserListReply\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/users\x12c\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xde\x10\n" +
+	"\fAdminService\x12\xa4\x01\n" +
+	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a$.admin.v1.AdminOrganizationListReply\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xa7\x01\n" +
+	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a .admin.v1.AdminOrganizationReply\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xac\x01\n" +
+	"\x12UpdateOrganization\x12#.admin.v1.UpdateOrganizationRequest\x1a .admin.v1.AdminOrganizationReply\"O\x82\xb5\x18 \b\x03\x12\x1asystem.organization.update \x01\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/admin/organizations/{id}\x12|\n" +
+	"\tListUsers\x12\x1a.admin.v1.ListUsersRequest\x1a\x1c.admin.v1.AdminUserListReply\"5\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/users\x12\x7f\n" +
 	"\n" +
-	"CreateUser\x12\x1b.admin.v1.CreateUserRequest\x1a\x18.admin.v1.AdminUserReply\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/users\x12h\n" +
+	"CreateUser\x12\x1b.admin.v1.CreateUserRequest\x1a\x18.admin.v1.AdminUserReply\":\x82\xb5\x18\x18\b\x03\x12\x12system.user.create \x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/users\x12\x84\x01\n" +
 	"\n" +
-	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x18.admin.v1.AdminUserReply\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/users/{id}\x12\x8c\x01\n" +
-	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a\x18.admin.v1.AdminUserReply\"7\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\x84\x01\n" +
-	"\x11ResetUserPassword\x12\".admin.v1.ResetUserPasswordRequest\x1a\x1d.admin.v1.AdminOperationReply\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/admin/users/{id}/password\x12b\n" +
-	"\tListRoles\x12\x1a.admin.v1.ListRolesRequest\x1a\x1c.admin.v1.AdminRoleListReply\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/roles\x12\x9a\x01\n" +
-	"\x15ListOrganizationRoles\x12&.admin.v1.ListOrganizationRolesRequest\x1a\x1c.admin.v1.AdminRoleListReply\";\x82\xd3\xe4\x93\x025\x123/api/v1/admin/organizations/{organization_id}/roles\x12c\n" +
+	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x18.admin.v1.AdminUserReply\"?\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/users/{id}\x12\xb1\x01\n" +
+	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a\x18.admin.v1.AdminUserReply\"\\\x82\xb5\x18!\b\x03\x12\x1bsystem.user.authorize_wecom \x01\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\xa8\x01\n" +
+	"\x11ResetUserPassword\x12\".admin.v1.ResetUserPasswordRequest\x1a\x1d.admin.v1.AdminOperationReply\"P\x82\xb5\x18 \b\x03\x12\x1asystem.user.reset_password \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/admin/users/{id}/password\x12|\n" +
+	"\tListRoles\x12\x1a.admin.v1.ListRolesRequest\x1a\x1c.admin.v1.AdminRoleListReply\"5\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/roles\x12\xb4\x01\n" +
+	"\x15ListOrganizationRoles\x12&.admin.v1.ListOrganizationRolesRequest\x1a\x1c.admin.v1.AdminRoleListReply\"U\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x01\x82\xd3\xe4\x93\x025\x123/api/v1/admin/organizations/{organization_id}/roles\x12\x7f\n" +
 	"\n" +
-	"CreateRole\x12\x1b.admin.v1.CreateRoleRequest\x1a\x18.admin.v1.AdminRoleReply\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/roles\x12h\n" +
+	"CreateRole\x12\x1b.admin.v1.CreateRoleRequest\x1a\x18.admin.v1.AdminRoleReply\":\x82\xb5\x18\x18\b\x03\x12\x12system.role.create \x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/roles\x12\x84\x01\n" +
 	"\n" +
-	"UpdateRole\x12\x1b.admin.v1.UpdateRoleRequest\x1a\x18.admin.v1.AdminRoleReply\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/roles/{id}\x12z\n" +
-	"\x0fListPermissions\x12 .admin.v1.ListPermissionsRequest\x1a\".admin.v1.AdminPermissionListReply\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissions\x12s\n" +
-	"\rListAuditLogs\x12\x1e.admin.v1.ListAuditLogsRequest\x1a .admin.v1.AdminAuditLogListReply\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/admin/audit-logsB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
+	"UpdateRole\x12\x1b.admin.v1.UpdateRoleRequest\x1a\x18.admin.v1.AdminRoleReply\"?\x82\xb5\x18\x18\b\x03\x12\x12system.role.update \x02\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/roles/{id}\x12\x9a\x01\n" +
+	"\x0fListPermissions\x12 .admin.v1.ListPermissionsRequest\x1a\".admin.v1.AdminPermissionListReply\"A\x82\xb5\x18\x1c\b\x03\x12\x16system.permission.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissions\x12\x8e\x01\n" +
+	"\rListAuditLogs\x12\x1e.admin.v1.ListAuditLogsRequest\x1a .admin.v1.AdminAuditLogListReply\";\x82\xb5\x18\x17\b\x03\x12\x11system.audit.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/admin/audit-logsB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once

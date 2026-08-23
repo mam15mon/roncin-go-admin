@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package masterdata.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -9,10 +10,12 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/masterdata/v1;
 
 service MasterDataService {
   rpc ListItems(ListMasterDataItemsRequest) returns (MasterDataItemListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/items"};
   }
 
   rpc CreateItem(CreateMasterDataItemRequest) returns (MasterDataItemReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/items"
       body: "*"
@@ -20,6 +23,7 @@ service MasterDataService {
   }
 
   rpc UpdateItem(UpdateMasterDataItemRequest) returns (MasterDataItemReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/master-data/items/{id}"
       body: "*"
@@ -27,6 +31,7 @@ service MasterDataService {
   }
 
   rpc ImportItems(ImportMasterDataItemsRequest) returns (MasterDataImportReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.import" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/import"
       body: "*"
@@ -34,70 +39,87 @@ service MasterDataService {
   }
 
   rpc ListOptions(ListMasterDataOptionsRequest) returns (MasterDataOptionsReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.option.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
   rpc ListPorts(ListIndustryReferencesRequest) returns (PortListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/ports"};
   }
 
   rpc CreatePort(CreatePortRequest) returns (PortReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/ports" body: "*"};
   }
 
   rpc UpdatePort(UpdatePortRequest) returns (PortReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/ports/{id}" body: "*"};
   }
 
   rpc ListAirports(ListIndustryReferencesRequest) returns (AirportListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/airports"};
   }
 
   rpc CreateAirport(CreateAirportRequest) returns (AirportReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/airports" body: "*"};
   }
 
   rpc UpdateAirport(UpdateAirportRequest) returns (AirportReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/airports/{id}" body: "*"};
   }
 
   rpc ListAirlines(ListIndustryReferencesRequest) returns (AirlineListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/airlines"};
   }
 
   rpc CreateAirline(CreateAirlineRequest) returns (AirlineReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/airlines" body: "*"};
   }
 
   rpc UpdateAirline(UpdateAirlineRequest) returns (AirlineReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/airlines/{id}" body: "*"};
   }
 
   rpc ListShippingLines(ListIndustryReferencesRequest) returns (ShippingLineListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/shipping-lines"};
   }
 
   rpc CreateShippingLine(CreateShippingLineRequest) returns (ShippingLineReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/shipping-lines" body: "*"};
   }
 
   rpc UpdateShippingLine(UpdateShippingLineRequest) returns (ShippingLineReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/shipping-lines/{id}" body: "*"};
   }
 
   rpc ListCurrencies(ListCurrenciesRequest) returns (CurrencyListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
 
   rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (AdministrativeRegionListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.administrative_region.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/administrative-regions"};
   }
 
   rpc ListNumberRules(ListNumberRulesRequest) returns (NumberRuleListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/number-rules"};
   }
 
   rpc CreateNumberRule(CreateNumberRuleRequest) returns (NumberRuleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/number-rules"
       body: "*"
@@ -105,6 +127,7 @@ service MasterDataService {
   }
 
   rpc UpdateNumberRule(UpdateNumberRuleRequest) returns (NumberRuleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/master-data/number-rules/{id}"
       body: "*"
@@ -112,10 +135,12 @@ service MasterDataService {
   }
 
   rpc ListStatusTemplates(ListStatusTemplatesRequest) returns (StatusTemplateListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/status-templates"};
   }
 
   rpc CreateStatusTemplate(CreateStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates"
       body: "*"
@@ -123,6 +148,7 @@ service MasterDataService {
   }
 
   rpc PublishStatusTemplate(PublishStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.publish" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates/{id}/publish"
       body: "*"
@@ -130,6 +156,7 @@ service MasterDataService {
   }
 
   rpc SetDefaultStatusTemplate(SetDefaultStatusTemplateRequest) returns (StatusTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.set_default" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates/{id}/set-default"
       body: "*"
@@ -137,10 +164,12 @@ service MasterDataService {
   }
 
   rpc ListMilestoneTemplates(ListMilestoneTemplatesRequest) returns (MilestoneTemplateListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/milestone-templates"};
   }
 
   rpc CreateMilestoneTemplate(CreateMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates"
       body: "*"
@@ -148,6 +177,7 @@ service MasterDataService {
   }
 
   rpc PublishMilestoneTemplate(PublishMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.publish" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates/{id}/publish"
       body: "*"
@@ -155,6 +185,7 @@ service MasterDataService {
   }
 
   rpc SetDefaultMilestoneTemplate(SetDefaultMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.set_default" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates/{id}/set-default"
       body: "*"

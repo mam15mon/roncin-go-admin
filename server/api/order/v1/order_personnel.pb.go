@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -569,7 +570,7 @@ var File_order_v1_order_personnel_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\n" +
-	"\x1eorder/v1/order_personnel.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe5\x01\n" +
+	"\x1eorder/v1/order_personnel.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe5\x01\n" +
 	"\x0eOrderPersonnel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x17\n" +
@@ -616,11 +617,11 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\x1dORDER_PERSONNEL_ROLE_DOCUMENT\x10\x05\x12#\n" +
 	"\x1fORDER_PERSONNEL_ROLE_COMMERCIAL\x10\x06\x12\"\n" +
 	"\x1eORDER_PERSONNEL_ROLE_ASSOCIATE\x10\a\x12#\n" +
-	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xad\x03\n" +
-	"\x15OrderPersonnelService\x12\x7f\n" +
-	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a!.order.v1.OrderPersonnelListReply\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnel\x12\x82\x01\n" +
-	"\x0fAssignPersonnel\x12 .order.v1.AssignPersonnelRequest\x1a\x1d.order.v1.OrderPersonnelReply\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/personnel\x12\x8d\x01\n" +
-	"\x0fRemovePersonnel\x12 .order.v1.RemovePersonnelRequest\x1a&.order.v1.OrderPersonnelOperationReply\"0\x82\xd3\xe4\x93\x02**(/api/v1/orders/{order_id}/personnel/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xfa\x03\n" +
+	"\x15OrderPersonnelService\x12\x97\x01\n" +
+	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a!.order.v1.OrderPersonnelListReply\"C\x82\xb5\x18\x14\b\x04\x1a\x0epersonnel.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnel\x12\x9c\x01\n" +
+	"\x0fAssignPersonnel\x12 .order.v1.AssignPersonnelRequest\x1a\x1d.order.v1.OrderPersonnelReply\"H\x82\xb5\x18\x16\b\x04\x1a\x10personnel.assign \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/personnel\x12\xa7\x01\n" +
+	"\x0fRemovePersonnel\x12 .order.v1.RemovePersonnelRequest\x1a&.order.v1.OrderPersonnelOperationReply\"J\x82\xb5\x18\x16\b\x04\x1a\x10personnel.remove \x02\x82\xd3\xe4\x93\x02**(/api/v1/orders/{order_id}/personnel/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_personnel_proto_rawDescOnce sync.Once

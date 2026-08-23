@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -620,7 +621,7 @@ var File_order_v1_order_abnormal_case_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"\n" +
-	"\"order/v1/order_abnormal_case.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x87\x03\n" +
+	"\"order/v1/order_abnormal_case.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x87\x03\n" +
 	"\x11OrderAbnormalCase\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12(\n" +
@@ -670,12 +671,12 @@ const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"\x17OrderAbnormalCaseStatus\x12*\n" +
 	"&ORDER_ABNORMAL_CASE_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
 	"!ORDER_ABNORMAL_CASE_STATUS_ACTIVE\x10\x01\x12'\n" +
-	"#ORDER_ABNORMAL_CASE_STATUS_RESOLVED\x10\x022\xfb\x04\n" +
-	"\x18OrderAbnormalCaseService\x12\x8f\x01\n" +
-	"\x11ListAbnormalCases\x12\".order.v1.ListAbnormalCasesRequest\x1a$.order.v1.OrderAbnormalCaseListReply\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/orders/{order_id}/abnormal-cases\x12\x8c\x01\n" +
-	"\x10MarkAbnormalCase\x12!.order.v1.MarkAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/orders/{order_id}/abnormal-cases\x12\x9f\x01\n" +
-	"\x13ResolveAbnormalCase\x12$.order.v1.ResolveAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve\x12\x9b\x01\n" +
-	"\x12RemoveAbnormalCase\x12#.order.v1.RemoveAbnormalCaseRequest\x1a).order.v1.OrderAbnormalCaseOperationReply\"5\x82\xd3\xe4\x93\x02/*-/api/v1/orders/{order_id}/abnormal-cases/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"#ORDER_ABNORMAL_CASE_STATUS_RESOLVED\x10\x022\xf2\x05\n" +
+	"\x18OrderAbnormalCaseService\x12\xab\x01\n" +
+	"\x11ListAbnormalCases\x12\".order.v1.ListAbnormalCasesRequest\x1a$.order.v1.OrderAbnormalCaseListReply\"L\x82\xb5\x18\x18\b\x04\x1a\x12abnormal_case.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/orders/{order_id}/abnormal-cases\x12\xaa\x01\n" +
+	"\x10MarkAbnormalCase\x12!.order.v1.MarkAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"Q\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.create \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/orders/{order_id}/abnormal-cases\x12\xbe\x01\n" +
+	"\x13ResolveAbnormalCase\x12$.order.v1.ResolveAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"_\x82\xb5\x18\x1b\b\x04\x1a\x15abnormal_case.resolve \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve\x12\xb9\x01\n" +
+	"\x12RemoveAbnormalCase\x12#.order.v1.RemoveAbnormalCaseRequest\x1a).order.v1.OrderAbnormalCaseOperationReply\"S\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.delete \x02\x82\xd3\xe4\x93\x02/*-/api/v1/orders/{order_id}/abnormal-cases/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_abnormal_case_proto_rawDescOnce sync.Once

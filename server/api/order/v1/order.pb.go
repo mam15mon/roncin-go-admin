@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -2557,7 +2558,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xea\x17\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xea\x17\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -2990,15 +2991,18 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12OrderReferenceType\x12$\n" +
 	" ORDER_REFERENCE_TYPE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dORDER_REFERENCE_TYPE_CUSTOMER\x10\x01\x12!\n" +
-	"\x1dORDER_REFERENCE_TYPE_INTERNAL\x10\x022\x8d\x05\n" +
-	"\fOrderService\x12X\n" +
-	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x14.order.v1.OrderReply\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12[\n" +
+	"\x1dORDER_REFERENCE_TYPE_INTERNAL\x10\x022\xee\x05\n" +
+	"\fOrderService\x12f\n" +
+	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x14.order.v1.OrderReply\")\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12i\n" +
 	"\n" +
-	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x18.order.v1.OrderListReply\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\x86\x01\n" +
-	"\x13CheckOrderReference\x12$.order.v1.CheckOrderReferenceRequest\x1a\".order.v1.OrderReferenceCheckReply\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/order-reference-check\x12\\\n" +
-	"\vCreateOrder\x12\x1c.order.v1.CreateOrderRequest\x1a\x14.order.v1.OrderReply\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12a\n" +
-	"\vUpdateOrder\x12\x1c.order.v1.UpdateOrderRequest\x1a\x14.order.v1.OrderReply\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/orders/{id}\x12|\n" +
-	"\x15TransitionOrderStatus\x12&.order.v1.TransitionOrderStatusRequest\x1a\x14.order.v1.OrderReply\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/orders/{id}/statusB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x18.order.v1.OrderListReply\"$\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\x96\x01\n" +
+	"\x13CheckOrderReference\x12$.order.v1.CheckOrderReferenceRequest\x1a\".order.v1.OrderReferenceCheckReply\"5\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/order-reference-check\x12l\n" +
+	"\vCreateOrder\x12\x1c.order.v1.CreateOrderRequest\x1a\x14.order.v1.OrderReply\")\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12q\n" +
+	"\vUpdateOrder\x12\x1c.order.v1.UpdateOrderRequest\x1a\x14.order.v1.OrderReply\".\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/orders/{id}\x12\x90\x01\n" +
+	"\x15TransitionOrderStatus\x12&.order.v1.TransitionOrderStatusRequest\x1a\x14.order.v1.OrderReply\"9\x82\xb5\x18\x10\b\x04\x1a\n" +
+	"transition \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/orders/{id}/statusB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_proto_rawDescOnce sync.Once

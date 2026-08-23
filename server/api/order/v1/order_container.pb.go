@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -682,7 +683,7 @@ var File_order_v1_order_container_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_container_proto_rawDesc = "" +
 	"\n" +
-	"\x1eorder/v1/order_container.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xab\x03\n" +
+	"\x1eorder/v1/order_container.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xab\x03\n" +
 	"\x0eOrderContainer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12!\n" +
@@ -753,12 +754,12 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xb7\x04\n" +
-	"\x15OrderContainerService\x12\x82\x01\n" +
-	"\x0eListContainers\x12\x1f.order.v1.ListContainersRequest\x1a!.order.v1.OrderContainerListReply\",\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/containers\x12}\n" +
-	"\fAddContainer\x12\x1d.order.v1.AddContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/{order_id}/containers\x12\x88\x01\n" +
-	"\x0fUpdateContainer\x12 .order.v1.UpdateContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"4\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/{order_id}/containers/{id}\x12\x8e\x01\n" +
-	"\x0fRemoveContainer\x12 .order.v1.RemoveContainerRequest\x1a&.order.v1.OrderContainerOperationReply\"1\x82\xd3\xe4\x93\x02+*)/api/v1/orders/{order_id}/containers/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x04 \x01(\tR\atraceId2\x9e\x05\n" +
+	"\x15OrderContainerService\x12\x9a\x01\n" +
+	"\x0eListContainers\x12\x1f.order.v1.ListContainersRequest\x1a!.order.v1.OrderContainerListReply\"D\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/containers\x12\x97\x01\n" +
+	"\fAddContainer\x12\x1d.order.v1.AddContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"I\x82\xb5\x18\x16\b\x04\x1a\x10container.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/{order_id}/containers\x12\xa2\x01\n" +
+	"\x0fUpdateContainer\x12 .order.v1.UpdateContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"N\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/{order_id}/containers/{id}\x12\xa8\x01\n" +
+	"\x0fRemoveContainer\x12 .order.v1.RemoveContainerRequest\x1a&.order.v1.OrderContainerOperationReply\"K\x82\xb5\x18\x16\b\x04\x1a\x10container.delete \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/{order_id}/containers/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_container_proto_rawDescOnce sync.Once

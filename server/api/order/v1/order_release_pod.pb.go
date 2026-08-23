@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -756,7 +757,7 @@ var File_order_v1_order_release_pod_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"\n" +
-	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xdf\x03\n" +
+	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xdf\x03\n" +
 	"\x0fOrderReleasePod\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x125\n" +
@@ -835,13 +836,13 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"$ORDER_RELEASE_POD_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
 	" ORDER_RELEASE_POD_STATUS_PENDING\x10\x01\x12#\n" +
 	"\x1fORDER_RELEASE_POD_STATUS_SIGNED\x10\x02\x12%\n" +
-	"!ORDER_RELEASE_POD_STATUS_RETURNED\x10\x032\xfc\x05\n" +
-	"\x16OrderReleasePodService\x12\x87\x01\n" +
-	"\x0fListReleasePods\x12 .order.v1.ListReleasePodsRequest\x1a\".order.v1.OrderReleasePodListReply\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/orders/{order_id}/release-pods\x12\x82\x01\n" +
-	"\rAddReleasePod\x12\x1e.order.v1.AddReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/orders/{order_id}/release-pods\x12\x8d\x01\n" +
-	"\x10UpdateReleasePod\x12!.order.v1.UpdateReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"6\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/release-pods/{id}\x12\xac\x01\n" +
-	"\x1aTransitionReleasePodStatus\x12+.order.v1.TransitionReleasePodStatusRequest\x1a\x1e.order.v1.OrderReleasePodReply\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/orders/{order_id}/release-pods/{id}/transition\x12\x93\x01\n" +
-	"\x10RemoveReleasePod\x12!.order.v1.RemoveReleasePodRequest\x1a'.order.v1.OrderReleasePodOperationReply\"3\x82\xd3\xe4\x93\x02-*+/api/v1/orders/{order_id}/release-pods/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"!ORDER_RELEASE_POD_STATUS_RETURNED\x10\x032\x8a\a\n" +
+	"\x16OrderReleasePodService\x12\xa1\x01\n" +
+	"\x0fListReleasePods\x12 .order.v1.ListReleasePodsRequest\x1a\".order.v1.OrderReleasePodListReply\"H\x82\xb5\x18\x16\b\x04\x1a\x10release_pod.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/orders/{order_id}/release-pods\x12\x9e\x01\n" +
+	"\rAddReleasePod\x12\x1e.order.v1.AddReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"M\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.create \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/orders/{order_id}/release-pods\x12\xa9\x01\n" +
+	"\x10UpdateReleasePod\x12!.order.v1.UpdateReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"R\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.update \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/release-pods/{id}\x12\xcc\x01\n" +
+	"\x1aTransitionReleasePodStatus\x12+.order.v1.TransitionReleasePodStatusRequest\x1a\x1e.order.v1.OrderReleasePodReply\"a\x82\xb5\x18\x1c\b\x04\x1a\x16release_pod.transition \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/orders/{order_id}/release-pods/{id}/transition\x12\xaf\x01\n" +
+	"\x10RemoveReleasePod\x12!.order.v1.RemoveReleasePodRequest\x1a'.order.v1.OrderReleasePodOperationReply\"O\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.delete \x02\x82\xd3\xe4\x93\x02-*+/api/v1/orders/{order_id}/release-pods/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_release_pod_proto_rawDescOnce sync.Once

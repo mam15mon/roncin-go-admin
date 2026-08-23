@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -658,7 +659,7 @@ var File_order_v1_order_cargo_item_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\n" +
-	"\x1forder/v1/order_cargo_item.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe1\x02\n" +
+	"\x1forder/v1/order_cargo_item.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe1\x02\n" +
 	"\x0eOrderCargoItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1d\n" +
@@ -723,12 +724,12 @@ const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xbb\x04\n" +
-	"\x15OrderCargoItemService\x12\x83\x01\n" +
-	"\x0eListCargoItems\x12\x1f.order.v1.ListCargoItemsRequest\x1a!.order.v1.OrderCargoItemListReply\"-\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/cargo-items\x12~\n" +
-	"\fAddCargoItem\x12\x1d.order.v1.AddCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/cargo-items\x12\x89\x01\n" +
-	"\x0fUpdateCargoItem\x12 .order.v1.UpdateCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/orders/{order_id}/cargo-items/{id}\x12\x8f\x01\n" +
-	"\x0fRemoveCargoItem\x12 .order.v1.RemoveCargoItemRequest\x1a&.order.v1.OrderCargoItemOperationReply\"2\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/cargo-items/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xa6\x05\n" +
+	"\x15OrderCargoItemService\x12\x9c\x01\n" +
+	"\x0eListCargoItems\x12\x1f.order.v1.ListCargoItemsRequest\x1a!.order.v1.OrderCargoItemListReply\"F\x82\xb5\x18\x15\b\x04\x1a\x0fcargo_item.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/cargo-items\x12\x99\x01\n" +
+	"\fAddCargoItem\x12\x1d.order.v1.AddCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"K\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/cargo-items\x12\xa4\x01\n" +
+	"\x0fUpdateCargoItem\x12 .order.v1.UpdateCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"P\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.update \x02\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/orders/{order_id}/cargo-items/{id}\x12\xaa\x01\n" +
+	"\x0fRemoveCargoItem\x12 .order.v1.RemoveCargoItemRequest\x1a&.order.v1.OrderCargoItemOperationReply\"M\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.delete \x02\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/cargo-items/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_cargo_item_proto_rawDescOnce sync.Once

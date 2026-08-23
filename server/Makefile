@@ -17,6 +17,7 @@ config:
 # generate api proto
 api:
 	buf generate --template buf.gen.yaml
+	go generate ./internal/server
 
 .PHONY: build
 # build

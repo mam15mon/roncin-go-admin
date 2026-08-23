@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -459,7 +460,7 @@ var File_order_v1_order_attachment_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\n" +
-	"\x1forder/v1/order_attachment.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x98\x03\n" +
+	"\x1forder/v1/order_attachment.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x98\x03\n" +
 	"\x0fOrderAttachment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -504,10 +505,10 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.order.v1.OrderAttachmentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xaf\x02\n" +
-	"\x16OrderAttachmentService\x12\x86\x01\n" +
-	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a\".order.v1.OrderAttachmentListReply\"-\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\x8b\x01\n" +
-	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a\x1e.order.v1.OrderAttachmentReply\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachmentsB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xe5\x02\n" +
+	"\x16OrderAttachmentService\x12\x9f\x01\n" +
+	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a\".order.v1.OrderAttachmentListReply\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xa8\x01\n" +
+	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a\x1e.order.v1.OrderAttachmentReply\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachmentsB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_attachment_proto_rawDescOnce sync.Once

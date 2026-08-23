@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -6022,7 +6023,7 @@ var File_partner_v1_partner_proto protoreflect.FileDescriptor
 const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"\x18partner/v1/partner.proto\x12\n" +
-	"partner.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xbf\x02\n" +
+	"partner.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xbf\x02\n" +
 	"\vPartnerRole\x12/\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04type\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12 \n" +
@@ -6636,32 +6637,32 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"#PARTNER_SETTLEMENT_BASE_UNSPECIFIED\x10\x00\x12%\n" +
 	"!PARTNER_SETTLEMENT_BASE_BILL_DATE\x10\x01\x12(\n" +
 	"$PARTNER_SETTLEMENT_BASE_SAILING_DATE\x10\x02\x12(\n" +
-	"$PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE\x10\x032\xce\x1b\n" +
-	"\x0ePartnerService\x12d\n" +
+	"$PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE\x10\x032\x80#\n" +
+	"\x0ePartnerService\x12\x83\x01\n" +
 	"\n" +
-	"GetPartner\x12\x1d.partner.v1.GetPartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/partners/{id}\x12g\n" +
-	"\fListPartners\x12\x1f.partner.v1.ListPartnersRequest\x1a\x1c.partner.v1.PartnerListReply\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/partners\x12\xaa\x01\n" +
-	"\x1cListPartnerAssignmentOptions\x12/.partner.v1.ListPartnerAssignmentOptionsRequest\x1a,.partner.v1.PartnerAssignmentOptionListReply\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/partners/assignment-options\x12h\n" +
-	"\rCreatePartner\x12 .partner.v1.CreatePartnerRequest\x1a\x18.partner.v1.PartnerReply\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/partners\x12m\n" +
-	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a\x18.partner.v1.PartnerReply\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\x8e\x01\n" +
-	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a\x18.partner.v1.PartnerReply\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklist\x12\x92\x01\n" +
-	"\x13ListPartnerAccounts\x12&.partner.v1.ListPartnerAccountsRequest\x1a#.partner.v1.PartnerAccountListReply\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/partners/{partner_id}/accounts\x12\x93\x01\n" +
-	"\x14CreatePartnerAccount\x12'.partner.v1.CreatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/partners/{partner_id}/accounts\x12\x98\x01\n" +
-	"\x14UpdatePartnerAccount\x12'.partner.v1.UpdatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"6\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/partners/{partner_id}/accounts/{id}\x12\x96\x01\n" +
-	"\x14ListPartnerContracts\x12'.partner.v1.ListPartnerContractsRequest\x1a$.partner.v1.PartnerContractListReply\"/\x82\xd3\xe4\x93\x02)\x12'/api/v1/partners/{partner_id}/contracts\x12\x97\x01\n" +
-	"\x15CreatePartnerContract\x12(.partner.v1.CreatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/partners/{partner_id}/contracts\x12\x9c\x01\n" +
-	"\x15UpdatePartnerContract\x12(.partner.v1.UpdatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"7\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/partners/{partner_id}/contracts/{id}\x12\xc1\x01\n" +
-	"\x1aListPartnerSettlementRules\x12-.partner.v1.ListPartnerSettlementRulesRequest\x1a*.partner.v1.PartnerSettlementRuleListReply\"H\x82\xd3\xe4\x93\x02B\x12@/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules\x12\xc2\x01\n" +
-	"\x1bCreatePartnerSettlementRule\x12..partner.v1.CreatePartnerSettlementRuleRequest\x1a&.partner.v1.PartnerSettlementRuleReply\"K\x82\xd3\xe4\x93\x02E:\x01*\"@/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules\x12\xc7\x01\n" +
-	"\x1bUpdatePartnerSettlementRule\x12..partner.v1.UpdatePartnerSettlementRuleRequest\x1a&.partner.v1.PartnerSettlementRuleReply\"P\x82\xd3\xe4\x93\x02J:\x01*\x1aE/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}\x12\x9e\x01\n" +
-	"\x16ListPartnerAttachments\x12).partner.v1.ListPartnerAttachmentsRequest\x1a&.partner.v1.PartnerAttachmentListReply\"1\x82\xd3\xe4\x93\x02+\x12)/api/v1/partners/{partner_id}/attachments\x12\xa3\x01\n" +
-	"\x19RegisterPartnerAttachment\x12,.partner.v1.RegisterPartnerAttachmentRequest\x1a\".partner.v1.PartnerAttachmentReply\"4\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/partners/{partner_id}/attachments\x12w\n" +
-	"\x0eImportPartners\x12!.partner.v1.ImportPartnersRequest\x1a\x1e.partner.v1.PartnerImportReply\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/partners/import\x12t\n" +
-	"\x0eExportPartners\x12!.partner.v1.ExportPartnersRequest\x1a\x1e.partner.v1.PartnerExportReply\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/partners/export\x12\xaf\x01\n" +
-	"\x1aListPartnerShippingPresets\x12-.partner.v1.ListPartnerShippingPresetsRequest\x1a*.partner.v1.PartnerShippingPresetListReply\"6\x82\xd3\xe4\x93\x020\x12./api/v1/partners/{partner_id}/shipping-presets\x12\x97\x01\n" +
-	"\x14ListPartnerAuditLogs\x12'.partner.v1.ListPartnerAuditLogsRequest\x1a$.partner.v1.PartnerAuditLogListReply\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/partners/{partner_id}/audit-logs\x12\xb0\x01\n" +
-	"\x1bCreatePartnerShippingPreset\x12..partner.v1.CreatePartnerShippingPresetRequest\x1a&.partner.v1.PartnerShippingPresetReply\"9\x82\xd3\xe4\x93\x023:\x01*\"./api/v1/partners/{partner_id}/shipping-presets\x12\xb5\x01\n" +
-	"\x1bUpdatePartnerShippingPreset\x12..partner.v1.UpdatePartnerShippingPresetRequest\x1a&.partner.v1.PartnerShippingPresetReply\">\x82\xd3\xe4\x93\x028:\x01*\x1a3/api/v1/partners/{partner_id}/shipping-presets/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
+	"GetPartner\x12\x1d.partner.v1.GetPartnerRequest\x1a\x18.partner.v1.PartnerReply\"<\x82\xb5\x18\x1b\b\x03\x12\x15business.partner.read \x02\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/partners/{id}\x12\x86\x01\n" +
+	"\fListPartners\x12\x1f.partner.v1.ListPartnersRequest\x1a\x1c.partner.v1.PartnerListReply\"7\x82\xb5\x18\x1b\b\x03\x12\x15business.partner.read \x02\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/partners\x12\xdb\x01\n" +
+	"\x1cListPartnerAssignmentOptions\x12/.partner.v1.ListPartnerAssignmentOptionsRequest\x1a,.partner.v1.PartnerAssignmentOptionListReply\"\\\x82\xb5\x18-\b\x03\x12'business.partner.assignment_option.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/partners/assignment-options\x12\x89\x01\n" +
+	"\rCreatePartner\x12 .partner.v1.CreatePartnerRequest\x1a\x18.partner.v1.PartnerReply\"<\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.create \x02\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/partners\x12\x8e\x01\n" +
+	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a\x18.partner.v1.PartnerReply\"A\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.update \x02\x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\xb2\x01\n" +
+	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a\x18.partner.v1.PartnerReply\"W\x82\xb5\x18 \b\x03\x12\x1abusiness.partner.blacklist \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklist\x12\xb9\x01\n" +
+	"\x13ListPartnerAccounts\x12&.partner.v1.ListPartnerAccountsRequest\x1a#.partner.v1.PartnerAccountListReply\"U\x82\xb5\x18#\b\x03\x12\x1dbusiness.partner.account.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/partners/{partner_id}/accounts\x12\xbc\x01\n" +
+	"\x14CreatePartnerAccount\x12'.partner.v1.CreatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"Z\x82\xb5\x18%\b\x03\x12\x1fbusiness.partner.account.create \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/partners/{partner_id}/accounts\x12\xc1\x01\n" +
+	"\x14UpdatePartnerAccount\x12'.partner.v1.UpdatePartnerAccountRequest\x1a\x1f.partner.v1.PartnerAccountReply\"_\x82\xb5\x18%\b\x03\x12\x1fbusiness.partner.account.update \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/partners/{partner_id}/accounts/{id}\x12\xbe\x01\n" +
+	"\x14ListPartnerContracts\x12'.partner.v1.ListPartnerContractsRequest\x1a$.partner.v1.PartnerContractListReply\"W\x82\xb5\x18$\b\x03\x12\x1ebusiness.partner.contract.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/partners/{partner_id}/contracts\x12\xc1\x01\n" +
+	"\x15CreatePartnerContract\x12(.partner.v1.CreatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"\\\x82\xb5\x18&\b\x03\x12 business.partner.contract.create \x02\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/partners/{partner_id}/contracts\x12\xc6\x01\n" +
+	"\x15UpdatePartnerContract\x12(.partner.v1.UpdatePartnerContractRequest\x1a .partner.v1.PartnerContractReply\"a\x82\xb5\x18&\b\x03\x12 business.partner.contract.update \x02\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/partners/{partner_id}/contracts/{id}\x12\xf0\x01\n" +
+	"\x1aListPartnerSettlementRules\x12-.partner.v1.ListPartnerSettlementRulesRequest\x1a*.partner.v1.PartnerSettlementRuleListReply\"w\x82\xb5\x18+\b\x03\x12%business.partner.settlement_rule.read \x02\x82\xd3\xe4\x93\x02B\x12@/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules\x12\xf3\x01\n" +
+	"\x1bCreatePartnerSettlementRule\x12..partner.v1.CreatePartnerSettlementRuleRequest\x1a&.partner.v1.PartnerSettlementRuleReply\"|\x82\xb5\x18-\b\x03\x12'business.partner.settlement_rule.create \x02\x82\xd3\xe4\x93\x02E:\x01*\"@/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules\x12\xf9\x01\n" +
+	"\x1bUpdatePartnerSettlementRule\x12..partner.v1.UpdatePartnerSettlementRuleRequest\x1a&.partner.v1.PartnerSettlementRuleReply\"\x81\x01\x82\xb5\x18-\b\x03\x12'business.partner.settlement_rule.update \x02\x82\xd3\xe4\x93\x02J:\x01*\x1aE/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}\x12\xc8\x01\n" +
+	"\x16ListPartnerAttachments\x12).partner.v1.ListPartnerAttachmentsRequest\x1a&.partner.v1.PartnerAttachmentListReply\"[\x82\xb5\x18&\b\x03\x12 business.partner.attachment.read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/partners/{partner_id}/attachments\x12\xd1\x01\n" +
+	"\x19RegisterPartnerAttachment\x12,.partner.v1.RegisterPartnerAttachmentRequest\x1a\".partner.v1.PartnerAttachmentReply\"b\x82\xb5\x18*\b\x03\x12$business.partner.attachment.register \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/partners/{partner_id}/attachments\x12\x98\x01\n" +
+	"\x0eImportPartners\x12!.partner.v1.ImportPartnersRequest\x1a\x1e.partner.v1.PartnerImportReply\"C\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.import \x02\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/partners/import\x12\x95\x01\n" +
+	"\x0eExportPartners\x12!.partner.v1.ExportPartnersRequest\x1a\x1e.partner.v1.PartnerExportReply\"@\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.export \x02\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/partners/export\x12\xde\x01\n" +
+	"\x1aListPartnerShippingPresets\x12-.partner.v1.ListPartnerShippingPresetsRequest\x1a*.partner.v1.PartnerShippingPresetListReply\"e\x82\xb5\x18+\b\x03\x12%business.partner.shipping_preset.read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/partners/{partner_id}/shipping-presets\x12\xbc\x01\n" +
+	"\x14ListPartnerAuditLogs\x12'.partner.v1.ListPartnerAuditLogsRequest\x1a$.partner.v1.PartnerAuditLogListReply\"U\x82\xb5\x18!\b\x03\x12\x1bbusiness.partner.audit.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/partners/{partner_id}/audit-logs\x12\xe1\x01\n" +
+	"\x1bCreatePartnerShippingPreset\x12..partner.v1.CreatePartnerShippingPresetRequest\x1a&.partner.v1.PartnerShippingPresetReply\"j\x82\xb5\x18-\b\x03\x12'business.partner.shipping_preset.create \x02\x82\xd3\xe4\x93\x023:\x01*\"./api/v1/partners/{partner_id}/shipping-presets\x12\xe6\x01\n" +
+	"\x1bUpdatePartnerShippingPreset\x12..partner.v1.UpdatePartnerShippingPresetRequest\x1a&.partner.v1.PartnerShippingPresetReply\"o\x82\xb5\x18-\b\x03\x12'business.partner.shipping_preset.update \x02\x82\xd3\xe4\x93\x028:\x01*\x1a3/api/v1/partners/{partner_id}/shipping-presets/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/partner/v1;v1b\x06proto3"
 
 var (
 	file_partner_v1_partner_proto_rawDescOnce sync.Once

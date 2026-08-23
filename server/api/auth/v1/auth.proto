@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package auth.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
@@ -11,6 +12,7 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/auth/v1;v1";
 // AuthService owns the browser session boundary for the management console.
 service AuthService {
   rpc Login(LoginRequest) returns (LoginReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {
       post: "/api/v1/auth/login"
       body: "*"
@@ -18,10 +20,12 @@ service AuthService {
   }
 
   rpc GetWeComLoginConfig(google.protobuf.Empty) returns (WeComLoginConfigReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {get: "/api/v1/auth/wecom/login-config"};
   }
 
   rpc WeComLogin(WeComLoginRequest) returns (LoginReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {
       post: "/api/v1/auth/wecom/login"
       body: "*"
@@ -29,6 +33,7 @@ service AuthService {
   }
 
   rpc Logout(google.protobuf.Empty) returns (OperationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
       post: "/api/v1/auth/logout"
       body: "*"
@@ -36,10 +41,12 @@ service AuthService {
   }
 
   rpc Me(google.protobuf.Empty) returns (MeReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/auth/me"};
   }
 
   rpc SwitchOrganization(SwitchOrganizationRequest) returns (MeReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
       post: "/api/v1/auth/switch-organization"
       body: "*"

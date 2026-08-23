@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package task.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -12,16 +13,19 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/task/v1;v1";
 service BackgroundTaskService {
   // ListBackgroundTasks 查询当前组织的后台任务。
   rpc ListBackgroundTasks(ListBackgroundTasksRequest) returns (BackgroundTaskListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/background-tasks"};
   }
 
   // GetBackgroundTask 查询单个后台任务。
   rpc GetBackgroundTask(GetBackgroundTaskRequest) returns (BackgroundTaskReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/background-tasks/{id}"};
   }
 
   // RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
   rpc RequeueBackgroundTask(RequeueBackgroundTaskRequest) returns (BackgroundTaskReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.requeue" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/background-tasks/{id}/requeue"
       body: "*"

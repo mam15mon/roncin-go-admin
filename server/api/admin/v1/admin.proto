@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package admin.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -9,10 +10,12 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/admin/v1;v1";
 
 service AdminService {
   rpc ListOrganizations(ListOrganizationsRequest) returns (AdminOrganizationListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.read" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {get: "/api/v1/admin/organizations"};
   }
 
   rpc CreateOrganization(CreateOrganizationRequest) returns (AdminOrganizationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.create" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       post: "/api/v1/admin/organizations"
       body: "*"
@@ -20,6 +23,7 @@ service AdminService {
   }
 
   rpc UpdateOrganization(UpdateOrganizationRequest) returns (AdminOrganizationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.update" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       put: "/api/v1/admin/organizations/{id}"
       body: "*"
@@ -27,10 +31,12 @@ service AdminService {
   }
 
   rpc ListUsers(ListUsersRequest) returns (AdminUserListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/users"};
   }
 
   rpc CreateUser(CreateUserRequest) returns (AdminUserReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/users"
       body: "*"
@@ -38,6 +44,7 @@ service AdminService {
   }
 
   rpc UpdateUser(UpdateUserRequest) returns (AdminUserReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}"
       body: "*"
@@ -45,6 +52,7 @@ service AdminService {
   }
 
   rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AdminUserReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_wecom" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       post: "/api/v1/admin/users/{id}/wecom-authorization"
       body: "*"
@@ -52,6 +60,7 @@ service AdminService {
   }
 
   rpc ResetUserPassword(ResetUserPasswordRequest) returns (AdminOperationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.reset_password" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}/password"
       body: "*"
@@ -59,14 +68,17 @@ service AdminService {
   }
 
   rpc ListRoles(ListRolesRequest) returns (AdminRoleListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/roles"};
   }
 
   rpc ListOrganizationRoles(ListOrganizationRolesRequest) returns (AdminRoleListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {get: "/api/v1/admin/organizations/{organization_id}/roles"};
   }
 
   rpc CreateRole(CreateRoleRequest) returns (AdminRoleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/roles"
       body: "*"
@@ -74,6 +86,7 @@ service AdminService {
   }
 
   rpc UpdateRole(UpdateRoleRequest) returns (AdminRoleReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/roles/{id}"
       body: "*"
@@ -81,10 +94,12 @@ service AdminService {
   }
 
   rpc ListPermissions(ListPermissionsRequest) returns (AdminPermissionListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.permission.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/permissions"};
   }
 
   rpc ListAuditLogs(ListAuditLogsRequest) returns (AdminAuditLogListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.audit.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/audit-logs"};
   }
 }

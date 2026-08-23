@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package order.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -10,18 +11,22 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // OrderService 订单核心服务。
 service OrderService {
   rpc GetOrder(GetOrderRequest) returns (OrderReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{id}"};
   }
 
   rpc ListOrders(ListOrdersRequest) returns (OrderListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders"};
   }
 
   rpc CheckOrderReference(CheckOrderReferenceRequest) returns (OrderReferenceCheckReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/order-reference-check"};
   }
 
   rpc CreateOrder(CreateOrderRequest) returns (OrderReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders"
       body: "*"
@@ -29,6 +34,7 @@ service OrderService {
   }
 
   rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{id}"
       body: "*"
@@ -36,6 +42,7 @@ service OrderService {
   }
 
   rpc TransitionOrderStatus(TransitionOrderStatusRequest) returns (OrderReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transition" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{id}/status"
       body: "*"

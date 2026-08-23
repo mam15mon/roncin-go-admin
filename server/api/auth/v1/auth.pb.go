@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -735,7 +736,7 @@ var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\"P\n" +
+	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\"P\n" +
 	"\fLoginRequest\x12\x1f\n" +
 	"\busername\x18\x01 \x01(\tB\x03\xe0A\x02R\busername\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"G\n" +
@@ -790,15 +791,15 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\tRoleScope\x12\x1b\n" +
 	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1d\n" +
 	"\n" +
-	"data_scope\x18\x02 \x01(\tR\tdataScope2\xda\x04\n" +
-	"\vAuthService\x12R\n" +
-	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x13.auth.v1.LoginReply\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12v\n" +
-	"\x13GetWeComLoginConfig\x12\x16.google.protobuf.Empty\x1a\x1e.auth.v1.WeComLoginConfigReply\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/auth/wecom/login-config\x12b\n" +
+	"data_scope\x18\x02 \x01(\tR\tdataScope2\xfe\x04\n" +
+	"\vAuthService\x12X\n" +
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x13.auth.v1.LoginReply\"#\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12|\n" +
+	"\x13GetWeComLoginConfig\x12\x16.google.protobuf.Empty\x1a\x1e.auth.v1.WeComLoginConfigReply\"-\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/auth/wecom/login-config\x12h\n" +
 	"\n" +
-	"WeComLogin\x12\x1a.auth.v1.WeComLoginRequest\x1a\x13.auth.v1.LoginReply\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/auth/wecom/login\x12Y\n" +
-	"\x06Logout\x12\x16.google.protobuf.Empty\x1a\x17.auth.v1.OperationReply\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/logout\x12G\n" +
-	"\x02Me\x12\x16.google.protobuf.Empty\x1a\x10.auth.v1.MeReply\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/auth/me\x12w\n" +
-	"\x12SwitchOrganization\x12\".auth.v1.SwitchOrganizationRequest\x1a\x10.auth.v1.MeReply\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/switch-organizationB9Z7github.com/roncin/roncin-go-admin/server/api/auth/v1;v1b\x06proto3"
+	"WeComLogin\x12\x1a.auth.v1.WeComLoginRequest\x1a\x13.auth.v1.LoginReply\")\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/auth/wecom/login\x12_\n" +
+	"\x06Logout\x12\x16.google.protobuf.Empty\x1a\x17.auth.v1.OperationReply\"$\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/logout\x12M\n" +
+	"\x02Me\x12\x16.google.protobuf.Empty\x1a\x10.auth.v1.MeReply\"\x1d\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/auth/me\x12}\n" +
+	"\x12SwitchOrganization\x12\".auth.v1.SwitchOrganizationRequest\x1a\x10.auth.v1.MeReply\"1\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/switch-organizationB9Z7github.com/roncin/roncin-go-admin/server/api/auth/v1;v1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once

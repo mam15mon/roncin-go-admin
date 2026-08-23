@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -611,7 +612,7 @@ var File_task_v1_background_task_proto protoreflect.FileDescriptor
 
 const file_task_v1_background_task_proto_rawDesc = "" +
 	"\n" +
-	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x81\x03\n" +
+	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x81\x03\n" +
 	"\x0eBackgroundTask\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x1b.task.v1.BackgroundTaskKindR\x04kind\x12'\n" +
@@ -667,11 +668,11 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x1eBACKGROUND_TASK_STATUS_RUNNING\x10\x02\x12$\n" +
 	" BACKGROUND_TASK_STATUS_SUCCEEDED\x10\x03\x12!\n" +
 	"\x1dBACKGROUND_TASK_STATUS_FAILED\x10\x04\x12&\n" +
-	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x052\xa5\x03\n" +
-	"\x15BackgroundTaskService\x12~\n" +
-	"\x13ListBackgroundTasks\x12#.task.v1.ListBackgroundTasksRequest\x1a .task.v1.BackgroundTaskListReply\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/background-tasks\x12{\n" +
-	"\x11GetBackgroundTask\x12!.task.v1.GetBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/background-tasks/{id}\x12\x8e\x01\n" +
-	"\x15RequeueBackgroundTask\x12%.task.v1.RequeueBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/background-tasks/{id}/requeueB9Z7github.com/roncin/roncin-go-admin/server/api/task/v1;v1b\x06proto3"
+	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x052\xf8\x03\n" +
+	"\x15BackgroundTaskService\x12\x98\x01\n" +
+	"\x13ListBackgroundTasks\x12#.task.v1.ListBackgroundTasksRequest\x1a .task.v1.BackgroundTaskListReply\":\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/background-tasks\x12\x95\x01\n" +
+	"\x11GetBackgroundTask\x12!.task.v1.GetBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"?\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/background-tasks/{id}\x12\xab\x01\n" +
+	"\x15RequeueBackgroundTask\x12%.task.v1.RequeueBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"M\x82\xb5\x18\x19\b\x03\x12\x13system.task.requeue \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/background-tasks/{id}/requeueB9Z7github.com/roncin/roncin-go-admin/server/api/task/v1;v1b\x06proto3"
 
 var (
 	file_task_v1_background_task_proto_rawDescOnce sync.Once

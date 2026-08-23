@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package order.v1;
 
+import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 
@@ -13,11 +14,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 service OrderReleasePodService {
   // ListReleasePods 获取指定订单的放货凭证列表。
   rpc ListReleasePods(ListReleasePodsRequest) returns (OrderReleasePodListReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/release-pods"};
   }
 
   // AddReleasePod 添加放货凭证，初始状态为待签收。
   rpc AddReleasePod(AddReleasePodRequest) returns (OrderReleasePodReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/release-pods"
       body: "*"
@@ -26,6 +29,7 @@ service OrderReleasePodService {
 
   // UpdateReleasePod 更新凭证字段，已回单后不可修改。
   rpc UpdateReleasePod(UpdateReleasePodRequest) returns (OrderReleasePodReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/release-pods/{id}"
       body: "*"
@@ -35,6 +39,7 @@ service OrderReleasePodService {
   // TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
   // 流转到已签收时由服务端记录签收人与签收时间。
   rpc TransitionReleasePodStatus(TransitionReleasePodStatusRequest) returns (OrderReleasePodReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.transition" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/release-pods/{id}/transition"
       body: "*"
@@ -43,6 +48,7 @@ service OrderReleasePodService {
 
   // RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
   rpc RemoveReleasePod(RemoveReleasePodRequest) returns (OrderReleasePodOperationReply) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/release-pods/{id}"};
   }
 }
