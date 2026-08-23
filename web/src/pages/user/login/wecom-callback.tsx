@@ -6,6 +6,21 @@ import { authServiceWeComLogin } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import styles from './index.module.less';
 
+interface LoginError extends Error {
+  response?: { data?: { message?: string } };
+  data?: { message?: string };
+}
+
+function loginErrorMessage(error: unknown): string {
+  const requestError = error as LoginError;
+  return (
+    requestError.data?.message ??
+    requestError.response?.data?.message ??
+    requestError.message ??
+    '企业微信登录失败'
+  );
+}
+
 function storedRedirect(): string {
   const value = sessionStorage.getItem('wecom_login_redirect');
   sessionStorage.removeItem('wecom_login_redirect');
@@ -47,7 +62,7 @@ export default function WeComCallback() {
         }
       })
       .catch((error) => {
-        setErrorMessage(error instanceof Error ? error.message : '企业微信登录失败');
+        setErrorMessage(loginErrorMessage(error));
       });
   }, [message, setInitialState]);
 
@@ -94,7 +109,7 @@ export default function WeComCallback() {
           }
         />
       ) : (
-        <Spin size="large" description="正在完成登录..." />
+        <Spin size="large" />
       )}
     </div>
   );

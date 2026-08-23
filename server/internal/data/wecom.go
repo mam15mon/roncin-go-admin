@@ -12,6 +12,8 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
+
+	"github.com/go-kratos/kratos/v3/log"
 )
 
 const wecomAPIBaseURL = "https://qyapi.weixin.qq.com/cgi-bin"
@@ -77,8 +79,11 @@ func (p *wecomIdentityProvider) ResolveIdentity(ctx context.Context, code string
 			CorpID string `json:"corpid"`
 		} `json:"corp_info"`
 	}
-	if err := p.getJSON(ctx, wecomAPIBaseURL+"/auth/getuserinfo?"+identityValues.Encode(), &identityResponse); err != nil || identityResponse.ErrCode != 0 {
+	if err := p.getJSON(ctx, wecomAPIBaseURL+"/auth/getuserinfo?"+identityValues.Encode(), &identityResponse); err != nil {
 		return nil, biz.ErrWeComLoginFailed
+	}
+	if identityResponse.ErrCode != 0 {
+		return nil, mapWeComAPIError("auth.getuserinfo", identityResponse.ErrCode)
 	}
 	if identityResponse.UserType != 1 || identityResponse.UserInfo.UserID == "" || identityResponse.CorpInfo.CorpID != p.corpID {
 		return nil, biz.ErrWeComLoginFailed
@@ -91,8 +96,11 @@ func (p *wecomIdentityProvider) ResolveIdentity(ctx context.Context, code string
 		Name    string `json:"name"`
 		Email   string `json:"email"`
 	}
-	if err := p.getJSON(ctx, wecomAPIBaseURL+"/user/get?"+profileValues.Encode(), &profileResponse); err != nil || profileResponse.ErrCode != 0 {
+	if err := p.getJSON(ctx, wecomAPIBaseURL+"/user/get?"+profileValues.Encode(), &profileResponse); err != nil {
 		return nil, biz.ErrWeComLoginFailed
+	}
+	if profileResponse.ErrCode != 0 {
+		return nil, mapWeComAPIError("user.get", profileResponse.ErrCode)
 	}
 	if profileResponse.UserID != identityResponse.UserInfo.UserID || strings.TrimSpace(profileResponse.Name) == "" {
 		return nil, biz.ErrWeComLoginFailed
@@ -111,10 +119,30 @@ func (p *wecomIdentityProvider) accessToken(ctx context.Context) (string, error)
 		ErrCode     int    `json:"errcode"`
 		AccessToken string `json:"access_token"`
 	}
-	if err := p.getJSON(ctx, wecomAPIBaseURL+"/gettoken?"+values.Encode(), &response); err != nil || response.ErrCode != 0 || response.AccessToken == "" {
+	if err := p.getJSON(ctx, wecomAPIBaseURL+"/gettoken?"+values.Encode(), &response); err != nil {
+		return "", biz.ErrWeComLoginFailed
+	}
+	if response.ErrCode != 0 {
+		return "", mapWeComAPIError("gettoken", response.ErrCode)
+	}
+	if response.AccessToken == "" {
 		return "", biz.ErrWeComLoginFailed
 	}
 	return response.AccessToken, nil
+}
+
+func mapWeComAPIError(stage string, code int) error {
+	log.Error("企业微信接口返回错误", "stage", stage, "errcode", code)
+	switch code {
+	case 40029:
+		return biz.ErrWeComCodeInvalid
+	case 60020:
+		return biz.ErrWeComTrustedIPRequired
+	case 48002:
+		return biz.ErrWeComPermissionDenied
+	default:
+		return biz.ErrWeComLoginFailed
+	}
 }
 
 func (p *wecomIdentityProvider) getJSON(ctx context.Context, endpoint string, target any) error {
