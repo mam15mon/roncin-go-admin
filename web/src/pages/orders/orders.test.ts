@@ -5,6 +5,8 @@ import {
   businessTypeOptions,
   isMasterDataKind,
   parseOrderKind,
+  seaServiceTypeNames,
+  shipmentModeOptions,
   tradeDirectionOptions,
 } from './common';
 
@@ -35,6 +37,28 @@ describe('orders common and config', () => {
 
     expect(businessTypeOptions).toHaveLength(6);
     expect(tradeDirectionOptions).toHaveLength(2);
+    expect(shipmentModeOptions).toEqual([
+      { label: '集运', value: 1 },
+      { label: '跨境', value: 2 },
+    ]);
+    expect(seaServiceTypeNames).toEqual([
+      '订舱',
+      '拖车',
+      '内装',
+      '报关',
+      '清关',
+      '海外段',
+      '保险',
+      '租箱',
+      '熏蒸',
+      '买单',
+      '办证',
+      '制单',
+      '危险品',
+      '超重',
+      '仓储',
+      '买箱',
+    ]);
   });
 
   it('按 REST 枚举名称识别订单主数据类型', () => {

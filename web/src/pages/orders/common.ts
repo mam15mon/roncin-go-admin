@@ -70,9 +70,28 @@ export const containerOwnershipOptions = [
 ];
 
 export const shipmentModeOptions = [
-  { label: '拼货 (Consolidation)', value: 1 },
-  { label: '跨境 (Cross Border)', value: 2 },
+  { label: '集运', value: 1 },
+  { label: '跨境', value: 2 },
 ];
+
+export const seaServiceTypeNames = [
+  '订舱',
+  '拖车',
+  '内装',
+  '报关',
+  '清关',
+  '海外段',
+  '保险',
+  '租箱',
+  '熏蒸',
+  '买单',
+  '办证',
+  '制单',
+  '危险品',
+  '超重',
+  '仓储',
+  '买箱',
+] as const;
 
 export const orderPersonnelRoleOptions = [
   { label: '创建人 (CREATOR)', value: 1 },

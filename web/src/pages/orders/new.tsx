@@ -11,6 +11,7 @@ import {
   fetchOrderMasterData,
   loadStatusTemplatesByBusinessType,
   parseOrderKind,
+  seaServiceTypeNames,
   searchPartnersByRole,
 } from './common';
 import {
@@ -76,7 +77,20 @@ export default function NewOrderPage() {
       loadStatusTemplatesByBusinessType(config.businessType),
     ])
       .then(([masterData, templates]) => {
-        setServiceTypeOptions(masterData.serviceTypeOptions);
+        const nextServiceTypeOptions =
+          config.category === 'sea'
+            ? seaServiceTypeNames.map((name) => {
+                const option = masterData.serviceTypeOptions.find(
+                  (item) => item.label === name,
+                );
+                if (!option) {
+                  throw new Error(`缺少海运服务类型主数据：${name}`);
+                }
+                return option;
+              })
+            : masterData.serviceTypeOptions;
+
+        setServiceTypeOptions(nextServiceTypeOptions);
         setCargoCategoryOptions(masterData.cargoCategoryOptions);
         setLocationOptions(
           config.category === 'sea'
@@ -215,6 +229,16 @@ export default function NewOrderPage() {
       sections={sections}
       initialValues={{
         orderDate: dayjs(),
+        ...(config.category === 'sea'
+          ? {
+              shipmentMode: 1,
+              shipmentType: 1,
+              serviceTypeIds:
+                typeof serviceTypeOptions[0]?.value === 'string'
+                ? [serviceTypeOptions[0].value]
+                : undefined,
+            }
+          : {}),
       }}
       onFinish={handleFinish}
       submitText="创建订单"

@@ -8,6 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { Col } from 'antd';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -47,6 +48,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             label="订单日期"
             fieldProps={{ style: { width: '100%' } }}
           />
+          <Col span={24} style={{ height: 0 }} />
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
             name="customerId"
@@ -59,13 +61,13 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             request={async ({ keyWords }) => searchCustomers(keyWords)}
           />
           <ProFormRadio.Group
-            colProps={{ xs: 24, lg: 12, xl: 8 }}
+            colProps={{ xs: 24, lg: 8, xl: 8 }}
             name="shipmentMode"
             label="集运 / 跨境"
             options={shipmentModeOptions}
           />
           <ProFormRadio.Group
-            colProps={{ xs: 24, lg: 12, xl: 8 }}
+            colProps={{ xs: 24, lg: 8, xl: 10 }}
             name="shipmentType"
             label="托运类型"
             options={shipmentTypeOptions}
