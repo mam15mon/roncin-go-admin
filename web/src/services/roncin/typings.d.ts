@@ -159,6 +159,10 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AdminServiceAuthorizeWeComUserParams = {
+    id: string;
+  };
+
   type AdminServiceListAuditLogsParams = {
     page?: number;
     pageSize?: number;
@@ -168,6 +172,10 @@ declare namespace API {
     endTime?: string;
     resourceType?: string;
     resourceId?: string;
+  };
+
+  type AdminServiceListOrganizationRolesParams = {
+    organizationId: string;
   };
 
   type AdminServiceListUsersParams = {
@@ -303,6 +311,14 @@ declare namespace API {
     orderId: string;
     userId: string;
     role: number;
+  };
+
+  type AuthorizeWeComUserRequest = {
+    id: string;
+    organizationId: string;
+    displayName: string;
+    email?: string;
+    roleIds: string[];
   };
 
   type BackgroundTask = {

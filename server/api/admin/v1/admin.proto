@@ -44,6 +44,13 @@ service AdminService {
     };
   }
 
+  rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AdminUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/users/{id}/wecom-authorization"
+      body: "*"
+    };
+  }
+
   rpc ResetUserPassword(ResetUserPasswordRequest) returns (AdminOperationReply) {
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}/password"
@@ -53,6 +60,10 @@ service AdminService {
 
   rpc ListRoles(ListRolesRequest) returns (AdminRoleListReply) {
     option (google.api.http) = {get: "/api/v1/admin/roles"};
+  }
+
+  rpc ListOrganizationRoles(ListOrganizationRolesRequest) returns (AdminRoleListReply) {
+    option (google.api.http) = {get: "/api/v1/admin/organizations/{organization_id}/roles"};
   }
 
   rpc CreateRole(CreateRoleRequest) returns (AdminRoleReply) {
@@ -163,9 +174,21 @@ message UpdateUserRequest {
   repeated string role_ids = 5;
 }
 
+message AuthorizeWeComUserRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string display_name = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string email = 4;
+  repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
 message ResetUserPasswordRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListOrganizationRolesRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message AdminUser {

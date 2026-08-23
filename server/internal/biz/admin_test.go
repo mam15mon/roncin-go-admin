@@ -56,6 +56,12 @@ func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, 
 	return input, nil
 }
 
+func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+	input.Enabled = true
+	s.organizationID = targetOrganizationID
+	return input, nil
+}
+
 func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string) error {
 	s.resetPassword = passwordHash
 	return nil
@@ -110,6 +116,17 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	}
 	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: 101}); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid page size error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseAuthorizeWeComUserRequiresTargetAndRole(t *testing.T) {
+	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
+	if _, err := usecase.AuthorizeWeComUser(context.Background(), uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
+		t.Fatalf("missing target organization error = %v", err)
+	}
+	if _, err := usecase.AuthorizeWeComUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
+		t.Fatalf("missing roles error = %v", err)
 	}
 }
 

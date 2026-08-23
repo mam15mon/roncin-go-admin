@@ -173,6 +173,36 @@
         }
       }
     },
+    "/api/v1/admin/organizations/{organizationId}/roles": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_ListOrganizationRoles",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.AdminRoleListReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/permissions": {
       "get": {
         "tags": [
@@ -427,6 +457,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/admin.v1.AdminOperationReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/wecom-authorization": {
+      "post": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_AuthorizeWeComUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.AuthorizeWeComUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.AdminUserReply"
                 }
               }
             }
@@ -4546,6 +4616,35 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "admin.v1.AuthorizeWeComUserRequest": {
+        "required": [
+          "id",
+          "organizationId",
+          "displayName",
+          "roleIds"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

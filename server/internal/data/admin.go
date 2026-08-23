@@ -211,6 +211,64 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 	return r.findUser(ctx, organizationID, id)
 }
 
+func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).WithUser().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
+	account, err := membershipRecord.Edges.UserOrErr()
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if account.WecomUserid == nil || account.Enabled {
+		_ = tx.Rollback()
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
+		_ = tx.Rollback()
+		return nil, queryErr
+	} else if !exists {
+		_ = tx.Rollback()
+		return nil, biz.ErrAdminOrganizationNotFound
+	}
+	roles, err := rolesForOrganization(ctx, tx.Role.Query(), targetOrganizationID, roleIDs)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	userUpdate := tx.User.UpdateOneID(input.ID).SetDisplayName(input.DisplayName).SetEnabled(true)
+	if input.Email == nil {
+		userUpdate.ClearEmail()
+	} else {
+		userUpdate.SetEmail(*input.Email)
+	}
+	if _, err := userUpdate.Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.Membership.UpdateOneID(membershipRecord.ID).SetOrganizationID(targetOrganizationID).SetPrimary(true).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.findUser(ctx, targetOrganizationID, input.ID)
+}
+
 func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {

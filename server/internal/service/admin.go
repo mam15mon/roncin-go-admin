@@ -127,6 +127,30 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	return &v1.AdminUserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.AuthorizeWeComUserRequest) (*v1.AdminUserReply, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	targetOrganizationID, err := uuid.Parse(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	roles, err := parseUUIDs(request.GetRoleIds())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	authorized, err := s.usecase.AuthorizeWeComUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AdminUserReply{Success: true, Code: 0, Message: "OK", Data: userToAPI(authorized), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetUserPasswordRequest) (*v1.AdminOperationReply, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -148,6 +172,22 @@ func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*
 		return nil, err
 	}
 	items, err := s.usecase.ListRoles(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.AdminRole, 0, len(items))
+	for _, item := range items {
+		data = append(data, roleToAPI(item))
+	}
+	return &v1.AdminRoleListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *AdminService) ListOrganizationRoles(ctx context.Context, request *v1.ListOrganizationRolesRequest) (*v1.AdminRoleListReply, error) {
+	organizationID, err := uuid.Parse(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	items, err := s.usecase.ListRoles(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}

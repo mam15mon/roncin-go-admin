@@ -16,9 +16,13 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Alert, App, Avatar, Button, Space, Tag, Typography } from 'antd';
+import { useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
+  adminServiceListOrganizationRoles,
+  adminServiceListOrganizations,
   adminServiceListRoles,
   adminServiceListUsers,
   adminServiceResetUserPassword,
@@ -34,19 +38,24 @@ type UserFormValues = {
   email?: string;
   enabled?: boolean;
   roleIds?: string[];
+  organizationId?: string;
 };
 
 export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminUser>();
   const [resetting, setResetting] = useState<API.AdminUser>();
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
+  const [approvalRoles, setApprovalRoles] = useState<API.AdminRole[]>([]);
+  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
 
   useEffect(() => {
     adminServiceListRoles().then((response) => setRoles(response.data ?? []));
+    adminServiceListOrganizations().then((response) => setOrganizations(response.data ?? []));
   }, []);
 
   const openCreate = () => {
@@ -57,6 +66,9 @@ export default function UsersPanel() {
 
   const openEdit = (user: API.AdminUser) => {
     setEditing(user);
+    if (user.wecomUserid && !user.enabled) {
+      setApprovalRoles(roles);
+    }
     setModalOpen(true);
   };
 
@@ -295,7 +307,17 @@ export default function UsersPanel() {
         title={editing ? `编辑用户：${editing.displayName || editing.username}` : '新增用户'}
         open={modalOpen}
         formRef={formRef}
-        initialValues={editing}
+        initialValues={
+          editing
+            ? {
+                ...editing,
+                organizationId:
+                  editing.wecomUserid && !editing.enabled
+                    ? initialState?.currentUser?.currentOrganization?.id
+                    : undefined,
+              }
+            : undefined
+        }
         modalProps={{
           destroyOnClose: true,
           width: 560,
@@ -303,7 +325,20 @@ export default function UsersPanel() {
         }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          if (editing?.id) {
+          const pendingWeComUser = Boolean(editing?.wecomUserid && !editing.enabled);
+          if (editing?.id && pendingWeComUser) {
+            await adminServiceAuthorizeWeComUser(
+              { id: editing.id },
+              {
+                id: editing.id,
+                organizationId: values.organizationId ?? '',
+                displayName: values.displayName?.trim() ?? '',
+                email: values.email?.trim() || undefined,
+                roleIds: values.roleIds ?? [],
+              },
+            );
+            message.success('企业微信成员已完成组织授权并启用');
+          } else if (editing?.id) {
             await adminServiceUpdateUser(
               { id: editing.id },
               {
@@ -337,6 +372,25 @@ export default function UsersPanel() {
             message={`企业微信成员 ${editing.wecomName || editing.displayName} 已完成身份登记`}
             description="请分配至少一个角色并启用账号。启用后，该成员再次扫码即可登录。"
             style={{ marginBottom: 16 }}
+          />
+        )}
+        {editing?.wecomUserid && !editing.enabled && (
+          <ProFormSelect
+            name="organizationId"
+            label="所属组织"
+            placeholder="请选择公司、部门或组"
+            options={organizations.map((organization) => ({
+              label: `${organization.name} (${organization.code})`,
+              value: organization.id,
+            }))}
+            rules={[{ required: true, message: '请选择所属组织' }]}
+            fieldProps={{
+              onChange: async (organizationId: string) => {
+                formRef.current?.setFieldValue('roleIds', []);
+                const response = await adminServiceListOrganizationRoles({ organizationId });
+                setApprovalRoles(response.data ?? []);
+              },
+            }}
           />
         )}
         <ProFormText
@@ -376,12 +430,17 @@ export default function UsersPanel() {
           label="分配角色"
           mode="multiple"
           placeholder="请选择角色"
-          options={roles.map((role) => ({
+          options={(editing?.wecomUserid && !editing.enabled ? approvalRoles : roles).map((role) => ({
             label: `${role.name} (${role.code})`,
             value: role.id,
           }))}
+          rules={
+            editing?.wecomUserid && !editing.enabled
+              ? [{ required: true, message: '请至少分配一个角色' }]
+              : undefined
+          }
         />
-        {editing && (
+        {editing && !(editing.wecomUserid && !editing.enabled) && (
           <ProFormSwitch
             name="enabled"
             label="账号状态"

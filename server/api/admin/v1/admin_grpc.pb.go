@@ -19,18 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_ListOrganizations_FullMethodName  = "/admin.v1.AdminService/ListOrganizations"
-	AdminService_CreateOrganization_FullMethodName = "/admin.v1.AdminService/CreateOrganization"
-	AdminService_UpdateOrganization_FullMethodName = "/admin.v1.AdminService/UpdateOrganization"
-	AdminService_ListUsers_FullMethodName          = "/admin.v1.AdminService/ListUsers"
-	AdminService_CreateUser_FullMethodName         = "/admin.v1.AdminService/CreateUser"
-	AdminService_UpdateUser_FullMethodName         = "/admin.v1.AdminService/UpdateUser"
-	AdminService_ResetUserPassword_FullMethodName  = "/admin.v1.AdminService/ResetUserPassword"
-	AdminService_ListRoles_FullMethodName          = "/admin.v1.AdminService/ListRoles"
-	AdminService_CreateRole_FullMethodName         = "/admin.v1.AdminService/CreateRole"
-	AdminService_UpdateRole_FullMethodName         = "/admin.v1.AdminService/UpdateRole"
-	AdminService_ListPermissions_FullMethodName    = "/admin.v1.AdminService/ListPermissions"
-	AdminService_ListAuditLogs_FullMethodName      = "/admin.v1.AdminService/ListAuditLogs"
+	AdminService_ListOrganizations_FullMethodName     = "/admin.v1.AdminService/ListOrganizations"
+	AdminService_CreateOrganization_FullMethodName    = "/admin.v1.AdminService/CreateOrganization"
+	AdminService_UpdateOrganization_FullMethodName    = "/admin.v1.AdminService/UpdateOrganization"
+	AdminService_ListUsers_FullMethodName             = "/admin.v1.AdminService/ListUsers"
+	AdminService_CreateUser_FullMethodName            = "/admin.v1.AdminService/CreateUser"
+	AdminService_UpdateUser_FullMethodName            = "/admin.v1.AdminService/UpdateUser"
+	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
+	AdminService_ResetUserPassword_FullMethodName     = "/admin.v1.AdminService/ResetUserPassword"
+	AdminService_ListRoles_FullMethodName             = "/admin.v1.AdminService/ListRoles"
+	AdminService_ListOrganizationRoles_FullMethodName = "/admin.v1.AdminService/ListOrganizationRoles"
+	AdminService_CreateRole_FullMethodName            = "/admin.v1.AdminService/CreateRole"
+	AdminService_UpdateRole_FullMethodName            = "/admin.v1.AdminService/UpdateRole"
+	AdminService_ListPermissions_FullMethodName       = "/admin.v1.AdminService/ListPermissions"
+	AdminService_ListAuditLogs_FullMethodName         = "/admin.v1.AdminService/ListAuditLogs"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -43,8 +45,10 @@ type AdminServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
+	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error)
+	ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*AdminPermissionListReply, error)
@@ -119,6 +123,16 @@ func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReque
 	return out, nil
 }
 
+func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminUserReply)
+	err := c.cc.Invoke(ctx, AdminService_AuthorizeWeComUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AdminOperationReply)
@@ -133,6 +147,16 @@ func (c *adminServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AdminRoleListReply)
 	err := c.cc.Invoke(ctx, AdminService_ListRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminRoleListReply)
+	err := c.cc.Invoke(ctx, AdminService_ListOrganizationRoles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +213,10 @@ type AdminServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error)
 	CreateUser(context.Context, *CreateUserRequest) (*AdminUserReply, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error)
+	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AdminUserReply, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error)
 	ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error)
+	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*AdminRoleListReply, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*AdminPermissionListReply, error)
@@ -223,11 +249,17 @@ func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRe
 func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
 }
+func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AdminUserReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
+}
 func (UnimplementedAdminServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
 func (UnimplementedAdminServiceServer) ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
+}
+func (UnimplementedAdminServiceServer) ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*AdminRoleListReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOrganizationRoles not implemented")
 }
 func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateRole not implemented")
@@ -370,6 +402,24 @@ func _AdminService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_AuthorizeWeComUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeWeComUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AuthorizeWeComUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AuthorizeWeComUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AuthorizeWeComUser(ctx, req.(*AuthorizeWeComUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ResetUserPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResetUserPasswordRequest)
 	if err := dec(in); err != nil {
@@ -402,6 +452,24 @@ func _AdminService_ListRoles_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).ListRoles(ctx, req.(*ListRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListOrganizationRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListOrganizationRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListOrganizationRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListOrganizationRoles(ctx, req.(*ListOrganizationRolesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -510,12 +578,20 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_UpdateUser_Handler,
 		},
 		{
+			MethodName: "AuthorizeWeComUser",
+			Handler:    _AdminService_AuthorizeWeComUser_Handler,
+		},
+		{
 			MethodName: "ResetUserPassword",
 			Handler:    _AdminService_ResetUserPassword_Handler,
 		},
 		{
 			MethodName: "ListRoles",
 			Handler:    _AdminService_ListRoles_Handler,
+		},
+		{
+			MethodName: "ListOrganizationRoles",
+			Handler:    _AdminService_ListOrganizationRoles_Handler,
 		},
 		{
 			MethodName: "CreateRole",

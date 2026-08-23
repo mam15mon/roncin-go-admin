@@ -119,6 +119,7 @@ type AdminRepo interface {
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
@@ -220,6 +221,21 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 		return nil, err
 	}
 	return updated, uc.writeAudit(ctx, actorID, &id, "admin.user.update", updated.Username)
+}
+
+func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || len(roleIDs) == 0 {
+		return nil, ErrAdminInvalidArgument
+	}
+	normalized, err := normalizeUser(input)
+	if err != nil {
+		return nil, err
+	}
+	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.wecom.authorize", authorized.Username)
 }
 
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string) error {
