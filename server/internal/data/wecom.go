@@ -18,6 +18,11 @@ import (
 
 const wecomAPIBaseURL = "https://qyapi.weixin.qq.com/cgi-bin"
 
+type wecomUserIdentityResponse struct {
+	ErrCode int    `json:"errcode"`
+	UserID  string `json:"userid"`
+}
+
 type wecomIdentityProvider struct {
 	enabled     bool
 	corpID      string
@@ -69,27 +74,18 @@ func (p *wecomIdentityProvider) ResolveIdentity(ctx context.Context, code string
 		return nil, err
 	}
 	identityValues := url.Values{"access_token": []string{accessToken}, "code": []string{code}}
-	var identityResponse struct {
-		ErrCode  int `json:"errcode"`
-		UserType int `json:"usertype"`
-		UserInfo struct {
-			UserID string `json:"userid"`
-		} `json:"user_info"`
-		CorpInfo struct {
-			CorpID string `json:"corpid"`
-		} `json:"corp_info"`
-	}
+	var identityResponse wecomUserIdentityResponse
 	if err := p.getJSON(ctx, wecomAPIBaseURL+"/auth/getuserinfo?"+identityValues.Encode(), &identityResponse); err != nil {
 		return nil, biz.ErrWeComLoginFailed
 	}
 	if identityResponse.ErrCode != 0 {
 		return nil, mapWeComAPIError("auth.getuserinfo", identityResponse.ErrCode)
 	}
-	if identityResponse.UserType != 1 || identityResponse.UserInfo.UserID == "" || identityResponse.CorpInfo.CorpID != p.corpID {
+	if identityResponse.UserID == "" {
 		return nil, biz.ErrWeComLoginFailed
 	}
 
-	profileValues := url.Values{"access_token": []string{accessToken}, "userid": []string{identityResponse.UserInfo.UserID}}
+	profileValues := url.Values{"access_token": []string{accessToken}, "userid": []string{identityResponse.UserID}}
 	var profileResponse struct {
 		ErrCode int    `json:"errcode"`
 		UserID  string `json:"userid"`
@@ -102,7 +98,7 @@ func (p *wecomIdentityProvider) ResolveIdentity(ctx context.Context, code string
 	if profileResponse.ErrCode != 0 {
 		return nil, mapWeComAPIError("user.get", profileResponse.ErrCode)
 	}
-	if profileResponse.UserID != identityResponse.UserInfo.UserID || strings.TrimSpace(profileResponse.Name) == "" {
+	if profileResponse.UserID != identityResponse.UserID || strings.TrimSpace(profileResponse.Name) == "" {
 		return nil, biz.ErrWeComLoginFailed
 	}
 	identity := &biz.WeComIdentity{UserID: profileResponse.UserID, Name: strings.TrimSpace(profileResponse.Name)}

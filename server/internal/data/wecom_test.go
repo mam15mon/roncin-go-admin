@@ -1,10 +1,21 @@
 package data
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
+
+func TestWeComUserIdentityResponse(t *testing.T) {
+	var response wecomUserIdentityResponse
+	if err := json.Unmarshal([]byte(`{"errcode":0,"errmsg":"ok","userid":"test-user"}`), &response); err != nil {
+		t.Fatalf("解析企业微信身份响应失败: %v", err)
+	}
+	if response.ErrCode != 0 || response.UserID != "test-user" {
+		t.Fatalf("企业微信身份响应解析错误: %+v", response)
+	}
+}
 
 func TestMapWeComAPIError(t *testing.T) {
 	tests := []struct {
