@@ -2571,6 +2571,9 @@ components:
                     type: string
                 enabled:
                     type: boolean
+                kind:
+                    type: integer
+                    format: enum
         admin.v1.AdminOrganizationListReply:
             type: object
             properties:
@@ -2751,6 +2754,7 @@ components:
                 - code
                 - name
                 - parentId
+                - kind
             type: object
             properties:
                 code:
@@ -2759,6 +2763,9 @@ components:
                     type: string
                 parentId:
                     type: string
+                kind:
+                    type: integer
+                    format: enum
         admin.v1.CreateRoleRequest:
             required:
                 - code

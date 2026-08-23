@@ -8,12 +8,54 @@ import {
 
 describe('organization-tree utils', () => {
   const mockOrgs: API.AdminOrganization[] = [
-    { id: '1', code: 'HQ', name: '总部集团', parentId: '', enabled: true },
-    { id: '2', code: 'SH', name: '上海分公司', parentId: '1', enabled: true },
-    { id: '3', code: 'SH_OPS', name: '上海操作部', parentId: '2', enabled: true },
-    { id: '4', code: 'SH_FIN', name: '上海财务部', parentId: '2', enabled: false },
-    { id: '5', code: 'SZ', name: '深圳分公司', parentId: '1', enabled: true },
-    { id: '6', code: 'ISOLATED', name: '孤立组织', parentId: '999', enabled: true },
+    {
+      id: '1',
+      code: 'HQ',
+      name: '总部集团',
+      kind: 1,
+      parentId: '',
+      enabled: true,
+    },
+    {
+      id: '2',
+      code: 'SH',
+      name: '上海分公司',
+      kind: 2,
+      parentId: '1',
+      enabled: true,
+    },
+    {
+      id: '3',
+      code: 'SH_OPS',
+      name: '上海操作部',
+      kind: 3,
+      parentId: '2',
+      enabled: true,
+    },
+    {
+      id: '4',
+      code: 'SH_FIN',
+      name: '上海财务部',
+      kind: 3,
+      parentId: '2',
+      enabled: false,
+    },
+    {
+      id: '5',
+      code: 'SZ',
+      name: '深圳分公司',
+      kind: 2,
+      parentId: '1',
+      enabled: true,
+    },
+    {
+      id: '6',
+      code: 'ISOLATED',
+      name: '孤立组织',
+      kind: 2,
+      parentId: '999',
+      enabled: true,
+    },
   ];
 
   it('buildOrgTree builds hierarchy and treats invalid parentId as root', () => {
@@ -27,6 +69,7 @@ describe('organization-tree utils', () => {
 
     expect(allKeys).toEqual(['1', '2', '3', '4', '5', '6']);
     expect(orgMap.get('1')?.name).toBe('总部集团');
+    expect(treeData[0].kind).toBe(1);
   });
 
   it('getDirectChildren returns direct sub-organizations only', () => {

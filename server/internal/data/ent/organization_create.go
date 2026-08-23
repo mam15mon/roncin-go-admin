@@ -76,6 +76,12 @@ func (_c *OrganizationCreate) SetName(v string) *OrganizationCreate {
 	return _c
 }
 
+// SetKind sets the "kind" field.
+func (_c *OrganizationCreate) SetKind(v organization.Kind) *OrganizationCreate {
+	_c.mutation.SetKind(v)
+	return _c
+}
+
 // SetParentID sets the "parent_id" field.
 func (_c *OrganizationCreate) SetParentID(v uuid.UUID) *OrganizationCreate {
 	_c.mutation.SetParentID(v)
@@ -440,6 +446,14 @@ func (_c *OrganizationCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Kind(); !ok {
+		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "Organization.kind"`)}
+	}
+	if v, ok := _c.mutation.Kind(); ok {
+		if err := organization.KindValidator(v); err != nil {
+			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "Organization.kind": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Organization.enabled"`)}
 	}
@@ -493,6 +507,10 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.Kind(); ok {
+		_spec.SetField(organization.FieldKind, field.TypeEnum, value)
+		_node.Kind = value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)

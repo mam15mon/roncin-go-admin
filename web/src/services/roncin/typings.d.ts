@@ -97,6 +97,7 @@ declare namespace API {
     name?: string;
     parentId?: string;
     enabled?: boolean;
+    kind?: number;
   };
 
   type AdminOrganizationListReply = {
@@ -455,6 +456,7 @@ declare namespace API {
     code: string;
     name: string;
     parentId: string;
+    kind: number;
   };
 
   type CreatePartnerAccountRequest = {

@@ -77,6 +77,61 @@ func (DataScope) EnumDescriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0}
 }
 
+type OrganizationKind int32
+
+const (
+	OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED  OrganizationKind = 0
+	OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS OrganizationKind = 1
+	OrganizationKind_ORGANIZATION_KIND_COMPANY      OrganizationKind = 2
+	OrganizationKind_ORGANIZATION_KIND_DEPARTMENT   OrganizationKind = 3
+	OrganizationKind_ORGANIZATION_KIND_TEAM         OrganizationKind = 4
+)
+
+// Enum value maps for OrganizationKind.
+var (
+	OrganizationKind_name = map[int32]string{
+		0: "ORGANIZATION_KIND_UNSPECIFIED",
+		1: "ORGANIZATION_KIND_HEADQUARTERS",
+		2: "ORGANIZATION_KIND_COMPANY",
+		3: "ORGANIZATION_KIND_DEPARTMENT",
+		4: "ORGANIZATION_KIND_TEAM",
+	}
+	OrganizationKind_value = map[string]int32{
+		"ORGANIZATION_KIND_UNSPECIFIED":  0,
+		"ORGANIZATION_KIND_HEADQUARTERS": 1,
+		"ORGANIZATION_KIND_COMPANY":      2,
+		"ORGANIZATION_KIND_DEPARTMENT":   3,
+		"ORGANIZATION_KIND_TEAM":         4,
+	}
+)
+
+func (x OrganizationKind) Enum() *OrganizationKind {
+	p := new(OrganizationKind)
+	*p = x
+	return p
+}
+
+func (x OrganizationKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OrganizationKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_admin_v1_admin_proto_enumTypes[1].Descriptor()
+}
+
+func (OrganizationKind) Type() protoreflect.EnumType {
+	return &file_admin_v1_admin_proto_enumTypes[1]
+}
+
+func (x OrganizationKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OrganizationKind.Descriptor instead.
+func (OrganizationKind) EnumDescriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{1}
+}
+
 type ListOrganizationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -118,6 +173,7 @@ type CreateOrganizationRequest struct {
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Kind          OrganizationKind       `protobuf:"varint,4,opt,name=kind,proto3,enum=admin.v1.OrganizationKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -171,6 +227,13 @@ func (x *CreateOrganizationRequest) GetParentId() string {
 		return x.ParentId
 	}
 	return ""
+}
+
+func (x *CreateOrganizationRequest) GetKind() OrganizationKind {
+	if x != nil {
+		return x.Kind
+	}
+	return OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
 }
 
 type UpdateOrganizationRequest struct {
@@ -240,6 +303,7 @@ type AdminOrganization struct {
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	ParentId      *string                `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
 	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Kind          OrganizationKind       `protobuf:"varint,6,opt,name=kind,proto3,enum=admin.v1.OrganizationKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -307,6 +371,13 @@ func (x *AdminOrganization) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *AdminOrganization) GetKind() OrganizationKind {
+	if x != nil {
+		return x.Kind
+	}
+	return OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
 }
 
 type AdminOrganizationListReply struct {
@@ -2034,21 +2105,23 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
-	"\x18ListOrganizationsRequest\"o\n" +
+	"\x18ListOrganizationsRequest\"\xa4\x01\n" +
 	"\x19CreateOrganizationRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
-	"\tparent_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bparentId\"c\n" +
+	"\tparent_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bparentId\x123\n" +
+	"\x04kind\x18\x04 \x01(\x0e2\x1a.admin.v1.OrganizationKindB\x03\xe0A\x02R\x04kind\"c\n" +
 	"\x19UpdateOrganizationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x18\n" +
-	"\aenabled\x18\x03 \x01(\bR\aenabled\"\x95\x01\n" +
+	"\aenabled\x18\x03 \x01(\bR\aenabled\"\xc5\x01\n" +
 	"\x11AdminOrganization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
 	"\tparent_id\x18\x04 \x01(\tH\x00R\bparentId\x88\x01\x01\x12\x18\n" +
-	"\aenabled\x18\x05 \x01(\bR\aenabledB\f\n" +
+	"\aenabled\x18\x05 \x01(\bR\aenabled\x12.\n" +
+	"\x04kind\x18\x06 \x01(\x0e2\x1a.admin.v1.OrganizationKindR\x04kindB\f\n" +
 	"\n" +
 	"_parent_id\"\xb0\x01\n" +
 	"\x1aAdminOrganizationListReply\x12\x18\n" +
@@ -2220,7 +2293,13 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x0eDATA_SCOPE_ALL\x10\x01\x12\x1b\n" +
 	"\x17DATA_SCOPE_ORGANIZATION\x10\x02\x12 \n" +
 	"\x1cDATA_SCOPE_ORGANIZATION_TREE\x10\x03\x12\x13\n" +
-	"\x0fDATA_SCOPE_SELF\x10\x042\x82\v\n" +
+	"\x0fDATA_SCOPE_SELF\x10\x04*\xb6\x01\n" +
+	"\x10OrganizationKind\x12!\n" +
+	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
+	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
+	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x042\x82\v\n" +
 	"\fAdminService\x12\x82\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a$.admin.v1.AdminOrganizationListReply\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\x83\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a .admin.v1.AdminOrganizationReply\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\x88\x01\n" +
@@ -2251,80 +2330,83 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(DataScope)(0),                     // 0: admin.v1.DataScope
-	(*ListOrganizationsRequest)(nil),   // 1: admin.v1.ListOrganizationsRequest
-	(*CreateOrganizationRequest)(nil),  // 2: admin.v1.CreateOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),  // 3: admin.v1.UpdateOrganizationRequest
-	(*AdminOrganization)(nil),          // 4: admin.v1.AdminOrganization
-	(*AdminOrganizationListReply)(nil), // 5: admin.v1.AdminOrganizationListReply
-	(*AdminOperationReply)(nil),        // 6: admin.v1.AdminOperationReply
-	(*AdminOrganizationReply)(nil),     // 7: admin.v1.AdminOrganizationReply
-	(*ListUsersRequest)(nil),           // 8: admin.v1.ListUsersRequest
-	(*CreateUserRequest)(nil),          // 9: admin.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),          // 10: admin.v1.UpdateUserRequest
-	(*ResetUserPasswordRequest)(nil),   // 11: admin.v1.ResetUserPasswordRequest
-	(*AdminUser)(nil),                  // 12: admin.v1.AdminUser
-	(*AdminUserListReply)(nil),         // 13: admin.v1.AdminUserListReply
-	(*AdminUserReply)(nil),             // 14: admin.v1.AdminUserReply
-	(*ListRolesRequest)(nil),           // 15: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),          // 16: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),          // 17: admin.v1.UpdateRoleRequest
-	(*AdminRole)(nil),                  // 18: admin.v1.AdminRole
-	(*AdminRoleListReply)(nil),         // 19: admin.v1.AdminRoleListReply
-	(*AdminRoleReply)(nil),             // 20: admin.v1.AdminRoleReply
-	(*ListPermissionsRequest)(nil),     // 21: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),            // 22: admin.v1.AdminPermission
-	(*AdminPermissionListReply)(nil),   // 23: admin.v1.AdminPermissionListReply
-	(*ListAuditLogsRequest)(nil),       // 24: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),              // 25: admin.v1.AdminAuditLog
-	(*AdminAuditLogListReply)(nil),     // 26: admin.v1.AdminAuditLogListReply
-	nil,                                // 27: admin.v1.AdminAuditLog.DetailsEntry
+	(OrganizationKind)(0),              // 1: admin.v1.OrganizationKind
+	(*ListOrganizationsRequest)(nil),   // 2: admin.v1.ListOrganizationsRequest
+	(*CreateOrganizationRequest)(nil),  // 3: admin.v1.CreateOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),  // 4: admin.v1.UpdateOrganizationRequest
+	(*AdminOrganization)(nil),          // 5: admin.v1.AdminOrganization
+	(*AdminOrganizationListReply)(nil), // 6: admin.v1.AdminOrganizationListReply
+	(*AdminOperationReply)(nil),        // 7: admin.v1.AdminOperationReply
+	(*AdminOrganizationReply)(nil),     // 8: admin.v1.AdminOrganizationReply
+	(*ListUsersRequest)(nil),           // 9: admin.v1.ListUsersRequest
+	(*CreateUserRequest)(nil),          // 10: admin.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),          // 11: admin.v1.UpdateUserRequest
+	(*ResetUserPasswordRequest)(nil),   // 12: admin.v1.ResetUserPasswordRequest
+	(*AdminUser)(nil),                  // 13: admin.v1.AdminUser
+	(*AdminUserListReply)(nil),         // 14: admin.v1.AdminUserListReply
+	(*AdminUserReply)(nil),             // 15: admin.v1.AdminUserReply
+	(*ListRolesRequest)(nil),           // 16: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),          // 17: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),          // 18: admin.v1.UpdateRoleRequest
+	(*AdminRole)(nil),                  // 19: admin.v1.AdminRole
+	(*AdminRoleListReply)(nil),         // 20: admin.v1.AdminRoleListReply
+	(*AdminRoleReply)(nil),             // 21: admin.v1.AdminRoleReply
+	(*ListPermissionsRequest)(nil),     // 22: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),            // 23: admin.v1.AdminPermission
+	(*AdminPermissionListReply)(nil),   // 24: admin.v1.AdminPermissionListReply
+	(*ListAuditLogsRequest)(nil),       // 25: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),              // 26: admin.v1.AdminAuditLog
+	(*AdminAuditLogListReply)(nil),     // 27: admin.v1.AdminAuditLogListReply
+	nil,                                // 28: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
-	4,  // 0: admin.v1.AdminOrganizationListReply.data:type_name -> admin.v1.AdminOrganization
-	4,  // 1: admin.v1.AdminOrganizationReply.data:type_name -> admin.v1.AdminOrganization
-	12, // 2: admin.v1.AdminUserListReply.data:type_name -> admin.v1.AdminUser
-	12, // 3: admin.v1.AdminUserReply.data:type_name -> admin.v1.AdminUser
-	0,  // 4: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 5: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 6: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	18, // 7: admin.v1.AdminRoleListReply.data:type_name -> admin.v1.AdminRole
-	18, // 8: admin.v1.AdminRoleReply.data:type_name -> admin.v1.AdminRole
-	22, // 9: admin.v1.AdminPermissionListReply.data:type_name -> admin.v1.AdminPermission
-	27, // 10: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	25, // 11: admin.v1.AdminAuditLogListReply.data:type_name -> admin.v1.AdminAuditLog
-	1,  // 12: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	2,  // 13: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	3,  // 14: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	8,  // 15: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	9,  // 16: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	10, // 17: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	11, // 18: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	15, // 19: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	16, // 20: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	17, // 21: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	21, // 22: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	24, // 23: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	5,  // 24: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.AdminOrganizationListReply
-	7,  // 25: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.AdminOrganizationReply
-	7,  // 26: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.AdminOrganizationReply
-	13, // 27: admin.v1.AdminService.ListUsers:output_type -> admin.v1.AdminUserListReply
-	14, // 28: admin.v1.AdminService.CreateUser:output_type -> admin.v1.AdminUserReply
-	14, // 29: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.AdminUserReply
-	6,  // 30: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.AdminOperationReply
-	19, // 31: admin.v1.AdminService.ListRoles:output_type -> admin.v1.AdminRoleListReply
-	20, // 32: admin.v1.AdminService.CreateRole:output_type -> admin.v1.AdminRoleReply
-	20, // 33: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.AdminRoleReply
-	23, // 34: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.AdminPermissionListReply
-	26, // 35: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.AdminAuditLogListReply
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
+	1,  // 1: admin.v1.AdminOrganization.kind:type_name -> admin.v1.OrganizationKind
+	5,  // 2: admin.v1.AdminOrganizationListReply.data:type_name -> admin.v1.AdminOrganization
+	5,  // 3: admin.v1.AdminOrganizationReply.data:type_name -> admin.v1.AdminOrganization
+	13, // 4: admin.v1.AdminUserListReply.data:type_name -> admin.v1.AdminUser
+	13, // 5: admin.v1.AdminUserReply.data:type_name -> admin.v1.AdminUser
+	0,  // 6: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 7: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 8: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	19, // 9: admin.v1.AdminRoleListReply.data:type_name -> admin.v1.AdminRole
+	19, // 10: admin.v1.AdminRoleReply.data:type_name -> admin.v1.AdminRole
+	23, // 11: admin.v1.AdminPermissionListReply.data:type_name -> admin.v1.AdminPermission
+	28, // 12: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	26, // 13: admin.v1.AdminAuditLogListReply.data:type_name -> admin.v1.AdminAuditLog
+	2,  // 14: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	3,  // 15: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	4,  // 16: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	9,  // 17: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	10, // 18: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	11, // 19: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	12, // 20: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	16, // 21: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	17, // 22: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	18, // 23: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	22, // 24: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	25, // 25: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	6,  // 26: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.AdminOrganizationListReply
+	8,  // 27: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.AdminOrganizationReply
+	8,  // 28: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.AdminOrganizationReply
+	14, // 29: admin.v1.AdminService.ListUsers:output_type -> admin.v1.AdminUserListReply
+	15, // 30: admin.v1.AdminService.CreateUser:output_type -> admin.v1.AdminUserReply
+	15, // 31: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.AdminUserReply
+	7,  // 32: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.AdminOperationReply
+	20, // 33: admin.v1.AdminService.ListRoles:output_type -> admin.v1.AdminRoleListReply
+	21, // 34: admin.v1.AdminService.CreateRole:output_type -> admin.v1.AdminRoleReply
+	21, // 35: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.AdminRoleReply
+	24, // 36: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.AdminPermissionListReply
+	27, // 37: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.AdminAuditLogListReply
+	26, // [26:38] is the sub-list for method output_type
+	14, // [14:26] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -2342,7 +2424,7 @@ func file_admin_v1_admin_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,

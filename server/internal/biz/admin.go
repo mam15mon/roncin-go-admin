@@ -16,6 +16,7 @@ var (
 	ErrAdminOrganizationNotFound       = errors.NotFound("ADMIN_ORGANIZATION_NOT_FOUND", "组织不存在")
 	ErrAdminOrganizationCodeExists     = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
 	ErrAdminOrganizationParentRequired = errors.BadRequest("ADMIN_ORGANIZATION_PARENT_REQUIRED", "新建组织必须指定上级组织")
+	ErrAdminOrganizationHierarchy      = errors.BadRequest("ADMIN_ORGANIZATION_HIERARCHY_INVALID", "组织层级不合法")
 	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
 	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
@@ -24,10 +25,24 @@ var (
 	ErrAdminInvalidArgument            = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "管理参数不合法")
 )
 
+type OrganizationKind string
+
+const (
+	OrganizationKindHeadquarters OrganizationKind = "headquarters"
+	OrganizationKindCompany      OrganizationKind = "company"
+	OrganizationKindDepartment   OrganizationKind = "department"
+	OrganizationKindTeam         OrganizationKind = "team"
+)
+
+func (kind OrganizationKind) Valid() bool {
+	return kind == OrganizationKindHeadquarters || kind == OrganizationKindCompany || kind == OrganizationKindDepartment || kind == OrganizationKindTeam
+}
+
 type AdminOrganization struct {
 	ID       uuid.UUID
 	Code     string
 	Name     string
+	Kind     OrganizationKind
 	ParentID *uuid.UUID
 	Enabled  bool
 }
@@ -137,8 +152,15 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 	if *normalized.ParentID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	if _, err := uc.repo.GetOrganization(ctx, *normalized.ParentID); err != nil {
+	parent, err := uc.repo.GetOrganization(ctx, *normalized.ParentID)
+	if err != nil {
 		return nil, err
+	}
+	if parent.Kind == OrganizationKindHeadquarters && normalized.Kind != OrganizationKindCompany ||
+		parent.Kind == OrganizationKindCompany && normalized.Kind != OrganizationKindDepartment ||
+		parent.Kind == OrganizationKindDepartment && normalized.Kind != OrganizationKindTeam ||
+		parent.Kind == OrganizationKindTeam {
+		return nil, ErrAdminOrganizationHierarchy
 	}
 	created, err := uc.repo.CreateOrganization(ctx, normalized)
 	if err != nil {
@@ -289,7 +311,7 @@ func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error)
 	output := *input
 	output.Code = strings.ToUpper(strings.TrimSpace(output.Code))
 	output.Name = strings.TrimSpace(output.Name)
-	if output.Code == "" || output.Name == "" {
+	if output.Code == "" || output.Name == "" || !output.Kind.Valid() || output.Kind == OrganizationKindHeadquarters {
 		return nil, ErrAdminInvalidArgument
 	}
 	return &output, nil

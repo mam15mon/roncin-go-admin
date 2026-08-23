@@ -17,6 +17,7 @@ func (Organization) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
+		field.Enum("kind").Values("headquarters", "company", "department", "team").Immutable(),
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 	}

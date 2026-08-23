@@ -48,7 +48,7 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), ParentID: &parentID, Enabled: true})
+	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), Kind: organizationKindFromAPI(request.GetKind()), ParentID: &parentID, Enabled: true})
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,35 @@ func dataScopeToAPI(value biz.DataScope) v1.DataScope {
 }
 
 func organizationToAPI(value *biz.AdminOrganization) *v1.AdminOrganization {
-	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, ParentId: uuidString(value.ParentID), Enabled: value.Enabled}
+	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, Kind: organizationKindToAPI(value.Kind), ParentId: uuidString(value.ParentID), Enabled: value.Enabled}
+}
+
+func organizationKindFromAPI(value v1.OrganizationKind) biz.OrganizationKind {
+	switch value {
+	case v1.OrganizationKind_ORGANIZATION_KIND_COMPANY:
+		return biz.OrganizationKindCompany
+	case v1.OrganizationKind_ORGANIZATION_KIND_DEPARTMENT:
+		return biz.OrganizationKindDepartment
+	case v1.OrganizationKind_ORGANIZATION_KIND_TEAM:
+		return biz.OrganizationKindTeam
+	default:
+		return ""
+	}
+}
+
+func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
+	switch value {
+	case biz.OrganizationKindHeadquarters:
+		return v1.OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS
+	case biz.OrganizationKindCompany:
+		return v1.OrganizationKind_ORGANIZATION_KIND_COMPANY
+	case biz.OrganizationKindDepartment:
+		return v1.OrganizationKind_ORGANIZATION_KIND_DEPARTMENT
+	case biz.OrganizationKindTeam:
+		return v1.OrganizationKind_ORGANIZATION_KIND_TEAM
+	default:
+		return v1.OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
+	}
 }
 
 func userToAPI(value *biz.AdminUser) *v1.AdminUser {

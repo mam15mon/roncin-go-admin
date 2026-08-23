@@ -86,12 +86,21 @@ enum DataScope {
   DATA_SCOPE_SELF = 4;
 }
 
+enum OrganizationKind {
+  ORGANIZATION_KIND_UNSPECIFIED = 0;
+  ORGANIZATION_KIND_HEADQUARTERS = 1;
+  ORGANIZATION_KIND_COMPANY = 2;
+  ORGANIZATION_KIND_DEPARTMENT = 3;
+  ORGANIZATION_KIND_TEAM = 4;
+}
+
 message ListOrganizationsRequest {}
 
 message CreateOrganizationRequest {
   string code = 1 [(google.api.field_behavior) = REQUIRED];
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   string parent_id = 3 [(google.api.field_behavior) = REQUIRED];
+  OrganizationKind kind = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateOrganizationRequest {
@@ -106,6 +115,7 @@ message AdminOrganization {
   string name = 3;
   optional string parent_id = 4;
   bool enabled = 5;
+  OrganizationKind kind = 6;
 }
 
 message AdminOrganizationListReply {

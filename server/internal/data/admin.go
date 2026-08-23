@@ -54,7 +54,7 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 	if err != nil {
 		return nil, err
 	}
-	create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name)
+	create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name).SetKind(organization.Kind(input.Kind))
 	if input.ParentID != nil {
 		create.SetParentID(*input.ParentID)
 	}
@@ -432,7 +432,7 @@ func uniqueUUIDs(values []uuid.UUID) []uuid.UUID {
 }
 
 func organizationToBiz(item *ent.Organization) *biz.AdminOrganization {
-	return &biz.AdminOrganization{ID: item.ID, Code: item.Code, Name: item.Name, ParentID: item.ParentID, Enabled: item.Enabled}
+	return &biz.AdminOrganization{ID: item.ID, Code: item.Code, Name: item.Name, Kind: biz.OrganizationKind(item.Kind), ParentID: item.ParentID, Enabled: item.Enabled}
 }
 
 func membershipToUser(item *ent.Membership) *biz.AdminUser {

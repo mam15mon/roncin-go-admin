@@ -4224,6 +4224,10 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "kind": {
+            "type": "integer",
+            "format": "enum"
           }
         }
       },
@@ -4493,7 +4497,8 @@
         "required": [
           "code",
           "name",
-          "parentId"
+          "parentId",
+          "kind"
         ],
         "type": "object",
         "properties": {
@@ -4505,6 +4510,10 @@
           },
           "parentId": {
             "type": "string"
+          },
+          "kind": {
+            "type": "integer",
+            "format": "enum"
           }
         }
       },

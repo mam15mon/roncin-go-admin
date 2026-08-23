@@ -26,6 +26,8 @@ type Organization struct {
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Kind holds the value of the "kind" field.
+	Kind organization.Kind `json:"kind,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
 	ParentID *uuid.UUID `json:"parent_id,omitempty"`
 	// Enabled holds the value of the "enabled" field.
@@ -241,7 +243,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case organization.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case organization.FieldCode, organization.FieldName:
+		case organization.FieldCode, organization.FieldName, organization.FieldKind:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreatedAt, organization.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -291,6 +293,12 @@ func (_m *Organization) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case organization.FieldKind:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field kind", values[i])
+			} else if value.Valid {
+				_m.Kind = organization.Kind(value.String)
 			}
 		case organization.FieldParentID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -437,6 +445,9 @@ func (_m *Organization) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("kind=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Kind))
 	builder.WriteString(", ")
 	if v := _m.ParentID; v != nil {
 		builder.WriteString("parent_id=")

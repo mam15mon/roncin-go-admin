@@ -1769,7 +1769,7 @@ func init() {
 		}
 	}()
 	// organizationDescEnabled is the schema descriptor for enabled field.
-	organizationDescEnabled := organizationFields[3].Descriptor()
+	organizationDescEnabled := organizationFields[4].Descriptor()
 	// organization.DefaultEnabled holds the default value on creation for the enabled field.
 	organization.DefaultEnabled = organizationDescEnabled.Default.(bool)
 	// organizationDescID is the schema descriptor for id field.

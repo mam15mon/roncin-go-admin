@@ -1,3 +1,4 @@
+import { OrganizationChart } from '@ant-design/graphs';
 import {
   ApartmentOutlined,
   AppstoreOutlined,
@@ -10,7 +11,6 @@ import {
   SearchOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { OrganizationChart } from '@ant-design/graphs';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -59,6 +59,42 @@ import {
 
 const { Text, Title } = Typography;
 
+const organizationKindMeta = {
+  1: { label: '总部', color: 'purple' },
+  2: { label: '公司', color: 'blue' },
+  3: { label: '部门', color: 'cyan' },
+  4: { label: '组', color: 'gold' },
+} as const;
+
+function getOrganizationKindMeta(kind?: number) {
+  return organizationKindMeta[kind as keyof typeof organizationKindMeta];
+}
+
+function normalizeOrganizationKind(
+  kind: API.AdminOrganization['kind'],
+): number {
+  if (typeof kind === 'number') return kind;
+  switch (String(kind)) {
+    case 'ORGANIZATION_KIND_HEADQUARTERS':
+      return 1;
+    case 'ORGANIZATION_KIND_COMPANY':
+      return 2;
+    case 'ORGANIZATION_KIND_DEPARTMENT':
+      return 3;
+    case 'ORGANIZATION_KIND_TEAM':
+      return 4;
+    default:
+      return 0;
+  }
+}
+
+function getChildOrganizationKind(kind?: number): 2 | 3 | 4 | undefined {
+  if (kind === 1) return 2;
+  if (kind === 2) return 3;
+  if (kind === 3) return 4;
+  return undefined;
+}
+
 type CreateFormValues = {
   code?: string;
   name?: string;
@@ -72,7 +108,9 @@ type EditFormValues = {
 export default function OrganizationsPanel() {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
+  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
+    [],
+  );
   const [selectedId, setSelectedId] = useState<string>('');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -80,14 +118,19 @@ export default function OrganizationsPanel() {
 
   // View Mode: 'chart' (拓扑架构图) | 'list' (树表列表)
   const [viewMode, setViewMode] = useState<'chart' | 'list'>('chart');
-  const [chartDirection, setChartDirection] = useState<'vertical' | 'horizontal'>('vertical');
+  const [chartDirection, setChartDirection] = useState<
+    'vertical' | 'horizontal'
+  >('vertical');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Modal states
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [parentForCreate, setParentForCreate] = useState<API.AdminOrganization | null>(null);
+  const [parentForCreate, setParentForCreate] =
+    useState<API.AdminOrganization | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<API.AdminOrganization | null>(null);
+  const [editingOrg, setEditingOrg] = useState<API.AdminOrganization | null>(
+    null,
+  );
 
   const createFormRef = useRef<ProFormInstance | undefined>(undefined);
   const editFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -99,7 +142,10 @@ export default function OrganizationsPanel() {
       setLoading(true);
       try {
         const response = await adminServiceListOrganizations();
-        const list = response.data ?? [];
+        const list = (response.data ?? []).map((organization) => ({
+          ...organization,
+          kind: normalizeOrganizationKind(organization.kind),
+        }));
         setOrganizations(list);
         if (selectIdAfterLoad) {
           setSelectedId(selectIdAfterLoad);
@@ -190,6 +236,7 @@ export default function OrganizationsPanel() {
           name: org.name ?? '未命名组织',
           code: org.code ?? '',
           enabled: org.enabled ?? true,
+          kind: org.kind ?? 0,
           parentId: org.parentId,
           childrenCount: directChildrenMap.get(id) ?? 0,
         },
@@ -215,7 +262,9 @@ export default function OrganizationsPanel() {
     setAutoExpandParent(true);
     if (value.trim()) {
       const { matchedKeys: keysToExpand } = filterOrgTree(treeData, value);
-      setExpandedKeys((prev) => Array.from(new Set([...prev, ...keysToExpand])));
+      setExpandedKeys((prev) =>
+        Array.from(new Set([...prev, ...keysToExpand])),
+      );
     }
   };
 
@@ -225,8 +274,10 @@ export default function OrganizationsPanel() {
     const kw = searchKeyword.trim().toLowerCase();
     const title = node.title || '未命名组织';
     const code = node.code || '';
+    const kindMeta = getOrganizationKindMeta(node.kind);
     const isMatched =
-      kw && (title.toLowerCase().includes(kw) || code.toLowerCase().includes(kw));
+      kw &&
+      (title.toLowerCase().includes(kw) || code.toLowerCase().includes(kw));
 
     return (
       <span
@@ -260,6 +311,11 @@ export default function OrganizationsPanel() {
         >
           {code}
         </Tag>
+        {kindMeta && (
+          <Tag color={kindMeta.color} bordered={false} style={{ margin: 0 }}>
+            {kindMeta.label}
+          </Tag>
+        )}
         {!node.enabled && (
           <Tag
             color="default"
@@ -278,15 +334,9 @@ export default function OrganizationsPanel() {
     );
   };
 
-  const openCreateRoot = () => {
-    setParentForCreate(null);
-    createFormRef.current?.resetFields();
-    setCreateModalOpen(true);
-  };
-
   const openCreateChild = (parent?: API.AdminOrganization | null) => {
     const targetParent = parent || selectedOrg;
-    if (!targetParent) return;
+    if (!targetParent || !getChildOrganizationKind(targetParent.kind)) return;
     setParentForCreate(targetParent);
     createFormRef.current?.resetFields();
     setCreateModalOpen(true);
@@ -302,6 +352,9 @@ export default function OrganizationsPanel() {
     });
     setEditModalOpen(true);
   };
+
+  const childKindForCreate = getChildOrganizationKind(parentForCreate?.kind);
+  const childKindMetaForCreate = getOrganizationKindMeta(childKindForCreate);
 
   return (
     <>
@@ -360,13 +413,6 @@ export default function OrganizationsPanel() {
             >
               刷新数据
             </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={openCreateRoot}
-            >
-              新建根组织
-            </Button>
           </Space>
         </div>
       </Card>
@@ -389,14 +435,16 @@ export default function OrganizationsPanel() {
                   ref={graphRef}
                   data={graphData}
                   direction={chartDirection}
+                  autoFit="center"
                   node={{
                     style: {
-                      size: [210, 72],
+                      size: [210, 80],
                       component: (nodeData: Record<string, unknown>) => {
                         const item = (nodeData.data || nodeData) as {
                           id: string;
                           name: string;
                           code: string;
+                          kind: number;
                           enabled: boolean;
                           childrenCount?: number;
                         };
@@ -406,7 +454,7 @@ export default function OrganizationsPanel() {
                           <div
                             style={{
                               width: 210,
-                              height: 72,
+                              height: 80,
                               backgroundColor: '#ffffff',
                               borderRadius: 8,
                               border: isCurrentSelected
@@ -518,6 +566,23 @@ export default function OrganizationsPanel() {
                                 {item.code}
                               </span>
 
+                              {getOrganizationKindMeta(item.kind) && (
+                                <Tag
+                                  color={
+                                    getOrganizationKindMeta(item.kind)?.color
+                                  }
+                                  bordered={false}
+                                  style={{
+                                    margin: 0,
+                                    fontSize: 10,
+                                    lineHeight: '16px',
+                                    padding: '0 4px',
+                                  }}
+                                >
+                                  {getOrganizationKindMeta(item.kind)?.label}
+                                </Tag>
+                              )}
+
                               {(item.childrenCount ?? 0) > 0 ? (
                                 <Tag
                                   color="blue"
@@ -538,44 +603,48 @@ export default function OrganizationsPanel() {
                               )}
                             </div>
 
-                            {/* Edge-Centered Floating Circular Add Button */}
-                            <Tooltip title={`在「${item.name}」下新增分支`}>
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openCreateChild(item);
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  ...(chartDirection === 'vertical'
-                                    ? {
-                                        bottom: -11,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                      }
-                                    : {
-                                        right: -11,
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                      }),
-                                  width: 22,
-                                  height: 22,
-                                  borderRadius: '50%',
-                                  backgroundColor: '#1677ff',
-                                  color: '#ffffff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 2px 6px rgba(22, 119, 255, 0.4)',
-                                  cursor: 'pointer',
-                                  zIndex: 10,
-                                  border: '2px solid #ffffff',
-                                  transition: 'all 0.15s ease',
-                                }}
+                            {getChildOrganizationKind(item.kind) && (
+                              <Tooltip
+                                title={`在「${item.name}」下新增${getOrganizationKindMeta(getChildOrganizationKind(item.kind))?.label}`}
                               >
-                                <PlusOutlined style={{ fontSize: 10 }} />
-                              </div>
-                            </Tooltip>
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openCreateChild(item);
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    ...(chartDirection === 'vertical'
+                                      ? {
+                                          bottom: -11,
+                                          left: '50%',
+                                          transform: 'translateX(-50%)',
+                                        }
+                                      : {
+                                          right: -11,
+                                          top: '50%',
+                                          transform: 'translateY(-50%)',
+                                        }),
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#1677ff',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow:
+                                      '0 2px 6px rgba(22, 119, 255, 0.4)',
+                                    cursor: 'pointer',
+                                    zIndex: 10,
+                                    border: '2px solid #ffffff',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  <PlusOutlined style={{ fontSize: 10 }} />
+                                </div>
+                              </Tooltip>
+                            )}
                           </div>
                         );
                       },
@@ -584,11 +653,10 @@ export default function OrganizationsPanel() {
                   behaviors={['drag-canvas', 'click-select']}
                   onReady={(graph: any) => {
                     graphRef.current = graph;
-                    try {
-                      graph.zoomTo(1);
-                    } catch {}
+                    void graph.fitCenter();
                     graph.on('node:click', (evt: any) => {
-                      const id = evt.target?.id || evt.itemId || evt.target?.cfg?.id;
+                      const id =
+                        evt.target?.id || evt.itemId || evt.target?.cfg?.id;
                       if (id) {
                         setSelectedId(id);
                         setDrawerOpen(true);
@@ -600,17 +668,9 @@ export default function OrganizationsPanel() {
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="暂无组织架构数据"
+                description="暂无总部数据，请先执行管理员初始化"
                 style={{ padding: '80px 0' }}
-              >
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openCreateRoot}
-                >
-                  新建根组织
-                </Button>
-              </Empty>
+              />
             )}
           </Spin>
         </Card>
@@ -618,7 +678,12 @@ export default function OrganizationsPanel() {
 
       {/* Mode 2: Classic Tree & Table Mode */}
       {viewMode === 'list' && (
-        <ProCard split="vertical" variant="outlined" headerBordered style={{ minHeight: 600 }}>
+        <ProCard
+          split="vertical"
+          variant="outlined"
+          headerBordered
+          style={{ minHeight: 600 }}
+        >
           {/* Left: Tree */}
           <ProCard
             colSpan={{ xs: 24, md: '340px' }}
@@ -626,7 +691,11 @@ export default function OrganizationsPanel() {
               <Space size={8}>
                 <ApartmentOutlined style={{ color: '#1677ff' }} />
                 <span>组织架构树</span>
-                <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
+                <Tag
+                  color="blue"
+                  bordered={false}
+                  style={{ margin: 0, fontSize: 11 }}
+                >
                   {organizations.length} 个节点
                 </Tag>
               </Space>
@@ -636,7 +705,9 @@ export default function OrganizationsPanel() {
             <div style={{ marginBottom: 12 }}>
               <Input
                 placeholder="搜索组织名称或编码..."
-                prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
+                prefix={
+                  <SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                }
                 allowClear
                 value={searchKeyword}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -679,13 +750,19 @@ export default function OrganizationsPanel() {
                           <FolderOutlined style={{ color: '#1677ff' }} />
                         );
                       }
-                      return <TeamOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />;
+                      return (
+                        <TeamOutlined
+                          style={{ color: 'rgba(0, 0, 0, 0.45)' }}
+                        />
+                      );
                     }}
                   />
                 ) : (
                   <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={searchKeyword ? '未找到匹配的组织机构' : '暂无组织数据'}
+                    description={
+                      searchKeyword ? '未找到匹配的组织机构' : '暂无组织数据'
+                    }
                     style={{ margin: '40px 0' }}
                   />
                 )}
@@ -698,7 +775,10 @@ export default function OrganizationsPanel() {
             title={
               selectedOrg ? (
                 <Space align="center" size={10}>
-                  <Title level={4} style={{ margin: 0, color: 'rgba(0, 0, 0, 0.88)' }}>
+                  <Title
+                    level={4}
+                    style={{ margin: 0, color: 'rgba(0, 0, 0, 0.88)' }}
+                  >
                     {selectedOrg.name}
                   </Title>
                   <Tag
@@ -727,9 +807,19 @@ export default function OrganizationsPanel() {
             extra={
               selectedOrg ? (
                 <Space size={8}>
-                  <Button icon={<PlusOutlined />} onClick={() => openCreateChild(selectedOrg)}>
-                    新增下级组织
-                  </Button>
+                  {getChildOrganizationKind(selectedOrg.kind) && (
+                    <Button
+                      icon={<PlusOutlined />}
+                      onClick={() => openCreateChild(selectedOrg)}
+                    >
+                      新增
+                      {
+                        getOrganizationKindMeta(
+                          getChildOrganizationKind(selectedOrg.kind),
+                        )?.label
+                      }
+                    </Button>
+                  )}
                   <Button
                     type="primary"
                     icon={<EditOutlined />}
@@ -798,8 +888,14 @@ export default function OrganizationsPanel() {
                   title={
                     <Space size={6}>
                       <TeamOutlined style={{ color: '#1677ff' }} />
-                      <span style={{ fontSize: 14, fontWeight: 600 }}>直属下级组织列表</span>
-                      <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600 }}>
+                        直属下级组织列表
+                      </span>
+                      <Tag
+                        color="blue"
+                        bordered={false}
+                        style={{ margin: 0, fontSize: 11 }}
+                      >
                         {directChildren.length}
                       </Tag>
                     </Space>
@@ -903,15 +999,7 @@ export default function OrganizationsPanel() {
                   justifyContent: 'center',
                 }}
               >
-                <Empty description="请从左侧组织架构树选择一个节点查看详细信息，或点击上方按钮新增根组织">
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={openCreateRoot}
-                  >
-                    新增根组织
-                  </Button>
-                </Empty>
+                <Empty description="请从左侧组织架构树选择一个节点查看详细信息" />
               </div>
             )}
           </ProCard>
@@ -924,7 +1012,10 @@ export default function OrganizationsPanel() {
           selectedOrg ? (
             <Space>
               <span>{selectedOrg.name}</span>
-              <Tag color={selectedOrg.enabled ? 'success' : 'default'} bordered={false}>
+              <Tag
+                color={selectedOrg.enabled ? 'success' : 'default'}
+                bordered={false}
+              >
                 {selectedOrg.enabled ? '正常启用' : '已停用'}
               </Tag>
             </Space>
@@ -938,13 +1029,20 @@ export default function OrganizationsPanel() {
         extra={
           selectedOrg && (
             <Space>
-              <Button
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={() => openCreateChild(selectedOrg)}
-              >
-                新增下级
-              </Button>
+              {getChildOrganizationKind(selectedOrg.kind) && (
+                <Button
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={() => openCreateChild(selectedOrg)}
+                >
+                  新增
+                  {
+                    getOrganizationKindMeta(
+                      getChildOrganizationKind(selectedOrg.kind),
+                    )?.label
+                  }
+                </Button>
+              )}
               <Button
                 type="primary"
                 size="small"
@@ -960,6 +1058,9 @@ export default function OrganizationsPanel() {
         {selectedOrg ? (
           <Space direction="vertical" size={16} style={{ width: '100%' }}>
             <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="节点类型">
+                {getOrganizationKindMeta(selectedOrg.kind)?.label}
+              </Descriptions.Item>
               <Descriptions.Item label="组织编码">
                 <Text copyable style={{ fontFamily: 'monospace' }}>
                   {selectedOrg.code}
@@ -1045,11 +1146,7 @@ export default function OrganizationsPanel() {
 
       {/* Modal: Create Organization */}
       <ModalForm<CreateFormValues>
-        title={
-          parentForCreate
-            ? `新增下级组织（所属上级：${parentForCreate.name}）`
-            : '新增根组织'
-        }
+        title={`新增${childKindMetaForCreate?.label ?? ''}（所属上级：${parentForCreate?.name ?? ''}）`}
         open={createModalOpen}
         formRef={createFormRef}
         modalProps={{
@@ -1059,13 +1156,15 @@ export default function OrganizationsPanel() {
         }}
         onOpenChange={setCreateModalOpen}
         onFinish={async (values) => {
+          if (!parentForCreate?.id || !childKindForCreate) return false;
           try {
             const response = await adminServiceCreateOrganization({
               code: values.code?.trim() ?? '',
               name: values.name?.trim() ?? '',
-              parentId: parentForCreate?.id ?? '',
+              parentId: parentForCreate.id,
+              kind: childKindForCreate,
             });
-            message.success('组织已成功创建');
+            message.success(`${childKindMetaForCreate?.label}已成功创建`);
             setCreateModalOpen(false);
             const createdId = response.data?.id;
             await loadData(createdId || selectedId);
@@ -1076,11 +1175,11 @@ export default function OrganizationsPanel() {
           }
         }}
       >
-        {parentForCreate && (
+        {parentForCreate && childKindMetaForCreate && (
           <Alert
             showIcon
             type="info"
-            message={`当前上级组织：${parentForCreate.name} (${parentForCreate.code})`}
+            message={`当前上级：${parentForCreate.name}；本次创建：${childKindMetaForCreate.label}`}
             style={{ marginBottom: 16 }}
           />
         )}

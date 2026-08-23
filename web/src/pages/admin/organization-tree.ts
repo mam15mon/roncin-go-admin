@@ -2,6 +2,7 @@ export type OrgTreeNode = {
   key: string;
   title: string;
   code: string;
+  kind: number;
   enabled: boolean;
   raw: API.AdminOrganization;
   children?: OrgTreeNode[];
@@ -17,7 +18,9 @@ export type BuiltOrgTree = {
  * 将组织平铺列表构建为树结构
  * parentId 为空或指向不存在组织的节点统一作为根节点
  */
-export function buildOrgTree(organizations: API.AdminOrganization[]): BuiltOrgTree {
+export function buildOrgTree(
+  organizations: API.AdminOrganization[],
+): BuiltOrgTree {
   const orgMap = new Map<string, API.AdminOrganization>();
   for (const org of organizations) {
     if (org.id) {
@@ -49,12 +52,11 @@ export function buildOrgTree(organizations: API.AdminOrganization[]): BuiltOrgTr
       key: id,
       title: org.name ?? '',
       code: org.code ?? '',
+      kind: org.kind ?? 0,
       enabled: org.enabled ?? true,
       raw: org,
       children:
-        subList && subList.length > 0
-          ? subList.map(createNode)
-          : undefined,
+        subList && subList.length > 0 ? subList.map(createNode) : undefined,
     };
   };
 

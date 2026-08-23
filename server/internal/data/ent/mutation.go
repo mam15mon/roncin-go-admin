@@ -25989,6 +25989,7 @@ type OrganizationMutation struct {
 	updated_at                 *time.Time
 	code                       *string
 	name                       *string
+	kind                       *organization.Kind
 	enabled                    *bool
 	clearedFields              map[string]struct{}
 	parent                     *uuid.UUID
@@ -26292,6 +26293,42 @@ func (m *OrganizationMutation) OldName(ctx context.Context) (v string, err error
 // ResetName resets all changes to the "name" field.
 func (m *OrganizationMutation) ResetName() {
 	m.name = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *OrganizationMutation) SetKind(o organization.Kind) {
+	m.kind = &o
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *OrganizationMutation) Kind() (r organization.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldKind(ctx context.Context) (v organization.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *OrganizationMutation) ResetKind() {
+	m.kind = nil
 }
 
 // SetParentID sets the "parent_id" field.
@@ -27304,7 +27341,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, organization.FieldCreatedAt)
 	}
@@ -27316,6 +27353,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, organization.FieldName)
+	}
+	if m.kind != nil {
+		fields = append(fields, organization.FieldKind)
 	}
 	if m.parent != nil {
 		fields = append(fields, organization.FieldParentID)
@@ -27339,6 +27379,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.Code()
 	case organization.FieldName:
 		return m.Name()
+	case organization.FieldKind:
+		return m.Kind()
 	case organization.FieldParentID:
 		return m.ParentID()
 	case organization.FieldEnabled:
@@ -27360,6 +27402,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCode(ctx)
 	case organization.FieldName:
 		return m.OldName(ctx)
+	case organization.FieldKind:
+		return m.OldKind(ctx)
 	case organization.FieldParentID:
 		return m.OldParentID(ctx)
 	case organization.FieldEnabled:
@@ -27400,6 +27444,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case organization.FieldKind:
+		v, ok := value.(organization.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
 		return nil
 	case organization.FieldParentID:
 		v, ok := value.(uuid.UUID)
@@ -27484,6 +27535,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldName:
 		m.ResetName()
+		return nil
+	case organization.FieldKind:
+		m.ResetKind()
 		return nil
 	case organization.FieldParentID:
 		m.ResetParentID()
