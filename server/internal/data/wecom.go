@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,10 +33,10 @@ func NewWeComIdentityProvider(security *conf.Security) (biz.WeComIdentityProvide
 	config := security.GetWecom()
 	provider.enabled = true
 	provider.corpID = strings.TrimSpace(config.GetCorpId())
-	provider.agentID = strings.TrimSpace(config.GetAgentId())
+	provider.agentID = strconv.FormatInt(config.GetAgentId(), 10)
 	provider.secret = strings.TrimSpace(config.GetSecret())
 	provider.redirectURI = strings.TrimSpace(config.GetRedirectUri())
-	if provider.corpID == "" || provider.agentID == "" || provider.secret == "" || provider.redirectURI == "" {
+	if provider.corpID == "" || config.GetAgentId() <= 0 || provider.secret == "" || provider.redirectURI == "" {
 		return nil, fmt.Errorf("企业微信登录已启用，但 corp_id、agent_id、secret 或 redirect_uri 未配置")
 	}
 	redirectURL, err := url.ParseRequestURI(provider.redirectURI)

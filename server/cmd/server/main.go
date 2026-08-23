@@ -51,6 +51,16 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 	)
 }
 
+func newRuntimeConfig(path string) config.Config {
+	return config.New(
+		config.WithSource(
+			file.NewSource(path),
+			env.NewSource(),
+		),
+		config.WithResolveActualTypes(true),
+	)
+}
+
 func main() {
 	flag.Parse()
 	logger := log.NewLogger(
@@ -65,13 +75,7 @@ func main() {
 		slog.String("service.version", Version),
 	)
 	log.SetDefault(logger)
-	c := config.New(
-		config.WithSource(
-			file.NewSource(flagconf),
-			env.NewSource("KRATOS"),
-		),
-		config.WithResolveActualTypes(true),
-	)
+	c := newRuntimeConfig(flagconf)
 	defer c.Close()
 
 	if err := c.Load(); err != nil {

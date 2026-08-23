@@ -73,7 +73,7 @@ message Security {
   message WeCom {
     bool enabled = 1;
     string corp_id = 2;
-    string agent_id = 3;
+    int64 agent_id = 3;
     string secret = 4;
     string redirect_uri = 5;
   }

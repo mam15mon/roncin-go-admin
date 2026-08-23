@@ -28,7 +28,7 @@ security:
   wecom:
     enabled: ${WECOM_ENABLED:false}
     corp_id: ${WECOM_CORP_ID:}
-    agent_id: ${WECOM_AGENT_ID:}
+    agent_id: ${WECOM_AGENT_ID:0}
     secret: ${WECOM_SECRET:}
     redirect_uri: ${WECOM_REDIRECT_URI:}
 telemetry:

@@ -675,7 +675,7 @@ type Security_WeCom struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	CorpId        string                 `protobuf:"bytes,2,opt,name=corp_id,json=corpId,proto3" json:"corp_id,omitempty"`
-	AgentId       string                 `protobuf:"bytes,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	AgentId       int64                  `protobuf:"varint,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
 	Secret        string                 `protobuf:"bytes,4,opt,name=secret,proto3" json:"secret,omitempty"`
 	RedirectUri   string                 `protobuf:"bytes,5,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -726,11 +726,11 @@ func (x *Security_WeCom) GetCorpId() string {
 	return ""
 }
 
-func (x *Security_WeCom) GetAgentId() string {
+func (x *Security_WeCom) GetAgentId() int64 {
 	if x != nil {
 		return x.AgentId
 	}
-	return ""
+	return 0
 }
 
 func (x *Security_WeCom) GetSecret() string {
@@ -802,7 +802,7 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x05WeCom\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x17\n" +
 	"\acorp_id\x18\x02 \x01(\tR\x06corpId\x12\x19\n" +
-	"\bagent_id\x18\x03 \x01(\tR\aagentId\x12\x16\n" +
+	"\bagent_id\x18\x03 \x01(\x03R\aagentId\x12\x16\n" +
 	"\x06secret\x18\x04 \x01(\tR\x06secret\x12!\n" +
 	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUriB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
