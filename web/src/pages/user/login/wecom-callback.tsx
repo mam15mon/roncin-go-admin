@@ -39,7 +39,12 @@ export default function WeComCallback() {
           setInitialState((current) => ({ ...current, currentUser: response.data }));
         });
         message.success('企业微信登录成功');
-        window.location.replace(storedRedirect());
+        const targetUrl = storedRedirect();
+        if (window.top && window.top !== window.self) {
+          window.top.location.replace(targetUrl);
+        } else {
+          window.location.replace(targetUrl);
+        }
       })
       .catch((error) => {
         setErrorMessage(error instanceof Error ? error.message : '企业微信登录失败');
@@ -54,7 +59,7 @@ export default function WeComCallback() {
       {errorMessage ? (
         <Result
           status="info"
-          icon={<WechatWorkOutlined style={{ color: '#07c160' }} />}
+          icon={<WechatWorkOutlined style={{ color: '#2b7ffc' }} />}
           title="企业微信登录未完成"
           subTitle={errorMessage}
           extra={

@@ -8,7 +8,7 @@ import {
   WechatWorkOutlined,
 } from '@ant-design/icons';
 import { Helmet, useModel } from '@umijs/max';
-import { App, Button, Checkbox, Divider, Form, Input } from 'antd';
+import { App, Button, Checkbox, Divider, Form, Input, Modal, Spin } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import {
   authServiceGetWeComLoginConfig,
@@ -36,6 +36,9 @@ export default function Login() {
   const [passwordValue, setPasswordValue] = useState('');
   const [wecomEnabled, setWecomEnabled] = useState(false);
   const [wecomLoading, setWecomLoading] = useState(false);
+  const [wecomModalOpen, setWecomModalOpen] = useState(false);
+  const [wecomAuthUrl, setWecomAuthUrl] = useState('');
+  const [iframeLoading, setIframeLoading] = useState(true);
 
   useEffect(() => {
     authServiceGetWeComLoginConfig({ skipErrorHandler: true })
@@ -63,6 +66,7 @@ export default function Login() {
 
   const handleWeComLogin = async () => {
     setWecomLoading(true);
+    setIframeLoading(true);
     try {
       const response = await authServiceGetWeComLoginConfig({
         skipErrorHandler: true,
@@ -73,7 +77,8 @@ export default function Login() {
       }
       const redirect = new URL(window.location.href).searchParams.get('redirect');
       sessionStorage.setItem('wecom_login_redirect', safeRedirect(redirect));
-      window.location.assign(response.data.authorizeUrl);
+      setWecomAuthUrl(response.data.authorizeUrl);
+      setWecomModalOpen(true);
     } catch (error) {
       message.error(error instanceof Error ? error.message : '企业微信登录启动失败');
     } finally {
@@ -251,6 +256,63 @@ export default function Login() {
           )}
         </div>
       </div>
+
+      {/* 企业微信扫码登录弹窗 */}
+      <Modal
+        open={wecomModalOpen}
+        onCancel={() => {
+          setWecomModalOpen(false);
+          setWecomAuthUrl('');
+        }}
+        footer={null}
+        destroyOnClose
+        centered
+        width={400}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16 }}>
+            <WechatWorkOutlined style={{ color: '#2b7ffc' }} />
+            <span>企业微信扫码登录</span>
+          </div>
+        }
+      >
+        <div
+          style={{
+            position: 'relative',
+            minHeight: 380,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {iframeLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                zIndex: 10,
+              }}
+            >
+              <Spin description="正在加载企业微信二维码..." />
+            </div>
+          )}
+          {wecomAuthUrl && (
+            <iframe
+              src={wecomAuthUrl}
+              title="企业微信扫码登录"
+              style={{
+                width: '100%',
+                height: 380,
+                border: 'none',
+              }}
+              onLoad={() => setIframeLoading(false)}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
