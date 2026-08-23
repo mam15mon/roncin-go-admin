@@ -146,6 +146,15 @@ message Order {
   optional string contract_no = 39;
   optional string cargo_value = 40;
   optional string cargo_currency = 41;
+  optional string internal_reference_no = 42;
+  optional string shipping_agent_id = 43;
+  optional string insurance_premium = 44;
+  optional string insurance_currency = 45;
+  optional string un_number = 46;
+  optional string hazard_class = 47;
+  optional string factory_name = 48;
+  optional string cargo_ready_at = 49;
+  optional string loading_terms = 50;
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -228,6 +237,15 @@ message CreateOrderRequest {
   optional string contract_no = 33;
   optional string cargo_value = 34;
   optional string cargo_currency = 35;
+  optional string internal_reference_no = 36;
+  optional string shipping_agent_id = 37;
+  optional string insurance_premium = 38;
+  optional string insurance_currency = 39;
+  optional string un_number = 40;
+  optional string hazard_class = 41;
+  optional string factory_name = 42;
+  optional string cargo_ready_at = 43;
+  optional string loading_terms = 44;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -268,6 +286,15 @@ message UpdateOrderRequest {
   optional string contract_no = 34;
   optional string cargo_value = 35;
   optional string cargo_currency = 36;
+  optional string internal_reference_no = 37;
+  optional string shipping_agent_id = 38;
+  optional string insurance_premium = 39;
+  optional string insurance_currency = 40;
+  optional string un_number = 41;
+  optional string hazard_class = 42;
+  optional string factory_name = 43;
+  optional string cargo_ready_at = 44;
+  optional string loading_terms = 45;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

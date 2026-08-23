@@ -102,14 +102,15 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 	input := &Order{
 		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
-		CustomerReferenceNo: "  CUST-001  ", ContractNo: "  CONTRACT-001  ",
-		CargoValue: "100000.25", CargoCurrency: " usd ",
+		CustomerReferenceNo: "  CUST-001  ", InternalReferenceNo: "  INTERNAL-001  ", ContractNo: "  CONTRACT-001  ",
+		CargoValue: "100000.25", CargoCurrency: " usd ", InsurancePremium: "100.50", InsuranceCurrency: " cny ",
+		UNNumber: "1234", HazardClass: "3", FactoryName: "  测试工厂  ", CargoReadyAt: "2026-08-23T12:00:00+08:00", LoadingTerms: "  CY-CY  ",
 	}
 	normalized, err := normalizeOrder(input, false)
 	if err != nil {
 		t.Fatalf("normalizeOrder() error = %v", err)
 	}
-	if normalized.CustomerReferenceNo != "CUST-001" || normalized.ContractNo != "CONTRACT-001" || normalized.CargoValue != "100000.25" || normalized.CargoCurrency != "USD" {
+	if normalized.CustomerReferenceNo != "CUST-001" || normalized.InternalReferenceNo != "INTERNAL-001" || normalized.ContractNo != "CONTRACT-001" || normalized.CargoValue != "100000.25" || normalized.CargoCurrency != "USD" || normalized.InsurancePremium != "100.50" || normalized.InsuranceCurrency != "CNY" || normalized.UNNumber != "1234" || normalized.HazardClass != "3" || normalized.FactoryName != "测试工厂" || normalized.LoadingTerms != "CY-CY" {
 		t.Fatalf("normalized business fields = %#v", normalized)
 	}
 
@@ -130,6 +131,17 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 		if _, err := normalizeOrder(&invalid, false); err != ErrOrderInvalidArgument {
 			t.Fatalf("normalizeOrder(%q, %q) error = %v, want ErrOrderInvalidArgument", testCase.value, testCase.currency, err)
 		}
+	}
+
+	invalidInsurance := *input
+	invalidInsurance.InsuranceCurrency = ""
+	if _, err := normalizeOrder(&invalidInsurance, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("incomplete insurance premium error = %v, want ErrOrderInvalidArgument", err)
+	}
+	invalidUNNumber := *input
+	invalidUNNumber.UNNumber = "123"
+	if _, err := normalizeOrder(&invalidUNNumber, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("invalid UN number error = %v, want ErrOrderInvalidArgument", err)
 	}
 }
 

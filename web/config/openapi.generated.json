@@ -6782,6 +6782,33 @@
           },
           "cargoCurrency": {
             "type": "string"
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "shippingAgentId": {
+            "type": "string"
+          },
+          "insurancePremium": {
+            "type": "string"
+          },
+          "insuranceCurrency": {
+            "type": "string"
+          },
+          "unNumber": {
+            "type": "string"
+          },
+          "hazardClass": {
+            "type": "string"
+          },
+          "factoryName": {
+            "type": "string"
+          },
+          "cargoReadyAt": {
+            "type": "string"
+          },
+          "loadingTerms": {
+            "type": "string"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -6940,6 +6967,33 @@
             "type": "string"
           },
           "cargoCurrency": {
+            "type": "string"
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "shippingAgentId": {
+            "type": "string"
+          },
+          "insurancePremium": {
+            "type": "string"
+          },
+          "insuranceCurrency": {
+            "type": "string"
+          },
+          "unNumber": {
+            "type": "string"
+          },
+          "hazardClass": {
+            "type": "string"
+          },
+          "factoryName": {
+            "type": "string"
+          },
+          "cargoReadyAt": {
+            "type": "string"
+          },
+          "loadingTerms": {
             "type": "string"
           }
         },
@@ -8163,6 +8217,33 @@
             "type": "string"
           },
           "cargoCurrency": {
+            "type": "string"
+          },
+          "internalReferenceNo": {
+            "type": "string"
+          },
+          "shippingAgentId": {
+            "type": "string"
+          },
+          "insurancePremium": {
+            "type": "string"
+          },
+          "insuranceCurrency": {
+            "type": "string"
+          },
+          "unNumber": {
+            "type": "string"
+          },
+          "hazardClass": {
+            "type": "string"
+          },
+          "factoryName": {
+            "type": "string"
+          },
+          "cargoReadyAt": {
+            "type": "string"
+          },
+          "loadingTerms": {
             "type": "string"
           }
         },

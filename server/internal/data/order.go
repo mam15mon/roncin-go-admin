@@ -83,12 +83,21 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetOrderNo(number).
 		SetCustomerID(input.CustomerID).
 		SetCustomerReferenceNo(input.CustomerReferenceNo).
+		SetInternalReferenceNo(input.InternalReferenceNo).
 		SetNillableCarrierID(input.CarrierID).
 		SetNillableBookingAgentID(input.BookingAgentID).
 		SetNillableForeignAgentID(input.ForeignAgentID).
+		SetNillableShippingAgentID(input.ShippingAgentID).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
 		SetCargoCurrency(input.CargoCurrency).
+		SetInsurancePremium(input.InsurancePremium).
+		SetInsuranceCurrency(input.InsuranceCurrency).
+		SetUnNumber(input.UNNumber).
+		SetHazardClass(input.HazardClass).
+		SetFactoryName(input.FactoryName).
+		SetCargoReadyAt(input.CargoReadyAt).
+		SetLoadingTerms(input.LoadingTerms).
 		SetBusinessType(orderent.BusinessType(input.BusinessType)).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
@@ -165,9 +174,17 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	update := existing.Update().
 		SetCustomerID(input.CustomerID).
 		SetCustomerReferenceNo(input.CustomerReferenceNo).
+		SetInternalReferenceNo(input.InternalReferenceNo).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
 		SetCargoCurrency(input.CargoCurrency).
+		SetInsurancePremium(input.InsurancePremium).
+		SetInsuranceCurrency(input.InsuranceCurrency).
+		SetUnNumber(input.UNNumber).
+		SetHazardClass(input.HazardClass).
+		SetFactoryName(input.FactoryName).
+		SetCargoReadyAt(input.CargoReadyAt).
+		SetLoadingTerms(input.LoadingTerms).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
 		SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
@@ -266,9 +283,26 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 			return biz.ErrOrderInvalidArgument
 		}
 	}
+	if input.ShippingAgentID != nil {
+		if err := validatePartnerRole(ctx, tx, organizationID, *input.ShippingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
+			return biz.ErrOrderInvalidArgument
+		}
+	}
 	if input.CargoCurrency != "" {
 		validCurrency, err := tx.Currency.Query().Where(
 			currencyent.CodeEQ(input.CargoCurrency),
+			currencyent.EnabledEQ(true),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !validCurrency {
+			return biz.ErrOrderInvalidArgument
+		}
+	}
+	if input.InsuranceCurrency != "" {
+		validCurrency, err := tx.Currency.Query().Where(
+			currencyent.CodeEQ(input.InsuranceCurrency),
 			currencyent.EnabledEQ(true),
 		).Exist(ctx)
 		if err != nil {
@@ -395,8 +429,9 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
 		ID: item.ID, OrganizationID: item.OrganizationID, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
-		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
-		CustomerReferenceNo: item.CustomerReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
+		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
+		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
+		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
 		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,
@@ -442,6 +477,11 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 		update.ClearForeignAgentID()
 	} else {
 		update.SetForeignAgentID(*input.ForeignAgentID)
+	}
+	if input.ShippingAgentID == nil {
+		update.ClearShippingAgentID()
+	} else {
+		update.SetShippingAgentID(*input.ShippingAgentID)
 	}
 	if input.ShipmentType == nil {
 		update.ClearShipmentType()

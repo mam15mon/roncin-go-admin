@@ -121,12 +121,21 @@ type Order struct {
 	OrderNo               string
 	CustomerID            uuid.UUID
 	CustomerReferenceNo   string
+	InternalReferenceNo   string
 	CarrierID             *uuid.UUID
 	BookingAgentID        *uuid.UUID
 	ForeignAgentID        *uuid.UUID
+	ShippingAgentID       *uuid.UUID
 	ContractNo            string
 	CargoValue            string
 	CargoCurrency         string
+	InsurancePremium      string
+	InsuranceCurrency     string
+	UNNumber              string
+	HazardClass           string
+	FactoryName           string
+	CargoReadyAt          string
+	LoadingTerms          string
 	BusinessType          OrderBusinessType
 	TradeDirection        OrderTradeDirection
 	TradeTerm             OrderTradeTerm
@@ -252,9 +261,17 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	}
 	output := *input
 	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)
+	output.InternalReferenceNo = strings.TrimSpace(output.InternalReferenceNo)
 	output.ContractNo = strings.TrimSpace(output.ContractNo)
 	output.CargoValue = strings.TrimSpace(output.CargoValue)
 	output.CargoCurrency = strings.ToUpper(strings.TrimSpace(output.CargoCurrency))
+	output.InsurancePremium = strings.TrimSpace(output.InsurancePremium)
+	output.InsuranceCurrency = strings.ToUpper(strings.TrimSpace(output.InsuranceCurrency))
+	output.UNNumber = strings.TrimSpace(output.UNNumber)
+	output.HazardClass = strings.TrimSpace(output.HazardClass)
+	output.FactoryName = strings.TrimSpace(output.FactoryName)
+	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
+	output.LoadingTerms = strings.TrimSpace(output.LoadingTerms)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)
 	output.ETA = strings.TrimSpace(output.ETA)
@@ -270,13 +287,16 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	if (output.CargoValue == "") != (output.CargoCurrency == "") || output.CargoValue != "" && (!cargoValuePattern.MatchString(output.CargoValue) || len(output.CargoCurrency) != 3) {
 		return nil, ErrOrderInvalidArgument
 	}
-	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.OrderDate} {
+	if (output.InsurancePremium == "") != (output.InsuranceCurrency == "") || output.InsurancePremium != "" && (!cargoValuePattern.MatchString(output.InsurancePremium) || len(output.InsuranceCurrency) != 3) || output.UNNumber != "" && !unNumberPattern.MatchString(output.UNNumber) {
+		return nil, ErrOrderInvalidArgument
+	}
+	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.OrderDate} {
 		if value != "" {
 			if _, err := time.Parse(time.RFC3339, value); err != nil {
 				return nil, ErrOrderInvalidArgument
@@ -296,6 +316,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 }
 
 var cargoValuePattern = regexp.MustCompile(`^(0|[1-9]\d{0,17})(\.\d{1,4})?$`)
+var unNumberPattern = regexp.MustCompile(`^\d{4}$`)
 
 func validateUUIDSet(values []uuid.UUID) error {
 	seen := make(map[uuid.UUID]struct{}, len(values))

@@ -461,6 +461,15 @@ type Order struct {
 	ContractNo            *string                `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
 	CargoValue            *string                `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
 	CargoCurrency         *string                `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo   *string                `protobuf:"bytes,42,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId       *string                `protobuf:"bytes,43,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium      *string                `protobuf:"bytes,44,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency     *string                `protobuf:"bytes,45,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber              *string                `protobuf:"bytes,46,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass           *string                `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName           *string                `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt          *string                `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms          *string                `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -778,6 +787,69 @@ func (x *Order) GetCargoValue() string {
 func (x *Order) GetCargoCurrency() string {
 	if x != nil && x.CargoCurrency != nil {
 		return *x.CargoCurrency
+	}
+	return ""
+}
+
+func (x *Order) GetInternalReferenceNo() string {
+	if x != nil && x.InternalReferenceNo != nil {
+		return *x.InternalReferenceNo
+	}
+	return ""
+}
+
+func (x *Order) GetShippingAgentId() string {
+	if x != nil && x.ShippingAgentId != nil {
+		return *x.ShippingAgentId
+	}
+	return ""
+}
+
+func (x *Order) GetInsurancePremium() string {
+	if x != nil && x.InsurancePremium != nil {
+		return *x.InsurancePremium
+	}
+	return ""
+}
+
+func (x *Order) GetInsuranceCurrency() string {
+	if x != nil && x.InsuranceCurrency != nil {
+		return *x.InsuranceCurrency
+	}
+	return ""
+}
+
+func (x *Order) GetUnNumber() string {
+	if x != nil && x.UnNumber != nil {
+		return *x.UnNumber
+	}
+	return ""
+}
+
+func (x *Order) GetHazardClass() string {
+	if x != nil && x.HazardClass != nil {
+		return *x.HazardClass
+	}
+	return ""
+}
+
+func (x *Order) GetFactoryName() string {
+	if x != nil && x.FactoryName != nil {
+		return *x.FactoryName
+	}
+	return ""
+}
+
+func (x *Order) GetCargoReadyAt() string {
+	if x != nil && x.CargoReadyAt != nil {
+		return *x.CargoReadyAt
+	}
+	return ""
+}
+
+func (x *Order) GetLoadingTerms() string {
+	if x != nil && x.LoadingTerms != nil {
+		return *x.LoadingTerms
 	}
 	return ""
 }
@@ -1189,6 +1261,15 @@ type CreateOrderRequest struct {
 	ContractNo            *string                `protobuf:"bytes,33,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
 	CargoValue            *string                `protobuf:"bytes,34,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
 	CargoCurrency         *string                `protobuf:"bytes,35,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo   *string                `protobuf:"bytes,36,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId       *string                `protobuf:"bytes,37,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium      *string                `protobuf:"bytes,38,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency     *string                `protobuf:"bytes,39,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber              *string                `protobuf:"bytes,40,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass           *string                `protobuf:"bytes,41,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName           *string                `protobuf:"bytes,42,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt          *string                `protobuf:"bytes,43,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms          *string                `protobuf:"bytes,44,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1468,6 +1549,69 @@ func (x *CreateOrderRequest) GetCargoCurrency() string {
 	return ""
 }
 
+func (x *CreateOrderRequest) GetInternalReferenceNo() string {
+	if x != nil && x.InternalReferenceNo != nil {
+		return *x.InternalReferenceNo
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetShippingAgentId() string {
+	if x != nil && x.ShippingAgentId != nil {
+		return *x.ShippingAgentId
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetInsurancePremium() string {
+	if x != nil && x.InsurancePremium != nil {
+		return *x.InsurancePremium
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetInsuranceCurrency() string {
+	if x != nil && x.InsuranceCurrency != nil {
+		return *x.InsuranceCurrency
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetUnNumber() string {
+	if x != nil && x.UnNumber != nil {
+		return *x.UnNumber
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetHazardClass() string {
+	if x != nil && x.HazardClass != nil {
+		return *x.HazardClass
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetFactoryName() string {
+	if x != nil && x.FactoryName != nil {
+		return *x.FactoryName
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetCargoReadyAt() string {
+	if x != nil && x.CargoReadyAt != nil {
+		return *x.CargoReadyAt
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetLoadingTerms() string {
+	if x != nil && x.LoadingTerms != nil {
+		return *x.LoadingTerms
+	}
+	return ""
+}
+
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
@@ -1507,6 +1651,15 @@ type UpdateOrderRequest struct {
 	ContractNo            *string                `protobuf:"bytes,34,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
 	CargoValue            *string                `protobuf:"bytes,35,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
 	CargoCurrency         *string                `protobuf:"bytes,36,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo   *string                `protobuf:"bytes,37,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId       *string                `protobuf:"bytes,38,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium      *string                `protobuf:"bytes,39,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency     *string                `protobuf:"bytes,40,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber              *string                `protobuf:"bytes,41,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass           *string                `protobuf:"bytes,42,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName           *string                `protobuf:"bytes,43,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt          *string                `protobuf:"bytes,44,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms          *string                `protobuf:"bytes,45,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1793,6 +1946,69 @@ func (x *UpdateOrderRequest) GetCargoCurrency() string {
 	return ""
 }
 
+func (x *UpdateOrderRequest) GetInternalReferenceNo() string {
+	if x != nil && x.InternalReferenceNo != nil {
+		return *x.InternalReferenceNo
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetShippingAgentId() string {
+	if x != nil && x.ShippingAgentId != nil {
+		return *x.ShippingAgentId
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetInsurancePremium() string {
+	if x != nil && x.InsurancePremium != nil {
+		return *x.InsurancePremium
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetInsuranceCurrency() string {
+	if x != nil && x.InsuranceCurrency != nil {
+		return *x.InsuranceCurrency
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetUnNumber() string {
+	if x != nil && x.UnNumber != nil {
+		return *x.UnNumber
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetHazardClass() string {
+	if x != nil && x.HazardClass != nil {
+		return *x.HazardClass
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetFactoryName() string {
+	if x != nil && x.FactoryName != nil {
+		return *x.FactoryName
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetCargoReadyAt() string {
+	if x != nil && x.CargoReadyAt != nil {
+		return *x.CargoReadyAt
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetLoadingTerms() string {
+	if x != nil && x.LoadingTerms != nil {
+		return *x.LoadingTerms
+	}
+	return ""
+}
+
 // TransitionOrderStatusRequest 流转订单状态请求。
 type TransitionOrderStatusRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
@@ -2044,7 +2260,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9f\x12\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe8\x16\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -2098,7 +2314,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"contractNo\x88\x01\x01\x12$\n" +
 	"\vcargo_value\x18( \x01(\tH\x19R\n" +
 	"cargoValue\x88\x01\x01\x12*\n" +
-	"\x0ecargo_currency\x18) \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01B\r\n" +
+	"\x0ecargo_currency\x18) \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01\x127\n" +
+	"\x15internal_reference_no\x18* \x01(\tH\x1bR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
+	"\x11shipping_agent_id\x18+ \x01(\tH\x1cR\x0fshippingAgentId\x88\x01\x01\x120\n" +
+	"\x11insurance_premium\x18, \x01(\tH\x1dR\x10insurancePremium\x88\x01\x01\x122\n" +
+	"\x12insurance_currency\x18- \x01(\tH\x1eR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
+	"\tun_number\x18. \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
+	"\fhazard_class\x18/ \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
+	"\ffactory_name\x180 \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
+	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
+	"\rloading_terms\x182 \x01(\tH#R\floadingTerms\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -2126,7 +2351,17 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x11_foreign_agent_idB\x0e\n" +
 	"\f_contract_noB\x0e\n" +
 	"\f_cargo_valueB\x11\n" +
-	"\x0f_cargo_currency\"\x90\x01\n" +
+	"\x0f_cargo_currencyB\x18\n" +
+	"\x16_internal_reference_noB\x14\n" +
+	"\x12_shipping_agent_idB\x14\n" +
+	"\x12_insurance_premiumB\x15\n" +
+	"\x13_insurance_currencyB\f\n" +
+	"\n" +
+	"_un_numberB\x0f\n" +
+	"\r_hazard_classB\x0f\n" +
+	"\r_factory_nameB\x11\n" +
+	"\x0f_cargo_ready_atB\x10\n" +
+	"\x0e_loading_terms\"\x90\x01\n" +
 	"\x15OrderServiceSelection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12-\n" +
@@ -2164,7 +2399,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rbusiness_type\x18\x05 \x01(\x0e2\x16.order.v1.BusinessTypeH\x00R\fbusinessType\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x06 \x01(\tR\n" +
 	"customerIdB\x10\n" +
-	"\x0e_business_type\"\xa0\x11\n" +
+	"\x0e_business_type\"\xe9\x15\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -2210,7 +2445,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"contractNo\x88\x01\x01\x12$\n" +
 	"\vcargo_value\x18\" \x01(\tH\x19R\n" +
 	"cargoValue\x88\x01\x01\x12*\n" +
-	"\x0ecargo_currency\x18# \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01B\r\n" +
+	"\x0ecargo_currency\x18# \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01\x127\n" +
+	"\x15internal_reference_no\x18$ \x01(\tH\x1bR\x13internalReferenceNo\x88\x01\x01\x12/\n" +
+	"\x11shipping_agent_id\x18% \x01(\tH\x1cR\x0fshippingAgentId\x88\x01\x01\x120\n" +
+	"\x11insurance_premium\x18& \x01(\tH\x1dR\x10insurancePremium\x88\x01\x01\x122\n" +
+	"\x12insurance_currency\x18' \x01(\tH\x1eR\x11insuranceCurrency\x88\x01\x01\x12 \n" +
+	"\tun_number\x18( \x01(\tH\x1fR\bunNumber\x88\x01\x01\x12&\n" +
+	"\fhazard_class\x18) \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
+	"\ffactory_name\x18* \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
+	"\x0ecargo_ready_at\x18+ \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
+	"\rloading_terms\x18, \x01(\tH#R\floadingTerms\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -2238,7 +2482,17 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x11_foreign_agent_idB\x0e\n" +
 	"\f_contract_noB\x0e\n" +
 	"\f_cargo_valueB\x11\n" +
-	"\x0f_cargo_currency\"\x86\x12\n" +
+	"\x0f_cargo_currencyB\x18\n" +
+	"\x16_internal_reference_noB\x14\n" +
+	"\x12_shipping_agent_idB\x14\n" +
+	"\x12_insurance_premiumB\x15\n" +
+	"\x13_insurance_currencyB\f\n" +
+	"\n" +
+	"_un_numberB\x0f\n" +
+	"\r_hazard_classB\x0f\n" +
+	"\r_factory_nameB\x11\n" +
+	"\x0f_cargo_ready_atB\x10\n" +
+	"\x0e_loading_terms\"\xcf\x16\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12$\n" +
@@ -2285,7 +2539,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"contractNo\x88\x01\x01\x12$\n" +
 	"\vcargo_value\x18# \x01(\tH\x1eR\n" +
 	"cargoValue\x88\x01\x01\x12*\n" +
-	"\x0ecargo_currency\x18$ \x01(\tH\x1fR\rcargoCurrency\x88\x01\x01B\x0e\n" +
+	"\x0ecargo_currency\x18$ \x01(\tH\x1fR\rcargoCurrency\x88\x01\x01\x127\n" +
+	"\x15internal_reference_no\x18% \x01(\tH R\x13internalReferenceNo\x88\x01\x01\x12/\n" +
+	"\x11shipping_agent_id\x18& \x01(\tH!R\x0fshippingAgentId\x88\x01\x01\x120\n" +
+	"\x11insurance_premium\x18' \x01(\tH\"R\x10insurancePremium\x88\x01\x01\x122\n" +
+	"\x12insurance_currency\x18( \x01(\tH#R\x11insuranceCurrency\x88\x01\x01\x12 \n" +
+	"\tun_number\x18) \x01(\tH$R\bunNumber\x88\x01\x01\x12&\n" +
+	"\fhazard_class\x18* \x01(\tH%R\vhazardClass\x88\x01\x01\x12&\n" +
+	"\ffactory_name\x18+ \x01(\tH&R\vfactoryName\x88\x01\x01\x12)\n" +
+	"\x0ecargo_ready_at\x18, \x01(\tH'R\fcargoReadyAt\x88\x01\x01\x12(\n" +
+	"\rloading_terms\x18- \x01(\tH(R\floadingTerms\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -2318,7 +2581,17 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x11_foreign_agent_idB\x0e\n" +
 	"\f_contract_noB\x0e\n" +
 	"\f_cargo_valueB\x11\n" +
-	"\x0f_cargo_currency\"\xb3\x01\n" +
+	"\x0f_cargo_currencyB\x18\n" +
+	"\x16_internal_reference_noB\x14\n" +
+	"\x12_shipping_agent_idB\x14\n" +
+	"\x12_insurance_premiumB\x15\n" +
+	"\x13_insurance_currencyB\f\n" +
+	"\n" +
+	"_un_numberB\x0f\n" +
+	"\r_hazard_classB\x0f\n" +
+	"\r_factory_nameB\x11\n" +
+	"\x0f_cargo_ready_atB\x10\n" +
+	"\x0e_loading_terms\"\xb3\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12(\n" +

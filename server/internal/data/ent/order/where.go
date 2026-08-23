@@ -86,6 +86,11 @@ func CustomerReferenceNo(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCustomerReferenceNo, v))
 }
 
+// InternalReferenceNo applies equality check predicate on the "internal_reference_no" field. It's identical to InternalReferenceNoEQ.
+func InternalReferenceNo(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInternalReferenceNo, v))
+}
+
 // CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
 func CarrierID(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
@@ -101,6 +106,11 @@ func ForeignAgentID(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldForeignAgentID, v))
 }
 
+// ShippingAgentID applies equality check predicate on the "shipping_agent_id" field. It's identical to ShippingAgentIDEQ.
+func ShippingAgentID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingAgentID, v))
+}
+
 // ContractNo applies equality check predicate on the "contract_no" field. It's identical to ContractNoEQ.
 func ContractNo(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldContractNo, v))
@@ -114,6 +124,41 @@ func CargoValue(v string) predicate.Order {
 // CargoCurrency applies equality check predicate on the "cargo_currency" field. It's identical to CargoCurrencyEQ.
 func CargoCurrency(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCargoCurrency, v))
+}
+
+// InsurancePremium applies equality check predicate on the "insurance_premium" field. It's identical to InsurancePremiumEQ.
+func InsurancePremium(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInsurancePremium, v))
+}
+
+// InsuranceCurrency applies equality check predicate on the "insurance_currency" field. It's identical to InsuranceCurrencyEQ.
+func InsuranceCurrency(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInsuranceCurrency, v))
+}
+
+// UnNumber applies equality check predicate on the "un_number" field. It's identical to UnNumberEQ.
+func UnNumber(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldUnNumber, v))
+}
+
+// HazardClass applies equality check predicate on the "hazard_class" field. It's identical to HazardClassEQ.
+func HazardClass(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldHazardClass, v))
+}
+
+// FactoryName applies equality check predicate on the "factory_name" field. It's identical to FactoryNameEQ.
+func FactoryName(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFactoryName, v))
+}
+
+// CargoReadyAt applies equality check predicate on the "cargo_ready_at" field. It's identical to CargoReadyAtEQ.
+func CargoReadyAt(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldCargoReadyAt, v))
+}
+
+// LoadingTerms applies equality check predicate on the "loading_terms" field. It's identical to LoadingTermsEQ.
+func LoadingTerms(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
@@ -471,6 +516,81 @@ func CustomerReferenceNoContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldCustomerReferenceNo, v))
 }
 
+// InternalReferenceNoEQ applies the EQ predicate on the "internal_reference_no" field.
+func InternalReferenceNoEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoNEQ applies the NEQ predicate on the "internal_reference_no" field.
+func InternalReferenceNoNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoIn applies the In predicate on the "internal_reference_no" field.
+func InternalReferenceNoIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldInternalReferenceNo, vs...))
+}
+
+// InternalReferenceNoNotIn applies the NotIn predicate on the "internal_reference_no" field.
+func InternalReferenceNoNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldInternalReferenceNo, vs...))
+}
+
+// InternalReferenceNoGT applies the GT predicate on the "internal_reference_no" field.
+func InternalReferenceNoGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoGTE applies the GTE predicate on the "internal_reference_no" field.
+func InternalReferenceNoGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoLT applies the LT predicate on the "internal_reference_no" field.
+func InternalReferenceNoLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoLTE applies the LTE predicate on the "internal_reference_no" field.
+func InternalReferenceNoLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoContains applies the Contains predicate on the "internal_reference_no" field.
+func InternalReferenceNoContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoHasPrefix applies the HasPrefix predicate on the "internal_reference_no" field.
+func InternalReferenceNoHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoHasSuffix applies the HasSuffix predicate on the "internal_reference_no" field.
+func InternalReferenceNoHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoIsNil applies the IsNil predicate on the "internal_reference_no" field.
+func InternalReferenceNoIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldInternalReferenceNo))
+}
+
+// InternalReferenceNoNotNil applies the NotNil predicate on the "internal_reference_no" field.
+func InternalReferenceNoNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldInternalReferenceNo))
+}
+
+// InternalReferenceNoEqualFold applies the EqualFold predicate on the "internal_reference_no" field.
+func InternalReferenceNoEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldInternalReferenceNo, v))
+}
+
+// InternalReferenceNoContainsFold applies the ContainsFold predicate on the "internal_reference_no" field.
+func InternalReferenceNoContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldInternalReferenceNo, v))
+}
+
 // CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
 func CarrierIDEQ(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
@@ -619,6 +739,56 @@ func ForeignAgentIDIsNil() predicate.Order {
 // ForeignAgentIDNotNil applies the NotNil predicate on the "foreign_agent_id" field.
 func ForeignAgentIDNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldForeignAgentID))
+}
+
+// ShippingAgentIDEQ applies the EQ predicate on the "shipping_agent_id" field.
+func ShippingAgentIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDNEQ applies the NEQ predicate on the "shipping_agent_id" field.
+func ShippingAgentIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDIn applies the In predicate on the "shipping_agent_id" field.
+func ShippingAgentIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldShippingAgentID, vs...))
+}
+
+// ShippingAgentIDNotIn applies the NotIn predicate on the "shipping_agent_id" field.
+func ShippingAgentIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldShippingAgentID, vs...))
+}
+
+// ShippingAgentIDGT applies the GT predicate on the "shipping_agent_id" field.
+func ShippingAgentIDGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDGTE applies the GTE predicate on the "shipping_agent_id" field.
+func ShippingAgentIDGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDLT applies the LT predicate on the "shipping_agent_id" field.
+func ShippingAgentIDLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDLTE applies the LTE predicate on the "shipping_agent_id" field.
+func ShippingAgentIDLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldShippingAgentID, v))
+}
+
+// ShippingAgentIDIsNil applies the IsNil predicate on the "shipping_agent_id" field.
+func ShippingAgentIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldShippingAgentID))
+}
+
+// ShippingAgentIDNotNil applies the NotNil predicate on the "shipping_agent_id" field.
+func ShippingAgentIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldShippingAgentID))
 }
 
 // ContractNoEQ applies the EQ predicate on the "contract_no" field.
@@ -844,6 +1014,531 @@ func CargoCurrencyEqualFold(v string) predicate.Order {
 // CargoCurrencyContainsFold applies the ContainsFold predicate on the "cargo_currency" field.
 func CargoCurrencyContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldCargoCurrency, v))
+}
+
+// InsurancePremiumEQ applies the EQ predicate on the "insurance_premium" field.
+func InsurancePremiumEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumNEQ applies the NEQ predicate on the "insurance_premium" field.
+func InsurancePremiumNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumIn applies the In predicate on the "insurance_premium" field.
+func InsurancePremiumIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldInsurancePremium, vs...))
+}
+
+// InsurancePremiumNotIn applies the NotIn predicate on the "insurance_premium" field.
+func InsurancePremiumNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldInsurancePremium, vs...))
+}
+
+// InsurancePremiumGT applies the GT predicate on the "insurance_premium" field.
+func InsurancePremiumGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumGTE applies the GTE predicate on the "insurance_premium" field.
+func InsurancePremiumGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumLT applies the LT predicate on the "insurance_premium" field.
+func InsurancePremiumLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumLTE applies the LTE predicate on the "insurance_premium" field.
+func InsurancePremiumLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumContains applies the Contains predicate on the "insurance_premium" field.
+func InsurancePremiumContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumHasPrefix applies the HasPrefix predicate on the "insurance_premium" field.
+func InsurancePremiumHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumHasSuffix applies the HasSuffix predicate on the "insurance_premium" field.
+func InsurancePremiumHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumIsNil applies the IsNil predicate on the "insurance_premium" field.
+func InsurancePremiumIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldInsurancePremium))
+}
+
+// InsurancePremiumNotNil applies the NotNil predicate on the "insurance_premium" field.
+func InsurancePremiumNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldInsurancePremium))
+}
+
+// InsurancePremiumEqualFold applies the EqualFold predicate on the "insurance_premium" field.
+func InsurancePremiumEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldInsurancePremium, v))
+}
+
+// InsurancePremiumContainsFold applies the ContainsFold predicate on the "insurance_premium" field.
+func InsurancePremiumContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldInsurancePremium, v))
+}
+
+// InsuranceCurrencyEQ applies the EQ predicate on the "insurance_currency" field.
+func InsuranceCurrencyEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyNEQ applies the NEQ predicate on the "insurance_currency" field.
+func InsuranceCurrencyNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyIn applies the In predicate on the "insurance_currency" field.
+func InsuranceCurrencyIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldInsuranceCurrency, vs...))
+}
+
+// InsuranceCurrencyNotIn applies the NotIn predicate on the "insurance_currency" field.
+func InsuranceCurrencyNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldInsuranceCurrency, vs...))
+}
+
+// InsuranceCurrencyGT applies the GT predicate on the "insurance_currency" field.
+func InsuranceCurrencyGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyGTE applies the GTE predicate on the "insurance_currency" field.
+func InsuranceCurrencyGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyLT applies the LT predicate on the "insurance_currency" field.
+func InsuranceCurrencyLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyLTE applies the LTE predicate on the "insurance_currency" field.
+func InsuranceCurrencyLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyContains applies the Contains predicate on the "insurance_currency" field.
+func InsuranceCurrencyContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyHasPrefix applies the HasPrefix predicate on the "insurance_currency" field.
+func InsuranceCurrencyHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyHasSuffix applies the HasSuffix predicate on the "insurance_currency" field.
+func InsuranceCurrencyHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyIsNil applies the IsNil predicate on the "insurance_currency" field.
+func InsuranceCurrencyIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldInsuranceCurrency))
+}
+
+// InsuranceCurrencyNotNil applies the NotNil predicate on the "insurance_currency" field.
+func InsuranceCurrencyNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldInsuranceCurrency))
+}
+
+// InsuranceCurrencyEqualFold applies the EqualFold predicate on the "insurance_currency" field.
+func InsuranceCurrencyEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldInsuranceCurrency, v))
+}
+
+// InsuranceCurrencyContainsFold applies the ContainsFold predicate on the "insurance_currency" field.
+func InsuranceCurrencyContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldInsuranceCurrency, v))
+}
+
+// UnNumberEQ applies the EQ predicate on the "un_number" field.
+func UnNumberEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldUnNumber, v))
+}
+
+// UnNumberNEQ applies the NEQ predicate on the "un_number" field.
+func UnNumberNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldUnNumber, v))
+}
+
+// UnNumberIn applies the In predicate on the "un_number" field.
+func UnNumberIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldUnNumber, vs...))
+}
+
+// UnNumberNotIn applies the NotIn predicate on the "un_number" field.
+func UnNumberNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldUnNumber, vs...))
+}
+
+// UnNumberGT applies the GT predicate on the "un_number" field.
+func UnNumberGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldUnNumber, v))
+}
+
+// UnNumberGTE applies the GTE predicate on the "un_number" field.
+func UnNumberGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldUnNumber, v))
+}
+
+// UnNumberLT applies the LT predicate on the "un_number" field.
+func UnNumberLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldUnNumber, v))
+}
+
+// UnNumberLTE applies the LTE predicate on the "un_number" field.
+func UnNumberLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldUnNumber, v))
+}
+
+// UnNumberContains applies the Contains predicate on the "un_number" field.
+func UnNumberContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldUnNumber, v))
+}
+
+// UnNumberHasPrefix applies the HasPrefix predicate on the "un_number" field.
+func UnNumberHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldUnNumber, v))
+}
+
+// UnNumberHasSuffix applies the HasSuffix predicate on the "un_number" field.
+func UnNumberHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldUnNumber, v))
+}
+
+// UnNumberIsNil applies the IsNil predicate on the "un_number" field.
+func UnNumberIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldUnNumber))
+}
+
+// UnNumberNotNil applies the NotNil predicate on the "un_number" field.
+func UnNumberNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldUnNumber))
+}
+
+// UnNumberEqualFold applies the EqualFold predicate on the "un_number" field.
+func UnNumberEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldUnNumber, v))
+}
+
+// UnNumberContainsFold applies the ContainsFold predicate on the "un_number" field.
+func UnNumberContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldUnNumber, v))
+}
+
+// HazardClassEQ applies the EQ predicate on the "hazard_class" field.
+func HazardClassEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldHazardClass, v))
+}
+
+// HazardClassNEQ applies the NEQ predicate on the "hazard_class" field.
+func HazardClassNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldHazardClass, v))
+}
+
+// HazardClassIn applies the In predicate on the "hazard_class" field.
+func HazardClassIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldHazardClass, vs...))
+}
+
+// HazardClassNotIn applies the NotIn predicate on the "hazard_class" field.
+func HazardClassNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldHazardClass, vs...))
+}
+
+// HazardClassGT applies the GT predicate on the "hazard_class" field.
+func HazardClassGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldHazardClass, v))
+}
+
+// HazardClassGTE applies the GTE predicate on the "hazard_class" field.
+func HazardClassGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldHazardClass, v))
+}
+
+// HazardClassLT applies the LT predicate on the "hazard_class" field.
+func HazardClassLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldHazardClass, v))
+}
+
+// HazardClassLTE applies the LTE predicate on the "hazard_class" field.
+func HazardClassLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldHazardClass, v))
+}
+
+// HazardClassContains applies the Contains predicate on the "hazard_class" field.
+func HazardClassContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldHazardClass, v))
+}
+
+// HazardClassHasPrefix applies the HasPrefix predicate on the "hazard_class" field.
+func HazardClassHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldHazardClass, v))
+}
+
+// HazardClassHasSuffix applies the HasSuffix predicate on the "hazard_class" field.
+func HazardClassHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldHazardClass, v))
+}
+
+// HazardClassIsNil applies the IsNil predicate on the "hazard_class" field.
+func HazardClassIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldHazardClass))
+}
+
+// HazardClassNotNil applies the NotNil predicate on the "hazard_class" field.
+func HazardClassNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldHazardClass))
+}
+
+// HazardClassEqualFold applies the EqualFold predicate on the "hazard_class" field.
+func HazardClassEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldHazardClass, v))
+}
+
+// HazardClassContainsFold applies the ContainsFold predicate on the "hazard_class" field.
+func HazardClassContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldHazardClass, v))
+}
+
+// FactoryNameEQ applies the EQ predicate on the "factory_name" field.
+func FactoryNameEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFactoryName, v))
+}
+
+// FactoryNameNEQ applies the NEQ predicate on the "factory_name" field.
+func FactoryNameNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFactoryName, v))
+}
+
+// FactoryNameIn applies the In predicate on the "factory_name" field.
+func FactoryNameIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFactoryName, vs...))
+}
+
+// FactoryNameNotIn applies the NotIn predicate on the "factory_name" field.
+func FactoryNameNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFactoryName, vs...))
+}
+
+// FactoryNameGT applies the GT predicate on the "factory_name" field.
+func FactoryNameGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldFactoryName, v))
+}
+
+// FactoryNameGTE applies the GTE predicate on the "factory_name" field.
+func FactoryNameGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldFactoryName, v))
+}
+
+// FactoryNameLT applies the LT predicate on the "factory_name" field.
+func FactoryNameLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldFactoryName, v))
+}
+
+// FactoryNameLTE applies the LTE predicate on the "factory_name" field.
+func FactoryNameLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldFactoryName, v))
+}
+
+// FactoryNameContains applies the Contains predicate on the "factory_name" field.
+func FactoryNameContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldFactoryName, v))
+}
+
+// FactoryNameHasPrefix applies the HasPrefix predicate on the "factory_name" field.
+func FactoryNameHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldFactoryName, v))
+}
+
+// FactoryNameHasSuffix applies the HasSuffix predicate on the "factory_name" field.
+func FactoryNameHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldFactoryName, v))
+}
+
+// FactoryNameIsNil applies the IsNil predicate on the "factory_name" field.
+func FactoryNameIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldFactoryName))
+}
+
+// FactoryNameNotNil applies the NotNil predicate on the "factory_name" field.
+func FactoryNameNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldFactoryName))
+}
+
+// FactoryNameEqualFold applies the EqualFold predicate on the "factory_name" field.
+func FactoryNameEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldFactoryName, v))
+}
+
+// FactoryNameContainsFold applies the ContainsFold predicate on the "factory_name" field.
+func FactoryNameContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldFactoryName, v))
+}
+
+// CargoReadyAtEQ applies the EQ predicate on the "cargo_ready_at" field.
+func CargoReadyAtEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtNEQ applies the NEQ predicate on the "cargo_ready_at" field.
+func CargoReadyAtNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtIn applies the In predicate on the "cargo_ready_at" field.
+func CargoReadyAtIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldCargoReadyAt, vs...))
+}
+
+// CargoReadyAtNotIn applies the NotIn predicate on the "cargo_ready_at" field.
+func CargoReadyAtNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldCargoReadyAt, vs...))
+}
+
+// CargoReadyAtGT applies the GT predicate on the "cargo_ready_at" field.
+func CargoReadyAtGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtGTE applies the GTE predicate on the "cargo_ready_at" field.
+func CargoReadyAtGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtLT applies the LT predicate on the "cargo_ready_at" field.
+func CargoReadyAtLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtLTE applies the LTE predicate on the "cargo_ready_at" field.
+func CargoReadyAtLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtContains applies the Contains predicate on the "cargo_ready_at" field.
+func CargoReadyAtContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtHasPrefix applies the HasPrefix predicate on the "cargo_ready_at" field.
+func CargoReadyAtHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtHasSuffix applies the HasSuffix predicate on the "cargo_ready_at" field.
+func CargoReadyAtHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtIsNil applies the IsNil predicate on the "cargo_ready_at" field.
+func CargoReadyAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldCargoReadyAt))
+}
+
+// CargoReadyAtNotNil applies the NotNil predicate on the "cargo_ready_at" field.
+func CargoReadyAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldCargoReadyAt))
+}
+
+// CargoReadyAtEqualFold applies the EqualFold predicate on the "cargo_ready_at" field.
+func CargoReadyAtEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldCargoReadyAt, v))
+}
+
+// CargoReadyAtContainsFold applies the ContainsFold predicate on the "cargo_ready_at" field.
+func CargoReadyAtContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldCargoReadyAt, v))
+}
+
+// LoadingTermsEQ applies the EQ predicate on the "loading_terms" field.
+func LoadingTermsEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
+}
+
+// LoadingTermsNEQ applies the NEQ predicate on the "loading_terms" field.
+func LoadingTermsNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldLoadingTerms, v))
+}
+
+// LoadingTermsIn applies the In predicate on the "loading_terms" field.
+func LoadingTermsIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldLoadingTerms, vs...))
+}
+
+// LoadingTermsNotIn applies the NotIn predicate on the "loading_terms" field.
+func LoadingTermsNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldLoadingTerms, vs...))
+}
+
+// LoadingTermsGT applies the GT predicate on the "loading_terms" field.
+func LoadingTermsGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldLoadingTerms, v))
+}
+
+// LoadingTermsGTE applies the GTE predicate on the "loading_terms" field.
+func LoadingTermsGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldLoadingTerms, v))
+}
+
+// LoadingTermsLT applies the LT predicate on the "loading_terms" field.
+func LoadingTermsLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldLoadingTerms, v))
+}
+
+// LoadingTermsLTE applies the LTE predicate on the "loading_terms" field.
+func LoadingTermsLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldLoadingTerms, v))
+}
+
+// LoadingTermsContains applies the Contains predicate on the "loading_terms" field.
+func LoadingTermsContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldLoadingTerms, v))
+}
+
+// LoadingTermsHasPrefix applies the HasPrefix predicate on the "loading_terms" field.
+func LoadingTermsHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldLoadingTerms, v))
+}
+
+// LoadingTermsHasSuffix applies the HasSuffix predicate on the "loading_terms" field.
+func LoadingTermsHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldLoadingTerms, v))
+}
+
+// LoadingTermsIsNil applies the IsNil predicate on the "loading_terms" field.
+func LoadingTermsIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldLoadingTerms))
+}
+
+// LoadingTermsNotNil applies the NotNil predicate on the "loading_terms" field.
+func LoadingTermsNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldLoadingTerms))
+}
+
+// LoadingTermsEqualFold applies the EqualFold predicate on the "loading_terms" field.
+func LoadingTermsEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldLoadingTerms, v))
+}
+
+// LoadingTermsContainsFold applies the ContainsFold predicate on the "loading_terms" field.
+func LoadingTermsContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldLoadingTerms, v))
 }
 
 // BusinessTypeEQ applies the EQ predicate on the "business_type" field.

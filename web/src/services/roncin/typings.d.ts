@@ -439,6 +439,15 @@ declare namespace API {
     contractNo?: string;
     cargoValue?: string;
     cargoCurrency?: string;
+    internalReferenceNo?: string;
+    shippingAgentId?: string;
+    insurancePremium?: string;
+    insuranceCurrency?: string;
+    unNumber?: string;
+    hazardClass?: string;
+    factoryName?: string;
+    cargoReadyAt?: string;
+    loadingTerms?: string;
   };
 
   type CreateOrganizationRequest = {
@@ -899,6 +908,15 @@ declare namespace API {
     contractNo?: string;
     cargoValue?: string;
     cargoCurrency?: string;
+    internalReferenceNo?: string;
+    shippingAgentId?: string;
+    insurancePremium?: string;
+    insuranceCurrency?: string;
+    unNumber?: string;
+    hazardClass?: string;
+    factoryName?: string;
+    cargoReadyAt?: string;
+    loadingTerms?: string;
   };
 
   type OrderAbnormalCase = {
@@ -2179,6 +2197,15 @@ declare namespace API {
     contractNo?: string;
     cargoValue?: string;
     cargoCurrency?: string;
+    internalReferenceNo?: string;
+    shippingAgentId?: string;
+    insurancePremium?: string;
+    insuranceCurrency?: string;
+    unNumber?: string;
+    hazardClass?: string;
+    factoryName?: string;
+    cargoReadyAt?: string;
+    loadingTerms?: string;
   };
 
   type UpdateOrganizationRequest = {

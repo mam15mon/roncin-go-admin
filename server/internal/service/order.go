@@ -149,6 +149,10 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	shippingAgentID, err := parseOptionalUUIDPointer(request.ShippingAgentId)
+	if err != nil {
+		return nil, err
+	}
 	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
 	if err != nil {
 		return nil, err
@@ -167,9 +171,10 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	}
 	return &biz.Order{
 		CustomerID: customerID, StatusTemplateID: statusTemplateID,
-		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID,
-		CustomerReferenceNo: request.GetCustomerReferenceNo(), ContractNo: request.GetContractNo(),
-		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(),
+		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
+		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
+		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
+		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
@@ -222,8 +227,17 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 			return nil, err
 		}
 	}
+	if request.ShippingAgentId != nil {
+		output.ShippingAgentID, err = parseOptionalUUID(request.GetShippingAgentId())
+		if err != nil {
+			return nil, err
+		}
+	}
 	if request.CustomerReferenceNo != nil {
 		output.CustomerReferenceNo = request.GetCustomerReferenceNo()
+	}
+	if request.InternalReferenceNo != nil {
+		output.InternalReferenceNo = request.GetInternalReferenceNo()
 	}
 	if request.ContractNo != nil {
 		output.ContractNo = request.GetContractNo()
@@ -233,6 +247,27 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.CargoCurrency != nil {
 		output.CargoCurrency = request.GetCargoCurrency()
+	}
+	if request.InsurancePremium != nil {
+		output.InsurancePremium = request.GetInsurancePremium()
+	}
+	if request.InsuranceCurrency != nil {
+		output.InsuranceCurrency = request.GetInsuranceCurrency()
+	}
+	if request.UnNumber != nil {
+		output.UNNumber = request.GetUnNumber()
+	}
+	if request.HazardClass != nil {
+		output.HazardClass = request.GetHazardClass()
+	}
+	if request.FactoryName != nil {
+		output.FactoryName = request.GetFactoryName()
+	}
+	if request.CargoReadyAt != nil {
+		output.CargoReadyAt = request.GetCargoReadyAt()
+	}
+	if request.LoadingTerms != nil {
+		output.LoadingTerms = request.GetLoadingTerms()
 	}
 	if request.ShipmentType != nil {
 		output.ShipmentType = orderShipmentTypeFromAPI(request.ShipmentType)
@@ -326,8 +361,9 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
 		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
 		Status: item.Status, StatusTemplateId: item.StatusTemplateID.String(), ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
-		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
-		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
+		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
+		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
+		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt), LoadingTerms: stringPtrIfNotEmpty(item.LoadingTerms),
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),

@@ -33,18 +33,36 @@ type Order struct {
 	CustomerID uuid.UUID `json:"customer_id,omitempty"`
 	// CustomerReferenceNo holds the value of the "customer_reference_no" field.
 	CustomerReferenceNo string `json:"customer_reference_no,omitempty"`
+	// InternalReferenceNo holds the value of the "internal_reference_no" field.
+	InternalReferenceNo string `json:"internal_reference_no,omitempty"`
 	// CarrierID holds the value of the "carrier_id" field.
 	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
 	// BookingAgentID holds the value of the "booking_agent_id" field.
 	BookingAgentID *uuid.UUID `json:"booking_agent_id,omitempty"`
 	// ForeignAgentID holds the value of the "foreign_agent_id" field.
 	ForeignAgentID *uuid.UUID `json:"foreign_agent_id,omitempty"`
+	// ShippingAgentID holds the value of the "shipping_agent_id" field.
+	ShippingAgentID *uuid.UUID `json:"shipping_agent_id,omitempty"`
 	// ContractNo holds the value of the "contract_no" field.
 	ContractNo string `json:"contract_no,omitempty"`
 	// CargoValue holds the value of the "cargo_value" field.
 	CargoValue string `json:"cargo_value,omitempty"`
 	// CargoCurrency holds the value of the "cargo_currency" field.
 	CargoCurrency string `json:"cargo_currency,omitempty"`
+	// InsurancePremium holds the value of the "insurance_premium" field.
+	InsurancePremium string `json:"insurance_premium,omitempty"`
+	// InsuranceCurrency holds the value of the "insurance_currency" field.
+	InsuranceCurrency string `json:"insurance_currency,omitempty"`
+	// UnNumber holds the value of the "un_number" field.
+	UnNumber string `json:"un_number,omitempty"`
+	// HazardClass holds the value of the "hazard_class" field.
+	HazardClass string `json:"hazard_class,omitempty"`
+	// FactoryName holds the value of the "factory_name" field.
+	FactoryName string `json:"factory_name,omitempty"`
+	// CargoReadyAt holds the value of the "cargo_ready_at" field.
+	CargoReadyAt string `json:"cargo_ready_at,omitempty"`
+	// LoadingTerms holds the value of the "loading_terms" field.
+	LoadingTerms string `json:"loading_terms,omitempty"`
 	// BusinessType holds the value of the "business_type" field.
 	BusinessType order.BusinessType `json:"business_type,omitempty"`
 	// TradeDirection holds the value of the "trade_direction" field.
@@ -275,11 +293,11 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
+		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -342,6 +360,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CustomerReferenceNo = value.String
 			}
+		case order.FieldInternalReferenceNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field internal_reference_no", values[i])
+			} else if value.Valid {
+				_m.InternalReferenceNo = value.String
+			}
 		case order.FieldCarrierID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field carrier_id", values[i])
@@ -363,6 +387,13 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.ForeignAgentID = new(uuid.UUID)
 				*_m.ForeignAgentID = *value.S.(*uuid.UUID)
 			}
+		case order.FieldShippingAgentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field shipping_agent_id", values[i])
+			} else if value.Valid {
+				_m.ShippingAgentID = new(uuid.UUID)
+				*_m.ShippingAgentID = *value.S.(*uuid.UUID)
+			}
 		case order.FieldContractNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field contract_no", values[i])
@@ -380,6 +411,48 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field cargo_currency", values[i])
 			} else if value.Valid {
 				_m.CargoCurrency = value.String
+			}
+		case order.FieldInsurancePremium:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field insurance_premium", values[i])
+			} else if value.Valid {
+				_m.InsurancePremium = value.String
+			}
+		case order.FieldInsuranceCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field insurance_currency", values[i])
+			} else if value.Valid {
+				_m.InsuranceCurrency = value.String
+			}
+		case order.FieldUnNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field un_number", values[i])
+			} else if value.Valid {
+				_m.UnNumber = value.String
+			}
+		case order.FieldHazardClass:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field hazard_class", values[i])
+			} else if value.Valid {
+				_m.HazardClass = value.String
+			}
+		case order.FieldFactoryName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field factory_name", values[i])
+			} else if value.Valid {
+				_m.FactoryName = value.String
+			}
+		case order.FieldCargoReadyAt:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_ready_at", values[i])
+			} else if value.Valid {
+				_m.CargoReadyAt = value.String
+			}
+		case order.FieldLoadingTerms:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field loading_terms", values[i])
+			} else if value.Valid {
+				_m.LoadingTerms = value.String
 			}
 		case order.FieldBusinessType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -669,6 +742,9 @@ func (_m *Order) String() string {
 	builder.WriteString("customer_reference_no=")
 	builder.WriteString(_m.CustomerReferenceNo)
 	builder.WriteString(", ")
+	builder.WriteString("internal_reference_no=")
+	builder.WriteString(_m.InternalReferenceNo)
+	builder.WriteString(", ")
 	if v := _m.CarrierID; v != nil {
 		builder.WriteString("carrier_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -684,6 +760,11 @@ func (_m *Order) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
+	if v := _m.ShippingAgentID; v != nil {
+		builder.WriteString("shipping_agent_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("contract_no=")
 	builder.WriteString(_m.ContractNo)
 	builder.WriteString(", ")
@@ -692,6 +773,27 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cargo_currency=")
 	builder.WriteString(_m.CargoCurrency)
+	builder.WriteString(", ")
+	builder.WriteString("insurance_premium=")
+	builder.WriteString(_m.InsurancePremium)
+	builder.WriteString(", ")
+	builder.WriteString("insurance_currency=")
+	builder.WriteString(_m.InsuranceCurrency)
+	builder.WriteString(", ")
+	builder.WriteString("un_number=")
+	builder.WriteString(_m.UnNumber)
+	builder.WriteString(", ")
+	builder.WriteString("hazard_class=")
+	builder.WriteString(_m.HazardClass)
+	builder.WriteString(", ")
+	builder.WriteString("factory_name=")
+	builder.WriteString(_m.FactoryName)
+	builder.WriteString(", ")
+	builder.WriteString("cargo_ready_at=")
+	builder.WriteString(_m.CargoReadyAt)
+	builder.WriteString(", ")
+	builder.WriteString("loading_terms=")
+	builder.WriteString(_m.LoadingTerms)
 	builder.WriteString(", ")
 	builder.WriteString("business_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BusinessType))

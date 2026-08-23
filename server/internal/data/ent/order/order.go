@@ -28,18 +28,36 @@ const (
 	FieldCustomerID = "customer_id"
 	// FieldCustomerReferenceNo holds the string denoting the customer_reference_no field in the database.
 	FieldCustomerReferenceNo = "customer_reference_no"
+	// FieldInternalReferenceNo holds the string denoting the internal_reference_no field in the database.
+	FieldInternalReferenceNo = "internal_reference_no"
 	// FieldCarrierID holds the string denoting the carrier_id field in the database.
 	FieldCarrierID = "carrier_id"
 	// FieldBookingAgentID holds the string denoting the booking_agent_id field in the database.
 	FieldBookingAgentID = "booking_agent_id"
 	// FieldForeignAgentID holds the string denoting the foreign_agent_id field in the database.
 	FieldForeignAgentID = "foreign_agent_id"
+	// FieldShippingAgentID holds the string denoting the shipping_agent_id field in the database.
+	FieldShippingAgentID = "shipping_agent_id"
 	// FieldContractNo holds the string denoting the contract_no field in the database.
 	FieldContractNo = "contract_no"
 	// FieldCargoValue holds the string denoting the cargo_value field in the database.
 	FieldCargoValue = "cargo_value"
 	// FieldCargoCurrency holds the string denoting the cargo_currency field in the database.
 	FieldCargoCurrency = "cargo_currency"
+	// FieldInsurancePremium holds the string denoting the insurance_premium field in the database.
+	FieldInsurancePremium = "insurance_premium"
+	// FieldInsuranceCurrency holds the string denoting the insurance_currency field in the database.
+	FieldInsuranceCurrency = "insurance_currency"
+	// FieldUnNumber holds the string denoting the un_number field in the database.
+	FieldUnNumber = "un_number"
+	// FieldHazardClass holds the string denoting the hazard_class field in the database.
+	FieldHazardClass = "hazard_class"
+	// FieldFactoryName holds the string denoting the factory_name field in the database.
+	FieldFactoryName = "factory_name"
+	// FieldCargoReadyAt holds the string denoting the cargo_ready_at field in the database.
+	FieldCargoReadyAt = "cargo_ready_at"
+	// FieldLoadingTerms holds the string denoting the loading_terms field in the database.
+	FieldLoadingTerms = "loading_terms"
 	// FieldBusinessType holds the string denoting the business_type field in the database.
 	FieldBusinessType = "business_type"
 	// FieldTradeDirection holds the string denoting the trade_direction field in the database.
@@ -231,12 +249,21 @@ var Columns = []string{
 	FieldOrderNo,
 	FieldCustomerID,
 	FieldCustomerReferenceNo,
+	FieldInternalReferenceNo,
 	FieldCarrierID,
 	FieldBookingAgentID,
 	FieldForeignAgentID,
+	FieldShippingAgentID,
 	FieldContractNo,
 	FieldCargoValue,
 	FieldCargoCurrency,
+	FieldInsurancePremium,
+	FieldInsuranceCurrency,
+	FieldUnNumber,
+	FieldHazardClass,
+	FieldFactoryName,
+	FieldCargoReadyAt,
+	FieldLoadingTerms,
 	FieldBusinessType,
 	FieldTradeDirection,
 	FieldTradeTerm,
@@ -286,12 +313,28 @@ var (
 	OrderNoValidator func(string) error
 	// CustomerReferenceNoValidator is a validator for the "customer_reference_no" field. It is called by the builders before save.
 	CustomerReferenceNoValidator func(string) error
+	// InternalReferenceNoValidator is a validator for the "internal_reference_no" field. It is called by the builders before save.
+	InternalReferenceNoValidator func(string) error
 	// ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.
 	ContractNoValidator func(string) error
 	// CargoValueValidator is a validator for the "cargo_value" field. It is called by the builders before save.
 	CargoValueValidator func(string) error
 	// CargoCurrencyValidator is a validator for the "cargo_currency" field. It is called by the builders before save.
 	CargoCurrencyValidator func(string) error
+	// InsurancePremiumValidator is a validator for the "insurance_premium" field. It is called by the builders before save.
+	InsurancePremiumValidator func(string) error
+	// InsuranceCurrencyValidator is a validator for the "insurance_currency" field. It is called by the builders before save.
+	InsuranceCurrencyValidator func(string) error
+	// UnNumberValidator is a validator for the "un_number" field. It is called by the builders before save.
+	UnNumberValidator func(string) error
+	// HazardClassValidator is a validator for the "hazard_class" field. It is called by the builders before save.
+	HazardClassValidator func(string) error
+	// FactoryNameValidator is a validator for the "factory_name" field. It is called by the builders before save.
+	FactoryNameValidator func(string) error
+	// CargoReadyAtValidator is a validator for the "cargo_ready_at" field. It is called by the builders before save.
+	CargoReadyAtValidator func(string) error
+	// LoadingTermsValidator is a validator for the "loading_terms" field. It is called by the builders before save.
+	LoadingTermsValidator func(string) error
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus string
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
@@ -538,6 +581,11 @@ func ByCustomerReferenceNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCustomerReferenceNo, opts...).ToFunc()
 }
 
+// ByInternalReferenceNo orders the results by the internal_reference_no field.
+func ByInternalReferenceNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInternalReferenceNo, opts...).ToFunc()
+}
+
 // ByCarrierID orders the results by the carrier_id field.
 func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
@@ -553,6 +601,11 @@ func ByForeignAgentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldForeignAgentID, opts...).ToFunc()
 }
 
+// ByShippingAgentID orders the results by the shipping_agent_id field.
+func ByShippingAgentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShippingAgentID, opts...).ToFunc()
+}
+
 // ByContractNo orders the results by the contract_no field.
 func ByContractNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContractNo, opts...).ToFunc()
@@ -566,6 +619,41 @@ func ByCargoValue(opts ...sql.OrderTermOption) OrderOption {
 // ByCargoCurrency orders the results by the cargo_currency field.
 func ByCargoCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCargoCurrency, opts...).ToFunc()
+}
+
+// ByInsurancePremium orders the results by the insurance_premium field.
+func ByInsurancePremium(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInsurancePremium, opts...).ToFunc()
+}
+
+// ByInsuranceCurrency orders the results by the insurance_currency field.
+func ByInsuranceCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInsuranceCurrency, opts...).ToFunc()
+}
+
+// ByUnNumber orders the results by the un_number field.
+func ByUnNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnNumber, opts...).ToFunc()
+}
+
+// ByHazardClass orders the results by the hazard_class field.
+func ByHazardClass(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHazardClass, opts...).ToFunc()
+}
+
+// ByFactoryName orders the results by the factory_name field.
+func ByFactoryName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFactoryName, opts...).ToFunc()
+}
+
+// ByCargoReadyAt orders the results by the cargo_ready_at field.
+func ByCargoReadyAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoReadyAt, opts...).ToFunc()
+}
+
+// ByLoadingTerms orders the results by the loading_terms field.
+func ByLoadingTerms(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoadingTerms, opts...).ToFunc()
 }
 
 // ByBusinessType orders the results by the business_type field.

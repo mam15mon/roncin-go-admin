@@ -4319,6 +4319,24 @@ components:
                     type: string
                 cargoCurrency:
                     type: string
+                internalReferenceNo:
+                    type: string
+                shippingAgentId:
+                    type: string
+                insurancePremium:
+                    type: string
+                insuranceCurrency:
+                    type: string
+                unNumber:
+                    type: string
+                hazardClass:
+                    type: string
+                factoryName:
+                    type: string
+                cargoReadyAt:
+                    type: string
+                loadingTerms:
+                    type: string
             description: CreateOrderRequest 创建订单请求。
         order.v1.MarkAbnormalCaseRequest:
             required:
@@ -4427,6 +4445,24 @@ components:
                 cargoValue:
                     type: string
                 cargoCurrency:
+                    type: string
+                internalReferenceNo:
+                    type: string
+                shippingAgentId:
+                    type: string
+                insurancePremium:
+                    type: string
+                insuranceCurrency:
+                    type: string
+                unNumber:
+                    type: string
+                hazardClass:
+                    type: string
+                factoryName:
+                    type: string
+                cargoReadyAt:
+                    type: string
+                loadingTerms:
                     type: string
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
@@ -5270,6 +5306,24 @@ components:
                 cargoValue:
                     type: string
                 cargoCurrency:
+                    type: string
+                internalReferenceNo:
+                    type: string
+                shippingAgentId:
+                    type: string
+                insurancePremium:
+                    type: string
+                insuranceCurrency:
+                    type: string
+                unNumber:
+                    type: string
+                hazardClass:
+                    type: string
+                factoryName:
+                    type: string
+                cargoReadyAt:
+                    type: string
+                loadingTerms:
                     type: string
             description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
         order.v1.UpdateReleasePodRequest:
