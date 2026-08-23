@@ -36,8 +36,19 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 	return orderToBiz(item), nil
 }
 
-func (r *orderRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.OrderListOptions) (*biz.OrderList, error) {
-	query := r.data.db.Order.Query().Where(orderent.OrganizationIDEQ(organizationID))
+func (r *orderRepo) Find(ctx context.Context, id uuid.UUID) (*biz.Order, error) {
+	item, err := withOrderEdges(r.data.db.Order.Query().Where(orderent.IDEQ(id))).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderNotFound
+		}
+		return nil, err
+	}
+	return orderToBiz(item), nil
+}
+
+func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, options biz.OrderListOptions) (*biz.OrderList, error) {
+	query := r.data.db.Order.Query().Where(orderent.OrganizationIDIn(organizationIDs...))
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
@@ -447,13 +458,14 @@ func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, 
 
 func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
+		WithOrganization().
 		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
 		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) })
 }
 
 func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
-		ID: item.ID, OrganizationID: item.OrganizationID, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
+		ID: item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
 		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,

@@ -62,15 +62,21 @@ type AdminUser struct {
 }
 
 type AdminRole struct {
-	ID             uuid.UUID
+	ID                        uuid.UUID
+	OrganizationID            uuid.UUID
+	Code                      string
+	Name                      string
+	DataScope                 DataScope
+	Enabled                   bool
+	PermissionKeys            []string
+	OrderOrganizationAccesses []OrderOrganizationAccess
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+}
+
+type OrderOrganizationAccess struct {
 	OrganizationID uuid.UUID
-	Code           string
-	Name           string
-	DataScope      DataScope
-	Enabled        bool
-	PermissionKeys []string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	Writable       bool
 }
 
 type AdminPermission struct {
@@ -264,6 +270,9 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, err
 	}
+	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.CreateRole(ctx, organizationID, normalized, normalizeKeys(permissionKeys))
 	if err != nil {
 		return nil, err
@@ -277,6 +286,9 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 	}
 	normalized, err := normalizeRole(input)
 	if err != nil {
+		return nil, err
+	}
+	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
 		return nil, err
 	}
 	updated, err := uc.repo.UpdateRole(ctx, organizationID, id, normalized, normalizeKeys(permissionKeys))
@@ -363,6 +375,24 @@ func normalizeRole(input *AdminRole) (*AdminRole, error) {
 		return nil, ErrAdminInvalidArgument
 	}
 	return &output, nil
+}
+
+func (uc *AdminUsecase) validateOrderOrganizationAccesses(ctx context.Context, sourceOrganizationID uuid.UUID, accesses []OrderOrganizationAccess) error {
+	seen := make(map[uuid.UUID]struct{}, len(accesses))
+	for _, access := range accesses {
+		if access.OrganizationID == uuid.Nil || access.OrganizationID == sourceOrganizationID {
+			return ErrAdminInvalidArgument
+		}
+		if _, ok := seen[access.OrganizationID]; ok {
+			return ErrAdminInvalidArgument
+		}
+		seen[access.OrganizationID] = struct{}{}
+		organization, err := uc.repo.GetOrganization(ctx, access.OrganizationID)
+		if err != nil || !organization.Enabled || organization.Kind != OrganizationKindCompany {
+			return ErrAdminInvalidArgument
+		}
+	}
+	return nil
 }
 
 func (scope DataScope) Valid() bool {

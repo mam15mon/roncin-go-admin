@@ -36,6 +36,8 @@ const (
 	EdgePermissions = "permissions"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
+	// EdgeOrderOrganizationAccesses holds the string denoting the order_organization_accesses edge name in mutations.
+	EdgeOrderOrganizationAccesses = "order_organization_accesses"
 	// Table holds the table name of the role in the database.
 	Table = "roles"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -57,6 +59,13 @@ const (
 	AssignmentsInverseTable = "role_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "role_id"
+	// OrderOrganizationAccessesTable is the table that holds the order_organization_accesses relation/edge.
+	OrderOrganizationAccessesTable = "role_order_organization_accesses"
+	// OrderOrganizationAccessesInverseTable is the table name for the RoleOrderOrganizationAccess entity.
+	// It exists in this package in order to avoid circular dependency with the "roleorderorganizationaccess" package.
+	OrderOrganizationAccessesInverseTable = "role_order_organization_accesses"
+	// OrderOrganizationAccessesColumn is the table column denoting the order_organization_accesses relation/edge.
+	OrderOrganizationAccessesColumn = "role_id"
 )
 
 // Columns holds all SQL columns for role fields.
@@ -209,6 +218,20 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderOrganizationAccessesCount orders the results by order_organization_accesses count.
+func ByOrderOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderOrganizationAccessesStep(), opts...)
+	}
+}
+
+// ByOrderOrganizationAccesses orders the results by order_organization_accesses terms.
+func ByOrderOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -228,5 +251,12 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+	)
+}
+func newOrderOrganizationAccessesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderOrganizationAccessesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderOrganizationAccessesTable, OrderOrganizationAccessesColumn),
 	)
 }

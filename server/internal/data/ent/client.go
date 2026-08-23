@@ -56,6 +56,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -149,6 +150,8 @@ type Client struct {
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
+	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
+	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -212,6 +215,7 @@ func (c *Client) init() {
 	c.Port = NewPortClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
+	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.ShippingLine = NewShippingLineClient(c.config)
 	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
@@ -350,6 +354,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Port:                        NewPortClient(cfg),
 		Role:                        NewRoleClient(cfg),
 		RoleAssignment:              NewRoleAssignmentClient(cfg),
+		RoleOrderOrganizationAccess: NewRoleOrderOrganizationAccessClient(cfg),
 		Session:                     NewSessionClient(cfg),
 		ShippingLine:                NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
@@ -415,6 +420,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Port:                        NewPortClient(cfg),
 		Role:                        NewRoleClient(cfg),
 		RoleAssignment:              NewRoleAssignmentClient(cfg),
+		RoleOrderOrganizationAccess: NewRoleOrderOrganizationAccessClient(cfg),
 		Session:                     NewSessionClient(cfg),
 		ShippingLine:                NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
@@ -459,8 +465,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
 		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -479,8 +486,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
 		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -569,6 +577,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *RoleAssignmentMutation:
 		return c.RoleAssignment.mutate(ctx, m)
+	case *RoleOrderOrganizationAccessMutation:
+		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *ShippingLineMutation:
@@ -4638,6 +4648,22 @@ func (c *OrganizationClient) QueryRoles(_m *Organization) *RoleQuery {
 	return query
 }
 
+// QueryRoleOrderOrganizationAccesses queries the role_order_organization_accesses edge of a Organization.
+func (c *OrganizationClient) QueryRoleOrderOrganizationAccesses(_m *Organization) *RoleOrderOrganizationAccessQuery {
+	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrderOrganizationAccessesTable, organization.RoleOrderOrganizationAccessesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySessions queries the sessions edge of a Organization.
 func (c *OrganizationClient) QuerySessions(_m *Organization) *SessionQuery {
 	query := (&SessionClient{config: c.config}).Query()
@@ -7172,6 +7198,22 @@ func (c *RoleClient) QueryAssignments(_m *Role) *RoleAssignmentQuery {
 	return query
 }
 
+// QueryOrderOrganizationAccesses queries the order_organization_accesses edge of a Role.
+func (c *RoleClient) QueryOrderOrganizationAccesses(_m *Role) *RoleOrderOrganizationAccessQuery {
+	query := (&RoleOrderOrganizationAccessClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, role.OrderOrganizationAccessesTable, role.OrderOrganizationAccessesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
@@ -7359,6 +7401,171 @@ func (c *RoleAssignmentClient) mutate(ctx context.Context, m *RoleAssignmentMuta
 		return (&RoleAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown RoleAssignment mutation op: %q", m.Op())
+	}
+}
+
+// RoleOrderOrganizationAccessClient is a client for the RoleOrderOrganizationAccess schema.
+type RoleOrderOrganizationAccessClient struct {
+	config
+}
+
+// NewRoleOrderOrganizationAccessClient returns a client for the RoleOrderOrganizationAccess from the given config.
+func NewRoleOrderOrganizationAccessClient(c config) *RoleOrderOrganizationAccessClient {
+	return &RoleOrderOrganizationAccessClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `roleorderorganizationaccess.Hooks(f(g(h())))`.
+func (c *RoleOrderOrganizationAccessClient) Use(hooks ...Hook) {
+	c.hooks.RoleOrderOrganizationAccess = append(c.hooks.RoleOrderOrganizationAccess, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `roleorderorganizationaccess.Intercept(f(g(h())))`.
+func (c *RoleOrderOrganizationAccessClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RoleOrderOrganizationAccess = append(c.inters.RoleOrderOrganizationAccess, interceptors...)
+}
+
+// Create returns a builder for creating a RoleOrderOrganizationAccess entity.
+func (c *RoleOrderOrganizationAccessClient) Create() *RoleOrderOrganizationAccessCreate {
+	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpCreate)
+	return &RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RoleOrderOrganizationAccess entities.
+func (c *RoleOrderOrganizationAccessClient) CreateBulk(builders ...*RoleOrderOrganizationAccessCreate) *RoleOrderOrganizationAccessCreateBulk {
+	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RoleOrderOrganizationAccessClient) MapCreateBulk(slice any, setFunc func(*RoleOrderOrganizationAccessCreate, int)) *RoleOrderOrganizationAccessCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RoleOrderOrganizationAccessCreateBulk{err: fmt.Errorf("calling to RoleOrderOrganizationAccessClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RoleOrderOrganizationAccessCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RoleOrderOrganizationAccessCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RoleOrderOrganizationAccess.
+func (c *RoleOrderOrganizationAccessClient) Update() *RoleOrderOrganizationAccessUpdate {
+	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdate)
+	return &RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RoleOrderOrganizationAccessClient) UpdateOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessUpdateOne {
+	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccess(_m))
+	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RoleOrderOrganizationAccessClient) UpdateOneID(id uuid.UUID) *RoleOrderOrganizationAccessUpdateOne {
+	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpUpdateOne, withRoleOrderOrganizationAccessID(id))
+	return &RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RoleOrderOrganizationAccess.
+func (c *RoleOrderOrganizationAccessClient) Delete() *RoleOrderOrganizationAccessDelete {
+	mutation := newRoleOrderOrganizationAccessMutation(c.config, OpDelete)
+	return &RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RoleOrderOrganizationAccessClient) DeleteOne(_m *RoleOrderOrganizationAccess) *RoleOrderOrganizationAccessDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RoleOrderOrganizationAccessClient) DeleteOneID(id uuid.UUID) *RoleOrderOrganizationAccessDeleteOne {
+	builder := c.Delete().Where(roleorderorganizationaccess.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RoleOrderOrganizationAccessDeleteOne{builder}
+}
+
+// Query returns a query builder for RoleOrderOrganizationAccess.
+func (c *RoleOrderOrganizationAccessClient) Query() *RoleOrderOrganizationAccessQuery {
+	return &RoleOrderOrganizationAccessQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRoleOrderOrganizationAccess},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RoleOrderOrganizationAccess entity by its id.
+func (c *RoleOrderOrganizationAccessClient) Get(ctx context.Context, id uuid.UUID) (*RoleOrderOrganizationAccess, error) {
+	return c.Query().Where(roleorderorganizationaccess.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RoleOrderOrganizationAccessClient) GetX(ctx context.Context, id uuid.UUID) *RoleOrderOrganizationAccess {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRole queries the role edge of a RoleOrderOrganizationAccess.
+func (c *RoleOrderOrganizationAccessClient) QueryRole(_m *RoleOrderOrganizationAccess) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.RoleTable, roleorderorganizationaccess.RoleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrganization queries the organization edge of a RoleOrderOrganizationAccess.
+func (c *RoleOrderOrganizationAccessClient) QueryOrganization(_m *RoleOrderOrganizationAccess) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, roleorderorganizationaccess.OrganizationTable, roleorderorganizationaccess.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RoleOrderOrganizationAccessClient) Hooks() []Hook {
+	return c.hooks.RoleOrderOrganizationAccess
+}
+
+// Interceptors returns the client interceptors.
+func (c *RoleOrderOrganizationAccessClient) Interceptors() []Interceptor {
+	return c.inters.RoleOrderOrganizationAccess
+}
+
+func (c *RoleOrderOrganizationAccessClient) mutate(ctx context.Context, m *RoleOrderOrganizationAccessMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RoleOrderOrganizationAccessCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RoleOrderOrganizationAccessUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RoleOrderOrganizationAccessUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RoleOrderOrganizationAccessDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RoleOrderOrganizationAccess mutation op: %q", m.Op())
 	}
 }
 
@@ -8379,8 +8586,8 @@ type (
 		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
 		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
 		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		User []ent.Hook
 	}
 	inters struct {
@@ -8392,8 +8599,8 @@ type (
 		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
 		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
 		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		User []ent.Interceptor
 	}
 )

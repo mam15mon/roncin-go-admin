@@ -52,6 +52,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -158,6 +159,7 @@ func checkColumn(t, c string) error {
 			port.Table:                        port.ValidColumn,
 			role.Table:                        role.ValidColumn,
 			roleassignment.Table:              roleassignment.ValidColumn,
+			roleorderorganizationaccess.Table: roleorderorganizationaccess.ValidColumn,
 			session.Table:                     session.ValidColumn,
 			shippingline.Table:                shippingline.ValidColumn,
 			shippinglinecontainerprefix.Table: shippinglinecontainerprefix.ValidColumn,

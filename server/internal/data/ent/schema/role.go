@@ -28,6 +28,7 @@ func (Role) Edges() []ent.Edge {
 		edge.From("organization", Organization.Type).Ref("roles").Field("organization_id").Unique().Required(),
 		edge.To("permissions", Permission.Type),
 		edge.To("assignments", RoleAssignment.Type),
+		edge.To("order_organization_accesses", RoleOrderOrganizationAccess.Type),
 	}
 }
 

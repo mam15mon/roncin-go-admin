@@ -28,6 +28,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
@@ -36,28 +37,29 @@ import (
 // OrganizationQuery is the builder for querying Organization entities.
 type OrganizationQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []organization.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.Organization
-	withParent             *OrganizationQuery
-	withChildren           *OrganizationQuery
-	withMemberships        *MembershipQuery
-	withRoles              *RoleQuery
-	withSessions           *SessionQuery
-	withPartners           *PartnerQuery
-	withPartnerAssignments *PartnerAssignmentQuery
-	withMasterDataItems    *MasterDataItemQuery
-	withPorts              *PortQuery
-	withAirports           *AirportQuery
-	withAirlines           *AirlineQuery
-	withShippingLines      *ShippingLineQuery
-	withNumberRules        *NumberRuleQuery
-	withStatusTemplates    *StatusTemplateQuery
-	withMilestoneTemplates *MilestoneTemplateQuery
-	withOrders             *OrderQuery
-	withBackgroundTasks    *BackgroundTaskQuery
-	modifiers              []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []organization.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.Organization
+	withParent                        *OrganizationQuery
+	withChildren                      *OrganizationQuery
+	withMemberships                   *MembershipQuery
+	withRoles                         *RoleQuery
+	withRoleOrderOrganizationAccesses *RoleOrderOrganizationAccessQuery
+	withSessions                      *SessionQuery
+	withPartners                      *PartnerQuery
+	withPartnerAssignments            *PartnerAssignmentQuery
+	withMasterDataItems               *MasterDataItemQuery
+	withPorts                         *PortQuery
+	withAirports                      *AirportQuery
+	withAirlines                      *AirlineQuery
+	withShippingLines                 *ShippingLineQuery
+	withNumberRules                   *NumberRuleQuery
+	withStatusTemplates               *StatusTemplateQuery
+	withMilestoneTemplates            *MilestoneTemplateQuery
+	withOrders                        *OrderQuery
+	withBackgroundTasks               *BackgroundTaskQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -175,6 +177,28 @@ func (_q *OrganizationQuery) QueryRoles() *RoleQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.RolesTable, organization.RolesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoleOrderOrganizationAccesses chains the current query on the "role_order_organization_accesses" edge.
+func (_q *OrganizationQuery) QueryRoleOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
+	query := (&RoleOrderOrganizationAccessClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(roleorderorganizationaccess.Table, roleorderorganizationaccess.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.RoleOrderOrganizationAccessesTable, organization.RoleOrderOrganizationAccessesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -655,28 +679,29 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		return nil
 	}
 	return &OrganizationQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]organization.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.Organization{}, _q.predicates...),
-		withParent:             _q.withParent.Clone(),
-		withChildren:           _q.withChildren.Clone(),
-		withMemberships:        _q.withMemberships.Clone(),
-		withRoles:              _q.withRoles.Clone(),
-		withSessions:           _q.withSessions.Clone(),
-		withPartners:           _q.withPartners.Clone(),
-		withPartnerAssignments: _q.withPartnerAssignments.Clone(),
-		withMasterDataItems:    _q.withMasterDataItems.Clone(),
-		withPorts:              _q.withPorts.Clone(),
-		withAirports:           _q.withAirports.Clone(),
-		withAirlines:           _q.withAirlines.Clone(),
-		withShippingLines:      _q.withShippingLines.Clone(),
-		withNumberRules:        _q.withNumberRules.Clone(),
-		withStatusTemplates:    _q.withStatusTemplates.Clone(),
-		withMilestoneTemplates: _q.withMilestoneTemplates.Clone(),
-		withOrders:             _q.withOrders.Clone(),
-		withBackgroundTasks:    _q.withBackgroundTasks.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]organization.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.Organization{}, _q.predicates...),
+		withParent:                        _q.withParent.Clone(),
+		withChildren:                      _q.withChildren.Clone(),
+		withMemberships:                   _q.withMemberships.Clone(),
+		withRoles:                         _q.withRoles.Clone(),
+		withRoleOrderOrganizationAccesses: _q.withRoleOrderOrganizationAccesses.Clone(),
+		withSessions:                      _q.withSessions.Clone(),
+		withPartners:                      _q.withPartners.Clone(),
+		withPartnerAssignments:            _q.withPartnerAssignments.Clone(),
+		withMasterDataItems:               _q.withMasterDataItems.Clone(),
+		withPorts:                         _q.withPorts.Clone(),
+		withAirports:                      _q.withAirports.Clone(),
+		withAirlines:                      _q.withAirlines.Clone(),
+		withShippingLines:                 _q.withShippingLines.Clone(),
+		withNumberRules:                   _q.withNumberRules.Clone(),
+		withStatusTemplates:               _q.withStatusTemplates.Clone(),
+		withMilestoneTemplates:            _q.withMilestoneTemplates.Clone(),
+		withOrders:                        _q.withOrders.Clone(),
+		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -724,6 +749,17 @@ func (_q *OrganizationQuery) WithRoles(opts ...func(*RoleQuery)) *OrganizationQu
 		opt(query)
 	}
 	_q.withRoles = query
+	return _q
+}
+
+// WithRoleOrderOrganizationAccesses tells the query-builder to eager-load the nodes that are connected to
+// the "role_order_organization_accesses" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithRoleOrderOrganizationAccesses(opts ...func(*RoleOrderOrganizationAccessQuery)) *OrganizationQuery {
+	query := (&RoleOrderOrganizationAccessClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRoleOrderOrganizationAccesses = query
 	return _q
 }
 
@@ -948,11 +984,12 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [17]bool{
+		loadedTypes = [18]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
 			_q.withRoles != nil,
+			_q.withRoleOrderOrganizationAccesses != nil,
 			_q.withSessions != nil,
 			_q.withPartners != nil,
 			_q.withPartnerAssignments != nil,
@@ -1013,6 +1050,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadRoles(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Roles = []*Role{} },
 			func(n *Organization, e *Role) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRoleOrderOrganizationAccesses; query != nil {
+		if err := _q.loadRoleOrderOrganizationAccesses(ctx, query, nodes,
+			func(n *Organization) { n.Edges.RoleOrderOrganizationAccesses = []*RoleOrderOrganizationAccess{} },
+			func(n *Organization, e *RoleOrderOrganizationAccess) {
+				n.Edges.RoleOrderOrganizationAccesses = append(n.Edges.RoleOrderOrganizationAccesses, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1224,6 +1270,36 @@ func (_q *OrganizationQuery) loadRoles(ctx context.Context, query *RoleQuery, no
 	}
 	query.Where(predicate.Role(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.RolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadRoleOrderOrganizationAccesses(ctx context.Context, query *RoleOrderOrganizationAccessQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RoleOrderOrganizationAccess)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(roleorderorganizationaccess.FieldOrganizationID)
+	}
+	query.Where(predicate.RoleOrderOrganizationAccess(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.RoleOrderOrganizationAccessesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

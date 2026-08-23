@@ -2727,6 +2727,10 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                orderOrganizationAccesses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.OrderOrganizationAccess'
         admin.v1.AdminRoleListReply:
             type: object
             properties:
@@ -2880,6 +2884,10 @@ components:
                     type: array
                     items:
                         type: string
+                orderOrganizationAccesses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.OrderOrganizationAccess'
         admin.v1.CreateUserRequest:
             required:
                 - username
@@ -2899,6 +2907,15 @@ components:
                     type: array
                     items:
                         type: string
+        admin.v1.OrderOrganizationAccess:
+            required:
+                - organizationId
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                writable:
+                    type: boolean
         admin.v1.ResetUserPasswordRequest:
             required:
                 - id
@@ -2941,6 +2958,10 @@ components:
                     type: array
                     items:
                         type: string
+                orderOrganizationAccesses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.OrderOrganizationAccess'
         admin.v1.UpdateUserRequest:
             required:
                 - id
@@ -4632,6 +4653,10 @@ components:
                     type: string
                 receivedAt:
                     type: string
+                organizationName:
+                    type: string
+                canModify:
+                    type: boolean
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
             type: object

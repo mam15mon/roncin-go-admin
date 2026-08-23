@@ -27,6 +27,7 @@ import {
   Empty,
   Input,
   Row,
+  Select,
   Space,
   Tag,
   Tooltip,
@@ -37,6 +38,7 @@ import type { DataNode } from 'antd/es/tree';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   adminServiceCreateRole,
+  adminServiceListOrganizations,
   adminServiceListPermissions,
   adminServiceListRoles,
   adminServiceUpdateRole,
@@ -105,6 +107,12 @@ export default function RolesPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminRole>();
   const [permissions, setPermissions] = useState<API.AdminPermission[]>([]);
+  const [organizations, setOrganizations] = useState<
+    API.AdminOrganization[]
+  >([]);
+  const [orderOrganizationAccesses, setOrderOrganizationAccesses] = useState<
+    API.OrderOrganizationAccess[]
+  >([]);
 
   // Permission tree state inside modal
   const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<string[]>([]);
@@ -116,6 +124,33 @@ export default function RolesPanel() {
   useEffect(() => {
     adminServiceListPermissions().then((response) => setPermissions(response.data ?? []));
   }, []);
+
+  useEffect(() => {
+    adminServiceListOrganizations().then((response) => {
+      setOrganizations(response.data ?? []);
+    });
+  }, []);
+
+  const companyOptions = useMemo(
+    () =>
+      organizations
+        .filter(
+          (organization) =>
+            organization.enabled !== false && organization.kind === 2,
+        )
+        .map((organization) => ({
+          label: organization.code
+            ? `${organization.name} (${organization.code})`
+            : organization.name ?? '',
+          value: organization.id ?? '',
+        })),
+    [organizations],
+  );
+
+  const organizationNames = useMemo(
+    () => new Map(organizations.map((item) => [item.id, item.name ?? item.code ?? item.id ?? ''])),
+    [organizations],
+  );
 
   // Construct permission tree by group
   const { fullTreeData, allGroupKeys, allLeafKeys } = useMemo(() => {
@@ -182,6 +217,7 @@ export default function RolesPanel() {
   const openCreate = () => {
     setEditing(undefined);
     setSelectedPermissionKeys([]);
+    setOrderOrganizationAccesses([]);
     setPermissionKeyword('');
     setExpandedKeys(allGroupKeys);
     formRef.current?.resetFields();
@@ -191,6 +227,7 @@ export default function RolesPanel() {
   const openEdit = (role: API.AdminRole) => {
     setEditing(role);
     setSelectedPermissionKeys(role.permissionKeys ?? []);
+    setOrderOrganizationAccesses(role.orderOrganizationAccesses ?? []);
     setPermissionKeyword('');
     setExpandedKeys(allGroupKeys);
     setModalOpen(true);
@@ -292,6 +329,26 @@ export default function RolesPanel() {
       },
     },
     {
+      title: '跨公司订单范围',
+      dataIndex: 'orderOrganizationAccesses',
+      width: 220,
+      search: false,
+      render: (_, record) => {
+        const accesses = record.orderOrganizationAccesses ?? [];
+        if (accesses.length === 0) return <Text type="secondary">仅当前公司</Text>;
+        return (
+          <Space size={[4, 4]} wrap>
+            {accesses.map((access) => (
+              <Tag color={access.writable ? 'blue' : 'default'} key={access.organizationId}>
+                {organizationNames.get(access.organizationId) ?? access.organizationId}
+                {access.writable ? '（可修改）' : '（仅查看）'}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
       title: '状态',
       dataIndex: 'enabled',
       width: 100,
@@ -389,6 +446,7 @@ export default function RolesPanel() {
                   dataScope: values.dataScope ?? 2,
                   enabled: values.enabled ?? true,
                   permissionKeys: selectedPermissionKeys,
+                  orderOrganizationAccesses,
                 },
               );
               message.success('角色已成功更新');
@@ -398,6 +456,7 @@ export default function RolesPanel() {
                 name: values.name?.trim() ?? '',
                 dataScope: values.dataScope ?? 2,
                 permissionKeys: selectedPermissionKeys,
+                orderOrganizationAccesses,
               });
               message.success('角色已成功创建');
             }
@@ -455,6 +514,68 @@ export default function RolesPanel() {
             )}
           </Col>
         </Row>
+
+        <div
+          style={{
+            marginTop: 8,
+            marginBottom: 16,
+            border: '1px solid #d9d9d9',
+            borderRadius: 6,
+            padding: 12,
+          }}
+        >
+          <Text strong>跨公司订单范围</Text>
+          <div style={{ marginTop: 8 }}>
+            <Text type="secondary">指定公司订单默认仅查看；勾选可修改后，仍需同时拥有对应的订单操作权限。</Text>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Text>可查看的公司</Text>
+            <Select
+              allowClear
+              mode="multiple"
+              options={companyOptions}
+              placeholder="不选择时仅可访问当前公司订单"
+              style={{ display: 'block', width: '100%', marginTop: 4 }}
+              value={orderOrganizationAccesses.map((access) => access.organizationId)}
+              onChange={(organizationIds: string[]) => {
+                setOrderOrganizationAccesses((previous) =>
+                  organizationIds.map((organizationId) => ({
+                    organizationId,
+                    writable:
+                      previous.find((access) => access.organizationId === organizationId)
+                        ?.writable ?? false,
+                  })),
+                );
+              }}
+            />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Text>其中允许修改的公司</Text>
+            <Select
+              allowClear
+              mode="multiple"
+              options={companyOptions.filter((option) =>
+                orderOrganizationAccesses.some(
+                  (access) => access.organizationId === option.value,
+                ),
+              )}
+              placeholder="不选择时跨公司订单均为仅查看"
+              style={{ display: 'block', width: '100%', marginTop: 4 }}
+              value={orderOrganizationAccesses
+                .filter((access) => access.writable)
+                .map((access) => access.organizationId)}
+              onChange={(organizationIds: string[]) => {
+                const writableOrganizationIDs = new Set(organizationIds);
+                setOrderOrganizationAccesses((previous) =>
+                  previous.map((access) => ({
+                    ...access,
+                    writable: writableOrganizationIDs.has(access.organizationId),
+                  })),
+                );
+              }}
+            />
+          </div>
+        </div>
 
         {/* Permission Configuration Tree Panel */}
         <div style={{ marginTop: 8 }}>

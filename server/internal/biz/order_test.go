@@ -23,7 +23,11 @@ func (s *orderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Order, erro
 	return nil, ErrOrderNotFound
 }
 
-func (s *orderRepoStub) List(_ context.Context, _ uuid.UUID, options OrderListOptions) (*OrderList, error) {
+func (s *orderRepoStub) Find(context.Context, uuid.UUID) (*Order, error) {
+	return nil, ErrOrderNotFound
+}
+
+func (s *orderRepoStub) List(_ context.Context, _ []uuid.UUID, options OrderListOptions) (*OrderList, error) {
 	return &OrderList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 

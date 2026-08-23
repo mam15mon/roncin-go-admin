@@ -167,6 +167,8 @@ message Order {
   optional string cargo_ready_at = 49;
   optional string loading_terms = 50;
   optional string received_at = 51;
+  string organization_name = 52;
+  bool can_modify = 53;
 }
 
 // OrderServiceSelection 订单服务类型选择。

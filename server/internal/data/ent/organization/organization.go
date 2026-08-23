@@ -38,6 +38,8 @@ const (
 	EdgeMemberships = "memberships"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeRoleOrderOrganizationAccesses holds the string denoting the role_order_organization_accesses edge name in mutations.
+	EdgeRoleOrderOrganizationAccesses = "role_order_organization_accesses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// EdgePartners holds the string denoting the partners edge name in mutations.
@@ -88,6 +90,13 @@ const (
 	RolesInverseTable = "roles"
 	// RolesColumn is the table column denoting the roles relation/edge.
 	RolesColumn = "organization_id"
+	// RoleOrderOrganizationAccessesTable is the table that holds the role_order_organization_accesses relation/edge.
+	RoleOrderOrganizationAccessesTable = "role_order_organization_accesses"
+	// RoleOrderOrganizationAccessesInverseTable is the table name for the RoleOrderOrganizationAccess entity.
+	// It exists in this package in order to avoid circular dependency with the "roleorderorganizationaccess" package.
+	RoleOrderOrganizationAccessesInverseTable = "role_order_organization_accesses"
+	// RoleOrderOrganizationAccessesColumn is the table column denoting the role_order_organization_accesses relation/edge.
+	RoleOrderOrganizationAccessesColumn = "organization_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -337,6 +346,20 @@ func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByRoleOrderOrganizationAccessesCount orders the results by role_order_organization_accesses count.
+func ByRoleOrderOrganizationAccessesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRoleOrderOrganizationAccessesStep(), opts...)
+	}
+}
+
+// ByRoleOrderOrganizationAccesses orders the results by role_order_organization_accesses terms.
+func ByRoleOrderOrganizationAccesses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoleOrderOrganizationAccessesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // BySessionsCount orders the results by sessions count.
 func BySessionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -544,6 +567,13 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RolesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RolesTable, RolesColumn),
+	)
+}
+func newRoleOrderOrganizationAccessesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoleOrderOrganizationAccessesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RoleOrderOrganizationAccessesTable, RoleOrderOrganizationAccessesColumn),
 	)
 }
 func newSessionsStep() *sqlgraph.Step {

@@ -1935,6 +1935,52 @@ var (
 			},
 		},
 	}
+	// RoleOrderOrganizationAccessesColumns holds the columns for the "role_order_organization_accesses" table.
+	RoleOrderOrganizationAccessesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "writable", Type: field.TypeBool, Default: false},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID},
+	}
+	// RoleOrderOrganizationAccessesTable holds the schema information for the "role_order_organization_accesses" table.
+	RoleOrderOrganizationAccessesTable = &schema.Table{
+		Name:       "role_order_organization_accesses",
+		Columns:    RoleOrderOrganizationAccessesColumns,
+		PrimaryKey: []*schema.Column{RoleOrderOrganizationAccessesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "role_order_organization_accesses_organizations_role_order_organization_accesses",
+				Columns:    []*schema.Column{RoleOrderOrganizationAccessesColumns[4]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "role_order_organization_accesses_roles_order_organization_accesses",
+				Columns:    []*schema.Column{RoleOrderOrganizationAccessesColumns[5]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "roleorderorganizationaccess_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[2]},
+			},
+			{
+				Name:    "roleorderorganizationaccess_role_id_organization_id",
+				Unique:  true,
+				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[5], RoleOrderOrganizationAccessesColumns[4]},
+			},
+			{
+				Name:    "roleorderorganizationaccess_organization_id",
+				Unique:  false,
+				Columns: []*schema.Column{RoleOrderOrganizationAccessesColumns[4]},
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2278,6 +2324,7 @@ var (
 		PortsTable,
 		RolesTable,
 		RoleAssignmentsTable,
+		RoleOrderOrganizationAccessesTable,
 		SessionsTable,
 		ShippingLinesTable,
 		ShippingLineContainerPrefixesTable,
@@ -2334,6 +2381,8 @@ func init() {
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
+	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
 	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable

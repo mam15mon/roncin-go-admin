@@ -53,13 +53,15 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		}
 		options.CustomerID = &value
 	}
-	result, err := s.usecase.List(ctx, principal.Organization.ID, options)
+	result, err := s.usecase.List(ctx, principal.OrderOrganizationIDs(), options)
 	if err != nil {
 		return nil, err
 	}
 	data := make([]*v1.Order, 0, len(result.Items))
 	for _, item := range result.Items {
-		data = append(data, orderToAPI(item))
+		output := orderToAPI(item)
+		output.CanModify = principal.CanAccessOrderOrganization(item.OrganizationID, true)
+		data = append(data, output)
 	}
 	return &v1.OrderListReply{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
@@ -401,7 +403,7 @@ func orderReply(ctx context.Context, item *biz.Order) *v1.OrderReply {
 
 func orderToAPI(item *biz.Order) *v1.Order {
 	result := &v1.Order{
-		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
+		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
 		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
 		Status: item.Status, StatusTemplateId: item.StatusTemplateID.String(), ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
 		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),

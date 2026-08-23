@@ -4470,6 +4470,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "orderOrganizationAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
+            }
           }
         }
       },
@@ -4695,6 +4701,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "orderOrganizationAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
+            }
           }
         }
       },
@@ -4723,6 +4735,20 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "admin.v1.OrderOrganizationAccess": {
+        "required": [
+          "organizationId"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "writable": {
+            "type": "boolean"
           }
         }
       },
@@ -4784,6 +4810,12 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "orderOrganizationAccesses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
             }
           }
         }
@@ -7263,6 +7295,12 @@
           },
           "receivedAt": {
             "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "canModify": {
+            "type": "boolean"
           }
         },
         "description": "Order 订单核心信息。"

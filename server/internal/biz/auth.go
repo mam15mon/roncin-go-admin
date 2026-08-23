@@ -74,16 +74,17 @@ type WeComIdentityProvider interface {
 }
 
 type Principal struct {
-	SessionTokenHash string
-	UserID           uuid.UUID
-	Username         string
-	DisplayName      string
-	Email            *string
-	Organization     Organization
-	Organizations    []Organization
-	Permissions      []string
-	RoleScopes       []RoleScope
-	RolePermissions  map[string]map[string]struct{}
+	SessionTokenHash          string
+	UserID                    uuid.UUID
+	Username                  string
+	DisplayName               string
+	Email                     *string
+	Organization              Organization
+	Organizations             []Organization
+	Permissions               []string
+	RoleScopes                []RoleScope
+	RolePermissions           map[string]map[string]struct{}
+	OrderOrganizationAccesses []OrderOrganizationAccess
 }
 
 func (p *Principal) HasPermission(key string) bool {
@@ -109,6 +110,31 @@ func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
 			if _, hasPermission := permissions[key]; hasPermission {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func (p *Principal) OrderOrganizationIDs() []uuid.UUID {
+	ids := []uuid.UUID{p.Organization.ID}
+	seen := map[uuid.UUID]struct{}{p.Organization.ID: {}}
+	for _, access := range p.OrderOrganizationAccesses {
+		if _, ok := seen[access.OrganizationID]; ok {
+			continue
+		}
+		seen[access.OrganizationID] = struct{}{}
+		ids = append(ids, access.OrganizationID)
+	}
+	return ids
+}
+
+func (p *Principal) CanAccessOrderOrganization(organizationID uuid.UUID, writable bool) bool {
+	if organizationID == p.Organization.ID {
+		return true
+	}
+	for _, access := range p.OrderOrganizationAccesses {
+		if access.OrganizationID == organizationID && (!writable || access.Writable) {
+			return true
 		}
 	}
 	return false

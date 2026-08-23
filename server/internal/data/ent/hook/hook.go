@@ -489,6 +489,18 @@ func (f RoleAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleAssignmentMutation", m)
 }
 
+// The RoleOrderOrganizationAccessFunc type is an adapter to allow the use of ordinary
+// function as RoleOrderOrganizationAccess mutator.
+type RoleOrderOrganizationAccessFunc func(context.Context, *ent.RoleOrderOrganizationAccessMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleOrderOrganizationAccessFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleOrderOrganizationAccessMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleOrderOrganizationAccessMutation", m)
+}
+
 // The SessionFunc type is an adapter to allow the use of ordinary
 // function as Session mutator.
 type SessionFunc func(context.Context, *ent.SessionMutation) (ent.Value, error)

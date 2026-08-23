@@ -354,6 +354,35 @@ func TestPrincipalPermissionRequiresDataScope(t *testing.T) {
 	}
 }
 
+func TestPrincipalOrderOrganizationAccess(t *testing.T) {
+	currentOrganizationID := uuid.New()
+	readOnlyOrganizationID := uuid.New()
+	writableOrganizationID := uuid.New()
+	principal := &Principal{
+		Organization: Organization{ID: currentOrganizationID},
+		OrderOrganizationAccesses: []OrderOrganizationAccess{
+			{OrganizationID: readOnlyOrganizationID},
+			{OrganizationID: writableOrganizationID, Writable: true},
+		},
+	}
+
+	if !principal.CanAccessOrderOrganization(currentOrganizationID, true) {
+		t.Fatal("current organization must retain write access")
+	}
+	if !principal.CanAccessOrderOrganization(readOnlyOrganizationID, false) || principal.CanAccessOrderOrganization(readOnlyOrganizationID, true) {
+		t.Fatal("read-only organization access was not enforced")
+	}
+	if !principal.CanAccessOrderOrganization(writableOrganizationID, true) {
+		t.Fatal("writable organization access was denied")
+	}
+	if principal.CanAccessOrderOrganization(uuid.New(), false) {
+		t.Fatal("unassigned organization was accessible")
+	}
+	if got := principal.OrderOrganizationIDs(); len(got) != 3 || got[0] != currentOrganizationID {
+		t.Fatalf("OrderOrganizationIDs() = %#v", got)
+	}
+}
+
 func stringPtr(value string) *string { return &value }
 
 var _ AdminRepo = (*adminRepoStub)(nil)

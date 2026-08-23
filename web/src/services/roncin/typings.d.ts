@@ -141,6 +141,7 @@ declare namespace API {
     permissionKeys?: string[];
     createdAt?: string;
     updatedAt?: string;
+    orderOrganizationAccesses?: OrderOrganizationAccess[];
   };
 
   type AdminRoleListReply = {
@@ -535,6 +536,7 @@ declare namespace API {
     name: string;
     dataScope: number;
     permissionKeys?: string[];
+    orderOrganizationAccesses?: OrderOrganizationAccess[];
   };
 
   type CreateShippingLineRequest = {
@@ -939,6 +941,8 @@ declare namespace API {
     cargoReadyAt?: string;
     loadingTerms?: string;
     receivedAt?: string;
+    organizationName?: string;
+    canModify?: boolean;
   };
 
   type OrderAbnormalCase = {
@@ -1190,6 +1194,11 @@ declare namespace API {
   type OrderMilestoneServiceSetMilestoneParams = {
     orderId: string;
     type: string;
+  };
+
+  type OrderOrganizationAccess = {
+    organizationId: string;
+    writable?: boolean;
   };
 
   type OrderPersonnel = {
@@ -2331,6 +2340,7 @@ declare namespace API {
     dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
+    orderOrganizationAccesses?: OrderOrganizationAccess[];
   };
 
   type UpdateShippingDocumentRequest = {

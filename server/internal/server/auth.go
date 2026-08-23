@@ -173,11 +173,54 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 			if err != nil {
 				return nil, err
 			}
-			if requiresPermission && !hasPermission(ctx, request, principal, rule, orderUsecase) {
+			effectivePrincipal := principal
+			if requiresPermission && rule.orderOperation != "" {
+				if order, directOrderRequest := requestOrder(ctx, request, orderUsecase); directOrderRequest {
+					if order == nil || !principal.CanAccessOrderOrganization(order.OrganizationID, orderOperationWrites(rule.orderOperation)) {
+						return nil, biz.ErrPermissionDenied
+					}
+					copy := *principal
+					copy.Organization.ID = order.OrganizationID
+					effectivePrincipal = &copy
+				}
+			}
+			if requiresPermission && !hasPermission(ctx, request, effectivePrincipal, rule, orderUsecase) {
 				return nil, biz.ErrPermissionDenied
 			}
-			return handler(biz.WithPrincipal(ctx, principal), request)
+			return handler(biz.WithPrincipal(ctx, effectivePrincipal), request)
 		}
+	}
+}
+
+func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase) (*biz.Order, bool) {
+	var orderID string
+	switch value := request.(type) {
+	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest:
+		return nil, false
+	case interface{ GetOrderId() string }:
+		orderID = value.GetOrderId()
+	case interface{ GetId() string }:
+		orderID = value.GetId()
+	default:
+		return nil, false
+	}
+	id, err := uuid.Parse(orderID)
+	if err != nil {
+		return nil, true
+	}
+	order, err := orderUsecase.Find(ctx, id)
+	if err != nil {
+		return nil, true
+	}
+	return order, true
+}
+
+func orderOperationWrites(operation access.OrderOperation) bool {
+	switch operation {
+	case access.OrderRead, access.OrderMilestoneRead, access.OrderAttachmentRead, access.OrderPersonnelRead, access.OrderContainerRead, access.OrderCargoItemRead, access.OrderShippingDocumentRead, access.OrderAbnormalCaseRead, access.OrderReleasePodRead:
+		return false
+	default:
+		return true
 	}
 }
 

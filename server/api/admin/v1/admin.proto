@@ -231,6 +231,7 @@ message CreateRoleRequest {
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   DataScope data_scope = 3 [(google.api.field_behavior) = REQUIRED];
   repeated string permission_keys = 4;
+  repeated OrderOrganizationAccess order_organization_accesses = 5;
 }
 
 message UpdateRoleRequest {
@@ -239,6 +240,12 @@ message UpdateRoleRequest {
   DataScope data_scope = 3 [(google.api.field_behavior) = REQUIRED];
   bool enabled = 4;
   repeated string permission_keys = 5;
+  repeated OrderOrganizationAccess order_organization_accesses = 6;
+}
+
+message OrderOrganizationAccess {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  bool writable = 2;
 }
 
 message AdminRole {
@@ -251,6 +258,7 @@ message AdminRole {
   repeated string permission_keys = 7;
   string created_at = 8;
   string updated_at = 9;
+  repeated OrderOrganizationAccess order_organization_accesses = 10;
 }
 
 message AdminRoleListReply {

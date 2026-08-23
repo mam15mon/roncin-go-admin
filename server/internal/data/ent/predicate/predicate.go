@@ -126,6 +126,9 @@ type Role func(*sql.Selector)
 // RoleAssignment is the predicate function for roleassignment builders.
 type RoleAssignment func(*sql.Selector)
 
+// RoleOrderOrganizationAccess is the predicate function for roleorderorganizationaccess builders.
+type RoleOrderOrganizationAccess func(*sql.Selector)
+
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
 

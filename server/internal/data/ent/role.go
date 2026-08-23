@@ -47,9 +47,11 @@ type RoleEdges struct {
 	Permissions []*Permission `json:"permissions,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*RoleAssignment `json:"assignments,omitempty"`
+	// OrderOrganizationAccesses holds the value of the order_organization_accesses edge.
+	OrderOrganizationAccesses []*RoleOrderOrganizationAccess `json:"order_organization_accesses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -79,6 +81,15 @@ func (e RoleEdges) AssignmentsOrErr() ([]*RoleAssignment, error) {
 		return e.Assignments, nil
 	}
 	return nil, &NotLoadedError{edge: "assignments"}
+}
+
+// OrderOrganizationAccessesOrErr returns the OrderOrganizationAccesses value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) OrderOrganizationAccessesOrErr() ([]*RoleOrderOrganizationAccess, error) {
+	if e.loadedTypes[3] {
+		return e.OrderOrganizationAccesses, nil
+	}
+	return nil, &NotLoadedError{edge: "order_organization_accesses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -183,6 +194,11 @@ func (_m *Role) QueryPermissions() *PermissionQuery {
 // QueryAssignments queries the "assignments" edge of the Role entity.
 func (_m *Role) QueryAssignments() *RoleAssignmentQuery {
 	return NewRoleClient(_m.config).QueryAssignments(_m)
+}
+
+// QueryOrderOrganizationAccesses queries the "order_organization_accesses" edge of the Role entity.
+func (_m *Role) QueryOrderOrganizationAccesses() *RoleOrderOrganizationAccessQuery {
+	return NewRoleClient(_m.config).QueryOrderOrganizationAccesses(_m)
 }
 
 // Update returns a builder for updating this Role.

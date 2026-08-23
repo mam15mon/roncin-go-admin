@@ -1120,6 +1120,15 @@ export default function OrderListPage() {
       ),
     },
     {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 160,
+      search: false,
+      render: (_, record) => (
+        <Text>{record.organizationName || record.organizationId || '-'}</Text>
+      ),
+    },
+    {
       title: '业务类型',
       dataIndex: 'businessType',
       width: 130,
@@ -1278,7 +1287,7 @@ export default function OrderListPage() {
 
         return (
           <Space size={8}>
-            {access.canOrder(config.businessType, 'update') && record.status === 'DRAFT' && (
+            {access.canOrder(config.businessType, 'update') && record.canModify && record.status === 'DRAFT' && (
               <Button
                 type="link"
                 size="small"
@@ -1289,7 +1298,7 @@ export default function OrderListPage() {
                 编辑
               </Button>
             )}
-            {access.canOrder(config.businessType, 'transition') && (
+            {access.canOrder(config.businessType, 'transition') && record.canModify && (
               <Button
                 type="link"
                 size="small"

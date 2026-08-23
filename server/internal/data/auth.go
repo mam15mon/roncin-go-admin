@@ -121,7 +121,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
-			query.WithRole(func(roleQuery *ent.RoleQuery) { roleQuery.WithPermissions() })
+			query.WithRole(func(roleQuery *ent.RoleQuery) { roleQuery.WithPermissions().WithOrderOrganizationAccesses() })
 		}).
 		All(ctx)
 	if err != nil {
@@ -131,6 +131,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	permissionSet := make(map[string]struct{})
 	rolePermissions := make(map[string]map[string]struct{})
 	roleScopes := make([]biz.RoleScope, 0)
+	orderOrganizationAccesses := make(map[uuid.UUID]bool)
 	var current *biz.Organization
 	for _, member := range memberships {
 		org, edgeErr := member.Edges.OrganizationOrErr()
@@ -155,6 +156,9 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 				rolePermissionSet[permission.Key] = struct{}{}
 			}
 			rolePermissions[role.Code] = rolePermissionSet
+			for _, access := range role.Edges.OrderOrganizationAccesses {
+				orderOrganizationAccesses[access.OrganizationID] = orderOrganizationAccesses[access.OrganizationID] || access.Writable
+			}
 		}
 	}
 	if current == nil {
@@ -167,7 +171,12 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	}
 	sort.Strings(permissions)
 	sort.Slice(roleScopes, func(i, j int) bool { return roleScopes[i].RoleCode < roleScopes[j].RoleCode })
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions}, nil
+	accesses := make([]biz.OrderOrganizationAccess, 0, len(orderOrganizationAccesses))
+	for organizationID, writable := range orderOrganizationAccesses {
+		accesses = append(accesses, biz.OrderOrganizationAccess{OrganizationID: organizationID, Writable: writable})
+	}
+	sort.Slice(accesses, func(i, j int) bool { return accesses[i].OrganizationID.String() < accesses[j].OrganizationID.String() })
+	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session) error {

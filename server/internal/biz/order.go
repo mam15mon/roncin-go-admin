@@ -129,6 +129,7 @@ func (v OrderReferenceType) Valid() bool {
 type Order struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
+	OrganizationName      string
 	OrderNo               string
 	CustomerID            uuid.UUID
 	CustomerReferenceNo   string
@@ -210,7 +211,8 @@ type OrderReferenceMatch struct {
 
 type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
-	List(context.Context, uuid.UUID, OrderListOptions) (*OrderList, error)
+	Find(context.Context, uuid.UUID) (*Order, error)
+	List(context.Context, []uuid.UUID, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
@@ -234,13 +236,25 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 	return uc.repo.Get(ctx, organizationID, id)
 }
 
-func (uc *OrderUsecase) List(ctx context.Context, organizationID uuid.UUID, options OrderListOptions) (*OrderList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 || options.BusinessType != "" && !options.BusinessType.Valid() {
+func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) {
+	if id == uuid.Nil {
+		return nil, ErrOrderNotFound
+	}
+	return uc.repo.Find(ctx, id)
+}
+
+func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
+	if len(organizationIDs) == 0 || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 || options.BusinessType != "" && !options.BusinessType.Valid() {
 		return nil, ErrOrderInvalidArgument
+	}
+	for _, organizationID := range organizationIDs {
+		if organizationID == uuid.Nil {
+			return nil, ErrOrderInvalidArgument
+		}
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
 	options.Status = strings.ToUpper(strings.TrimSpace(options.Status))
-	return uc.repo.List(ctx, organizationID, options)
+	return uc.repo.List(ctx, organizationIDs, options)
 }
 
 func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.UUID, check OrderReferenceCheck) (*OrderReferenceMatch, error) {

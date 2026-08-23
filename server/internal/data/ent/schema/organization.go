@@ -28,6 +28,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("children", Organization.Type).From("parent").Field("parent_id").Unique(),
 		edge.To("memberships", Membership.Type),
 		edge.To("roles", Role.Type),
+		edge.To("role_order_organization_accesses", RoleOrderOrganizationAccess.Type),
 		edge.To("sessions", Session.Type),
 		edge.To("partners", Partner.Type),
 		edge.To("partner_assignments", PartnerAssignment.Type),

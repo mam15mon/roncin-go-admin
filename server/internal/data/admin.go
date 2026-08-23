@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	roleorderorganizationaccess "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -296,7 +297,7 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 }
 
 func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]*biz.AdminRole, error) {
-	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().All(ctx)
+	items, err := r.data.db.Role.Query().Where(role.OrganizationIDEQ(organizationID)).WithPermissions().WithOrderOrganizationAccesses().All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -313,14 +314,26 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	created, err := r.data.db.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
 			return nil, biz.ErrAdminRoleCodeExists
 		}
 		return nil, err
 	}
-	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().Only(ctx)
+	if err := replaceRoleOrderOrganizationAccesses(ctx, tx, created.ID, input.OrderOrganizationAccesses); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -332,14 +345,26 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 	if err != nil {
 		return nil, err
 	}
-	updated, err := r.data.db.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	updated, err := tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrAdminRoleNotFound
 		}
 		return nil, err
 	}
-	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().Only(ctx)
+	if err := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -511,8 +536,26 @@ func roleToBiz(item *ent.Role) *biz.AdminRole {
 	for _, permissionItem := range item.Edges.Permissions {
 		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
 	}
+	for _, access := range item.Edges.OrderOrganizationAccesses {
+		result.OrderOrganizationAccesses = append(result.OrderOrganizationAccesses, biz.OrderOrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
+	}
 	sort.Strings(result.PermissionKeys)
+	sort.Slice(result.OrderOrganizationAccesses, func(i, j int) bool {
+		return result.OrderOrganizationAccesses[i].OrganizationID.String() < result.OrderOrganizationAccesses[j].OrganizationID.String()
+	})
 	return result
+}
+
+func replaceRoleOrderOrganizationAccesses(ctx context.Context, tx *ent.Tx, roleID uuid.UUID, accesses []biz.OrderOrganizationAccess) error {
+	if _, err := tx.RoleOrderOrganizationAccess.Delete().Where(roleorderorganizationaccess.RoleIDEQ(roleID)).Exec(ctx); err != nil {
+		return err
+	}
+	for _, access := range accesses {
+		if _, err := tx.RoleOrderOrganizationAccess.Create().SetRoleID(roleID).SetOrganizationID(access.OrganizationID).SetWritable(access.Writable).Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var _ biz.AdminRepo = (*adminRepo)(nil)

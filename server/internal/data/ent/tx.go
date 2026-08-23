@@ -92,6 +92,8 @@ type Tx struct {
 	Role *RoleClient
 	// RoleAssignment is the client for interacting with the RoleAssignment builders.
 	RoleAssignment *RoleAssignmentClient
+	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
+	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// ShippingLine is the client for interacting with the ShippingLine builders.
@@ -275,6 +277,7 @@ func (tx *Tx) init() {
 	tx.Port = NewPortClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RoleAssignment = NewRoleAssignmentClient(tx.config)
+	tx.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.ShippingLine = NewShippingLineClient(tx.config)
 	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)

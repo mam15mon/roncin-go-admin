@@ -521,6 +521,8 @@ type Order struct {
 	CargoReadyAt          *string                `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
 	LoadingTerms          *string                `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
 	ReceivedAt            *string                `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
+	OrganizationName      string                 `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	CanModify             bool                   `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -910,6 +912,20 @@ func (x *Order) GetReceivedAt() string {
 		return *x.ReceivedAt
 	}
 	return ""
+}
+
+func (x *Order) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *Order) GetCanModify() bool {
+	if x != nil {
+		return x.CanModify
+	}
+	return false
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -2541,7 +2557,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9e\x17\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xea\x17\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -2606,7 +2622,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
 	"\rloading_terms\x182 \x01(\tH#R\floadingTerms\x88\x01\x01\x12$\n" +
 	"\vreceived_at\x183 \x01(\tH$R\n" +
-	"receivedAt\x88\x01\x01B\r\n" +
+	"receivedAt\x88\x01\x01\x12+\n" +
+	"\x11organization_name\x184 \x01(\tR\x10organizationName\x12\x1d\n" +
+	"\n" +
+	"can_modify\x185 \x01(\bR\tcanModifyB\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
