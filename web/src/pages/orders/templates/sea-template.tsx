@@ -8,9 +8,10 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Input, Row, Select } from 'antd';
+import { Button, Col, Form, Row, Select } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
+import { TooltipInput } from '@/components/ui/tooltip-input';
 import {
   containerOwnershipOptions,
   paymentTermOptions,
@@ -43,8 +44,8 @@ function SeaScheduleDateFields() {
         label="ETA"
         dependencies={['etd']}
         rules={[
-          ({ getFieldValue }) => ({
-            validator: async (_, value) => {
+          ({ getFieldValue }: { getFieldValue: (name: string) => unknown }) => ({
+            validator: async (_: unknown, value: unknown) => {
               const currentEtd = getFieldValue('etd');
               if (
                 dayjs.isDayjs(currentEtd) &&
@@ -184,7 +185,7 @@ export function getSeaTemplateSections(
           <Col className="col-5">
             <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
               <Form.Item noStyle name="customerReferenceNo">
-                <Input
+                <TooltipInput
                   placeholder="请输入"
                   maxLength={100}
                   suffix={
@@ -205,7 +206,7 @@ export function getSeaTemplateSections(
           <Col className="col-5">
             <Form.Item label="企业内部编号" style={{ marginInline: 8 }}>
               <Form.Item noStyle name="internalReferenceNo">
-                <Input
+                <TooltipInput
                   placeholder="请输入"
                   maxLength={100}
                   suffix={
@@ -257,12 +258,14 @@ export function getSeaTemplateSections(
 
           {/* 第 6 行：一行 5 列（合约号、船公司、船代、货值、保费） */}
           <Col className="col-5">
-            <ProFormText
-              name="contractNo"
-              label="合约号"
-              fieldProps={{ maxLength: 100 }}
-              placeholder="请输入"
-            />
+            <Form.Item label="合约号" style={{ marginInline: 8 }}>
+              <Form.Item noStyle name="contractNo">
+                <TooltipInput
+                  placeholder="请输入"
+                  maxLength={100}
+                />
+              </Form.Item>
+            </Form.Item>
           </Col>
           <Col className="col-5">
             <ProFormSelect
@@ -304,7 +307,7 @@ export function getSeaTemplateSections(
                   }),
                 ]}
               >
-                <Input
+                <TooltipInput
                   placeholder="金额"
                   maxLength={23}
                   suffix={
@@ -354,7 +357,7 @@ export function getSeaTemplateSections(
                   }),
                 ]}
               >
-                <Input
+                <TooltipInput
                   placeholder="金额"
                   maxLength={23}
                   suffix={
@@ -390,26 +393,24 @@ export function getSeaTemplateSections(
 
           {/* 第 7 行：一行 5 列（UN NO.、CLASS NO.、截申报时间、接单时间、工厂） */}
           <Col className="col-5">
-            <ProFormText
-              name="unNumber"
+            <Form.Item
               label="UN NO."
+              name="unNumber"
+              style={{ marginInline: 8 }}
               rules={[
                 {
                   pattern: /^\d{4}$/,
                   message: 'UN NO. 应为 4 位数字',
                 },
               ]}
-              fieldProps={{ maxLength: 4 }}
-              placeholder="4位数字"
-            />
+            >
+              <TooltipInput placeholder="4位数字" maxLength={4} />
+            </Form.Item>
           </Col>
           <Col className="col-5">
-            <ProFormText
-              name="hazardClass"
-              label="CLASS NO."
-              fieldProps={{ maxLength: 16 }}
-              placeholder="类别"
-            />
+            <Form.Item label="CLASS NO." name="hazardClass" style={{ marginInline: 8 }}>
+              <TooltipInput placeholder="类别" maxLength={16} />
+            </Form.Item>
           </Col>
           <Col className="col-5">
             <ProFormDateTimePicker
@@ -426,22 +427,16 @@ export function getSeaTemplateSections(
             />
           </Col>
           <Col className="col-5">
-            <ProFormText
-              name="factoryName"
-              label="工厂"
-              fieldProps={{ maxLength: 200 }}
-              placeholder="请输入工厂"
-            />
+            <Form.Item label="工厂" name="factoryName" style={{ marginInline: 8 }}>
+              <TooltipInput placeholder="请输入工厂" maxLength={200} />
+            </Form.Item>
           </Col>
 
           {/* 第 8 行：一行 5 列（委托单位代码、货好时间、后 3 列留白） */}
           <Col className="col-5">
-            <ProFormText
-              name="customerCode"
-              label="委托单位代码"
-              fieldProps={{ disabled: true }}
-              placeholder="选择委托单位后自动带出"
-            />
+            <Form.Item label="委托单位代码" name="customerCode" style={{ marginInline: 8 }}>
+              <TooltipInput disabled placeholder="选择委托单位后自动带出" />
+            </Form.Item>
           </Col>
           <Col className="col-5">
             <ProFormDateTimePicker
