@@ -7,6 +7,7 @@ import {
   parseOrderKind,
   seaServiceTypeNames,
   shipmentModeOptions,
+  shipmentTypeOptions,
   tradeDirectionOptions,
 } from './common';
 
@@ -40,6 +41,11 @@ describe('orders common and config', () => {
     expect(shipmentModeOptions).toEqual([
       { label: '集运', value: 1 },
       { label: '跨境', value: 2 },
+    ]);
+    expect(shipmentTypeOptions).toEqual([
+      { label: '整箱', value: 1 },
+      { label: '拼箱', value: 2 },
+      { label: '散杂货', value: 3 },
     ]);
     expect(seaServiceTypeNames).toEqual([
       '订舱',
