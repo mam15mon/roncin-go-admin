@@ -12,11 +12,14 @@ Roncin 货代后台采用 Kratos v3、Ent、PostgreSQL 与 Ant Design Pro。前�
 
 ```powershell
 pnpm install
+pnpm dev
 pnpm run dev:web
 pnpm run dev:server
 pnpm run check
 pnpm run build
 ```
+
+其中 `pnpm dev` 会启动本机 PostgreSQL、执行数据库迁移，并并行启动前后端；`dev:web` 与 `dev:server` 用于只启动其中一端。
 
 运行所需环境变量见 `.env.example`。本地开发不要求 Docker；如果 PostgreSQL 已运行在 WSL 中，按[本地开发说明](docs/local-development.md)配置 `.env.local` 即可。
 
