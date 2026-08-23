@@ -126,6 +126,55 @@ func TestDefaultNumberRules(t *testing.T) {
 	}
 }
 
+func TestDefaultStatusTemplates(t *testing.T) {
+	templates := DefaultStatusTemplates()
+	wantBusinessTypes := map[BusinessType]bool{
+		BusinessTypeSE: false, BusinessTypeSI: false,
+		BusinessTypeAE: false, BusinessTypeAI: false,
+		BusinessTypeLand: false, BusinessTypeRail: false,
+	}
+	if len(templates) != len(wantBusinessTypes) {
+		t.Fatalf("DefaultStatusTemplates() count = %d, want %d", len(templates), len(wantBusinessTypes))
+	}
+
+	for _, template := range templates {
+		if _, exists := wantBusinessTypes[template.BusinessType]; !exists {
+			t.Fatalf("unexpected business type %q", template.BusinessType)
+		}
+		if wantBusinessTypes[template.BusinessType] {
+			t.Fatalf("duplicate business type %q", template.BusinessType)
+		}
+		wantBusinessTypes[template.BusinessType] = true
+		if template.Code == "" || template.Name == "" || template.Version != 1 {
+			t.Fatalf("invalid template metadata: %#v", template)
+		}
+		if !template.IsDefault || !template.Enabled {
+			t.Fatalf("template %q must be default and enabled", template.Code)
+		}
+
+		seenCodes := make(map[string]struct{}, len(template.Items))
+		draftCount := 0
+		for _, item := range template.Items {
+			if item == nil || item.Code == "" || item.Label == "" {
+				t.Fatalf("template %q contains invalid item: %#v", template.Code, item)
+			}
+			if _, exists := seenCodes[item.Code]; exists {
+				t.Fatalf("template %q contains duplicate status %q", template.Code, item.Code)
+			}
+			seenCodes[item.Code] = struct{}{}
+			if item.Code == "DRAFT" {
+				draftCount++
+			}
+			if !item.Enabled || !item.System {
+				t.Fatalf("template %q item %q must be enabled and system-owned", template.Code, item.Code)
+			}
+		}
+		if draftCount != 1 {
+			t.Fatalf("template %q DRAFT count = %d, want 1", template.Code, draftCount)
+		}
+	}
+}
+
 func TestOrderConfigCreateNumberRuleNormalizesAndAudits(t *testing.T) {
 	repo := &orderConfigRepoStub{}
 	audit := &auditRepoStub{}
@@ -429,52 +478,41 @@ func TestOrderConfigCreateStatusTemplateRejections(t *testing.T) {
 	}
 }
 
-func TestOrderConfigSetDefaultStatusTemplate(t *testing.T) {
+func TestOrderConfigStatusTemplateWritesAreReadOnly(t *testing.T) {
 	repo := &orderConfigRepoStub{}
 	audit := &auditRepoStub{}
 	usecase := NewOrderConfigUsecase(repo, audit)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	templateID := uuid.New()
-
-	template, err := usecase.SetDefaultStatusTemplate(context.Background(), organizationID, actorID, templateID)
-	if err != nil {
-		t.Fatalf("SetDefaultStatusTemplate() error = %v, want nil", err)
+	input := &StatusTemplate{
+		Code:         "SE_SYSTEM",
+		Name:         "海运出口内置状态流转",
+		BusinessType: BusinessTypeSE,
+		Version:      1,
+		Items: []*StatusTemplateItem{
+			{Code: "DRAFT", Label: "新建", SortOrder: 0, Enabled: true},
+		},
 	}
 
-	if repo.lastSetDefaultOrgID != organizationID {
-		t.Fatalf("repo.lastSetDefaultOrgID = %v, want %v", repo.lastSetDefaultOrgID, organizationID)
+	if _, err := usecase.CreateStatusTemplate(context.Background(), organizationID, actorID, input); err != ErrStatusTemplateReadOnly {
+		t.Fatalf("CreateStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
 	}
-	if repo.lastSetDefaultID != templateID {
-		t.Fatalf("repo.lastSetDefaultID = %v, want %v", repo.lastSetDefaultID, templateID)
-	}
-	if !template.IsDefault {
-		t.Fatalf("template.IsDefault = false, want true")
+	if _, err := usecase.PublishStatusTemplate(context.Background(), organizationID, actorID, templateID, true); err != ErrStatusTemplateReadOnly {
+		t.Fatalf("PublishStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
 	}
 
-	if len(audit.events) != 1 {
-		t.Fatalf("audit events count = %d, want 1", len(audit.events))
+	if _, err := usecase.SetDefaultStatusTemplate(context.Background(), organizationID, actorID, templateID); err != ErrStatusTemplateReadOnly {
+		t.Fatalf("SetDefaultStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
 	}
-	event := audit.events[0]
-	if event.Action != "status_template.set_default" {
-		t.Fatalf("audit event action = %q, want status_template.set_default", event.Action)
+	if repo.createdTemplate != nil || repo.lastPublishID != uuid.Nil {
+		t.Fatalf("repository was called for read-only status template")
 	}
-	if event.OrganizationID == nil || *event.OrganizationID != organizationID {
-		t.Fatalf("audit event OrganizationID = %v, want %v", event.OrganizationID, organizationID)
+	if repo.lastSetDefaultOrgID != uuid.Nil || repo.lastSetDefaultID != uuid.Nil {
+		t.Fatalf("repository was called for read-only status template")
 	}
-	if event.UserID == nil || *event.UserID != actorID {
-		t.Fatalf("audit event UserID = %v, want %v", event.UserID, actorID)
-	}
-	if event.Result != "success" {
-		t.Fatalf("audit event result = %q, want success", event.Result)
-	}
-	wantDetails := map[string]string{
-		"status_template.id":   template.ID.String(),
-		"status_template.code": template.Code,
-		"version":              "1",
-	}
-	if !reflect.DeepEqual(event.Details, wantDetails) {
-		t.Fatalf("audit event details = %#v, want %#v", event.Details, wantDetails)
+	if len(audit.events) != 0 {
+		t.Fatalf("audit events count = %d, want 0", len(audit.events))
 	}
 
 	// Validate invalid arguments

@@ -59,7 +59,9 @@ export default function NewOrderPage() {
   const config = parseOrderKind(params.kind);
 
   const [loading, setLoading] = useState(true);
-  const [statusTemplateOptions, setStatusTemplateOptions] = useState<SelectOption[]>([]);
+  const [statusTemplateOptions, setStatusTemplateOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
   const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
@@ -145,8 +147,9 @@ export default function NewOrderPage() {
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
-    if (!values.statusTemplateId) {
-      message.error('请选择状态流转模板');
+    const defaultStatusTemplateId = statusTemplateOptions[0]?.value;
+    if (typeof defaultStatusTemplateId !== 'string') {
+      message.error('当前业务类型未配置默认状态流转模板');
       return false;
     }
 
@@ -157,7 +160,7 @@ export default function NewOrderPage() {
         tradeDirection: Number(values.tradeDirection),
         tradeTerm: Number(values.tradeTerm),
         paymentTerm: Number(values.paymentTerm),
-        statusTemplateId: values.statusTemplateId,
+        statusTemplateId: defaultStatusTemplateId,
         carrierId: values.carrierId || undefined,
         bookingAgentId: values.bookingAgentId || undefined,
         shipmentType:
@@ -221,7 +224,10 @@ export default function NewOrderPage() {
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
       sections={sections}
-      initialValues={{ tradeDirection: config.tradeDirection }}
+      initialValues={{
+        tradeDirection: config.tradeDirection,
+        statusTemplateId: statusTemplateOptions[0]?.value,
+      }}
       onFinish={handleFinish}
       submitText="创建订单"
       resetText="重置表单"

@@ -18,6 +18,7 @@ var (
 	ErrStatusTemplateNotFound        = errors.NotFound("STATUS_TEMPLATE_NOT_FOUND", "状态模板不存在")
 	ErrStatusTemplateExists          = errors.Conflict("STATUS_TEMPLATE_EXISTS", "状态模板版本已存在")
 	ErrStatusTemplateInvalid         = errors.BadRequest("STATUS_TEMPLATE_INVALID", "状态模板不合法")
+	ErrStatusTemplateReadOnly        = errors.Forbidden("STATUS_TEMPLATE_READ_ONLY", "状态流转模板为系统内置配置，不允许修改")
 	ErrNumberSequenceExhausted       = errors.Conflict("NUMBER_SEQUENCE_EXHAUSTED", "当前编号周期的序列已耗尽")
 	ErrStatusTemplateDefaultConflict = errors.Conflict("STATUS_TEMPLATE_DEFAULT_CONFLICT", "默认状态模板设置冲突")
 )
@@ -141,6 +142,68 @@ type StatusTemplate struct {
 	UpdatedAt      time.Time
 }
 
+func DefaultStatusTemplates() []StatusTemplate {
+	return []StatusTemplate{
+		defaultStatusTemplate("SE_SYSTEM", "海运出口内置状态流转", BusinessTypeSE, []StatusTemplateItem{
+			{Code: "BOOKED", Label: "已订舱", ColorToken: statusColorPointer("blue")},
+			{Code: "SPACE_ALLOCATED", Label: "已配舱", ColorToken: statusColorPointer("cyan")},
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+			{Code: "WAREHOUSE_DELIVERED", Label: "已送仓", ColorToken: statusColorPointer("amber")},
+			{Code: "INVOICE_ISSUED", Label: "已开票", ColorToken: statusColorPointer("blue")},
+			{Code: "CUSTOMS_DECLARATION_ARRANGED", Label: "报关已安排", ColorToken: statusColorPointer("violet")},
+		}),
+		defaultStatusTemplate("SI_SYSTEM", "海运进口内置状态流转", BusinessTypeSI, []StatusTemplateItem{
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+			{Code: "CUSTOMS_DECLARATION_ARRANGED", Label: "报关已安排", ColorToken: statusColorPointer("violet")},
+			{Code: "BILL_EXCHANGED", Label: "已换单", ColorToken: statusColorPointer("teal")},
+			{Code: "INSPECTION_ARRANGED", Label: "报检已安排", ColorToken: statusColorPointer("violet")},
+		}),
+		defaultStatusTemplate("AE_SYSTEM", "空运出口内置状态流转", BusinessTypeAE, []StatusTemplateItem{
+			{Code: "BOOKED", Label: "已订舱", ColorToken: statusColorPointer("blue")},
+			{Code: "SPACE_ALLOCATED", Label: "已配舱", ColorToken: statusColorPointer("cyan")},
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+			{Code: "DOCUMENT_CUTOFF", Label: "已截单", ColorToken: statusColorPointer("rose")},
+			{Code: "CUSTOMS_DECLARATION_ARRANGED", Label: "报关已安排", ColorToken: statusColorPointer("violet")},
+			{Code: "DOCUMENT_SIGNED", Label: "已签单", ColorToken: statusColorPointer("indigo")},
+		}),
+		defaultStatusTemplate("AI_SYSTEM", "空运进口内置状态流转", BusinessTypeAI, []StatusTemplateItem{
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+			{Code: "CUSTOMS_DECLARATION_ARRANGED", Label: "报关已安排", ColorToken: statusColorPointer("violet")},
+			{Code: "BILL_EXCHANGED", Label: "已换单", ColorToken: statusColorPointer("teal")},
+			{Code: "INSPECTION_ARRANGED", Label: "报检已安排", ColorToken: statusColorPointer("violet")},
+		}),
+		defaultStatusTemplate("LAND_SYSTEM", "陆运内置状态流转", BusinessTypeLand, []StatusTemplateItem{
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+		}),
+		defaultStatusTemplate("RAIL_SYSTEM", "铁路内置状态流转", BusinessTypeRail, []StatusTemplateItem{
+			{Code: "DOCUMENT_SIGNED", Label: "已签单", ColorToken: statusColorPointer("indigo")},
+			{Code: "BOOKED", Label: "已订舱", ColorToken: statusColorPointer("blue")},
+			{Code: "SPACE_ALLOCATED", Label: "已配舱", ColorToken: statusColorPointer("cyan")},
+			{Code: "TRUCKING_ARRANGED", Label: "拖车已安排", ColorToken: statusColorPointer("amber")},
+			{Code: "DOCUMENT_CUTOFF", Label: "已截单", ColorToken: statusColorPointer("rose")},
+			{Code: "CUSTOMS_DECLARATION_ARRANGED", Label: "报关已安排", ColorToken: statusColorPointer("violet")},
+		}),
+	}
+}
+
+func defaultStatusTemplate(code, name string, businessType BusinessType, items []StatusTemplateItem) StatusTemplate {
+	result := StatusTemplate{
+		Code: code, Name: name, BusinessType: businessType, Version: 1,
+		IsDefault: true, Enabled: true,
+		Items: []*StatusTemplateItem{{Code: "DRAFT", Label: "新建", SortOrder: 0, Enabled: true, ColorToken: statusColorPointer("slate"), System: true}},
+	}
+	for index := range items {
+		item := items[index]
+		item.SortOrder = index + 1
+		item.Enabled = true
+		item.System = true
+		result.Items = append(result.Items, &item)
+	}
+	return result
+}
+
+func statusColorPointer(value string) *string { return &value }
+
 type OrderConfigRepo interface {
 	ListNumberRules(context.Context, uuid.UUID) ([]*NumberRule, error)
 	CreateNumberRule(context.Context, uuid.UUID, *NumberRule) (*NumberRule, error)
@@ -226,46 +289,25 @@ func (uc *OrderConfigUsecase) ListStatusTemplates(ctx context.Context, organizat
 }
 
 func (uc *OrderConfigUsecase) CreateStatusTemplate(ctx context.Context, organizationID, actorID uuid.UUID, input *StatusTemplate) (*StatusTemplate, error) {
-	normalized, err := normalizeStatusTemplate(input)
+	_, err := normalizeStatusTemplate(input)
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.CreateStatusTemplate(ctx, organizationID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "status_template.create", Result: "success", Details: map[string]string{"status_template.id": created.ID.String(), "status_template.code": created.Code, "version": strconv.Itoa(created.Version)}}); err != nil {
-		return nil, fmt.Errorf("write status template create audit: %w", err)
-	}
-	return created, nil
+	return nil, ErrStatusTemplateReadOnly
 }
 
 func (uc *OrderConfigUsecase) PublishStatusTemplate(ctx context.Context, organizationID, actorID, id uuid.UUID, isDefault bool) (*StatusTemplate, error) {
 	if organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrStatusTemplateInvalid
 	}
-	published, err := uc.repo.PublishStatusTemplate(ctx, organizationID, id, isDefault, uc.now().UTC())
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "status_template.publish", Result: "success", Details: map[string]string{"status_template.id": published.ID.String(), "status_template.code": published.Code, "version": strconv.Itoa(published.Version)}}); err != nil {
-		return nil, fmt.Errorf("write status template publish audit: %w", err)
-	}
-	return published, nil
+	return nil, ErrStatusTemplateReadOnly
 }
 
 func (uc *OrderConfigUsecase) SetDefaultStatusTemplate(ctx context.Context, organizationID, actorID, id uuid.UUID) (*StatusTemplate, error) {
 	if organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrStatusTemplateInvalid
 	}
-	updated, err := uc.repo.SetDefaultStatusTemplate(ctx, organizationID, id)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "status_template.set_default", Result: "success", Details: map[string]string{"status_template.id": updated.ID.String(), "status_template.code": updated.Code, "version": strconv.Itoa(updated.Version)}}); err != nil {
-		return nil, fmt.Errorf("write status template set default audit: %w", err)
-	}
-	return updated, nil
+	return nil, ErrStatusTemplateReadOnly
 }
 
 func normalizeNumberRule(input *NumberRule, creating bool) (*NumberRule, error) {

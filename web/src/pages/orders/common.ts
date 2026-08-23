@@ -198,16 +198,25 @@ export async function loadStatusTemplatesByBusinessType(
     businessType,
     published: true,
   });
-  return (res.data ?? [])
+  const options = (res.data ?? [])
     .filter(
       (tpl) =>
         tpl.enabled !== false &&
-        (tpl.items ?? []).some((item) => item.code === 'DRAFT'),
+        tpl.isDefault === true &&
+        (tpl.items ?? []).some(
+          (item) => item.code === 'DRAFT' && item.enabled !== false,
+        ),
     )
     .map((tpl) => ({
       label: `${tpl.name} (v${tpl.version})`,
       value: tpl.id ?? '',
-    }));
+    }))
+    .filter((option) => option.value !== '');
+
+  if (options.length !== 1) {
+    throw new Error('当前业务类型必须配置且只能配置一个默认状态流转模板');
+  }
+  return options;
 }
 
 export async function fetchOrderMasterData() {

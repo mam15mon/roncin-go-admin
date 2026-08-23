@@ -37,6 +37,39 @@ func CreateDefaultNumberRules(ctx context.Context, tx *ent.Tx, organizationID uu
 	return nil
 }
 
+func CreateDefaultStatusTemplates(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+	publishedAt := time.Now().UTC()
+	for _, template := range biz.DefaultStatusTemplates() {
+		created, err := tx.StatusTemplate.Create().
+			SetOrganizationID(organizationID).
+			SetCode(template.Code).
+			SetName(template.Name).
+			SetBusinessType(statustemplate.BusinessType(template.BusinessType)).
+			SetVersion(template.Version).
+			SetIsDefault(true).
+			SetPublishedAt(publishedAt).
+			SetEnabled(true).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建内置状态流转模板 %s: %w", template.BusinessType, err)
+		}
+		for _, item := range template.Items {
+			if _, err := tx.StatusTemplateItem.Create().
+				SetTemplateID(created.ID).
+				SetCode(item.Code).
+				SetLabel(item.Label).
+				SetSortOrder(item.SortOrder).
+				SetEnabled(true).
+				SetNillableColorToken(item.ColorToken).
+				SetSystem(true).
+				Save(ctx); err != nil {
+				return fmt.Errorf("创建内置状态流转项 %s/%s: %w", template.BusinessType, item.Code, err)
+			}
+		}
+	}
+	return nil
+}
+
 func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uuid.UUID) ([]*biz.NumberRule, error) {
 	items, err := r.data.db.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID)).Order(numberrule.ByDocumentType()).All(ctx)
 	if err != nil {

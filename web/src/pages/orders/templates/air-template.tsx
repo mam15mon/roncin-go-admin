@@ -45,10 +45,10 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, md: 8 }}
             name="statusTemplateId"
-            label="状态流转模板"
-            rules={[{ required: true, message: '请选择状态模板' }]}
+            label="状态流转模板（系统内置）"
             options={statusTemplateOptions}
-            placeholder="请选择状态模板"
+            placeholder="系统自动匹配"
+            fieldProps={{ disabled: true }}
           />
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, md: 8 }}

@@ -70,6 +70,10 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := CreateDefaultStatusTemplates(ctx, tx, created.ID); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

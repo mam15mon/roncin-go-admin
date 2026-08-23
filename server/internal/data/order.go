@@ -255,6 +255,7 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		statustemplateent.IDEQ(input.StatusTemplateID),
 		statustemplateent.OrganizationIDEQ(organizationID),
 		statustemplateent.BusinessTypeEQ(statustemplateent.BusinessType(input.BusinessType)),
+		statustemplateent.IsDefaultEQ(true),
 		statustemplateent.PublishedAtNotNil(),
 		statustemplateent.EnabledEQ(true),
 		statustemplateent.HasItemsWith(statustemplateitement.CodeEQ("DRAFT"), statustemplateitement.EnabledEQ(true)),
