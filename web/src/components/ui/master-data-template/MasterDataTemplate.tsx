@@ -252,18 +252,22 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       title: '名称 (中/英文)',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: T) => (
-        <div>
-          <div style={{ fontWeight: 600, fontSize: 13, color: '#262626' }}>
-            {name}
-          </div>
-          {record.nameEn && (
-            <div style={{ fontSize: 11, color: '#8c8c8c', fontFamily: 'sans-serif' }}>
-              {record.nameEn}
+      render: (name: string, record: T) => {
+        const primaryName = name || record.nameEn || '-';
+        const secondaryName = name && record.nameEn ? record.nameEn : '';
+        return (
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 13, color: '#262626' }}>
+              {primaryName}
             </div>
-          )}
-        </div>
-      ),
+            {secondaryName && (
+              <div style={{ fontSize: 11, color: '#8c8c8c', fontFamily: 'sans-serif' }}>
+                {secondaryName}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     // Injected Custom Columns
     ...(extraColumns as any[]),

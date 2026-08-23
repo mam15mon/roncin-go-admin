@@ -57,10 +57,10 @@ export default function AirportsPanel() {
   const handleCreate = async (values: any) => {
     const response = await masterDataServiceCreateAirport({
       iataCode: values.code.toUpperCase().trim(),
-      nameZh: values.name.trim(),
+      nameZh: values.name?.trim() || undefined,
       nameEn: values.nameEn.trim(),
       icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-      cityNameZh: values.cityName.trim(),
+      cityNameZh: values.cityName?.trim() || undefined,
       cityNameEn: values.cityNameEn?.trim() || undefined,
       countryCode: values.countryCode.toUpperCase().trim(),
       sortOrder: 100,
@@ -73,10 +73,10 @@ export default function AirportsPanel() {
       { id: record.id },
       {
         id: record.id,
-        nameZh: values.name.trim(),
+        nameZh: values.name?.trim() || undefined,
         nameEn: values.nameEn.trim(),
         icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-        cityNameZh: values.cityName.trim(),
+        cityNameZh: values.cityName?.trim() || undefined,
         cityNameEn: values.cityNameEn?.trim() || undefined,
         countryCode: values.countryCode.toUpperCase().trim(),
         sortOrder: record.sortOrder,
@@ -183,8 +183,8 @@ export default function AirportsPanel() {
         {
           name: 'name',
           label: '中文机场名',
-          placeholder: '例如：上海浦东国际机场',
-          required: true,
+          placeholder: '选填，例如：上海浦东国际机场',
+          required: false,
         },
         {
           name: 'nameEn',
@@ -195,8 +195,8 @@ export default function AirportsPanel() {
         {
           name: 'cityName',
           label: '所在城市中文名',
-          placeholder: '例如：上海、洛杉矶',
-          required: true,
+          placeholder: '选填，例如：上海、洛杉矶',
+          required: false,
         },
         {
           name: 'cityNameEn',

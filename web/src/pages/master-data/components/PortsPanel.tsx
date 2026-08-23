@@ -61,7 +61,7 @@ export default function PortsPanel() {
   const handleCreate = async (values: any) => {
     const response = await masterDataServiceCreatePort({
       unLocode: values.code.toUpperCase().trim(),
-      nameZh: values.name.trim(),
+      nameZh: values.name?.trim() || undefined,
       nameEn: values.nameEn.trim().toUpperCase(),
       sortOrder: 100,
       countryCode: values.countryCode.toUpperCase().trim(),
@@ -75,7 +75,7 @@ export default function PortsPanel() {
       { id: record.id },
       {
         id: record.id,
-        nameZh: values.name.trim(),
+        nameZh: values.name?.trim() || undefined,
         nameEn: values.nameEn.trim().toUpperCase(),
         sortOrder: record.sortOrder,
         enabled,
@@ -174,8 +174,8 @@ export default function PortsPanel() {
         {
           name: 'name',
           label: '中文港口名',
-          placeholder: '例如：上海港、洛杉矶港',
-          required: true,
+          placeholder: '选填，例如：上海港、洛杉矶港',
+          required: false,
         },
         {
           name: 'nameEn',
