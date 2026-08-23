@@ -696,22 +696,22 @@ export default function OrganizationsPanel() {
                     },
                   }}
                   edge={{
-                    type: 'polyline',
+                    type:
+                      chartDirection === 'vertical'
+                        ? 'cubic-vertical'
+                        : 'cubic-horizontal',
                     style: {
-                      stroke: '#94a3b8',
+                      stroke: '#1677ff',
                       lineWidth: 1.5,
-                      radius: 6,
                       endArrow: true,
                       endArrowType: 'vee',
-                      router: {
-                        type: 'orth',
-                      },
                     },
                   }}
                   behaviors={['drag-canvas', 'click-select']}
                   onReady={(graph: any) => {
                     graphRef.current = graph;
                     void graph.fitCenter();
+                    graph.off('node:click');
                     graph.on('node:click', (evt: any) => {
                       const id =
                         evt.target?.id || evt.itemId || evt.target?.cfg?.id;
