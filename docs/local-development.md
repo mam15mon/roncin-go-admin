@@ -77,6 +77,25 @@ Invoke-WebRequest http://127.0.0.1:8000/health/live
 Invoke-WebRequest http://127.0.0.1:8000/health/ready
 ```
 
+## 行业主数据同步
+
+机场使用 OurAirports 每日数据，可在仓库根目录直接联网同步到
+`BOOTSTRAP_ORGANIZATION_CODE` 指定的组织：
+
+```powershell
+pnpm run sync:airports
+```
+
+港口使用 UNECE UN/LOCODE 官方发布包。下载 ZIP 后必须显式提供文件和版本：
+
+```powershell
+pnpm run sync:unlocode -- -source C:\data\loc251csv.zip -release 2025-1
+```
+
+两个命令均会先完成全量解析、标准码冲突检查和组织内异来源冲突检查，再开启
+写事务；解析不完整或存在致命冲突时不会停用现有数据。机场、港口的网络同步
+只更新官方英文信息和来源元数据，不覆盖人工维护的中文名。
+
 ## Docker 的边界
 
 本地已经使用 Windows PostgreSQL，不要执行 `docker compose up -d postgres`，否则会额外启动一套 PostgreSQL。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。

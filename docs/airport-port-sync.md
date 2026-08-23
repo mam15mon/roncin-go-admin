@@ -198,5 +198,14 @@ Airport、Port 均为组织级实体（唯一键含 `organization_id`），而�
 
 ## 实施状态
 
-未开始。本方案对应 `PLAN.md` D11/D14 中 AirportDictionary、Unlocode 系列模
-型「外部文件解析」的迁移要求；落地后同步更新迁移矩阵对应行。
+已于 2026-08-23 完成：
+
+- Airport、Port 已支持可空中文名、系统来源、来源版本和 SHA-256。
+- `cmd/sync-airports` 已通过 OurAirports 真实数据验收并向 HQ 写入 9,054 条机场。
+- `cmd/sync-unlocode` 已通过 UNECE 2025-1 真实数据验收并向 HQ 写入 17,524 条
+  海港；重复执行新增为 0，验证幂等。
+- 根目录提供 `pnpm run sync:airports`、`pnpm run sync:unlocode` 正式写入入口。
+
+本方案对应 `PLAN.md` D11/D14 中 AirportDictionary、Unlocode 系列模型的外部
+文件解析要求。后台定时执行、导入批次查询和多组织共享策略仍按「已知限制」
+处理，不在本次实现中伪装完成。

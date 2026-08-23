@@ -90,3 +90,12 @@ func TestReadCodeListFilesRequiresAllParts(t *testing.T) {
 		t.Fatal("readCodeListFiles() error = nil, want missing parts error")
 	}
 }
+
+func TestResolveSourcePathUsesPnpmInitialDirectory(t *testing.T) {
+	t.Setenv("INIT_CWD", `C:\workspace\roncin-go-admin`)
+	got := resolveSourcePath(`..\roncin\data\UNLOCODE\loc251csv.zip`)
+	want := `C:\workspace\roncin\data\UNLOCODE\loc251csv.zip`
+	if got != want {
+		t.Fatalf("resolveSourcePath() = %q, want %q", got, want)
+	}
+}

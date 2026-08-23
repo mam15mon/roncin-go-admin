@@ -102,13 +102,24 @@ func parseOptions() options {
 	release := flag.String("release", "", "数据版本；文件名无版本前缀时必填")
 	organizationCode := flag.String("org-code", strings.TrimSpace(os.Getenv("BOOTSTRAP_ORGANIZATION_CODE")), "目标组织代码")
 	flag.Parse()
-	path := strings.TrimSpace(*source)
+	path := resolveSourcePath(strings.TrimSpace(*source))
 	code := strings.TrimSpace(*organizationCode)
 	if path == "" || code == "" {
 		fmt.Fprintln(os.Stderr, "source 和 org-code 均不能为空")
 		os.Exit(2)
 	}
 	return options{apply: *apply, source: filepath.Clean(path), release: strings.TrimSpace(*release), organizationCode: code}
+}
+
+func resolveSourcePath(source string) string {
+	if source == "" || filepath.IsAbs(source) {
+		return source
+	}
+	initialDirectory := strings.TrimSpace(os.Getenv("INIT_CWD"))
+	if initialDirectory == "" {
+		return filepath.Clean(source)
+	}
+	return filepath.Clean(filepath.Join(initialDirectory, source))
 }
 
 func readCodeListFiles(raw []byte) (map[string][]byte, string, error) {
