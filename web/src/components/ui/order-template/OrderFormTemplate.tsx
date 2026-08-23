@@ -57,6 +57,7 @@ export function OrderFormTemplate<T>({
       ) : (
         <ProForm<T>
           formRef={resolvedFormRef}
+          autoComplete="off"
           grid
           layout="horizontal"
           labelAlign="right"
