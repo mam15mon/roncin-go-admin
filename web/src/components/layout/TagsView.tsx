@@ -90,7 +90,7 @@ function getRouteIcon(path: string) {
 }
 
 /**
- * 现代化 Chrome 风格多页签导航组件
+ * 现代化 Chrome 风格多页签导航组件 (Chrome Modern Tab)
  */
 export const TagsView: React.FC = () => {
   const location = useLocation();
@@ -273,20 +273,18 @@ export const TagsView: React.FC = () => {
                 }}
               >
                 {/* 标签主体内容 */}
-                <div className="roncin-chrome-tab-content">
-                  {getRouteIcon(tag.path)}
-                  <span className="roncin-chrome-tab-title">{tag.title}</span>
-                  {tag.closable && (
-                    <button
-                      type="button"
-                      aria-label={`关闭 ${tag.title}`}
-                      className="roncin-chrome-tab-close"
-                      onClick={(e) => handleClose(e, tag)}
-                    >
-                      <CloseOutlined style={{ fontSize: 9 }} />
-                    </button>
-                  )}
-                </div>
+                {getRouteIcon(tag.path)}
+                <span className="roncin-chrome-tab-title">{tag.title}</span>
+                {tag.closable && (
+                  <button
+                    type="button"
+                    aria-label={`关闭 ${tag.title}`}
+                    className="roncin-chrome-tab-close"
+                    onClick={(e) => handleClose(e, tag)}
+                  >
+                    <CloseOutlined style={{ fontSize: 9 }} />
+                  </button>
+                )}
 
                 {/* 未激活标签之间的细分割线 */}
                 {!isActive && !isNextActive && (
