@@ -137,6 +137,7 @@ export default function Admin() {
 
   return (
     <PageContainer
+      className="roncin-admin-page"
       title="系统管理"
       tabList={tabItems.map((item) => ({
         key: item.key,

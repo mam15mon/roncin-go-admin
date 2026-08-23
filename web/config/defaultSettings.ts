@@ -17,7 +17,7 @@ const Settings: ProLayoutProps & {
   title: 'Roncin 货代后台',
   logo: '/logo.svg',
   iconfontUrl: '',
-  siderWidth: 216,
+  siderWidth: 180,
   splitMenus: false,
   token: {
     sider: {
@@ -39,7 +39,7 @@ const Settings: ProLayoutProps & {
       colorTextMenu: 'rgba(0, 0, 0, 0.65)',
       colorBgMenuItemHover: 'rgba(0, 0, 0, 0.04)',
       colorTextMenuSelected: '#1677ff',
-      heightLayoutHeader: 56,
+      heightLayoutHeader: 48,
     },
     pageContainer: {
       paddingBlockPageContainerContent: 8,
