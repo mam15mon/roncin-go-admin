@@ -51,8 +51,24 @@ export default function WeComCallback() {
       });
   }, [message, setInitialState]);
 
+  const isEmbedded = typeof window !== 'undefined' && window.top !== window.self;
+
   return (
-    <div className={styles.loginContainer} style={{ justifyContent: 'center' }}>
+    <div
+      className={isEmbedded ? undefined : styles.loginContainer}
+      style={
+        isEmbedded
+          ? {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              minHeight: 320,
+              background: '#ffffff',
+            }
+          : { justifyContent: 'center' }
+      }
+    >
       <Helmet>
         <title>企业微信登录 - {Settings.title}</title>
       </Helmet>
@@ -63,13 +79,22 @@ export default function WeComCallback() {
           title="企业微信登录未完成"
           subTitle={errorMessage}
           extra={
-            <Button type="primary" href="/user/login">
-              返回登录页
+            <Button
+              type="primary"
+              onClick={() => {
+                if (isEmbedded && window.top) {
+                  window.top.location.reload();
+                } else {
+                  window.location.href = '/user/login';
+                }
+              }}
+            >
+              返回登录
             </Button>
           }
         />
       ) : (
-        <Spin size="large" description="正在验证企业微信身份..." />
+        <Spin size="large" description="正在完成登录..." />
       )}
     </div>
   );
