@@ -273,6 +273,8 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    sourceVersion?: string;
+    sourceHash?: string;
   };
 
   type AirportListReply = {
@@ -369,7 +371,6 @@ declare namespace API {
     cityNameZh: string;
     cityNameEn?: string;
     countryCode: string;
-    source?: string;
     sortOrder?: number;
   };
 
@@ -491,7 +492,6 @@ declare namespace API {
     nameEn: string;
     countryCode: string;
     transportModes?: string[];
-    source?: string;
     sortOrder?: number;
   };
 
@@ -1855,6 +1855,8 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    sourceVersion?: string;
+    sourceHash?: string;
   };
 
   type PortListReply = {
@@ -2081,7 +2083,6 @@ declare namespace API {
     cityNameZh: string;
     cityNameEn?: string;
     countryCode: string;
-    source?: string;
     sortOrder?: number;
     enabled?: boolean;
   };
@@ -2225,7 +2226,6 @@ declare namespace API {
     nameEn: string;
     countryCode: string;
     transportModes?: string[];
-    source?: string;
     sortOrder?: number;
     enabled?: boolean;
   };

@@ -34,6 +34,8 @@ type Port struct {
 	CountryCode    string
 	TransportModes []string
 	Source         string
+	SourceVersion  *string
+	SourceHash     *string
 	SortOrder      int
 	Enabled        bool
 	CreatedAt      time.Time
@@ -58,6 +60,8 @@ type Airport struct {
 	CityNameEN     *string
 	CountryCode    string
 	Source         string
+	SourceVersion  *string
+	SourceHash     *string
 	SortOrder      int
 	Enabled        bool
 	CreatedAt      time.Time

@@ -121,12 +121,14 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "iata_code", Type: field.TypeString, Size: 3},
 		{Name: "icao_code", Type: field.TypeString, Nullable: true, Size: 4},
-		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_zh", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Size: 200},
-		{Name: "city_name_zh", Type: field.TypeString, Size: 100},
+		{Name: "city_name_zh", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "city_name_en", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "country_code", Type: field.TypeString, Size: 2},
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "source_version", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "source_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -139,7 +141,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "airports_organizations_airports",
-				Columns:    []*schema.Column{AirportsColumns[13]},
+				Columns:    []*schema.Column{AirportsColumns[15]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -153,17 +155,17 @@ var (
 			{
 				Name:    "airport_organization_id_iata_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[3]},
+				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[3]},
 			},
 			{
 				Name:    "airport_organization_id_icao_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[4]},
+				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[4]},
 			},
 			{
 				Name:    "airport_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirportsColumns[13], AirportsColumns[12], AirportsColumns[11]},
+				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[14], AirportsColumns[13]},
 			},
 		},
 	}
@@ -1788,11 +1790,13 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "un_locode", Type: field.TypeString, Size: 5},
-		{Name: "name_zh", Type: field.TypeString, Size: 200},
+		{Name: "name_zh", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Size: 200},
 		{Name: "country_code", Type: field.TypeString, Size: 2},
 		{Name: "transport_modes", Type: field.TypeJSON},
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
+		{Name: "source_version", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "source_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -1805,7 +1809,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ports_organizations_ports",
-				Columns:    []*schema.Column{PortsColumns[11]},
+				Columns:    []*schema.Column{PortsColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1819,12 +1823,12 @@ var (
 			{
 				Name:    "port_organization_id_un_locode",
 				Unique:  true,
-				Columns: []*schema.Column{PortsColumns[11], PortsColumns[3]},
+				Columns: []*schema.Column{PortsColumns[13], PortsColumns[3]},
 			},
 			{
 				Name:    "port_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{PortsColumns[11], PortsColumns[10], PortsColumns[9]},
+				Columns: []*schema.Column{PortsColumns[13], PortsColumns[12], PortsColumns[11]},
 			},
 		},
 	}

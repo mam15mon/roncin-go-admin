@@ -82,6 +82,14 @@ func (_c *AirportCreate) SetNameZh(v string) *AirportCreate {
 	return _c
 }
 
+// SetNillableNameZh sets the "name_zh" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableNameZh(v *string) *AirportCreate {
+	if v != nil {
+		_c.SetNameZh(*v)
+	}
+	return _c
+}
+
 // SetNameEn sets the "name_en" field.
 func (_c *AirportCreate) SetNameEn(v string) *AirportCreate {
 	_c.mutation.SetNameEn(v)
@@ -91,6 +99,14 @@ func (_c *AirportCreate) SetNameEn(v string) *AirportCreate {
 // SetCityNameZh sets the "city_name_zh" field.
 func (_c *AirportCreate) SetCityNameZh(v string) *AirportCreate {
 	_c.mutation.SetCityNameZh(v)
+	return _c
+}
+
+// SetNillableCityNameZh sets the "city_name_zh" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableCityNameZh(v *string) *AirportCreate {
+	if v != nil {
+		_c.SetCityNameZh(*v)
+	}
 	return _c
 }
 
@@ -124,6 +140,34 @@ func (_c *AirportCreate) SetSource(v string) *AirportCreate {
 func (_c *AirportCreate) SetNillableSource(v *string) *AirportCreate {
 	if v != nil {
 		_c.SetSource(*v)
+	}
+	return _c
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_c *AirportCreate) SetSourceVersion(v string) *AirportCreate {
+	_c.mutation.SetSourceVersion(v)
+	return _c
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableSourceVersion(v *string) *AirportCreate {
+	if v != nil {
+		_c.SetSourceVersion(*v)
+	}
+	return _c
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_c *AirportCreate) SetSourceHash(v string) *AirportCreate {
+	_c.mutation.SetSourceHash(v)
+	return _c
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableSourceHash(v *string) *AirportCreate {
+	if v != nil {
+		_c.SetSourceHash(*v)
 	}
 	return _c
 }
@@ -260,9 +304,6 @@ func (_c *AirportCreate) check() error {
 			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.NameZh(); !ok {
-		return &ValidationError{Name: "name_zh", err: errors.New(`ent: missing required field "Airport.name_zh"`)}
-	}
 	if v, ok := _c.mutation.NameZh(); ok {
 		if err := airport.NameZhValidator(v); err != nil {
 			return &ValidationError{Name: "name_zh", err: fmt.Errorf(`ent: validator failed for field "Airport.name_zh": %w`, err)}
@@ -275,9 +316,6 @@ func (_c *AirportCreate) check() error {
 		if err := airport.NameEnValidator(v); err != nil {
 			return &ValidationError{Name: "name_en", err: fmt.Errorf(`ent: validator failed for field "Airport.name_en": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.CityNameZh(); !ok {
-		return &ValidationError{Name: "city_name_zh", err: errors.New(`ent: missing required field "Airport.city_name_zh"`)}
 	}
 	if v, ok := _c.mutation.CityNameZh(); ok {
 		if err := airport.CityNameZhValidator(v); err != nil {
@@ -303,6 +341,16 @@ func (_c *AirportCreate) check() error {
 	if v, ok := _c.mutation.Source(); ok {
 		if err := airport.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Airport.source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceVersion(); ok {
+		if err := airport.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Airport.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceHash(); ok {
+		if err := airport.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airport.source_hash": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
@@ -367,7 +415,7 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.NameZh(); ok {
 		_spec.SetField(airport.FieldNameZh, field.TypeString, value)
-		_node.NameZh = value
+		_node.NameZh = &value
 	}
 	if value, ok := _c.mutation.NameEn(); ok {
 		_spec.SetField(airport.FieldNameEn, field.TypeString, value)
@@ -375,7 +423,7 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.CityNameZh(); ok {
 		_spec.SetField(airport.FieldCityNameZh, field.TypeString, value)
-		_node.CityNameZh = value
+		_node.CityNameZh = &value
 	}
 	if value, ok := _c.mutation.CityNameEn(); ok {
 		_spec.SetField(airport.FieldCityNameEn, field.TypeString, value)
@@ -388,6 +436,14 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Source(); ok {
 		_spec.SetField(airport.FieldSource, field.TypeString, value)
 		_node.Source = value
+	}
+	if value, ok := _c.mutation.SourceVersion(); ok {
+		_spec.SetField(airport.FieldSourceVersion, field.TypeString, value)
+		_node.SourceVersion = &value
+	}
+	if value, ok := _c.mutation.SourceHash(); ok {
+		_spec.SetField(airport.FieldSourceHash, field.TypeString, value)
+		_node.SourceHash = &value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(airport.FieldSortOrder, field.TypeInt, value)

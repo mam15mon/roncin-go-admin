@@ -17,11 +17,13 @@ func (Port) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		field.String("un_locode").NotEmpty().MaxLen(5).Immutable(),
-		field.String("name_zh").NotEmpty().MaxLen(200),
+		field.String("name_zh").MaxLen(200).Optional().Nillable(),
 		field.String("name_en").NotEmpty().MaxLen(200),
 		field.String("country_code").NotEmpty().MaxLen(2),
 		field.JSON("transport_modes", []string{}),
 		field.String("source").MaxLen(100).Default("manual"),
+		field.String("source_version").MaxLen(100).Optional().Nillable(),
+		field.String("source_hash").MaxLen(64).Optional().Nillable(),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
 	}

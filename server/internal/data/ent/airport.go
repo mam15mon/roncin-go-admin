@@ -30,17 +30,21 @@ type Airport struct {
 	// IcaoCode holds the value of the "icao_code" field.
 	IcaoCode *string `json:"icao_code,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
-	NameZh string `json:"name_zh,omitempty"`
+	NameZh *string `json:"name_zh,omitempty"`
 	// NameEn holds the value of the "name_en" field.
 	NameEn string `json:"name_en,omitempty"`
 	// CityNameZh holds the value of the "city_name_zh" field.
-	CityNameZh string `json:"city_name_zh,omitempty"`
+	CityNameZh *string `json:"city_name_zh,omitempty"`
 	// CityNameEn holds the value of the "city_name_en" field.
 	CityNameEn *string `json:"city_name_en,omitempty"`
 	// CountryCode holds the value of the "country_code" field.
 	CountryCode string `json:"country_code,omitempty"`
 	// Source holds the value of the "source" field.
 	Source string `json:"source,omitempty"`
+	// SourceVersion holds the value of the "source_version" field.
+	SourceVersion *string `json:"source_version,omitempty"`
+	// SourceHash holds the value of the "source_hash" field.
+	SourceHash *string `json:"source_hash,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
 	SortOrder int `json:"sort_order,omitempty"`
 	// Enabled holds the value of the "enabled" field.
@@ -80,7 +84,7 @@ func (*Airport) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case airport.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case airport.FieldIataCode, airport.FieldIcaoCode, airport.FieldNameZh, airport.FieldNameEn, airport.FieldCityNameZh, airport.FieldCityNameEn, airport.FieldCountryCode, airport.FieldSource:
+		case airport.FieldIataCode, airport.FieldIcaoCode, airport.FieldNameZh, airport.FieldNameEn, airport.FieldCityNameZh, airport.FieldCityNameEn, airport.FieldCountryCode, airport.FieldSource, airport.FieldSourceVersion, airport.FieldSourceHash:
 			values[i] = new(sql.NullString)
 		case airport.FieldCreatedAt, airport.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -142,7 +146,8 @@ func (_m *Airport) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name_zh", values[i])
 			} else if value.Valid {
-				_m.NameZh = value.String
+				_m.NameZh = new(string)
+				*_m.NameZh = value.String
 			}
 		case airport.FieldNameEn:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -154,7 +159,8 @@ func (_m *Airport) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field city_name_zh", values[i])
 			} else if value.Valid {
-				_m.CityNameZh = value.String
+				_m.CityNameZh = new(string)
+				*_m.CityNameZh = value.String
 			}
 		case airport.FieldCityNameEn:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -174,6 +180,20 @@ func (_m *Airport) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field source", values[i])
 			} else if value.Valid {
 				_m.Source = value.String
+			}
+		case airport.FieldSourceVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_version", values[i])
+			} else if value.Valid {
+				_m.SourceVersion = new(string)
+				*_m.SourceVersion = value.String
+			}
+		case airport.FieldSourceHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_hash", values[i])
+			} else if value.Valid {
+				_m.SourceHash = new(string)
+				*_m.SourceHash = value.String
 			}
 		case airport.FieldSortOrder:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -245,14 +265,18 @@ func (_m *Airport) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("name_zh=")
-	builder.WriteString(_m.NameZh)
+	if v := _m.NameZh; v != nil {
+		builder.WriteString("name_zh=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("name_en=")
 	builder.WriteString(_m.NameEn)
 	builder.WriteString(", ")
-	builder.WriteString("city_name_zh=")
-	builder.WriteString(_m.CityNameZh)
+	if v := _m.CityNameZh; v != nil {
+		builder.WriteString("city_name_zh=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := _m.CityNameEn; v != nil {
 		builder.WriteString("city_name_en=")
@@ -264,6 +288,16 @@ func (_m *Airport) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source=")
 	builder.WriteString(_m.Source)
+	builder.WriteString(", ")
+	if v := _m.SourceVersion; v != nil {
+		builder.WriteString("source_version=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SourceHash; v != nil {
+		builder.WriteString("source_hash=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("sort_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))

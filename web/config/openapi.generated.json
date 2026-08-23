@@ -4962,6 +4962,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "sourceVersion": {
+            "type": "string"
+          },
+          "sourceHash": {
+            "type": "string"
           }
         }
       },
@@ -5091,9 +5097,6 @@
             "type": "string"
           },
           "countryCode": {
-            "type": "string"
-          },
-          "source": {
             "type": "string"
           },
           "sortOrder": {
@@ -5232,9 +5235,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "source": {
-            "type": "string"
           },
           "sortOrder": {
             "type": "integer",
@@ -5897,6 +5897,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "sourceVersion": {
+            "type": "string"
+          },
+          "sourceHash": {
+            "type": "string"
           }
         }
       },
@@ -6335,9 +6341,6 @@
           "countryCode": {
             "type": "string"
           },
-          "source": {
-            "type": "string"
-          },
           "sortOrder": {
             "type": "integer",
             "format": "int32"
@@ -6447,9 +6450,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "source": {
-            "type": "string"
           },
           "sortOrder": {
             "type": "integer",

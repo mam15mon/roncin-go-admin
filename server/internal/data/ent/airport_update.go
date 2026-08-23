@@ -84,6 +84,12 @@ func (_u *AirportUpdate) SetNillableNameZh(v *string) *AirportUpdate {
 	return _u
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (_u *AirportUpdate) ClearNameZh() *AirportUpdate {
+	_u.mutation.ClearNameZh()
+	return _u
+}
+
 // SetNameEn sets the "name_en" field.
 func (_u *AirportUpdate) SetNameEn(v string) *AirportUpdate {
 	_u.mutation.SetNameEn(v)
@@ -109,6 +115,12 @@ func (_u *AirportUpdate) SetNillableCityNameZh(v *string) *AirportUpdate {
 	if v != nil {
 		_u.SetCityNameZh(*v)
 	}
+	return _u
+}
+
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (_u *AirportUpdate) ClearCityNameZh() *AirportUpdate {
+	_u.mutation.ClearCityNameZh()
 	return _u
 }
 
@@ -157,6 +169,46 @@ func (_u *AirportUpdate) SetNillableSource(v *string) *AirportUpdate {
 	if v != nil {
 		_u.SetSource(*v)
 	}
+	return _u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_u *AirportUpdate) SetSourceVersion(v string) *AirportUpdate {
+	_u.mutation.SetSourceVersion(v)
+	return _u
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_u *AirportUpdate) SetNillableSourceVersion(v *string) *AirportUpdate {
+	if v != nil {
+		_u.SetSourceVersion(*v)
+	}
+	return _u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (_u *AirportUpdate) ClearSourceVersion() *AirportUpdate {
+	_u.mutation.ClearSourceVersion()
+	return _u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_u *AirportUpdate) SetSourceHash(v string) *AirportUpdate {
+	_u.mutation.SetSourceHash(v)
+	return _u
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_u *AirportUpdate) SetNillableSourceHash(v *string) *AirportUpdate {
+	if v != nil {
+		_u.SetSourceHash(*v)
+	}
+	return _u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (_u *AirportUpdate) ClearSourceHash() *AirportUpdate {
+	_u.mutation.ClearSourceHash()
 	return _u
 }
 
@@ -284,6 +336,16 @@ func (_u *AirportUpdate) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Airport.source": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SourceVersion(); ok {
+		if err := airport.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Airport.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceHash(); ok {
+		if err := airport.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airport.source_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Airport.organization"`)
 	}
@@ -314,11 +376,17 @@ func (_u *AirportUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.NameZh(); ok {
 		_spec.SetField(airport.FieldNameZh, field.TypeString, value)
 	}
+	if _u.mutation.NameZhCleared() {
+		_spec.ClearField(airport.FieldNameZh, field.TypeString)
+	}
 	if value, ok := _u.mutation.NameEn(); ok {
 		_spec.SetField(airport.FieldNameEn, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CityNameZh(); ok {
 		_spec.SetField(airport.FieldCityNameZh, field.TypeString, value)
+	}
+	if _u.mutation.CityNameZhCleared() {
+		_spec.ClearField(airport.FieldCityNameZh, field.TypeString)
 	}
 	if value, ok := _u.mutation.CityNameEn(); ok {
 		_spec.SetField(airport.FieldCityNameEn, field.TypeString, value)
@@ -331,6 +399,18 @@ func (_u *AirportUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(airport.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceVersion(); ok {
+		_spec.SetField(airport.FieldSourceVersion, field.TypeString, value)
+	}
+	if _u.mutation.SourceVersionCleared() {
+		_spec.ClearField(airport.FieldSourceVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.SourceHash(); ok {
+		_spec.SetField(airport.FieldSourceHash, field.TypeString, value)
+	}
+	if _u.mutation.SourceHashCleared() {
+		_spec.ClearField(airport.FieldSourceHash, field.TypeString)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(airport.FieldSortOrder, field.TypeInt, value)
@@ -444,6 +524,12 @@ func (_u *AirportUpdateOne) SetNillableNameZh(v *string) *AirportUpdateOne {
 	return _u
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (_u *AirportUpdateOne) ClearNameZh() *AirportUpdateOne {
+	_u.mutation.ClearNameZh()
+	return _u
+}
+
 // SetNameEn sets the "name_en" field.
 func (_u *AirportUpdateOne) SetNameEn(v string) *AirportUpdateOne {
 	_u.mutation.SetNameEn(v)
@@ -469,6 +555,12 @@ func (_u *AirportUpdateOne) SetNillableCityNameZh(v *string) *AirportUpdateOne {
 	if v != nil {
 		_u.SetCityNameZh(*v)
 	}
+	return _u
+}
+
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (_u *AirportUpdateOne) ClearCityNameZh() *AirportUpdateOne {
+	_u.mutation.ClearCityNameZh()
 	return _u
 }
 
@@ -517,6 +609,46 @@ func (_u *AirportUpdateOne) SetNillableSource(v *string) *AirportUpdateOne {
 	if v != nil {
 		_u.SetSource(*v)
 	}
+	return _u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_u *AirportUpdateOne) SetSourceVersion(v string) *AirportUpdateOne {
+	_u.mutation.SetSourceVersion(v)
+	return _u
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_u *AirportUpdateOne) SetNillableSourceVersion(v *string) *AirportUpdateOne {
+	if v != nil {
+		_u.SetSourceVersion(*v)
+	}
+	return _u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (_u *AirportUpdateOne) ClearSourceVersion() *AirportUpdateOne {
+	_u.mutation.ClearSourceVersion()
+	return _u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_u *AirportUpdateOne) SetSourceHash(v string) *AirportUpdateOne {
+	_u.mutation.SetSourceHash(v)
+	return _u
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_u *AirportUpdateOne) SetNillableSourceHash(v *string) *AirportUpdateOne {
+	if v != nil {
+		_u.SetSourceHash(*v)
+	}
+	return _u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (_u *AirportUpdateOne) ClearSourceHash() *AirportUpdateOne {
+	_u.mutation.ClearSourceHash()
 	return _u
 }
 
@@ -657,6 +789,16 @@ func (_u *AirportUpdateOne) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Airport.source": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SourceVersion(); ok {
+		if err := airport.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Airport.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceHash(); ok {
+		if err := airport.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Airport.source_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Airport.organization"`)
 	}
@@ -704,11 +846,17 @@ func (_u *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err er
 	if value, ok := _u.mutation.NameZh(); ok {
 		_spec.SetField(airport.FieldNameZh, field.TypeString, value)
 	}
+	if _u.mutation.NameZhCleared() {
+		_spec.ClearField(airport.FieldNameZh, field.TypeString)
+	}
 	if value, ok := _u.mutation.NameEn(); ok {
 		_spec.SetField(airport.FieldNameEn, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CityNameZh(); ok {
 		_spec.SetField(airport.FieldCityNameZh, field.TypeString, value)
+	}
+	if _u.mutation.CityNameZhCleared() {
+		_spec.ClearField(airport.FieldCityNameZh, field.TypeString)
 	}
 	if value, ok := _u.mutation.CityNameEn(); ok {
 		_spec.SetField(airport.FieldCityNameEn, field.TypeString, value)
@@ -721,6 +869,18 @@ func (_u *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err er
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(airport.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceVersion(); ok {
+		_spec.SetField(airport.FieldSourceVersion, field.TypeString, value)
+	}
+	if _u.mutation.SourceVersionCleared() {
+		_spec.ClearField(airport.FieldSourceVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.SourceHash(); ok {
+		_spec.SetField(airport.FieldSourceHash, field.TypeString, value)
+	}
+	if _u.mutation.SourceHashCleared() {
+		_spec.ClearField(airport.FieldSourceHash, field.TypeString)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(airport.FieldSortOrder, field.TypeInt, value)

@@ -96,6 +96,16 @@ func Source(v string) predicate.Port {
 	return predicate.Port(sql.FieldEQ(FieldSource, v))
 }
 
+// SourceVersion applies equality check predicate on the "source_version" field. It's identical to SourceVersionEQ.
+func SourceVersion(v string) predicate.Port {
+	return predicate.Port(sql.FieldEQ(FieldSourceVersion, v))
+}
+
+// SourceHash applies equality check predicate on the "source_hash" field. It's identical to SourceHashEQ.
+func SourceHash(v string) predicate.Port {
+	return predicate.Port(sql.FieldEQ(FieldSourceHash, v))
+}
+
 // SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
 func SortOrder(v int) predicate.Port {
 	return predicate.Port(sql.FieldEQ(FieldSortOrder, v))
@@ -326,6 +336,16 @@ func NameZhHasSuffix(v string) predicate.Port {
 	return predicate.Port(sql.FieldHasSuffix(FieldNameZh, v))
 }
 
+// NameZhIsNil applies the IsNil predicate on the "name_zh" field.
+func NameZhIsNil() predicate.Port {
+	return predicate.Port(sql.FieldIsNull(FieldNameZh))
+}
+
+// NameZhNotNil applies the NotNil predicate on the "name_zh" field.
+func NameZhNotNil() predicate.Port {
+	return predicate.Port(sql.FieldNotNull(FieldNameZh))
+}
+
 // NameZhEqualFold applies the EqualFold predicate on the "name_zh" field.
 func NameZhEqualFold(v string) predicate.Port {
 	return predicate.Port(sql.FieldEqualFold(FieldNameZh, v))
@@ -529,6 +549,156 @@ func SourceEqualFold(v string) predicate.Port {
 // SourceContainsFold applies the ContainsFold predicate on the "source" field.
 func SourceContainsFold(v string) predicate.Port {
 	return predicate.Port(sql.FieldContainsFold(FieldSource, v))
+}
+
+// SourceVersionEQ applies the EQ predicate on the "source_version" field.
+func SourceVersionEQ(v string) predicate.Port {
+	return predicate.Port(sql.FieldEQ(FieldSourceVersion, v))
+}
+
+// SourceVersionNEQ applies the NEQ predicate on the "source_version" field.
+func SourceVersionNEQ(v string) predicate.Port {
+	return predicate.Port(sql.FieldNEQ(FieldSourceVersion, v))
+}
+
+// SourceVersionIn applies the In predicate on the "source_version" field.
+func SourceVersionIn(vs ...string) predicate.Port {
+	return predicate.Port(sql.FieldIn(FieldSourceVersion, vs...))
+}
+
+// SourceVersionNotIn applies the NotIn predicate on the "source_version" field.
+func SourceVersionNotIn(vs ...string) predicate.Port {
+	return predicate.Port(sql.FieldNotIn(FieldSourceVersion, vs...))
+}
+
+// SourceVersionGT applies the GT predicate on the "source_version" field.
+func SourceVersionGT(v string) predicate.Port {
+	return predicate.Port(sql.FieldGT(FieldSourceVersion, v))
+}
+
+// SourceVersionGTE applies the GTE predicate on the "source_version" field.
+func SourceVersionGTE(v string) predicate.Port {
+	return predicate.Port(sql.FieldGTE(FieldSourceVersion, v))
+}
+
+// SourceVersionLT applies the LT predicate on the "source_version" field.
+func SourceVersionLT(v string) predicate.Port {
+	return predicate.Port(sql.FieldLT(FieldSourceVersion, v))
+}
+
+// SourceVersionLTE applies the LTE predicate on the "source_version" field.
+func SourceVersionLTE(v string) predicate.Port {
+	return predicate.Port(sql.FieldLTE(FieldSourceVersion, v))
+}
+
+// SourceVersionContains applies the Contains predicate on the "source_version" field.
+func SourceVersionContains(v string) predicate.Port {
+	return predicate.Port(sql.FieldContains(FieldSourceVersion, v))
+}
+
+// SourceVersionHasPrefix applies the HasPrefix predicate on the "source_version" field.
+func SourceVersionHasPrefix(v string) predicate.Port {
+	return predicate.Port(sql.FieldHasPrefix(FieldSourceVersion, v))
+}
+
+// SourceVersionHasSuffix applies the HasSuffix predicate on the "source_version" field.
+func SourceVersionHasSuffix(v string) predicate.Port {
+	return predicate.Port(sql.FieldHasSuffix(FieldSourceVersion, v))
+}
+
+// SourceVersionIsNil applies the IsNil predicate on the "source_version" field.
+func SourceVersionIsNil() predicate.Port {
+	return predicate.Port(sql.FieldIsNull(FieldSourceVersion))
+}
+
+// SourceVersionNotNil applies the NotNil predicate on the "source_version" field.
+func SourceVersionNotNil() predicate.Port {
+	return predicate.Port(sql.FieldNotNull(FieldSourceVersion))
+}
+
+// SourceVersionEqualFold applies the EqualFold predicate on the "source_version" field.
+func SourceVersionEqualFold(v string) predicate.Port {
+	return predicate.Port(sql.FieldEqualFold(FieldSourceVersion, v))
+}
+
+// SourceVersionContainsFold applies the ContainsFold predicate on the "source_version" field.
+func SourceVersionContainsFold(v string) predicate.Port {
+	return predicate.Port(sql.FieldContainsFold(FieldSourceVersion, v))
+}
+
+// SourceHashEQ applies the EQ predicate on the "source_hash" field.
+func SourceHashEQ(v string) predicate.Port {
+	return predicate.Port(sql.FieldEQ(FieldSourceHash, v))
+}
+
+// SourceHashNEQ applies the NEQ predicate on the "source_hash" field.
+func SourceHashNEQ(v string) predicate.Port {
+	return predicate.Port(sql.FieldNEQ(FieldSourceHash, v))
+}
+
+// SourceHashIn applies the In predicate on the "source_hash" field.
+func SourceHashIn(vs ...string) predicate.Port {
+	return predicate.Port(sql.FieldIn(FieldSourceHash, vs...))
+}
+
+// SourceHashNotIn applies the NotIn predicate on the "source_hash" field.
+func SourceHashNotIn(vs ...string) predicate.Port {
+	return predicate.Port(sql.FieldNotIn(FieldSourceHash, vs...))
+}
+
+// SourceHashGT applies the GT predicate on the "source_hash" field.
+func SourceHashGT(v string) predicate.Port {
+	return predicate.Port(sql.FieldGT(FieldSourceHash, v))
+}
+
+// SourceHashGTE applies the GTE predicate on the "source_hash" field.
+func SourceHashGTE(v string) predicate.Port {
+	return predicate.Port(sql.FieldGTE(FieldSourceHash, v))
+}
+
+// SourceHashLT applies the LT predicate on the "source_hash" field.
+func SourceHashLT(v string) predicate.Port {
+	return predicate.Port(sql.FieldLT(FieldSourceHash, v))
+}
+
+// SourceHashLTE applies the LTE predicate on the "source_hash" field.
+func SourceHashLTE(v string) predicate.Port {
+	return predicate.Port(sql.FieldLTE(FieldSourceHash, v))
+}
+
+// SourceHashContains applies the Contains predicate on the "source_hash" field.
+func SourceHashContains(v string) predicate.Port {
+	return predicate.Port(sql.FieldContains(FieldSourceHash, v))
+}
+
+// SourceHashHasPrefix applies the HasPrefix predicate on the "source_hash" field.
+func SourceHashHasPrefix(v string) predicate.Port {
+	return predicate.Port(sql.FieldHasPrefix(FieldSourceHash, v))
+}
+
+// SourceHashHasSuffix applies the HasSuffix predicate on the "source_hash" field.
+func SourceHashHasSuffix(v string) predicate.Port {
+	return predicate.Port(sql.FieldHasSuffix(FieldSourceHash, v))
+}
+
+// SourceHashIsNil applies the IsNil predicate on the "source_hash" field.
+func SourceHashIsNil() predicate.Port {
+	return predicate.Port(sql.FieldIsNull(FieldSourceHash))
+}
+
+// SourceHashNotNil applies the NotNil predicate on the "source_hash" field.
+func SourceHashNotNil() predicate.Port {
+	return predicate.Port(sql.FieldNotNull(FieldSourceHash))
+}
+
+// SourceHashEqualFold applies the EqualFold predicate on the "source_hash" field.
+func SourceHashEqualFold(v string) predicate.Port {
+	return predicate.Port(sql.FieldEqualFold(FieldSourceHash, v))
+}
+
+// SourceHashContainsFold applies the ContainsFold predicate on the "source_hash" field.
+func SourceHashContainsFold(v string) predicate.Port {
+	return predicate.Port(sql.FieldContainsFold(FieldSourceHash, v))
 }
 
 // SortOrderEQ applies the EQ predicate on the "sort_order" field.

@@ -65,6 +65,12 @@ func (_u *PortUpdate) SetNillableNameZh(v *string) *PortUpdate {
 	return _u
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (_u *PortUpdate) ClearNameZh() *PortUpdate {
+	_u.mutation.ClearNameZh()
+	return _u
+}
+
 // SetNameEn sets the "name_en" field.
 func (_u *PortUpdate) SetNameEn(v string) *PortUpdate {
 	_u.mutation.SetNameEn(v)
@@ -116,6 +122,46 @@ func (_u *PortUpdate) SetNillableSource(v *string) *PortUpdate {
 	if v != nil {
 		_u.SetSource(*v)
 	}
+	return _u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_u *PortUpdate) SetSourceVersion(v string) *PortUpdate {
+	_u.mutation.SetSourceVersion(v)
+	return _u
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_u *PortUpdate) SetNillableSourceVersion(v *string) *PortUpdate {
+	if v != nil {
+		_u.SetSourceVersion(*v)
+	}
+	return _u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (_u *PortUpdate) ClearSourceVersion() *PortUpdate {
+	_u.mutation.ClearSourceVersion()
+	return _u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_u *PortUpdate) SetSourceHash(v string) *PortUpdate {
+	_u.mutation.SetSourceHash(v)
+	return _u
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_u *PortUpdate) SetNillableSourceHash(v *string) *PortUpdate {
+	if v != nil {
+		_u.SetSourceHash(*v)
+	}
+	return _u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (_u *PortUpdate) ClearSourceHash() *PortUpdate {
+	_u.mutation.ClearSourceHash()
 	return _u
 }
 
@@ -228,6 +274,16 @@ func (_u *PortUpdate) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Port.source": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SourceVersion(); ok {
+		if err := port.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Port.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceHash(); ok {
+		if err := port.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Port.source_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Port.organization"`)
 	}
@@ -252,6 +308,9 @@ func (_u *PortUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.NameZh(); ok {
 		_spec.SetField(port.FieldNameZh, field.TypeString, value)
 	}
+	if _u.mutation.NameZhCleared() {
+		_spec.ClearField(port.FieldNameZh, field.TypeString)
+	}
 	if value, ok := _u.mutation.NameEn(); ok {
 		_spec.SetField(port.FieldNameEn, field.TypeString, value)
 	}
@@ -268,6 +327,18 @@ func (_u *PortUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(port.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceVersion(); ok {
+		_spec.SetField(port.FieldSourceVersion, field.TypeString, value)
+	}
+	if _u.mutation.SourceVersionCleared() {
+		_spec.ClearField(port.FieldSourceVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.SourceHash(); ok {
+		_spec.SetField(port.FieldSourceHash, field.TypeString, value)
+	}
+	if _u.mutation.SourceHashCleared() {
+		_spec.ClearField(port.FieldSourceHash, field.TypeString)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(port.FieldSortOrder, field.TypeInt, value)
@@ -361,6 +432,12 @@ func (_u *PortUpdateOne) SetNillableNameZh(v *string) *PortUpdateOne {
 	return _u
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (_u *PortUpdateOne) ClearNameZh() *PortUpdateOne {
+	_u.mutation.ClearNameZh()
+	return _u
+}
+
 // SetNameEn sets the "name_en" field.
 func (_u *PortUpdateOne) SetNameEn(v string) *PortUpdateOne {
 	_u.mutation.SetNameEn(v)
@@ -412,6 +489,46 @@ func (_u *PortUpdateOne) SetNillableSource(v *string) *PortUpdateOne {
 	if v != nil {
 		_u.SetSource(*v)
 	}
+	return _u
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_u *PortUpdateOne) SetSourceVersion(v string) *PortUpdateOne {
+	_u.mutation.SetSourceVersion(v)
+	return _u
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_u *PortUpdateOne) SetNillableSourceVersion(v *string) *PortUpdateOne {
+	if v != nil {
+		_u.SetSourceVersion(*v)
+	}
+	return _u
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (_u *PortUpdateOne) ClearSourceVersion() *PortUpdateOne {
+	_u.mutation.ClearSourceVersion()
+	return _u
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_u *PortUpdateOne) SetSourceHash(v string) *PortUpdateOne {
+	_u.mutation.SetSourceHash(v)
+	return _u
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_u *PortUpdateOne) SetNillableSourceHash(v *string) *PortUpdateOne {
+	if v != nil {
+		_u.SetSourceHash(*v)
+	}
+	return _u
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (_u *PortUpdateOne) ClearSourceHash() *PortUpdateOne {
+	_u.mutation.ClearSourceHash()
 	return _u
 }
 
@@ -537,6 +654,16 @@ func (_u *PortUpdateOne) check() error {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Port.source": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SourceVersion(); ok {
+		if err := port.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Port.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceHash(); ok {
+		if err := port.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Port.source_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Port.organization"`)
 	}
@@ -578,6 +705,9 @@ func (_u *PortUpdateOne) sqlSave(ctx context.Context) (_node *Port, err error) {
 	if value, ok := _u.mutation.NameZh(); ok {
 		_spec.SetField(port.FieldNameZh, field.TypeString, value)
 	}
+	if _u.mutation.NameZhCleared() {
+		_spec.ClearField(port.FieldNameZh, field.TypeString)
+	}
 	if value, ok := _u.mutation.NameEn(); ok {
 		_spec.SetField(port.FieldNameEn, field.TypeString, value)
 	}
@@ -594,6 +724,18 @@ func (_u *PortUpdateOne) sqlSave(ctx context.Context) (_node *Port, err error) {
 	}
 	if value, ok := _u.mutation.Source(); ok {
 		_spec.SetField(port.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceVersion(); ok {
+		_spec.SetField(port.FieldSourceVersion, field.TypeString, value)
+	}
+	if _u.mutation.SourceVersionCleared() {
+		_spec.ClearField(port.FieldSourceVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.SourceHash(); ok {
+		_spec.SetField(port.FieldSourceHash, field.TypeString, value)
+	}
+	if _u.mutation.SourceHashCleared() {
+		_spec.ClearField(port.FieldSourceHash, field.TypeString)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(port.FieldSortOrder, field.TypeInt, value)

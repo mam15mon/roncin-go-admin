@@ -150,7 +150,7 @@ func (s *MasterDataService) CreatePort(ctx context.Context, request *v1.CreatePo
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.industryUsecase.CreatePort(ctx, principal.Organization.ID, principal.UserID, &biz.Port{UNLocode: request.GetUnLocode(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	created, err := s.industryUsecase.CreatePort(ctx, principal.Organization.ID, principal.UserID, &biz.Port{UNLocode: request.GetUnLocode(), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: "manual", SortOrder: int(request.GetSortOrder())})
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (s *MasterDataService) UpdatePort(ctx context.Context, request *v1.UpdatePo
 	if err != nil {
 		return nil, err
 	}
-	updated, err := s.industryUsecase.UpdatePort(ctx, principal.Organization.ID, principal.UserID, id, &biz.Port{NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	updated, err := s.industryUsecase.UpdatePort(ctx, principal.Organization.ID, principal.UserID, id, &biz.Port{NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CountryCode: request.GetCountryCode(), TransportModes: request.GetTransportModes(), Source: "manual", SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (s *MasterDataService) CreateAirport(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.industryUsecase.CreateAirport(ctx, principal.Organization.ID, principal.UserID, &biz.Airport{IATACode: request.GetIataCode(), ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder())})
+	created, err := s.industryUsecase.CreateAirport(ctx, principal.Organization.ID, principal.UserID, &biz.Airport{IATACode: request.GetIataCode(), ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: "manual", SortOrder: int(request.GetSortOrder())})
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (s *MasterDataService) UpdateAirport(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, err
 	}
-	updated, err := s.industryUsecase.UpdateAirport(ctx, principal.Organization.ID, principal.UserID, id, &biz.Airport{ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: request.GetSource(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	updated, err := s.industryUsecase.UpdateAirport(ctx, principal.Organization.ID, principal.UserID, id, &biz.Airport{ICAOCode: optionalString(request.GetIcaoCode(), request.IcaoCode != nil), NameZH: request.GetNameZh(), NameEN: request.GetNameEn(), CityNameZH: request.GetCityNameZh(), CityNameEN: optionalString(request.GetCityNameEn(), request.CityNameEn != nil), CountryCode: request.GetCountryCode(), Source: "manual", SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -744,7 +744,7 @@ func portsToAPI(items []*biz.Port) []*v1.Port {
 }
 
 func portToAPI(item *biz.Port) *v1.Port {
-	return &v1.Port{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), UnLocode: item.UNLocode, NameZh: item.NameZH, NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.Port{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), UnLocode: item.UNLocode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airportsToAPI(items []*biz.Airport) []*v1.Airport {
@@ -756,7 +756,7 @@ func airportsToAPI(items []*biz.Airport) []*v1.Airport {
 }
 
 func airportToAPI(item *biz.Airport) *v1.Airport {
-	return &v1.Airport{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: item.NameZH, NameEn: item.NameEN, CityNameZh: item.CityNameZH, CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.Airport{Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CityNameZh: optionalString(item.CityNameZH, item.CityNameZH != ""), CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airlinesToAPI(items []*biz.Airline) []*v1.Airline {

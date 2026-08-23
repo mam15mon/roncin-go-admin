@@ -1503,7 +1503,7 @@ type Port struct {
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	UnLocode       string                 `protobuf:"bytes,3,opt,name=un_locode,json=unLocode,proto3" json:"un_locode,omitempty"`
-	NameZh         string                 `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameZh         *string                `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
 	NameEn         string                 `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode    string                 `protobuf:"bytes,6,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	TransportModes []string               `protobuf:"bytes,7,rep,name=transport_modes,json=transportModes,proto3" json:"transport_modes,omitempty"`
@@ -1512,6 +1512,8 @@ type Port struct {
 	Enabled        bool                   `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion  *string                `protobuf:"bytes,13,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash     *string                `protobuf:"bytes,14,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1568,8 +1570,8 @@ func (x *Port) GetUnLocode() string {
 }
 
 func (x *Port) GetNameZh() string {
-	if x != nil {
-		return x.NameZh
+	if x != nil && x.NameZh != nil {
+		return *x.NameZh
 	}
 	return ""
 }
@@ -1630,6 +1632,20 @@ func (x *Port) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *Port) GetSourceVersion() string {
+	if x != nil && x.SourceVersion != nil {
+		return *x.SourceVersion
+	}
+	return ""
+}
+
+func (x *Port) GetSourceHash() string {
+	if x != nil && x.SourceHash != nil {
+		return *x.SourceHash
+	}
+	return ""
+}
+
 type CreatePortRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	UnLocode       string                 `protobuf:"bytes,1,opt,name=un_locode,json=unLocode,proto3" json:"un_locode,omitempty"`
@@ -1637,7 +1653,6 @@ type CreatePortRequest struct {
 	NameEn         string                 `protobuf:"bytes,3,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode    string                 `protobuf:"bytes,4,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	TransportModes []string               `protobuf:"bytes,5,rep,name=transport_modes,json=transportModes,proto3" json:"transport_modes,omitempty"`
-	Source         string                 `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
 	SortOrder      int32                  `protobuf:"varint,7,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -1708,13 +1723,6 @@ func (x *CreatePortRequest) GetTransportModes() []string {
 	return nil
 }
 
-func (x *CreatePortRequest) GetSource() string {
-	if x != nil {
-		return x.Source
-	}
-	return ""
-}
-
 func (x *CreatePortRequest) GetSortOrder() int32 {
 	if x != nil {
 		return x.SortOrder
@@ -1729,7 +1737,6 @@ type UpdatePortRequest struct {
 	NameEn         string                 `protobuf:"bytes,3,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
 	CountryCode    string                 `protobuf:"bytes,4,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	TransportModes []string               `protobuf:"bytes,5,rep,name=transport_modes,json=transportModes,proto3" json:"transport_modes,omitempty"`
-	Source         string                 `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
 	SortOrder      int32                  `protobuf:"varint,7,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	Enabled        bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -1799,13 +1806,6 @@ func (x *UpdatePortRequest) GetTransportModes() []string {
 		return x.TransportModes
 	}
 	return nil
-}
-
-func (x *UpdatePortRequest) GetSource() string {
-	if x != nil {
-		return x.Source
-	}
-	return ""
 }
 
 func (x *UpdatePortRequest) GetSortOrder() int32 {
@@ -2004,9 +2004,9 @@ type Airport struct {
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	IataCode       string                 `protobuf:"bytes,3,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
 	IcaoCode       *string                `protobuf:"bytes,4,opt,name=icao_code,json=icaoCode,proto3,oneof" json:"icao_code,omitempty"`
-	NameZh         string                 `protobuf:"bytes,5,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameZh         *string                `protobuf:"bytes,5,opt,name=name_zh,json=nameZh,proto3,oneof" json:"name_zh,omitempty"`
 	NameEn         string                 `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3" json:"name_en,omitempty"`
-	CityNameZh     string                 `protobuf:"bytes,7,opt,name=city_name_zh,json=cityNameZh,proto3" json:"city_name_zh,omitempty"`
+	CityNameZh     *string                `protobuf:"bytes,7,opt,name=city_name_zh,json=cityNameZh,proto3,oneof" json:"city_name_zh,omitempty"`
 	CityNameEn     *string                `protobuf:"bytes,8,opt,name=city_name_en,json=cityNameEn,proto3,oneof" json:"city_name_en,omitempty"`
 	CountryCode    string                 `protobuf:"bytes,9,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	Source         string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
@@ -2014,6 +2014,8 @@ type Airport struct {
 	Enabled        bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceVersion  *string                `protobuf:"bytes,15,opt,name=source_version,json=sourceVersion,proto3,oneof" json:"source_version,omitempty"`
+	SourceHash     *string                `protobuf:"bytes,16,opt,name=source_hash,json=sourceHash,proto3,oneof" json:"source_hash,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2077,8 +2079,8 @@ func (x *Airport) GetIcaoCode() string {
 }
 
 func (x *Airport) GetNameZh() string {
-	if x != nil {
-		return x.NameZh
+	if x != nil && x.NameZh != nil {
+		return *x.NameZh
 	}
 	return ""
 }
@@ -2091,8 +2093,8 @@ func (x *Airport) GetNameEn() string {
 }
 
 func (x *Airport) GetCityNameZh() string {
-	if x != nil {
-		return x.CityNameZh
+	if x != nil && x.CityNameZh != nil {
+		return *x.CityNameZh
 	}
 	return ""
 }
@@ -2146,6 +2148,20 @@ func (x *Airport) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *Airport) GetSourceVersion() string {
+	if x != nil && x.SourceVersion != nil {
+		return *x.SourceVersion
+	}
+	return ""
+}
+
+func (x *Airport) GetSourceHash() string {
+	if x != nil && x.SourceHash != nil {
+		return *x.SourceHash
+	}
+	return ""
+}
+
 type CreateAirportRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IataCode      string                 `protobuf:"bytes,1,opt,name=iata_code,json=iataCode,proto3" json:"iata_code,omitempty"`
@@ -2155,7 +2171,6 @@ type CreateAirportRequest struct {
 	CityNameZh    string                 `protobuf:"bytes,5,opt,name=city_name_zh,json=cityNameZh,proto3" json:"city_name_zh,omitempty"`
 	CityNameEn    *string                `protobuf:"bytes,6,opt,name=city_name_en,json=cityNameEn,proto3,oneof" json:"city_name_en,omitempty"`
 	CountryCode   string                 `protobuf:"bytes,7,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
-	Source        string                 `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
 	SortOrder     int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2240,13 +2255,6 @@ func (x *CreateAirportRequest) GetCountryCode() string {
 	return ""
 }
 
-func (x *CreateAirportRequest) GetSource() string {
-	if x != nil {
-		return x.Source
-	}
-	return ""
-}
-
 func (x *CreateAirportRequest) GetSortOrder() int32 {
 	if x != nil {
 		return x.SortOrder
@@ -2263,7 +2271,6 @@ type UpdateAirportRequest struct {
 	CityNameZh    string                 `protobuf:"bytes,5,opt,name=city_name_zh,json=cityNameZh,proto3" json:"city_name_zh,omitempty"`
 	CityNameEn    *string                `protobuf:"bytes,6,opt,name=city_name_en,json=cityNameEn,proto3,oneof" json:"city_name_en,omitempty"`
 	CountryCode   string                 `protobuf:"bytes,7,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
-	Source        string                 `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
 	SortOrder     int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	Enabled       bool                   `protobuf:"varint,10,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -2345,13 +2352,6 @@ func (x *UpdateAirportRequest) GetCityNameEn() string {
 func (x *UpdateAirportRequest) GetCountryCode() string {
 	if x != nil {
 		return x.CountryCode
-	}
-	return ""
-}
-
-func (x *UpdateAirportRequest) GetSource() string {
-	if x != nil {
-		return x.Source
 	}
 	return ""
 }
@@ -6136,12 +6136,12 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
 	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xe9\x02\n" +
+	"\b_enabled\"\xef\x03\n" +
 	"\x04Port\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
-	"\tun_locode\x18\x03 \x01(\tR\bunLocode\x12\x17\n" +
-	"\aname_zh\x18\x04 \x01(\tR\x06nameZh\x12\x17\n" +
+	"\tun_locode\x18\x03 \x01(\tR\bunLocode\x12\x1c\n" +
+	"\aname_zh\x18\x04 \x01(\tH\x00R\x06nameZh\x88\x01\x01\x12\x17\n" +
 	"\aname_en\x18\x05 \x01(\tR\x06nameEn\x12!\n" +
 	"\fcountry_code\x18\x06 \x01(\tR\vcountryCode\x12'\n" +
 	"\x0ftransport_modes\x18\a \x03(\tR\x0etransportModes\x12\x16\n" +
@@ -6153,26 +6153,31 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\tR\tupdatedAt\"\xf9\x01\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAt\x12*\n" +
+	"\x0esource_version\x18\r \x01(\tH\x01R\rsourceVersion\x88\x01\x01\x12$\n" +
+	"\vsource_hash\x18\x0e \x01(\tH\x02R\n" +
+	"sourceHash\x88\x01\x01B\n" +
+	"\n" +
+	"\b_name_zhB\x11\n" +
+	"\x0f_source_versionB\x0e\n" +
+	"\f_source_hash\"\xef\x01\n" +
 	"\x11CreatePortRequest\x12 \n" +
 	"\tun_locode\x18\x01 \x01(\tB\x03\xe0A\x02R\bunLocode\x12\x1c\n" +
 	"\aname_zh\x18\x02 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
 	"\aname_en\x18\x03 \x01(\tB\x03\xe0A\x02R\x06nameEn\x12&\n" +
 	"\fcountry_code\x18\x04 \x01(\tB\x03\xe0A\x02R\vcountryCode\x12'\n" +
-	"\x0ftransport_modes\x18\x05 \x03(\tR\x0etransportModes\x12\x16\n" +
-	"\x06source\x18\x06 \x01(\tR\x06source\x12\x1d\n" +
+	"\x0ftransport_modes\x18\x05 \x03(\tR\x0etransportModes\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\a \x01(\x05R\tsortOrder\"\x86\x02\n" +
+	"sort_order\x18\a \x01(\x05R\tsortOrderJ\x04\b\x06\x10\aR\x06source\"\xfc\x01\n" +
 	"\x11UpdatePortRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1c\n" +
 	"\aname_zh\x18\x02 \x01(\tB\x03\xe0A\x02R\x06nameZh\x12\x1c\n" +
 	"\aname_en\x18\x03 \x01(\tB\x03\xe0A\x02R\x06nameEn\x12&\n" +
 	"\fcountry_code\x18\x04 \x01(\tB\x03\xe0A\x02R\vcountryCode\x12'\n" +
-	"\x0ftransport_modes\x18\x05 \x03(\tR\x0etransportModes\x12\x16\n" +
-	"\x06source\x18\x06 \x01(\tR\x06source\x12\x1d\n" +
+	"\x0ftransport_modes\x18\x05 \x03(\tR\x0etransportModes\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\a \x01(\x05R\tsortOrder\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\xe2\x01\n" +
+	"\aenabled\x18\b \x01(\bR\aenabledJ\x04\b\x06\x10\aR\x06source\"\xe2\x01\n" +
 	"\rPortListReply\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -6187,17 +6192,17 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.masterdata.v1.PortR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcd\x03\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe9\x04\n" +
 	"\aAirport\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
 	"\tiata_code\x18\x03 \x01(\tR\biataCode\x12 \n" +
-	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x17\n" +
-	"\aname_zh\x18\x05 \x01(\tR\x06nameZh\x12\x17\n" +
-	"\aname_en\x18\x06 \x01(\tR\x06nameEn\x12 \n" +
-	"\fcity_name_zh\x18\a \x01(\tR\n" +
-	"cityNameZh\x12%\n" +
-	"\fcity_name_en\x18\b \x01(\tH\x01R\n" +
+	"\ticao_code\x18\x04 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x1c\n" +
+	"\aname_zh\x18\x05 \x01(\tH\x01R\x06nameZh\x88\x01\x01\x12\x17\n" +
+	"\aname_en\x18\x06 \x01(\tR\x06nameEn\x12%\n" +
+	"\fcity_name_zh\x18\a \x01(\tH\x02R\n" +
+	"cityNameZh\x88\x01\x01\x12%\n" +
+	"\fcity_name_en\x18\b \x01(\tH\x03R\n" +
 	"cityNameEn\x88\x01\x01\x12!\n" +
 	"\fcountry_code\x18\t \x01(\tR\vcountryCode\x12\x16\n" +
 	"\x06source\x18\n" +
@@ -6208,10 +6213,18 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\tR\tupdatedAtB\f\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt\x12*\n" +
+	"\x0esource_version\x18\x0f \x01(\tH\x04R\rsourceVersion\x88\x01\x01\x12$\n" +
+	"\vsource_hash\x18\x10 \x01(\tH\x05R\n" +
+	"sourceHash\x88\x01\x01B\f\n" +
 	"\n" +
-	"_icao_codeB\x0f\n" +
-	"\r_city_name_en\"\xe2\x02\n" +
+	"_icao_codeB\n" +
+	"\n" +
+	"\b_name_zhB\x0f\n" +
+	"\r_city_name_zhB\x0f\n" +
+	"\r_city_name_enB\x11\n" +
+	"\x0f_source_versionB\x0e\n" +
+	"\f_source_hash\"\xd8\x02\n" +
 	"\x14CreateAirportRequest\x12 \n" +
 	"\tiata_code\x18\x01 \x01(\tB\x03\xe0A\x02R\biataCode\x12 \n" +
 	"\ticao_code\x18\x02 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x1c\n" +
@@ -6221,13 +6234,12 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"cityNameZh\x12%\n" +
 	"\fcity_name_en\x18\x06 \x01(\tH\x01R\n" +
 	"cityNameEn\x88\x01\x01\x12&\n" +
-	"\fcountry_code\x18\a \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x16\n" +
-	"\x06source\x18\b \x01(\tR\x06source\x12\x1d\n" +
+	"\fcountry_code\x18\a \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\t \x01(\x05R\tsortOrderB\f\n" +
 	"\n" +
 	"_icao_codeB\x0f\n" +
-	"\r_city_name_en\"\xef\x02\n" +
+	"\r_city_name_enJ\x04\b\b\x10\tR\x06source\"\xe5\x02\n" +
 	"\x14UpdateAirportRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\ticao_code\x18\x02 \x01(\tH\x00R\bicaoCode\x88\x01\x01\x12\x1c\n" +
@@ -6237,15 +6249,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"cityNameZh\x12%\n" +
 	"\fcity_name_en\x18\x06 \x01(\tH\x01R\n" +
 	"cityNameEn\x88\x01\x01\x12&\n" +
-	"\fcountry_code\x18\a \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x16\n" +
-	"\x06source\x18\b \x01(\tR\x06source\x12\x1d\n" +
+	"\fcountry_code\x18\a \x01(\tB\x03\xe0A\x02R\vcountryCode\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\t \x01(\x05R\tsortOrder\x12\x18\n" +
 	"\aenabled\x18\n" +
 	" \x01(\bR\aenabledB\f\n" +
 	"\n" +
 	"_icao_codeB\x0f\n" +
-	"\r_city_name_en\"\xe8\x01\n" +
+	"\r_city_name_enJ\x04\b\b\x10\tR\x06source\"\xe8\x01\n" +
 	"\x10AirportListReply\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -6936,6 +6947,7 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[4].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[8].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[12].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[13].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[18].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[19].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[20].OneofWrappers = []any{}

@@ -342,7 +342,7 @@ message Port {
   string id = 1;
   string organization_id = 2;
   string un_locode = 3;
-  string name_zh = 4;
+  optional string name_zh = 4;
   string name_en = 5;
   string country_code = 6;
   repeated string transport_modes = 7;
@@ -351,6 +351,8 @@ message Port {
   bool enabled = 10;
   string created_at = 11;
   string updated_at = 12;
+  optional string source_version = 13;
+  optional string source_hash = 14;
 }
 
 message CreatePortRequest {
@@ -359,7 +361,8 @@ message CreatePortRequest {
   string name_en = 3 [(google.api.field_behavior) = REQUIRED];
   string country_code = 4 [(google.api.field_behavior) = REQUIRED];
   repeated string transport_modes = 5;
-  string source = 6;
+  reserved 6;
+  reserved "source";
   int32 sort_order = 7;
 }
 
@@ -369,7 +372,8 @@ message UpdatePortRequest {
   string name_en = 3 [(google.api.field_behavior) = REQUIRED];
   string country_code = 4 [(google.api.field_behavior) = REQUIRED];
   repeated string transport_modes = 5;
-  string source = 6;
+  reserved 6;
+  reserved "source";
   int32 sort_order = 7;
   bool enabled = 8;
 }
@@ -398,9 +402,9 @@ message Airport {
   string organization_id = 2;
   string iata_code = 3;
   optional string icao_code = 4;
-  string name_zh = 5;
+  optional string name_zh = 5;
   string name_en = 6;
-  string city_name_zh = 7;
+  optional string city_name_zh = 7;
   optional string city_name_en = 8;
   string country_code = 9;
   string source = 10;
@@ -408,6 +412,8 @@ message Airport {
   bool enabled = 12;
   string created_at = 13;
   string updated_at = 14;
+  optional string source_version = 15;
+  optional string source_hash = 16;
 }
 
 message CreateAirportRequest {
@@ -418,7 +424,8 @@ message CreateAirportRequest {
   string city_name_zh = 5 [(google.api.field_behavior) = REQUIRED];
   optional string city_name_en = 6;
   string country_code = 7 [(google.api.field_behavior) = REQUIRED];
-  string source = 8;
+  reserved 8;
+  reserved "source";
   int32 sort_order = 9;
 }
 
@@ -430,7 +437,8 @@ message UpdateAirportRequest {
   string city_name_zh = 5 [(google.api.field_behavior) = REQUIRED];
   optional string city_name_en = 6;
   string country_code = 7 [(google.api.field_behavior) = REQUIRED];
-  string source = 8;
+  reserved 8;
+  reserved "source";
   int32 sort_order = 9;
   bool enabled = 10;
 }

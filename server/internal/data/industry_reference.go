@@ -55,7 +55,7 @@ func (r *industryReferenceRepo) UpdatePort(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, mapIndustryReferenceNotFound(err)
 	}
-	updated, err := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
+	updated, err := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
 	if err != nil {
 		return nil, mapIndustryReferenceConstraint(err)
 	}
@@ -98,7 +98,7 @@ func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationI
 	if err != nil {
 		return nil, mapIndustryReferenceNotFound(err)
 	}
-	update := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
+	update := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetCountryCode(input.CountryCode).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
 	if input.ICAOCode == nil {
 		update.ClearIcaoCode()
 	} else {
@@ -265,11 +265,11 @@ func (r *industryReferenceRepo) findShippingLine(ctx context.Context, organizati
 }
 
 func portToBiz(item *ent.Port) *biz.Port {
-	return &biz.Port{ID: item.ID, OrganizationID: item.OrganizationID, UNLocode: item.UnLocode, NameZH: item.NameZh, NameEN: item.NameEn, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.Port{ID: item.ID, OrganizationID: item.OrganizationID, UNLocode: item.UnLocode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func airportToBiz(item *ent.Airport) *biz.Airport {
-	return &biz.Airport{ID: item.ID, OrganizationID: item.OrganizationID, IATACode: item.IataCode, ICAOCode: item.IcaoCode, NameZH: item.NameZh, NameEN: item.NameEn, CityNameZH: item.CityNameZh, CityNameEN: item.CityNameEn, CountryCode: item.CountryCode, Source: item.Source, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.Airport{ID: item.ID, OrganizationID: item.OrganizationID, IATACode: item.IataCode, ICAOCode: item.IcaoCode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CityNameZH: stringValue(item.CityNameZh), CityNameEN: item.CityNameEn, CountryCode: item.CountryCode, Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func airlineToBiz(item *ent.Airline) *biz.Airline {

@@ -18,10 +18,10 @@ export interface AirportItem extends PersistedMasterDataItem {
 }
 
 const mapAirport = (item: API.Airport): AirportItem => {
-  if (!item.id || !item.iataCode || !item.nameZh || !item.nameEn || !item.cityNameZh || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (!item.id || !item.iataCode || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
     throw new Error('机场响应缺少必填字段');
   }
-  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode ?? '', name: item.nameZh, nameEn: item.nameEn, cityName: item.cityNameZh, cityNameEn: item.cityNameEn, countryCode: item.countryCode, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode ?? '', name: item.nameZh ?? '', nameEn: item.nameEn, cityName: item.cityNameZh ?? '', cityNameEn: item.cityNameEn, countryCode: item.countryCode, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
 };
 
 export default function AirportsPanel() {
@@ -63,7 +63,6 @@ export default function AirportsPanel() {
       cityNameZh: values.cityName.trim(),
       cityNameEn: values.cityNameEn?.trim() || undefined,
       countryCode: values.countryCode.toUpperCase().trim(),
-      source: 'manual',
       sortOrder: 100,
     });
     saveResponse(response);
@@ -80,7 +79,6 @@ export default function AirportsPanel() {
         cityNameZh: values.cityName.trim(),
         cityNameEn: values.cityNameEn?.trim() || undefined,
         countryCode: values.countryCode.toUpperCase().trim(),
-        source: record.source,
         sortOrder: record.sortOrder,
         enabled,
       },

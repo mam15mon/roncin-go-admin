@@ -393,8 +393,8 @@ export default function Orders() {
 
   const locationOptions = [
     ...regionLocationOptions,
-    ...ports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh} (${item.unLocode})`, value: item.id ?? '' })),
-    ...airports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh} (${item.iataCode})`, value: item.id ?? '' })),
+    ...ports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`, value: item.id ?? '' })),
+    ...airports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`, value: item.id ?? '' })),
   ];
 
   const searchCustomers = async (keyword?: string) => {

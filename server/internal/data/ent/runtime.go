@@ -360,21 +360,7 @@ func init() {
 	// airportDescNameZh is the schema descriptor for name_zh field.
 	airportDescNameZh := airportFields[3].Descriptor()
 	// airport.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
-	airport.NameZhValidator = func() func(string) error {
-		validators := airportDescNameZh.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name_zh string) error {
-			for _, fn := range fns {
-				if err := fn(name_zh); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airport.NameZhValidator = airportDescNameZh.Validators[0].(func(string) error)
 	// airportDescNameEn is the schema descriptor for name_en field.
 	airportDescNameEn := airportFields[4].Descriptor()
 	// airport.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
@@ -396,21 +382,7 @@ func init() {
 	// airportDescCityNameZh is the schema descriptor for city_name_zh field.
 	airportDescCityNameZh := airportFields[5].Descriptor()
 	// airport.CityNameZhValidator is a validator for the "city_name_zh" field. It is called by the builders before save.
-	airport.CityNameZhValidator = func() func(string) error {
-		validators := airportDescCityNameZh.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(city_name_zh string) error {
-			for _, fn := range fns {
-				if err := fn(city_name_zh); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	airport.CityNameZhValidator = airportDescCityNameZh.Validators[0].(func(string) error)
 	// airportDescCityNameEn is the schema descriptor for city_name_en field.
 	airportDescCityNameEn := airportFields[6].Descriptor()
 	// airport.CityNameEnValidator is a validator for the "city_name_en" field. It is called by the builders before save.
@@ -439,12 +411,20 @@ func init() {
 	airport.DefaultSource = airportDescSource.Default.(string)
 	// airport.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	airport.SourceValidator = airportDescSource.Validators[0].(func(string) error)
+	// airportDescSourceVersion is the schema descriptor for source_version field.
+	airportDescSourceVersion := airportFields[9].Descriptor()
+	// airport.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
+	airport.SourceVersionValidator = airportDescSourceVersion.Validators[0].(func(string) error)
+	// airportDescSourceHash is the schema descriptor for source_hash field.
+	airportDescSourceHash := airportFields[10].Descriptor()
+	// airport.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
+	airport.SourceHashValidator = airportDescSourceHash.Validators[0].(func(string) error)
 	// airportDescSortOrder is the schema descriptor for sort_order field.
-	airportDescSortOrder := airportFields[9].Descriptor()
+	airportDescSortOrder := airportFields[11].Descriptor()
 	// airport.DefaultSortOrder holds the default value on creation for the sort_order field.
 	airport.DefaultSortOrder = airportDescSortOrder.Default.(int)
 	// airportDescEnabled is the schema descriptor for enabled field.
-	airportDescEnabled := airportFields[10].Descriptor()
+	airportDescEnabled := airportFields[12].Descriptor()
 	// airport.DefaultEnabled holds the default value on creation for the enabled field.
 	airport.DefaultEnabled = airportDescEnabled.Default.(bool)
 	// airportDescID is the schema descriptor for id field.
@@ -2608,21 +2588,7 @@ func init() {
 	// portDescNameZh is the schema descriptor for name_zh field.
 	portDescNameZh := portFields[2].Descriptor()
 	// port.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
-	port.NameZhValidator = func() func(string) error {
-		validators := portDescNameZh.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name_zh string) error {
-			for _, fn := range fns {
-				if err := fn(name_zh); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	port.NameZhValidator = portDescNameZh.Validators[0].(func(string) error)
 	// portDescNameEn is the schema descriptor for name_en field.
 	portDescNameEn := portFields[3].Descriptor()
 	// port.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
@@ -2665,12 +2631,20 @@ func init() {
 	port.DefaultSource = portDescSource.Default.(string)
 	// port.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	port.SourceValidator = portDescSource.Validators[0].(func(string) error)
+	// portDescSourceVersion is the schema descriptor for source_version field.
+	portDescSourceVersion := portFields[7].Descriptor()
+	// port.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
+	port.SourceVersionValidator = portDescSourceVersion.Validators[0].(func(string) error)
+	// portDescSourceHash is the schema descriptor for source_hash field.
+	portDescSourceHash := portFields[8].Descriptor()
+	// port.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
+	port.SourceHashValidator = portDescSourceHash.Validators[0].(func(string) error)
 	// portDescSortOrder is the schema descriptor for sort_order field.
-	portDescSortOrder := portFields[7].Descriptor()
+	portDescSortOrder := portFields[9].Descriptor()
 	// port.DefaultSortOrder holds the default value on creation for the sort_order field.
 	port.DefaultSortOrder = portDescSortOrder.Default.(int)
 	// portDescEnabled is the schema descriptor for enabled field.
-	portDescEnabled := portFields[8].Descriptor()
+	portDescEnabled := portFields[10].Descriptor()
 	// port.DefaultEnabled holds the default value on creation for the enabled field.
 	port.DefaultEnabled = portDescEnabled.Default.(bool)
 	// portDescID is the schema descriptor for id field.

@@ -22,10 +22,10 @@ const MODE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const mapPort = (item: API.Port): PortItem => {
-  if (!item.id || !item.unLocode || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (!item.id || !item.unLocode || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
     throw new Error('港口响应缺少必填字段');
   }
-  return { id: item.id, code: item.unLocode, name: item.nameZh, nameEn: item.nameEn, countryCode: item.countryCode, modes: item.transportModes ?? [], enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return { id: item.id, code: item.unLocode, name: item.nameZh ?? '', nameEn: item.nameEn, countryCode: item.countryCode, modes: item.transportModes ?? [], enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
 };
 
 export default function PortsPanel() {
@@ -63,7 +63,6 @@ export default function PortsPanel() {
       unLocode: values.code.toUpperCase().trim(),
       nameZh: values.name.trim(),
       nameEn: values.nameEn.trim().toUpperCase(),
-      source: 'manual',
       sortOrder: 100,
       countryCode: values.countryCode.toUpperCase().trim(),
       transportModes: values.modes ?? [],
@@ -78,7 +77,6 @@ export default function PortsPanel() {
         id: record.id,
         nameZh: values.name.trim(),
         nameEn: values.nameEn.trim().toUpperCase(),
-        source: record.source,
         sortOrder: record.sortOrder,
         enabled,
         countryCode: values.countryCode.toUpperCase().trim(),

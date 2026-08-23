@@ -111,6 +111,16 @@ func Source(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldEQ(FieldSource, v))
 }
 
+// SourceVersion applies equality check predicate on the "source_version" field. It's identical to SourceVersionEQ.
+func SourceVersion(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEQ(FieldSourceVersion, v))
+}
+
+// SourceHash applies equality check predicate on the "source_hash" field. It's identical to SourceHashEQ.
+func SourceHash(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEQ(FieldSourceHash, v))
+}
+
 // SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
 func SortOrder(v int) predicate.Airport {
 	return predicate.Airport(sql.FieldEQ(FieldSortOrder, v))
@@ -416,6 +426,16 @@ func NameZhHasSuffix(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldHasSuffix(FieldNameZh, v))
 }
 
+// NameZhIsNil applies the IsNil predicate on the "name_zh" field.
+func NameZhIsNil() predicate.Airport {
+	return predicate.Airport(sql.FieldIsNull(FieldNameZh))
+}
+
+// NameZhNotNil applies the NotNil predicate on the "name_zh" field.
+func NameZhNotNil() predicate.Airport {
+	return predicate.Airport(sql.FieldNotNull(FieldNameZh))
+}
+
 // NameZhEqualFold applies the EqualFold predicate on the "name_zh" field.
 func NameZhEqualFold(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldEqualFold(FieldNameZh, v))
@@ -544,6 +564,16 @@ func CityNameZhHasPrefix(v string) predicate.Airport {
 // CityNameZhHasSuffix applies the HasSuffix predicate on the "city_name_zh" field.
 func CityNameZhHasSuffix(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldHasSuffix(FieldCityNameZh, v))
+}
+
+// CityNameZhIsNil applies the IsNil predicate on the "city_name_zh" field.
+func CityNameZhIsNil() predicate.Airport {
+	return predicate.Airport(sql.FieldIsNull(FieldCityNameZh))
+}
+
+// CityNameZhNotNil applies the NotNil predicate on the "city_name_zh" field.
+func CityNameZhNotNil() predicate.Airport {
+	return predicate.Airport(sql.FieldNotNull(FieldCityNameZh))
 }
 
 // CityNameZhEqualFold applies the EqualFold predicate on the "city_name_zh" field.
@@ -759,6 +789,156 @@ func SourceEqualFold(v string) predicate.Airport {
 // SourceContainsFold applies the ContainsFold predicate on the "source" field.
 func SourceContainsFold(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldContainsFold(FieldSource, v))
+}
+
+// SourceVersionEQ applies the EQ predicate on the "source_version" field.
+func SourceVersionEQ(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEQ(FieldSourceVersion, v))
+}
+
+// SourceVersionNEQ applies the NEQ predicate on the "source_version" field.
+func SourceVersionNEQ(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldNEQ(FieldSourceVersion, v))
+}
+
+// SourceVersionIn applies the In predicate on the "source_version" field.
+func SourceVersionIn(vs ...string) predicate.Airport {
+	return predicate.Airport(sql.FieldIn(FieldSourceVersion, vs...))
+}
+
+// SourceVersionNotIn applies the NotIn predicate on the "source_version" field.
+func SourceVersionNotIn(vs ...string) predicate.Airport {
+	return predicate.Airport(sql.FieldNotIn(FieldSourceVersion, vs...))
+}
+
+// SourceVersionGT applies the GT predicate on the "source_version" field.
+func SourceVersionGT(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldGT(FieldSourceVersion, v))
+}
+
+// SourceVersionGTE applies the GTE predicate on the "source_version" field.
+func SourceVersionGTE(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldGTE(FieldSourceVersion, v))
+}
+
+// SourceVersionLT applies the LT predicate on the "source_version" field.
+func SourceVersionLT(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldLT(FieldSourceVersion, v))
+}
+
+// SourceVersionLTE applies the LTE predicate on the "source_version" field.
+func SourceVersionLTE(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldLTE(FieldSourceVersion, v))
+}
+
+// SourceVersionContains applies the Contains predicate on the "source_version" field.
+func SourceVersionContains(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldContains(FieldSourceVersion, v))
+}
+
+// SourceVersionHasPrefix applies the HasPrefix predicate on the "source_version" field.
+func SourceVersionHasPrefix(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldHasPrefix(FieldSourceVersion, v))
+}
+
+// SourceVersionHasSuffix applies the HasSuffix predicate on the "source_version" field.
+func SourceVersionHasSuffix(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldHasSuffix(FieldSourceVersion, v))
+}
+
+// SourceVersionIsNil applies the IsNil predicate on the "source_version" field.
+func SourceVersionIsNil() predicate.Airport {
+	return predicate.Airport(sql.FieldIsNull(FieldSourceVersion))
+}
+
+// SourceVersionNotNil applies the NotNil predicate on the "source_version" field.
+func SourceVersionNotNil() predicate.Airport {
+	return predicate.Airport(sql.FieldNotNull(FieldSourceVersion))
+}
+
+// SourceVersionEqualFold applies the EqualFold predicate on the "source_version" field.
+func SourceVersionEqualFold(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEqualFold(FieldSourceVersion, v))
+}
+
+// SourceVersionContainsFold applies the ContainsFold predicate on the "source_version" field.
+func SourceVersionContainsFold(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldContainsFold(FieldSourceVersion, v))
+}
+
+// SourceHashEQ applies the EQ predicate on the "source_hash" field.
+func SourceHashEQ(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEQ(FieldSourceHash, v))
+}
+
+// SourceHashNEQ applies the NEQ predicate on the "source_hash" field.
+func SourceHashNEQ(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldNEQ(FieldSourceHash, v))
+}
+
+// SourceHashIn applies the In predicate on the "source_hash" field.
+func SourceHashIn(vs ...string) predicate.Airport {
+	return predicate.Airport(sql.FieldIn(FieldSourceHash, vs...))
+}
+
+// SourceHashNotIn applies the NotIn predicate on the "source_hash" field.
+func SourceHashNotIn(vs ...string) predicate.Airport {
+	return predicate.Airport(sql.FieldNotIn(FieldSourceHash, vs...))
+}
+
+// SourceHashGT applies the GT predicate on the "source_hash" field.
+func SourceHashGT(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldGT(FieldSourceHash, v))
+}
+
+// SourceHashGTE applies the GTE predicate on the "source_hash" field.
+func SourceHashGTE(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldGTE(FieldSourceHash, v))
+}
+
+// SourceHashLT applies the LT predicate on the "source_hash" field.
+func SourceHashLT(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldLT(FieldSourceHash, v))
+}
+
+// SourceHashLTE applies the LTE predicate on the "source_hash" field.
+func SourceHashLTE(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldLTE(FieldSourceHash, v))
+}
+
+// SourceHashContains applies the Contains predicate on the "source_hash" field.
+func SourceHashContains(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldContains(FieldSourceHash, v))
+}
+
+// SourceHashHasPrefix applies the HasPrefix predicate on the "source_hash" field.
+func SourceHashHasPrefix(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldHasPrefix(FieldSourceHash, v))
+}
+
+// SourceHashHasSuffix applies the HasSuffix predicate on the "source_hash" field.
+func SourceHashHasSuffix(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldHasSuffix(FieldSourceHash, v))
+}
+
+// SourceHashIsNil applies the IsNil predicate on the "source_hash" field.
+func SourceHashIsNil() predicate.Airport {
+	return predicate.Airport(sql.FieldIsNull(FieldSourceHash))
+}
+
+// SourceHashNotNil applies the NotNil predicate on the "source_hash" field.
+func SourceHashNotNil() predicate.Airport {
+	return predicate.Airport(sql.FieldNotNull(FieldSourceHash))
+}
+
+// SourceHashEqualFold applies the EqualFold predicate on the "source_hash" field.
+func SourceHashEqualFold(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldEqualFold(FieldSourceHash, v))
+}
+
+// SourceHashContainsFold applies the ContainsFold predicate on the "source_hash" field.
+func SourceHashContainsFold(v string) predicate.Airport {
+	return predicate.Airport(sql.FieldContainsFold(FieldSourceHash, v))
 }
 
 // SortOrderEQ applies the EQ predicate on the "sort_order" field.

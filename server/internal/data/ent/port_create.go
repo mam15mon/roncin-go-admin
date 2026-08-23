@@ -68,6 +68,14 @@ func (_c *PortCreate) SetNameZh(v string) *PortCreate {
 	return _c
 }
 
+// SetNillableNameZh sets the "name_zh" field if the given value is not nil.
+func (_c *PortCreate) SetNillableNameZh(v *string) *PortCreate {
+	if v != nil {
+		_c.SetNameZh(*v)
+	}
+	return _c
+}
+
 // SetNameEn sets the "name_en" field.
 func (_c *PortCreate) SetNameEn(v string) *PortCreate {
 	_c.mutation.SetNameEn(v)
@@ -96,6 +104,34 @@ func (_c *PortCreate) SetSource(v string) *PortCreate {
 func (_c *PortCreate) SetNillableSource(v *string) *PortCreate {
 	if v != nil {
 		_c.SetSource(*v)
+	}
+	return _c
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (_c *PortCreate) SetSourceVersion(v string) *PortCreate {
+	_c.mutation.SetSourceVersion(v)
+	return _c
+}
+
+// SetNillableSourceVersion sets the "source_version" field if the given value is not nil.
+func (_c *PortCreate) SetNillableSourceVersion(v *string) *PortCreate {
+	if v != nil {
+		_c.SetSourceVersion(*v)
+	}
+	return _c
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (_c *PortCreate) SetSourceHash(v string) *PortCreate {
+	_c.mutation.SetSourceHash(v)
+	return _c
+}
+
+// SetNillableSourceHash sets the "source_hash" field if the given value is not nil.
+func (_c *PortCreate) SetNillableSourceHash(v *string) *PortCreate {
+	if v != nil {
+		_c.SetSourceHash(*v)
 	}
 	return _c
 }
@@ -227,9 +263,6 @@ func (_c *PortCreate) check() error {
 			return &ValidationError{Name: "un_locode", err: fmt.Errorf(`ent: validator failed for field "Port.un_locode": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.NameZh(); !ok {
-		return &ValidationError{Name: "name_zh", err: errors.New(`ent: missing required field "Port.name_zh"`)}
-	}
 	if v, ok := _c.mutation.NameZh(); ok {
 		if err := port.NameZhValidator(v); err != nil {
 			return &ValidationError{Name: "name_zh", err: fmt.Errorf(`ent: validator failed for field "Port.name_zh": %w`, err)}
@@ -260,6 +293,16 @@ func (_c *PortCreate) check() error {
 	if v, ok := _c.mutation.Source(); ok {
 		if err := port.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`ent: validator failed for field "Port.source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceVersion(); ok {
+		if err := port.SourceVersionValidator(v); err != nil {
+			return &ValidationError{Name: "source_version", err: fmt.Errorf(`ent: validator failed for field "Port.source_version": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.SourceHash(); ok {
+		if err := port.SourceHashValidator(v); err != nil {
+			return &ValidationError{Name: "source_hash", err: fmt.Errorf(`ent: validator failed for field "Port.source_hash": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
@@ -320,7 +363,7 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.NameZh(); ok {
 		_spec.SetField(port.FieldNameZh, field.TypeString, value)
-		_node.NameZh = value
+		_node.NameZh = &value
 	}
 	if value, ok := _c.mutation.NameEn(); ok {
 		_spec.SetField(port.FieldNameEn, field.TypeString, value)
@@ -337,6 +380,14 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Source(); ok {
 		_spec.SetField(port.FieldSource, field.TypeString, value)
 		_node.Source = value
+	}
+	if value, ok := _c.mutation.SourceVersion(); ok {
+		_spec.SetField(port.FieldSourceVersion, field.TypeString, value)
+		_node.SourceVersion = &value
+	}
+	if value, ok := _c.mutation.SourceHash(); ok {
+		_spec.SetField(port.FieldSourceHash, field.TypeString, value)
+		_node.SourceHash = &value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(port.FieldSortOrder, field.TypeInt, value)

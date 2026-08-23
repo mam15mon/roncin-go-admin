@@ -2142,6 +2142,8 @@ type AirportMutation struct {
 	city_name_en        *string
 	country_code        *string
 	source              *string
+	source_version      *string
+	source_hash         *string
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
@@ -2467,7 +2469,7 @@ func (m *AirportMutation) NameZh() (r string, exists bool) {
 // OldNameZh returns the old "name_zh" field's value of the Airport entity.
 // If the Airport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirportMutation) OldNameZh(ctx context.Context) (v string, err error) {
+func (m *AirportMutation) OldNameZh(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
 	}
@@ -2481,9 +2483,22 @@ func (m *AirportMutation) OldNameZh(ctx context.Context) (v string, err error) {
 	return oldValue.NameZh, nil
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (m *AirportMutation) ClearNameZh() {
+	m.name_zh = nil
+	m.clearedFields[airport.FieldNameZh] = struct{}{}
+}
+
+// NameZhCleared returns if the "name_zh" field was cleared in this mutation.
+func (m *AirportMutation) NameZhCleared() bool {
+	_, ok := m.clearedFields[airport.FieldNameZh]
+	return ok
+}
+
 // ResetNameZh resets all changes to the "name_zh" field.
 func (m *AirportMutation) ResetNameZh() {
 	m.name_zh = nil
+	delete(m.clearedFields, airport.FieldNameZh)
 }
 
 // SetNameEn sets the "name_en" field.
@@ -2539,7 +2554,7 @@ func (m *AirportMutation) CityNameZh() (r string, exists bool) {
 // OldCityNameZh returns the old "city_name_zh" field's value of the Airport entity.
 // If the Airport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirportMutation) OldCityNameZh(ctx context.Context) (v string, err error) {
+func (m *AirportMutation) OldCityNameZh(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCityNameZh is only allowed on UpdateOne operations")
 	}
@@ -2553,9 +2568,22 @@ func (m *AirportMutation) OldCityNameZh(ctx context.Context) (v string, err erro
 	return oldValue.CityNameZh, nil
 }
 
+// ClearCityNameZh clears the value of the "city_name_zh" field.
+func (m *AirportMutation) ClearCityNameZh() {
+	m.city_name_zh = nil
+	m.clearedFields[airport.FieldCityNameZh] = struct{}{}
+}
+
+// CityNameZhCleared returns if the "city_name_zh" field was cleared in this mutation.
+func (m *AirportMutation) CityNameZhCleared() bool {
+	_, ok := m.clearedFields[airport.FieldCityNameZh]
+	return ok
+}
+
 // ResetCityNameZh resets all changes to the "city_name_zh" field.
 func (m *AirportMutation) ResetCityNameZh() {
 	m.city_name_zh = nil
+	delete(m.clearedFields, airport.FieldCityNameZh)
 }
 
 // SetCityNameEn sets the "city_name_en" field.
@@ -2677,6 +2705,104 @@ func (m *AirportMutation) OldSource(ctx context.Context) (v string, err error) {
 // ResetSource resets all changes to the "source" field.
 func (m *AirportMutation) ResetSource() {
 	m.source = nil
+}
+
+// SetSourceVersion sets the "source_version" field.
+func (m *AirportMutation) SetSourceVersion(s string) {
+	m.source_version = &s
+}
+
+// SourceVersion returns the value of the "source_version" field in the mutation.
+func (m *AirportMutation) SourceVersion() (r string, exists bool) {
+	v := m.source_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceVersion returns the old "source_version" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldSourceVersion(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceVersion: %w", err)
+	}
+	return oldValue.SourceVersion, nil
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (m *AirportMutation) ClearSourceVersion() {
+	m.source_version = nil
+	m.clearedFields[airport.FieldSourceVersion] = struct{}{}
+}
+
+// SourceVersionCleared returns if the "source_version" field was cleared in this mutation.
+func (m *AirportMutation) SourceVersionCleared() bool {
+	_, ok := m.clearedFields[airport.FieldSourceVersion]
+	return ok
+}
+
+// ResetSourceVersion resets all changes to the "source_version" field.
+func (m *AirportMutation) ResetSourceVersion() {
+	m.source_version = nil
+	delete(m.clearedFields, airport.FieldSourceVersion)
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (m *AirportMutation) SetSourceHash(s string) {
+	m.source_hash = &s
+}
+
+// SourceHash returns the value of the "source_hash" field in the mutation.
+func (m *AirportMutation) SourceHash() (r string, exists bool) {
+	v := m.source_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceHash returns the old "source_hash" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldSourceHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceHash: %w", err)
+	}
+	return oldValue.SourceHash, nil
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (m *AirportMutation) ClearSourceHash() {
+	m.source_hash = nil
+	m.clearedFields[airport.FieldSourceHash] = struct{}{}
+}
+
+// SourceHashCleared returns if the "source_hash" field was cleared in this mutation.
+func (m *AirportMutation) SourceHashCleared() bool {
+	_, ok := m.clearedFields[airport.FieldSourceHash]
+	return ok
+}
+
+// ResetSourceHash resets all changes to the "source_hash" field.
+func (m *AirportMutation) ResetSourceHash() {
+	m.source_hash = nil
+	delete(m.clearedFields, airport.FieldSourceHash)
 }
 
 // SetSortOrder sets the "sort_order" field.
@@ -2832,7 +2958,7 @@ func (m *AirportMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirportMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, airport.FieldCreatedAt)
 	}
@@ -2865,6 +2991,12 @@ func (m *AirportMutation) Fields() []string {
 	}
 	if m.source != nil {
 		fields = append(fields, airport.FieldSource)
+	}
+	if m.source_version != nil {
+		fields = append(fields, airport.FieldSourceVersion)
+	}
+	if m.source_hash != nil {
+		fields = append(fields, airport.FieldSourceHash)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, airport.FieldSortOrder)
@@ -2902,6 +3034,10 @@ func (m *AirportMutation) Field(name string) (ent.Value, bool) {
 		return m.CountryCode()
 	case airport.FieldSource:
 		return m.Source()
+	case airport.FieldSourceVersion:
+		return m.SourceVersion()
+	case airport.FieldSourceHash:
+		return m.SourceHash()
 	case airport.FieldSortOrder:
 		return m.SortOrder()
 	case airport.FieldEnabled:
@@ -2937,6 +3073,10 @@ func (m *AirportMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCountryCode(ctx)
 	case airport.FieldSource:
 		return m.OldSource(ctx)
+	case airport.FieldSourceVersion:
+		return m.OldSourceVersion(ctx)
+	case airport.FieldSourceHash:
+		return m.OldSourceHash(ctx)
 	case airport.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	case airport.FieldEnabled:
@@ -3027,6 +3167,20 @@ func (m *AirportMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSource(v)
 		return nil
+	case airport.FieldSourceVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceVersion(v)
+		return nil
+	case airport.FieldSourceHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceHash(v)
+		return nil
 	case airport.FieldSortOrder:
 		v, ok := value.(int)
 		if !ok {
@@ -3089,8 +3243,20 @@ func (m *AirportMutation) ClearedFields() []string {
 	if m.FieldCleared(airport.FieldIcaoCode) {
 		fields = append(fields, airport.FieldIcaoCode)
 	}
+	if m.FieldCleared(airport.FieldNameZh) {
+		fields = append(fields, airport.FieldNameZh)
+	}
+	if m.FieldCleared(airport.FieldCityNameZh) {
+		fields = append(fields, airport.FieldCityNameZh)
+	}
 	if m.FieldCleared(airport.FieldCityNameEn) {
 		fields = append(fields, airport.FieldCityNameEn)
+	}
+	if m.FieldCleared(airport.FieldSourceVersion) {
+		fields = append(fields, airport.FieldSourceVersion)
+	}
+	if m.FieldCleared(airport.FieldSourceHash) {
+		fields = append(fields, airport.FieldSourceHash)
 	}
 	return fields
 }
@@ -3109,8 +3275,20 @@ func (m *AirportMutation) ClearField(name string) error {
 	case airport.FieldIcaoCode:
 		m.ClearIcaoCode()
 		return nil
+	case airport.FieldNameZh:
+		m.ClearNameZh()
+		return nil
+	case airport.FieldCityNameZh:
+		m.ClearCityNameZh()
+		return nil
 	case airport.FieldCityNameEn:
 		m.ClearCityNameEn()
+		return nil
+	case airport.FieldSourceVersion:
+		m.ClearSourceVersion()
+		return nil
+	case airport.FieldSourceHash:
+		m.ClearSourceHash()
 		return nil
 	}
 	return fmt.Errorf("unknown Airport nullable field %s", name)
@@ -3152,6 +3330,12 @@ func (m *AirportMutation) ResetField(name string) error {
 		return nil
 	case airport.FieldSource:
 		m.ResetSource()
+		return nil
+	case airport.FieldSourceVersion:
+		m.ResetSourceVersion()
+		return nil
+	case airport.FieldSourceHash:
+		m.ResetSourceHash()
 		return nil
 	case airport.FieldSortOrder:
 		m.ResetSortOrder()
@@ -39741,6 +39925,8 @@ type PortMutation struct {
 	transport_modes       *[]string
 	appendtransport_modes []string
 	source                *string
+	source_version        *string
+	source_hash           *string
 	sort_order            *int
 	addsort_order         *int
 	enabled               *bool
@@ -40017,7 +40203,7 @@ func (m *PortMutation) NameZh() (r string, exists bool) {
 // OldNameZh returns the old "name_zh" field's value of the Port entity.
 // If the Port object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PortMutation) OldNameZh(ctx context.Context) (v string, err error) {
+func (m *PortMutation) OldNameZh(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNameZh is only allowed on UpdateOne operations")
 	}
@@ -40031,9 +40217,22 @@ func (m *PortMutation) OldNameZh(ctx context.Context) (v string, err error) {
 	return oldValue.NameZh, nil
 }
 
+// ClearNameZh clears the value of the "name_zh" field.
+func (m *PortMutation) ClearNameZh() {
+	m.name_zh = nil
+	m.clearedFields[port.FieldNameZh] = struct{}{}
+}
+
+// NameZhCleared returns if the "name_zh" field was cleared in this mutation.
+func (m *PortMutation) NameZhCleared() bool {
+	_, ok := m.clearedFields[port.FieldNameZh]
+	return ok
+}
+
 // ResetNameZh resets all changes to the "name_zh" field.
 func (m *PortMutation) ResetNameZh() {
 	m.name_zh = nil
+	delete(m.clearedFields, port.FieldNameZh)
 }
 
 // SetNameEn sets the "name_en" field.
@@ -40195,6 +40394,104 @@ func (m *PortMutation) ResetSource() {
 	m.source = nil
 }
 
+// SetSourceVersion sets the "source_version" field.
+func (m *PortMutation) SetSourceVersion(s string) {
+	m.source_version = &s
+}
+
+// SourceVersion returns the value of the "source_version" field in the mutation.
+func (m *PortMutation) SourceVersion() (r string, exists bool) {
+	v := m.source_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceVersion returns the old "source_version" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldSourceVersion(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceVersion: %w", err)
+	}
+	return oldValue.SourceVersion, nil
+}
+
+// ClearSourceVersion clears the value of the "source_version" field.
+func (m *PortMutation) ClearSourceVersion() {
+	m.source_version = nil
+	m.clearedFields[port.FieldSourceVersion] = struct{}{}
+}
+
+// SourceVersionCleared returns if the "source_version" field was cleared in this mutation.
+func (m *PortMutation) SourceVersionCleared() bool {
+	_, ok := m.clearedFields[port.FieldSourceVersion]
+	return ok
+}
+
+// ResetSourceVersion resets all changes to the "source_version" field.
+func (m *PortMutation) ResetSourceVersion() {
+	m.source_version = nil
+	delete(m.clearedFields, port.FieldSourceVersion)
+}
+
+// SetSourceHash sets the "source_hash" field.
+func (m *PortMutation) SetSourceHash(s string) {
+	m.source_hash = &s
+}
+
+// SourceHash returns the value of the "source_hash" field in the mutation.
+func (m *PortMutation) SourceHash() (r string, exists bool) {
+	v := m.source_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceHash returns the old "source_hash" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldSourceHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceHash: %w", err)
+	}
+	return oldValue.SourceHash, nil
+}
+
+// ClearSourceHash clears the value of the "source_hash" field.
+func (m *PortMutation) ClearSourceHash() {
+	m.source_hash = nil
+	m.clearedFields[port.FieldSourceHash] = struct{}{}
+}
+
+// SourceHashCleared returns if the "source_hash" field was cleared in this mutation.
+func (m *PortMutation) SourceHashCleared() bool {
+	_, ok := m.clearedFields[port.FieldSourceHash]
+	return ok
+}
+
+// ResetSourceHash resets all changes to the "source_hash" field.
+func (m *PortMutation) ResetSourceHash() {
+	m.source_hash = nil
+	delete(m.clearedFields, port.FieldSourceHash)
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (m *PortMutation) SetSortOrder(i int) {
 	m.sort_order = &i
@@ -40348,7 +40645,7 @@ func (m *PortMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PortMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, port.FieldCreatedAt)
 	}
@@ -40375,6 +40672,12 @@ func (m *PortMutation) Fields() []string {
 	}
 	if m.source != nil {
 		fields = append(fields, port.FieldSource)
+	}
+	if m.source_version != nil {
+		fields = append(fields, port.FieldSourceVersion)
+	}
+	if m.source_hash != nil {
+		fields = append(fields, port.FieldSourceHash)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, port.FieldSortOrder)
@@ -40408,6 +40711,10 @@ func (m *PortMutation) Field(name string) (ent.Value, bool) {
 		return m.TransportModes()
 	case port.FieldSource:
 		return m.Source()
+	case port.FieldSourceVersion:
+		return m.SourceVersion()
+	case port.FieldSourceHash:
+		return m.SourceHash()
 	case port.FieldSortOrder:
 		return m.SortOrder()
 	case port.FieldEnabled:
@@ -40439,6 +40746,10 @@ func (m *PortMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTransportModes(ctx)
 	case port.FieldSource:
 		return m.OldSource(ctx)
+	case port.FieldSourceVersion:
+		return m.OldSourceVersion(ctx)
+	case port.FieldSourceHash:
+		return m.OldSourceHash(ctx)
 	case port.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	case port.FieldEnabled:
@@ -40515,6 +40826,20 @@ func (m *PortMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSource(v)
 		return nil
+	case port.FieldSourceVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceVersion(v)
+		return nil
+	case port.FieldSourceHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceHash(v)
+		return nil
 	case port.FieldSortOrder:
 		v, ok := value.(int)
 		if !ok {
@@ -40573,7 +40898,17 @@ func (m *PortMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PortMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(port.FieldNameZh) {
+		fields = append(fields, port.FieldNameZh)
+	}
+	if m.FieldCleared(port.FieldSourceVersion) {
+		fields = append(fields, port.FieldSourceVersion)
+	}
+	if m.FieldCleared(port.FieldSourceHash) {
+		fields = append(fields, port.FieldSourceHash)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -40586,6 +40921,17 @@ func (m *PortMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PortMutation) ClearField(name string) error {
+	switch name {
+	case port.FieldNameZh:
+		m.ClearNameZh()
+		return nil
+	case port.FieldSourceVersion:
+		m.ClearSourceVersion()
+		return nil
+	case port.FieldSourceHash:
+		m.ClearSourceHash()
+		return nil
+	}
 	return fmt.Errorf("unknown Port nullable field %s", name)
 }
 
@@ -40619,6 +40965,12 @@ func (m *PortMutation) ResetField(name string) error {
 		return nil
 	case port.FieldSource:
 		m.ResetSource()
+		return nil
+	case port.FieldSourceVersion:
+		m.ResetSourceVersion()
+		return nil
+	case port.FieldSourceHash:
+		m.ResetSourceHash()
 		return nil
 	case port.FieldSortOrder:
 		m.ResetSortOrder()

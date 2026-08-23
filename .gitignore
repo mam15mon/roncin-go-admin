@@ -4,6 +4,7 @@
 .idea/
 .vscode/
 node_modules/
+.cache/
 web/dist/
 web/.umi/
 web/.umi-production/
