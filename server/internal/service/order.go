@@ -64,6 +64,45 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	return &v1.OrderListReply{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.OrderReferenceCheckReply, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	check := biz.OrderReferenceCheck{ReferenceNo: request.GetReferenceNo()}
+	switch request.GetReferenceType() {
+	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_CUSTOMER:
+		check.ReferenceType = biz.OrderReferenceCustomer
+		customerID, err := uuid.Parse(request.GetCustomerId())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		check.CustomerID = &customerID
+	case v1.OrderReferenceType_ORDER_REFERENCE_TYPE_INTERNAL:
+		check.ReferenceType = biz.OrderReferenceInternal
+	default:
+		return nil, biz.ErrOrderInvalidArgument
+	}
+	if request.GetExcludeOrderId() != "" {
+		excludeOrderID, err := uuid.Parse(request.GetExcludeOrderId())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		check.ExcludeOrderID = &excludeOrderID
+	}
+	match, err := s.usecase.CheckReference(ctx, principal.Organization.ID, check)
+	if err != nil {
+		return nil, err
+	}
+	data := &v1.OrderReferenceCheck{Duplicate: match != nil}
+	if match != nil {
+		orderID := match.OrderID.String()
+		data.OrderId = &orderID
+		data.OrderNo = &match.OrderNo
+	}
+	return &v1.OrderReferenceCheckReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.OrderReply, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {

@@ -1218,6 +1218,20 @@ declare namespace API {
     id: string;
   };
 
+  type OrderReferenceCheck = {
+    duplicate?: boolean;
+    orderId?: string;
+    orderNo?: string;
+  };
+
+  type OrderReferenceCheckReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReferenceCheck;
+    traceId?: string;
+  };
+
   type OrderReleasePod = {
     id?: string;
     orderId?: string;
@@ -1284,6 +1298,13 @@ declare namespace API {
     message?: string;
     data?: Order;
     traceId?: string;
+  };
+
+  type OrderServiceCheckOrderReferenceParams = {
+    referenceType?: number;
+    referenceNo?: string;
+    customerId?: string;
+    excludeOrderId?: string;
   };
 
   type OrderServiceGetOrderParams = {

@@ -17,6 +17,10 @@ service OrderService {
     option (google.api.http) = {get: "/api/v1/orders"};
   }
 
+  rpc CheckOrderReference(CheckOrderReferenceRequest) returns (OrderReferenceCheckReply) {
+    option (google.api.http) = {get: "/api/v1/order-reference-check"};
+  }
+
   rpc CreateOrder(CreateOrderRequest) returns (OrderReply) {
     option (google.api.http) = {
       post: "/api/v1/orders"
@@ -101,6 +105,13 @@ enum ShipmentMode {
   SHIPMENT_MODE_UNSPECIFIED = 0;
   SHIPMENT_MODE_CONSOLIDATION = 1;
   SHIPMENT_MODE_CROSS_BORDER = 2;
+}
+
+// OrderReferenceType 订单业务编号类型。
+enum OrderReferenceType {
+  ORDER_REFERENCE_TYPE_UNSPECIFIED = 0;
+  ORDER_REFERENCE_TYPE_CUSTOMER = 1;
+  ORDER_REFERENCE_TYPE_INTERNAL = 2;
 }
 
 // Order 订单核心信息。
@@ -199,6 +210,21 @@ message ListOrdersRequest {
   string status = 4;
   optional BusinessType business_type = 5;
   string customer_id = 6;
+}
+
+// CheckOrderReferenceRequest 检查订单业务编号是否重复。
+message CheckOrderReferenceRequest {
+  OrderReferenceType reference_type = 1 [(google.api.field_behavior) = REQUIRED];
+  string reference_no = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string customer_id = 3;
+  optional string exclude_order_id = 4;
+}
+
+// OrderReferenceCheck 订单业务编号查重结果。
+message OrderReferenceCheck {
+  bool duplicate = 1;
+  optional string order_id = 2;
+  optional string order_no = 3;
 }
 
 // CreateOrderRequest 创建订单请求。
@@ -327,4 +353,13 @@ message OrderListReply {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+// OrderReferenceCheckReply 订单业务编号查重响应。
+message OrderReferenceCheckReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderReferenceCheck data = 4;
+  string trace_id = 5;
 }

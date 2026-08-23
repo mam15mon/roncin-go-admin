@@ -115,6 +115,17 @@ func (v OrderShipmentMode) Valid() bool {
 	return v == OrderShipmentConsolidation || v == OrderShipmentCrossBorder
 }
 
+type OrderReferenceType string
+
+const (
+	OrderReferenceCustomer OrderReferenceType = "customer"
+	OrderReferenceInternal OrderReferenceType = "internal"
+)
+
+func (v OrderReferenceType) Valid() bool {
+	return v == OrderReferenceCustomer || v == OrderReferenceInternal
+}
+
 type Order struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
@@ -185,9 +196,22 @@ type OrderList struct {
 	PageSize int
 }
 
+type OrderReferenceCheck struct {
+	ReferenceType  OrderReferenceType
+	ReferenceNo    string
+	CustomerID     *uuid.UUID
+	ExcludeOrderID *uuid.UUID
+}
+
+type OrderReferenceMatch struct {
+	OrderID uuid.UUID
+	OrderNo string
+}
+
 type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
 	List(context.Context, uuid.UUID, OrderListOptions) (*OrderList, error)
+	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
@@ -217,6 +241,20 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationID uuid.UUID, opti
 	options.Keyword = strings.TrimSpace(options.Keyword)
 	options.Status = strings.ToUpper(strings.TrimSpace(options.Status))
 	return uc.repo.List(ctx, organizationID, options)
+}
+
+func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.UUID, check OrderReferenceCheck) (*OrderReferenceMatch, error) {
+	check.ReferenceNo = strings.TrimSpace(check.ReferenceNo)
+	if organizationID == uuid.Nil || !check.ReferenceType.Valid() || check.ReferenceNo == "" || utf8.RuneCountInString(check.ReferenceNo) > 100 {
+		return nil, ErrOrderInvalidArgument
+	}
+	if check.ReferenceType == OrderReferenceCustomer && (check.CustomerID == nil || *check.CustomerID == uuid.Nil) {
+		return nil, ErrOrderInvalidArgument
+	}
+	if check.ExcludeOrderID != nil && *check.ExcludeOrderID == uuid.Nil {
+		return nil, ErrOrderInvalidArgument
+	}
+	return uc.repo.FindReferenceDuplicate(ctx, organizationID, check)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {

@@ -108,6 +108,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middlewa
 		masterdatav1.OperationMasterDataServiceSetDefaultMilestoneTemplate:            {key: access.MasterDataManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceGetOrder:                                         {key: access.OrderRead, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceListOrders:                                       {key: access.OrderRead, scope: biz.DataScopeOrganization},
+		orderv1.OperationOrderServiceCheckOrderReference:                              {key: access.OrderRead, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceCreateOrder:                                      {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceUpdateOrder:                                      {key: access.OrderManage, scope: biz.DataScopeOrganization},
 		orderv1.OperationOrderServiceTransitionOrderStatus:                            {key: access.OrderManage, scope: biz.DataScopeOrganization},

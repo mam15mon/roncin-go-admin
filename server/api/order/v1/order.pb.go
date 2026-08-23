@@ -417,6 +417,56 @@ func (ShipmentMode) EnumDescriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
 }
 
+// OrderReferenceType 订单业务编号类型。
+type OrderReferenceType int32
+
+const (
+	OrderReferenceType_ORDER_REFERENCE_TYPE_UNSPECIFIED OrderReferenceType = 0
+	OrderReferenceType_ORDER_REFERENCE_TYPE_CUSTOMER    OrderReferenceType = 1
+	OrderReferenceType_ORDER_REFERENCE_TYPE_INTERNAL    OrderReferenceType = 2
+)
+
+// Enum value maps for OrderReferenceType.
+var (
+	OrderReferenceType_name = map[int32]string{
+		0: "ORDER_REFERENCE_TYPE_UNSPECIFIED",
+		1: "ORDER_REFERENCE_TYPE_CUSTOMER",
+		2: "ORDER_REFERENCE_TYPE_INTERNAL",
+	}
+	OrderReferenceType_value = map[string]int32{
+		"ORDER_REFERENCE_TYPE_UNSPECIFIED": 0,
+		"ORDER_REFERENCE_TYPE_CUSTOMER":    1,
+		"ORDER_REFERENCE_TYPE_INTERNAL":    2,
+	}
+)
+
+func (x OrderReferenceType) Enum() *OrderReferenceType {
+	p := new(OrderReferenceType)
+	*p = x
+	return p
+}
+
+func (x OrderReferenceType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OrderReferenceType) Descriptor() protoreflect.EnumDescriptor {
+	return file_order_v1_order_proto_enumTypes[7].Descriptor()
+}
+
+func (OrderReferenceType) Type() protoreflect.EnumType {
+	return &file_order_v1_order_proto_enumTypes[7]
+}
+
+func (x OrderReferenceType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OrderReferenceType.Descriptor instead.
+func (OrderReferenceType) EnumDescriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
+}
+
 // Order 订单核心信息。
 type Order struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
@@ -1231,6 +1281,136 @@ func (x *ListOrdersRequest) GetCustomerId() string {
 	return ""
 }
 
+// CheckOrderReferenceRequest 检查订单业务编号是否重复。
+type CheckOrderReferenceRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ReferenceType  OrderReferenceType     `protobuf:"varint,1,opt,name=reference_type,json=referenceType,proto3,enum=order.v1.OrderReferenceType" json:"reference_type,omitempty"`
+	ReferenceNo    string                 `protobuf:"bytes,2,opt,name=reference_no,json=referenceNo,proto3" json:"reference_no,omitempty"`
+	CustomerId     *string                `protobuf:"bytes,3,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
+	ExcludeOrderId *string                `protobuf:"bytes,4,opt,name=exclude_order_id,json=excludeOrderId,proto3,oneof" json:"exclude_order_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CheckOrderReferenceRequest) Reset() {
+	*x = CheckOrderReferenceRequest{}
+	mi := &file_order_v1_order_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckOrderReferenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckOrderReferenceRequest) ProtoMessage() {}
+
+func (x *CheckOrderReferenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckOrderReferenceRequest.ProtoReflect.Descriptor instead.
+func (*CheckOrderReferenceRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CheckOrderReferenceRequest) GetReferenceType() OrderReferenceType {
+	if x != nil {
+		return x.ReferenceType
+	}
+	return OrderReferenceType_ORDER_REFERENCE_TYPE_UNSPECIFIED
+}
+
+func (x *CheckOrderReferenceRequest) GetReferenceNo() string {
+	if x != nil {
+		return x.ReferenceNo
+	}
+	return ""
+}
+
+func (x *CheckOrderReferenceRequest) GetCustomerId() string {
+	if x != nil && x.CustomerId != nil {
+		return *x.CustomerId
+	}
+	return ""
+}
+
+func (x *CheckOrderReferenceRequest) GetExcludeOrderId() string {
+	if x != nil && x.ExcludeOrderId != nil {
+		return *x.ExcludeOrderId
+	}
+	return ""
+}
+
+// OrderReferenceCheck 订单业务编号查重结果。
+type OrderReferenceCheck struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Duplicate     bool                   `protobuf:"varint,1,opt,name=duplicate,proto3" json:"duplicate,omitempty"`
+	OrderId       *string                `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3,oneof" json:"order_id,omitempty"`
+	OrderNo       *string                `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3,oneof" json:"order_no,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderReferenceCheck) Reset() {
+	*x = OrderReferenceCheck{}
+	mi := &file_order_v1_order_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderReferenceCheck) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderReferenceCheck) ProtoMessage() {}
+
+func (x *OrderReferenceCheck) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderReferenceCheck.ProtoReflect.Descriptor instead.
+func (*OrderReferenceCheck) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *OrderReferenceCheck) GetDuplicate() bool {
+	if x != nil {
+		return x.Duplicate
+	}
+	return false
+}
+
+func (x *OrderReferenceCheck) GetOrderId() string {
+	if x != nil && x.OrderId != nil {
+		return *x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderReferenceCheck) GetOrderNo() string {
+	if x != nil && x.OrderNo != nil {
+		return *x.OrderNo
+	}
+	return ""
+}
+
 // CreateOrderRequest 创建订单请求。
 type CreateOrderRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
@@ -1285,7 +1465,7 @@ type CreateOrderRequest struct {
 
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1297,7 +1477,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1310,7 +1490,7 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateOrderRequest) GetCustomerId() string {
@@ -1683,7 +1863,7 @@ type UpdateOrderRequest struct {
 
 func (x *UpdateOrderRequest) Reset() {
 	*x = UpdateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1875,7 @@ func (x *UpdateOrderRequest) String() string {
 func (*UpdateOrderRequest) ProtoMessage() {}
 
 func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1888,7 @@ func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateOrderRequest) GetId() string {
@@ -2046,7 +2226,7 @@ type TransitionOrderStatusRequest struct {
 
 func (x *TransitionOrderStatusRequest) Reset() {
 	*x = TransitionOrderStatusRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2058,7 +2238,7 @@ func (x *TransitionOrderStatusRequest) String() string {
 func (*TransitionOrderStatusRequest) ProtoMessage() {}
 
 func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2071,7 +2251,7 @@ func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderStatusRequest.ProtoReflect.Descriptor instead.
 func (*TransitionOrderStatusRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *TransitionOrderStatusRequest) GetId() string {
@@ -2116,7 +2296,7 @@ type OrderReply struct {
 
 func (x *OrderReply) Reset() {
 	*x = OrderReply{}
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2128,7 +2308,7 @@ func (x *OrderReply) String() string {
 func (*OrderReply) ProtoMessage() {}
 
 func (x *OrderReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2141,7 +2321,7 @@ func (x *OrderReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderReply.ProtoReflect.Descriptor instead.
 func (*OrderReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *OrderReply) GetSuccess() bool {
@@ -2196,7 +2376,7 @@ type OrderListReply struct {
 
 func (x *OrderListReply) Reset() {
 	*x = OrderListReply{}
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2208,7 +2388,7 @@ func (x *OrderListReply) String() string {
 func (*OrderListReply) ProtoMessage() {}
 
 func (x *OrderListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2221,7 +2401,7 @@ func (x *OrderListReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderListReply.ProtoReflect.Descriptor instead.
 func (*OrderListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *OrderListReply) GetSuccess() bool {
@@ -2274,6 +2454,83 @@ func (x *OrderListReply) GetPageSize() int32 {
 }
 
 func (x *OrderListReply) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// OrderReferenceCheckReply 订单业务编号查重响应。
+type OrderReferenceCheckReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderReferenceCheck   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderReferenceCheckReply) Reset() {
+	*x = OrderReferenceCheckReply{}
+	mi := &file_order_v1_order_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderReferenceCheckReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderReferenceCheckReply) ProtoMessage() {}
+
+func (x *OrderReferenceCheckReply) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderReferenceCheckReply.ProtoReflect.Descriptor instead.
+func (*OrderReferenceCheckReply) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *OrderReferenceCheckReply) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *OrderReferenceCheckReply) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *OrderReferenceCheckReply) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *OrderReferenceCheckReply) GetData() *OrderReferenceCheck {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *OrderReferenceCheckReply) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -2426,7 +2683,21 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rbusiness_type\x18\x05 \x01(\x0e2\x16.order.v1.BusinessTypeH\x00R\fbusinessType\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x06 \x01(\tR\n" +
 	"customerIdB\x10\n" +
-	"\x0e_business_type\"\x9f\x16\n" +
+	"\x0e_business_type\"\x88\x02\n" +
+	"\x1aCheckOrderReferenceRequest\x12H\n" +
+	"\x0ereference_type\x18\x01 \x01(\x0e2\x1c.order.v1.OrderReferenceTypeB\x03\xe0A\x02R\rreferenceType\x12&\n" +
+	"\freference_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vreferenceNo\x12$\n" +
+	"\vcustomer_id\x18\x03 \x01(\tH\x00R\n" +
+	"customerId\x88\x01\x01\x12-\n" +
+	"\x10exclude_order_id\x18\x04 \x01(\tH\x01R\x0eexcludeOrderId\x88\x01\x01B\x0e\n" +
+	"\f_customer_idB\x13\n" +
+	"\x11_exclude_order_id\"\x8d\x01\n" +
+	"\x13OrderReferenceCheck\x12\x1c\n" +
+	"\tduplicate\x18\x01 \x01(\bR\tduplicate\x12\x1e\n" +
+	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
+	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
+	"\t_order_idB\v\n" +
+	"\t_order_no\"\x9f\x16\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -2646,7 +2917,13 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId*\xb5\x01\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb0\x01\n" +
+	"\x18OrderReferenceCheckReply\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.order.v1.OrderReferenceCheckR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xb5\x01\n" +
 	"\fBusinessType\x12\x1d\n" +
 	"\x19BUSINESS_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10BUSINESS_TYPE_SE\x10\x01\x12\x14\n" +
@@ -2690,11 +2967,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\fShipmentMode\x12\x1d\n" +
 	"\x19SHIPMENT_MODE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bSHIPMENT_MODE_CONSOLIDATION\x10\x01\x12\x1e\n" +
-	"\x1aSHIPMENT_MODE_CROSS_BORDER\x10\x022\x84\x04\n" +
+	"\x1aSHIPMENT_MODE_CROSS_BORDER\x10\x02*\x80\x01\n" +
+	"\x12OrderReferenceType\x12$\n" +
+	" ORDER_REFERENCE_TYPE_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dORDER_REFERENCE_TYPE_CUSTOMER\x10\x01\x12!\n" +
+	"\x1dORDER_REFERENCE_TYPE_INTERNAL\x10\x022\x8d\x05\n" +
 	"\fOrderService\x12X\n" +
 	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x14.order.v1.OrderReply\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12[\n" +
 	"\n" +
-	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x18.order.v1.OrderListReply\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\\\n" +
+	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x18.order.v1.OrderListReply\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\x86\x01\n" +
+	"\x13CheckOrderReference\x12$.order.v1.CheckOrderReferenceRequest\x1a\".order.v1.OrderReferenceCheckReply\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/order-reference-check\x12\\\n" +
 	"\vCreateOrder\x12\x1c.order.v1.CreateOrderRequest\x1a\x14.order.v1.OrderReply\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12a\n" +
 	"\vUpdateOrder\x12\x1c.order.v1.UpdateOrderRequest\x1a\x14.order.v1.OrderReply\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/orders/{id}\x12|\n" +
 	"\x15TransitionOrderStatus\x12&.order.v1.TransitionOrderStatusRequest\x1a\x14.order.v1.OrderReply\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/orders/{id}/statusB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
@@ -2711,8 +2993,8 @@ func file_order_v1_order_proto_rawDescGZIP() []byte {
 	return file_order_v1_order_proto_rawDescData
 }
 
-var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_order_v1_order_proto_goTypes = []any{
 	(BusinessType)(0),                    // 0: order.v1.BusinessType
 	(TradeDirection)(0),                  // 1: order.v1.TradeDirection
@@ -2721,17 +3003,21 @@ var file_order_v1_order_proto_goTypes = []any{
 	(ShipmentType)(0),                    // 4: order.v1.ShipmentType
 	(ContainerOwnership)(0),              // 5: order.v1.ContainerOwnership
 	(ShipmentMode)(0),                    // 6: order.v1.ShipmentMode
-	(*Order)(nil),                        // 7: order.v1.Order
-	(*OrderServiceSelection)(nil),        // 8: order.v1.OrderServiceSelection
-	(*OrderCargoSelection)(nil),          // 9: order.v1.OrderCargoSelection
-	(*OrderStatusLog)(nil),               // 10: order.v1.OrderStatusLog
-	(*GetOrderRequest)(nil),              // 11: order.v1.GetOrderRequest
-	(*ListOrdersRequest)(nil),            // 12: order.v1.ListOrdersRequest
-	(*CreateOrderRequest)(nil),           // 13: order.v1.CreateOrderRequest
-	(*UpdateOrderRequest)(nil),           // 14: order.v1.UpdateOrderRequest
-	(*TransitionOrderStatusRequest)(nil), // 15: order.v1.TransitionOrderStatusRequest
-	(*OrderReply)(nil),                   // 16: order.v1.OrderReply
-	(*OrderListReply)(nil),               // 17: order.v1.OrderListReply
+	(OrderReferenceType)(0),              // 7: order.v1.OrderReferenceType
+	(*Order)(nil),                        // 8: order.v1.Order
+	(*OrderServiceSelection)(nil),        // 9: order.v1.OrderServiceSelection
+	(*OrderCargoSelection)(nil),          // 10: order.v1.OrderCargoSelection
+	(*OrderStatusLog)(nil),               // 11: order.v1.OrderStatusLog
+	(*GetOrderRequest)(nil),              // 12: order.v1.GetOrderRequest
+	(*ListOrdersRequest)(nil),            // 13: order.v1.ListOrdersRequest
+	(*CheckOrderReferenceRequest)(nil),   // 14: order.v1.CheckOrderReferenceRequest
+	(*OrderReferenceCheck)(nil),          // 15: order.v1.OrderReferenceCheck
+	(*CreateOrderRequest)(nil),           // 16: order.v1.CreateOrderRequest
+	(*UpdateOrderRequest)(nil),           // 17: order.v1.UpdateOrderRequest
+	(*TransitionOrderStatusRequest)(nil), // 18: order.v1.TransitionOrderStatusRequest
+	(*OrderReply)(nil),                   // 19: order.v1.OrderReply
+	(*OrderListReply)(nil),               // 20: order.v1.OrderListReply
+	(*OrderReferenceCheckReply)(nil),     // 21: order.v1.OrderReferenceCheckReply
 }
 var file_order_v1_order_proto_depIdxs = []int32{
 	0,  // 0: order.v1.Order.business_type:type_name -> order.v1.BusinessType
@@ -2742,37 +3028,41 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	5,  // 5: order.v1.Order.container_ownership:type_name -> order.v1.ContainerOwnership
 	6,  // 6: order.v1.Order.shipment_mode:type_name -> order.v1.ShipmentMode
 	0,  // 7: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
-	0,  // 8: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 9: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 10: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 11: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 12: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 13: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 14: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	0,  // 15: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 16: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 17: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 18: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 19: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 20: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 21: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	7,  // 22: order.v1.OrderReply.data:type_name -> order.v1.Order
-	7,  // 23: order.v1.OrderListReply.data:type_name -> order.v1.Order
-	11, // 24: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	12, // 25: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	13, // 26: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	14, // 27: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	15, // 28: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	16, // 29: order.v1.OrderService.GetOrder:output_type -> order.v1.OrderReply
-	17, // 30: order.v1.OrderService.ListOrders:output_type -> order.v1.OrderListReply
-	16, // 31: order.v1.OrderService.CreateOrder:output_type -> order.v1.OrderReply
-	16, // 32: order.v1.OrderService.UpdateOrder:output_type -> order.v1.OrderReply
-	16, // 33: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.OrderReply
-	29, // [29:34] is the sub-list for method output_type
-	24, // [24:29] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	7,  // 8: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
+	0,  // 9: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 10: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 11: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 12: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 13: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 14: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 15: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	0,  // 16: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 17: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 18: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 19: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 20: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 21: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 22: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	8,  // 23: order.v1.OrderReply.data:type_name -> order.v1.Order
+	8,  // 24: order.v1.OrderListReply.data:type_name -> order.v1.Order
+	15, // 25: order.v1.OrderReferenceCheckReply.data:type_name -> order.v1.OrderReferenceCheck
+	12, // 26: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	13, // 27: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	14, // 28: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	16, // 29: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	17, // 30: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	18, // 31: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	19, // 32: order.v1.OrderService.GetOrder:output_type -> order.v1.OrderReply
+	20, // 33: order.v1.OrderService.ListOrders:output_type -> order.v1.OrderListReply
+	21, // 34: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.OrderReferenceCheckReply
+	19, // 35: order.v1.OrderService.CreateOrder:output_type -> order.v1.OrderReply
+	19, // 36: order.v1.OrderService.UpdateOrder:output_type -> order.v1.OrderReply
+	19, // 37: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.OrderReply
+	32, // [32:38] is the sub-list for method output_type
+	26, // [26:32] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }
@@ -2786,13 +3076,15 @@ func file_order_v1_order_proto_init() {
 	file_order_v1_order_proto_msgTypes[6].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[7].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[8].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[9].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_proto_rawDesc), len(file_order_v1_order_proto_rawDesc)),
-			NumEnums:      7,
-			NumMessages:   11,
+			NumEnums:      8,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

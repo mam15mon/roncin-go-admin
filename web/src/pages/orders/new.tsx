@@ -3,21 +3,30 @@ import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
 import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import { orderServiceCreateOrder } from '@/services/roncin/orderService';
 import {
-  PARTNER_ROLES,
+  orderServiceCheckOrderReference,
+  orderServiceCreateOrder,
+} from '@/services/roncin/orderService';
+import {
   fetchOrderMasterData,
   loadStatusTemplatesByBusinessType,
+  PARTNER_ROLES,
   parseOrderKind,
-  seaServiceTypeNames,
   searchPartnersByRole,
+  seaServiceTypeNames,
 } from './common';
 import {
-  type SelectOption,
   getAirTemplateSections,
   getSeaTemplateSections,
+  type SelectOption,
 } from './templates';
 
 type CreateOrderFormValues = {
@@ -77,8 +86,12 @@ export default function NewOrderPage() {
   const [statusTemplateOptions, setStatusTemplateOptions] = useState<
     { label: string; value: string }[]
   >([]);
-  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
-  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
+    [],
+  );
+  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<
+    SelectOption[]
+  >([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
 
@@ -125,6 +138,50 @@ export default function NewOrderPage() {
       });
   }, [config, message]);
 
+  const checkOrderReference = useCallback(
+    async (referenceType: 1 | 2) => {
+      const isCustomerReference = referenceType === 1;
+      const fieldName = isCustomerReference
+        ? 'customerReferenceNo'
+        : 'internalReferenceNo';
+      const fieldLabel = isCustomerReference ? '客户业务编号' : '企业内部编号';
+      const referenceNo = String(
+        formRef.current?.getFieldValue(fieldName) ?? '',
+      ).trim();
+      if (!referenceNo) {
+        message.warning(`请先输入${fieldLabel}`);
+        return;
+      }
+
+      const customerId = String(
+        formRef.current?.getFieldValue('customerId') ?? '',
+      );
+      if (isCustomerReference && !customerId) {
+        message.warning('请先选择委托单位');
+        return;
+      }
+
+      try {
+        const response = await orderServiceCheckOrderReference({
+          referenceType,
+          referenceNo,
+          customerId: isCustomerReference ? customerId : undefined,
+        });
+        if (response.data?.duplicate) {
+          message.warning(
+            `${fieldLabel}已用于订单 ${response.data.orderNo || response.data.orderId}`,
+          );
+          return;
+        }
+        message.success(`${fieldLabel}未发现重复`);
+      } catch (error: unknown) {
+        const err = error as Error;
+        message.error(err.message || `${fieldLabel}查重失败`);
+      }
+    },
+    [message],
+  );
+
   const templateProps = useMemo(
     () => ({
       serviceTypeOptions,
@@ -143,12 +200,15 @@ export default function NewOrderPage() {
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
+      checkCustomerReferenceNo: () => checkOrderReference(1),
+      checkInternalReferenceNo: () => checkOrderReference(2),
     }),
     [
       serviceTypeOptions,
       cargoCategoryOptions,
       locationOptions,
       currencyOptions,
+      checkOrderReference,
     ],
   );
 
@@ -237,12 +297,18 @@ export default function NewOrderPage() {
         vesselVoyage: values.vesselVoyage?.trim() || undefined,
         etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
         eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
-        siCutoff: values.siCutoff ? dayjs(values.siCutoff).toISOString() : undefined,
-        docCutoff: values.docCutoff ? dayjs(values.docCutoff).toISOString() : undefined,
+        siCutoff: values.siCutoff
+          ? dayjs(values.siCutoff).toISOString()
+          : undefined,
+        docCutoff: values.docCutoff
+          ? dayjs(values.docCutoff).toISOString()
+          : undefined,
         customsCutoff: values.customsCutoff
           ? dayjs(values.customsCutoff).toISOString()
           : undefined,
-        vgmCutoff: values.vgmCutoff ? dayjs(values.vgmCutoff).toISOString() : undefined,
+        vgmCutoff: values.vgmCutoff
+          ? dayjs(values.vgmCutoff).toISOString()
+          : undefined,
         goodsDescription: values.goodsDescription?.trim() || undefined,
         totalPackages:
           values.totalPackages !== undefined && values.totalPackages !== null

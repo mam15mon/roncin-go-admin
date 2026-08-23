@@ -1724,6 +1724,57 @@
         }
       }
     },
+    "/api/v1/order-reference-check": {
+      "get": {
+        "tags": [
+          "OrderService"
+        ],
+        "operationId": "OrderService_CheckOrderReference",
+        "parameters": [
+          {
+            "name": "referenceType",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "referenceNo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.OrderReferenceCheckReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders": {
       "get": {
         "tags": [
@@ -7623,6 +7674,43 @@
           }
         },
         "description": "OrderPersonnelReply 单条订单协作人员响应。"
+      },
+      "order.v1.OrderReferenceCheck": {
+        "type": "object",
+        "properties": {
+          "duplicate": {
+            "type": "boolean"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          }
+        },
+        "description": "OrderReferenceCheck 订单业务编号查重结果。"
+      },
+      "order.v1.OrderReferenceCheckReply": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderReferenceCheck"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "OrderReferenceCheckReply 订单业务编号查重响应。"
       },
       "order.v1.OrderReleasePod": {
         "type": "object",

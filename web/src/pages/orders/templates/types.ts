@@ -20,4 +20,6 @@ export interface TemplateProps {
   searchForeignAgents: (keyword?: string) => Promise<SelectOption[]>;
   searchShippingAgents: (keyword?: string) => Promise<SelectOption[]>;
   setCustomerCode: (code?: string) => void;
+  checkCustomerReferenceNo: () => Promise<void>;
+  checkInternalReferenceNo: () => Promise<void>;
 }

@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Input, Row, Select, message } from 'antd';
+import { Button, Col, Form, Input, Row, Select } from 'antd';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -19,7 +19,9 @@ import {
 } from '../common';
 import type { SelectOption, TemplateProps, TemplateSection } from './types';
 
-export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] {
+export function getSeaTemplateSections(
+  props: TemplateProps,
+): TemplateSection[] {
   const {
     serviceTypeOptions,
     cargoCategoryOptions,
@@ -31,6 +33,8 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
     searchForeignAgents,
     searchShippingAgents,
     setCustomerCode,
+    checkCustomerReferenceNo,
+    checkInternalReferenceNo,
   } = props;
 
   return [
@@ -84,7 +88,9 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     showSearch: true,
                     placeholder: '请选择',
                     onChange: (_, option) =>
-                      setCustomerCode((option as SelectOption | undefined)?.code),
+                      setCustomerCode(
+                        (option as SelectOption | undefined)?.code,
+                      ),
                   }}
                   request={async ({ keyWords }) => searchCustomers(keyWords)}
                 />
@@ -135,8 +141,9 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     <Button
                       type="link"
                       size="small"
+                      htmlType="button"
                       style={{ fontSize: 12, height: 21, padding: '0 2px' }}
-                      onClick={() => message.info('正在校验客户业务编号')}
+                      onClick={() => void checkCustomerReferenceNo()}
                     >
                       重复校验
                     </Button>
@@ -155,8 +162,9 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     <Button
                       type="link"
                       size="small"
+                      htmlType="button"
                       style={{ fontSize: 12, height: 21, padding: '0 2px' }}
-                      onClick={() => message.info('正在校验企业内部编号')}
+                      onClick={() => void checkInternalReferenceNo()}
                     >
                       重复校验
                     </Button>
@@ -307,7 +315,8 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                       rules={[
                         ({ getFieldValue }) => ({
                           validator: async (_, value) => {
-                            if (!getFieldValue('insurancePremium') || value) return;
+                            if (!getFieldValue('insurancePremium') || value)
+                              return;
                             throw new Error('请选择币种');
                           },
                         }),

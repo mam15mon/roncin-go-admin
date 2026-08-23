@@ -69,6 +69,29 @@ func (r *orderRepo) List(ctx context.Context, organizationID uuid.UUID, options 
 	return &biz.OrderList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
+func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID uuid.UUID, check biz.OrderReferenceCheck) (*biz.OrderReferenceMatch, error) {
+	query := r.data.db.Order.Query().Where(orderent.OrganizationIDEQ(organizationID))
+	if check.ReferenceType == biz.OrderReferenceCustomer {
+		query.Where(
+			orderent.CustomerIDEQ(*check.CustomerID),
+			orderent.CustomerReferenceNoEqualFold(check.ReferenceNo),
+		)
+	} else {
+		query.Where(orderent.InternalReferenceNoEqualFold(check.ReferenceNo))
+	}
+	if check.ExcludeOrderID != nil {
+		query.Where(orderent.IDNEQ(*check.ExcludeOrderID))
+	}
+	item, err := query.Order(orderent.ByCreatedAt(entsql.OrderDesc())).First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &biz.OrderReferenceMatch{OrderID: item.ID, OrderNo: item.OrderNo}, nil
+}
+
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {

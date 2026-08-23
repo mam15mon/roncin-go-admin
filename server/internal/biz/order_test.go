@@ -11,6 +11,8 @@ import (
 type orderRepoStub struct {
 	created        *Order
 	createdNumber  string
+	referenceCheck *OrderReferenceCheck
+	referenceMatch *OrderReferenceMatch
 	transitioned   *Order
 	expectedStatus string
 	targetStatus   string
@@ -23,6 +25,11 @@ func (s *orderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Order, erro
 
 func (s *orderRepoStub) List(_ context.Context, _ uuid.UUID, options OrderListOptions) (*OrderList, error) {
 	return &OrderList{Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func (s *orderRepoStub) FindReferenceDuplicate(_ context.Context, _ uuid.UUID, check OrderReferenceCheck) (*OrderReferenceMatch, error) {
+	s.referenceCheck = &check
+	return s.referenceMatch, nil
 }
 
 func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order) (*Order, error) {
@@ -142,6 +149,34 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 	invalidUNNumber.UNNumber = "123"
 	if _, err := normalizeOrder(&invalidUNNumber, false); err != ErrOrderInvalidArgument {
 		t.Fatalf("invalid UN number error = %v, want ErrOrderInvalidArgument", err)
+	}
+}
+
+func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
+	organizationID := uuid.New()
+	customerID := uuid.New()
+	match := &OrderReferenceMatch{OrderID: uuid.New(), OrderNo: "SE0001"}
+	repo := &orderRepoStub{referenceMatch: match}
+	usecase := NewOrderUsecase(repo, nil, nil)
+
+	result, err := usecase.CheckReference(context.Background(), organizationID, OrderReferenceCheck{
+		ReferenceType: OrderReferenceCustomer,
+		ReferenceNo:   "  Customer-001  ",
+		CustomerID:    &customerID,
+	})
+	if err != nil {
+		t.Fatalf("CheckReference() error = %v", err)
+	}
+	if result != match || repo.referenceCheck == nil || repo.referenceCheck.ReferenceNo != "Customer-001" || repo.referenceCheck.CustomerID == nil || *repo.referenceCheck.CustomerID != customerID {
+		t.Fatalf("reference result = %#v, check = %#v", result, repo.referenceCheck)
+	}
+
+	_, err = usecase.CheckReference(context.Background(), organizationID, OrderReferenceCheck{
+		ReferenceType: OrderReferenceCustomer,
+		ReferenceNo:   "Customer-001",
+	})
+	if err != ErrOrderInvalidArgument {
+		t.Fatalf("customer reference without customer error = %v, want ErrOrderInvalidArgument", err)
 	}
 }
 

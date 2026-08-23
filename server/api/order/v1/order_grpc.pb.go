@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	OrderService_GetOrder_FullMethodName              = "/order.v1.OrderService/GetOrder"
 	OrderService_ListOrders_FullMethodName            = "/order.v1.OrderService/ListOrders"
+	OrderService_CheckOrderReference_FullMethodName   = "/order.v1.OrderService/CheckOrderReference"
 	OrderService_CreateOrder_FullMethodName           = "/order.v1.OrderService/CreateOrder"
 	OrderService_UpdateOrder_FullMethodName           = "/order.v1.OrderService/UpdateOrder"
 	OrderService_TransitionOrderStatus_FullMethodName = "/order.v1.OrderService/TransitionOrderStatus"
@@ -34,6 +35,7 @@ const (
 type OrderServiceClient interface {
 	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*OrderReply, error)
 	ListOrders(ctx context.Context, in *ListOrdersRequest, opts ...grpc.CallOption) (*OrderListReply, error)
+	CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...grpc.CallOption) (*OrderReferenceCheckReply, error)
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error)
 	TransitionOrderStatus(ctx context.Context, in *TransitionOrderStatusRequest, opts ...grpc.CallOption) (*OrderReply, error)
@@ -61,6 +63,16 @@ func (c *orderServiceClient) ListOrders(ctx context.Context, in *ListOrdersReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OrderListReply)
 	err := c.cc.Invoke(ctx, OrderService_ListOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...grpc.CallOption) (*OrderReferenceCheckReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OrderReferenceCheckReply)
+	err := c.cc.Invoke(ctx, OrderService_CheckOrderReference_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +117,7 @@ func (c *orderServiceClient) TransitionOrderStatus(ctx context.Context, in *Tran
 type OrderServiceServer interface {
 	GetOrder(context.Context, *GetOrderRequest) (*OrderReply, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*OrderListReply, error)
+	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*OrderReferenceCheckReply, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*OrderReply, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*OrderReply, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*OrderReply, error)
@@ -123,6 +136,9 @@ func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderReques
 }
 func (UnimplementedOrderServiceServer) ListOrders(context.Context, *ListOrdersRequest) (*OrderListReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOrders not implemented")
+}
+func (UnimplementedOrderServiceServer) CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*OrderReferenceCheckReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckOrderReference not implemented")
 }
 func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateOrderRequest) (*OrderReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateOrder not implemented")
@@ -186,6 +202,24 @@ func _OrderService_ListOrders_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).ListOrders(ctx, req.(*ListOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_CheckOrderReference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckOrderReferenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).CheckOrderReference(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_CheckOrderReference_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).CheckOrderReference(ctx, req.(*CheckOrderReferenceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -258,6 +292,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrders",
 			Handler:    _OrderService_ListOrders_Handler,
+		},
+		{
+			MethodName: "CheckOrderReference",
+			Handler:    _OrderService_CheckOrderReference_Handler,
 		},
 		{
 			MethodName: "CreateOrder",

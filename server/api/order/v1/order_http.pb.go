@@ -17,6 +17,7 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationOrderServiceCheckOrderReference = "/order.v1.OrderService/CheckOrderReference"
 const OperationOrderServiceCreateOrder = "/order.v1.OrderService/CreateOrder"
 const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
@@ -24,6 +25,7 @@ const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/Trans
 const OperationOrderServiceUpdateOrder = "/order.v1.OrderService/UpdateOrder"
 
 type OrderServiceHTTPServer interface {
+	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*OrderReferenceCheckReply, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*OrderReply, error)
 	GetOrder(context.Context, *GetOrderRequest) (*OrderReply, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*OrderListReply, error)
@@ -35,6 +37,7 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/orders/{id}", _OrderService_GetOrder0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders", _OrderService_ListOrders0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/order-reference-check", _OrderService_CheckOrderReference0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders", _OrderService_CreateOrder0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{id}", _OrderService_UpdateOrder0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
@@ -77,6 +80,25 @@ func _OrderService_ListOrders0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx
 			return err
 		}
 		reply := out.(*OrderListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderService_CheckOrderReference0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CheckOrderReferenceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceCheckOrderReference)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CheckOrderReference(ctx, req.(*CheckOrderReferenceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OrderReferenceCheckReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -145,6 +167,7 @@ func _OrderService_TransitionOrderStatus0_HTTP_Handler(srv OrderServiceHTTPServe
 }
 
 type OrderServiceHTTPClient interface {
+	CheckOrderReference(ctx context.Context, req *CheckOrderReferenceRequest, opts ...http.CallOption) (rsp *OrderReferenceCheckReply, err error)
 	CreateOrder(ctx context.Context, req *CreateOrderRequest, opts ...http.CallOption) (rsp *OrderReply, err error)
 	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *OrderReply, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *OrderListReply, err error)
@@ -158,6 +181,22 @@ type OrderServiceHTTPClientImpl struct {
 
 func NewOrderServiceHTTPClient(client *http.Client) OrderServiceHTTPClient {
 	return &OrderServiceHTTPClientImpl{client}
+}
+
+func (c *OrderServiceHTTPClientImpl) CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...http.CallOption) (*OrderReferenceCheckReply, error) {
+	var out OrderReferenceCheckReply
+	pattern := "/api/v1/order-reference-check"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceCheckOrderReference),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *OrderServiceHTTPClientImpl) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...http.CallOption) (*OrderReply, error) {
