@@ -9,6 +9,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { Button, Col, Form, Input, Row, Select } from 'antd';
+import dayjs from 'dayjs';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -18,6 +19,55 @@ import {
   tradeTermOptions,
 } from '../common';
 import type { SelectOption, TemplateProps, TemplateSection } from './types';
+
+function SeaScheduleDateFields() {
+  const etd = Form.useWatch('etd');
+  const eta = Form.useWatch('eta');
+  const scheduleInvalid =
+    dayjs.isDayjs(etd) && dayjs.isDayjs(eta) && eta.isBefore(etd, 'day');
+
+  return (
+    <>
+      <ProFormDatePicker
+        colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+        name="etd"
+        label="ETD"
+        fieldProps={{
+          status: scheduleInvalid ? 'error' : undefined,
+          style: { width: '100%' },
+        }}
+      />
+      <ProFormDatePicker
+        colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+        name="eta"
+        label="ETA"
+        dependencies={['etd']}
+        rules={[
+          ({ getFieldValue }) => ({
+            validator: async (_, value) => {
+              const currentEtd = getFieldValue('etd');
+              if (
+                dayjs.isDayjs(currentEtd) &&
+                dayjs.isDayjs(value) &&
+                value.isBefore(currentEtd, 'day')
+              ) {
+                throw new Error('ETA 不能早于 ETD');
+              }
+            },
+          }),
+        ]}
+        formItemProps={{
+          help: scheduleInvalid ? 'ETA 不能早于 ETD' : undefined,
+          validateStatus: scheduleInvalid ? 'error' : undefined,
+        }}
+        fieldProps={{
+          status: scheduleInvalid ? 'error' : undefined,
+          style: { width: '100%' },
+        }}
+      />
+    </>
+  );
+}
 
 export function getSeaTemplateSections(
   props: TemplateProps,
@@ -456,18 +506,7 @@ export function getSeaTemplateSections(
             label="船名航次"
             placeholder="请输入船名航次"
           />
-          <ProFormDatePicker
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="etd"
-            label="ETD"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-          <ProFormDatePicker
-            colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
-            name="eta"
-            label="ETA"
-            fieldProps={{ style: { width: '100%' } }}
-          />
+          <SeaScheduleDateFields />
 
           {/* 第 3 行：4 大截关时间（一行 4 个，各占 6 栅格） */}
           <ProFormDateTimePicker
