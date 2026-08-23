@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -119,8 +120,13 @@ type Order struct {
 	OrganizationID        uuid.UUID
 	OrderNo               string
 	CustomerID            uuid.UUID
+	CustomerReferenceNo   string
 	CarrierID             *uuid.UUID
 	BookingAgentID        *uuid.UUID
+	ForeignAgentID        *uuid.UUID
+	ContractNo            string
+	CargoValue            string
+	CargoCurrency         string
 	BusinessType          OrderBusinessType
 	TradeDirection        OrderTradeDirection
 	TradeTerm             OrderTradeTerm
@@ -245,6 +251,10 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, ErrOrderInvalidArgument
 	}
 	output := *input
+	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)
+	output.ContractNo = strings.TrimSpace(output.ContractNo)
+	output.CargoValue = strings.TrimSpace(output.CargoValue)
+	output.CargoCurrency = strings.ToUpper(strings.TrimSpace(output.CargoCurrency))
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)
 	output.ETA = strings.TrimSpace(output.ETA)
@@ -260,7 +270,10 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
+		return nil, ErrOrderInvalidArgument
+	}
+	if (output.CargoValue == "") != (output.CargoCurrency == "") || output.CargoValue != "" && (!cargoValuePattern.MatchString(output.CargoValue) || len(output.CargoCurrency) != 3) {
 		return nil, ErrOrderInvalidArgument
 	}
 	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.OrderDate} {
@@ -281,6 +294,8 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	}
 	return &output, nil
 }
+
+var cargoValuePattern = regexp.MustCompile(`^(0|[1-9]\d{0,17})(\.\d{1,4})?$`)
 
 func validateUUIDSet(values []uuid.UUID) error {
 	seen := make(map[uuid.UUID]struct{}, len(values))

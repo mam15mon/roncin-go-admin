@@ -141,6 +141,11 @@ message Order {
   optional string notes = 34;
   string created_at = 35;
   string updated_at = 36;
+  optional string customer_reference_no = 37;
+  optional string foreign_agent_id = 38;
+  optional string contract_no = 39;
+  optional string cargo_value = 40;
+  optional string cargo_currency = 41;
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -218,6 +223,11 @@ message CreateOrderRequest {
   optional string special_requirements = 28;
   optional string order_date = 29;
   optional string notes = 30;
+  optional string customer_reference_no = 31;
+  optional string foreign_agent_id = 32;
+  optional string contract_no = 33;
+  optional string cargo_value = 34;
+  optional string cargo_currency = 35;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -253,6 +263,11 @@ message UpdateOrderRequest {
   optional string special_requirements = 29;
   optional string order_date = 30;
   optional string notes = 31;
+  optional string customer_reference_no = 32;
+  optional string foreign_agent_id = 33;
+  optional string contract_no = 34;
+  optional string cargo_value = 35;
+  optional string cargo_currency = 36;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

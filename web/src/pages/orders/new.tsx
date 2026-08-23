@@ -22,10 +22,15 @@ import {
 
 type CreateOrderFormValues = {
   customerId: string;
+  customerReferenceNo?: string;
   tradeTerm: number;
   paymentTerm: number;
   carrierId?: string;
   bookingAgentId?: string;
+  foreignAgentId?: string;
+  contractNo?: string;
+  cargoValue?: string;
+  cargoCurrency?: string;
   shipmentType?: number;
   containerOwnership?: number;
   shipmentMode?: number;
@@ -64,6 +69,7 @@ export default function NewOrderPage() {
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
   const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
+  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
 
   useEffect(() => {
     if (!config) {
@@ -97,6 +103,7 @@ export default function NewOrderPage() {
             ? masterData.seaLocationOptions
             : masterData.airLocationOptions,
         );
+        setCurrencyOptions(masterData.currencyOptions);
         setStatusTemplateOptions(templates);
       })
       .catch((error: Error) => {
@@ -112,14 +119,22 @@ export default function NewOrderPage() {
       serviceTypeOptions,
       cargoCategoryOptions,
       locationOptions,
+      currencyOptions,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
       searchCarriers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
       searchBookingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
+      searchForeignAgents: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
     }),
-    [serviceTypeOptions, cargoCategoryOptions, locationOptions],
+    [
+      serviceTypeOptions,
+      cargoCategoryOptions,
+      locationOptions,
+      currencyOptions,
+    ],
   );
 
   const sections = useMemo(() => {
@@ -159,6 +174,7 @@ export default function NewOrderPage() {
     try {
       const payload: API.CreateOrderRequest = {
         customerId: values.customerId,
+        customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
         businessType: config.businessType,
         tradeDirection: config.tradeDirection,
         tradeTerm: Number(values.tradeTerm),
@@ -166,6 +182,10 @@ export default function NewOrderPage() {
         statusTemplateId: defaultStatusTemplateId,
         carrierId: values.carrierId || undefined,
         bookingAgentId: values.bookingAgentId || undefined,
+        foreignAgentId: values.foreignAgentId || undefined,
+        contractNo: values.contractNo?.trim() || undefined,
+        cargoValue: values.cargoValue?.trim() || undefined,
+        cargoCurrency: values.cargoCurrency || undefined,
         shipmentType:
           values.shipmentType !== undefined && values.shipmentType !== null
             ? Number(values.shipmentType)

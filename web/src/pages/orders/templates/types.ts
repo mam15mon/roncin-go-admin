@@ -12,7 +12,9 @@ export interface TemplateProps {
   serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
+  currencyOptions: SelectOption[];
   searchCustomers: (keyword?: string) => Promise<SelectOption[]>;
   searchCarriers: (keyword?: string) => Promise<SelectOption[]>;
   searchBookingAgents: (keyword?: string) => Promise<SelectOption[]>;
+  searchForeignAgents: (keyword?: string) => Promise<SelectOption[]>;
 }

@@ -26,10 +26,20 @@ const (
 	FieldOrderNo = "order_no"
 	// FieldCustomerID holds the string denoting the customer_id field in the database.
 	FieldCustomerID = "customer_id"
+	// FieldCustomerReferenceNo holds the string denoting the customer_reference_no field in the database.
+	FieldCustomerReferenceNo = "customer_reference_no"
 	// FieldCarrierID holds the string denoting the carrier_id field in the database.
 	FieldCarrierID = "carrier_id"
 	// FieldBookingAgentID holds the string denoting the booking_agent_id field in the database.
 	FieldBookingAgentID = "booking_agent_id"
+	// FieldForeignAgentID holds the string denoting the foreign_agent_id field in the database.
+	FieldForeignAgentID = "foreign_agent_id"
+	// FieldContractNo holds the string denoting the contract_no field in the database.
+	FieldContractNo = "contract_no"
+	// FieldCargoValue holds the string denoting the cargo_value field in the database.
+	FieldCargoValue = "cargo_value"
+	// FieldCargoCurrency holds the string denoting the cargo_currency field in the database.
+	FieldCargoCurrency = "cargo_currency"
 	// FieldBusinessType holds the string denoting the business_type field in the database.
 	FieldBusinessType = "business_type"
 	// FieldTradeDirection holds the string denoting the trade_direction field in the database.
@@ -220,8 +230,13 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldOrderNo,
 	FieldCustomerID,
+	FieldCustomerReferenceNo,
 	FieldCarrierID,
 	FieldBookingAgentID,
+	FieldForeignAgentID,
+	FieldContractNo,
+	FieldCargoValue,
+	FieldCargoCurrency,
 	FieldBusinessType,
 	FieldTradeDirection,
 	FieldTradeTerm,
@@ -269,6 +284,14 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
 	OrderNoValidator func(string) error
+	// CustomerReferenceNoValidator is a validator for the "customer_reference_no" field. It is called by the builders before save.
+	CustomerReferenceNoValidator func(string) error
+	// ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.
+	ContractNoValidator func(string) error
+	// CargoValueValidator is a validator for the "cargo_value" field. It is called by the builders before save.
+	CargoValueValidator func(string) error
+	// CargoCurrencyValidator is a validator for the "cargo_currency" field. It is called by the builders before save.
+	CargoCurrencyValidator func(string) error
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus string
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
@@ -510,6 +533,11 @@ func ByCustomerID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCustomerID, opts...).ToFunc()
 }
 
+// ByCustomerReferenceNo orders the results by the customer_reference_no field.
+func ByCustomerReferenceNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomerReferenceNo, opts...).ToFunc()
+}
+
 // ByCarrierID orders the results by the carrier_id field.
 func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
@@ -518,6 +546,26 @@ func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
 // ByBookingAgentID orders the results by the booking_agent_id field.
 func ByBookingAgentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBookingAgentID, opts...).ToFunc()
+}
+
+// ByForeignAgentID orders the results by the foreign_agent_id field.
+func ByForeignAgentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldForeignAgentID, opts...).ToFunc()
+}
+
+// ByContractNo orders the results by the contract_no field.
+func ByContractNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContractNo, opts...).ToFunc()
+}
+
+// ByCargoValue orders the results by the cargo_value field.
+func ByCargoValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoValue, opts...).ToFunc()
+}
+
+// ByCargoCurrency orders the results by the cargo_currency field.
+func ByCargoCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCargoCurrency, opts...).ToFunc()
 }
 
 // ByBusinessType orders the results by the business_type field.

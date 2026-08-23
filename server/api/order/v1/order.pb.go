@@ -456,6 +456,11 @@ type Order struct {
 	Notes                 *string                `protobuf:"bytes,34,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
 	CreatedAt             string                 `protobuf:"bytes,35,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt             string                 `protobuf:"bytes,36,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CustomerReferenceNo   *string                `protobuf:"bytes,37,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId        *string                `protobuf:"bytes,38,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo            *string                `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue            *string                `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency         *string                `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -738,6 +743,41 @@ func (x *Order) GetCreatedAt() string {
 func (x *Order) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Order) GetCustomerReferenceNo() string {
+	if x != nil && x.CustomerReferenceNo != nil {
+		return *x.CustomerReferenceNo
+	}
+	return ""
+}
+
+func (x *Order) GetForeignAgentId() string {
+	if x != nil && x.ForeignAgentId != nil {
+		return *x.ForeignAgentId
+	}
+	return ""
+}
+
+func (x *Order) GetContractNo() string {
+	if x != nil && x.ContractNo != nil {
+		return *x.ContractNo
+	}
+	return ""
+}
+
+func (x *Order) GetCargoValue() string {
+	if x != nil && x.CargoValue != nil {
+		return *x.CargoValue
+	}
+	return ""
+}
+
+func (x *Order) GetCargoCurrency() string {
+	if x != nil && x.CargoCurrency != nil {
+		return *x.CargoCurrency
 	}
 	return ""
 }
@@ -1144,6 +1184,11 @@ type CreateOrderRequest struct {
 	SpecialRequirements   *string                `protobuf:"bytes,28,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
 	OrderDate             *string                `protobuf:"bytes,29,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
 	Notes                 *string                `protobuf:"bytes,30,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	CustomerReferenceNo   *string                `protobuf:"bytes,31,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId        *string                `protobuf:"bytes,32,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo            *string                `protobuf:"bytes,33,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue            *string                `protobuf:"bytes,34,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency         *string                `protobuf:"bytes,35,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1388,6 +1433,41 @@ func (x *CreateOrderRequest) GetNotes() string {
 	return ""
 }
 
+func (x *CreateOrderRequest) GetCustomerReferenceNo() string {
+	if x != nil && x.CustomerReferenceNo != nil {
+		return *x.CustomerReferenceNo
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetForeignAgentId() string {
+	if x != nil && x.ForeignAgentId != nil {
+		return *x.ForeignAgentId
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetContractNo() string {
+	if x != nil && x.ContractNo != nil {
+		return *x.ContractNo
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetCargoValue() string {
+	if x != nil && x.CargoValue != nil {
+		return *x.CargoValue
+	}
+	return ""
+}
+
+func (x *CreateOrderRequest) GetCargoCurrency() string {
+	if x != nil && x.CargoCurrency != nil {
+		return *x.CargoCurrency
+	}
+	return ""
+}
+
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
@@ -1422,6 +1502,11 @@ type UpdateOrderRequest struct {
 	SpecialRequirements   *string                `protobuf:"bytes,29,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
 	OrderDate             *string                `protobuf:"bytes,30,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
 	Notes                 *string                `protobuf:"bytes,31,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	CustomerReferenceNo   *string                `protobuf:"bytes,32,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId        *string                `protobuf:"bytes,33,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo            *string                `protobuf:"bytes,34,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue            *string                `protobuf:"bytes,35,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency         *string                `protobuf:"bytes,36,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1669,6 +1754,41 @@ func (x *UpdateOrderRequest) GetOrderDate() string {
 func (x *UpdateOrderRequest) GetNotes() string {
 	if x != nil && x.Notes != nil {
 		return *x.Notes
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetCustomerReferenceNo() string {
+	if x != nil && x.CustomerReferenceNo != nil {
+		return *x.CustomerReferenceNo
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetForeignAgentId() string {
+	if x != nil && x.ForeignAgentId != nil {
+		return *x.ForeignAgentId
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetContractNo() string {
+	if x != nil && x.ContractNo != nil {
+		return *x.ContractNo
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetCargoValue() string {
+	if x != nil && x.CargoValue != nil {
+		return *x.CargoValue
+	}
+	return ""
+}
+
+func (x *UpdateOrderRequest) GetCargoCurrency() string {
+	if x != nil && x.CargoCurrency != nil {
+		return *x.CargoCurrency
 	}
 	return ""
 }
@@ -1924,7 +2044,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xdd\x0f\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9f\x12\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -1971,7 +2091,14 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18# \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18$ \x01(\tR\tupdatedAtB\r\n" +
+	"updated_at\x18$ \x01(\tR\tupdatedAt\x127\n" +
+	"\x15customer_reference_no\x18% \x01(\tH\x16R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
+	"\x10foreign_agent_id\x18& \x01(\tH\x17R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
+	"\vcontract_no\x18' \x01(\tH\x18R\n" +
+	"contractNo\x88\x01\x01\x12$\n" +
+	"\vcargo_value\x18( \x01(\tH\x19R\n" +
+	"cargoValue\x88\x01\x01\x12*\n" +
+	"\x0ecargo_currency\x18) \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -1994,7 +2121,12 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13_total_package_unitB\x17\n" +
 	"\x15_special_requirementsB\r\n" +
 	"\v_order_dateB\b\n" +
-	"\x06_notes\"\x90\x01\n" +
+	"\x06_notesB\x18\n" +
+	"\x16_customer_reference_noB\x13\n" +
+	"\x11_foreign_agent_idB\x0e\n" +
+	"\f_contract_noB\x0e\n" +
+	"\f_cargo_valueB\x11\n" +
+	"\x0f_cargo_currency\"\x90\x01\n" +
 	"\x15OrderServiceSelection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12-\n" +
@@ -2032,7 +2164,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rbusiness_type\x18\x05 \x01(\x0e2\x16.order.v1.BusinessTypeH\x00R\fbusinessType\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x06 \x01(\tR\n" +
 	"customerIdB\x10\n" +
-	"\x0e_business_type\"\xde\x0e\n" +
+	"\x0e_business_type\"\xa0\x11\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -2071,7 +2203,14 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14special_requirements\x18\x1c \x01(\tH\x13R\x13specialRequirements\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"order_date\x18\x1d \x01(\tH\x14R\torderDate\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\x1e \x01(\tH\x15R\x05notes\x88\x01\x01B\r\n" +
+	"\x05notes\x18\x1e \x01(\tH\x15R\x05notes\x88\x01\x01\x127\n" +
+	"\x15customer_reference_no\x18\x1f \x01(\tH\x16R\x13customerReferenceNo\x88\x01\x01\x12-\n" +
+	"\x10foreign_agent_id\x18  \x01(\tH\x17R\x0eforeignAgentId\x88\x01\x01\x12$\n" +
+	"\vcontract_no\x18! \x01(\tH\x18R\n" +
+	"contractNo\x88\x01\x01\x12$\n" +
+	"\vcargo_value\x18\" \x01(\tH\x19R\n" +
+	"cargoValue\x88\x01\x01\x12*\n" +
+	"\x0ecargo_currency\x18# \x01(\tH\x1aR\rcargoCurrency\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -2094,7 +2233,12 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13_total_package_unitB\x17\n" +
 	"\x15_special_requirementsB\r\n" +
 	"\v_order_dateB\b\n" +
-	"\x06_notes\"\xc4\x0f\n" +
+	"\x06_notesB\x18\n" +
+	"\x16_customer_reference_noB\x13\n" +
+	"\x11_foreign_agent_idB\x0e\n" +
+	"\f_contract_noB\x0e\n" +
+	"\f_cargo_valueB\x11\n" +
+	"\x0f_cargo_currency\"\x86\x12\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12$\n" +
@@ -2134,7 +2278,14 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14special_requirements\x18\x1d \x01(\tH\x18R\x13specialRequirements\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"order_date\x18\x1e \x01(\tH\x19R\torderDate\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\x1f \x01(\tH\x1aR\x05notes\x88\x01\x01B\x0e\n" +
+	"\x05notes\x18\x1f \x01(\tH\x1aR\x05notes\x88\x01\x01\x127\n" +
+	"\x15customer_reference_no\x18  \x01(\tH\x1bR\x13customerReferenceNo\x88\x01\x01\x12-\n" +
+	"\x10foreign_agent_id\x18! \x01(\tH\x1cR\x0eforeignAgentId\x88\x01\x01\x12$\n" +
+	"\vcontract_no\x18\" \x01(\tH\x1dR\n" +
+	"contractNo\x88\x01\x01\x12$\n" +
+	"\vcargo_value\x18# \x01(\tH\x1eR\n" +
+	"cargoValue\x88\x01\x01\x12*\n" +
+	"\x0ecargo_currency\x18$ \x01(\tH\x1fR\rcargoCurrency\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -2162,7 +2313,12 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13_total_package_unitB\x17\n" +
 	"\x15_special_requirementsB\r\n" +
 	"\v_order_dateB\b\n" +
-	"\x06_notes\"\xb3\x01\n" +
+	"\x06_notesB\x18\n" +
+	"\x16_customer_reference_noB\x13\n" +
+	"\x11_foreign_agent_idB\x0e\n" +
+	"\f_contract_noB\x0e\n" +
+	"\f_cargo_valueB\x11\n" +
+	"\x0f_cargo_currency\"\xb3\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12(\n" +

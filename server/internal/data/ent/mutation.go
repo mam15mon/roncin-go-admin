@@ -11899,8 +11899,13 @@ type OrderMutation struct {
 	created_at                *time.Time
 	updated_at                *time.Time
 	order_no                  *string
+	customer_reference_no     *string
 	carrier_id                *uuid.UUID
 	booking_agent_id          *uuid.UUID
+	foreign_agent_id          *uuid.UUID
+	contract_no               *string
+	cargo_value               *string
+	cargo_currency            *string
 	business_type             *order.BusinessType
 	trade_direction           *order.TradeDirection
 	trade_term                *order.TradeTerm
@@ -12256,6 +12261,55 @@ func (m *OrderMutation) ResetCustomerID() {
 	m.customer = nil
 }
 
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (m *OrderMutation) SetCustomerReferenceNo(s string) {
+	m.customer_reference_no = &s
+}
+
+// CustomerReferenceNo returns the value of the "customer_reference_no" field in the mutation.
+func (m *OrderMutation) CustomerReferenceNo() (r string, exists bool) {
+	v := m.customer_reference_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomerReferenceNo returns the old "customer_reference_no" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldCustomerReferenceNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomerReferenceNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomerReferenceNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomerReferenceNo: %w", err)
+	}
+	return oldValue.CustomerReferenceNo, nil
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (m *OrderMutation) ClearCustomerReferenceNo() {
+	m.customer_reference_no = nil
+	m.clearedFields[order.FieldCustomerReferenceNo] = struct{}{}
+}
+
+// CustomerReferenceNoCleared returns if the "customer_reference_no" field was cleared in this mutation.
+func (m *OrderMutation) CustomerReferenceNoCleared() bool {
+	_, ok := m.clearedFields[order.FieldCustomerReferenceNo]
+	return ok
+}
+
+// ResetCustomerReferenceNo resets all changes to the "customer_reference_no" field.
+func (m *OrderMutation) ResetCustomerReferenceNo() {
+	m.customer_reference_no = nil
+	delete(m.clearedFields, order.FieldCustomerReferenceNo)
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (m *OrderMutation) SetCarrierID(u uuid.UUID) {
 	m.carrier_id = &u
@@ -12352,6 +12406,202 @@ func (m *OrderMutation) BookingAgentIDCleared() bool {
 func (m *OrderMutation) ResetBookingAgentID() {
 	m.booking_agent_id = nil
 	delete(m.clearedFields, order.FieldBookingAgentID)
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (m *OrderMutation) SetForeignAgentID(u uuid.UUID) {
+	m.foreign_agent_id = &u
+}
+
+// ForeignAgentID returns the value of the "foreign_agent_id" field in the mutation.
+func (m *OrderMutation) ForeignAgentID() (r uuid.UUID, exists bool) {
+	v := m.foreign_agent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForeignAgentID returns the old "foreign_agent_id" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldForeignAgentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForeignAgentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForeignAgentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForeignAgentID: %w", err)
+	}
+	return oldValue.ForeignAgentID, nil
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (m *OrderMutation) ClearForeignAgentID() {
+	m.foreign_agent_id = nil
+	m.clearedFields[order.FieldForeignAgentID] = struct{}{}
+}
+
+// ForeignAgentIDCleared returns if the "foreign_agent_id" field was cleared in this mutation.
+func (m *OrderMutation) ForeignAgentIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldForeignAgentID]
+	return ok
+}
+
+// ResetForeignAgentID resets all changes to the "foreign_agent_id" field.
+func (m *OrderMutation) ResetForeignAgentID() {
+	m.foreign_agent_id = nil
+	delete(m.clearedFields, order.FieldForeignAgentID)
+}
+
+// SetContractNo sets the "contract_no" field.
+func (m *OrderMutation) SetContractNo(s string) {
+	m.contract_no = &s
+}
+
+// ContractNo returns the value of the "contract_no" field in the mutation.
+func (m *OrderMutation) ContractNo() (r string, exists bool) {
+	v := m.contract_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContractNo returns the old "contract_no" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldContractNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContractNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContractNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContractNo: %w", err)
+	}
+	return oldValue.ContractNo, nil
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (m *OrderMutation) ClearContractNo() {
+	m.contract_no = nil
+	m.clearedFields[order.FieldContractNo] = struct{}{}
+}
+
+// ContractNoCleared returns if the "contract_no" field was cleared in this mutation.
+func (m *OrderMutation) ContractNoCleared() bool {
+	_, ok := m.clearedFields[order.FieldContractNo]
+	return ok
+}
+
+// ResetContractNo resets all changes to the "contract_no" field.
+func (m *OrderMutation) ResetContractNo() {
+	m.contract_no = nil
+	delete(m.clearedFields, order.FieldContractNo)
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (m *OrderMutation) SetCargoValue(s string) {
+	m.cargo_value = &s
+}
+
+// CargoValue returns the value of the "cargo_value" field in the mutation.
+func (m *OrderMutation) CargoValue() (r string, exists bool) {
+	v := m.cargo_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoValue returns the old "cargo_value" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldCargoValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoValue: %w", err)
+	}
+	return oldValue.CargoValue, nil
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (m *OrderMutation) ClearCargoValue() {
+	m.cargo_value = nil
+	m.clearedFields[order.FieldCargoValue] = struct{}{}
+}
+
+// CargoValueCleared returns if the "cargo_value" field was cleared in this mutation.
+func (m *OrderMutation) CargoValueCleared() bool {
+	_, ok := m.clearedFields[order.FieldCargoValue]
+	return ok
+}
+
+// ResetCargoValue resets all changes to the "cargo_value" field.
+func (m *OrderMutation) ResetCargoValue() {
+	m.cargo_value = nil
+	delete(m.clearedFields, order.FieldCargoValue)
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (m *OrderMutation) SetCargoCurrency(s string) {
+	m.cargo_currency = &s
+}
+
+// CargoCurrency returns the value of the "cargo_currency" field in the mutation.
+func (m *OrderMutation) CargoCurrency() (r string, exists bool) {
+	v := m.cargo_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCargoCurrency returns the old "cargo_currency" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldCargoCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCargoCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCargoCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCargoCurrency: %w", err)
+	}
+	return oldValue.CargoCurrency, nil
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (m *OrderMutation) ClearCargoCurrency() {
+	m.cargo_currency = nil
+	m.clearedFields[order.FieldCargoCurrency] = struct{}{}
+}
+
+// CargoCurrencyCleared returns if the "cargo_currency" field was cleared in this mutation.
+func (m *OrderMutation) CargoCurrencyCleared() bool {
+	_, ok := m.clearedFields[order.FieldCargoCurrency]
+	return ok
+}
+
+// ResetCargoCurrency resets all changes to the "cargo_currency" field.
+func (m *OrderMutation) ResetCargoCurrency() {
+	m.cargo_currency = nil
+	delete(m.clearedFields, order.FieldCargoCurrency)
 }
 
 // SetBusinessType sets the "business_type" field.
@@ -14280,7 +14530,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 38)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -14296,11 +14546,26 @@ func (m *OrderMutation) Fields() []string {
 	if m.customer != nil {
 		fields = append(fields, order.FieldCustomerID)
 	}
+	if m.customer_reference_no != nil {
+		fields = append(fields, order.FieldCustomerReferenceNo)
+	}
 	if m.carrier_id != nil {
 		fields = append(fields, order.FieldCarrierID)
 	}
 	if m.booking_agent_id != nil {
 		fields = append(fields, order.FieldBookingAgentID)
+	}
+	if m.foreign_agent_id != nil {
+		fields = append(fields, order.FieldForeignAgentID)
+	}
+	if m.contract_no != nil {
+		fields = append(fields, order.FieldContractNo)
+	}
+	if m.cargo_value != nil {
+		fields = append(fields, order.FieldCargoValue)
+	}
+	if m.cargo_currency != nil {
+		fields = append(fields, order.FieldCargoCurrency)
 	}
 	if m.business_type != nil {
 		fields = append(fields, order.FieldBusinessType)
@@ -14398,10 +14663,20 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderNo()
 	case order.FieldCustomerID:
 		return m.CustomerID()
+	case order.FieldCustomerReferenceNo:
+		return m.CustomerReferenceNo()
 	case order.FieldCarrierID:
 		return m.CarrierID()
 	case order.FieldBookingAgentID:
 		return m.BookingAgentID()
+	case order.FieldForeignAgentID:
+		return m.ForeignAgentID()
+	case order.FieldContractNo:
+		return m.ContractNo()
+	case order.FieldCargoValue:
+		return m.CargoValue()
+	case order.FieldCargoCurrency:
+		return m.CargoCurrency()
 	case order.FieldBusinessType:
 		return m.BusinessType()
 	case order.FieldTradeDirection:
@@ -14473,10 +14748,20 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOrderNo(ctx)
 	case order.FieldCustomerID:
 		return m.OldCustomerID(ctx)
+	case order.FieldCustomerReferenceNo:
+		return m.OldCustomerReferenceNo(ctx)
 	case order.FieldCarrierID:
 		return m.OldCarrierID(ctx)
 	case order.FieldBookingAgentID:
 		return m.OldBookingAgentID(ctx)
+	case order.FieldForeignAgentID:
+		return m.OldForeignAgentID(ctx)
+	case order.FieldContractNo:
+		return m.OldContractNo(ctx)
+	case order.FieldCargoValue:
+		return m.OldCargoValue(ctx)
+	case order.FieldCargoCurrency:
+		return m.OldCargoCurrency(ctx)
 	case order.FieldBusinessType:
 		return m.OldBusinessType(ctx)
 	case order.FieldTradeDirection:
@@ -14573,6 +14858,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomerID(v)
 		return nil
+	case order.FieldCustomerReferenceNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomerReferenceNo(v)
+		return nil
 	case order.FieldCarrierID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -14586,6 +14878,34 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBookingAgentID(v)
+		return nil
+	case order.FieldForeignAgentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForeignAgentID(v)
+		return nil
+	case order.FieldContractNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContractNo(v)
+		return nil
+	case order.FieldCargoValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoValue(v)
+		return nil
+	case order.FieldCargoCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCargoCurrency(v)
 		return nil
 	case order.FieldBusinessType:
 		v, ok := value.(order.BusinessType)
@@ -14814,11 +15134,26 @@ func (m *OrderMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(order.FieldCustomerReferenceNo) {
+		fields = append(fields, order.FieldCustomerReferenceNo)
+	}
 	if m.FieldCleared(order.FieldCarrierID) {
 		fields = append(fields, order.FieldCarrierID)
 	}
 	if m.FieldCleared(order.FieldBookingAgentID) {
 		fields = append(fields, order.FieldBookingAgentID)
+	}
+	if m.FieldCleared(order.FieldForeignAgentID) {
+		fields = append(fields, order.FieldForeignAgentID)
+	}
+	if m.FieldCleared(order.FieldContractNo) {
+		fields = append(fields, order.FieldContractNo)
+	}
+	if m.FieldCleared(order.FieldCargoValue) {
+		fields = append(fields, order.FieldCargoValue)
+	}
+	if m.FieldCleared(order.FieldCargoCurrency) {
+		fields = append(fields, order.FieldCargoCurrency)
 	}
 	if m.FieldCleared(order.FieldShipmentType) {
 		fields = append(fields, order.FieldShipmentType)
@@ -14894,11 +15229,26 @@ func (m *OrderMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderMutation) ClearField(name string) error {
 	switch name {
+	case order.FieldCustomerReferenceNo:
+		m.ClearCustomerReferenceNo()
+		return nil
 	case order.FieldCarrierID:
 		m.ClearCarrierID()
 		return nil
 	case order.FieldBookingAgentID:
 		m.ClearBookingAgentID()
+		return nil
+	case order.FieldForeignAgentID:
+		m.ClearForeignAgentID()
+		return nil
+	case order.FieldContractNo:
+		m.ClearContractNo()
+		return nil
+	case order.FieldCargoValue:
+		m.ClearCargoValue()
+		return nil
+	case order.FieldCargoCurrency:
+		m.ClearCargoCurrency()
 		return nil
 	case order.FieldShipmentType:
 		m.ClearShipmentType()
@@ -14983,11 +15333,26 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldCustomerID:
 		m.ResetCustomerID()
 		return nil
+	case order.FieldCustomerReferenceNo:
+		m.ResetCustomerReferenceNo()
+		return nil
 	case order.FieldCarrierID:
 		m.ResetCarrierID()
 		return nil
 	case order.FieldBookingAgentID:
 		m.ResetBookingAgentID()
+		return nil
+	case order.FieldForeignAgentID:
+		m.ResetForeignAgentID()
+		return nil
+	case order.FieldContractNo:
+		m.ResetContractNo()
+		return nil
+	case order.FieldCargoValue:
+		m.ResetCargoValue()
+		return nil
+	case order.FieldCargoCurrency:
+		m.ResetCargoCurrency()
 		return nil
 	case order.FieldBusinessType:
 		m.ResetBusinessType()

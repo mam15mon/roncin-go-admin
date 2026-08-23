@@ -1,5 +1,6 @@
 import {
   masterDataServiceListAirports,
+  masterDataServiceListCurrencies,
   masterDataServiceListOptions,
   masterDataServiceListPorts,
   masterDataServiceListStatusTemplates,
@@ -137,7 +138,8 @@ export function isMasterDataKind(
 export const PARTNER_ROLES = {
   CUSTOMER: 1,
   SUPPLIER: 2,
-  BOOKING_AGENT: 3,
+  BOOKING_AGENT: 2,
+  FOREIGN_AGENT: 3,
   CARRIER: 4,
 } as const;
 
@@ -246,15 +248,18 @@ export async function loadStatusTemplatesByBusinessType(
 }
 
 export async function fetchOrderMasterData() {
-  const [optionsResponse, portsResponse, airportsResponse] = await Promise.all([
-    masterDataServiceListOptions(),
-    masterDataServiceListPorts({ page: 1, pageSize: 100 }),
-    masterDataServiceListAirports({ page: 1, pageSize: 100 }),
-  ]);
+  const [optionsResponse, portsResponse, airportsResponse, currenciesResponse] =
+    await Promise.all([
+      masterDataServiceListOptions(),
+      masterDataServiceListPorts({ page: 1, pageSize: 100 }),
+      masterDataServiceListAirports({ page: 1, pageSize: 100 }),
+      masterDataServiceListCurrencies(),
+    ]);
 
   const masterOptions = optionsResponse.data ?? [];
   const ports = portsResponse.data ?? [];
   const airports = airportsResponse.data ?? [];
+  const currencies = currenciesResponse.data ?? [];
 
   const serviceTypeOptions = masterOptions
     .filter(
@@ -305,14 +310,23 @@ export async function fetchOrderMasterData() {
 
   const seaLocationOptions = [...regionOptions, ...portOptions];
   const airLocationOptions = [...regionOptions, ...airportOptions];
+  const currencyOptions = currencies
+    .filter((item) => item.enabled !== false)
+    .map((item) => ({
+      label: `${item.code} - ${item.name}`,
+      value: item.code ?? '',
+    }))
+    .filter((item) => item.value !== '');
 
   return {
     masterOptions,
     ports,
     airports,
+    currencies,
     serviceTypeOptions,
     cargoCategoryOptions,
     seaLocationOptions,
     airLocationOptions,
+    currencyOptions,
   };
 }

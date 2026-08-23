@@ -145,6 +145,10 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	foreignAgentID, err := parseOptionalUUIDPointer(request.ForeignAgentId)
+	if err != nil {
+		return nil, err
+	}
 	originLocationID, err := parseOptionalUUIDPointer(request.OriginLocationId)
 	if err != nil {
 		return nil, err
@@ -163,7 +167,9 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	}
 	return &biz.Order{
 		CustomerID: customerID, StatusTemplateID: statusTemplateID,
-		CarrierID: carrierID, BookingAgentID: bookingAgentID,
+		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID,
+		CustomerReferenceNo: request.GetCustomerReferenceNo(), ContractNo: request.GetContractNo(),
+		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(),
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
@@ -209,6 +215,24 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 		if err != nil {
 			return nil, err
 		}
+	}
+	if request.ForeignAgentId != nil {
+		output.ForeignAgentID, err = parseOptionalUUID(request.GetForeignAgentId())
+		if err != nil {
+			return nil, err
+		}
+	}
+	if request.CustomerReferenceNo != nil {
+		output.CustomerReferenceNo = request.GetCustomerReferenceNo()
+	}
+	if request.ContractNo != nil {
+		output.ContractNo = request.GetContractNo()
+	}
+	if request.CargoValue != nil {
+		output.CargoValue = request.GetCargoValue()
+	}
+	if request.CargoCurrency != nil {
+		output.CargoCurrency = request.GetCargoCurrency()
 	}
 	if request.ShipmentType != nil {
 		output.ShipmentType = orderShipmentTypeFromAPI(request.ShipmentType)
@@ -302,7 +326,8 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
 		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
 		Status: item.Status, StatusTemplateId: item.StatusTemplateID.String(), ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
-		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
+		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
+		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),

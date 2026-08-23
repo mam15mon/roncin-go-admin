@@ -77,6 +77,26 @@ func (_u *OrderUpdate) SetNillableCustomerID(v *uuid.UUID) *OrderUpdate {
 	return _u
 }
 
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (_u *OrderUpdate) SetCustomerReferenceNo(v string) *OrderUpdate {
+	_u.mutation.SetCustomerReferenceNo(v)
+	return _u
+}
+
+// SetNillableCustomerReferenceNo sets the "customer_reference_no" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableCustomerReferenceNo(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetCustomerReferenceNo(*v)
+	}
+	return _u
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (_u *OrderUpdate) ClearCustomerReferenceNo() *OrderUpdate {
+	_u.mutation.ClearCustomerReferenceNo()
+	return _u
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (_u *OrderUpdate) SetCarrierID(v uuid.UUID) *OrderUpdate {
 	_u.mutation.SetCarrierID(v)
@@ -114,6 +134,86 @@ func (_u *OrderUpdate) SetNillableBookingAgentID(v *uuid.UUID) *OrderUpdate {
 // ClearBookingAgentID clears the value of the "booking_agent_id" field.
 func (_u *OrderUpdate) ClearBookingAgentID() *OrderUpdate {
 	_u.mutation.ClearBookingAgentID()
+	return _u
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (_u *OrderUpdate) SetForeignAgentID(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetForeignAgentID(v)
+	return _u
+}
+
+// SetNillableForeignAgentID sets the "foreign_agent_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableForeignAgentID(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetForeignAgentID(*v)
+	}
+	return _u
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (_u *OrderUpdate) ClearForeignAgentID() *OrderUpdate {
+	_u.mutation.ClearForeignAgentID()
+	return _u
+}
+
+// SetContractNo sets the "contract_no" field.
+func (_u *OrderUpdate) SetContractNo(v string) *OrderUpdate {
+	_u.mutation.SetContractNo(v)
+	return _u
+}
+
+// SetNillableContractNo sets the "contract_no" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableContractNo(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetContractNo(*v)
+	}
+	return _u
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (_u *OrderUpdate) ClearContractNo() *OrderUpdate {
+	_u.mutation.ClearContractNo()
+	return _u
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (_u *OrderUpdate) SetCargoValue(v string) *OrderUpdate {
+	_u.mutation.SetCargoValue(v)
+	return _u
+}
+
+// SetNillableCargoValue sets the "cargo_value" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableCargoValue(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetCargoValue(*v)
+	}
+	return _u
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (_u *OrderUpdate) ClearCargoValue() *OrderUpdate {
+	_u.mutation.ClearCargoValue()
+	return _u
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (_u *OrderUpdate) SetCargoCurrency(v string) *OrderUpdate {
+	_u.mutation.SetCargoCurrency(v)
+	return _u
+}
+
+// SetNillableCargoCurrency sets the "cargo_currency" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableCargoCurrency(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetCargoCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (_u *OrderUpdate) ClearCargoCurrency() *OrderUpdate {
+	_u.mutation.ClearCargoCurrency()
 	return _u
 }
 
@@ -1080,6 +1180,26 @@ func (_u *OrderUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderUpdate) check() error {
+	if v, ok := _u.mutation.CustomerReferenceNo(); ok {
+		if err := order.CustomerReferenceNoValidator(v); err != nil {
+			return &ValidationError{Name: "customer_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.customer_reference_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ContractNo(); ok {
+		if err := order.ContractNoValidator(v); err != nil {
+			return &ValidationError{Name: "contract_no", err: fmt.Errorf(`ent: validator failed for field "Order.contract_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CargoValue(); ok {
+		if err := order.CargoValueValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_value", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_value": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CargoCurrency(); ok {
+		if err := order.CargoCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_currency", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BusinessType(); ok {
 		if err := order.BusinessTypeValidator(v); err != nil {
 			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "Order.business_type": %w`, err)}
@@ -1207,6 +1327,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.CustomerReferenceNo(); ok {
+		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)
+	}
+	if _u.mutation.CustomerReferenceNoCleared() {
+		_spec.ClearField(order.FieldCustomerReferenceNo, field.TypeString)
+	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 	}
@@ -1218,6 +1344,30 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.BookingAgentIDCleared() {
 		_spec.ClearField(order.FieldBookingAgentID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ForeignAgentID(); ok {
+		_spec.SetField(order.FieldForeignAgentID, field.TypeUUID, value)
+	}
+	if _u.mutation.ForeignAgentIDCleared() {
+		_spec.ClearField(order.FieldForeignAgentID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ContractNo(); ok {
+		_spec.SetField(order.FieldContractNo, field.TypeString, value)
+	}
+	if _u.mutation.ContractNoCleared() {
+		_spec.ClearField(order.FieldContractNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.CargoValue(); ok {
+		_spec.SetField(order.FieldCargoValue, field.TypeString, value)
+	}
+	if _u.mutation.CargoValueCleared() {
+		_spec.ClearField(order.FieldCargoValue, field.TypeString)
+	}
+	if value, ok := _u.mutation.CargoCurrency(); ok {
+		_spec.SetField(order.FieldCargoCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CargoCurrencyCleared() {
+		_spec.ClearField(order.FieldCargoCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.BusinessType(); ok {
 		_spec.SetField(order.FieldBusinessType, field.TypeEnum, value)
@@ -1993,6 +2143,26 @@ func (_u *OrderUpdateOne) SetNillableCustomerID(v *uuid.UUID) *OrderUpdateOne {
 	return _u
 }
 
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (_u *OrderUpdateOne) SetCustomerReferenceNo(v string) *OrderUpdateOne {
+	_u.mutation.SetCustomerReferenceNo(v)
+	return _u
+}
+
+// SetNillableCustomerReferenceNo sets the "customer_reference_no" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableCustomerReferenceNo(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetCustomerReferenceNo(*v)
+	}
+	return _u
+}
+
+// ClearCustomerReferenceNo clears the value of the "customer_reference_no" field.
+func (_u *OrderUpdateOne) ClearCustomerReferenceNo() *OrderUpdateOne {
+	_u.mutation.ClearCustomerReferenceNo()
+	return _u
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (_u *OrderUpdateOne) SetCarrierID(v uuid.UUID) *OrderUpdateOne {
 	_u.mutation.SetCarrierID(v)
@@ -2030,6 +2200,86 @@ func (_u *OrderUpdateOne) SetNillableBookingAgentID(v *uuid.UUID) *OrderUpdateOn
 // ClearBookingAgentID clears the value of the "booking_agent_id" field.
 func (_u *OrderUpdateOne) ClearBookingAgentID() *OrderUpdateOne {
 	_u.mutation.ClearBookingAgentID()
+	return _u
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (_u *OrderUpdateOne) SetForeignAgentID(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetForeignAgentID(v)
+	return _u
+}
+
+// SetNillableForeignAgentID sets the "foreign_agent_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableForeignAgentID(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetForeignAgentID(*v)
+	}
+	return _u
+}
+
+// ClearForeignAgentID clears the value of the "foreign_agent_id" field.
+func (_u *OrderUpdateOne) ClearForeignAgentID() *OrderUpdateOne {
+	_u.mutation.ClearForeignAgentID()
+	return _u
+}
+
+// SetContractNo sets the "contract_no" field.
+func (_u *OrderUpdateOne) SetContractNo(v string) *OrderUpdateOne {
+	_u.mutation.SetContractNo(v)
+	return _u
+}
+
+// SetNillableContractNo sets the "contract_no" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableContractNo(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetContractNo(*v)
+	}
+	return _u
+}
+
+// ClearContractNo clears the value of the "contract_no" field.
+func (_u *OrderUpdateOne) ClearContractNo() *OrderUpdateOne {
+	_u.mutation.ClearContractNo()
+	return _u
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (_u *OrderUpdateOne) SetCargoValue(v string) *OrderUpdateOne {
+	_u.mutation.SetCargoValue(v)
+	return _u
+}
+
+// SetNillableCargoValue sets the "cargo_value" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableCargoValue(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetCargoValue(*v)
+	}
+	return _u
+}
+
+// ClearCargoValue clears the value of the "cargo_value" field.
+func (_u *OrderUpdateOne) ClearCargoValue() *OrderUpdateOne {
+	_u.mutation.ClearCargoValue()
+	return _u
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (_u *OrderUpdateOne) SetCargoCurrency(v string) *OrderUpdateOne {
+	_u.mutation.SetCargoCurrency(v)
+	return _u
+}
+
+// SetNillableCargoCurrency sets the "cargo_currency" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableCargoCurrency(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetCargoCurrency(*v)
+	}
+	return _u
+}
+
+// ClearCargoCurrency clears the value of the "cargo_currency" field.
+func (_u *OrderUpdateOne) ClearCargoCurrency() *OrderUpdateOne {
+	_u.mutation.ClearCargoCurrency()
 	return _u
 }
 
@@ -3009,6 +3259,26 @@ func (_u *OrderUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderUpdateOne) check() error {
+	if v, ok := _u.mutation.CustomerReferenceNo(); ok {
+		if err := order.CustomerReferenceNoValidator(v); err != nil {
+			return &ValidationError{Name: "customer_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.customer_reference_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ContractNo(); ok {
+		if err := order.ContractNoValidator(v); err != nil {
+			return &ValidationError{Name: "contract_no", err: fmt.Errorf(`ent: validator failed for field "Order.contract_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CargoValue(); ok {
+		if err := order.CargoValueValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_value", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_value": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CargoCurrency(); ok {
+		if err := order.CargoCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_currency", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_currency": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BusinessType(); ok {
 		if err := order.BusinessTypeValidator(v); err != nil {
 			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "Order.business_type": %w`, err)}
@@ -3153,6 +3423,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.CustomerReferenceNo(); ok {
+		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)
+	}
+	if _u.mutation.CustomerReferenceNoCleared() {
+		_spec.ClearField(order.FieldCustomerReferenceNo, field.TypeString)
+	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 	}
@@ -3164,6 +3440,30 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.BookingAgentIDCleared() {
 		_spec.ClearField(order.FieldBookingAgentID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ForeignAgentID(); ok {
+		_spec.SetField(order.FieldForeignAgentID, field.TypeUUID, value)
+	}
+	if _u.mutation.ForeignAgentIDCleared() {
+		_spec.ClearField(order.FieldForeignAgentID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ContractNo(); ok {
+		_spec.SetField(order.FieldContractNo, field.TypeString, value)
+	}
+	if _u.mutation.ContractNoCleared() {
+		_spec.ClearField(order.FieldContractNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.CargoValue(); ok {
+		_spec.SetField(order.FieldCargoValue, field.TypeString, value)
+	}
+	if _u.mutation.CargoValueCleared() {
+		_spec.ClearField(order.FieldCargoValue, field.TypeString)
+	}
+	if value, ok := _u.mutation.CargoCurrency(); ok {
+		_spec.SetField(order.FieldCargoCurrency, field.TypeString, value)
+	}
+	if _u.mutation.CargoCurrencyCleared() {
+		_spec.ClearField(order.FieldCargoCurrency, field.TypeString)
 	}
 	if value, ok := _u.mutation.BusinessType(); ok {
 		_spec.SetField(order.FieldBusinessType, field.TypeEnum, value)

@@ -98,6 +98,41 @@ func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 	}
 }
 
+func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T) {
+	input := &Order{
+		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
+		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		CustomerReferenceNo: "  CUST-001  ", ContractNo: "  CONTRACT-001  ",
+		CargoValue: "100000.25", CargoCurrency: " usd ",
+	}
+	normalized, err := normalizeOrder(input, false)
+	if err != nil {
+		t.Fatalf("normalizeOrder() error = %v", err)
+	}
+	if normalized.CustomerReferenceNo != "CUST-001" || normalized.ContractNo != "CONTRACT-001" || normalized.CargoValue != "100000.25" || normalized.CargoCurrency != "USD" {
+		t.Fatalf("normalized business fields = %#v", normalized)
+	}
+
+	invalidValues := []struct {
+		value    string
+		currency string
+	}{
+		{value: "100"},
+		{currency: "USD"},
+		{value: "-1", currency: "USD"},
+		{value: "1.12345", currency: "USD"},
+		{value: "100", currency: "US"},
+	}
+	for _, testCase := range invalidValues {
+		invalid := *input
+		invalid.CargoValue = testCase.value
+		invalid.CargoCurrency = testCase.currency
+		if _, err := normalizeOrder(&invalid, false); err != ErrOrderInvalidArgument {
+			t.Fatalf("normalizeOrder(%q, %q) error = %v, want ErrOrderInvalidArgument", testCase.value, testCase.currency, err)
+		}
+	}
+}
+
 func TestOrderTransitionNormalizesStatusAndAudits(t *testing.T) {
 	repo := &orderRepoStub{}
 	audit := &auditRepoStub{}

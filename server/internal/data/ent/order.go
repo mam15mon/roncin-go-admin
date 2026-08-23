@@ -31,10 +31,20 @@ type Order struct {
 	OrderNo string `json:"order_no,omitempty"`
 	// CustomerID holds the value of the "customer_id" field.
 	CustomerID uuid.UUID `json:"customer_id,omitempty"`
+	// CustomerReferenceNo holds the value of the "customer_reference_no" field.
+	CustomerReferenceNo string `json:"customer_reference_no,omitempty"`
 	// CarrierID holds the value of the "carrier_id" field.
 	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
 	// BookingAgentID holds the value of the "booking_agent_id" field.
 	BookingAgentID *uuid.UUID `json:"booking_agent_id,omitempty"`
+	// ForeignAgentID holds the value of the "foreign_agent_id" field.
+	ForeignAgentID *uuid.UUID `json:"foreign_agent_id,omitempty"`
+	// ContractNo holds the value of the "contract_no" field.
+	ContractNo string `json:"contract_no,omitempty"`
+	// CargoValue holds the value of the "cargo_value" field.
+	CargoValue string `json:"cargo_value,omitempty"`
+	// CargoCurrency holds the value of the "cargo_currency" field.
+	CargoCurrency string `json:"cargo_currency,omitempty"`
 	// BusinessType holds the value of the "business_type" field.
 	BusinessType order.BusinessType `json:"business_type,omitempty"`
 	// TradeDirection holds the value of the "trade_direction" field.
@@ -265,11 +275,11 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
+		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -326,6 +336,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.CustomerID = *value
 			}
+		case order.FieldCustomerReferenceNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_reference_no", values[i])
+			} else if value.Valid {
+				_m.CustomerReferenceNo = value.String
+			}
 		case order.FieldCarrierID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field carrier_id", values[i])
@@ -339,6 +355,31 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.BookingAgentID = new(uuid.UUID)
 				*_m.BookingAgentID = *value.S.(*uuid.UUID)
+			}
+		case order.FieldForeignAgentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field foreign_agent_id", values[i])
+			} else if value.Valid {
+				_m.ForeignAgentID = new(uuid.UUID)
+				*_m.ForeignAgentID = *value.S.(*uuid.UUID)
+			}
+		case order.FieldContractNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field contract_no", values[i])
+			} else if value.Valid {
+				_m.ContractNo = value.String
+			}
+		case order.FieldCargoValue:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_value", values[i])
+			} else if value.Valid {
+				_m.CargoValue = value.String
+			}
+		case order.FieldCargoCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cargo_currency", values[i])
+			} else if value.Valid {
+				_m.CargoCurrency = value.String
 			}
 		case order.FieldBusinessType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -625,6 +666,9 @@ func (_m *Order) String() string {
 	builder.WriteString("customer_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CustomerID))
 	builder.WriteString(", ")
+	builder.WriteString("customer_reference_no=")
+	builder.WriteString(_m.CustomerReferenceNo)
+	builder.WriteString(", ")
 	if v := _m.CarrierID; v != nil {
 		builder.WriteString("carrier_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -634,6 +678,20 @@ func (_m *Order) String() string {
 		builder.WriteString("booking_agent_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	if v := _m.ForeignAgentID; v != nil {
+		builder.WriteString("foreign_agent_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("contract_no=")
+	builder.WriteString(_m.ContractNo)
+	builder.WriteString(", ")
+	builder.WriteString("cargo_value=")
+	builder.WriteString(_m.CargoValue)
+	builder.WriteString(", ")
+	builder.WriteString("cargo_currency=")
+	builder.WriteString(_m.CargoCurrency)
 	builder.WriteString(", ")
 	builder.WriteString("business_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BusinessType))

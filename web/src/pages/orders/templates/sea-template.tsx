@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Col } from 'antd';
+import { Col, Form, Input, Select, Space } from 'antd';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -24,9 +24,11 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    currencyOptions,
     searchCustomers,
     searchCarriers,
     searchBookingAgents,
+    searchForeignAgents,
   } = props;
 
   return [
@@ -84,6 +86,73 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             label="货物品类"
             options={cargoCategoryOptions}
           />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
+            name="customerReferenceNo"
+            label="客户业务编号"
+            fieldProps={{ maxLength: 100 }}
+            placeholder="请输入客户业务编号"
+          />
+          <ProFormText
+            colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
+            name="contractNo"
+            label="合约号"
+            fieldProps={{ maxLength: 100 }}
+            placeholder="请输入合约号"
+          />
+          <ProFormSelect
+            colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
+            name="tradeTerm"
+            label="贸易条款"
+            rules={[{ required: true, message: '请选择贸易条款' }]}
+            options={tradeTermOptions}
+            placeholder="请选择贸易条款"
+          />
+          <Col xs={24} sm={12} lg={8} xl={6}>
+            <Form.Item label="货值">
+              <Space.Compact block>
+                <Form.Item
+                  noStyle
+                  name="cargoValue"
+                  dependencies={['cargoCurrency']}
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator: async (_, value) => {
+                        if (!value && !getFieldValue('cargoCurrency')) return;
+                        if (!value) throw new Error('请输入货值');
+                        if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
+                          throw new Error('请输入正确的货值，最多 4 位小数');
+                        }
+                      },
+                    }),
+                  ]}
+                >
+                  <Input placeholder="金额" maxLength={23} />
+                </Form.Item>
+                <Form.Item
+                  noStyle
+                  name="cargoCurrency"
+                  dependencies={['cargoValue']}
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator: async (_, value) => {
+                        if (!getFieldValue('cargoValue') || value) return;
+                        throw new Error('请选择币种');
+                      },
+                    }),
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    optionFilterProp="label"
+                    options={currencyOptions}
+                    placeholder="币种"
+                    style={{ width: 130 }}
+                  />
+                </Form.Item>
+              </Space.Compact>
+            </Form.Item>
+          </Col>
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
             name="carrierId"
@@ -106,11 +175,13 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
           />
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 8, xl: 6 }}
-            name="tradeTerm"
-            label="贸易条款"
-            rules={[{ required: true, message: '请选择贸易条款' }]}
-            options={tradeTermOptions}
-            placeholder="请选择贸易条款"
+            name="foreignAgentId"
+            label="国外代理"
+            fieldProps={{
+              showSearch: true,
+              placeholder: '搜索国外代理',
+            }}
+            request={async ({ keyWords }) => searchForeignAgents(keyWords)}
           />
         </>
       ),

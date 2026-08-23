@@ -6767,6 +6767,21 @@
           },
           "notes": {
             "type": "string"
+          },
+          "customerReferenceNo": {
+            "type": "string"
+          },
+          "foreignAgentId": {
+            "type": "string"
+          },
+          "contractNo": {
+            "type": "string"
+          },
+          "cargoValue": {
+            "type": "string"
+          },
+          "cargoCurrency": {
+            "type": "string"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -6910,6 +6925,21 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "customerReferenceNo": {
+            "type": "string"
+          },
+          "foreignAgentId": {
+            "type": "string"
+          },
+          "contractNo": {
+            "type": "string"
+          },
+          "cargoValue": {
+            "type": "string"
+          },
+          "cargoCurrency": {
             "type": "string"
           }
         },
@@ -8118,6 +8148,21 @@
             "type": "string"
           },
           "notes": {
+            "type": "string"
+          },
+          "customerReferenceNo": {
+            "type": "string"
+          },
+          "foreignAgentId": {
+            "type": "string"
+          },
+          "contractNo": {
+            "type": "string"
+          },
+          "cargoValue": {
+            "type": "string"
+          },
+          "cargoCurrency": {
             "type": "string"
           }
         },

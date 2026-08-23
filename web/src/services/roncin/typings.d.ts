@@ -434,6 +434,11 @@ declare namespace API {
     specialRequirements?: string;
     orderDate?: string;
     notes?: string;
+    customerReferenceNo?: string;
+    foreignAgentId?: string;
+    contractNo?: string;
+    cargoValue?: string;
+    cargoCurrency?: string;
   };
 
   type CreateOrganizationRequest = {
@@ -889,6 +894,11 @@ declare namespace API {
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
+    customerReferenceNo?: string;
+    foreignAgentId?: string;
+    contractNo?: string;
+    cargoValue?: string;
+    cargoCurrency?: string;
   };
 
   type OrderAbnormalCase = {
@@ -2164,6 +2174,11 @@ declare namespace API {
     specialRequirements?: string;
     orderDate?: string;
     notes?: string;
+    customerReferenceNo?: string;
+    foreignAgentId?: string;
+    contractNo?: string;
+    cargoValue?: string;
+    cargoCurrency?: string;
   };
 
   type UpdateOrganizationRequest = {

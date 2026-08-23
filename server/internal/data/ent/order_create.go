@@ -81,6 +81,20 @@ func (_c *OrderCreate) SetCustomerID(v uuid.UUID) *OrderCreate {
 	return _c
 }
 
+// SetCustomerReferenceNo sets the "customer_reference_no" field.
+func (_c *OrderCreate) SetCustomerReferenceNo(v string) *OrderCreate {
+	_c.mutation.SetCustomerReferenceNo(v)
+	return _c
+}
+
+// SetNillableCustomerReferenceNo sets the "customer_reference_no" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableCustomerReferenceNo(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetCustomerReferenceNo(*v)
+	}
+	return _c
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (_c *OrderCreate) SetCarrierID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetCarrierID(v)
@@ -105,6 +119,62 @@ func (_c *OrderCreate) SetBookingAgentID(v uuid.UUID) *OrderCreate {
 func (_c *OrderCreate) SetNillableBookingAgentID(v *uuid.UUID) *OrderCreate {
 	if v != nil {
 		_c.SetBookingAgentID(*v)
+	}
+	return _c
+}
+
+// SetForeignAgentID sets the "foreign_agent_id" field.
+func (_c *OrderCreate) SetForeignAgentID(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetForeignAgentID(v)
+	return _c
+}
+
+// SetNillableForeignAgentID sets the "foreign_agent_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableForeignAgentID(v *uuid.UUID) *OrderCreate {
+	if v != nil {
+		_c.SetForeignAgentID(*v)
+	}
+	return _c
+}
+
+// SetContractNo sets the "contract_no" field.
+func (_c *OrderCreate) SetContractNo(v string) *OrderCreate {
+	_c.mutation.SetContractNo(v)
+	return _c
+}
+
+// SetNillableContractNo sets the "contract_no" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableContractNo(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetContractNo(*v)
+	}
+	return _c
+}
+
+// SetCargoValue sets the "cargo_value" field.
+func (_c *OrderCreate) SetCargoValue(v string) *OrderCreate {
+	_c.mutation.SetCargoValue(v)
+	return _c
+}
+
+// SetNillableCargoValue sets the "cargo_value" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableCargoValue(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetCargoValue(*v)
+	}
+	return _c
+}
+
+// SetCargoCurrency sets the "cargo_currency" field.
+func (_c *OrderCreate) SetCargoCurrency(v string) *OrderCreate {
+	_c.mutation.SetCargoCurrency(v)
+	return _c
+}
+
+// SetNillableCargoCurrency sets the "cargo_currency" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableCargoCurrency(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetCargoCurrency(*v)
 	}
 	return _c
 }
@@ -702,6 +772,26 @@ func (_c *OrderCreate) check() error {
 	if _, ok := _c.mutation.CustomerID(); !ok {
 		return &ValidationError{Name: "customer_id", err: errors.New(`ent: missing required field "Order.customer_id"`)}
 	}
+	if v, ok := _c.mutation.CustomerReferenceNo(); ok {
+		if err := order.CustomerReferenceNoValidator(v); err != nil {
+			return &ValidationError{Name: "customer_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.customer_reference_no": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ContractNo(); ok {
+		if err := order.ContractNoValidator(v); err != nil {
+			return &ValidationError{Name: "contract_no", err: fmt.Errorf(`ent: validator failed for field "Order.contract_no": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.CargoValue(); ok {
+		if err := order.CargoValueValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_value", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_value": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.CargoCurrency(); ok {
+		if err := order.CargoCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "cargo_currency", err: fmt.Errorf(`ent: validator failed for field "Order.cargo_currency": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.BusinessType(); !ok {
 		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "Order.business_type"`)}
 	}
@@ -876,6 +966,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldOrderNo, field.TypeString, value)
 		_node.OrderNo = value
 	}
+	if value, ok := _c.mutation.CustomerReferenceNo(); ok {
+		_spec.SetField(order.FieldCustomerReferenceNo, field.TypeString, value)
+		_node.CustomerReferenceNo = value
+	}
 	if value, ok := _c.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 		_node.CarrierID = &value
@@ -883,6 +977,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.BookingAgentID(); ok {
 		_spec.SetField(order.FieldBookingAgentID, field.TypeUUID, value)
 		_node.BookingAgentID = &value
+	}
+	if value, ok := _c.mutation.ForeignAgentID(); ok {
+		_spec.SetField(order.FieldForeignAgentID, field.TypeUUID, value)
+		_node.ForeignAgentID = &value
+	}
+	if value, ok := _c.mutation.ContractNo(); ok {
+		_spec.SetField(order.FieldContractNo, field.TypeString, value)
+		_node.ContractNo = value
+	}
+	if value, ok := _c.mutation.CargoValue(); ok {
+		_spec.SetField(order.FieldCargoValue, field.TypeString, value)
+		_node.CargoValue = value
+	}
+	if value, ok := _c.mutation.CargoCurrency(); ok {
+		_spec.SetField(order.FieldCargoCurrency, field.TypeString, value)
+		_node.CargoCurrency = value
 	}
 	if value, ok := _c.mutation.BusinessType(); ok {
 		_spec.SetField(order.FieldBusinessType, field.TypeEnum, value)

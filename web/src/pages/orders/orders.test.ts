@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MASTER_DATA_KINDS,
   ORDER_KIND_CONFIGS,
+  PARTNER_ROLES,
   businessTypeOptions,
   isMasterDataKind,
   parseOrderKind,
@@ -38,6 +39,8 @@ describe('orders common and config', () => {
 
     expect(businessTypeOptions).toHaveLength(6);
     expect(tradeDirectionOptions).toHaveLength(2);
+    expect(PARTNER_ROLES.BOOKING_AGENT).toBe(PARTNER_ROLES.SUPPLIER);
+    expect(PARTNER_ROLES.FOREIGN_AGENT).toBe(3);
     expect(shipmentModeOptions).toEqual([
       { label: '集运', value: 1 },
       { label: '跨境', value: 2 },

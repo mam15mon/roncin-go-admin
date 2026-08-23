@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	airportent "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
+	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
@@ -81,8 +82,13 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetOrganizationID(organizationID).
 		SetOrderNo(number).
 		SetCustomerID(input.CustomerID).
+		SetCustomerReferenceNo(input.CustomerReferenceNo).
 		SetNillableCarrierID(input.CarrierID).
 		SetNillableBookingAgentID(input.BookingAgentID).
+		SetNillableForeignAgentID(input.ForeignAgentID).
+		SetContractNo(input.ContractNo).
+		SetCargoValue(input.CargoValue).
+		SetCargoCurrency(input.CargoCurrency).
 		SetBusinessType(orderent.BusinessType(input.BusinessType)).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
@@ -158,6 +164,10 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	}
 	update := existing.Update().
 		SetCustomerID(input.CustomerID).
+		SetCustomerReferenceNo(input.CustomerReferenceNo).
+		SetContractNo(input.ContractNo).
+		SetCargoValue(input.CargoValue).
+		SetCargoCurrency(input.CargoCurrency).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
 		SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
@@ -247,7 +257,24 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		}
 	}
 	if input.BookingAgentID != nil {
-		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeForeignAgent); err != nil {
+		if err := validatePartnerRole(ctx, tx, organizationID, *input.BookingAgentID, partnerroleent.RoleTypeSupplier); err != nil {
+			return biz.ErrOrderInvalidArgument
+		}
+	}
+	if input.ForeignAgentID != nil {
+		if err := validatePartnerRole(ctx, tx, organizationID, *input.ForeignAgentID, partnerroleent.RoleTypeForeignAgent); err != nil {
+			return biz.ErrOrderInvalidArgument
+		}
+	}
+	if input.CargoCurrency != "" {
+		validCurrency, err := tx.Currency.Query().Where(
+			currencyent.CodeEQ(input.CargoCurrency),
+			currencyent.EnabledEQ(true),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !validCurrency {
 			return biz.ErrOrderInvalidArgument
 		}
 	}
@@ -368,7 +395,8 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
 		ID: item.ID, OrganizationID: item.OrganizationID, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
-		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
+		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
+		CustomerReferenceNo: item.CustomerReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
 		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,
@@ -409,6 +437,11 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 		update.ClearBookingAgentID()
 	} else {
 		update.SetBookingAgentID(*input.BookingAgentID)
+	}
+	if input.ForeignAgentID == nil {
+		update.ClearForeignAgentID()
+	} else {
+		update.SetForeignAgentID(*input.ForeignAgentID)
 	}
 	if input.ShipmentType == nil {
 		update.ClearShipmentType()
