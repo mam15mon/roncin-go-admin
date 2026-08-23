@@ -397,6 +397,26 @@ func (_u *OrderUpdate) ClearLoadingTerms() *OrderUpdate {
 	return _u
 }
 
+// SetReceivedAt sets the "received_at" field.
+func (_u *OrderUpdate) SetReceivedAt(v string) *OrderUpdate {
+	_u.mutation.SetReceivedAt(v)
+	return _u
+}
+
+// SetNillableReceivedAt sets the "received_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableReceivedAt(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetReceivedAt(*v)
+	}
+	return _u
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (_u *OrderUpdate) ClearReceivedAt() *OrderUpdate {
+	_u.mutation.ClearReceivedAt()
+	return _u
+}
+
 // SetBusinessType sets the "business_type" field.
 func (_u *OrderUpdate) SetBusinessType(v order.BusinessType) *OrderUpdate {
 	_u.mutation.SetBusinessType(v)
@@ -1420,6 +1440,11 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ReceivedAt(); ok {
+		if err := order.ReceivedAtValidator(v); err != nil {
+			return &ValidationError{Name: "received_at", err: fmt.Errorf(`ent: validator failed for field "Order.received_at": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BusinessType(); ok {
 		if err := order.BusinessTypeValidator(v); err != nil {
 			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "Order.business_type": %w`, err)}
@@ -1642,6 +1667,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LoadingTermsCleared() {
 		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReceivedAt(); ok {
+		_spec.SetField(order.FieldReceivedAt, field.TypeString, value)
+	}
+	if _u.mutation.ReceivedAtCleared() {
+		_spec.ClearField(order.FieldReceivedAt, field.TypeString)
 	}
 	if value, ok := _u.mutation.BusinessType(); ok {
 		_spec.SetField(order.FieldBusinessType, field.TypeEnum, value)
@@ -2737,6 +2768,26 @@ func (_u *OrderUpdateOne) ClearLoadingTerms() *OrderUpdateOne {
 	return _u
 }
 
+// SetReceivedAt sets the "received_at" field.
+func (_u *OrderUpdateOne) SetReceivedAt(v string) *OrderUpdateOne {
+	_u.mutation.SetReceivedAt(v)
+	return _u
+}
+
+// SetNillableReceivedAt sets the "received_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableReceivedAt(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetReceivedAt(*v)
+	}
+	return _u
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (_u *OrderUpdateOne) ClearReceivedAt() *OrderUpdateOne {
+	_u.mutation.ClearReceivedAt()
+	return _u
+}
+
 // SetBusinessType sets the "business_type" field.
 func (_u *OrderUpdateOne) SetBusinessType(v order.BusinessType) *OrderUpdateOne {
 	_u.mutation.SetBusinessType(v)
@@ -3773,6 +3824,11 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ReceivedAt(); ok {
+		if err := order.ReceivedAtValidator(v); err != nil {
+			return &ValidationError{Name: "received_at", err: fmt.Errorf(`ent: validator failed for field "Order.received_at": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BusinessType(); ok {
 		if err := order.BusinessTypeValidator(v); err != nil {
 			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "Order.business_type": %w`, err)}
@@ -4012,6 +4068,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.LoadingTermsCleared() {
 		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReceivedAt(); ok {
+		_spec.SetField(order.FieldReceivedAt, field.TypeString, value)
+	}
+	if _u.mutation.ReceivedAtCleared() {
+		_spec.ClearField(order.FieldReceivedAt, field.TypeString)
 	}
 	if value, ok := _u.mutation.BusinessType(); ok {
 		_spec.SetField(order.FieldBusinessType, field.TypeEnum, value)

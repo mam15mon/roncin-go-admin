@@ -4337,6 +4337,8 @@ components:
                     type: string
                 loadingTerms:
                     type: string
+                receivedAt:
+                    type: string
             description: CreateOrderRequest 创建订单请求。
         order.v1.MarkAbnormalCaseRequest:
             required:
@@ -4463,6 +4465,8 @@ components:
                 cargoReadyAt:
                     type: string
                 loadingTerms:
+                    type: string
+                receivedAt:
                     type: string
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
@@ -5324,6 +5328,8 @@ components:
                 cargoReadyAt:
                     type: string
                 loadingTerms:
+                    type: string
+                receivedAt:
                     type: string
             description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
         order.v1.UpdateReleasePodRequest:

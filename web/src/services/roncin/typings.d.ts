@@ -448,6 +448,7 @@ declare namespace API {
     factoryName?: string;
     cargoReadyAt?: string;
     loadingTerms?: string;
+    receivedAt?: string;
   };
 
   type CreateOrganizationRequest = {
@@ -917,6 +918,7 @@ declare namespace API {
     factoryName?: string;
     cargoReadyAt?: string;
     loadingTerms?: string;
+    receivedAt?: string;
   };
 
   type OrderAbnormalCase = {
@@ -2206,6 +2208,7 @@ declare namespace API {
     factoryName?: string;
     cargoReadyAt?: string;
     loadingTerms?: string;
+    receivedAt?: string;
   };
 
   type UpdateOrganizationRequest = {

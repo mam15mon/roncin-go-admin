@@ -58,6 +58,8 @@ const (
 	FieldCargoReadyAt = "cargo_ready_at"
 	// FieldLoadingTerms holds the string denoting the loading_terms field in the database.
 	FieldLoadingTerms = "loading_terms"
+	// FieldReceivedAt holds the string denoting the received_at field in the database.
+	FieldReceivedAt = "received_at"
 	// FieldBusinessType holds the string denoting the business_type field in the database.
 	FieldBusinessType = "business_type"
 	// FieldTradeDirection holds the string denoting the trade_direction field in the database.
@@ -264,6 +266,7 @@ var Columns = []string{
 	FieldFactoryName,
 	FieldCargoReadyAt,
 	FieldLoadingTerms,
+	FieldReceivedAt,
 	FieldBusinessType,
 	FieldTradeDirection,
 	FieldTradeTerm,
@@ -335,6 +338,8 @@ var (
 	CargoReadyAtValidator func(string) error
 	// LoadingTermsValidator is a validator for the "loading_terms" field. It is called by the builders before save.
 	LoadingTermsValidator func(string) error
+	// ReceivedAtValidator is a validator for the "received_at" field. It is called by the builders before save.
+	ReceivedAtValidator func(string) error
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus string
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
@@ -654,6 +659,11 @@ func ByCargoReadyAt(opts ...sql.OrderTermOption) OrderOption {
 // ByLoadingTerms orders the results by the loading_terms field.
 func ByLoadingTerms(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLoadingTerms, opts...).ToFunc()
+}
+
+// ByReceivedAt orders the results by the received_at field.
+func ByReceivedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReceivedAt, opts...).ToFunc()
 }
 
 // ByBusinessType orders the results by the business_type field.

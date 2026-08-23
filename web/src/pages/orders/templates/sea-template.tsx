@@ -168,7 +168,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             request={async ({ keyWords }) => searchCarriers(keyWords)}
           />
 
-          {/* 第 4 行：代理协作（一行 2 个，各占 8 栅格） */}
+          {/* 第 4 行：代理协作与接单时间（一行 3 个，各占 8 栅格） */}
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 8, xl: 8 }}
             name="bookingAgentId"
@@ -188,6 +188,12 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
               placeholder: '搜索国外代理',
             }}
             request={async ({ keyWords }) => searchForeignAgents(keyWords)}
+          />
+          <ProFormDateTimePicker
+            colProps={{ xs: 24, sm: 12, lg: 8, xl: 8 }}
+            name="receivedAt"
+            label="接单时间"
+            fieldProps={{ style: { width: '100%' } }}
           />
         </>
       ),

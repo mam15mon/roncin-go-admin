@@ -98,6 +98,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetFactoryName(input.FactoryName).
 		SetCargoReadyAt(input.CargoReadyAt).
 		SetLoadingTerms(input.LoadingTerms).
+		SetReceivedAt(input.ReceivedAt).
 		SetBusinessType(orderent.BusinessType(input.BusinessType)).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
@@ -185,6 +186,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetFactoryName(input.FactoryName).
 		SetCargoReadyAt(input.CargoReadyAt).
 		SetLoadingTerms(input.LoadingTerms).
+		SetReceivedAt(input.ReceivedAt).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
 		SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
@@ -432,6 +434,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
+		ReceivedAt:     item.ReceivedAt,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
 		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,

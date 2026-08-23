@@ -470,6 +470,7 @@ type Order struct {
 	FactoryName           *string                `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt          *string                `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
 	LoadingTerms          *string                `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt            *string                `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -850,6 +851,13 @@ func (x *Order) GetCargoReadyAt() string {
 func (x *Order) GetLoadingTerms() string {
 	if x != nil && x.LoadingTerms != nil {
 		return *x.LoadingTerms
+	}
+	return ""
+}
+
+func (x *Order) GetReceivedAt() string {
+	if x != nil && x.ReceivedAt != nil {
+		return *x.ReceivedAt
 	}
 	return ""
 }
@@ -1270,6 +1278,7 @@ type CreateOrderRequest struct {
 	FactoryName           *string                `protobuf:"bytes,42,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt          *string                `protobuf:"bytes,43,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
 	LoadingTerms          *string                `protobuf:"bytes,44,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt            *string                `protobuf:"bytes,45,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1612,6 +1621,13 @@ func (x *CreateOrderRequest) GetLoadingTerms() string {
 	return ""
 }
 
+func (x *CreateOrderRequest) GetReceivedAt() string {
+	if x != nil && x.ReceivedAt != nil {
+		return *x.ReceivedAt
+	}
+	return ""
+}
+
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
@@ -1660,6 +1676,7 @@ type UpdateOrderRequest struct {
 	FactoryName           *string                `protobuf:"bytes,43,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
 	CargoReadyAt          *string                `protobuf:"bytes,44,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
 	LoadingTerms          *string                `protobuf:"bytes,45,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt            *string                `protobuf:"bytes,46,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -2009,6 +2026,13 @@ func (x *UpdateOrderRequest) GetLoadingTerms() string {
 	return ""
 }
 
+func (x *UpdateOrderRequest) GetReceivedAt() string {
+	if x != nil && x.ReceivedAt != nil {
+		return *x.ReceivedAt
+	}
+	return ""
+}
+
 // TransitionOrderStatusRequest 流转订单状态请求。
 type TransitionOrderStatusRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
@@ -2260,7 +2284,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe8\x16\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9e\x17\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -2323,7 +2347,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\fhazard_class\x18/ \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x180 \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
 	"\x0ecargo_ready_at\x181 \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x182 \x01(\tH#R\floadingTerms\x88\x01\x01B\r\n" +
+	"\rloading_terms\x182 \x01(\tH#R\floadingTerms\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x183 \x01(\tH$R\n" +
+	"receivedAt\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -2361,7 +2387,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
 	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_terms\"\x90\x01\n" +
+	"\x0e_loading_termsB\x0e\n" +
+	"\f_received_at\"\x90\x01\n" +
 	"\x15OrderServiceSelection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12-\n" +
@@ -2399,7 +2426,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rbusiness_type\x18\x05 \x01(\x0e2\x16.order.v1.BusinessTypeH\x00R\fbusinessType\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x06 \x01(\tR\n" +
 	"customerIdB\x10\n" +
-	"\x0e_business_type\"\xe9\x15\n" +
+	"\x0e_business_type\"\x9f\x16\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -2454,7 +2481,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\fhazard_class\x18) \x01(\tH R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x18* \x01(\tH!R\vfactoryName\x88\x01\x01\x12)\n" +
 	"\x0ecargo_ready_at\x18+ \x01(\tH\"R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x18, \x01(\tH#R\floadingTerms\x88\x01\x01B\r\n" +
+	"\rloading_terms\x18, \x01(\tH#R\floadingTerms\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x18- \x01(\tH$R\n" +
+	"receivedAt\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -2492,7 +2521,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
 	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_terms\"\xcf\x16\n" +
+	"\x0e_loading_termsB\x0e\n" +
+	"\f_received_at\"\x85\x17\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12$\n" +
@@ -2548,7 +2578,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\fhazard_class\x18* \x01(\tH%R\vhazardClass\x88\x01\x01\x12&\n" +
 	"\ffactory_name\x18+ \x01(\tH&R\vfactoryName\x88\x01\x01\x12)\n" +
 	"\x0ecargo_ready_at\x18, \x01(\tH'R\fcargoReadyAt\x88\x01\x01\x12(\n" +
-	"\rloading_terms\x18- \x01(\tH(R\floadingTerms\x88\x01\x01B\x0e\n" +
+	"\rloading_terms\x18- \x01(\tH(R\floadingTerms\x88\x01\x01\x12$\n" +
+	"\vreceived_at\x18. \x01(\tH)R\n" +
+	"receivedAt\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -2591,7 +2623,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\r_hazard_classB\x0f\n" +
 	"\r_factory_nameB\x11\n" +
 	"\x0f_cargo_ready_atB\x10\n" +
-	"\x0e_loading_terms\"\xb3\x01\n" +
+	"\x0e_loading_termsB\x0e\n" +
+	"\f_received_at\"\xb3\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12(\n" +

@@ -609,6 +609,7 @@ var (
 		{Name: "factory_name", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "cargo_ready_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "loading_terms", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "received_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "trade_direction", Type: field.TypeEnum, Enums: []string{"export", "import"}},
 		{Name: "trade_term", Type: field.TypeEnum, Enums: []string{"EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"}},
@@ -646,19 +647,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[45]},
+				Columns:    []*schema.Column{OrdersColumns[46]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[46]},
+				Columns:    []*schema.Column{OrdersColumns[47]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_status_templates_orders",
-				Columns:    []*schema.Column{OrdersColumns[47]},
+				Columns:    []*schema.Column{OrdersColumns[48]},
 				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -672,22 +673,22 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[45], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[45], OrdersColumns[27]},
+				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[28]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[45], OrdersColumns[20]},
+				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[21]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[45], OrdersColumns[46]},
+				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[47]},
 			},
 		},
 	}

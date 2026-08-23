@@ -161,6 +161,11 @@ func LoadingTerms(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
 }
 
+// ReceivedAt applies equality check predicate on the "received_at" field. It's identical to ReceivedAtEQ.
+func ReceivedAt(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReceivedAt, v))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldStatus, v))
@@ -1539,6 +1544,81 @@ func LoadingTermsEqualFold(v string) predicate.Order {
 // LoadingTermsContainsFold applies the ContainsFold predicate on the "loading_terms" field.
 func LoadingTermsContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldLoadingTerms, v))
+}
+
+// ReceivedAtEQ applies the EQ predicate on the "received_at" field.
+func ReceivedAtEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReceivedAt, v))
+}
+
+// ReceivedAtNEQ applies the NEQ predicate on the "received_at" field.
+func ReceivedAtNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldReceivedAt, v))
+}
+
+// ReceivedAtIn applies the In predicate on the "received_at" field.
+func ReceivedAtIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldReceivedAt, vs...))
+}
+
+// ReceivedAtNotIn applies the NotIn predicate on the "received_at" field.
+func ReceivedAtNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldReceivedAt, vs...))
+}
+
+// ReceivedAtGT applies the GT predicate on the "received_at" field.
+func ReceivedAtGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldReceivedAt, v))
+}
+
+// ReceivedAtGTE applies the GTE predicate on the "received_at" field.
+func ReceivedAtGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldReceivedAt, v))
+}
+
+// ReceivedAtLT applies the LT predicate on the "received_at" field.
+func ReceivedAtLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldReceivedAt, v))
+}
+
+// ReceivedAtLTE applies the LTE predicate on the "received_at" field.
+func ReceivedAtLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldReceivedAt, v))
+}
+
+// ReceivedAtContains applies the Contains predicate on the "received_at" field.
+func ReceivedAtContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldReceivedAt, v))
+}
+
+// ReceivedAtHasPrefix applies the HasPrefix predicate on the "received_at" field.
+func ReceivedAtHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldReceivedAt, v))
+}
+
+// ReceivedAtHasSuffix applies the HasSuffix predicate on the "received_at" field.
+func ReceivedAtHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldReceivedAt, v))
+}
+
+// ReceivedAtIsNil applies the IsNil predicate on the "received_at" field.
+func ReceivedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldReceivedAt))
+}
+
+// ReceivedAtNotNil applies the NotNil predicate on the "received_at" field.
+func ReceivedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldReceivedAt))
+}
+
+// ReceivedAtEqualFold applies the EqualFold predicate on the "received_at" field.
+func ReceivedAtEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldReceivedAt, v))
+}
+
+// ReceivedAtContainsFold applies the ContainsFold predicate on the "received_at" field.
+func ReceivedAtContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldReceivedAt, v))
 }
 
 // BusinessTypeEQ applies the EQ predicate on the "business_type" field.

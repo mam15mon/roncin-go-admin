@@ -136,6 +136,7 @@ type Order struct {
 	FactoryName           string
 	CargoReadyAt          string
 	LoadingTerms          string
+	ReceivedAt            string
 	BusinessType          OrderBusinessType
 	TradeDirection        OrderTradeDirection
 	TradeTerm             OrderTradeTerm
@@ -272,6 +273,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.FactoryName = strings.TrimSpace(output.FactoryName)
 	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
 	output.LoadingTerms = strings.TrimSpace(output.LoadingTerms)
+	output.ReceivedAt = strings.TrimSpace(output.ReceivedAt)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)
 	output.ETA = strings.TrimSpace(output.ETA)
@@ -296,7 +298,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if (output.InsurancePremium == "") != (output.InsuranceCurrency == "") || output.InsurancePremium != "" && (!cargoValuePattern.MatchString(output.InsurancePremium) || len(output.InsuranceCurrency) != 3) || output.UNNumber != "" && !unNumberPattern.MatchString(output.UNNumber) {
 		return nil, ErrOrderInvalidArgument
 	}
-	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.OrderDate} {
+	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.ReceivedAt, output.OrderDate} {
 		if value != "" {
 			if _, err := time.Parse(time.RFC3339, value); err != nil {
 				return nil, ErrOrderInvalidArgument

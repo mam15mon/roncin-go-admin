@@ -31,6 +31,7 @@ type CreateOrderFormValues = {
   contractNo?: string;
   cargoValue?: string;
   cargoCurrency?: string;
+  receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
   containerOwnership?: number;
   shipmentMode?: number;
@@ -186,6 +187,9 @@ export default function NewOrderPage() {
         contractNo: values.contractNo?.trim() || undefined,
         cargoValue: values.cargoValue?.trim() || undefined,
         cargoCurrency: values.cargoCurrency || undefined,
+        receivedAt: values.receivedAt
+          ? dayjs(values.receivedAt).toISOString()
+          : undefined,
         shipmentType:
           values.shipmentType !== undefined && values.shipmentType !== null
             ? Number(values.shipmentType)

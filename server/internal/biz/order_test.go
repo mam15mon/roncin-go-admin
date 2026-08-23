@@ -104,13 +104,13 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		CustomerReferenceNo: "  CUST-001  ", InternalReferenceNo: "  INTERNAL-001  ", ContractNo: "  CONTRACT-001  ",
 		CargoValue: "100000.25", CargoCurrency: " usd ", InsurancePremium: "100.50", InsuranceCurrency: " cny ",
-		UNNumber: "1234", HazardClass: "3", FactoryName: "  测试工厂  ", CargoReadyAt: "2026-08-23T12:00:00+08:00", LoadingTerms: "  CY-CY  ",
+		UNNumber: "1234", HazardClass: "3", FactoryName: "  测试工厂  ", CargoReadyAt: "2026-08-23T12:00:00+08:00", LoadingTerms: "  CY-CY  ", ReceivedAt: "2026-08-23T10:00:00+08:00",
 	}
 	normalized, err := normalizeOrder(input, false)
 	if err != nil {
 		t.Fatalf("normalizeOrder() error = %v", err)
 	}
-	if normalized.CustomerReferenceNo != "CUST-001" || normalized.InternalReferenceNo != "INTERNAL-001" || normalized.ContractNo != "CONTRACT-001" || normalized.CargoValue != "100000.25" || normalized.CargoCurrency != "USD" || normalized.InsurancePremium != "100.50" || normalized.InsuranceCurrency != "CNY" || normalized.UNNumber != "1234" || normalized.HazardClass != "3" || normalized.FactoryName != "测试工厂" || normalized.LoadingTerms != "CY-CY" {
+	if normalized.CustomerReferenceNo != "CUST-001" || normalized.InternalReferenceNo != "INTERNAL-001" || normalized.ContractNo != "CONTRACT-001" || normalized.CargoValue != "100000.25" || normalized.CargoCurrency != "USD" || normalized.InsurancePremium != "100.50" || normalized.InsuranceCurrency != "CNY" || normalized.UNNumber != "1234" || normalized.HazardClass != "3" || normalized.FactoryName != "测试工厂" || normalized.LoadingTerms != "CY-CY" || normalized.ReceivedAt != "2026-08-23T10:00:00+08:00" {
 		t.Fatalf("normalized business fields = %#v", normalized)
 	}
 

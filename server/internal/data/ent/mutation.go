@@ -11915,6 +11915,7 @@ type OrderMutation struct {
 	factory_name              *string
 	cargo_ready_at            *string
 	loading_terms             *string
+	received_at               *string
 	business_type             *order.BusinessType
 	trade_direction           *order.TradeDirection
 	trade_term                *order.TradeTerm
@@ -13052,6 +13053,55 @@ func (m *OrderMutation) LoadingTermsCleared() bool {
 func (m *OrderMutation) ResetLoadingTerms() {
 	m.loading_terms = nil
 	delete(m.clearedFields, order.FieldLoadingTerms)
+}
+
+// SetReceivedAt sets the "received_at" field.
+func (m *OrderMutation) SetReceivedAt(s string) {
+	m.received_at = &s
+}
+
+// ReceivedAt returns the value of the "received_at" field in the mutation.
+func (m *OrderMutation) ReceivedAt() (r string, exists bool) {
+	v := m.received_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReceivedAt returns the old "received_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldReceivedAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReceivedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReceivedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReceivedAt: %w", err)
+	}
+	return oldValue.ReceivedAt, nil
+}
+
+// ClearReceivedAt clears the value of the "received_at" field.
+func (m *OrderMutation) ClearReceivedAt() {
+	m.received_at = nil
+	m.clearedFields[order.FieldReceivedAt] = struct{}{}
+}
+
+// ReceivedAtCleared returns if the "received_at" field was cleared in this mutation.
+func (m *OrderMutation) ReceivedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldReceivedAt]
+	return ok
+}
+
+// ResetReceivedAt resets all changes to the "received_at" field.
+func (m *OrderMutation) ResetReceivedAt() {
+	m.received_at = nil
+	delete(m.clearedFields, order.FieldReceivedAt)
 }
 
 // SetBusinessType sets the "business_type" field.
@@ -14980,7 +15030,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 47)
+	fields := make([]string, 0, 48)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -15043,6 +15093,9 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.loading_terms != nil {
 		fields = append(fields, order.FieldLoadingTerms)
+	}
+	if m.received_at != nil {
+		fields = append(fields, order.FieldReceivedAt)
 	}
 	if m.business_type != nil {
 		fields = append(fields, order.FieldBusinessType)
@@ -15172,6 +15225,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.CargoReadyAt()
 	case order.FieldLoadingTerms:
 		return m.LoadingTerms()
+	case order.FieldReceivedAt:
+		return m.ReceivedAt()
 	case order.FieldBusinessType:
 		return m.BusinessType()
 	case order.FieldTradeDirection:
@@ -15275,6 +15330,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCargoReadyAt(ctx)
 	case order.FieldLoadingTerms:
 		return m.OldLoadingTerms(ctx)
+	case order.FieldReceivedAt:
+		return m.OldReceivedAt(ctx)
 	case order.FieldBusinessType:
 		return m.OldBusinessType(ctx)
 	case order.FieldTradeDirection:
@@ -15482,6 +15539,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLoadingTerms(v)
+		return nil
+	case order.FieldReceivedAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReceivedAt(v)
 		return nil
 	case order.FieldBusinessType:
 		v, ok := value.(order.BusinessType)
@@ -15758,6 +15822,9 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldLoadingTerms) {
 		fields = append(fields, order.FieldLoadingTerms)
 	}
+	if m.FieldCleared(order.FieldReceivedAt) {
+		fields = append(fields, order.FieldReceivedAt)
+	}
 	if m.FieldCleared(order.FieldShipmentType) {
 		fields = append(fields, order.FieldShipmentType)
 	}
@@ -15879,6 +15946,9 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldLoadingTerms:
 		m.ClearLoadingTerms()
+		return nil
+	case order.FieldReceivedAt:
+		m.ClearReceivedAt()
 		return nil
 	case order.FieldShipmentType:
 		m.ClearShipmentType()
@@ -16010,6 +16080,9 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldLoadingTerms:
 		m.ResetLoadingTerms()
+		return nil
+	case order.FieldReceivedAt:
+		m.ResetReceivedAt()
 		return nil
 	case order.FieldBusinessType:
 		m.ResetBusinessType()

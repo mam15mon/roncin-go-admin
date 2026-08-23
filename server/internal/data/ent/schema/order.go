@@ -34,6 +34,7 @@ func (Order) Fields() []ent.Field {
 		field.String("factory_name").Optional().MaxLen(200),
 		field.String("cargo_ready_at").Optional().MaxLen(64),
 		field.String("loading_terms").Optional().MaxLen(100),
+		field.String("received_at").Optional().MaxLen(64),
 		field.Enum("business_type").Values("SE", "SI", "AE", "AI", "LAND", "RAIL"),
 		field.Enum("trade_direction").Values("export", "import"),
 		field.Enum("trade_term").Values("EXW", "FCA", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDU", "DDP", "LDP"),
