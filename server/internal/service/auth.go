@@ -37,6 +37,35 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 	return &v1.LoginReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *emptypb.Empty) (*v1.WeComLoginConfigReply, error) {
+	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartWeComLogin()
+	if err != nil {
+		return nil, err
+	}
+	config := &v1.WeComLoginConfig{Enabled: enabled}
+	if enabled {
+		config.AuthorizeUrl = &authorizeURL
+		s.setCookieNamed(ctx, s.wecomStateCookieName(), state, expiresAt, 300)
+	}
+	return &v1.WeComLoginConfigReply{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequest) (*v1.LoginReply, error) {
+	userAgent := ""
+	expectedState := ""
+	if tr, ok := transport.FromServerContext(ctx); ok {
+		userAgent = tr.RequestHeader().Get("User-Agent")
+		expectedState = cookieValue(tr.RequestHeader().Get("Cookie"), s.wecomStateCookieName())
+	}
+	s.setCookieNamed(ctx, s.wecomStateCookieName(), "", time.Unix(1, 0), -1)
+	token, principal, expiresAt, err := s.usecase.LoginWeCom(ctx, request.GetCode(), request.GetState(), expectedState, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	s.setCookie(ctx, token, expiresAt, 0)
+	return &v1.LoginReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AuthService) Logout(ctx context.Context, _ *emptypb.Empty) (*v1.OperationReply, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -74,10 +103,25 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 }
 
 func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {
+	s.setCookieNamed(ctx, s.policy.CookieName, value, expires, maxAge)
+}
+
+func (s *AuthService) setCookieNamed(ctx context.Context, name, value string, expires time.Time, maxAge int) {
 	if tr, ok := transport.FromServerContext(ctx); ok {
-		cookie := &nethttp.Cookie{Name: s.policy.CookieName, Value: value, Path: "/", Expires: expires, MaxAge: maxAge, HttpOnly: true, Secure: s.policy.Secure, SameSite: parseSameSite(s.policy.SameSite)}
-		tr.ReplyHeader().Set("Set-Cookie", cookie.String())
+		cookie := &nethttp.Cookie{Name: name, Value: value, Path: "/", Expires: expires, MaxAge: maxAge, HttpOnly: true, Secure: s.policy.Secure, SameSite: parseSameSite(s.policy.SameSite)}
+		tr.ReplyHeader().Add("Set-Cookie", cookie.String())
 	}
+}
+
+func (s *AuthService) wecomStateCookieName() string { return s.policy.CookieName + "_wecom_state" }
+
+func cookieValue(rawHeader, name string) string {
+	request := &nethttp.Request{Header: nethttp.Header{"Cookie": []string{rawHeader}}}
+	cookie, err := request.Cookie(name)
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
 }
 
 func parseSameSite(value string) nethttp.SameSite {

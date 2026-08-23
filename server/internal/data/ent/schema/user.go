@@ -17,7 +17,9 @@ func (User) Fields() []ent.Field {
 		field.String("username").NotEmpty().MaxLen(100).Immutable(),
 		field.String("display_name").NotEmpty().MaxLen(100),
 		field.String("email").MaxLen(254).Optional().Nillable(),
-		field.String("password_hash").NotEmpty().Sensitive(),
+		field.String("password_hash").Optional().Nillable().Sensitive(),
+		field.String("wecom_userid").MaxLen(64).Optional().Nillable(),
+		field.String("wecom_name").MaxLen(100).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 	}
 }
@@ -32,5 +34,5 @@ func (User) Edges() []ent.Edge {
 }
 
 func (User) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("username").Unique(), index.Fields("email")}
+	return []ent.Index{index.Fields("username").Unique(), index.Fields("email"), index.Fields("wecom_userid").Unique()}
 }

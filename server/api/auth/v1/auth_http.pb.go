@@ -18,21 +18,27 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationAuthServiceGetWeComLoginConfig = "/auth.v1.AuthService/GetWeComLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
 const OperationAuthServiceMe = "/auth.v1.AuthService/Me"
 const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrganization"
+const OperationAuthServiceWeComLogin = "/auth.v1.AuthService/WeComLogin"
 
 type AuthServiceHTTPServer interface {
+	GetWeComLoginConfig(context.Context, *emptypb.Empty) (*WeComLoginConfigReply, error)
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
 	Logout(context.Context, *emptypb.Empty) (*OperationReply, error)
 	Me(context.Context, *emptypb.Empty) (*MeReply, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*MeReply, error)
+	WeComLogin(context.Context, *WeComLoginRequest) (*LoginReply, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "/api/v1/auth/login", _AuthService_Login0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/auth/wecom/login-config", _AuthService_GetWeComLoginConfig0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/auth/wecom/login", _AuthService_WeComLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/me", _AuthService_Me0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/switch-organization", _AuthService_SwitchOrganization0_HTTP_Handler(srv))
@@ -47,6 +53,44 @@ func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.C
 		http.SetOperation(ctx, OperationAuthServiceLogin)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.Login(ctx, req.(*LoginRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*LoginReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_GetWeComLoginConfig0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in emptypb.Empty
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceGetWeComLoginConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetWeComLoginConfig(ctx, req.(*emptypb.Empty))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*WeComLoginConfigReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_WeComLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in WeComLoginRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceWeComLogin)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.WeComLogin(ctx, req.(*WeComLoginRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -115,10 +159,12 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 }
 
 type AuthServiceHTTPClient interface {
+	GetWeComLoginConfig(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *WeComLoginConfigReply, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 	Logout(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *OperationReply, err error)
 	Me(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *MeReply, err error)
 	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *MeReply, err error)
+	WeComLogin(ctx context.Context, req *WeComLoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 }
 
 type AuthServiceHTTPClientImpl struct {
@@ -127,6 +173,22 @@ type AuthServiceHTTPClientImpl struct {
 
 func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
+}
+
+func (c *AuthServiceHTTPClientImpl) GetWeComLoginConfig(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*WeComLoginConfigReply, error) {
+	var out WeComLoginConfigReply
+	pattern := "/api/v1/auth/wecom/login-config"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAuthServiceGetWeComLoginConfig),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
@@ -187,6 +249,23 @@ func (c *AuthServiceHTTPClientImpl) SwitchOrganization(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAuthServiceSwitchOrganization),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AuthServiceHTTPClientImpl) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...http.CallOption) (*LoginReply, error) {
+	var out LoginReply
+	pattern := "/api/v1/auth/wecom/login"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceWeComLogin),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

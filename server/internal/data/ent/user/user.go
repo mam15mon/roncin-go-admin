@@ -27,6 +27,10 @@ const (
 	FieldEmail = "email"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
+	// FieldWecomUserid holds the string denoting the wecom_userid field in the database.
+	FieldWecomUserid = "wecom_userid"
+	// FieldWecomName holds the string denoting the wecom_name field in the database.
+	FieldWecomName = "wecom_name"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
@@ -78,6 +82,8 @@ var Columns = []string{
 	FieldDisplayName,
 	FieldEmail,
 	FieldPasswordHash,
+	FieldWecomUserid,
+	FieldWecomName,
 	FieldEnabled,
 }
 
@@ -104,8 +110,10 @@ var (
 	DisplayNameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
-	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
-	PasswordHashValidator func(string) error
+	// WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
+	WecomUseridValidator func(string) error
+	// WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
+	WecomNameValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -148,6 +156,16 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByPasswordHash orders the results by the password_hash field.
 func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPasswordHash, opts...).ToFunc()
+}
+
+// ByWecomUserid orders the results by the wecom_userid field.
+func ByWecomUserid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWecomUserid, opts...).ToFunc()
+}
+
+// ByWecomName orders the results by the wecom_name field.
+func ByWecomName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWecomName, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

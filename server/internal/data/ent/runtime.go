@@ -3217,12 +3217,16 @@ func init() {
 	userDescEmail := userFields[2].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
-	// userDescPasswordHash is the schema descriptor for password_hash field.
-	userDescPasswordHash := userFields[3].Descriptor()
-	// user.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
-	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func(string) error)
+	// userDescWecomUserid is the schema descriptor for wecom_userid field.
+	userDescWecomUserid := userFields[4].Descriptor()
+	// user.WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
+	user.WecomUseridValidator = userDescWecomUserid.Validators[0].(func(string) error)
+	// userDescWecomName is the schema descriptor for wecom_name field.
+	userDescWecomName := userFields[5].Descriptor()
+	// user.WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
+	user.WecomNameValidator = userDescWecomName.Validators[0].(func(string) error)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[4].Descriptor()
+	userDescEnabled := userFields[6].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescID is the schema descriptor for id field.

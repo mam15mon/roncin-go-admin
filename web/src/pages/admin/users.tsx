@@ -122,6 +122,25 @@ export default function UsersPanel() {
         ),
     },
     {
+      title: '企业微信',
+      dataIndex: 'wecomName',
+      width: 210,
+      search: false,
+      render: (_, record) =>
+        record.wecomUserid ? (
+          <div style={{ lineHeight: 1.4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{record.wecomName || '-'}</div>
+            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'monospace' }}>
+              {record.wecomUserid}
+            </Text>
+          </div>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            未绑定
+          </Text>
+        ),
+    },
+    {
       title: '已分配角色',
       dataIndex: 'roleCodes',
       width: 240,
@@ -174,6 +193,8 @@ export default function UsersPanel() {
       render: (_, record) =>
         record.enabled ? (
           <Tag color="success">启用</Tag>
+        ) : record.wecomUserid ? (
+          <Tag color="warning">待授权</Tag>
         ) : (
           <Tag color="default">停用</Tag>
         ),
@@ -309,6 +330,15 @@ export default function UsersPanel() {
           return true;
         }}
       >
+        {editing?.wecomUserid && !editing.enabled && (
+          <Alert
+            showIcon
+            type="info"
+            message={`企业微信成员 ${editing.wecomName || editing.displayName} 已完成身份登记`}
+            description="请分配至少一个角色并启用账号。启用后，该成员再次扫码即可登录。"
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <ProFormText
           name="username"
           label="用户名（登录账号）"

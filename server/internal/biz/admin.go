@@ -52,6 +52,8 @@ type AdminUser struct {
 	Username    string
 	DisplayName string
 	Email       *string
+	WeComUserID *string
+	WeComName   *string
 	Enabled     bool
 	RoleIDs     []uuid.UUID
 	RoleCodes   []string

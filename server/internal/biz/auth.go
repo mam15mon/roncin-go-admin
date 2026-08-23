@@ -4,23 +4,28 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	stderrors "errors"
 	"fmt"
-	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 )
 
 var (
-	ErrInvalidCredentials    = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
-	ErrSessionRequired       = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
-	ErrSessionExpired        = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
-	ErrPermissionDenied      = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
-	ErrOrganizationForbidden = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
+	ErrInvalidCredentials        = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
+	ErrSessionRequired           = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
+	ErrSessionExpired            = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
+	ErrPermissionDenied          = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
+	ErrOrganizationForbidden     = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
+	ErrWeComDisabled             = errors.ServiceUnavailable("AUTH_WECOM_DISABLED", "企业微信登录未启用")
+	ErrWeComLoginFailed          = errors.Unauthorized("AUTH_WECOM_LOGIN_FAILED", "企业微信登录失败")
+	ErrWeComStateInvalid         = errors.Unauthorized("AUTH_WECOM_STATE_INVALID", "企业微信登录状态已失效，请重新扫码")
+	ErrWeComAuthorizationPending = errors.Forbidden("AUTH_WECOM_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 )
 
 type DataScope string
@@ -48,8 +53,21 @@ type Credential struct {
 	Username              string
 	DisplayName           string
 	Email                 *string
-	PasswordHash          string
+	PasswordHash          *string
+	Enabled               bool
 	PrimaryOrganizationID uuid.UUID
+}
+
+type WeComIdentity struct {
+	UserID string
+	Name   string
+	Email  *string
+}
+
+type WeComIdentityProvider interface {
+	Enabled() bool
+	AuthorizeURL(string) (string, error)
+	ResolveIdentity(context.Context, string) (*WeComIdentity, error)
 }
 
 type Principal struct {
@@ -146,6 +164,7 @@ type AuditLog struct {
 
 type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
+	FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
@@ -179,10 +198,11 @@ func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
 type AuthUsecase struct {
 	repo   AuthRepo
 	policy *SessionPolicy
+	wecom  WeComIdentityProvider
 }
 
-func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy) *AuthUsecase {
-	return &AuthUsecase{repo: repo, policy: policy}
+func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider) *AuthUsecase {
+	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom}
 }
 
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent string) (string, *Principal, time.Time, error) {
@@ -196,7 +216,10 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userA
 		}
 		return "", nil, time.Time{}, err
 	}
-	matched, err := password.Verify(plainPassword, credential.PasswordHash)
+	if credential.PasswordHash == nil {
+		return "", nil, time.Time{}, ErrInvalidCredentials
+	}
+	matched, err := password.Verify(plainPassword, *credential.PasswordHash)
 	if err != nil {
 		return "", nil, time.Time{}, fmt.Errorf("verify password hash: %w", err)
 	}
@@ -206,6 +229,54 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userA
 		}
 		return "", nil, time.Time{}, ErrInvalidCredentials
 	}
+	return uc.createSession(ctx, credential, userAgent, "auth.login")
+}
+
+func (uc *AuthUsecase) StartWeComLogin() (bool, string, string, time.Time, error) {
+	if !uc.wecom.Enabled() {
+		return false, "", "", time.Time{}, nil
+	}
+	state, _, err := newSessionToken()
+	if err != nil {
+		return false, "", "", time.Time{}, err
+	}
+	authorizeURL, err := uc.wecom.AuthorizeURL(state)
+	if err != nil {
+		return false, "", "", time.Time{}, err
+	}
+	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
+}
+
+func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedState, userAgent string) (string, *Principal, time.Time, error) {
+	if !uc.wecom.Enabled() {
+		return "", nil, time.Time{}, ErrWeComDisabled
+	}
+	code = strings.TrimSpace(code)
+	state = strings.TrimSpace(state)
+	expectedState = strings.TrimSpace(expectedState)
+	if code == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
+		return "", nil, time.Time{}, ErrWeComStateInvalid
+	}
+	identity, err := uc.wecom.ResolveIdentity(ctx, code)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	credential, created, err := uc.repo.FindOrCreateWeComCredential(ctx, identity)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	if created {
+		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.wecom.register", Result: "success"}); err != nil {
+			return "", nil, time.Time{}, err
+		}
+	}
+	if !credential.Enabled {
+		return "", nil, time.Time{}, ErrWeComAuthorizationPending
+	}
+	return uc.createSession(ctx, credential, userAgent, "auth.wecom.login")
+}
+
+func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction string) (string, *Principal, time.Time, error) {
 	principal, err := uc.repo.ResolvePrincipal(ctx, credential.UserID, credential.PrimaryOrganizationID)
 	if err != nil {
 		return "", nil, time.Time{}, err
@@ -219,7 +290,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userA
 		return "", nil, time.Time{}, err
 	}
 	principal.SessionTokenHash = tokenHash
-	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: "auth.login", Result: "success"}); err != nil {
+	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
 		return "", nil, time.Time{}, err
 	}
 	return rawToken, principal, expiresAt, nil

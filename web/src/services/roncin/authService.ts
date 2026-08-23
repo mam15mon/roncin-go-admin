@@ -56,3 +56,28 @@ export async function authServiceSwitchOrganization(
     ...(options || {}),
   });
 }
+
+/** 此处后端没有提供注释 POST /api/v1/auth/wecom/login */
+export async function authServiceWeComLogin(
+  body: API.WeComLoginRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.LoginReply>("/api/v1/auth/wecom/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/auth/wecom/login-config */
+export async function authServiceGetWeComLoginConfig(options?: {
+  [key: string]: any;
+}) {
+  return request<API.WeComLoginConfigReply>("/api/v1/auth/wecom/login-config", {
+    method: "GET",
+    ...(options || {}),
+  });
+}

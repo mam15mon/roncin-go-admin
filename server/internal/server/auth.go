@@ -34,7 +34,11 @@ func NewSessionPolicy(security *conf.Security) (*biz.SessionPolicy, error) {
 }
 
 func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) middleware.Middleware {
-	publicOperations := map[string]struct{}{authv1.OperationAuthServiceLogin: {}}
+	publicOperations := map[string]struct{}{
+		authv1.OperationAuthServiceLogin:               {},
+		authv1.OperationAuthServiceGetWeComLoginConfig: {},
+		authv1.OperationAuthServiceWeComLogin:          {},
+	}
 	authenticatedOperations := map[string]struct{}{
 		authv1.OperationAuthServiceLogout:             {},
 		authv1.OperationAuthServiceMe:                 {},

@@ -25,6 +25,12 @@ security:
     ttl: 43200s
     secure: false
     same_site: lax
+  wecom:
+    enabled: ${WECOM_ENABLED:false}
+    corp_id: ${WECOM_CORP_ID:}
+    agent_id: ${WECOM_AGENT_ID:}
+    secret: ${WECOM_SECRET:}
+    redirect_uri: ${WECOM_REDIRECT_URI:}
 telemetry:
   enabled: ${OTEL_ENABLED:false}
   endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:127.0.0.1:4317}

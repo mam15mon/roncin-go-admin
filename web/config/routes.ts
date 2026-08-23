@@ -8,6 +8,11 @@ export default [
         path: '/user/login',
         component: './user/login',
       },
+      {
+        name: '企业微信登录',
+        path: '/user/login/wecom/callback',
+        component: './user/login/wecom-callback',
+      },
     ],
   },
   {

@@ -875,6 +875,8 @@ type AdminUser struct {
 	RoleCodes     []string               `protobuf:"bytes,7,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	WecomUserid   *string                `protobuf:"bytes,10,opt,name=wecom_userid,json=wecomUserid,proto3,oneof" json:"wecom_userid,omitempty"`
+	WecomName     *string                `protobuf:"bytes,11,opt,name=wecom_name,json=wecomName,proto3,oneof" json:"wecom_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -968,6 +970,20 @@ func (x *AdminUser) GetCreatedAt() string {
 func (x *AdminUser) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *AdminUser) GetWecomUserid() string {
+	if x != nil && x.WecomUserid != nil {
+		return *x.WecomUserid
+	}
+	return ""
+}
+
+func (x *AdminUser) GetWecomName() string {
+	if x != nil && x.WecomName != nil {
+		return *x.WecomName
 	}
 	return ""
 }
@@ -2161,7 +2177,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x06_email\"P\n" +
 	"\x18ResetUserPasswordRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
-	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"\x91\x02\n" +
+	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"\xfd\x02\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -2174,8 +2190,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAtB\b\n" +
-	"\x06_email\"\xe7\x01\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\x12&\n" +
+	"\fwecom_userid\x18\n" +
+	" \x01(\tH\x01R\vwecomUserid\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"wecom_name\x18\v \x01(\tH\x02R\twecomName\x88\x01\x01B\b\n" +
+	"\x06_emailB\x0f\n" +
+	"\r_wecom_useridB\r\n" +
+	"\v_wecom_name\"\xe7\x01\n" +
 	"\x12AdminUserListReply\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

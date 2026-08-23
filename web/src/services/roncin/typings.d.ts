@@ -202,6 +202,8 @@ declare namespace API {
     roleCodes?: string[];
     createdAt?: string;
     updatedAt?: string;
+    wecomUserid?: string;
+    wecomName?: string;
   };
 
   type AdminUserListReply = {
@@ -2343,5 +2345,23 @@ declare namespace API {
     email?: string;
     enabled?: boolean;
     roleIds?: string[];
+  };
+
+  type WeComLoginConfig = {
+    enabled?: boolean;
+    authorizeUrl?: string;
+  };
+
+  type WeComLoginConfigReply = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: WeComLoginConfig;
+    traceId?: string;
+  };
+
+  type WeComLoginRequest = {
+    code: string;
+    state: string;
   };
 }

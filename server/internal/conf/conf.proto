@@ -70,5 +70,13 @@ message Security {
     bool secure = 3;
     string same_site = 4;
   }
+  message WeCom {
+    bool enabled = 1;
+    string corp_id = 2;
+    string agent_id = 3;
+    string secret = 4;
+    string redirect_uri = 5;
+  }
   Session session = 1;
+  WeCom wecom = 2;
 }

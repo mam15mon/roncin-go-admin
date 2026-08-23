@@ -6,11 +6,15 @@ import {
   LockOutlined,
   SafetyCertificateOutlined,
   UserOutlined,
+  WechatWorkOutlined,
 } from '@ant-design/icons';
 import { Helmet, useModel } from '@umijs/max';
-import { App, Button, Checkbox, Form, Input } from 'antd';
-import React, { startTransition, useState } from 'react';
-import { authServiceLogin } from '@/services/roncin/authService';
+import { App, Button, Checkbox, Divider, Form, Input } from 'antd';
+import React, { startTransition, useEffect, useState } from 'react';
+import {
+  authServiceGetWeComLoginConfig,
+  authServiceLogin,
+} from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
 import styles from './index.module.less';
@@ -31,6 +35,14 @@ export default function Login() {
   const [isTyping, setIsTyping] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
+  const [wecomEnabled, setWecomEnabled] = useState(false);
+  const [wecomLoading, setWecomLoading] = useState(false);
+
+  useEffect(() => {
+    authServiceGetWeComLoginConfig({ skipErrorHandler: true })
+      .then((response) => setWecomEnabled(response.data?.enabled ?? false))
+      .catch(() => setWecomEnabled(false));
+  }, []);
 
   const handleSubmit = async (values: API.LoginRequest) => {
     setLoading(true);
@@ -47,6 +59,26 @@ export default function Login() {
       message.error(error instanceof Error ? error.message : '登录失败，请稍后重试');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleWeComLogin = async () => {
+    setWecomLoading(true);
+    try {
+      const response = await authServiceGetWeComLoginConfig({
+        skipErrorHandler: true,
+      });
+      if (!response.data?.enabled || !response.data.authorizeUrl) {
+        message.warning('企业微信登录暂未启用');
+        return;
+      }
+      const redirect = new URL(window.location.href).searchParams.get('redirect');
+      sessionStorage.setItem('wecom_login_redirect', safeRedirect(redirect));
+      window.location.assign(response.data.authorizeUrl);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '企业微信登录启动失败');
+    } finally {
+      setWecomLoading(false);
     }
   };
 
@@ -220,6 +252,25 @@ export default function Login() {
               </Button>
             </Form.Item>
           </Form>
+
+          {wecomEnabled && (
+            <>
+              <Divider plain className={styles.loginDivider}>
+                或
+              </Divider>
+              <Button
+                block
+                size="large"
+                icon={<WechatWorkOutlined />}
+                loading={wecomLoading}
+                disabled={loading || wecomLoading}
+                className={styles.wecomButton}
+                onClick={handleWeComLogin}
+              >
+                使用企业微信扫码登录
+              </Button>
+            </>
+          )}
 
           {/* 底部安全与协议区 */}
           <div className={styles.footerWrapper}>

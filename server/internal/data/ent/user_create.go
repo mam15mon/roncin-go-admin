@@ -85,6 +85,42 @@ func (_c *UserCreate) SetPasswordHash(v string) *UserCreate {
 	return _c
 }
 
+// SetNillablePasswordHash sets the "password_hash" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePasswordHash(v *string) *UserCreate {
+	if v != nil {
+		_c.SetPasswordHash(*v)
+	}
+	return _c
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (_c *UserCreate) SetWecomUserid(v string) *UserCreate {
+	_c.mutation.SetWecomUserid(v)
+	return _c
+}
+
+// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
+func (_c *UserCreate) SetNillableWecomUserid(v *string) *UserCreate {
+	if v != nil {
+		_c.SetWecomUserid(*v)
+	}
+	return _c
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (_c *UserCreate) SetWecomName(v string) *UserCreate {
+	_c.mutation.SetWecomName(v)
+	return _c
+}
+
+// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
+func (_c *UserCreate) SetNillableWecomName(v *string) *UserCreate {
+	if v != nil {
+		_c.SetWecomName(*v)
+	}
+	return _c
+}
+
 // SetEnabled sets the "enabled" field.
 func (_c *UserCreate) SetEnabled(v bool) *UserCreate {
 	_c.mutation.SetEnabled(v)
@@ -255,12 +291,14 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.PasswordHash(); !ok {
-		return &ValidationError{Name: "password_hash", err: errors.New(`ent: missing required field "User.password_hash"`)}
+	if v, ok := _c.mutation.WecomUserid(); ok {
+		if err := user.WecomUseridValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
+		}
 	}
-	if v, ok := _c.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "User.password_hash": %w`, err)}
+	if v, ok := _c.mutation.WecomName(); ok {
+		if err := user.WecomNameValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
@@ -323,7 +361,15 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
-		_node.PasswordHash = value
+		_node.PasswordHash = &value
+	}
+	if value, ok := _c.mutation.WecomUserid(); ok {
+		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
+		_node.WecomUserid = &value
+	}
+	if value, ok := _c.mutation.WecomName(); ok {
+		_spec.SetField(user.FieldWecomName, field.TypeString, value)
+		_node.WecomName = &value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)

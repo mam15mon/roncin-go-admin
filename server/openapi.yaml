@@ -327,6 +327,36 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/auth.v1.MeReply'
+    /api/v1/auth/wecom/login:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_WeComLogin
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/auth.v1.WeComLoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.LoginReply'
+    /api/v1/auth/wecom/login-config:
+        get:
+            tags:
+                - AuthService
+            operationId: AuthService_GetWeComLoginConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/auth.v1.WeComLoginConfigReply'
     /api/v1/background-tasks:
         get:
             tags:
@@ -2710,6 +2740,10 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                wecomUserid:
+                    type: string
+                wecomName:
+                    type: string
         admin.v1.AdminUserListReply:
             type: object
             properties:
@@ -2960,6 +2994,37 @@ components:
             type: object
             properties:
                 organizationId:
+                    type: string
+        auth.v1.WeComLoginConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                authorizeUrl:
+                    type: string
+        auth.v1.WeComLoginConfigReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/auth.v1.WeComLoginConfig'
+                traceId:
+                    type: string
+        auth.v1.WeComLoginRequest:
+            required:
+                - code
+                - state
+            type: object
+            properties:
+                code:
+                    type: string
+                state:
                     type: string
         masterdata.v1.AdministrativeRegion:
             type: object

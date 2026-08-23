@@ -178,6 +178,8 @@ message AdminUser {
   repeated string role_codes = 7;
   string created_at = 8;
   string updated_at = 9;
+  optional string wecom_userid = 10;
+  optional string wecom_name = 11;
 }
 
 message AdminUserListReply {

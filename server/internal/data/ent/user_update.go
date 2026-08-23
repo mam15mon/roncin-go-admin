@@ -87,6 +87,52 @@ func (_u *UserUpdate) SetNillablePasswordHash(v *string) *UserUpdate {
 	return _u
 }
 
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (_u *UserUpdate) ClearPasswordHash() *UserUpdate {
+	_u.mutation.ClearPasswordHash()
+	return _u
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (_u *UserUpdate) SetWecomUserid(v string) *UserUpdate {
+	_u.mutation.SetWecomUserid(v)
+	return _u
+}
+
+// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableWecomUserid(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetWecomUserid(*v)
+	}
+	return _u
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (_u *UserUpdate) ClearWecomUserid() *UserUpdate {
+	_u.mutation.ClearWecomUserid()
+	return _u
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (_u *UserUpdate) SetWecomName(v string) *UserUpdate {
+	_u.mutation.SetWecomName(v)
+	return _u
+}
+
+// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableWecomName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetWecomName(*v)
+	}
+	return _u
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (_u *UserUpdate) ClearWecomName() *UserUpdate {
+	_u.mutation.ClearWecomName()
+	return _u
+}
+
 // SetEnabled sets the "enabled" field.
 func (_u *UserUpdate) SetEnabled(v bool) *UserUpdate {
 	_u.mutation.SetEnabled(v)
@@ -298,9 +344,14 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "User.password_hash": %w`, err)}
+	if v, ok := _u.mutation.WecomUserid(); ok {
+		if err := user.WecomUseridValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.WecomName(); ok {
+		if err := user.WecomNameValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
 	return nil
@@ -332,6 +383,21 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
+	}
+	if _u.mutation.PasswordHashCleared() {
+		_spec.ClearField(user.FieldPasswordHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.WecomUserid(); ok {
+		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
+	}
+	if _u.mutation.WecomUseridCleared() {
+		_spec.ClearField(user.FieldWecomUserid, field.TypeString)
+	}
+	if value, ok := _u.mutation.WecomName(); ok {
+		_spec.SetField(user.FieldWecomName, field.TypeString, value)
+	}
+	if _u.mutation.WecomNameCleared() {
+		_spec.ClearField(user.FieldWecomName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
@@ -590,6 +656,52 @@ func (_u *UserUpdateOne) SetNillablePasswordHash(v *string) *UserUpdateOne {
 	return _u
 }
 
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (_u *UserUpdateOne) ClearPasswordHash() *UserUpdateOne {
+	_u.mutation.ClearPasswordHash()
+	return _u
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (_u *UserUpdateOne) SetWecomUserid(v string) *UserUpdateOne {
+	_u.mutation.SetWecomUserid(v)
+	return _u
+}
+
+// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableWecomUserid(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetWecomUserid(*v)
+	}
+	return _u
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (_u *UserUpdateOne) ClearWecomUserid() *UserUpdateOne {
+	_u.mutation.ClearWecomUserid()
+	return _u
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (_u *UserUpdateOne) SetWecomName(v string) *UserUpdateOne {
+	_u.mutation.SetWecomName(v)
+	return _u
+}
+
+// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableWecomName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetWecomName(*v)
+	}
+	return _u
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (_u *UserUpdateOne) ClearWecomName() *UserUpdateOne {
+	_u.mutation.ClearWecomName()
+	return _u
+}
+
 // SetEnabled sets the "enabled" field.
 func (_u *UserUpdateOne) SetEnabled(v bool) *UserUpdateOne {
 	_u.mutation.SetEnabled(v)
@@ -814,9 +926,14 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "User.password_hash": %w`, err)}
+	if v, ok := _u.mutation.WecomUserid(); ok {
+		if err := user.WecomUseridValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.WecomName(); ok {
+		if err := user.WecomNameValidator(v); err != nil {
+			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
 	return nil
@@ -865,6 +982,21 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
+	}
+	if _u.mutation.PasswordHashCleared() {
+		_spec.ClearField(user.FieldPasswordHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.WecomUserid(); ok {
+		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
+	}
+	if _u.mutation.WecomUseridCleared() {
+		_spec.ClearField(user.FieldWecomUserid, field.TypeString)
+	}
+	if value, ok := _u.mutation.WecomName(); ok {
+		_spec.SetField(user.FieldWecomName, field.TypeString, value)
+	}
+	if _u.mutation.WecomNameCleared() {
+		_spec.ClearField(user.FieldWecomName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)

@@ -17,6 +17,17 @@ service AuthService {
     };
   }
 
+  rpc GetWeComLoginConfig(google.protobuf.Empty) returns (WeComLoginConfigReply) {
+    option (google.api.http) = {get: "/api/v1/auth/wecom/login-config"};
+  }
+
+  rpc WeComLogin(WeComLoginRequest) returns (LoginReply) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/wecom/login"
+      body: "*"
+    };
+  }
+
   rpc Logout(google.protobuf.Empty) returns (OperationReply) {
     option (google.api.http) = {
       post: "/api/v1/auth/logout"
@@ -39,6 +50,24 @@ service AuthService {
 message LoginRequest {
   string username = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message WeComLoginRequest {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string state = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message WeComLoginConfigReply {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  WeComLoginConfig data = 4;
+  string trace_id = 5;
+}
+
+message WeComLoginConfig {
+  bool enabled = 1;
+  optional string authorize_url = 2;
 }
 
 message SwitchOrganizationRequest {

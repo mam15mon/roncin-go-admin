@@ -269,6 +269,7 @@ func (x *Data) GetRedis() *Data_Redis {
 type Security struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Session       *Security_Session      `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	Wecom         *Security_WeCom        `protobuf:"bytes,2,opt,name=wecom,proto3" json:"wecom,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -306,6 +307,13 @@ func (*Security) Descriptor() ([]byte, []int) {
 func (x *Security) GetSession() *Security_Session {
 	if x != nil {
 		return x.Session
+	}
+	return nil
+}
+
+func (x *Security) GetWecom() *Security_WeCom {
+	if x != nil {
+		return x.Wecom
 	}
 	return nil
 }
@@ -663,6 +671,82 @@ func (x *Security_Session) GetSameSite() string {
 	return ""
 }
 
+type Security_WeCom struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CorpId        string                 `protobuf:"bytes,2,opt,name=corp_id,json=corpId,proto3" json:"corp_id,omitempty"`
+	AgentId       string                 `protobuf:"bytes,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Secret        string                 `protobuf:"bytes,4,opt,name=secret,proto3" json:"secret,omitempty"`
+	RedirectUri   string                 `protobuf:"bytes,5,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Security_WeCom) Reset() {
+	*x = Security_WeCom{}
+	mi := &file_conf_conf_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security_WeCom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security_WeCom) ProtoMessage() {}
+
+func (x *Security_WeCom) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Security_WeCom.ProtoReflect.Descriptor instead.
+func (*Security_WeCom) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{4, 1}
+}
+
+func (x *Security_WeCom) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Security_WeCom) GetCorpId() string {
+	if x != nil {
+		return x.CorpId
+	}
+	return ""
+}
+
+func (x *Security_WeCom) GetAgentId() string {
+	if x != nil {
+		return x.AgentId
+	}
+	return ""
+}
+
+func (x *Security_WeCom) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+func (x *Security_WeCom) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
 var File_conf_conf_proto protoreflect.FileDescriptor
 
 const file_conf_conf_proto_rawDesc = "" +
@@ -705,15 +789,22 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xd1\x01\n" +
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x96\x03\n" +
 	"\bSecurity\x126\n" +
-	"\asession\x18\x01 \x01(\v2\x1c.kratos.api.Security.SessionR\asession\x1a\x8c\x01\n" +
+	"\asession\x18\x01 \x01(\v2\x1c.kratos.api.Security.SessionR\asession\x120\n" +
+	"\x05wecom\x18\x02 \x01(\v2\x1a.kratos.api.Security.WeComR\x05wecom\x1a\x8c\x01\n" +
 	"\aSession\x12\x1f\n" +
 	"\vcookie_name\x18\x01 \x01(\tR\n" +
 	"cookieName\x12+\n" +
 	"\x03ttl\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x03ttl\x12\x16\n" +
 	"\x06secure\x18\x03 \x01(\bR\x06secure\x12\x1b\n" +
-	"\tsame_site\x18\x04 \x01(\tR\bsameSiteB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\tsame_site\x18\x04 \x01(\tR\bsameSite\x1a\x90\x01\n" +
+	"\x05WeCom\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x17\n" +
+	"\acorp_id\x18\x02 \x01(\tR\x06corpId\x12\x19\n" +
+	"\bagent_id\x18\x03 \x01(\tR\aagentId\x12\x16\n" +
+	"\x06secret\x18\x04 \x01(\tR\x06secret\x12!\n" +
+	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUriB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -727,7 +818,7 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: kratos.api.Bootstrap
 	(*Telemetry)(nil),           // 1: kratos.api.Telemetry
@@ -739,7 +830,8 @@ var file_conf_conf_proto_goTypes = []any{
 	(*Data_Database)(nil),       // 7: kratos.api.Data.Database
 	(*Data_Redis)(nil),          // 8: kratos.api.Data.Redis
 	(*Security_Session)(nil),    // 9: kratos.api.Security.Session
-	(*durationpb.Duration)(nil), // 10: google.protobuf.Duration
+	(*Security_WeCom)(nil),      // 10: kratos.api.Security.WeCom
+	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
 	2,  // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
@@ -751,17 +843,18 @@ var file_conf_conf_proto_depIdxs = []int32{
 	7,  // 6: kratos.api.Data.database:type_name -> kratos.api.Data.Database
 	8,  // 7: kratos.api.Data.redis:type_name -> kratos.api.Data.Redis
 	9,  // 8: kratos.api.Security.session:type_name -> kratos.api.Security.Session
-	10, // 9: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	10, // 10: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	10, // 11: kratos.api.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
-	10, // 12: kratos.api.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
-	10, // 13: kratos.api.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
-	10, // 14: kratos.api.Security.Session.ttl:type_name -> google.protobuf.Duration
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	10, // 9: kratos.api.Security.wecom:type_name -> kratos.api.Security.WeCom
+	11, // 10: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	11, // 11: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	11, // 12: kratos.api.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	11, // 13: kratos.api.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
+	11, // 14: kratos.api.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
+	11, // 15: kratos.api.Security.Session.ttl:type_name -> google.protobuf.Duration
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -775,7 +868,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_conf_proto_rawDesc), len(file_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

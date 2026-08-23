@@ -29,7 +29,11 @@ type User struct {
 	// Email holds the value of the "email" field.
 	Email *string `json:"email,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
-	PasswordHash string `json:"-"`
+	PasswordHash *string `json:"-"`
+	// WecomUserid holds the value of the "wecom_userid" field.
+	WecomUserid *string `json:"wecom_userid,omitempty"`
+	// WecomName holds the value of the "wecom_name" field.
+	WecomName *string `json:"wecom_name,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -96,7 +100,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldPasswordHash:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -158,7 +162,22 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password_hash", values[i])
 			} else if value.Valid {
-				_m.PasswordHash = value.String
+				_m.PasswordHash = new(string)
+				*_m.PasswordHash = value.String
+			}
+		case user.FieldWecomUserid:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field wecom_userid", values[i])
+			} else if value.Valid {
+				_m.WecomUserid = new(string)
+				*_m.WecomUserid = value.String
+			}
+		case user.FieldWecomName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field wecom_name", values[i])
+			} else if value.Valid {
+				_m.WecomName = new(string)
+				*_m.WecomName = value.String
 			}
 		case user.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -240,6 +259,16 @@ func (_m *User) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=<sensitive>")
+	builder.WriteString(", ")
+	if v := _m.WecomUserid; v != nil {
+		builder.WriteString("wecom_userid=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.WecomName; v != nil {
+		builder.WriteString("wecom_name=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))

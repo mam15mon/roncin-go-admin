@@ -48385,6 +48385,8 @@ type UserMutation struct {
 	display_name               *string
 	email                      *string
 	password_hash              *string
+	wecom_userid               *string
+	wecom_name                 *string
 	enabled                    *bool
 	clearedFields              map[string]struct{}
 	memberships                map[uuid.UUID]struct{}
@@ -48718,7 +48720,7 @@ func (m *UserMutation) PasswordHash() (r string, exists bool) {
 // OldPasswordHash returns the old "password_hash" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldPasswordHash(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
 	}
@@ -48732,9 +48734,120 @@ func (m *UserMutation) OldPasswordHash(ctx context.Context) (v string, err error
 	return oldValue.PasswordHash, nil
 }
 
+// ClearPasswordHash clears the value of the "password_hash" field.
+func (m *UserMutation) ClearPasswordHash() {
+	m.password_hash = nil
+	m.clearedFields[user.FieldPasswordHash] = struct{}{}
+}
+
+// PasswordHashCleared returns if the "password_hash" field was cleared in this mutation.
+func (m *UserMutation) PasswordHashCleared() bool {
+	_, ok := m.clearedFields[user.FieldPasswordHash]
+	return ok
+}
+
 // ResetPasswordHash resets all changes to the "password_hash" field.
 func (m *UserMutation) ResetPasswordHash() {
 	m.password_hash = nil
+	delete(m.clearedFields, user.FieldPasswordHash)
+}
+
+// SetWecomUserid sets the "wecom_userid" field.
+func (m *UserMutation) SetWecomUserid(s string) {
+	m.wecom_userid = &s
+}
+
+// WecomUserid returns the value of the "wecom_userid" field in the mutation.
+func (m *UserMutation) WecomUserid() (r string, exists bool) {
+	v := m.wecom_userid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWecomUserid returns the old "wecom_userid" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldWecomUserid(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWecomUserid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWecomUserid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWecomUserid: %w", err)
+	}
+	return oldValue.WecomUserid, nil
+}
+
+// ClearWecomUserid clears the value of the "wecom_userid" field.
+func (m *UserMutation) ClearWecomUserid() {
+	m.wecom_userid = nil
+	m.clearedFields[user.FieldWecomUserid] = struct{}{}
+}
+
+// WecomUseridCleared returns if the "wecom_userid" field was cleared in this mutation.
+func (m *UserMutation) WecomUseridCleared() bool {
+	_, ok := m.clearedFields[user.FieldWecomUserid]
+	return ok
+}
+
+// ResetWecomUserid resets all changes to the "wecom_userid" field.
+func (m *UserMutation) ResetWecomUserid() {
+	m.wecom_userid = nil
+	delete(m.clearedFields, user.FieldWecomUserid)
+}
+
+// SetWecomName sets the "wecom_name" field.
+func (m *UserMutation) SetWecomName(s string) {
+	m.wecom_name = &s
+}
+
+// WecomName returns the value of the "wecom_name" field in the mutation.
+func (m *UserMutation) WecomName() (r string, exists bool) {
+	v := m.wecom_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWecomName returns the old "wecom_name" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldWecomName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWecomName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWecomName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWecomName: %w", err)
+	}
+	return oldValue.WecomName, nil
+}
+
+// ClearWecomName clears the value of the "wecom_name" field.
+func (m *UserMutation) ClearWecomName() {
+	m.wecom_name = nil
+	m.clearedFields[user.FieldWecomName] = struct{}{}
+}
+
+// WecomNameCleared returns if the "wecom_name" field was cleared in this mutation.
+func (m *UserMutation) WecomNameCleared() bool {
+	_, ok := m.clearedFields[user.FieldWecomName]
+	return ok
+}
+
+// ResetWecomName resets all changes to the "wecom_name" field.
+func (m *UserMutation) ResetWecomName() {
+	m.wecom_name = nil
+	delete(m.clearedFields, user.FieldWecomName)
 }
 
 // SetEnabled sets the "enabled" field.
@@ -49023,7 +49136,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -49041,6 +49154,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password_hash != nil {
 		fields = append(fields, user.FieldPasswordHash)
+	}
+	if m.wecom_userid != nil {
+		fields = append(fields, user.FieldWecomUserid)
+	}
+	if m.wecom_name != nil {
+		fields = append(fields, user.FieldWecomName)
 	}
 	if m.enabled != nil {
 		fields = append(fields, user.FieldEnabled)
@@ -49065,6 +49184,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldPasswordHash:
 		return m.PasswordHash()
+	case user.FieldWecomUserid:
+		return m.WecomUserid()
+	case user.FieldWecomName:
+		return m.WecomName()
 	case user.FieldEnabled:
 		return m.Enabled()
 	}
@@ -49088,6 +49211,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldPasswordHash:
 		return m.OldPasswordHash(ctx)
+	case user.FieldWecomUserid:
+		return m.OldWecomUserid(ctx)
+	case user.FieldWecomName:
+		return m.OldWecomName(ctx)
 	case user.FieldEnabled:
 		return m.OldEnabled(ctx)
 	}
@@ -49141,6 +49268,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPasswordHash(v)
 		return nil
+	case user.FieldWecomUserid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWecomUserid(v)
+		return nil
+	case user.FieldWecomName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWecomName(v)
+		return nil
 	case user.FieldEnabled:
 		v, ok := value.(bool)
 		if !ok {
@@ -49181,6 +49322,15 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldEmail) {
 		fields = append(fields, user.FieldEmail)
 	}
+	if m.FieldCleared(user.FieldPasswordHash) {
+		fields = append(fields, user.FieldPasswordHash)
+	}
+	if m.FieldCleared(user.FieldWecomUserid) {
+		fields = append(fields, user.FieldWecomUserid)
+	}
+	if m.FieldCleared(user.FieldWecomName) {
+		fields = append(fields, user.FieldWecomName)
+	}
 	return fields
 }
 
@@ -49197,6 +49347,15 @@ func (m *UserMutation) ClearField(name string) error {
 	switch name {
 	case user.FieldEmail:
 		m.ClearEmail()
+		return nil
+	case user.FieldPasswordHash:
+		m.ClearPasswordHash()
+		return nil
+	case user.FieldWecomUserid:
+		m.ClearWecomUserid()
+		return nil
+	case user.FieldWecomName:
+		m.ClearWecomName()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -49223,6 +49382,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPasswordHash:
 		m.ResetPasswordHash()
+		return nil
+	case user.FieldWecomUserid:
+		m.ResetWecomUserid()
+		return nil
+	case user.FieldWecomName:
+		m.ResetWecomName()
 		return nil
 	case user.FieldEnabled:
 		m.ResetEnabled()
