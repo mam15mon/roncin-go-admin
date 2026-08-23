@@ -135,7 +135,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     <Button
                       type="link"
                       size="small"
-                      style={{ fontSize: 12, height: 22, padding: '0 2px' }}
+                      style={{ fontSize: 12, height: 21, padding: '0 2px' }}
                       onClick={() => message.info('正在校验客户业务编号')}
                     >
                       重复校验
@@ -155,7 +155,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                     <Button
                       type="link"
                       size="small"
-                      style={{ fontSize: 12, height: 22, padding: '0 2px' }}
+                      style={{ fontSize: 12, height: 21, padding: '0 2px' }}
                       onClick={() => message.info('正在校验企业内部编号')}
                     >
                       重复校验
@@ -270,7 +270,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                         placeholder="币种"
                         size="small"
                         variant="borderless"
-                        style={{ width: 72, height: 22 }}
+                        style={{ width: 72, height: 21 }}
                       />
                     </Form.Item>
                   }
@@ -320,7 +320,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                         placeholder="币种"
                         size="small"
                         variant="borderless"
-                        style={{ width: 72, height: 22 }}
+                        style={{ width: 72, height: 21 }}
                       />
                     </Form.Item>
                   }
