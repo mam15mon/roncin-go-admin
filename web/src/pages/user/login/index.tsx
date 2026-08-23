@@ -89,9 +89,6 @@ export default function Login() {
 
       {/* ── 左侧：深色科技交互区 ── */}
       <div className={styles.heroSection}>
-        {/* 点阵网格背景 */}
-        <div className={styles.dotGridBackground} />
-
         {/* 弥散光晕 */}
         <div className={styles.glowTopLeft} />
         <div className={styles.glowBottomRight} />
