@@ -126,7 +126,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
 
           {/* 第 5 行：一行 5 列（客户业务编号、企业内部编号、贸易条款、订舱代理、国外代理） */}
           <Col className="col-5">
-            <Form.Item label="客户业务编号">
+            <Form.Item label="客户业务编号" style={{ marginInline: 8 }}>
               <Form.Item noStyle name="customerReferenceNo">
                 <Input
                   placeholder="请输入"
@@ -146,7 +146,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <Form.Item label="企业内部编号">
+            <Form.Item label="企业内部编号" style={{ marginInline: 8 }}>
               <Form.Item noStyle name="internalReferenceNo">
                 <Input
                   placeholder="请输入"
@@ -229,7 +229,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             />
           </Col>
           <Col className="col-5">
-            <Form.Item label="货值">
+            <Form.Item label="货值" style={{ marginInline: 8 }}>
               <Form.Item
                 noStyle
                 name="cargoValue"
@@ -270,7 +270,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                         placeholder="币种"
                         size="small"
                         variant="borderless"
-                        style={{ width: 72 }}
+                        style={{ width: 72, height: 22 }}
                       />
                     </Form.Item>
                   }
@@ -279,7 +279,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <Form.Item label="保费">
+            <Form.Item label="保费" style={{ marginInline: 8 }}>
               <Form.Item
                 noStyle
                 name="insurancePremium"
@@ -320,7 +320,7 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
                         placeholder="币种"
                         size="small"
                         variant="borderless"
-                        style={{ width: 72 }}
+                        style={{ width: 72, height: 22 }}
                       />
                     </Form.Item>
                   }
