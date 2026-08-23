@@ -31,11 +31,11 @@ const (
 // OrderPersonnelService 订单协作人员服务。
 type OrderPersonnelServiceClient interface {
 	// ListPersonnel 获取指定订单的协作人员列表。
-	ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelListReply, error)
+	ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...grpc.CallOption) (*ListPersonnelResponse, error)
 	// AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelReply, error)
+	AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*AssignPersonnelResponse, error)
 	// RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelOperationReply, error)
+	RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*RemovePersonnelResponse, error)
 }
 
 type orderPersonnelServiceClient struct {
@@ -46,9 +46,9 @@ func NewOrderPersonnelServiceClient(cc grpc.ClientConnInterface) OrderPersonnelS
 	return &orderPersonnelServiceClient{cc}
 }
 
-func (c *orderPersonnelServiceClient) ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelListReply, error) {
+func (c *orderPersonnelServiceClient) ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...grpc.CallOption) (*ListPersonnelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderPersonnelListReply)
+	out := new(ListPersonnelResponse)
 	err := c.cc.Invoke(ctx, OrderPersonnelService_ListPersonnel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -56,9 +56,9 @@ func (c *orderPersonnelServiceClient) ListPersonnel(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *orderPersonnelServiceClient) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelReply, error) {
+func (c *orderPersonnelServiceClient) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*AssignPersonnelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderPersonnelReply)
+	out := new(AssignPersonnelResponse)
 	err := c.cc.Invoke(ctx, OrderPersonnelService_AssignPersonnel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -66,9 +66,9 @@ func (c *orderPersonnelServiceClient) AssignPersonnel(ctx context.Context, in *A
 	return out, nil
 }
 
-func (c *orderPersonnelServiceClient) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*OrderPersonnelOperationReply, error) {
+func (c *orderPersonnelServiceClient) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*RemovePersonnelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderPersonnelOperationReply)
+	out := new(RemovePersonnelResponse)
 	err := c.cc.Invoke(ctx, OrderPersonnelService_RemovePersonnel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -83,11 +83,11 @@ func (c *orderPersonnelServiceClient) RemovePersonnel(ctx context.Context, in *R
 // OrderPersonnelService 订单协作人员服务。
 type OrderPersonnelServiceServer interface {
 	// ListPersonnel 获取指定订单的协作人员列表。
-	ListPersonnel(context.Context, *ListPersonnelRequest) (*OrderPersonnelListReply, error)
+	ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error)
 	// AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*OrderPersonnelReply, error)
+	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error)
 	// RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*OrderPersonnelOperationReply, error)
+	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error)
 	mustEmbedUnimplementedOrderPersonnelServiceServer()
 }
 
@@ -98,13 +98,13 @@ type OrderPersonnelServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderPersonnelServiceServer struct{}
 
-func (UnimplementedOrderPersonnelServiceServer) ListPersonnel(context.Context, *ListPersonnelRequest) (*OrderPersonnelListReply, error) {
+func (UnimplementedOrderPersonnelServiceServer) ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPersonnel not implemented")
 }
-func (UnimplementedOrderPersonnelServiceServer) AssignPersonnel(context.Context, *AssignPersonnelRequest) (*OrderPersonnelReply, error) {
+func (UnimplementedOrderPersonnelServiceServer) AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssignPersonnel not implemented")
 }
-func (UnimplementedOrderPersonnelServiceServer) RemovePersonnel(context.Context, *RemovePersonnelRequest) (*OrderPersonnelOperationReply, error) {
+func (UnimplementedOrderPersonnelServiceServer) RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemovePersonnel not implemented")
 }
 func (UnimplementedOrderPersonnelServiceServer) mustEmbedUnimplementedOrderPersonnelServiceServer() {}

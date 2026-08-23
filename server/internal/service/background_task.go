@@ -20,7 +20,7 @@ func NewBackgroundTaskService(usecase *biz.BackgroundTaskUsecase) *BackgroundTas
 	return &BackgroundTaskService{usecase: usecase}
 }
 
-func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request *taskv1.ListBackgroundTasksRequest) (*taskv1.BackgroundTaskListReply, error) {
+func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request *taskv1.ListBackgroundTasksRequest) (*taskv1.ListBackgroundTasksResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -66,7 +66,7 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 	for _, item := range result.Items {
 		data = append(data, backgroundTaskToAPI(item))
 	}
-	return &taskv1.BackgroundTaskListReply{
+	return &taskv1.ListBackgroundTasksResponse{
 		Success:  true,
 		Code:     0,
 		Message:  "OK",
@@ -78,7 +78,7 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 	}, nil
 }
 
-func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *taskv1.GetBackgroundTaskRequest) (*taskv1.BackgroundTaskReply, error) {
+func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *taskv1.GetBackgroundTaskRequest) (*taskv1.GetBackgroundTaskResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -91,10 +91,10 @@ func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return backgroundTaskReply(ctx, task), nil
+	return &taskv1.GetBackgroundTaskResponse{Success: true, Code: 0, Message: "OK", Data: backgroundTaskToAPI(task), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, request *taskv1.RequeueBackgroundTaskRequest) (*taskv1.BackgroundTaskReply, error) {
+func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, request *taskv1.RequeueBackgroundTaskRequest) (*taskv1.RequeueBackgroundTaskResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -107,17 +107,7 @@ func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, reque
 	if err != nil {
 		return nil, err
 	}
-	return backgroundTaskReply(ctx, task), nil
-}
-
-func backgroundTaskReply(ctx context.Context, value *biz.BackgroundTask) *taskv1.BackgroundTaskReply {
-	return &taskv1.BackgroundTaskReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    backgroundTaskToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
+	return &taskv1.RequeueBackgroundTaskResponse{Success: true, Code: 0, Message: "OK", Data: backgroundTaskToAPI(task), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 // backgroundTaskToAPI 刻意不暴露租约令牌与租约到期时间，它们是内部执行凭据。

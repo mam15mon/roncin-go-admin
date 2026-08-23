@@ -20,7 +20,7 @@ func NewOrderShippingDocumentService(usecase *biz.OrderShippingDocumentUsecase) 
 	return &OrderShippingDocumentService{usecase: usecase}
 }
 
-func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context, request *v1.ListShippingDocumentsRequest) (*v1.OrderShippingDocumentListReply, error) {
+func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context, request *v1.ListShippingDocumentsRequest) (*v1.ListShippingDocumentsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -37,7 +37,7 @@ func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context
 	for _, item := range items {
 		data = append(data, orderShippingDocumentToAPI(item))
 	}
-	return &v1.OrderShippingDocumentListReply{
+	return &v1.ListShippingDocumentsResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -46,7 +46,7 @@ func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context
 	}, nil
 }
 
-func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, request *v1.AddShippingDocumentRequest) (*v1.OrderShippingDocumentReply, error) {
+func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, request *v1.AddShippingDocumentRequest) (*v1.AddShippingDocumentResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -59,10 +59,10 @@ func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return orderShippingDocumentReply(ctx, created), nil
+	return &v1.AddShippingDocumentResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Context, request *v1.UpdateShippingDocumentRequest) (*v1.OrderShippingDocumentReply, error) {
+func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Context, request *v1.UpdateShippingDocumentRequest) (*v1.UpdateShippingDocumentResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -79,10 +79,10 @@ func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	return orderShippingDocumentReply(ctx, updated), nil
+	return &v1.UpdateShippingDocumentResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx context.Context, request *v1.TransitionShippingDocumentStatusRequest) (*v1.OrderShippingDocumentReply, error) {
+func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx context.Context, request *v1.TransitionShippingDocumentStatusRequest) (*v1.TransitionShippingDocumentStatusResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -107,10 +107,10 @@ func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx cont
 	if err != nil {
 		return nil, err
 	}
-	return orderShippingDocumentReply(ctx, updated), nil
+	return &v1.TransitionShippingDocumentStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Context, request *v1.RemoveShippingDocumentRequest) (*v1.OrderShippingDocumentOperationReply, error) {
+func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Context, request *v1.RemoveShippingDocumentRequest) (*v1.RemoveShippingDocumentResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -126,22 +126,12 @@ func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Contex
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderShippingDocumentOperationReply{
+	return &v1.RemoveShippingDocumentResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
 		TraceId: requestmeta.TraceID(ctx),
 	}, nil
-}
-
-func orderShippingDocumentReply(ctx context.Context, value *biz.OrderShippingDocument) *v1.OrderShippingDocumentReply {
-	return &v1.OrderShippingDocumentReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderShippingDocumentToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
 }
 
 func orderShippingDocumentToAPI(value *biz.OrderShippingDocument) *v1.OrderShippingDocument {

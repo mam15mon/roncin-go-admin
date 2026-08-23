@@ -9,6 +9,14 @@ declare namespace API {
     note?: string;
   };
 
+  type AddCargoItemResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderCargoItem;
+    traceId?: string;
+  };
+
   type AddContainerRequest = {
     orderId: string;
     containerNo: string;
@@ -20,6 +28,14 @@ declare namespace API {
     shippingDocumentId?: string;
   };
 
+  type AddContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderContainer;
+    traceId?: string;
+  };
+
   type AddReleasePodRequest = {
     orderId: string;
     shippingDocumentId?: string;
@@ -28,12 +44,28 @@ declare namespace API {
     note?: string;
   };
 
+  type AddReleasePodResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod;
+    traceId?: string;
+  };
+
   type AddShippingDocumentRequest = {
     orderId: string;
     masterNo: string;
     houseNo: string;
     releaseType?: string;
     note?: string;
+  };
+
+  type AddShippingDocumentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument;
+    traceId?: string;
   };
 
   type AdminAuditLog = {
@@ -51,17 +83,6 @@ declare namespace API {
     createdAt?: string;
   };
 
-  type AdminAuditLogListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminAuditLog[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
   type AdministrativeRegion = {
     id?: string;
     code?: string;
@@ -76,21 +97,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type AdministrativeRegionListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdministrativeRegion[];
-    traceId?: string;
-  };
-
-  type AdminOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
   type AdminOrganization = {
     id?: string;
     code?: string;
@@ -100,35 +106,11 @@ declare namespace API {
     kind?: number;
   };
 
-  type AdminOrganizationListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminOrganization[];
-    traceId?: string;
-  };
-
-  type AdminOrganizationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminOrganization;
-    traceId?: string;
-  };
-
   type AdminPermission = {
     key?: string;
     name?: string;
     group?: string;
     description?: string;
-  };
-
-  type AdminPermissionListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminPermission[];
-    traceId?: string;
   };
 
   type AdminRole = {
@@ -142,22 +124,6 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     orderOrganizationAccesses?: OrderOrganizationAccess[];
-  };
-
-  type AdminRoleListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminRole[];
-    traceId?: string;
-  };
-
-  type AdminRoleReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminRole;
-    traceId?: string;
   };
 
   type AdminServiceAuthorizeWeComUserParams = {
@@ -215,25 +181,6 @@ declare namespace API {
     wecomName?: string;
   };
 
-  type AdminUserListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminUser[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type AdminUserReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminUser;
-    traceId?: string;
-  };
-
   type Airline = {
     id?: string;
     organizationId?: string;
@@ -249,25 +196,6 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type AirlineListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Airline[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type AirlineReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Airline;
-    traceId?: string;
   };
 
   type Airport = {
@@ -289,29 +217,18 @@ declare namespace API {
     sourceHash?: string;
   };
 
-  type AirportListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Airport[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type AirportReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Airport;
-    traceId?: string;
-  };
-
   type AssignPersonnelRequest = {
     orderId: string;
     userId: string;
     role: number;
+  };
+
+  type AssignPersonnelResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderPersonnel;
+    traceId?: string;
   };
 
   type AuthorizeWeComUserRequest = {
@@ -320,6 +237,14 @@ declare namespace API {
     displayName: string;
     email?: string;
     roleIds: string[];
+  };
+
+  type AuthorizeWeComUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser;
+    traceId?: string;
   };
 
   type BackgroundTask = {
@@ -333,25 +258,6 @@ declare namespace API {
     lastError?: string;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type BackgroundTaskListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: BackgroundTask[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type BackgroundTaskReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: BackgroundTask;
-    traceId?: string;
   };
 
   type BackgroundTaskServiceGetBackgroundTaskParams = {
@@ -371,6 +277,14 @@ declare namespace API {
     id: string;
   };
 
+  type CheckOrderReferenceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReferenceCheck;
+    traceId?: string;
+  };
+
   type CreateAirlineRequest = {
     iataCode: string;
     icaoCode?: string;
@@ -381,6 +295,14 @@ declare namespace API {
     cargoOnly?: boolean;
     source?: string;
     sortOrder?: number;
+  };
+
+  type CreateAirlineResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airline;
+    traceId?: string;
   };
 
   type CreateAirportRequest = {
@@ -394,7 +316,15 @@ declare namespace API {
     sortOrder?: number;
   };
 
-  type CreateMasterDataItemRequest = {
+  type CreateAirportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airport;
+    traceId?: string;
+  };
+
+  type CreateItemRequest = {
     kind: number;
     code: string;
     name: string;
@@ -406,6 +336,14 @@ declare namespace API {
     attributes?: MasterDataAttributes;
   };
 
+  type CreateItemResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem;
+    traceId?: string;
+  };
+
   type CreateMilestoneTemplateRequest = {
     code: string;
     name: string;
@@ -415,12 +353,28 @@ declare namespace API {
     items: MilestoneTemplateItemInput[];
   };
 
+  type CreateMilestoneTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate;
+    traceId?: string;
+  };
+
   type CreateNumberRuleRequest = {
     documentType: number;
     prefix?: string;
     dateFormat: number;
     sequenceLength: number;
     resetPolicy: number;
+  };
+
+  type CreateNumberRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NumberRule;
+    traceId?: string;
   };
 
   type CreateOrderRequest = {
@@ -471,6 +425,14 @@ declare namespace API {
     receivedAt?: string;
   };
 
+  type CreateOrderResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
   type CreateOrganizationRequest = {
     code: string;
     name: string;
@@ -478,9 +440,25 @@ declare namespace API {
     kind: number;
   };
 
+  type CreateOrganizationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization;
+    traceId?: string;
+  };
+
   type CreatePartnerAccountRequest = {
     partnerId: string;
     account: PartnerAccountInput;
+  };
+
+  type CreatePartnerAccountResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAccount;
+    traceId?: string;
   };
 
   type CreatePartnerContractInput = {
@@ -499,6 +477,14 @@ declare namespace API {
     contract: CreatePartnerContractInput;
   };
 
+  type CreatePartnerContractResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerContract;
+    traceId?: string;
+  };
+
   type CreatePartnerRequest = {
     code: string;
     legalName: string;
@@ -511,15 +497,39 @@ declare namespace API {
     assignments?: PartnerAssignmentInput[];
   };
 
+  type CreatePartnerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
+  };
+
   type CreatePartnerSettlementRuleRequest = {
     partnerId: string;
     roleType: number;
     rule: PartnerSettlementRuleInput;
   };
 
+  type CreatePartnerSettlementRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerSettlementRule;
+    traceId?: string;
+  };
+
   type CreatePartnerShippingPresetRequest = {
     partnerId: string;
     preset: PartnerShippingPresetInput;
+  };
+
+  type CreatePartnerShippingPresetResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerShippingPreset;
+    traceId?: string;
   };
 
   type CreatePortRequest = {
@@ -531,12 +541,28 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type CreatePortResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Port;
+    traceId?: string;
+  };
+
   type CreateRoleRequest = {
     code: string;
     name: string;
     dataScope: number;
     permissionKeys?: string[];
     orderOrganizationAccesses?: OrderOrganizationAccess[];
+  };
+
+  type CreateRoleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole;
+    traceId?: string;
   };
 
   type CreateShippingLineRequest = {
@@ -551,6 +577,14 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type CreateShippingLineResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ShippingLine;
+    traceId?: string;
+  };
+
   type CreateStatusTemplateRequest = {
     code: string;
     name: string;
@@ -559,12 +593,28 @@ declare namespace API {
     items: StatusTemplateItemInput[];
   };
 
+  type CreateStatusTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate;
+    traceId?: string;
+  };
+
   type CreateUserRequest = {
     username: string;
     displayName: string;
     password: string;
     email?: string;
     roleIds?: string[];
+  };
+
+  type CreateUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser;
+    traceId?: string;
   };
 
   type Currency = {
@@ -578,14 +628,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type CurrencyListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Currency[];
-    traceId?: string;
-  };
-
   type CurrentUser = {
     id?: string;
     username?: string;
@@ -597,11 +639,61 @@ declare namespace API {
     roleScopes?: RoleScope[];
   };
 
-  type ImportMasterDataItemsRequest = {
+  type ExportPartnersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerExportItem[];
+    traceId?: string;
+  };
+
+  type GetBackgroundTaskResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BackgroundTask;
+    traceId?: string;
+  };
+
+  type GetOrderResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
+  type GetPartnerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
+  };
+
+  type GetWeComLoginConfigResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: WeComLoginConfig;
+    traceId?: string;
+  };
+
+  type ImportItemsRequest = {
     kind: number;
     source: string;
     mode: number;
     items: MasterDataImportItemInput[];
+  };
+
+  type ImportItemsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    createdCount?: number;
+    updatedCount?: number;
+    traceId?: string;
   };
 
   type ImportPartnersRequest = {
@@ -610,11 +702,325 @@ declare namespace API {
     items: PartnerImportItemInput[];
   };
 
-  type LoginReply = {
+  type ImportPartnersResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: CurrentUser;
+    createdCount?: number;
+    updatedCount?: number;
+    traceId?: string;
+  };
+
+  type ListAbnormalCasesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAbnormalCase[];
+    traceId?: string;
+  };
+
+  type ListAdministrativeRegionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdministrativeRegion[];
+    traceId?: string;
+  };
+
+  type ListAirlinesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airline[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListAirportsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airport[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListAttachmentsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAttachment[];
+    traceId?: string;
+  };
+
+  type ListAuditLogsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminAuditLog[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListBackgroundTasksResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BackgroundTask[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListCargoItemsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderCargoItem[];
+    traceId?: string;
+  };
+
+  type ListContainersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderContainer[];
+    traceId?: string;
+  };
+
+  type ListCurrenciesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Currency[];
+    traceId?: string;
+  };
+
+  type ListItemsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListMilestonesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderMilestone[];
+    traceId?: string;
+  };
+
+  type ListMilestoneTemplatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate[];
+    traceId?: string;
+  };
+
+  type ListNumberRulesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NumberRule[];
+    traceId?: string;
+  };
+
+  type ListOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    traceId?: string;
+  };
+
+  type ListOrdersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListOrganizationRolesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole[];
+    traceId?: string;
+  };
+
+  type ListOrganizationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization[];
+    traceId?: string;
+  };
+
+  type ListPartnerAccountsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAccount[];
+    traceId?: string;
+  };
+
+  type ListPartnerAssignmentOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAssignmentOption[];
+    traceId?: string;
+  };
+
+  type ListPartnerAttachmentsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAttachment[];
+    traceId?: string;
+  };
+
+  type ListPartnerAuditLogsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAuditLog[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListPartnerContractsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerContract[];
+    traceId?: string;
+  };
+
+  type ListPartnerSettlementRulesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerSettlementRule[];
+    traceId?: string;
+  };
+
+  type ListPartnerShippingPresetsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerShippingPreset[];
+    traceId?: string;
+  };
+
+  type ListPartnersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListPermissionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminPermission[];
+    traceId?: string;
+  };
+
+  type ListPersonnelResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderPersonnel[];
+    traceId?: string;
+  };
+
+  type ListPortsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Port[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListReleasePodsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod[];
+    traceId?: string;
+  };
+
+  type ListRolesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole[];
+    traceId?: string;
+  };
+
+  type ListShippingDocumentsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument[];
+    traceId?: string;
+  };
+
+  type ListShippingLinesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ShippingLine[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListStatusTemplatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate[];
+    traceId?: string;
+  };
+
+  type ListUsersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
     traceId?: string;
   };
 
@@ -623,9 +1029,34 @@ declare namespace API {
     password: string;
   };
 
+  type LoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type LogoutRequest = {};
+
+  type LogoutResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type MarkAbnormalCaseRequest = {
     orderId: string;
     abnormalCaseId: string;
+  };
+
+  type MarkAbnormalCaseResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAbnormalCase;
+    traceId?: string;
   };
 
   type MasterDataAttributes = {
@@ -645,16 +1076,6 @@ declare namespace API {
     attributes?: MasterDataAttributes;
   };
 
-  type MasterDataImportReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MasterDataItem[];
-    createdCount?: number;
-    updatedCount?: number;
-    traceId?: string;
-  };
-
   type MasterDataItem = {
     id?: string;
     organizationId?: string;
@@ -670,33 +1091,6 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     attributes?: MasterDataAttributes;
-  };
-
-  type MasterDataItemListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MasterDataItem[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type MasterDataItemReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MasterDataItem;
-    traceId?: string;
-  };
-
-  type MasterDataOptionsReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MasterDataItem[];
-    traceId?: string;
   };
 
   type MasterDataServiceListAdministrativeRegionsParams = {
@@ -792,7 +1186,7 @@ declare namespace API {
     id: string;
   };
 
-  type MeReply = {
+  type MeResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -837,22 +1231,6 @@ declare namespace API {
     dependsOn?: string[];
   };
 
-  type MilestoneTemplateListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate[];
-    traceId?: string;
-  };
-
-  type MilestoneTemplateReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate;
-    traceId?: string;
-  };
-
   type NumberRule = {
     id?: string;
     organizationId?: string;
@@ -864,29 +1242,6 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type NumberRuleListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: NumberRule[];
-    traceId?: string;
-  };
-
-  type NumberRuleReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: NumberRule;
-    traceId?: string;
-  };
-
-  type OperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
   };
 
   type Order = {
@@ -958,29 +1313,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type OrderAbnormalCaseListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderAbnormalCase[];
-    traceId?: string;
-  };
-
-  type OrderAbnormalCaseOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderAbnormalCaseReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderAbnormalCase;
-    traceId?: string;
-  };
-
   type OrderAbnormalCaseServiceListAbnormalCasesParams = {
     orderId: string;
   };
@@ -1014,22 +1346,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type OrderAttachmentListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderAttachment[];
-    traceId?: string;
-  };
-
-  type OrderAttachmentReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderAttachment;
-    traceId?: string;
-  };
-
   type OrderAttachmentServiceListAttachmentsParams = {
     orderId: string;
   };
@@ -1049,29 +1365,6 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type OrderCargoItemListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderCargoItem[];
-    traceId?: string;
-  };
-
-  type OrderCargoItemOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderCargoItemReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderCargoItem;
-    traceId?: string;
   };
 
   type OrderCargoItemServiceAddCargoItemParams = {
@@ -1106,29 +1399,6 @@ declare namespace API {
     shippingDocumentId?: string;
   };
 
-  type OrderContainerListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderContainer[];
-    traceId?: string;
-  };
-
-  type OrderContainerOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderContainerReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderContainer;
-    traceId?: string;
-  };
-
   type OrderContainerServiceAddContainerParams = {
     orderId: string;
   };
@@ -1147,17 +1417,6 @@ declare namespace API {
     id: string;
   };
 
-  type OrderListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Order[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
   type OrderMilestone = {
     id?: string;
     orderId?: string;
@@ -1169,22 +1428,6 @@ declare namespace API {
     updatedBy?: string;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type OrderMilestoneListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderMilestone[];
-    traceId?: string;
-  };
-
-  type OrderMilestoneReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderMilestone;
-    traceId?: string;
   };
 
   type OrderMilestoneServiceListMilestonesParams = {
@@ -1211,29 +1454,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type OrderPersonnelListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderPersonnel[];
-    traceId?: string;
-  };
-
-  type OrderPersonnelOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderPersonnelReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderPersonnel;
-    traceId?: string;
-  };
-
   type OrderPersonnelServiceAssignPersonnelParams = {
     orderId: string;
   };
@@ -1253,14 +1473,6 @@ declare namespace API {
     orderNo?: string;
   };
 
-  type OrderReferenceCheckReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderReferenceCheck;
-    traceId?: string;
-  };
-
   type OrderReleasePod = {
     id?: string;
     orderId?: string;
@@ -1273,29 +1485,6 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type OrderReleasePodListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderReleasePod[];
-    traceId?: string;
-  };
-
-  type OrderReleasePodOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderReleasePodReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderReleasePod;
-    traceId?: string;
   };
 
   type OrderReleasePodServiceAddReleasePodParams = {
@@ -1319,14 +1508,6 @@ declare namespace API {
   type OrderReleasePodServiceUpdateReleasePodParams = {
     orderId: string;
     id: string;
-  };
-
-  type OrderReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Order;
-    traceId?: string;
   };
 
   type OrderServiceCheckOrderReferenceParams = {
@@ -1367,29 +1548,6 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type OrderShippingDocumentListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderShippingDocument[];
-    traceId?: string;
-  };
-
-  type OrderShippingDocumentOperationReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type OrderShippingDocumentReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderShippingDocument;
-    traceId?: string;
   };
 
   type OrderShippingDocumentServiceAddShippingDocumentParams = {
@@ -1471,22 +1629,6 @@ declare namespace API {
     remark?: string;
   };
 
-  type PartnerAccountListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAccount[];
-    traceId?: string;
-  };
-
-  type PartnerAccountReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAccount;
-    traceId?: string;
-  };
-
   type PartnerAlias = {
     id?: string;
     aliasName?: string;
@@ -1524,14 +1666,6 @@ declare namespace API {
     membershipEnabled?: boolean;
   };
 
-  type PartnerAssignmentOptionListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAssignmentOption[];
-    traceId?: string;
-  };
-
   type PartnerAttachment = {
     id?: string;
     partnerId?: string;
@@ -1546,22 +1680,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type PartnerAttachmentListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAttachment[];
-    traceId?: string;
-  };
-
-  type PartnerAttachmentReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAttachment;
-    traceId?: string;
-  };
-
   type PartnerAuditLog = {
     id?: string;
     userId?: string;
@@ -1571,17 +1689,6 @@ declare namespace API {
     traceId?: string;
     details?: Record<string, any>;
     createdAt?: string;
-  };
-
-  type PartnerAuditLogListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerAuditLog[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
   };
 
   type PartnerContact = {
@@ -1618,22 +1725,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type PartnerContractListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerContract[];
-    traceId?: string;
-  };
-
-  type PartnerContractReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerContract;
-    traceId?: string;
-  };
-
   type PartnerExportItem = {
     code?: string;
     legalName?: string;
@@ -1641,14 +1732,6 @@ declare namespace API {
     registeredAddress?: string;
     enabled?: boolean;
     roles?: number[];
-  };
-
-  type PartnerExportReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerExportItem[];
-    traceId?: string;
   };
 
   type PartnerImportItemInput = {
@@ -1661,26 +1744,6 @@ declare namespace API {
     aliases?: PartnerAliasInput[];
     profile?: PartnerProfile;
     assignments?: PartnerAssignmentInput[];
-  };
-
-  type PartnerImportReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    createdCount?: number;
-    updatedCount?: number;
-    traceId?: string;
-  };
-
-  type PartnerListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Partner[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
   };
 
   type PartnerProfile = {
@@ -1696,14 +1759,6 @@ declare namespace API {
     customerTypes?: number[];
     businessTypes?: number[];
     remark?: string;
-  };
-
-  type PartnerReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Partner;
-    traceId?: string;
   };
 
   type PartnerRole = {
@@ -1849,22 +1904,6 @@ declare namespace API {
     creditCurrency?: string;
   };
 
-  type PartnerSettlementRuleListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerSettlementRule[];
-    traceId?: string;
-  };
-
-  type PartnerSettlementRuleReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerSettlementRule;
-    traceId?: string;
-  };
-
   type PartnerShippingPartyPayload = {
     companyName?: string;
     address?: string;
@@ -1901,22 +1940,6 @@ declare namespace API {
     enabled?: boolean;
   };
 
-  type PartnerShippingPresetListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerShippingPreset[];
-    traceId?: string;
-  };
-
-  type PartnerShippingPresetReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerShippingPreset;
-    traceId?: string;
-  };
-
   type PartnerShippingTextPayload = {
     content?: string;
     code?: string;
@@ -1939,33 +1962,30 @@ declare namespace API {
     sourceHash?: string;
   };
 
-  type PortListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Port[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type PortReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: Port;
-    traceId?: string;
-  };
-
   type PublishMilestoneTemplateRequest = {
     id: string;
     isDefault?: boolean;
   };
 
+  type PublishMilestoneTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate;
+    traceId?: string;
+  };
+
   type PublishStatusTemplateRequest = {
     id: string;
     isDefault?: boolean;
+  };
+
+  type PublishStatusTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate;
+    traceId?: string;
   };
 
   type RegisterAttachmentRequest = {
@@ -1979,6 +1999,14 @@ declare namespace API {
     checksum?: string;
   };
 
+  type RegisterAttachmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAttachment;
+    traceId?: string;
+  };
+
   type RegisterPartnerAttachmentRequest = {
     partnerId: string;
     idempotencyKey: string;
@@ -1989,8 +2017,66 @@ declare namespace API {
     checksum?: string;
   };
 
+  type RegisterPartnerAttachmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAttachment;
+    traceId?: string;
+  };
+
+  type RemoveAbnormalCaseResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemoveCargoItemResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemoveContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemovePersonnelResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemoveReleasePodResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type RemoveShippingDocumentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type RequeueBackgroundTaskRequest = {
     id: string;
+  };
+
+  type RequeueBackgroundTaskResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BackgroundTask;
+    traceId?: string;
   };
 
   type ResetUserPasswordRequest = {
@@ -1998,9 +2084,24 @@ declare namespace API {
     password: string;
   };
 
+  type ResetUserPasswordResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type ResolveAbnormalCaseRequest = {
     orderId: string;
     id: string;
+  };
+
+  type ResolveAbnormalCaseResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderAbnormalCase;
+    traceId?: string;
   };
 
   type RoleScope = {
@@ -2012,8 +2113,24 @@ declare namespace API {
     id: string;
   };
 
+  type SetDefaultMilestoneTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MilestoneTemplate;
+    traceId?: string;
+  };
+
   type SetDefaultStatusTemplateRequest = {
     id: string;
+  };
+
+  type SetDefaultStatusTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: StatusTemplate;
+    traceId?: string;
   };
 
   type SetMilestoneRequest = {
@@ -2025,10 +2142,26 @@ declare namespace API {
     clearOccurredAt?: boolean;
   };
 
+  type SetMilestoneResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderMilestone;
+    traceId?: string;
+  };
+
   type SetSupplierBlacklistRequest = {
     id: string;
     blacklisted?: boolean;
     reason: string;
+  };
+
+  type SetSupplierBlacklistResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
   };
 
   type ShippingLine = {
@@ -2046,25 +2179,6 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
-  };
-
-  type ShippingLineListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ShippingLine[];
-    total?: number;
-    page?: number;
-    pageSize?: number;
-    traceId?: string;
-  };
-
-  type ShippingLineReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: ShippingLine;
-    traceId?: string;
   };
 
   type StatusTemplate = {
@@ -2101,24 +2215,16 @@ declare namespace API {
     system?: boolean;
   };
 
-  type StatusTemplateListReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate[];
-    traceId?: string;
-  };
-
-  type StatusTemplateReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate;
-    traceId?: string;
-  };
-
   type SwitchOrganizationRequest = {
     organizationId: string;
+  };
+
+  type SwitchOrganizationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CurrentUser;
+    traceId?: string;
   };
 
   type TransitionOrderStatusRequest = {
@@ -2128,6 +2234,14 @@ declare namespace API {
     reason?: string;
   };
 
+  type TransitionOrderStatusResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
   type TransitionReleasePodStatusRequest = {
     orderId: string;
     id: string;
@@ -2135,11 +2249,27 @@ declare namespace API {
     toStatus: number;
   };
 
+  type TransitionReleasePodStatusResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod;
+    traceId?: string;
+  };
+
   type TransitionShippingDocumentStatusRequest = {
     orderId: string;
     id: string;
     expectedStatus: number;
     toStatus: number;
+  };
+
+  type TransitionShippingDocumentStatusResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument;
+    traceId?: string;
   };
 
   type UpdateAirlineRequest = {
@@ -2155,6 +2285,14 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type UpdateAirlineResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airline;
+    traceId?: string;
+  };
+
   type UpdateAirportRequest = {
     id: string;
     icaoCode?: string;
@@ -2167,6 +2305,14 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type UpdateAirportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Airport;
+    traceId?: string;
+  };
+
   type UpdateCargoItemRequest = {
     orderId: string;
     id: string;
@@ -2176,6 +2322,14 @@ declare namespace API {
     volumeCbm: number;
     netWeightKg?: number;
     note?: string;
+  };
+
+  type UpdateCargoItemResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderCargoItem;
+    traceId?: string;
   };
 
   type UpdateContainerRequest = {
@@ -2190,7 +2344,15 @@ declare namespace API {
     shippingDocumentId?: string;
   };
 
-  type UpdateMasterDataItemRequest = {
+  type UpdateContainerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderContainer;
+    traceId?: string;
+  };
+
+  type UpdateItemRequest = {
     id: string;
     name: string;
     nameEn?: string;
@@ -2203,6 +2365,14 @@ declare namespace API {
     attributes?: MasterDataAttributes;
   };
 
+  type UpdateItemResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem;
+    traceId?: string;
+  };
+
   type UpdateNumberRuleRequest = {
     id: string;
     prefix?: string;
@@ -2210,6 +2380,14 @@ declare namespace API {
     sequenceLength: number;
     resetPolicy: number;
     enabled?: boolean;
+  };
+
+  type UpdateNumberRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NumberRule;
+    traceId?: string;
   };
 
   type UpdateOrderRequest = {
@@ -2261,16 +2439,40 @@ declare namespace API {
     receivedAt?: string;
   };
 
+  type UpdateOrderResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
   type UpdateOrganizationRequest = {
     id: string;
     name: string;
     enabled?: boolean;
   };
 
+  type UpdateOrganizationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminOrganization;
+    traceId?: string;
+  };
+
   type UpdatePartnerAccountRequest = {
     partnerId: string;
     id: string;
     account: PartnerAccountInput;
+  };
+
+  type UpdatePartnerAccountResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAccount;
+    traceId?: string;
   };
 
   type UpdatePartnerContractInput = {
@@ -2289,6 +2491,14 @@ declare namespace API {
     contract: UpdatePartnerContractInput;
   };
 
+  type UpdatePartnerContractResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerContract;
+    traceId?: string;
+  };
+
   type UpdatePartnerRequest = {
     id: string;
     legalName: string;
@@ -2302,6 +2512,14 @@ declare namespace API {
     assignments?: PartnerAssignmentInput[];
   };
 
+  type UpdatePartnerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
+  };
+
   type UpdatePartnerSettlementRuleRequest = {
     partnerId: string;
     roleType: number;
@@ -2309,10 +2527,26 @@ declare namespace API {
     rule: PartnerSettlementRuleInput;
   };
 
+  type UpdatePartnerSettlementRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerSettlementRule;
+    traceId?: string;
+  };
+
   type UpdatePartnerShippingPresetRequest = {
     partnerId: string;
     id: string;
     preset: PartnerShippingPresetInput;
+  };
+
+  type UpdatePartnerShippingPresetResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerShippingPreset;
+    traceId?: string;
   };
 
   type UpdatePortRequest = {
@@ -2325,6 +2559,14 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type UpdatePortResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Port;
+    traceId?: string;
+  };
+
   type UpdateReleasePodRequest = {
     orderId: string;
     id: string;
@@ -2332,6 +2574,14 @@ declare namespace API {
     releaseNo?: string;
     podNo?: string;
     note?: string;
+  };
+
+  type UpdateReleasePodResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderReleasePod;
+    traceId?: string;
   };
 
   type UpdateRoleRequest = {
@@ -2343,6 +2593,14 @@ declare namespace API {
     orderOrganizationAccesses?: OrderOrganizationAccess[];
   };
 
+  type UpdateRoleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminRole;
+    traceId?: string;
+  };
+
   type UpdateShippingDocumentRequest = {
     orderId: string;
     id: string;
@@ -2350,6 +2608,14 @@ declare namespace API {
     houseNo: string;
     releaseType?: string;
     note?: string;
+  };
+
+  type UpdateShippingDocumentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderShippingDocument;
+    traceId?: string;
   };
 
   type UpdateShippingLineRequest = {
@@ -2365,6 +2631,14 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type UpdateShippingLineResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ShippingLine;
+    traceId?: string;
+  };
+
   type UpdateUserRequest = {
     id: string;
     displayName: string;
@@ -2373,21 +2647,29 @@ declare namespace API {
     roleIds?: string[];
   };
 
+  type UpdateUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser;
+    traceId?: string;
+  };
+
   type WeComLoginConfig = {
     enabled?: boolean;
     authorizeUrl?: string;
   };
 
-  type WeComLoginConfigReply = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: WeComLoginConfig;
-    traceId?: string;
-  };
-
   type WeComLoginRequest = {
     code: string;
     state: string;
+  };
+
+  type WeComLoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CurrentUser;
+    traceId?: string;
   };
 }

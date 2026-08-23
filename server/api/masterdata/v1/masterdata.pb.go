@@ -374,7 +374,7 @@ func (BusinessType) EnumDescriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{5}
 }
 
-type ListMasterDataItemsRequest struct {
+type ListItemsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
@@ -385,20 +385,20 @@ type ListMasterDataItemsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListMasterDataItemsRequest) Reset() {
-	*x = ListMasterDataItemsRequest{}
+func (x *ListItemsRequest) Reset() {
+	*x = ListItemsRequest{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListMasterDataItemsRequest) String() string {
+func (x *ListItemsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListMasterDataItemsRequest) ProtoMessage() {}
+func (*ListItemsRequest) ProtoMessage() {}
 
-func (x *ListMasterDataItemsRequest) ProtoReflect() protoreflect.Message {
+func (x *ListItemsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -410,40 +410,40 @@ func (x *ListMasterDataItemsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListMasterDataItemsRequest.ProtoReflect.Descriptor instead.
-func (*ListMasterDataItemsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListItemsRequest.ProtoReflect.Descriptor instead.
+func (*ListItemsRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ListMasterDataItemsRequest) GetPage() int32 {
+func (x *ListItemsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ListMasterDataItemsRequest) GetPageSize() int32 {
+func (x *ListItemsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *ListMasterDataItemsRequest) GetKind() MasterDataKind {
+func (x *ListItemsRequest) GetKind() MasterDataKind {
 	if x != nil {
 		return x.Kind
 	}
 	return MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
 }
 
-func (x *ListMasterDataItemsRequest) GetKeyword() string {
+func (x *ListItemsRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
 	}
 	return ""
 }
 
-func (x *ListMasterDataItemsRequest) GetEnabled() bool {
+func (x *ListItemsRequest) GetEnabled() bool {
 	if x != nil && x.Enabled != nil {
 		return *x.Enabled
 	}
@@ -511,7 +511,7 @@ func (x *MasterDataAttributes) GetRegionLevel() int32 {
 	return 0
 }
 
-type CreateMasterDataItemRequest struct {
+type CreateItemRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Kind          MasterDataKind         `protobuf:"varint,1,opt,name=kind,proto3,enum=masterdata.v1.MasterDataKind" json:"kind,omitempty"`
 	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -526,20 +526,20 @@ type CreateMasterDataItemRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateMasterDataItemRequest) Reset() {
-	*x = CreateMasterDataItemRequest{}
+func (x *CreateItemRequest) Reset() {
+	*x = CreateItemRequest{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateMasterDataItemRequest) String() string {
+func (x *CreateItemRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateMasterDataItemRequest) ProtoMessage() {}
+func (*CreateItemRequest) ProtoMessage() {}
 
-func (x *CreateMasterDataItemRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateItemRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -551,75 +551,75 @@ func (x *CreateMasterDataItemRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateMasterDataItemRequest.ProtoReflect.Descriptor instead.
-func (*CreateMasterDataItemRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateItemRequest.ProtoReflect.Descriptor instead.
+func (*CreateItemRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *CreateMasterDataItemRequest) GetKind() MasterDataKind {
+func (x *CreateItemRequest) GetKind() MasterDataKind {
 	if x != nil {
 		return x.Kind
 	}
 	return MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
 }
 
-func (x *CreateMasterDataItemRequest) GetCode() string {
+func (x *CreateItemRequest) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetName() string {
+func (x *CreateItemRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetNameEn() string {
+func (x *CreateItemRequest) GetNameEn() string {
 	if x != nil && x.NameEn != nil {
 		return *x.NameEn
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetParentCode() string {
+func (x *CreateItemRequest) GetParentCode() string {
 	if x != nil && x.ParentCode != nil {
 		return *x.ParentCode
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetTeuFactor() string {
+func (x *CreateItemRequest) GetTeuFactor() string {
 	if x != nil && x.TeuFactor != nil {
 		return *x.TeuFactor
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetSource() string {
+func (x *CreateItemRequest) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *CreateMasterDataItemRequest) GetSortOrder() int32 {
+func (x *CreateItemRequest) GetSortOrder() int32 {
 	if x != nil {
 		return x.SortOrder
 	}
 	return 0
 }
 
-func (x *CreateMasterDataItemRequest) GetAttributes() *MasterDataAttributes {
+func (x *CreateItemRequest) GetAttributes() *MasterDataAttributes {
 	if x != nil {
 		return x.Attributes
 	}
 	return nil
 }
 
-type UpdateMasterDataItemRequest struct {
+type UpdateItemRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -635,20 +635,20 @@ type UpdateMasterDataItemRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateMasterDataItemRequest) Reset() {
-	*x = UpdateMasterDataItemRequest{}
+func (x *UpdateItemRequest) Reset() {
+	*x = UpdateItemRequest{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateMasterDataItemRequest) String() string {
+func (x *UpdateItemRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateMasterDataItemRequest) ProtoMessage() {}
+func (*UpdateItemRequest) ProtoMessage() {}
 
-func (x *UpdateMasterDataItemRequest) ProtoReflect() protoreflect.Message {
+func (x *UpdateItemRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -660,75 +660,75 @@ func (x *UpdateMasterDataItemRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateMasterDataItemRequest.ProtoReflect.Descriptor instead.
-func (*UpdateMasterDataItemRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdateItemRequest.ProtoReflect.Descriptor instead.
+func (*UpdateItemRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *UpdateMasterDataItemRequest) GetId() string {
+func (x *UpdateItemRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetName() string {
+func (x *UpdateItemRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetNameEn() string {
+func (x *UpdateItemRequest) GetNameEn() string {
 	if x != nil && x.NameEn != nil {
 		return *x.NameEn
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetParentCode() string {
+func (x *UpdateItemRequest) GetParentCode() string {
 	if x != nil && x.ParentCode != nil {
 		return *x.ParentCode
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetTeuFactor() string {
+func (x *UpdateItemRequest) GetTeuFactor() string {
 	if x != nil && x.TeuFactor != nil {
 		return *x.TeuFactor
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetSource() string {
+func (x *UpdateItemRequest) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *UpdateMasterDataItemRequest) GetSortOrder() int32 {
+func (x *UpdateItemRequest) GetSortOrder() int32 {
 	if x != nil {
 		return x.SortOrder
 	}
 	return 0
 }
 
-func (x *UpdateMasterDataItemRequest) GetEnabled() bool {
+func (x *UpdateItemRequest) GetEnabled() bool {
 	if x != nil {
 		return x.Enabled
 	}
 	return false
 }
 
-func (x *UpdateMasterDataItemRequest) GetKind() MasterDataKind {
+func (x *UpdateItemRequest) GetKind() MasterDataKind {
 	if x != nil {
 		return x.Kind
 	}
 	return MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
 }
 
-func (x *UpdateMasterDataItemRequest) GetAttributes() *MasterDataAttributes {
+func (x *UpdateItemRequest) GetAttributes() *MasterDataAttributes {
 	if x != nil {
 		return x.Attributes
 	}
@@ -835,7 +835,7 @@ func (x *MasterDataImportItemInput) GetAttributes() *MasterDataAttributes {
 	return nil
 }
 
-type ImportMasterDataItemsRequest struct {
+type ImportItemsRequest struct {
 	state         protoimpl.MessageState       `protogen:"open.v1"`
 	Kind          MasterDataKind               `protobuf:"varint,1,opt,name=kind,proto3,enum=masterdata.v1.MasterDataKind" json:"kind,omitempty"`
 	Source        string                       `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
@@ -845,20 +845,20 @@ type ImportMasterDataItemsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ImportMasterDataItemsRequest) Reset() {
-	*x = ImportMasterDataItemsRequest{}
+func (x *ImportItemsRequest) Reset() {
+	*x = ImportItemsRequest{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ImportMasterDataItemsRequest) String() string {
+func (x *ImportItemsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ImportMasterDataItemsRequest) ProtoMessage() {}
+func (*ImportItemsRequest) ProtoMessage() {}
 
-func (x *ImportMasterDataItemsRequest) ProtoReflect() protoreflect.Message {
+func (x *ImportItemsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -870,40 +870,40 @@ func (x *ImportMasterDataItemsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ImportMasterDataItemsRequest.ProtoReflect.Descriptor instead.
-func (*ImportMasterDataItemsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ImportItemsRequest.ProtoReflect.Descriptor instead.
+func (*ImportItemsRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ImportMasterDataItemsRequest) GetKind() MasterDataKind {
+func (x *ImportItemsRequest) GetKind() MasterDataKind {
 	if x != nil {
 		return x.Kind
 	}
 	return MasterDataKind_MASTER_DATA_KIND_UNSPECIFIED
 }
 
-func (x *ImportMasterDataItemsRequest) GetSource() string {
+func (x *ImportItemsRequest) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *ImportMasterDataItemsRequest) GetMode() MasterDataImportMode {
+func (x *ImportItemsRequest) GetMode() MasterDataImportMode {
 	if x != nil {
 		return x.Mode
 	}
 	return MasterDataImportMode_MASTER_DATA_IMPORT_MODE_UNSPECIFIED
 }
 
-func (x *ImportMasterDataItemsRequest) GetItems() []*MasterDataImportItemInput {
+func (x *ImportItemsRequest) GetItems() []*MasterDataImportItemInput {
 	if x != nil {
 		return x.Items
 	}
 	return nil
 }
 
-type MasterDataImportReply struct {
+type ImportItemsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -916,20 +916,20 @@ type MasterDataImportReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MasterDataImportReply) Reset() {
-	*x = MasterDataImportReply{}
+func (x *ImportItemsResponse) Reset() {
+	*x = ImportItemsResponse{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MasterDataImportReply) String() string {
+func (x *ImportItemsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MasterDataImportReply) ProtoMessage() {}
+func (*ImportItemsResponse) ProtoMessage() {}
 
-func (x *MasterDataImportReply) ProtoReflect() protoreflect.Message {
+func (x *ImportItemsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -941,80 +941,80 @@ func (x *MasterDataImportReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MasterDataImportReply.ProtoReflect.Descriptor instead.
-func (*MasterDataImportReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ImportItemsResponse.ProtoReflect.Descriptor instead.
+func (*ImportItemsResponse) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *MasterDataImportReply) GetSuccess() bool {
+func (x *ImportItemsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MasterDataImportReply) GetCode() int32 {
+func (x *ImportItemsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MasterDataImportReply) GetMessage() string {
+func (x *ImportItemsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MasterDataImportReply) GetData() []*MasterDataItem {
+func (x *ImportItemsResponse) GetData() []*MasterDataItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MasterDataImportReply) GetCreatedCount() int32 {
+func (x *ImportItemsResponse) GetCreatedCount() int32 {
 	if x != nil {
 		return x.CreatedCount
 	}
 	return 0
 }
 
-func (x *MasterDataImportReply) GetUpdatedCount() int32 {
+func (x *ImportItemsResponse) GetUpdatedCount() int32 {
 	if x != nil {
 		return x.UpdatedCount
 	}
 	return 0
 }
 
-func (x *MasterDataImportReply) GetTraceId() string {
+func (x *ImportItemsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type ListMasterDataOptionsRequest struct {
+type ListOptionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListMasterDataOptionsRequest) Reset() {
-	*x = ListMasterDataOptionsRequest{}
+func (x *ListOptionsRequest) Reset() {
+	*x = ListOptionsRequest{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListMasterDataOptionsRequest) String() string {
+func (x *ListOptionsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListMasterDataOptionsRequest) ProtoMessage() {}
+func (*ListOptionsRequest) ProtoMessage() {}
 
-func (x *ListMasterDataOptionsRequest) ProtoReflect() protoreflect.Message {
+func (x *ListOptionsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1026,8 +1026,8 @@ func (x *ListMasterDataOptionsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListMasterDataOptionsRequest.ProtoReflect.Descriptor instead.
-func (*ListMasterDataOptionsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListOptionsRequest.ProtoReflect.Descriptor instead.
+func (*ListOptionsRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{7}
 }
 
@@ -1179,7 +1179,7 @@ func (x *MasterDataItem) GetAttributes() *MasterDataAttributes {
 	return nil
 }
 
-type MasterDataItemListReply struct {
+type ListItemsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1193,20 +1193,20 @@ type MasterDataItemListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MasterDataItemListReply) Reset() {
-	*x = MasterDataItemListReply{}
+func (x *ListItemsResponse) Reset() {
+	*x = ListItemsResponse{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MasterDataItemListReply) String() string {
+func (x *ListItemsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MasterDataItemListReply) ProtoMessage() {}
+func (*ListItemsResponse) ProtoMessage() {}
 
-func (x *MasterDataItemListReply) ProtoReflect() protoreflect.Message {
+func (x *ListItemsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1218,68 +1218,68 @@ func (x *MasterDataItemListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MasterDataItemListReply.ProtoReflect.Descriptor instead.
-func (*MasterDataItemListReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListItemsResponse.ProtoReflect.Descriptor instead.
+func (*ListItemsResponse) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *MasterDataItemListReply) GetSuccess() bool {
+func (x *ListItemsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MasterDataItemListReply) GetCode() int32 {
+func (x *ListItemsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MasterDataItemListReply) GetMessage() string {
+func (x *ListItemsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MasterDataItemListReply) GetData() []*MasterDataItem {
+func (x *ListItemsResponse) GetData() []*MasterDataItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MasterDataItemListReply) GetTotal() int32 {
+func (x *ListItemsResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *MasterDataItemListReply) GetPage() int32 {
+func (x *ListItemsResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *MasterDataItemListReply) GetPageSize() int32 {
+func (x *ListItemsResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *MasterDataItemListReply) GetTraceId() string {
+func (x *ListItemsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type MasterDataItemReply struct {
+type CreateItemResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1290,20 +1290,20 @@ type MasterDataItemReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MasterDataItemReply) Reset() {
-	*x = MasterDataItemReply{}
+func (x *CreateItemResponse) Reset() {
+	*x = CreateItemResponse{}
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MasterDataItemReply) String() string {
+func (x *CreateItemResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MasterDataItemReply) ProtoMessage() {}
+func (*CreateItemResponse) ProtoMessage() {}
 
-func (x *MasterDataItemReply) ProtoReflect() protoreflect.Message {
+func (x *CreateItemResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_masterdata_v1_masterdata_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1315,47 +1315,123 @@ func (x *MasterDataItemReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MasterDataItemReply.ProtoReflect.Descriptor instead.
-func (*MasterDataItemReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateItemResponse.ProtoReflect.Descriptor instead.
+func (*CreateItemResponse) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *MasterDataItemReply) GetSuccess() bool {
+func (x *CreateItemResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MasterDataItemReply) GetCode() int32 {
+func (x *CreateItemResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MasterDataItemReply) GetMessage() string {
+func (x *CreateItemResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MasterDataItemReply) GetData() *MasterDataItem {
+func (x *CreateItemResponse) GetData() *MasterDataItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MasterDataItemReply) GetTraceId() string {
+func (x *CreateItemResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type MasterDataOptionsReply struct {
+type UpdateItemResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *MasterDataItem        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateItemResponse) Reset() {
+	*x = UpdateItemResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateItemResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateItemResponse) ProtoMessage() {}
+
+func (x *UpdateItemResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateItemResponse.ProtoReflect.Descriptor instead.
+func (*UpdateItemResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateItemResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateItemResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateItemResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateItemResponse) GetData() *MasterDataItem {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateItemResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ListOptionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1366,21 +1442,21 @@ type MasterDataOptionsReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MasterDataOptionsReply) Reset() {
-	*x = MasterDataOptionsReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+func (x *ListOptionsResponse) Reset() {
+	*x = ListOptionsResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MasterDataOptionsReply) String() string {
+func (x *ListOptionsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MasterDataOptionsReply) ProtoMessage() {}
+func (*ListOptionsResponse) ProtoMessage() {}
 
-func (x *MasterDataOptionsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[11]
+func (x *ListOptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1391,47 +1467,47 @@ func (x *MasterDataOptionsReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MasterDataOptionsReply.ProtoReflect.Descriptor instead.
-func (*MasterDataOptionsReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{11}
+// Deprecated: Use ListOptionsResponse.ProtoReflect.Descriptor instead.
+func (*ListOptionsResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *MasterDataOptionsReply) GetSuccess() bool {
+func (x *ListOptionsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MasterDataOptionsReply) GetCode() int32 {
+func (x *ListOptionsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MasterDataOptionsReply) GetMessage() string {
+func (x *ListOptionsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MasterDataOptionsReply) GetData() []*MasterDataItem {
+func (x *ListOptionsResponse) GetData() []*MasterDataItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MasterDataOptionsReply) GetTraceId() string {
+func (x *ListOptionsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type ListIndustryReferencesRequest struct {
+type ListPortsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
@@ -1441,21 +1517,21 @@ type ListIndustryReferencesRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListIndustryReferencesRequest) Reset() {
-	*x = ListIndustryReferencesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
+func (x *ListPortsRequest) Reset() {
+	*x = ListPortsRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListIndustryReferencesRequest) String() string {
+func (x *ListPortsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListIndustryReferencesRequest) ProtoMessage() {}
+func (*ListPortsRequest) ProtoMessage() {}
 
-func (x *ListIndustryReferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[12]
+func (x *ListPortsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1466,33 +1542,237 @@ func (x *ListIndustryReferencesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListIndustryReferencesRequest.ProtoReflect.Descriptor instead.
-func (*ListIndustryReferencesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use ListPortsRequest.ProtoReflect.Descriptor instead.
+func (*ListPortsRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *ListIndustryReferencesRequest) GetPage() int32 {
+func (x *ListPortsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ListIndustryReferencesRequest) GetPageSize() int32 {
+func (x *ListPortsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *ListIndustryReferencesRequest) GetKeyword() string {
+func (x *ListPortsRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
 	}
 	return ""
 }
 
-func (x *ListIndustryReferencesRequest) GetEnabled() bool {
+func (x *ListPortsRequest) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+type ListAirportsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAirportsRequest) Reset() {
+	*x = ListAirportsRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAirportsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAirportsRequest) ProtoMessage() {}
+
+func (x *ListAirportsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAirportsRequest.ProtoReflect.Descriptor instead.
+func (*ListAirportsRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListAirportsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAirportsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAirportsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListAirportsRequest) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+type ListAirlinesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAirlinesRequest) Reset() {
+	*x = ListAirlinesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAirlinesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAirlinesRequest) ProtoMessage() {}
+
+func (x *ListAirlinesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAirlinesRequest.ProtoReflect.Descriptor instead.
+func (*ListAirlinesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListAirlinesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAirlinesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListAirlinesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListAirlinesRequest) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+type ListShippingLinesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Enabled       *bool                  `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListShippingLinesRequest) Reset() {
+	*x = ListShippingLinesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListShippingLinesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListShippingLinesRequest) ProtoMessage() {}
+
+func (x *ListShippingLinesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListShippingLinesRequest.ProtoReflect.Descriptor instead.
+func (*ListShippingLinesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ListShippingLinesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListShippingLinesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListShippingLinesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListShippingLinesRequest) GetEnabled() bool {
 	if x != nil && x.Enabled != nil {
 		return *x.Enabled
 	}
@@ -1521,7 +1801,7 @@ type Port struct {
 
 func (x *Port) Reset() {
 	*x = Port{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1533,7 +1813,7 @@ func (x *Port) String() string {
 func (*Port) ProtoMessage() {}
 
 func (x *Port) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[13]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1546,7 +1826,7 @@ func (x *Port) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Port.ProtoReflect.Descriptor instead.
 func (*Port) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{13}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *Port) GetId() string {
@@ -1661,7 +1941,7 @@ type CreatePortRequest struct {
 
 func (x *CreatePortRequest) Reset() {
 	*x = CreatePortRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1673,7 +1953,7 @@ func (x *CreatePortRequest) String() string {
 func (*CreatePortRequest) ProtoMessage() {}
 
 func (x *CreatePortRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[14]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1686,7 +1966,7 @@ func (x *CreatePortRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePortRequest.ProtoReflect.Descriptor instead.
 func (*CreatePortRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{14}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreatePortRequest) GetUnLocode() string {
@@ -1746,7 +2026,7 @@ type UpdatePortRequest struct {
 
 func (x *UpdatePortRequest) Reset() {
 	*x = UpdatePortRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1758,7 +2038,7 @@ func (x *UpdatePortRequest) String() string {
 func (*UpdatePortRequest) ProtoMessage() {}
 
 func (x *UpdatePortRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[15]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1771,7 +2051,7 @@ func (x *UpdatePortRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePortRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePortRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{15}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdatePortRequest) GetId() string {
@@ -1823,7 +2103,7 @@ func (x *UpdatePortRequest) GetEnabled() bool {
 	return false
 }
 
-type PortListReply struct {
+type ListPortsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1837,21 +2117,21 @@ type PortListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PortListReply) Reset() {
-	*x = PortListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+func (x *ListPortsResponse) Reset() {
+	*x = ListPortsResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PortListReply) String() string {
+func (x *ListPortsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PortListReply) ProtoMessage() {}
+func (*ListPortsResponse) ProtoMessage() {}
 
-func (x *PortListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[16]
+func (x *ListPortsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1862,68 +2142,68 @@ func (x *PortListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PortListReply.ProtoReflect.Descriptor instead.
-func (*PortListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{16}
+// Deprecated: Use ListPortsResponse.ProtoReflect.Descriptor instead.
+func (*ListPortsResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *PortListReply) GetSuccess() bool {
+func (x *ListPortsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *PortListReply) GetCode() int32 {
+func (x *ListPortsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *PortListReply) GetMessage() string {
+func (x *ListPortsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *PortListReply) GetData() []*Port {
+func (x *ListPortsResponse) GetData() []*Port {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *PortListReply) GetTotal() int32 {
+func (x *ListPortsResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *PortListReply) GetPage() int32 {
+func (x *ListPortsResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *PortListReply) GetPageSize() int32 {
+func (x *ListPortsResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *PortListReply) GetTraceId() string {
+func (x *ListPortsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type PortReply struct {
+type CreatePortResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1934,21 +2214,21 @@ type PortReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PortReply) Reset() {
-	*x = PortReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
+func (x *CreatePortResponse) Reset() {
+	*x = CreatePortResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PortReply) String() string {
+func (x *CreatePortResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PortReply) ProtoMessage() {}
+func (*CreatePortResponse) ProtoMessage() {}
 
-func (x *PortReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[17]
+func (x *CreatePortResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1959,40 +2239,116 @@ func (x *PortReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PortReply.ProtoReflect.Descriptor instead.
-func (*PortReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{17}
+// Deprecated: Use CreatePortResponse.ProtoReflect.Descriptor instead.
+func (*CreatePortResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *PortReply) GetSuccess() bool {
+func (x *CreatePortResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *PortReply) GetCode() int32 {
+func (x *CreatePortResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *PortReply) GetMessage() string {
+func (x *CreatePortResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *PortReply) GetData() *Port {
+func (x *CreatePortResponse) GetData() *Port {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *PortReply) GetTraceId() string {
+func (x *CreatePortResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdatePortResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Port                  `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePortResponse) Reset() {
+	*x = UpdatePortResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePortResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePortResponse) ProtoMessage() {}
+
+func (x *UpdatePortResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePortResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePortResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UpdatePortResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdatePortResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdatePortResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdatePortResponse) GetData() *Port {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdatePortResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -2023,7 +2379,7 @@ type Airport struct {
 
 func (x *Airport) Reset() {
 	*x = Airport{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2035,7 +2391,7 @@ func (x *Airport) String() string {
 func (*Airport) ProtoMessage() {}
 
 func (x *Airport) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[18]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2048,7 +2404,7 @@ func (x *Airport) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Airport.ProtoReflect.Descriptor instead.
 func (*Airport) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{18}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Airport) GetId() string {
@@ -2179,7 +2535,7 @@ type CreateAirportRequest struct {
 
 func (x *CreateAirportRequest) Reset() {
 	*x = CreateAirportRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2191,7 +2547,7 @@ func (x *CreateAirportRequest) String() string {
 func (*CreateAirportRequest) ProtoMessage() {}
 
 func (x *CreateAirportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[19]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2204,7 +2560,7 @@ func (x *CreateAirportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAirportRequest.ProtoReflect.Descriptor instead.
 func (*CreateAirportRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{19}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateAirportRequest) GetIataCode() string {
@@ -2280,7 +2636,7 @@ type UpdateAirportRequest struct {
 
 func (x *UpdateAirportRequest) Reset() {
 	*x = UpdateAirportRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2292,7 +2648,7 @@ func (x *UpdateAirportRequest) String() string {
 func (*UpdateAirportRequest) ProtoMessage() {}
 
 func (x *UpdateAirportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[20]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2305,7 +2661,7 @@ func (x *UpdateAirportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirportRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAirportRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{20}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateAirportRequest) GetId() string {
@@ -2371,7 +2727,7 @@ func (x *UpdateAirportRequest) GetEnabled() bool {
 	return false
 }
 
-type AirportListReply struct {
+type ListAirportsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2385,21 +2741,21 @@ type AirportListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AirportListReply) Reset() {
-	*x = AirportListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
+func (x *ListAirportsResponse) Reset() {
+	*x = ListAirportsResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AirportListReply) String() string {
+func (x *ListAirportsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AirportListReply) ProtoMessage() {}
+func (*ListAirportsResponse) ProtoMessage() {}
 
-func (x *AirportListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[21]
+func (x *ListAirportsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2410,68 +2766,68 @@ func (x *AirportListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AirportListReply.ProtoReflect.Descriptor instead.
-func (*AirportListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{21}
+// Deprecated: Use ListAirportsResponse.ProtoReflect.Descriptor instead.
+func (*ListAirportsResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *AirportListReply) GetSuccess() bool {
+func (x *ListAirportsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AirportListReply) GetCode() int32 {
+func (x *ListAirportsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *AirportListReply) GetMessage() string {
+func (x *ListAirportsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AirportListReply) GetData() []*Airport {
+func (x *ListAirportsResponse) GetData() []*Airport {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *AirportListReply) GetTotal() int32 {
+func (x *ListAirportsResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *AirportListReply) GetPage() int32 {
+func (x *ListAirportsResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *AirportListReply) GetPageSize() int32 {
+func (x *ListAirportsResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *AirportListReply) GetTraceId() string {
+func (x *ListAirportsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type AirportReply struct {
+type CreateAirportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2482,21 +2838,21 @@ type AirportReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AirportReply) Reset() {
-	*x = AirportReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+func (x *CreateAirportResponse) Reset() {
+	*x = CreateAirportResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AirportReply) String() string {
+func (x *CreateAirportResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AirportReply) ProtoMessage() {}
+func (*CreateAirportResponse) ProtoMessage() {}
 
-func (x *AirportReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[22]
+func (x *CreateAirportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2507,40 +2863,116 @@ func (x *AirportReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AirportReply.ProtoReflect.Descriptor instead.
-func (*AirportReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{22}
+// Deprecated: Use CreateAirportResponse.ProtoReflect.Descriptor instead.
+func (*CreateAirportResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{27}
 }
 
-func (x *AirportReply) GetSuccess() bool {
+func (x *CreateAirportResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AirportReply) GetCode() int32 {
+func (x *CreateAirportResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *AirportReply) GetMessage() string {
+func (x *CreateAirportResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AirportReply) GetData() *Airport {
+func (x *CreateAirportResponse) GetData() *Airport {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *AirportReply) GetTraceId() string {
+func (x *CreateAirportResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateAirportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Airport               `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAirportResponse) Reset() {
+	*x = UpdateAirportResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAirportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAirportResponse) ProtoMessage() {}
+
+func (x *UpdateAirportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAirportResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAirportResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *UpdateAirportResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateAirportResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateAirportResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateAirportResponse) GetData() *Airport {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateAirportResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -2569,7 +3001,7 @@ type Airline struct {
 
 func (x *Airline) Reset() {
 	*x = Airline{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2581,7 +3013,7 @@ func (x *Airline) String() string {
 func (*Airline) ProtoMessage() {}
 
 func (x *Airline) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[23]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2594,7 +3026,7 @@ func (x *Airline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Airline.ProtoReflect.Descriptor instead.
 func (*Airline) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{23}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *Airline) GetId() string {
@@ -2712,7 +3144,7 @@ type CreateAirlineRequest struct {
 
 func (x *CreateAirlineRequest) Reset() {
 	*x = CreateAirlineRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2724,7 +3156,7 @@ func (x *CreateAirlineRequest) String() string {
 func (*CreateAirlineRequest) ProtoMessage() {}
 
 func (x *CreateAirlineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[24]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2737,7 +3169,7 @@ func (x *CreateAirlineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAirlineRequest.ProtoReflect.Descriptor instead.
 func (*CreateAirlineRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{24}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateAirlineRequest) GetIataCode() string {
@@ -2821,7 +3253,7 @@ type UpdateAirlineRequest struct {
 
 func (x *UpdateAirlineRequest) Reset() {
 	*x = UpdateAirlineRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2833,7 +3265,7 @@ func (x *UpdateAirlineRequest) String() string {
 func (*UpdateAirlineRequest) ProtoMessage() {}
 
 func (x *UpdateAirlineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[25]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2846,7 +3278,7 @@ func (x *UpdateAirlineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirlineRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAirlineRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{25}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *UpdateAirlineRequest) GetId() string {
@@ -2919,7 +3351,7 @@ func (x *UpdateAirlineRequest) GetEnabled() bool {
 	return false
 }
 
-type AirlineListReply struct {
+type ListAirlinesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2933,21 +3365,21 @@ type AirlineListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AirlineListReply) Reset() {
-	*x = AirlineListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
+func (x *ListAirlinesResponse) Reset() {
+	*x = ListAirlinesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AirlineListReply) String() string {
+func (x *ListAirlinesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AirlineListReply) ProtoMessage() {}
+func (*ListAirlinesResponse) ProtoMessage() {}
 
-func (x *AirlineListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[26]
+func (x *ListAirlinesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2958,68 +3390,68 @@ func (x *AirlineListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AirlineListReply.ProtoReflect.Descriptor instead.
-func (*AirlineListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{26}
+// Deprecated: Use ListAirlinesResponse.ProtoReflect.Descriptor instead.
+func (*ListAirlinesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *AirlineListReply) GetSuccess() bool {
+func (x *ListAirlinesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AirlineListReply) GetCode() int32 {
+func (x *ListAirlinesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *AirlineListReply) GetMessage() string {
+func (x *ListAirlinesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AirlineListReply) GetData() []*Airline {
+func (x *ListAirlinesResponse) GetData() []*Airline {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *AirlineListReply) GetTotal() int32 {
+func (x *ListAirlinesResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *AirlineListReply) GetPage() int32 {
+func (x *ListAirlinesResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *AirlineListReply) GetPageSize() int32 {
+func (x *ListAirlinesResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *AirlineListReply) GetTraceId() string {
+func (x *ListAirlinesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type AirlineReply struct {
+type CreateAirlineResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -3030,21 +3462,21 @@ type AirlineReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AirlineReply) Reset() {
-	*x = AirlineReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
+func (x *CreateAirlineResponse) Reset() {
+	*x = CreateAirlineResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AirlineReply) String() string {
+func (x *CreateAirlineResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AirlineReply) ProtoMessage() {}
+func (*CreateAirlineResponse) ProtoMessage() {}
 
-func (x *AirlineReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[27]
+func (x *CreateAirlineResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3055,40 +3487,116 @@ func (x *AirlineReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AirlineReply.ProtoReflect.Descriptor instead.
-func (*AirlineReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{27}
+// Deprecated: Use CreateAirlineResponse.ProtoReflect.Descriptor instead.
+func (*CreateAirlineResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *AirlineReply) GetSuccess() bool {
+func (x *CreateAirlineResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AirlineReply) GetCode() int32 {
+func (x *CreateAirlineResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *AirlineReply) GetMessage() string {
+func (x *CreateAirlineResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AirlineReply) GetData() *Airline {
+func (x *CreateAirlineResponse) GetData() *Airline {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *AirlineReply) GetTraceId() string {
+func (x *CreateAirlineResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateAirlineResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Airline               `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAirlineResponse) Reset() {
+	*x = UpdateAirlineResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAirlineResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAirlineResponse) ProtoMessage() {}
+
+func (x *UpdateAirlineResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAirlineResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAirlineResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *UpdateAirlineResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateAirlineResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateAirlineResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateAirlineResponse) GetData() *Airline {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateAirlineResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -3117,7 +3625,7 @@ type ShippingLine struct {
 
 func (x *ShippingLine) Reset() {
 	*x = ShippingLine{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3129,7 +3637,7 @@ func (x *ShippingLine) String() string {
 func (*ShippingLine) ProtoMessage() {}
 
 func (x *ShippingLine) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[28]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3142,7 +3650,7 @@ func (x *ShippingLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShippingLine.ProtoReflect.Descriptor instead.
 func (*ShippingLine) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{28}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ShippingLine) GetId() string {
@@ -3260,7 +3768,7 @@ type CreateShippingLineRequest struct {
 
 func (x *CreateShippingLineRequest) Reset() {
 	*x = CreateShippingLineRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3272,7 +3780,7 @@ func (x *CreateShippingLineRequest) String() string {
 func (*CreateShippingLineRequest) ProtoMessage() {}
 
 func (x *CreateShippingLineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[29]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3285,7 +3793,7 @@ func (x *CreateShippingLineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateShippingLineRequest.ProtoReflect.Descriptor instead.
 func (*CreateShippingLineRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{29}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *CreateShippingLineRequest) GetScacCode() string {
@@ -3369,7 +3877,7 @@ type UpdateShippingLineRequest struct {
 
 func (x *UpdateShippingLineRequest) Reset() {
 	*x = UpdateShippingLineRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3381,7 +3889,7 @@ func (x *UpdateShippingLineRequest) String() string {
 func (*UpdateShippingLineRequest) ProtoMessage() {}
 
 func (x *UpdateShippingLineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[30]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3394,7 +3902,7 @@ func (x *UpdateShippingLineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateShippingLineRequest.ProtoReflect.Descriptor instead.
 func (*UpdateShippingLineRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{30}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *UpdateShippingLineRequest) GetId() string {
@@ -3467,7 +3975,7 @@ func (x *UpdateShippingLineRequest) GetEnabled() bool {
 	return false
 }
 
-type ShippingLineListReply struct {
+type ListShippingLinesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -3481,21 +3989,21 @@ type ShippingLineListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ShippingLineListReply) Reset() {
-	*x = ShippingLineListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
+func (x *ListShippingLinesResponse) Reset() {
+	*x = ListShippingLinesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ShippingLineListReply) String() string {
+func (x *ListShippingLinesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ShippingLineListReply) ProtoMessage() {}
+func (*ListShippingLinesResponse) ProtoMessage() {}
 
-func (x *ShippingLineListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[31]
+func (x *ListShippingLinesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3506,68 +4014,68 @@ func (x *ShippingLineListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ShippingLineListReply.ProtoReflect.Descriptor instead.
-func (*ShippingLineListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{31}
+// Deprecated: Use ListShippingLinesResponse.ProtoReflect.Descriptor instead.
+func (*ListShippingLinesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{38}
 }
 
-func (x *ShippingLineListReply) GetSuccess() bool {
+func (x *ListShippingLinesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *ShippingLineListReply) GetCode() int32 {
+func (x *ListShippingLinesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *ShippingLineListReply) GetMessage() string {
+func (x *ListShippingLinesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *ShippingLineListReply) GetData() []*ShippingLine {
+func (x *ListShippingLinesResponse) GetData() []*ShippingLine {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *ShippingLineListReply) GetTotal() int32 {
+func (x *ListShippingLinesResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *ShippingLineListReply) GetPage() int32 {
+func (x *ListShippingLinesResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ShippingLineListReply) GetPageSize() int32 {
+func (x *ListShippingLinesResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *ShippingLineListReply) GetTraceId() string {
+func (x *ListShippingLinesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type ShippingLineReply struct {
+type CreateShippingLineResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -3578,21 +4086,21 @@ type ShippingLineReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ShippingLineReply) Reset() {
-	*x = ShippingLineReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[32]
+func (x *CreateShippingLineResponse) Reset() {
+	*x = CreateShippingLineResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ShippingLineReply) String() string {
+func (x *CreateShippingLineResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ShippingLineReply) ProtoMessage() {}
+func (*CreateShippingLineResponse) ProtoMessage() {}
 
-func (x *ShippingLineReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[32]
+func (x *CreateShippingLineResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3603,40 +4111,116 @@ func (x *ShippingLineReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ShippingLineReply.ProtoReflect.Descriptor instead.
-func (*ShippingLineReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{32}
+// Deprecated: Use CreateShippingLineResponse.ProtoReflect.Descriptor instead.
+func (*CreateShippingLineResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{39}
 }
 
-func (x *ShippingLineReply) GetSuccess() bool {
+func (x *CreateShippingLineResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *ShippingLineReply) GetCode() int32 {
+func (x *CreateShippingLineResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *ShippingLineReply) GetMessage() string {
+func (x *CreateShippingLineResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *ShippingLineReply) GetData() *ShippingLine {
+func (x *CreateShippingLineResponse) GetData() *ShippingLine {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *ShippingLineReply) GetTraceId() string {
+func (x *CreateShippingLineResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateShippingLineResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *ShippingLine          `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateShippingLineResponse) Reset() {
+	*x = UpdateShippingLineResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateShippingLineResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateShippingLineResponse) ProtoMessage() {}
+
+func (x *UpdateShippingLineResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateShippingLineResponse.ProtoReflect.Descriptor instead.
+func (*UpdateShippingLineResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *UpdateShippingLineResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateShippingLineResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateShippingLineResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateShippingLineResponse) GetData() *ShippingLine {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateShippingLineResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -3651,7 +4235,7 @@ type ListCurrenciesRequest struct {
 
 func (x *ListCurrenciesRequest) Reset() {
 	*x = ListCurrenciesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[33]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3663,7 +4247,7 @@ func (x *ListCurrenciesRequest) String() string {
 func (*ListCurrenciesRequest) ProtoMessage() {}
 
 func (x *ListCurrenciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[33]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3676,7 +4260,7 @@ func (x *ListCurrenciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrenciesRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrenciesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{33}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{41}
 }
 
 type Currency struct {
@@ -3695,7 +4279,7 @@ type Currency struct {
 
 func (x *Currency) Reset() {
 	*x = Currency{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[34]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3707,7 +4291,7 @@ func (x *Currency) String() string {
 func (*Currency) ProtoMessage() {}
 
 func (x *Currency) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[34]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3720,7 +4304,7 @@ func (x *Currency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Currency.ProtoReflect.Descriptor instead.
 func (*Currency) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{34}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *Currency) GetId() string {
@@ -3779,7 +4363,7 @@ func (x *Currency) GetUpdatedAt() string {
 	return ""
 }
 
-type CurrencyListReply struct {
+type ListCurrenciesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -3790,21 +4374,21 @@ type CurrencyListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CurrencyListReply) Reset() {
-	*x = CurrencyListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[35]
+func (x *ListCurrenciesResponse) Reset() {
+	*x = ListCurrenciesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CurrencyListReply) String() string {
+func (x *ListCurrenciesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CurrencyListReply) ProtoMessage() {}
+func (*ListCurrenciesResponse) ProtoMessage() {}
 
-func (x *CurrencyListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[35]
+func (x *ListCurrenciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3815,40 +4399,40 @@ func (x *CurrencyListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CurrencyListReply.ProtoReflect.Descriptor instead.
-func (*CurrencyListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{35}
+// Deprecated: Use ListCurrenciesResponse.ProtoReflect.Descriptor instead.
+func (*ListCurrenciesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{43}
 }
 
-func (x *CurrencyListReply) GetSuccess() bool {
+func (x *ListCurrenciesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *CurrencyListReply) GetCode() int32 {
+func (x *ListCurrenciesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *CurrencyListReply) GetMessage() string {
+func (x *ListCurrenciesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *CurrencyListReply) GetData() []*Currency {
+func (x *ListCurrenciesResponse) GetData() []*Currency {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *CurrencyListReply) GetTraceId() string {
+func (x *ListCurrenciesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -3866,7 +4450,7 @@ type ListAdministrativeRegionsRequest struct {
 
 func (x *ListAdministrativeRegionsRequest) Reset() {
 	*x = ListAdministrativeRegionsRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[36]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3878,7 +4462,7 @@ func (x *ListAdministrativeRegionsRequest) String() string {
 func (*ListAdministrativeRegionsRequest) ProtoMessage() {}
 
 func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[36]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3891,7 +4475,7 @@ func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAdministrativeRegionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAdministrativeRegionsRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{36}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListAdministrativeRegionsRequest) GetLevel() int32 {
@@ -3934,7 +4518,7 @@ type AdministrativeRegion struct {
 
 func (x *AdministrativeRegion) Reset() {
 	*x = AdministrativeRegion{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[37]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3946,7 +4530,7 @@ func (x *AdministrativeRegion) String() string {
 func (*AdministrativeRegion) ProtoMessage() {}
 
 func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[37]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3959,7 +4543,7 @@ func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdministrativeRegion.ProtoReflect.Descriptor instead.
 func (*AdministrativeRegion) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{37}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AdministrativeRegion) GetId() string {
@@ -4039,7 +4623,7 @@ func (x *AdministrativeRegion) GetUpdatedAt() string {
 	return ""
 }
 
-type AdministrativeRegionListReply struct {
+type ListAdministrativeRegionsResponse struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	Success       bool                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -4050,21 +4634,21 @@ type AdministrativeRegionListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AdministrativeRegionListReply) Reset() {
-	*x = AdministrativeRegionListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[38]
+func (x *ListAdministrativeRegionsResponse) Reset() {
+	*x = ListAdministrativeRegionsResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AdministrativeRegionListReply) String() string {
+func (x *ListAdministrativeRegionsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AdministrativeRegionListReply) ProtoMessage() {}
+func (*ListAdministrativeRegionsResponse) ProtoMessage() {}
 
-func (x *AdministrativeRegionListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[38]
+func (x *ListAdministrativeRegionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4075,40 +4659,40 @@ func (x *AdministrativeRegionListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AdministrativeRegionListReply.ProtoReflect.Descriptor instead.
-func (*AdministrativeRegionListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{38}
+// Deprecated: Use ListAdministrativeRegionsResponse.ProtoReflect.Descriptor instead.
+func (*ListAdministrativeRegionsResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
 }
 
-func (x *AdministrativeRegionListReply) GetSuccess() bool {
+func (x *ListAdministrativeRegionsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AdministrativeRegionListReply) GetCode() int32 {
+func (x *ListAdministrativeRegionsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *AdministrativeRegionListReply) GetMessage() string {
+func (x *ListAdministrativeRegionsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AdministrativeRegionListReply) GetData() []*AdministrativeRegion {
+func (x *ListAdministrativeRegionsResponse) GetData() []*AdministrativeRegion {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *AdministrativeRegionListReply) GetTraceId() string {
+func (x *ListAdministrativeRegionsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -4123,7 +4707,7 @@ type ListNumberRulesRequest struct {
 
 func (x *ListNumberRulesRequest) Reset() {
 	*x = ListNumberRulesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[39]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4135,7 +4719,7 @@ func (x *ListNumberRulesRequest) String() string {
 func (*ListNumberRulesRequest) ProtoMessage() {}
 
 func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[39]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4148,7 +4732,7 @@ func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNumberRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListNumberRulesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{39}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
 }
 
 type CreateNumberRuleRequest struct {
@@ -4164,7 +4748,7 @@ type CreateNumberRuleRequest struct {
 
 func (x *CreateNumberRuleRequest) Reset() {
 	*x = CreateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[40]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4176,7 +4760,7 @@ func (x *CreateNumberRuleRequest) String() string {
 func (*CreateNumberRuleRequest) ProtoMessage() {}
 
 func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[40]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4189,7 +4773,7 @@ func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{40}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CreateNumberRuleRequest) GetDocumentType() DocumentType {
@@ -4241,7 +4825,7 @@ type UpdateNumberRuleRequest struct {
 
 func (x *UpdateNumberRuleRequest) Reset() {
 	*x = UpdateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[41]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4253,7 +4837,7 @@ func (x *UpdateNumberRuleRequest) String() string {
 func (*UpdateNumberRuleRequest) ProtoMessage() {}
 
 func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[41]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4266,7 +4850,7 @@ func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{41}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpdateNumberRuleRequest) GetId() string {
@@ -4329,7 +4913,7 @@ type NumberRule struct {
 
 func (x *NumberRule) Reset() {
 	*x = NumberRule{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4341,7 +4925,7 @@ func (x *NumberRule) String() string {
 func (*NumberRule) ProtoMessage() {}
 
 func (x *NumberRule) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4354,7 +4938,7 @@ func (x *NumberRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NumberRule.ProtoReflect.Descriptor instead.
 func (*NumberRule) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{42}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *NumberRule) GetId() string {
@@ -4427,7 +5011,7 @@ func (x *NumberRule) GetUpdatedAt() string {
 	return ""
 }
 
-type NumberRuleListReply struct {
+type ListNumberRulesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -4438,21 +5022,21 @@ type NumberRuleListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NumberRuleListReply) Reset() {
-	*x = NumberRuleListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
+func (x *ListNumberRulesResponse) Reset() {
+	*x = ListNumberRulesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NumberRuleListReply) String() string {
+func (x *ListNumberRulesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NumberRuleListReply) ProtoMessage() {}
+func (*ListNumberRulesResponse) ProtoMessage() {}
 
-func (x *NumberRuleListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
+func (x *ListNumberRulesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4463,47 +5047,47 @@ func (x *NumberRuleListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NumberRuleListReply.ProtoReflect.Descriptor instead.
-func (*NumberRuleListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{43}
+// Deprecated: Use ListNumberRulesResponse.ProtoReflect.Descriptor instead.
+func (*ListNumberRulesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
 }
 
-func (x *NumberRuleListReply) GetSuccess() bool {
+func (x *ListNumberRulesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *NumberRuleListReply) GetCode() int32 {
+func (x *ListNumberRulesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *NumberRuleListReply) GetMessage() string {
+func (x *ListNumberRulesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *NumberRuleListReply) GetData() []*NumberRule {
+func (x *ListNumberRulesResponse) GetData() []*NumberRule {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *NumberRuleListReply) GetTraceId() string {
+func (x *ListNumberRulesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type NumberRuleReply struct {
+type CreateNumberRuleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -4514,21 +5098,21 @@ type NumberRuleReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NumberRuleReply) Reset() {
-	*x = NumberRuleReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+func (x *CreateNumberRuleResponse) Reset() {
+	*x = CreateNumberRuleResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NumberRuleReply) String() string {
+func (x *CreateNumberRuleResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NumberRuleReply) ProtoMessage() {}
+func (*CreateNumberRuleResponse) ProtoMessage() {}
 
-func (x *NumberRuleReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+func (x *CreateNumberRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4539,40 +5123,116 @@ func (x *NumberRuleReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NumberRuleReply.ProtoReflect.Descriptor instead.
-func (*NumberRuleReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
+// Deprecated: Use CreateNumberRuleResponse.ProtoReflect.Descriptor instead.
+func (*CreateNumberRuleResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
 }
 
-func (x *NumberRuleReply) GetSuccess() bool {
+func (x *CreateNumberRuleResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *NumberRuleReply) GetCode() int32 {
+func (x *CreateNumberRuleResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *NumberRuleReply) GetMessage() string {
+func (x *CreateNumberRuleResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *NumberRuleReply) GetData() *NumberRule {
+func (x *CreateNumberRuleResponse) GetData() *NumberRule {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *NumberRuleReply) GetTraceId() string {
+func (x *CreateNumberRuleResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateNumberRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *NumberRule            `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateNumberRuleResponse) Reset() {
+	*x = UpdateNumberRuleResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNumberRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNumberRuleResponse) ProtoMessage() {}
+
+func (x *UpdateNumberRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNumberRuleResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNumberRuleResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *UpdateNumberRuleResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateNumberRuleResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateNumberRuleResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateNumberRuleResponse) GetData() *NumberRule {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateNumberRuleResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -4593,7 +5253,7 @@ type StatusTemplateItemInput struct {
 
 func (x *StatusTemplateItemInput) Reset() {
 	*x = StatusTemplateItemInput{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4605,7 +5265,7 @@ func (x *StatusTemplateItemInput) String() string {
 func (*StatusTemplateItemInput) ProtoMessage() {}
 
 func (x *StatusTemplateItemInput) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4618,7 +5278,7 @@ func (x *StatusTemplateItemInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplateItemInput.ProtoReflect.Descriptor instead.
 func (*StatusTemplateItemInput) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *StatusTemplateItemInput) GetCode() string {
@@ -4676,7 +5336,7 @@ type CreateStatusTemplateRequest struct {
 
 func (x *CreateStatusTemplateRequest) Reset() {
 	*x = CreateStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4688,7 +5348,7 @@ func (x *CreateStatusTemplateRequest) String() string {
 func (*CreateStatusTemplateRequest) ProtoMessage() {}
 
 func (x *CreateStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4701,7 +5361,7 @@ func (x *CreateStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*CreateStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *CreateStatusTemplateRequest) GetCode() string {
@@ -4749,7 +5409,7 @@ type ListStatusTemplatesRequest struct {
 
 func (x *ListStatusTemplatesRequest) Reset() {
 	*x = ListStatusTemplatesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4761,7 +5421,7 @@ func (x *ListStatusTemplatesRequest) String() string {
 func (*ListStatusTemplatesRequest) ProtoMessage() {}
 
 func (x *ListStatusTemplatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4774,7 +5434,7 @@ func (x *ListStatusTemplatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStatusTemplatesRequest.ProtoReflect.Descriptor instead.
 func (*ListStatusTemplatesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListStatusTemplatesRequest) GetBusinessType() BusinessType {
@@ -4801,7 +5461,7 @@ type PublishStatusTemplateRequest struct {
 
 func (x *PublishStatusTemplateRequest) Reset() {
 	*x = PublishStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4813,7 +5473,7 @@ func (x *PublishStatusTemplateRequest) String() string {
 func (*PublishStatusTemplateRequest) ProtoMessage() {}
 
 func (x *PublishStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4826,7 +5486,7 @@ func (x *PublishStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*PublishStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *PublishStatusTemplateRequest) GetId() string {
@@ -4852,7 +5512,7 @@ type SetDefaultStatusTemplateRequest struct {
 
 func (x *SetDefaultStatusTemplateRequest) Reset() {
 	*x = SetDefaultStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4864,7 +5524,7 @@ func (x *SetDefaultStatusTemplateRequest) String() string {
 func (*SetDefaultStatusTemplateRequest) ProtoMessage() {}
 
 func (x *SetDefaultStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4877,7 +5537,7 @@ func (x *SetDefaultStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *SetDefaultStatusTemplateRequest) GetId() string {
@@ -4902,7 +5562,7 @@ type StatusTemplateItem struct {
 
 func (x *StatusTemplateItem) Reset() {
 	*x = StatusTemplateItem{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4914,7 +5574,7 @@ func (x *StatusTemplateItem) String() string {
 func (*StatusTemplateItem) ProtoMessage() {}
 
 func (x *StatusTemplateItem) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4927,7 +5587,7 @@ func (x *StatusTemplateItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplateItem.ProtoReflect.Descriptor instead.
 func (*StatusTemplateItem) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *StatusTemplateItem) GetId() string {
@@ -4999,7 +5659,7 @@ type StatusTemplate struct {
 
 func (x *StatusTemplate) Reset() {
 	*x = StatusTemplate{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5011,7 +5671,7 @@ func (x *StatusTemplate) String() string {
 func (*StatusTemplate) ProtoMessage() {}
 
 func (x *StatusTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5024,7 +5684,7 @@ func (x *StatusTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplate.ProtoReflect.Descriptor instead.
 func (*StatusTemplate) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *StatusTemplate) GetId() string {
@@ -5111,7 +5771,7 @@ func (x *StatusTemplate) GetUpdatedAt() string {
 	return ""
 }
 
-type StatusTemplateListReply struct {
+type ListStatusTemplatesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -5122,21 +5782,21 @@ type StatusTemplateListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StatusTemplateListReply) Reset() {
-	*x = StatusTemplateListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+func (x *ListStatusTemplatesResponse) Reset() {
+	*x = ListStatusTemplatesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StatusTemplateListReply) String() string {
+func (x *ListStatusTemplatesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StatusTemplateListReply) ProtoMessage() {}
+func (*ListStatusTemplatesResponse) ProtoMessage() {}
 
-func (x *StatusTemplateListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+func (x *ListStatusTemplatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5147,47 +5807,47 @@ func (x *StatusTemplateListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StatusTemplateListReply.ProtoReflect.Descriptor instead.
-func (*StatusTemplateListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
+// Deprecated: Use ListStatusTemplatesResponse.ProtoReflect.Descriptor instead.
+func (*ListStatusTemplatesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{61}
 }
 
-func (x *StatusTemplateListReply) GetSuccess() bool {
+func (x *ListStatusTemplatesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *StatusTemplateListReply) GetCode() int32 {
+func (x *ListStatusTemplatesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *StatusTemplateListReply) GetMessage() string {
+func (x *ListStatusTemplatesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *StatusTemplateListReply) GetData() []*StatusTemplate {
+func (x *ListStatusTemplatesResponse) GetData() []*StatusTemplate {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *StatusTemplateListReply) GetTraceId() string {
+func (x *ListStatusTemplatesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type StatusTemplateReply struct {
+type CreateStatusTemplateResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -5198,21 +5858,21 @@ type StatusTemplateReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StatusTemplateReply) Reset() {
-	*x = StatusTemplateReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+func (x *CreateStatusTemplateResponse) Reset() {
+	*x = CreateStatusTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StatusTemplateReply) String() string {
+func (x *CreateStatusTemplateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StatusTemplateReply) ProtoMessage() {}
+func (*CreateStatusTemplateResponse) ProtoMessage() {}
 
-func (x *StatusTemplateReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+func (x *CreateStatusTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5223,40 +5883,192 @@ func (x *StatusTemplateReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StatusTemplateReply.ProtoReflect.Descriptor instead.
-func (*StatusTemplateReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
+// Deprecated: Use CreateStatusTemplateResponse.ProtoReflect.Descriptor instead.
+func (*CreateStatusTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{62}
 }
 
-func (x *StatusTemplateReply) GetSuccess() bool {
+func (x *CreateStatusTemplateResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *StatusTemplateReply) GetCode() int32 {
+func (x *CreateStatusTemplateResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *StatusTemplateReply) GetMessage() string {
+func (x *CreateStatusTemplateResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *StatusTemplateReply) GetData() *StatusTemplate {
+func (x *CreateStatusTemplateResponse) GetData() *StatusTemplate {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *StatusTemplateReply) GetTraceId() string {
+func (x *CreateStatusTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PublishStatusTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *StatusTemplate        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishStatusTemplateResponse) Reset() {
+	*x = PublishStatusTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishStatusTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishStatusTemplateResponse) ProtoMessage() {}
+
+func (x *PublishStatusTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishStatusTemplateResponse.ProtoReflect.Descriptor instead.
+func (*PublishStatusTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *PublishStatusTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PublishStatusTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PublishStatusTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PublishStatusTemplateResponse) GetData() *StatusTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PublishStatusTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SetDefaultStatusTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *StatusTemplate        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetDefaultStatusTemplateResponse) Reset() {
+	*x = SetDefaultStatusTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetDefaultStatusTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetDefaultStatusTemplateResponse) ProtoMessage() {}
+
+func (x *SetDefaultStatusTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetDefaultStatusTemplateResponse.ProtoReflect.Descriptor instead.
+func (*SetDefaultStatusTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *SetDefaultStatusTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SetDefaultStatusTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SetDefaultStatusTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SetDefaultStatusTemplateResponse) GetData() *StatusTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SetDefaultStatusTemplateResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -5278,7 +6090,7 @@ type MilestoneTemplateItemInput struct {
 
 func (x *MilestoneTemplateItemInput) Reset() {
 	*x = MilestoneTemplateItemInput{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5290,7 +6102,7 @@ func (x *MilestoneTemplateItemInput) String() string {
 func (*MilestoneTemplateItemInput) ProtoMessage() {}
 
 func (x *MilestoneTemplateItemInput) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5303,7 +6115,7 @@ func (x *MilestoneTemplateItemInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplateItemInput.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplateItemInput) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *MilestoneTemplateItemInput) GetCode() string {
@@ -5369,7 +6181,7 @@ type CreateMilestoneTemplateRequest struct {
 
 func (x *CreateMilestoneTemplateRequest) Reset() {
 	*x = CreateMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5381,7 +6193,7 @@ func (x *CreateMilestoneTemplateRequest) String() string {
 func (*CreateMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *CreateMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5394,7 +6206,7 @@ func (x *CreateMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*CreateMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *CreateMilestoneTemplateRequest) GetCode() string {
@@ -5450,7 +6262,7 @@ type ListMilestoneTemplatesRequest struct {
 
 func (x *ListMilestoneTemplatesRequest) Reset() {
 	*x = ListMilestoneTemplatesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5462,7 +6274,7 @@ func (x *ListMilestoneTemplatesRequest) String() string {
 func (*ListMilestoneTemplatesRequest) ProtoMessage() {}
 
 func (x *ListMilestoneTemplatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5475,7 +6287,7 @@ func (x *ListMilestoneTemplatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMilestoneTemplatesRequest.ProtoReflect.Descriptor instead.
 func (*ListMilestoneTemplatesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{56}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListMilestoneTemplatesRequest) GetBusinessType() BusinessType {
@@ -5509,7 +6321,7 @@ type PublishMilestoneTemplateRequest struct {
 
 func (x *PublishMilestoneTemplateRequest) Reset() {
 	*x = PublishMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5521,7 +6333,7 @@ func (x *PublishMilestoneTemplateRequest) String() string {
 func (*PublishMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *PublishMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5534,7 +6346,7 @@ func (x *PublishMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*PublishMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{57}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *PublishMilestoneTemplateRequest) GetId() string {
@@ -5560,7 +6372,7 @@ type SetDefaultMilestoneTemplateRequest struct {
 
 func (x *SetDefaultMilestoneTemplateRequest) Reset() {
 	*x = SetDefaultMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5572,7 +6384,7 @@ func (x *SetDefaultMilestoneTemplateRequest) String() string {
 func (*SetDefaultMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *SetDefaultMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5585,7 +6397,7 @@ func (x *SetDefaultMilestoneTemplateRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetDefaultMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{58}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *SetDefaultMilestoneTemplateRequest) GetId() string {
@@ -5611,7 +6423,7 @@ type MilestoneTemplateItem struct {
 
 func (x *MilestoneTemplateItem) Reset() {
 	*x = MilestoneTemplateItem{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5623,7 +6435,7 @@ func (x *MilestoneTemplateItem) String() string {
 func (*MilestoneTemplateItem) ProtoMessage() {}
 
 func (x *MilestoneTemplateItem) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5636,7 +6448,7 @@ func (x *MilestoneTemplateItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplateItem.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplateItem) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{59}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *MilestoneTemplateItem) GetId() string {
@@ -5716,7 +6528,7 @@ type MilestoneTemplate struct {
 
 func (x *MilestoneTemplate) Reset() {
 	*x = MilestoneTemplate{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5728,7 +6540,7 @@ func (x *MilestoneTemplate) String() string {
 func (*MilestoneTemplate) ProtoMessage() {}
 
 func (x *MilestoneTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5741,7 +6553,7 @@ func (x *MilestoneTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplate.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplate) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{60}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *MilestoneTemplate) GetId() string {
@@ -5835,7 +6647,7 @@ func (x *MilestoneTemplate) GetUpdatedAt() string {
 	return ""
 }
 
-type MilestoneTemplateListReply struct {
+type ListMilestoneTemplatesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -5846,21 +6658,21 @@ type MilestoneTemplateListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MilestoneTemplateListReply) Reset() {
-	*x = MilestoneTemplateListReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
+func (x *ListMilestoneTemplatesResponse) Reset() {
+	*x = ListMilestoneTemplatesResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MilestoneTemplateListReply) String() string {
+func (x *ListMilestoneTemplatesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MilestoneTemplateListReply) ProtoMessage() {}
+func (*ListMilestoneTemplatesResponse) ProtoMessage() {}
 
-func (x *MilestoneTemplateListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
+func (x *ListMilestoneTemplatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5871,47 +6683,47 @@ func (x *MilestoneTemplateListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MilestoneTemplateListReply.ProtoReflect.Descriptor instead.
-func (*MilestoneTemplateListReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{61}
+// Deprecated: Use ListMilestoneTemplatesResponse.ProtoReflect.Descriptor instead.
+func (*ListMilestoneTemplatesResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{72}
 }
 
-func (x *MilestoneTemplateListReply) GetSuccess() bool {
+func (x *ListMilestoneTemplatesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MilestoneTemplateListReply) GetCode() int32 {
+func (x *ListMilestoneTemplatesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MilestoneTemplateListReply) GetMessage() string {
+func (x *ListMilestoneTemplatesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MilestoneTemplateListReply) GetData() []*MilestoneTemplate {
+func (x *ListMilestoneTemplatesResponse) GetData() []*MilestoneTemplate {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MilestoneTemplateListReply) GetTraceId() string {
+func (x *ListMilestoneTemplatesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type MilestoneTemplateReply struct {
+type CreateMilestoneTemplateResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -5922,21 +6734,21 @@ type MilestoneTemplateReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MilestoneTemplateReply) Reset() {
-	*x = MilestoneTemplateReply{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
+func (x *CreateMilestoneTemplateResponse) Reset() {
+	*x = CreateMilestoneTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MilestoneTemplateReply) String() string {
+func (x *CreateMilestoneTemplateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MilestoneTemplateReply) ProtoMessage() {}
+func (*CreateMilestoneTemplateResponse) ProtoMessage() {}
 
-func (x *MilestoneTemplateReply) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
+func (x *CreateMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5947,40 +6759,192 @@ func (x *MilestoneTemplateReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MilestoneTemplateReply.ProtoReflect.Descriptor instead.
-func (*MilestoneTemplateReply) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{62}
+// Deprecated: Use CreateMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
+func (*CreateMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{73}
 }
 
-func (x *MilestoneTemplateReply) GetSuccess() bool {
+func (x *CreateMilestoneTemplateResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MilestoneTemplateReply) GetCode() int32 {
+func (x *CreateMilestoneTemplateResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MilestoneTemplateReply) GetMessage() string {
+func (x *CreateMilestoneTemplateResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MilestoneTemplateReply) GetData() *MilestoneTemplate {
+func (x *CreateMilestoneTemplateResponse) GetData() *MilestoneTemplate {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *MilestoneTemplateReply) GetTraceId() string {
+func (x *CreateMilestoneTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PublishMilestoneTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *MilestoneTemplate     `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishMilestoneTemplateResponse) Reset() {
+	*x = PublishMilestoneTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishMilestoneTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishMilestoneTemplateResponse) ProtoMessage() {}
+
+func (x *PublishMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
+func (*PublishMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *PublishMilestoneTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PublishMilestoneTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PublishMilestoneTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PublishMilestoneTemplateResponse) GetData() *MilestoneTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PublishMilestoneTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SetDefaultMilestoneTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *MilestoneTemplate     `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) Reset() {
+	*x = SetDefaultMilestoneTemplateResponse{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetDefaultMilestoneTemplateResponse) ProtoMessage() {}
+
+func (x *SetDefaultMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetDefaultMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
+func (*SetDefaultMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) GetData() *MilestoneTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SetDefaultMilestoneTemplateResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -5991,8 +6955,8 @@ var File_masterdata_v1_masterdata_proto protoreflect.FileDescriptor
 
 const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
-	"\x1emasterdata/v1/masterdata.proto\x12\rmasterdata.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc5\x01\n" +
-	"\x1aListMasterDataItemsRequest\x12\x12\n" +
+	"\x1emasterdata/v1/masterdata.proto\x12\rmasterdata.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xbb\x01\n" +
+	"\x10ListItemsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x121\n" +
 	"\x04kind\x18\x03 \x01(\x0e2\x1d.masterdata.v1.MasterDataKindR\x04kind\x12\x18\n" +
@@ -6007,8 +6971,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"_continentB\x10\n" +
 	"\x0e_currency_codeB\x0f\n" +
-	"\r_region_level\"\x96\x03\n" +
-	"\x1bCreateMasterDataItemRequest\x126\n" +
+	"\r_region_level\"\x8c\x03\n" +
+	"\x11CreateItemRequest\x126\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x1d.masterdata.v1.MasterDataKindB\x03\xe0A\x02R\x04kind\x12\x17\n" +
 	"\x04code\x18\x02 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x03 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1c\n" +
@@ -6027,8 +6991,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"\b_name_enB\x0e\n" +
 	"\f_parent_codeB\r\n" +
-	"\v_teu_factor\"\xac\x03\n" +
-	"\x1bUpdateMasterDataItemRequest\x12\x13\n" +
+	"\v_teu_factor\"\xa2\x03\n" +
+	"\x11UpdateItemRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1c\n" +
 	"\aname_en\x18\x03 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12$\n" +
@@ -6068,21 +7032,21 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\f_parent_codeB\r\n" +
 	"\v_teu_factorB\n" +
 	"\n" +
-	"\b_enabled\"\xf6\x01\n" +
-	"\x1cImportMasterDataItemsRequest\x126\n" +
+	"\b_enabled\"\xec\x01\n" +
+	"\x12ImportItemsRequest\x126\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x1d.masterdata.v1.MasterDataKindB\x03\xe0A\x02R\x04kind\x12\x1b\n" +
 	"\x06source\x18\x02 \x01(\tB\x03\xe0A\x02R\x06source\x12<\n" +
 	"\x04mode\x18\x03 \x01(\x0e2#.masterdata.v1.MasterDataImportModeB\x03\xe0A\x02R\x04mode\x12C\n" +
-	"\x05items\x18\x04 \x03(\v2(.masterdata.v1.MasterDataImportItemInputB\x03\xe0A\x02R\x05items\"\xf7\x01\n" +
-	"\x15MasterDataImportReply\x12\x18\n" +
+	"\x05items\x18\x04 \x03(\v2(.masterdata.v1.MasterDataImportItemInputB\x03\xe0A\x02R\x05items\"\xf5\x01\n" +
+	"\x13ImportItemsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x03(\v2\x1d.masterdata.v1.MasterDataItemR\x04data\x12#\n" +
 	"\rcreated_count\x18\x05 \x01(\x05R\fcreatedCount\x12#\n" +
 	"\rupdated_count\x18\x06 \x01(\x05R\fupdatedCount\x12\x19\n" +
-	"\btrace_id\x18\a \x01(\tR\atraceId\"\x1e\n" +
-	"\x1cListMasterDataOptionsRequest\"\x8b\x04\n" +
+	"\btrace_id\x18\a \x01(\tR\atraceId\"\x14\n" +
+	"\x12ListOptionsRequest\"\x8b\x04\n" +
 	"\x0eMasterDataItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x121\n" +
@@ -6109,8 +7073,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"\b_name_enB\x0e\n" +
 	"\f_parent_codeB\r\n" +
-	"\v_teu_factor\"\xf6\x01\n" +
-	"\x17MasterDataItemListReply\x12\x18\n" +
+	"\v_teu_factor\"\xf0\x01\n" +
+	"\x11ListItemsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
@@ -6118,20 +7082,47 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xab\x01\n" +
-	"\x13MasterDataItemReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xaa\x01\n" +
+	"\x12CreateItemResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.MasterDataItemR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xae\x01\n" +
-	"\x16MasterDataOptionsReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x01\n" +
+	"\x12UpdateItemResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.MasterDataItemR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"\x13ListOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x03(\v2\x1d.masterdata.v1.MasterDataItemR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x95\x01\n" +
-	"\x1dListIndustryReferencesRequest\x12\x12\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
+	"\x10ListPortsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\x8b\x01\n" +
+	"\x13ListAirportsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\x8b\x01\n" +
+	"\x13ListAirlinesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\x90\x01\n" +
+	"\x18ListShippingLinesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
@@ -6178,8 +7169,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x0ftransport_modes\x18\x05 \x03(\tR\x0etransportModes\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\a \x01(\x05R\tsortOrder\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabledJ\x04\b\x06\x10\aR\x06source\"\xe2\x01\n" +
-	"\rPortListReply\x12\x18\n" +
+	"\aenabled\x18\b \x01(\bR\aenabledJ\x04\b\x06\x10\aR\x06source\"\xe6\x01\n" +
+	"\x11ListPortsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
@@ -6187,8 +7178,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\x97\x01\n" +
-	"\tPortReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xa0\x01\n" +
+	"\x12CreatePortResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
+	"\x04data\x18\x04 \x01(\v2\x13.masterdata.v1.PortR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa0\x01\n" +
+	"\x12UpdatePortResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
@@ -6257,8 +7254,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	" \x01(\bR\aenabledB\f\n" +
 	"\n" +
 	"_icao_codeB\x0f\n" +
-	"\r_city_name_enJ\x04\b\b\x10\tR\x06source\"\xe8\x01\n" +
-	"\x10AirportListReply\x12\x18\n" +
+	"\r_city_name_enJ\x04\b\b\x10\tR\x06source\"\xec\x01\n" +
+	"\x14ListAirportsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
@@ -6266,8 +7263,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\x9d\x01\n" +
-	"\fAirportReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xa6\x01\n" +
+	"\x15CreateAirportResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
+	"\x04data\x18\x04 \x01(\v2\x16.masterdata.v1.AirportR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa6\x01\n" +
+	"\x15UpdateAirportResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
@@ -6327,8 +7330,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\aenabled\x18\n" +
 	" \x01(\bR\aenabledB\f\n" +
 	"\n" +
-	"_icao_code\"\xe8\x01\n" +
-	"\x10AirlineListReply\x12\x18\n" +
+	"_icao_code\"\xec\x01\n" +
+	"\x14ListAirlinesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
@@ -6336,8 +7339,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\x9d\x01\n" +
-	"\fAirlineReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xa6\x01\n" +
+	"\x15CreateAirlineResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
+	"\x04data\x18\x04 \x01(\v2\x16.masterdata.v1.AirlineR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa6\x01\n" +
+	"\x15UpdateAirlineResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
@@ -6391,8 +7400,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\aenabled\x18\n" +
 	" \x01(\bR\aenabledB\x0f\n" +
 	"\r_tracking_urlB\v\n" +
-	"\t_alliance\"\xf2\x01\n" +
-	"\x15ShippingLineListReply\x12\x18\n" +
+	"\t_alliance\"\xf6\x01\n" +
+	"\x19ListShippingLinesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
@@ -6400,8 +7409,14 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xa7\x01\n" +
-	"\x11ShippingLineReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb0\x01\n" +
+	"\x1aCreateShippingLineResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x01(\v2\x1b.masterdata.v1.ShippingLineR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb0\x01\n" +
+	"\x1aUpdateShippingLineResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
@@ -6419,8 +7434,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xa3\x01\n" +
-	"\x11CurrencyListReply\x12\x18\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xa8\x01\n" +
+	"\x16ListCurrenciesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
@@ -6451,8 +7466,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"updated_at\x18\v \x01(\tR\tupdatedAtB\x0e\n" +
 	"\f_parent_codeB\x0e\n" +
 	"\f_region_typeB\x11\n" +
-	"\x0f_source_version\"\xbb\x01\n" +
-	"\x1dAdministrativeRegionListReply\x12\x18\n" +
+	"\x0f_source_version\"\xbf\x01\n" +
+	"!ListAdministrativeRegionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x127\n" +
@@ -6489,14 +7504,20 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\"\xa7\x01\n" +
-	"\x13NumberRuleListReply\x12\x18\n" +
+	" \x01(\tR\tupdatedAt\"\xab\x01\n" +
+	"\x17ListNumberRulesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.masterdata.v1.NumberRuleR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa3\x01\n" +
-	"\x0fNumberRuleReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xac\x01\n" +
+	"\x18CreateNumberRuleResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
+	"\x04data\x18\x04 \x01(\v2\x19.masterdata.v1.NumberRuleR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xac\x01\n" +
+	"\x18UpdateNumberRuleResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
@@ -6559,14 +7580,26 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\f \x01(\tR\tupdatedAtB\x0f\n" +
-	"\r_published_at\"\xaf\x01\n" +
-	"\x17StatusTemplateListReply\x12\x18\n" +
+	"\r_published_at\"\xb3\x01\n" +
+	"\x1bListStatusTemplatesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x03(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
-	"\x13StatusTemplateReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1cCreateStatusTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb5\x01\n" +
+	"\x1dPublishStatusTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.masterdata.v1.StatusTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb8\x01\n" +
+	" SetDefaultStatusTemplateResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
@@ -6640,14 +7673,26 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAtB\x0f\n" +
-	"\r_published_at\"\xb5\x01\n" +
-	"\x1aMilestoneTemplateListReply\x12\x18\n" +
+	"\r_published_at\"\xb9\x01\n" +
+	"\x1eListMilestoneTemplatesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
 	"\x04data\x18\x04 \x03(\v2 .masterdata.v1.MilestoneTemplateR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb1\x01\n" +
-	"\x16MilestoneTemplateReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xba\x01\n" +
+	"\x1fCreateMilestoneTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
+	"\x04data\x18\x04 \x01(\v2 .masterdata.v1.MilestoneTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xbb\x01\n" +
+	" PublishMilestoneTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
+	"\x04data\x18\x04 \x01(\v2 .masterdata.v1.MilestoneTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xbe\x01\n" +
+	"#SetDefaultMilestoneTemplateResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
@@ -6697,42 +7742,42 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
 	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
 	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
-	"\x12BUSINESS_TYPE_RAIL\x10\x062\xe9,\n" +
-	"\x11MasterDataService\x12\xa7\x01\n" +
-	"\tListItems\x12).masterdata.v1.ListMasterDataItemsRequest\x1a&.masterdata.v1.MasterDataItemListReply\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.item.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\xaa\x01\n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\xc3-\n" +
+	"\x11MasterDataService\x12\x97\x01\n" +
+	"\tListItems\x12\x1f.masterdata.v1.ListItemsRequest\x1a .masterdata.v1.ListItemsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.item.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x9f\x01\n" +
 	"\n" +
-	"CreateItem\x12*.masterdata.v1.CreateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\xaf\x01\n" +
+	"CreateItem\x12 .masterdata.v1.CreateItemRequest\x1a!.masterdata.v1.CreateItemResponse\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/items\x12\xa4\x01\n" +
 	"\n" +
-	"UpdateItem\x12*.masterdata.v1.UpdateMasterDataItemRequest\x1a\".masterdata.v1.MasterDataItemReply\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\xaf\x01\n" +
-	"\vImportItems\x12+.masterdata.v1.ImportMasterDataItemsRequest\x1a$.masterdata.v1.MasterDataImportReply\"M\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.import \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\xae\x01\n" +
-	"\vListOptions\x12+.masterdata.v1.ListMasterDataOptionsRequest\x1a%.masterdata.v1.MasterDataOptionsReply\"K\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.option.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12\xa0\x01\n" +
-	"\tListPorts\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1c.masterdata.v1.PortListReply\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.port.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12\x96\x01\n" +
+	"UpdateItem\x12 .masterdata.v1.UpdateItemRequest\x1a!.masterdata.v1.UpdateItemResponse\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/items/{id}\x12\xa3\x01\n" +
+	"\vImportItems\x12!.masterdata.v1.ImportItemsRequest\x1a\".masterdata.v1.ImportItemsResponse\"M\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.item.import \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/master-data/import\x12\xa1\x01\n" +
+	"\vListOptions\x12!.masterdata.v1.ListOptionsRequest\x1a\".masterdata.v1.ListOptionsResponse\"K\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.option.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/master-data/options\x12\x97\x01\n" +
+	"\tListPorts\x12\x1f.masterdata.v1.ListPortsRequest\x1a .masterdata.v1.ListPortsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.port.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/ports\x12\x9f\x01\n" +
 	"\n" +
-	"CreatePort\x12 .masterdata.v1.CreatePortRequest\x1a\x18.masterdata.v1.PortReply\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/ports\x12\x9b\x01\n" +
+	"CreatePort\x12 .masterdata.v1.CreatePortRequest\x1a!.masterdata.v1.CreatePortResponse\"L\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/master-data/ports\x12\xa4\x01\n" +
 	"\n" +
-	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a\x18.masterdata.v1.PortReply\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\xac\x01\n" +
-	"\fListAirports\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirportListReply\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airport.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12\xa5\x01\n" +
-	"\rCreateAirport\x12#.masterdata.v1.CreateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airport.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airports\x12\xaa\x01\n" +
-	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a\x1b.masterdata.v1.AirportReply\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airport.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\xac\x01\n" +
-	"\fListAirlines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a\x1f.masterdata.v1.AirlineListReply\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airline.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12\xa5\x01\n" +
-	"\rCreateAirline\x12#.masterdata.v1.CreateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airline.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airlines\x12\xaa\x01\n" +
-	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a\x1b.masterdata.v1.AirlineReply\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airline.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\xc2\x01\n" +
-	"\x11ListShippingLines\x12,.masterdata.v1.ListIndustryReferencesRequest\x1a$.masterdata.v1.ShippingLineListReply\"Y\x82\xb5\x18+\b\x03\x12%system.master_data.shipping_line.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc0\x01\n" +
-	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"^\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.create \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\xc5\x01\n" +
-	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a .masterdata.v1.ShippingLineReply\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\xa8\x01\n" +
-	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a .masterdata.v1.CurrencyListReply\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xe3\x01\n" +
-	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a,.masterdata.v1.AdministrativeRegionListReply\"g\x82\xb5\x183\b\x03\x12-system.master_data.administrative_region.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb3\x01\n" +
-	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a\".masterdata.v1.NumberRuleListReply\"U\x82\xb5\x18)\b\x03\x12#system.master_data.number_rule.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\xb6\x01\n" +
-	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"Z\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\xbb\x01\n" +
-	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a\x1e.masterdata.v1.NumberRuleReply\"_\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.update \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}\x12\xc7\x01\n" +
-	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a&.masterdata.v1.StatusTemplateListReply\"]\x82\xb5\x18-\b\x03\x12'system.master_data.status_template.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\xca\x01\n" +
-	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"b\x82\xb5\x18/\b\x03\x12)system.master_data.status_template.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xda\x01\n" +
-	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"p\x82\xb5\x180\b\x03\x12*system.master_data.status_template.publish \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xe8\x01\n" +
-	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a\".masterdata.v1.StatusTemplateReply\"x\x82\xb5\x184\b\x03\x12.system.master_data.status_template.set_default \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-default\x12\xd6\x01\n" +
-	"\x16ListMilestoneTemplates\x12,.masterdata.v1.ListMilestoneTemplatesRequest\x1a).masterdata.v1.MilestoneTemplateListReply\"c\x82\xb5\x180\b\x03\x12*system.master_data.milestone_template.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/master-data/milestone-templates\x12\xd9\x01\n" +
-	"\x17CreateMilestoneTemplate\x12-.masterdata.v1.CreateMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"h\x82\xb5\x182\b\x03\x12,system.master_data.milestone_template.create \x02\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/master-data/milestone-templates\x12\xe9\x01\n" +
-	"\x18PublishMilestoneTemplate\x12..masterdata.v1.PublishMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"v\x82\xb5\x183\b\x03\x12-system.master_data.milestone_template.publish \x02\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/master-data/milestone-templates/{id}/publish\x12\xf7\x01\n" +
-	"\x1bSetDefaultMilestoneTemplate\x121.masterdata.v1.SetDefaultMilestoneTemplateRequest\x1a%.masterdata.v1.MilestoneTemplateReply\"~\x82\xb5\x187\b\x03\x121system.master_data.milestone_template.set_default \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/master-data/milestone-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
+	"UpdatePort\x12 .masterdata.v1.UpdatePortRequest\x1a!.masterdata.v1.UpdatePortResponse\"Q\x82\xb5\x18$\b\x03\x12\x1esystem.master_data.port.update \x02\x82\xd3\xe4\x93\x02#:\x01*\x1a\x1e/api/v1/master-data/ports/{id}\x12\xa6\x01\n" +
+	"\fListAirports\x12\".masterdata.v1.ListAirportsRequest\x1a#.masterdata.v1.ListAirportsResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airport.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airports\x12\xae\x01\n" +
+	"\rCreateAirport\x12#.masterdata.v1.CreateAirportRequest\x1a$.masterdata.v1.CreateAirportResponse\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airport.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airports\x12\xb3\x01\n" +
+	"\rUpdateAirport\x12#.masterdata.v1.UpdateAirportRequest\x1a$.masterdata.v1.UpdateAirportResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airport.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airports/{id}\x12\xa6\x01\n" +
+	"\fListAirlines\x12\".masterdata.v1.ListAirlinesRequest\x1a#.masterdata.v1.ListAirlinesResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.master_data.airline.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/master-data/airlines\x12\xae\x01\n" +
+	"\rCreateAirline\x12#.masterdata.v1.CreateAirlineRequest\x1a$.masterdata.v1.CreateAirlineResponse\"R\x82\xb5\x18'\b\x03\x12!system.master_data.airline.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/master-data/airlines\x12\xb3\x01\n" +
+	"\rUpdateAirline\x12#.masterdata.v1.UpdateAirlineRequest\x1a$.masterdata.v1.UpdateAirlineResponse\"W\x82\xb5\x18'\b\x03\x12!system.master_data.airline.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/master-data/airlines/{id}\x12\xc1\x01\n" +
+	"\x11ListShippingLines\x12'.masterdata.v1.ListShippingLinesRequest\x1a(.masterdata.v1.ListShippingLinesResponse\"Y\x82\xb5\x18+\b\x03\x12%system.master_data.shipping_line.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc9\x01\n" +
+	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a).masterdata.v1.CreateShippingLineResponse\"^\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.create \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\xce\x01\n" +
+	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a).masterdata.v1.UpdateShippingLineResponse\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\xad\x01\n" +
+	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xe7\x01\n" +
+	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a0.masterdata.v1.ListAdministrativeRegionsResponse\"g\x82\xb5\x183\b\x03\x12-system.master_data.administrative_region.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb7\x01\n" +
+	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a&.masterdata.v1.ListNumberRulesResponse\"U\x82\xb5\x18)\b\x03\x12#system.master_data.number_rule.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\xbf\x01\n" +
+	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a'.masterdata.v1.CreateNumberRuleResponse\"Z\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\xc4\x01\n" +
+	"\x10UpdateNumberRule\x12&.masterdata.v1.UpdateNumberRuleRequest\x1a'.masterdata.v1.UpdateNumberRuleResponse\"_\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.update \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/master-data/number-rules/{id}\x12\xcb\x01\n" +
+	"\x13ListStatusTemplates\x12).masterdata.v1.ListStatusTemplatesRequest\x1a*.masterdata.v1.ListStatusTemplatesResponse\"]\x82\xb5\x18-\b\x03\x12'system.master_data.status_template.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/master-data/status-templates\x12\xd3\x01\n" +
+	"\x14CreateStatusTemplate\x12*.masterdata.v1.CreateStatusTemplateRequest\x1a+.masterdata.v1.CreateStatusTemplateResponse\"b\x82\xb5\x18/\b\x03\x12)system.master_data.status_template.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/master-data/status-templates\x12\xe4\x01\n" +
+	"\x15PublishStatusTemplate\x12+.masterdata.v1.PublishStatusTemplateRequest\x1a,.masterdata.v1.PublishStatusTemplateResponse\"p\x82\xb5\x180\b\x03\x12*system.master_data.status_template.publish \x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/master-data/status-templates/{id}/publish\x12\xf5\x01\n" +
+	"\x18SetDefaultStatusTemplate\x12..masterdata.v1.SetDefaultStatusTemplateRequest\x1a/.masterdata.v1.SetDefaultStatusTemplateResponse\"x\x82\xb5\x184\b\x03\x12.system.master_data.status_template.set_default \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/master-data/status-templates/{id}/set-default\x12\xda\x01\n" +
+	"\x16ListMilestoneTemplates\x12,.masterdata.v1.ListMilestoneTemplatesRequest\x1a-.masterdata.v1.ListMilestoneTemplatesResponse\"c\x82\xb5\x180\b\x03\x12*system.master_data.milestone_template.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/master-data/milestone-templates\x12\xe2\x01\n" +
+	"\x17CreateMilestoneTemplate\x12-.masterdata.v1.CreateMilestoneTemplateRequest\x1a..masterdata.v1.CreateMilestoneTemplateResponse\"h\x82\xb5\x182\b\x03\x12,system.master_data.milestone_template.create \x02\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/master-data/milestone-templates\x12\xf3\x01\n" +
+	"\x18PublishMilestoneTemplate\x12..masterdata.v1.PublishMilestoneTemplateRequest\x1a/.masterdata.v1.PublishMilestoneTemplateResponse\"v\x82\xb5\x183\b\x03\x12-system.master_data.milestone_template.publish \x02\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/master-data/milestone-templates/{id}/publish\x12\x84\x02\n" +
+	"\x1bSetDefaultMilestoneTemplate\x121.masterdata.v1.SetDefaultMilestoneTemplateRequest\x1a2.masterdata.v1.SetDefaultMilestoneTemplateResponse\"~\x82\xb5\x187\b\x03\x121system.master_data.milestone_template.set_default \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/master-data/milestone-templates/{id}/set-defaultB?Z=github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1b\x06proto3"
 
 var (
 	file_masterdata_v1_masterdata_proto_rawDescOnce sync.Once
@@ -6747,193 +7792,216 @@ func file_masterdata_v1_masterdata_proto_rawDescGZIP() []byte {
 }
 
 var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 63)
+var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 76)
 var file_masterdata_v1_masterdata_proto_goTypes = []any{
-	(MasterDataImportMode)(0),                  // 0: masterdata.v1.MasterDataImportMode
-	(MasterDataKind)(0),                        // 1: masterdata.v1.MasterDataKind
-	(DocumentType)(0),                          // 2: masterdata.v1.DocumentType
-	(DateFormat)(0),                            // 3: masterdata.v1.DateFormat
-	(ResetPolicy)(0),                           // 4: masterdata.v1.ResetPolicy
-	(BusinessType)(0),                          // 5: masterdata.v1.BusinessType
-	(*ListMasterDataItemsRequest)(nil),         // 6: masterdata.v1.ListMasterDataItemsRequest
-	(*MasterDataAttributes)(nil),               // 7: masterdata.v1.MasterDataAttributes
-	(*CreateMasterDataItemRequest)(nil),        // 8: masterdata.v1.CreateMasterDataItemRequest
-	(*UpdateMasterDataItemRequest)(nil),        // 9: masterdata.v1.UpdateMasterDataItemRequest
-	(*MasterDataImportItemInput)(nil),          // 10: masterdata.v1.MasterDataImportItemInput
-	(*ImportMasterDataItemsRequest)(nil),       // 11: masterdata.v1.ImportMasterDataItemsRequest
-	(*MasterDataImportReply)(nil),              // 12: masterdata.v1.MasterDataImportReply
-	(*ListMasterDataOptionsRequest)(nil),       // 13: masterdata.v1.ListMasterDataOptionsRequest
-	(*MasterDataItem)(nil),                     // 14: masterdata.v1.MasterDataItem
-	(*MasterDataItemListReply)(nil),            // 15: masterdata.v1.MasterDataItemListReply
-	(*MasterDataItemReply)(nil),                // 16: masterdata.v1.MasterDataItemReply
-	(*MasterDataOptionsReply)(nil),             // 17: masterdata.v1.MasterDataOptionsReply
-	(*ListIndustryReferencesRequest)(nil),      // 18: masterdata.v1.ListIndustryReferencesRequest
-	(*Port)(nil),                               // 19: masterdata.v1.Port
-	(*CreatePortRequest)(nil),                  // 20: masterdata.v1.CreatePortRequest
-	(*UpdatePortRequest)(nil),                  // 21: masterdata.v1.UpdatePortRequest
-	(*PortListReply)(nil),                      // 22: masterdata.v1.PortListReply
-	(*PortReply)(nil),                          // 23: masterdata.v1.PortReply
-	(*Airport)(nil),                            // 24: masterdata.v1.Airport
-	(*CreateAirportRequest)(nil),               // 25: masterdata.v1.CreateAirportRequest
-	(*UpdateAirportRequest)(nil),               // 26: masterdata.v1.UpdateAirportRequest
-	(*AirportListReply)(nil),                   // 27: masterdata.v1.AirportListReply
-	(*AirportReply)(nil),                       // 28: masterdata.v1.AirportReply
-	(*Airline)(nil),                            // 29: masterdata.v1.Airline
-	(*CreateAirlineRequest)(nil),               // 30: masterdata.v1.CreateAirlineRequest
-	(*UpdateAirlineRequest)(nil),               // 31: masterdata.v1.UpdateAirlineRequest
-	(*AirlineListReply)(nil),                   // 32: masterdata.v1.AirlineListReply
-	(*AirlineReply)(nil),                       // 33: masterdata.v1.AirlineReply
-	(*ShippingLine)(nil),                       // 34: masterdata.v1.ShippingLine
-	(*CreateShippingLineRequest)(nil),          // 35: masterdata.v1.CreateShippingLineRequest
-	(*UpdateShippingLineRequest)(nil),          // 36: masterdata.v1.UpdateShippingLineRequest
-	(*ShippingLineListReply)(nil),              // 37: masterdata.v1.ShippingLineListReply
-	(*ShippingLineReply)(nil),                  // 38: masterdata.v1.ShippingLineReply
-	(*ListCurrenciesRequest)(nil),              // 39: masterdata.v1.ListCurrenciesRequest
-	(*Currency)(nil),                           // 40: masterdata.v1.Currency
-	(*CurrencyListReply)(nil),                  // 41: masterdata.v1.CurrencyListReply
-	(*ListAdministrativeRegionsRequest)(nil),   // 42: masterdata.v1.ListAdministrativeRegionsRequest
-	(*AdministrativeRegion)(nil),               // 43: masterdata.v1.AdministrativeRegion
-	(*AdministrativeRegionListReply)(nil),      // 44: masterdata.v1.AdministrativeRegionListReply
-	(*ListNumberRulesRequest)(nil),             // 45: masterdata.v1.ListNumberRulesRequest
-	(*CreateNumberRuleRequest)(nil),            // 46: masterdata.v1.CreateNumberRuleRequest
-	(*UpdateNumberRuleRequest)(nil),            // 47: masterdata.v1.UpdateNumberRuleRequest
-	(*NumberRule)(nil),                         // 48: masterdata.v1.NumberRule
-	(*NumberRuleListReply)(nil),                // 49: masterdata.v1.NumberRuleListReply
-	(*NumberRuleReply)(nil),                    // 50: masterdata.v1.NumberRuleReply
-	(*StatusTemplateItemInput)(nil),            // 51: masterdata.v1.StatusTemplateItemInput
-	(*CreateStatusTemplateRequest)(nil),        // 52: masterdata.v1.CreateStatusTemplateRequest
-	(*ListStatusTemplatesRequest)(nil),         // 53: masterdata.v1.ListStatusTemplatesRequest
-	(*PublishStatusTemplateRequest)(nil),       // 54: masterdata.v1.PublishStatusTemplateRequest
-	(*SetDefaultStatusTemplateRequest)(nil),    // 55: masterdata.v1.SetDefaultStatusTemplateRequest
-	(*StatusTemplateItem)(nil),                 // 56: masterdata.v1.StatusTemplateItem
-	(*StatusTemplate)(nil),                     // 57: masterdata.v1.StatusTemplate
-	(*StatusTemplateListReply)(nil),            // 58: masterdata.v1.StatusTemplateListReply
-	(*StatusTemplateReply)(nil),                // 59: masterdata.v1.StatusTemplateReply
-	(*MilestoneTemplateItemInput)(nil),         // 60: masterdata.v1.MilestoneTemplateItemInput
-	(*CreateMilestoneTemplateRequest)(nil),     // 61: masterdata.v1.CreateMilestoneTemplateRequest
-	(*ListMilestoneTemplatesRequest)(nil),      // 62: masterdata.v1.ListMilestoneTemplatesRequest
-	(*PublishMilestoneTemplateRequest)(nil),    // 63: masterdata.v1.PublishMilestoneTemplateRequest
-	(*SetDefaultMilestoneTemplateRequest)(nil), // 64: masterdata.v1.SetDefaultMilestoneTemplateRequest
-	(*MilestoneTemplateItem)(nil),              // 65: masterdata.v1.MilestoneTemplateItem
-	(*MilestoneTemplate)(nil),                  // 66: masterdata.v1.MilestoneTemplate
-	(*MilestoneTemplateListReply)(nil),         // 67: masterdata.v1.MilestoneTemplateListReply
-	(*MilestoneTemplateReply)(nil),             // 68: masterdata.v1.MilestoneTemplateReply
+	(MasterDataImportMode)(0),                   // 0: masterdata.v1.MasterDataImportMode
+	(MasterDataKind)(0),                         // 1: masterdata.v1.MasterDataKind
+	(DocumentType)(0),                           // 2: masterdata.v1.DocumentType
+	(DateFormat)(0),                             // 3: masterdata.v1.DateFormat
+	(ResetPolicy)(0),                            // 4: masterdata.v1.ResetPolicy
+	(BusinessType)(0),                           // 5: masterdata.v1.BusinessType
+	(*ListItemsRequest)(nil),                    // 6: masterdata.v1.ListItemsRequest
+	(*MasterDataAttributes)(nil),                // 7: masterdata.v1.MasterDataAttributes
+	(*CreateItemRequest)(nil),                   // 8: masterdata.v1.CreateItemRequest
+	(*UpdateItemRequest)(nil),                   // 9: masterdata.v1.UpdateItemRequest
+	(*MasterDataImportItemInput)(nil),           // 10: masterdata.v1.MasterDataImportItemInput
+	(*ImportItemsRequest)(nil),                  // 11: masterdata.v1.ImportItemsRequest
+	(*ImportItemsResponse)(nil),                 // 12: masterdata.v1.ImportItemsResponse
+	(*ListOptionsRequest)(nil),                  // 13: masterdata.v1.ListOptionsRequest
+	(*MasterDataItem)(nil),                      // 14: masterdata.v1.MasterDataItem
+	(*ListItemsResponse)(nil),                   // 15: masterdata.v1.ListItemsResponse
+	(*CreateItemResponse)(nil),                  // 16: masterdata.v1.CreateItemResponse
+	(*UpdateItemResponse)(nil),                  // 17: masterdata.v1.UpdateItemResponse
+	(*ListOptionsResponse)(nil),                 // 18: masterdata.v1.ListOptionsResponse
+	(*ListPortsRequest)(nil),                    // 19: masterdata.v1.ListPortsRequest
+	(*ListAirportsRequest)(nil),                 // 20: masterdata.v1.ListAirportsRequest
+	(*ListAirlinesRequest)(nil),                 // 21: masterdata.v1.ListAirlinesRequest
+	(*ListShippingLinesRequest)(nil),            // 22: masterdata.v1.ListShippingLinesRequest
+	(*Port)(nil),                                // 23: masterdata.v1.Port
+	(*CreatePortRequest)(nil),                   // 24: masterdata.v1.CreatePortRequest
+	(*UpdatePortRequest)(nil),                   // 25: masterdata.v1.UpdatePortRequest
+	(*ListPortsResponse)(nil),                   // 26: masterdata.v1.ListPortsResponse
+	(*CreatePortResponse)(nil),                  // 27: masterdata.v1.CreatePortResponse
+	(*UpdatePortResponse)(nil),                  // 28: masterdata.v1.UpdatePortResponse
+	(*Airport)(nil),                             // 29: masterdata.v1.Airport
+	(*CreateAirportRequest)(nil),                // 30: masterdata.v1.CreateAirportRequest
+	(*UpdateAirportRequest)(nil),                // 31: masterdata.v1.UpdateAirportRequest
+	(*ListAirportsResponse)(nil),                // 32: masterdata.v1.ListAirportsResponse
+	(*CreateAirportResponse)(nil),               // 33: masterdata.v1.CreateAirportResponse
+	(*UpdateAirportResponse)(nil),               // 34: masterdata.v1.UpdateAirportResponse
+	(*Airline)(nil),                             // 35: masterdata.v1.Airline
+	(*CreateAirlineRequest)(nil),                // 36: masterdata.v1.CreateAirlineRequest
+	(*UpdateAirlineRequest)(nil),                // 37: masterdata.v1.UpdateAirlineRequest
+	(*ListAirlinesResponse)(nil),                // 38: masterdata.v1.ListAirlinesResponse
+	(*CreateAirlineResponse)(nil),               // 39: masterdata.v1.CreateAirlineResponse
+	(*UpdateAirlineResponse)(nil),               // 40: masterdata.v1.UpdateAirlineResponse
+	(*ShippingLine)(nil),                        // 41: masterdata.v1.ShippingLine
+	(*CreateShippingLineRequest)(nil),           // 42: masterdata.v1.CreateShippingLineRequest
+	(*UpdateShippingLineRequest)(nil),           // 43: masterdata.v1.UpdateShippingLineRequest
+	(*ListShippingLinesResponse)(nil),           // 44: masterdata.v1.ListShippingLinesResponse
+	(*CreateShippingLineResponse)(nil),          // 45: masterdata.v1.CreateShippingLineResponse
+	(*UpdateShippingLineResponse)(nil),          // 46: masterdata.v1.UpdateShippingLineResponse
+	(*ListCurrenciesRequest)(nil),               // 47: masterdata.v1.ListCurrenciesRequest
+	(*Currency)(nil),                            // 48: masterdata.v1.Currency
+	(*ListCurrenciesResponse)(nil),              // 49: masterdata.v1.ListCurrenciesResponse
+	(*ListAdministrativeRegionsRequest)(nil),    // 50: masterdata.v1.ListAdministrativeRegionsRequest
+	(*AdministrativeRegion)(nil),                // 51: masterdata.v1.AdministrativeRegion
+	(*ListAdministrativeRegionsResponse)(nil),   // 52: masterdata.v1.ListAdministrativeRegionsResponse
+	(*ListNumberRulesRequest)(nil),              // 53: masterdata.v1.ListNumberRulesRequest
+	(*CreateNumberRuleRequest)(nil),             // 54: masterdata.v1.CreateNumberRuleRequest
+	(*UpdateNumberRuleRequest)(nil),             // 55: masterdata.v1.UpdateNumberRuleRequest
+	(*NumberRule)(nil),                          // 56: masterdata.v1.NumberRule
+	(*ListNumberRulesResponse)(nil),             // 57: masterdata.v1.ListNumberRulesResponse
+	(*CreateNumberRuleResponse)(nil),            // 58: masterdata.v1.CreateNumberRuleResponse
+	(*UpdateNumberRuleResponse)(nil),            // 59: masterdata.v1.UpdateNumberRuleResponse
+	(*StatusTemplateItemInput)(nil),             // 60: masterdata.v1.StatusTemplateItemInput
+	(*CreateStatusTemplateRequest)(nil),         // 61: masterdata.v1.CreateStatusTemplateRequest
+	(*ListStatusTemplatesRequest)(nil),          // 62: masterdata.v1.ListStatusTemplatesRequest
+	(*PublishStatusTemplateRequest)(nil),        // 63: masterdata.v1.PublishStatusTemplateRequest
+	(*SetDefaultStatusTemplateRequest)(nil),     // 64: masterdata.v1.SetDefaultStatusTemplateRequest
+	(*StatusTemplateItem)(nil),                  // 65: masterdata.v1.StatusTemplateItem
+	(*StatusTemplate)(nil),                      // 66: masterdata.v1.StatusTemplate
+	(*ListStatusTemplatesResponse)(nil),         // 67: masterdata.v1.ListStatusTemplatesResponse
+	(*CreateStatusTemplateResponse)(nil),        // 68: masterdata.v1.CreateStatusTemplateResponse
+	(*PublishStatusTemplateResponse)(nil),       // 69: masterdata.v1.PublishStatusTemplateResponse
+	(*SetDefaultStatusTemplateResponse)(nil),    // 70: masterdata.v1.SetDefaultStatusTemplateResponse
+	(*MilestoneTemplateItemInput)(nil),          // 71: masterdata.v1.MilestoneTemplateItemInput
+	(*CreateMilestoneTemplateRequest)(nil),      // 72: masterdata.v1.CreateMilestoneTemplateRequest
+	(*ListMilestoneTemplatesRequest)(nil),       // 73: masterdata.v1.ListMilestoneTemplatesRequest
+	(*PublishMilestoneTemplateRequest)(nil),     // 74: masterdata.v1.PublishMilestoneTemplateRequest
+	(*SetDefaultMilestoneTemplateRequest)(nil),  // 75: masterdata.v1.SetDefaultMilestoneTemplateRequest
+	(*MilestoneTemplateItem)(nil),               // 76: masterdata.v1.MilestoneTemplateItem
+	(*MilestoneTemplate)(nil),                   // 77: masterdata.v1.MilestoneTemplate
+	(*ListMilestoneTemplatesResponse)(nil),      // 78: masterdata.v1.ListMilestoneTemplatesResponse
+	(*CreateMilestoneTemplateResponse)(nil),     // 79: masterdata.v1.CreateMilestoneTemplateResponse
+	(*PublishMilestoneTemplateResponse)(nil),    // 80: masterdata.v1.PublishMilestoneTemplateResponse
+	(*SetDefaultMilestoneTemplateResponse)(nil), // 81: masterdata.v1.SetDefaultMilestoneTemplateResponse
 }
 var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
-	1,  // 0: masterdata.v1.ListMasterDataItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
-	1,  // 1: masterdata.v1.CreateMasterDataItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
-	7,  // 2: masterdata.v1.CreateMasterDataItemRequest.attributes:type_name -> masterdata.v1.MasterDataAttributes
-	1,  // 3: masterdata.v1.UpdateMasterDataItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
-	7,  // 4: masterdata.v1.UpdateMasterDataItemRequest.attributes:type_name -> masterdata.v1.MasterDataAttributes
+	1,  // 0: masterdata.v1.ListItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
+	1,  // 1: masterdata.v1.CreateItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
+	7,  // 2: masterdata.v1.CreateItemRequest.attributes:type_name -> masterdata.v1.MasterDataAttributes
+	1,  // 3: masterdata.v1.UpdateItemRequest.kind:type_name -> masterdata.v1.MasterDataKind
+	7,  // 4: masterdata.v1.UpdateItemRequest.attributes:type_name -> masterdata.v1.MasterDataAttributes
 	7,  // 5: masterdata.v1.MasterDataImportItemInput.attributes:type_name -> masterdata.v1.MasterDataAttributes
-	1,  // 6: masterdata.v1.ImportMasterDataItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
-	0,  // 7: masterdata.v1.ImportMasterDataItemsRequest.mode:type_name -> masterdata.v1.MasterDataImportMode
-	10, // 8: masterdata.v1.ImportMasterDataItemsRequest.items:type_name -> masterdata.v1.MasterDataImportItemInput
-	14, // 9: masterdata.v1.MasterDataImportReply.data:type_name -> masterdata.v1.MasterDataItem
+	1,  // 6: masterdata.v1.ImportItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
+	0,  // 7: masterdata.v1.ImportItemsRequest.mode:type_name -> masterdata.v1.MasterDataImportMode
+	10, // 8: masterdata.v1.ImportItemsRequest.items:type_name -> masterdata.v1.MasterDataImportItemInput
+	14, // 9: masterdata.v1.ImportItemsResponse.data:type_name -> masterdata.v1.MasterDataItem
 	1,  // 10: masterdata.v1.MasterDataItem.kind:type_name -> masterdata.v1.MasterDataKind
 	7,  // 11: masterdata.v1.MasterDataItem.attributes:type_name -> masterdata.v1.MasterDataAttributes
-	14, // 12: masterdata.v1.MasterDataItemListReply.data:type_name -> masterdata.v1.MasterDataItem
-	14, // 13: masterdata.v1.MasterDataItemReply.data:type_name -> masterdata.v1.MasterDataItem
-	14, // 14: masterdata.v1.MasterDataOptionsReply.data:type_name -> masterdata.v1.MasterDataItem
-	19, // 15: masterdata.v1.PortListReply.data:type_name -> masterdata.v1.Port
-	19, // 16: masterdata.v1.PortReply.data:type_name -> masterdata.v1.Port
-	24, // 17: masterdata.v1.AirportListReply.data:type_name -> masterdata.v1.Airport
-	24, // 18: masterdata.v1.AirportReply.data:type_name -> masterdata.v1.Airport
-	29, // 19: masterdata.v1.AirlineListReply.data:type_name -> masterdata.v1.Airline
-	29, // 20: masterdata.v1.AirlineReply.data:type_name -> masterdata.v1.Airline
-	34, // 21: masterdata.v1.ShippingLineListReply.data:type_name -> masterdata.v1.ShippingLine
-	34, // 22: masterdata.v1.ShippingLineReply.data:type_name -> masterdata.v1.ShippingLine
-	40, // 23: masterdata.v1.CurrencyListReply.data:type_name -> masterdata.v1.Currency
-	43, // 24: masterdata.v1.AdministrativeRegionListReply.data:type_name -> masterdata.v1.AdministrativeRegion
-	2,  // 25: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
-	3,  // 26: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 27: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	3,  // 28: masterdata.v1.UpdateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 29: masterdata.v1.UpdateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	2,  // 30: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
-	3,  // 31: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
-	4,  // 32: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	48, // 33: masterdata.v1.NumberRuleListReply.data:type_name -> masterdata.v1.NumberRule
-	48, // 34: masterdata.v1.NumberRuleReply.data:type_name -> masterdata.v1.NumberRule
-	5,  // 35: masterdata.v1.CreateStatusTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
-	51, // 36: masterdata.v1.CreateStatusTemplateRequest.items:type_name -> masterdata.v1.StatusTemplateItemInput
-	5,  // 37: masterdata.v1.ListStatusTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
-	5,  // 38: masterdata.v1.StatusTemplate.business_type:type_name -> masterdata.v1.BusinessType
-	56, // 39: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
-	57, // 40: masterdata.v1.StatusTemplateListReply.data:type_name -> masterdata.v1.StatusTemplate
-	57, // 41: masterdata.v1.StatusTemplateReply.data:type_name -> masterdata.v1.StatusTemplate
-	5,  // 42: masterdata.v1.CreateMilestoneTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
-	60, // 43: masterdata.v1.CreateMilestoneTemplateRequest.items:type_name -> masterdata.v1.MilestoneTemplateItemInput
-	5,  // 44: masterdata.v1.ListMilestoneTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
-	5,  // 45: masterdata.v1.MilestoneTemplate.business_type:type_name -> masterdata.v1.BusinessType
-	65, // 46: masterdata.v1.MilestoneTemplate.items:type_name -> masterdata.v1.MilestoneTemplateItem
-	66, // 47: masterdata.v1.MilestoneTemplateListReply.data:type_name -> masterdata.v1.MilestoneTemplate
-	66, // 48: masterdata.v1.MilestoneTemplateReply.data:type_name -> masterdata.v1.MilestoneTemplate
-	6,  // 49: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListMasterDataItemsRequest
-	8,  // 50: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateMasterDataItemRequest
-	9,  // 51: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateMasterDataItemRequest
-	11, // 52: masterdata.v1.MasterDataService.ImportItems:input_type -> masterdata.v1.ImportMasterDataItemsRequest
-	13, // 53: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListMasterDataOptionsRequest
-	18, // 54: masterdata.v1.MasterDataService.ListPorts:input_type -> masterdata.v1.ListIndustryReferencesRequest
-	20, // 55: masterdata.v1.MasterDataService.CreatePort:input_type -> masterdata.v1.CreatePortRequest
-	21, // 56: masterdata.v1.MasterDataService.UpdatePort:input_type -> masterdata.v1.UpdatePortRequest
-	18, // 57: masterdata.v1.MasterDataService.ListAirports:input_type -> masterdata.v1.ListIndustryReferencesRequest
-	25, // 58: masterdata.v1.MasterDataService.CreateAirport:input_type -> masterdata.v1.CreateAirportRequest
-	26, // 59: masterdata.v1.MasterDataService.UpdateAirport:input_type -> masterdata.v1.UpdateAirportRequest
-	18, // 60: masterdata.v1.MasterDataService.ListAirlines:input_type -> masterdata.v1.ListIndustryReferencesRequest
-	30, // 61: masterdata.v1.MasterDataService.CreateAirline:input_type -> masterdata.v1.CreateAirlineRequest
-	31, // 62: masterdata.v1.MasterDataService.UpdateAirline:input_type -> masterdata.v1.UpdateAirlineRequest
-	18, // 63: masterdata.v1.MasterDataService.ListShippingLines:input_type -> masterdata.v1.ListIndustryReferencesRequest
-	35, // 64: masterdata.v1.MasterDataService.CreateShippingLine:input_type -> masterdata.v1.CreateShippingLineRequest
-	36, // 65: masterdata.v1.MasterDataService.UpdateShippingLine:input_type -> masterdata.v1.UpdateShippingLineRequest
-	39, // 66: masterdata.v1.MasterDataService.ListCurrencies:input_type -> masterdata.v1.ListCurrenciesRequest
-	42, // 67: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
-	45, // 68: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
-	46, // 69: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
-	47, // 70: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
-	53, // 71: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
-	52, // 72: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
-	54, // 73: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
-	55, // 74: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
-	62, // 75: masterdata.v1.MasterDataService.ListMilestoneTemplates:input_type -> masterdata.v1.ListMilestoneTemplatesRequest
-	61, // 76: masterdata.v1.MasterDataService.CreateMilestoneTemplate:input_type -> masterdata.v1.CreateMilestoneTemplateRequest
-	63, // 77: masterdata.v1.MasterDataService.PublishMilestoneTemplate:input_type -> masterdata.v1.PublishMilestoneTemplateRequest
-	64, // 78: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:input_type -> masterdata.v1.SetDefaultMilestoneTemplateRequest
-	15, // 79: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.MasterDataItemListReply
-	16, // 80: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.MasterDataItemReply
-	16, // 81: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.MasterDataItemReply
-	12, // 82: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.MasterDataImportReply
-	17, // 83: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.MasterDataOptionsReply
-	22, // 84: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.PortListReply
-	23, // 85: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.PortReply
-	23, // 86: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.PortReply
-	27, // 87: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.AirportListReply
-	28, // 88: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.AirportReply
-	28, // 89: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.AirportReply
-	32, // 90: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.AirlineListReply
-	33, // 91: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.AirlineReply
-	33, // 92: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.AirlineReply
-	37, // 93: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ShippingLineListReply
-	38, // 94: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.ShippingLineReply
-	38, // 95: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.ShippingLineReply
-	41, // 96: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.CurrencyListReply
-	44, // 97: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.AdministrativeRegionListReply
-	49, // 98: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.NumberRuleListReply
-	50, // 99: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.NumberRuleReply
-	50, // 100: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.NumberRuleReply
-	58, // 101: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.StatusTemplateListReply
-	59, // 102: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	59, // 103: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	59, // 104: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.StatusTemplateReply
-	67, // 105: masterdata.v1.MasterDataService.ListMilestoneTemplates:output_type -> masterdata.v1.MilestoneTemplateListReply
-	68, // 106: masterdata.v1.MasterDataService.CreateMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
-	68, // 107: masterdata.v1.MasterDataService.PublishMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
-	68, // 108: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:output_type -> masterdata.v1.MilestoneTemplateReply
-	79, // [79:109] is the sub-list for method output_type
-	49, // [49:79] is the sub-list for method input_type
-	49, // [49:49] is the sub-list for extension type_name
-	49, // [49:49] is the sub-list for extension extendee
-	0,  // [0:49] is the sub-list for field type_name
+	14, // 12: masterdata.v1.ListItemsResponse.data:type_name -> masterdata.v1.MasterDataItem
+	14, // 13: masterdata.v1.CreateItemResponse.data:type_name -> masterdata.v1.MasterDataItem
+	14, // 14: masterdata.v1.UpdateItemResponse.data:type_name -> masterdata.v1.MasterDataItem
+	14, // 15: masterdata.v1.ListOptionsResponse.data:type_name -> masterdata.v1.MasterDataItem
+	23, // 16: masterdata.v1.ListPortsResponse.data:type_name -> masterdata.v1.Port
+	23, // 17: masterdata.v1.CreatePortResponse.data:type_name -> masterdata.v1.Port
+	23, // 18: masterdata.v1.UpdatePortResponse.data:type_name -> masterdata.v1.Port
+	29, // 19: masterdata.v1.ListAirportsResponse.data:type_name -> masterdata.v1.Airport
+	29, // 20: masterdata.v1.CreateAirportResponse.data:type_name -> masterdata.v1.Airport
+	29, // 21: masterdata.v1.UpdateAirportResponse.data:type_name -> masterdata.v1.Airport
+	35, // 22: masterdata.v1.ListAirlinesResponse.data:type_name -> masterdata.v1.Airline
+	35, // 23: masterdata.v1.CreateAirlineResponse.data:type_name -> masterdata.v1.Airline
+	35, // 24: masterdata.v1.UpdateAirlineResponse.data:type_name -> masterdata.v1.Airline
+	41, // 25: masterdata.v1.ListShippingLinesResponse.data:type_name -> masterdata.v1.ShippingLine
+	41, // 26: masterdata.v1.CreateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
+	41, // 27: masterdata.v1.UpdateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
+	48, // 28: masterdata.v1.ListCurrenciesResponse.data:type_name -> masterdata.v1.Currency
+	51, // 29: masterdata.v1.ListAdministrativeRegionsResponse.data:type_name -> masterdata.v1.AdministrativeRegion
+	2,  // 30: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
+	3,  // 31: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 32: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	3,  // 33: masterdata.v1.UpdateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 34: masterdata.v1.UpdateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	2,  // 35: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
+	3,  // 36: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
+	4,  // 37: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
+	56, // 38: masterdata.v1.ListNumberRulesResponse.data:type_name -> masterdata.v1.NumberRule
+	56, // 39: masterdata.v1.CreateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	56, // 40: masterdata.v1.UpdateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	5,  // 41: masterdata.v1.CreateStatusTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
+	60, // 42: masterdata.v1.CreateStatusTemplateRequest.items:type_name -> masterdata.v1.StatusTemplateItemInput
+	5,  // 43: masterdata.v1.ListStatusTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
+	5,  // 44: masterdata.v1.StatusTemplate.business_type:type_name -> masterdata.v1.BusinessType
+	65, // 45: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
+	66, // 46: masterdata.v1.ListStatusTemplatesResponse.data:type_name -> masterdata.v1.StatusTemplate
+	66, // 47: masterdata.v1.CreateStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	66, // 48: masterdata.v1.PublishStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	66, // 49: masterdata.v1.SetDefaultStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	5,  // 50: masterdata.v1.CreateMilestoneTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
+	71, // 51: masterdata.v1.CreateMilestoneTemplateRequest.items:type_name -> masterdata.v1.MilestoneTemplateItemInput
+	5,  // 52: masterdata.v1.ListMilestoneTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
+	5,  // 53: masterdata.v1.MilestoneTemplate.business_type:type_name -> masterdata.v1.BusinessType
+	76, // 54: masterdata.v1.MilestoneTemplate.items:type_name -> masterdata.v1.MilestoneTemplateItem
+	77, // 55: masterdata.v1.ListMilestoneTemplatesResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	77, // 56: masterdata.v1.CreateMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	77, // 57: masterdata.v1.PublishMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	77, // 58: masterdata.v1.SetDefaultMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	6,  // 59: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListItemsRequest
+	8,  // 60: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateItemRequest
+	9,  // 61: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateItemRequest
+	11, // 62: masterdata.v1.MasterDataService.ImportItems:input_type -> masterdata.v1.ImportItemsRequest
+	13, // 63: masterdata.v1.MasterDataService.ListOptions:input_type -> masterdata.v1.ListOptionsRequest
+	19, // 64: masterdata.v1.MasterDataService.ListPorts:input_type -> masterdata.v1.ListPortsRequest
+	24, // 65: masterdata.v1.MasterDataService.CreatePort:input_type -> masterdata.v1.CreatePortRequest
+	25, // 66: masterdata.v1.MasterDataService.UpdatePort:input_type -> masterdata.v1.UpdatePortRequest
+	20, // 67: masterdata.v1.MasterDataService.ListAirports:input_type -> masterdata.v1.ListAirportsRequest
+	30, // 68: masterdata.v1.MasterDataService.CreateAirport:input_type -> masterdata.v1.CreateAirportRequest
+	31, // 69: masterdata.v1.MasterDataService.UpdateAirport:input_type -> masterdata.v1.UpdateAirportRequest
+	21, // 70: masterdata.v1.MasterDataService.ListAirlines:input_type -> masterdata.v1.ListAirlinesRequest
+	36, // 71: masterdata.v1.MasterDataService.CreateAirline:input_type -> masterdata.v1.CreateAirlineRequest
+	37, // 72: masterdata.v1.MasterDataService.UpdateAirline:input_type -> masterdata.v1.UpdateAirlineRequest
+	22, // 73: masterdata.v1.MasterDataService.ListShippingLines:input_type -> masterdata.v1.ListShippingLinesRequest
+	42, // 74: masterdata.v1.MasterDataService.CreateShippingLine:input_type -> masterdata.v1.CreateShippingLineRequest
+	43, // 75: masterdata.v1.MasterDataService.UpdateShippingLine:input_type -> masterdata.v1.UpdateShippingLineRequest
+	47, // 76: masterdata.v1.MasterDataService.ListCurrencies:input_type -> masterdata.v1.ListCurrenciesRequest
+	50, // 77: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
+	53, // 78: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
+	54, // 79: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
+	55, // 80: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
+	62, // 81: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
+	61, // 82: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
+	63, // 83: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
+	64, // 84: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
+	73, // 85: masterdata.v1.MasterDataService.ListMilestoneTemplates:input_type -> masterdata.v1.ListMilestoneTemplatesRequest
+	72, // 86: masterdata.v1.MasterDataService.CreateMilestoneTemplate:input_type -> masterdata.v1.CreateMilestoneTemplateRequest
+	74, // 87: masterdata.v1.MasterDataService.PublishMilestoneTemplate:input_type -> masterdata.v1.PublishMilestoneTemplateRequest
+	75, // 88: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:input_type -> masterdata.v1.SetDefaultMilestoneTemplateRequest
+	15, // 89: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.ListItemsResponse
+	16, // 90: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.CreateItemResponse
+	17, // 91: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.UpdateItemResponse
+	12, // 92: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.ImportItemsResponse
+	18, // 93: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.ListOptionsResponse
+	26, // 94: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.ListPortsResponse
+	27, // 95: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.CreatePortResponse
+	28, // 96: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.UpdatePortResponse
+	32, // 97: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.ListAirportsResponse
+	33, // 98: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.CreateAirportResponse
+	34, // 99: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.UpdateAirportResponse
+	38, // 100: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.ListAirlinesResponse
+	39, // 101: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.CreateAirlineResponse
+	40, // 102: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.UpdateAirlineResponse
+	44, // 103: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ListShippingLinesResponse
+	45, // 104: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.CreateShippingLineResponse
+	46, // 105: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.UpdateShippingLineResponse
+	49, // 106: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
+	52, // 107: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.ListAdministrativeRegionsResponse
+	57, // 108: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.ListNumberRulesResponse
+	58, // 109: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.CreateNumberRuleResponse
+	59, // 110: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.UpdateNumberRuleResponse
+	67, // 111: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.ListStatusTemplatesResponse
+	68, // 112: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.CreateStatusTemplateResponse
+	69, // 113: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.PublishStatusTemplateResponse
+	70, // 114: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.SetDefaultStatusTemplateResponse
+	78, // 115: masterdata.v1.MasterDataService.ListMilestoneTemplates:output_type -> masterdata.v1.ListMilestoneTemplatesResponse
+	79, // 116: masterdata.v1.MasterDataService.CreateMilestoneTemplate:output_type -> masterdata.v1.CreateMilestoneTemplateResponse
+	80, // 117: masterdata.v1.MasterDataService.PublishMilestoneTemplate:output_type -> masterdata.v1.PublishMilestoneTemplateResponse
+	81, // 118: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:output_type -> masterdata.v1.SetDefaultMilestoneTemplateResponse
+	89, // [89:119] is the sub-list for method output_type
+	59, // [59:89] is the sub-list for method input_type
+	59, // [59:59] is the sub-list for extension type_name
+	59, // [59:59] is the sub-list for extension extendee
+	0,  // [0:59] is the sub-list for field type_name
 }
 
 func init() { file_masterdata_v1_masterdata_proto_init() }
@@ -6947,34 +8015,37 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[3].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[4].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[8].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[12].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[13].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[18].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[19].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[20].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[14].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[15].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[16].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[17].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[23].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[24].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[25].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[28].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[29].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[30].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[31].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[35].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[36].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[37].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[44].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[45].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[47].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[50].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[51].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[54].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[56].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[59].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[60].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[65].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[67].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[70].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[71].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_masterdata_v1_masterdata_proto_rawDesc), len(file_masterdata_v1_masterdata_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   63,
+			NumMessages:   76,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

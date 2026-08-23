@@ -24,13 +24,13 @@ const OperationOrderCargoItemServiceUpdateCargoItem = "/order.v1.OrderCargoItemS
 
 type OrderCargoItemServiceHTTPServer interface {
 	// AddCargoItem AddCargoItem 添加订单货物明细。
-	AddCargoItem(context.Context, *AddCargoItemRequest) (*OrderCargoItemReply, error)
+	AddCargoItem(context.Context, *AddCargoItemRequest) (*AddCargoItemResponse, error)
 	// ListCargoItems ListCargoItems 获取指定订单的货物明细列表。
-	ListCargoItems(context.Context, *ListCargoItemsRequest) (*OrderCargoItemListReply, error)
+	ListCargoItems(context.Context, *ListCargoItemsRequest) (*ListCargoItemsResponse, error)
 	// RemoveCargoItem RemoveCargoItem 移除订单货物明细。
-	RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*OrderCargoItemOperationReply, error)
+	RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*RemoveCargoItemResponse, error)
 	// UpdateCargoItem UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-	UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*OrderCargoItemReply, error)
+	UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*UpdateCargoItemResponse, error)
 }
 
 func RegisterOrderCargoItemServiceHTTPServer(s *http.Server, srv OrderCargoItemServiceHTTPServer) {
@@ -58,7 +58,7 @@ func _OrderCargoItemService_ListCargoItems0_HTTP_Handler(srv OrderCargoItemServi
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderCargoItemListReply)
+		reply := out.(*ListCargoItemsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -80,7 +80,7 @@ func _OrderCargoItemService_AddCargoItem0_HTTP_Handler(srv OrderCargoItemService
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderCargoItemReply)
+		reply := out.(*AddCargoItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -102,7 +102,7 @@ func _OrderCargoItemService_UpdateCargoItem0_HTTP_Handler(srv OrderCargoItemServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderCargoItemReply)
+		reply := out.(*UpdateCargoItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -124,20 +124,20 @@ func _OrderCargoItemService_RemoveCargoItem0_HTTP_Handler(srv OrderCargoItemServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderCargoItemOperationReply)
+		reply := out.(*RemoveCargoItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderCargoItemServiceHTTPClient interface {
 	// AddCargoItem AddCargoItem 添加订单货物明细。
-	AddCargoItem(ctx context.Context, req *AddCargoItemRequest, opts ...http.CallOption) (rsp *OrderCargoItemReply, err error)
+	AddCargoItem(ctx context.Context, req *AddCargoItemRequest, opts ...http.CallOption) (rsp *AddCargoItemResponse, err error)
 	// ListCargoItems ListCargoItems 获取指定订单的货物明细列表。
-	ListCargoItems(ctx context.Context, req *ListCargoItemsRequest, opts ...http.CallOption) (rsp *OrderCargoItemListReply, err error)
+	ListCargoItems(ctx context.Context, req *ListCargoItemsRequest, opts ...http.CallOption) (rsp *ListCargoItemsResponse, err error)
 	// RemoveCargoItem RemoveCargoItem 移除订单货物明细。
-	RemoveCargoItem(ctx context.Context, req *RemoveCargoItemRequest, opts ...http.CallOption) (rsp *OrderCargoItemOperationReply, err error)
+	RemoveCargoItem(ctx context.Context, req *RemoveCargoItemRequest, opts ...http.CallOption) (rsp *RemoveCargoItemResponse, err error)
 	// UpdateCargoItem UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-	UpdateCargoItem(ctx context.Context, req *UpdateCargoItemRequest, opts ...http.CallOption) (rsp *OrderCargoItemReply, err error)
+	UpdateCargoItem(ctx context.Context, req *UpdateCargoItemRequest, opts ...http.CallOption) (rsp *UpdateCargoItemResponse, err error)
 }
 
 type OrderCargoItemServiceHTTPClientImpl struct {
@@ -149,8 +149,8 @@ func NewOrderCargoItemServiceHTTPClient(client *http.Client) OrderCargoItemServi
 }
 
 // AddCargoItem AddCargoItem 添加订单货物明细。
-func (c *OrderCargoItemServiceHTTPClientImpl) AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...http.CallOption) (*OrderCargoItemReply, error) {
-	var out OrderCargoItemReply
+func (c *OrderCargoItemServiceHTTPClientImpl) AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...http.CallOption) (*AddCargoItemResponse, error) {
+	var out AddCargoItemResponse
 	pattern := "/api/v1/orders/{order_id}/cargo-items"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -167,8 +167,8 @@ func (c *OrderCargoItemServiceHTTPClientImpl) AddCargoItem(ctx context.Context, 
 }
 
 // ListCargoItems ListCargoItems 获取指定订单的货物明细列表。
-func (c *OrderCargoItemServiceHTTPClientImpl) ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...http.CallOption) (*OrderCargoItemListReply, error) {
-	var out OrderCargoItemListReply
+func (c *OrderCargoItemServiceHTTPClientImpl) ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...http.CallOption) (*ListCargoItemsResponse, error) {
+	var out ListCargoItemsResponse
 	pattern := "/api/v1/orders/{order_id}/cargo-items"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -184,8 +184,8 @@ func (c *OrderCargoItemServiceHTTPClientImpl) ListCargoItems(ctx context.Context
 }
 
 // RemoveCargoItem RemoveCargoItem 移除订单货物明细。
-func (c *OrderCargoItemServiceHTTPClientImpl) RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...http.CallOption) (*OrderCargoItemOperationReply, error) {
-	var out OrderCargoItemOperationReply
+func (c *OrderCargoItemServiceHTTPClientImpl) RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...http.CallOption) (*RemoveCargoItemResponse, error) {
+	var out RemoveCargoItemResponse
 	pattern := "/api/v1/orders/{order_id}/cargo-items/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -201,8 +201,8 @@ func (c *OrderCargoItemServiceHTTPClientImpl) RemoveCargoItem(ctx context.Contex
 }
 
 // UpdateCargoItem UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-func (c *OrderCargoItemServiceHTTPClientImpl) UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...http.CallOption) (*OrderCargoItemReply, error) {
-	var out OrderCargoItemReply
+func (c *OrderCargoItemServiceHTTPClientImpl) UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...http.CallOption) (*UpdateCargoItemResponse, error) {
+	var out UpdateCargoItemResponse
 	pattern := "/api/v1/orders/{order_id}/cargo-items/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

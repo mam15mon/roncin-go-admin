@@ -43,7 +43,7 @@ export default function CountriesPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '国家主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.MasterDataItemReply) => {
+  const saveResponse = (response: API.CreateItemResponse | API.UpdateItemResponse) => {
     const saved = mapCountry(requireMasterDataResponse(response));
     setData((current) => {
       const exists = current.some((item) => item.id === saved.id);

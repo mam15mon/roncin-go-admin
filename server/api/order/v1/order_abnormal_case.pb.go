@@ -394,8 +394,8 @@ func (x *RemoveAbnormalCaseRequest) GetId() string {
 	return ""
 }
 
-// OrderAbnormalCaseReply 单条异常标记响应。
-type OrderAbnormalCaseReply struct {
+// MarkAbnormalCaseResponse 单条异常标记响应。
+type MarkAbnormalCaseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -406,20 +406,20 @@ type OrderAbnormalCaseReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderAbnormalCaseReply) Reset() {
-	*x = OrderAbnormalCaseReply{}
+func (x *MarkAbnormalCaseResponse) Reset() {
+	*x = MarkAbnormalCaseResponse{}
 	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderAbnormalCaseReply) String() string {
+func (x *MarkAbnormalCaseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderAbnormalCaseReply) ProtoMessage() {}
+func (*MarkAbnormalCaseResponse) ProtoMessage() {}
 
-func (x *OrderAbnormalCaseReply) ProtoReflect() protoreflect.Message {
+func (x *MarkAbnormalCaseResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -431,48 +431,124 @@ func (x *OrderAbnormalCaseReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderAbnormalCaseReply.ProtoReflect.Descriptor instead.
-func (*OrderAbnormalCaseReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use MarkAbnormalCaseResponse.ProtoReflect.Descriptor instead.
+func (*MarkAbnormalCaseResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *OrderAbnormalCaseReply) GetSuccess() bool {
+func (x *MarkAbnormalCaseResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderAbnormalCaseReply) GetCode() int32 {
+func (x *MarkAbnormalCaseResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderAbnormalCaseReply) GetMessage() string {
+func (x *MarkAbnormalCaseResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderAbnormalCaseReply) GetData() *OrderAbnormalCase {
+func (x *MarkAbnormalCaseResponse) GetData() *OrderAbnormalCase {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderAbnormalCaseReply) GetTraceId() string {
+func (x *MarkAbnormalCaseResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderAbnormalCaseListReply 异常标记列表响应。
-type OrderAbnormalCaseListReply struct {
+type ResolveAbnormalCaseResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderAbnormalCase     `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveAbnormalCaseResponse) Reset() {
+	*x = ResolveAbnormalCaseResponse{}
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveAbnormalCaseResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveAbnormalCaseResponse) ProtoMessage() {}
+
+func (x *ResolveAbnormalCaseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveAbnormalCaseResponse.ProtoReflect.Descriptor instead.
+func (*ResolveAbnormalCaseResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ResolveAbnormalCaseResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ResolveAbnormalCaseResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ResolveAbnormalCaseResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ResolveAbnormalCaseResponse) GetData() *OrderAbnormalCase {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ResolveAbnormalCaseResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListAbnormalCasesResponse 异常标记列表响应。
+type ListAbnormalCasesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -483,21 +559,21 @@ type OrderAbnormalCaseListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderAbnormalCaseListReply) Reset() {
-	*x = OrderAbnormalCaseListReply{}
-	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[6]
+func (x *ListAbnormalCasesResponse) Reset() {
+	*x = ListAbnormalCasesResponse{}
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderAbnormalCaseListReply) String() string {
+func (x *ListAbnormalCasesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderAbnormalCaseListReply) ProtoMessage() {}
+func (*ListAbnormalCasesResponse) ProtoMessage() {}
 
-func (x *OrderAbnormalCaseListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[6]
+func (x *ListAbnormalCasesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -508,48 +584,48 @@ func (x *OrderAbnormalCaseListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderAbnormalCaseListReply.ProtoReflect.Descriptor instead.
-func (*OrderAbnormalCaseListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use ListAbnormalCasesResponse.ProtoReflect.Descriptor instead.
+func (*ListAbnormalCasesResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *OrderAbnormalCaseListReply) GetSuccess() bool {
+func (x *ListAbnormalCasesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderAbnormalCaseListReply) GetCode() int32 {
+func (x *ListAbnormalCasesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderAbnormalCaseListReply) GetMessage() string {
+func (x *ListAbnormalCasesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderAbnormalCaseListReply) GetData() []*OrderAbnormalCase {
+func (x *ListAbnormalCasesResponse) GetData() []*OrderAbnormalCase {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderAbnormalCaseListReply) GetTraceId() string {
+func (x *ListAbnormalCasesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderAbnormalCaseOperationReply 异常标记操作响应。
-type OrderAbnormalCaseOperationReply struct {
+// RemoveAbnormalCaseResponse 异常标记操作响应。
+type RemoveAbnormalCaseResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -559,21 +635,21 @@ type OrderAbnormalCaseOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderAbnormalCaseOperationReply) Reset() {
-	*x = OrderAbnormalCaseOperationReply{}
-	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[7]
+func (x *RemoveAbnormalCaseResponse) Reset() {
+	*x = RemoveAbnormalCaseResponse{}
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderAbnormalCaseOperationReply) String() string {
+func (x *RemoveAbnormalCaseResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderAbnormalCaseOperationReply) ProtoMessage() {}
+func (*RemoveAbnormalCaseResponse) ProtoMessage() {}
 
-func (x *OrderAbnormalCaseOperationReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[7]
+func (x *RemoveAbnormalCaseResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_abnormal_case_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -584,33 +660,33 @@ func (x *OrderAbnormalCaseOperationReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderAbnormalCaseOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderAbnormalCaseOperationReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use RemoveAbnormalCaseResponse.ProtoReflect.Descriptor instead.
+func (*RemoveAbnormalCaseResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_abnormal_case_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *OrderAbnormalCaseOperationReply) GetSuccess() bool {
+func (x *RemoveAbnormalCaseResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderAbnormalCaseOperationReply) GetCode() int32 {
+func (x *RemoveAbnormalCaseResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderAbnormalCaseOperationReply) GetMessage() string {
+func (x *RemoveAbnormalCaseResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderAbnormalCaseOperationReply) GetTraceId() string {
+func (x *RemoveAbnormalCaseResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -650,20 +726,26 @@ const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"P\n" +
 	"\x19RemoveAbnormalCaseRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xac\x01\n" +
-	"\x16OrderAbnormalCaseReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xae\x01\n" +
+	"\x18MarkAbnormalCaseResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.OrderAbnormalCaseR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb0\x01\n" +
-	"\x1aOrderAbnormalCaseListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb1\x01\n" +
+	"\x1bResolveAbnormalCaseResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
+	"\x04data\x18\x04 \x01(\v2\x1b.order.v1.OrderAbnormalCaseR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaf\x01\n" +
+	"\x19ListAbnormalCasesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x03(\v2\x1b.order.v1.OrderAbnormalCaseR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x84\x01\n" +
-	"\x1fOrderAbnormalCaseOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x7f\n" +
+	"\x1aRemoveAbnormalCaseResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
@@ -671,12 +753,12 @@ const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"\x17OrderAbnormalCaseStatus\x12*\n" +
 	"&ORDER_ABNORMAL_CASE_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
 	"!ORDER_ABNORMAL_CASE_STATUS_ACTIVE\x10\x01\x12'\n" +
-	"#ORDER_ABNORMAL_CASE_STATUS_RESOLVED\x10\x022\xf2\x05\n" +
-	"\x18OrderAbnormalCaseService\x12\xab\x01\n" +
-	"\x11ListAbnormalCases\x12\".order.v1.ListAbnormalCasesRequest\x1a$.order.v1.OrderAbnormalCaseListReply\"L\x82\xb5\x18\x18\b\x04\x1a\x12abnormal_case.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/orders/{order_id}/abnormal-cases\x12\xaa\x01\n" +
-	"\x10MarkAbnormalCase\x12!.order.v1.MarkAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"Q\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.create \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/orders/{order_id}/abnormal-cases\x12\xbe\x01\n" +
-	"\x13ResolveAbnormalCase\x12$.order.v1.ResolveAbnormalCaseRequest\x1a .order.v1.OrderAbnormalCaseReply\"_\x82\xb5\x18\x1b\b\x04\x1a\x15abnormal_case.resolve \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve\x12\xb9\x01\n" +
-	"\x12RemoveAbnormalCase\x12#.order.v1.RemoveAbnormalCaseRequest\x1a).order.v1.OrderAbnormalCaseOperationReply\"S\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.delete \x02\x82\xd3\xe4\x93\x02/*-/api/v1/orders/{order_id}/abnormal-cases/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"#ORDER_ABNORMAL_CASE_STATUS_RESOLVED\x10\x022\xf3\x05\n" +
+	"\x18OrderAbnormalCaseService\x12\xaa\x01\n" +
+	"\x11ListAbnormalCases\x12\".order.v1.ListAbnormalCasesRequest\x1a#.order.v1.ListAbnormalCasesResponse\"L\x82\xb5\x18\x18\b\x04\x1a\x12abnormal_case.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/orders/{order_id}/abnormal-cases\x12\xac\x01\n" +
+	"\x10MarkAbnormalCase\x12!.order.v1.MarkAbnormalCaseRequest\x1a\".order.v1.MarkAbnormalCaseResponse\"Q\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.create \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/orders/{order_id}/abnormal-cases\x12\xc3\x01\n" +
+	"\x13ResolveAbnormalCase\x12$.order.v1.ResolveAbnormalCaseRequest\x1a%.order.v1.ResolveAbnormalCaseResponse\"_\x82\xb5\x18\x1b\b\x04\x1a\x15abnormal_case.resolve \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve\x12\xb4\x01\n" +
+	"\x12RemoveAbnormalCase\x12#.order.v1.RemoveAbnormalCaseRequest\x1a$.order.v1.RemoveAbnormalCaseResponse\"S\x82\xb5\x18\x1a\b\x04\x1a\x14abnormal_case.delete \x02\x82\xd3\xe4\x93\x02/*-/api/v1/orders/{order_id}/abnormal-cases/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_abnormal_case_proto_rawDescOnce sync.Once
@@ -691,35 +773,37 @@ func file_order_v1_order_abnormal_case_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_abnormal_case_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_order_v1_order_abnormal_case_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_order_v1_order_abnormal_case_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_order_v1_order_abnormal_case_proto_goTypes = []any{
-	(OrderAbnormalCaseStatus)(0),            // 0: order.v1.OrderAbnormalCaseStatus
-	(*OrderAbnormalCase)(nil),               // 1: order.v1.OrderAbnormalCase
-	(*ListAbnormalCasesRequest)(nil),        // 2: order.v1.ListAbnormalCasesRequest
-	(*MarkAbnormalCaseRequest)(nil),         // 3: order.v1.MarkAbnormalCaseRequest
-	(*ResolveAbnormalCaseRequest)(nil),      // 4: order.v1.ResolveAbnormalCaseRequest
-	(*RemoveAbnormalCaseRequest)(nil),       // 5: order.v1.RemoveAbnormalCaseRequest
-	(*OrderAbnormalCaseReply)(nil),          // 6: order.v1.OrderAbnormalCaseReply
-	(*OrderAbnormalCaseListReply)(nil),      // 7: order.v1.OrderAbnormalCaseListReply
-	(*OrderAbnormalCaseOperationReply)(nil), // 8: order.v1.OrderAbnormalCaseOperationReply
+	(OrderAbnormalCaseStatus)(0),        // 0: order.v1.OrderAbnormalCaseStatus
+	(*OrderAbnormalCase)(nil),           // 1: order.v1.OrderAbnormalCase
+	(*ListAbnormalCasesRequest)(nil),    // 2: order.v1.ListAbnormalCasesRequest
+	(*MarkAbnormalCaseRequest)(nil),     // 3: order.v1.MarkAbnormalCaseRequest
+	(*ResolveAbnormalCaseRequest)(nil),  // 4: order.v1.ResolveAbnormalCaseRequest
+	(*RemoveAbnormalCaseRequest)(nil),   // 5: order.v1.RemoveAbnormalCaseRequest
+	(*MarkAbnormalCaseResponse)(nil),    // 6: order.v1.MarkAbnormalCaseResponse
+	(*ResolveAbnormalCaseResponse)(nil), // 7: order.v1.ResolveAbnormalCaseResponse
+	(*ListAbnormalCasesResponse)(nil),   // 8: order.v1.ListAbnormalCasesResponse
+	(*RemoveAbnormalCaseResponse)(nil),  // 9: order.v1.RemoveAbnormalCaseResponse
 }
 var file_order_v1_order_abnormal_case_proto_depIdxs = []int32{
 	0, // 0: order.v1.OrderAbnormalCase.status:type_name -> order.v1.OrderAbnormalCaseStatus
-	1, // 1: order.v1.OrderAbnormalCaseReply.data:type_name -> order.v1.OrderAbnormalCase
-	1, // 2: order.v1.OrderAbnormalCaseListReply.data:type_name -> order.v1.OrderAbnormalCase
-	2, // 3: order.v1.OrderAbnormalCaseService.ListAbnormalCases:input_type -> order.v1.ListAbnormalCasesRequest
-	3, // 4: order.v1.OrderAbnormalCaseService.MarkAbnormalCase:input_type -> order.v1.MarkAbnormalCaseRequest
-	4, // 5: order.v1.OrderAbnormalCaseService.ResolveAbnormalCase:input_type -> order.v1.ResolveAbnormalCaseRequest
-	5, // 6: order.v1.OrderAbnormalCaseService.RemoveAbnormalCase:input_type -> order.v1.RemoveAbnormalCaseRequest
-	7, // 7: order.v1.OrderAbnormalCaseService.ListAbnormalCases:output_type -> order.v1.OrderAbnormalCaseListReply
-	6, // 8: order.v1.OrderAbnormalCaseService.MarkAbnormalCase:output_type -> order.v1.OrderAbnormalCaseReply
-	6, // 9: order.v1.OrderAbnormalCaseService.ResolveAbnormalCase:output_type -> order.v1.OrderAbnormalCaseReply
-	8, // 10: order.v1.OrderAbnormalCaseService.RemoveAbnormalCase:output_type -> order.v1.OrderAbnormalCaseOperationReply
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	1, // 1: order.v1.MarkAbnormalCaseResponse.data:type_name -> order.v1.OrderAbnormalCase
+	1, // 2: order.v1.ResolveAbnormalCaseResponse.data:type_name -> order.v1.OrderAbnormalCase
+	1, // 3: order.v1.ListAbnormalCasesResponse.data:type_name -> order.v1.OrderAbnormalCase
+	2, // 4: order.v1.OrderAbnormalCaseService.ListAbnormalCases:input_type -> order.v1.ListAbnormalCasesRequest
+	3, // 5: order.v1.OrderAbnormalCaseService.MarkAbnormalCase:input_type -> order.v1.MarkAbnormalCaseRequest
+	4, // 6: order.v1.OrderAbnormalCaseService.ResolveAbnormalCase:input_type -> order.v1.ResolveAbnormalCaseRequest
+	5, // 7: order.v1.OrderAbnormalCaseService.RemoveAbnormalCase:input_type -> order.v1.RemoveAbnormalCaseRequest
+	8, // 8: order.v1.OrderAbnormalCaseService.ListAbnormalCases:output_type -> order.v1.ListAbnormalCasesResponse
+	6, // 9: order.v1.OrderAbnormalCaseService.MarkAbnormalCase:output_type -> order.v1.MarkAbnormalCaseResponse
+	7, // 10: order.v1.OrderAbnormalCaseService.ResolveAbnormalCase:output_type -> order.v1.ResolveAbnormalCaseResponse
+	9, // 11: order.v1.OrderAbnormalCaseService.RemoveAbnormalCase:output_type -> order.v1.RemoveAbnormalCaseResponse
+	8, // [8:12] is the sub-list for method output_type
+	4, // [4:8] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_abnormal_case_proto_init() }
@@ -734,7 +818,7 @@ func file_order_v1_order_abnormal_case_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_abnormal_case_proto_rawDesc), len(file_order_v1_order_abnormal_case_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

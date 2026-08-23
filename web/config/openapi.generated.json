@@ -77,7 +77,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminAuditLogListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListAuditLogsResponse"
                 }
               }
             }
@@ -97,7 +97,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminOrganizationListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListOrganizationsResponse"
                 }
               }
             }
@@ -125,7 +125,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminOrganizationReply"
+                  "$ref": "#/components/schemas/admin.v1.CreateOrganizationResponse"
                 }
               }
             }
@@ -165,7 +165,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminOrganizationReply"
+                  "$ref": "#/components/schemas/admin.v1.UpdateOrganizationResponse"
                 }
               }
             }
@@ -195,7 +195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminRoleListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListOrganizationRolesResponse"
                 }
               }
             }
@@ -215,7 +215,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminPermissionListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListPermissionsResponse"
                 }
               }
             }
@@ -235,7 +235,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminRoleListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListRolesResponse"
                 }
               }
             }
@@ -263,7 +263,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminRoleReply"
+                  "$ref": "#/components/schemas/admin.v1.CreateRoleResponse"
                 }
               }
             }
@@ -303,7 +303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminRoleReply"
+                  "$ref": "#/components/schemas/admin.v1.UpdateRoleResponse"
                 }
               }
             }
@@ -348,7 +348,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminUserListReply"
+                  "$ref": "#/components/schemas/admin.v1.ListUsersResponse"
                 }
               }
             }
@@ -376,7 +376,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminUserReply"
+                  "$ref": "#/components/schemas/admin.v1.CreateUserResponse"
                 }
               }
             }
@@ -416,7 +416,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminUserReply"
+                  "$ref": "#/components/schemas/admin.v1.UpdateUserResponse"
                 }
               }
             }
@@ -456,7 +456,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminOperationReply"
+                  "$ref": "#/components/schemas/admin.v1.ResetUserPasswordResponse"
                 }
               }
             }
@@ -496,7 +496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/admin.v1.AdminUserReply"
+                  "$ref": "#/components/schemas/admin.v1.AuthorizeWeComUserResponse"
                 }
               }
             }
@@ -526,7 +526,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.LoginReply"
+                  "$ref": "#/components/schemas/auth.v1.LoginResponse"
                 }
               }
             }
@@ -542,7 +542,11 @@
         "operationId": "AuthService_Logout",
         "requestBody": {
           "content": {
-            "application/json": {}
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.LogoutRequest"
+              }
+            }
           },
           "required": true
         },
@@ -552,7 +556,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.OperationReply"
+                  "$ref": "#/components/schemas/auth.v1.LogoutResponse"
                 }
               }
             }
@@ -572,7 +576,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.MeReply"
+                  "$ref": "#/components/schemas/auth.v1.MeResponse"
                 }
               }
             }
@@ -602,7 +606,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.MeReply"
+                  "$ref": "#/components/schemas/auth.v1.SwitchOrganizationResponse"
                 }
               }
             }
@@ -632,7 +636,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.LoginReply"
+                  "$ref": "#/components/schemas/auth.v1.WeComLoginResponse"
                 }
               }
             }
@@ -652,7 +656,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/auth.v1.WeComLoginConfigReply"
+                  "$ref": "#/components/schemas/auth.v1.GetWeComLoginConfigResponse"
                 }
               }
             }
@@ -721,7 +725,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/task.v1.BackgroundTaskListReply"
+                  "$ref": "#/components/schemas/task.v1.ListBackgroundTasksResponse"
                 }
               }
             }
@@ -752,7 +756,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/task.v1.BackgroundTaskReply"
+                  "$ref": "#/components/schemas/task.v1.GetBackgroundTaskResponse"
                 }
               }
             }
@@ -793,7 +797,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/task.v1.BackgroundTaskReply"
+                  "$ref": "#/components/schemas/task.v1.RequeueBackgroundTaskResponse"
                 }
               }
             }
@@ -845,7 +849,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirlineListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListAirlinesResponse"
                 }
               }
             }
@@ -873,7 +877,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirlineReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateAirlineResponse"
                 }
               }
             }
@@ -913,7 +917,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirlineReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdateAirlineResponse"
                 }
               }
             }
@@ -965,7 +969,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirportListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListAirportsResponse"
                 }
               }
             }
@@ -993,7 +997,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirportReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateAirportResponse"
                 }
               }
             }
@@ -1033,7 +1037,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AirportReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdateAirportResponse"
                 }
               }
             }
@@ -1051,7 +1055,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.ImportMasterDataItemsRequest"
+                "$ref": "#/components/schemas/masterdata.v1.ImportItemsRequest"
               }
             }
           },
@@ -1063,7 +1067,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MasterDataImportReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ImportItemsResponse"
                 }
               }
             }
@@ -1123,7 +1127,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListItemsResponse"
                 }
               }
             }
@@ -1139,7 +1143,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.CreateMasterDataItemRequest"
+                "$ref": "#/components/schemas/masterdata.v1.CreateItemRequest"
               }
             }
           },
@@ -1151,7 +1155,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateItemResponse"
                 }
               }
             }
@@ -1179,7 +1183,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.UpdateMasterDataItemRequest"
+                "$ref": "#/components/schemas/masterdata.v1.UpdateItemRequest"
               }
             }
           },
@@ -1191,7 +1195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MasterDataItemReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdateItemResponse"
                 }
               }
             }
@@ -1235,7 +1239,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplateListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListMilestoneTemplatesResponse"
                 }
               }
             }
@@ -1263,7 +1267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateMilestoneTemplateResponse"
                 }
               }
             }
@@ -1303,7 +1307,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.PublishMilestoneTemplateResponse"
                 }
               }
             }
@@ -1343,7 +1347,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.SetDefaultMilestoneTemplateResponse"
                 }
               }
             }
@@ -1363,7 +1367,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.NumberRuleListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListNumberRulesResponse"
                 }
               }
             }
@@ -1391,7 +1395,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.NumberRuleReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateNumberRuleResponse"
                 }
               }
             }
@@ -1431,7 +1435,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.NumberRuleReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdateNumberRuleResponse"
                 }
               }
             }
@@ -1451,7 +1455,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.MasterDataOptionsReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListOptionsResponse"
                 }
               }
             }
@@ -1503,7 +1507,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.PortListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListPortsResponse"
                 }
               }
             }
@@ -1531,7 +1535,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.PortReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreatePortResponse"
                 }
               }
             }
@@ -1571,7 +1575,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.PortReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdatePortResponse"
                 }
               }
             }
@@ -1623,7 +1627,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListShippingLinesResponse"
                 }
               }
             }
@@ -1651,7 +1655,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateShippingLineResponse"
                 }
               }
             }
@@ -1691,7 +1695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.ShippingLineReply"
+                  "$ref": "#/components/schemas/masterdata.v1.UpdateShippingLineResponse"
                 }
               }
             }
@@ -1728,7 +1732,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.StatusTemplateListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListStatusTemplatesResponse"
                 }
               }
             }
@@ -1756,7 +1760,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.StatusTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.CreateStatusTemplateResponse"
                 }
               }
             }
@@ -1796,7 +1800,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.StatusTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.PublishStatusTemplateResponse"
                 }
               }
             }
@@ -1836,7 +1840,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.StatusTemplateReply"
+                  "$ref": "#/components/schemas/masterdata.v1.SetDefaultStatusTemplateResponse"
                 }
               }
             }
@@ -1887,7 +1891,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReferenceCheckReply"
+                  "$ref": "#/components/schemas/order.v1.CheckOrderReferenceResponse"
                 }
               }
             }
@@ -1954,7 +1958,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderListReply"
+                  "$ref": "#/components/schemas/order.v1.ListOrdersResponse"
                 }
               }
             }
@@ -1982,7 +1986,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReply"
+                  "$ref": "#/components/schemas/order.v1.CreateOrderResponse"
                 }
               }
             }
@@ -2012,7 +2016,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReply"
+                  "$ref": "#/components/schemas/order.v1.GetOrderResponse"
                 }
               }
             }
@@ -2050,7 +2054,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReply"
+                  "$ref": "#/components/schemas/order.v1.UpdateOrderResponse"
                 }
               }
             }
@@ -2090,7 +2094,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReply"
+                  "$ref": "#/components/schemas/order.v1.TransitionOrderStatusResponse"
                 }
               }
             }
@@ -2121,7 +2125,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseListReply"
+                  "$ref": "#/components/schemas/order.v1.ListAbnormalCasesResponse"
                 }
               }
             }
@@ -2160,7 +2164,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseReply"
+                  "$ref": "#/components/schemas/order.v1.MarkAbnormalCaseResponse"
                 }
               }
             }
@@ -2199,7 +2203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemoveAbnormalCaseResponse"
                 }
               }
             }
@@ -2248,7 +2252,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAbnormalCaseReply"
+                  "$ref": "#/components/schemas/order.v1.ResolveAbnormalCaseResponse"
                 }
               }
             }
@@ -2279,7 +2283,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAttachmentListReply"
+                  "$ref": "#/components/schemas/order.v1.ListAttachmentsResponse"
                 }
               }
             }
@@ -2318,7 +2322,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderAttachmentReply"
+                  "$ref": "#/components/schemas/order.v1.RegisterAttachmentResponse"
                 }
               }
             }
@@ -2349,7 +2353,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderCargoItemListReply"
+                  "$ref": "#/components/schemas/order.v1.ListCargoItemsResponse"
                 }
               }
             }
@@ -2388,7 +2392,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderCargoItemReply"
+                  "$ref": "#/components/schemas/order.v1.AddCargoItemResponse"
                 }
               }
             }
@@ -2437,7 +2441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderCargoItemReply"
+                  "$ref": "#/components/schemas/order.v1.UpdateCargoItemResponse"
                 }
               }
             }
@@ -2474,7 +2478,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderCargoItemOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemoveCargoItemResponse"
                 }
               }
             }
@@ -2505,7 +2509,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderContainerListReply"
+                  "$ref": "#/components/schemas/order.v1.ListContainersResponse"
                 }
               }
             }
@@ -2544,7 +2548,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderContainerReply"
+                  "$ref": "#/components/schemas/order.v1.AddContainerResponse"
                 }
               }
             }
@@ -2593,7 +2597,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderContainerReply"
+                  "$ref": "#/components/schemas/order.v1.UpdateContainerResponse"
                 }
               }
             }
@@ -2630,7 +2634,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderContainerOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemoveContainerResponse"
                 }
               }
             }
@@ -2661,7 +2665,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderMilestoneListReply"
+                  "$ref": "#/components/schemas/order.v1.ListMilestonesResponse"
                 }
               }
             }
@@ -2710,7 +2714,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderMilestoneReply"
+                  "$ref": "#/components/schemas/order.v1.SetMilestoneResponse"
                 }
               }
             }
@@ -2741,7 +2745,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderPersonnelListReply"
+                  "$ref": "#/components/schemas/order.v1.ListPersonnelResponse"
                 }
               }
             }
@@ -2780,7 +2784,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderPersonnelReply"
+                  "$ref": "#/components/schemas/order.v1.AssignPersonnelResponse"
                 }
               }
             }
@@ -2819,7 +2823,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderPersonnelOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemovePersonnelResponse"
                 }
               }
             }
@@ -2850,7 +2854,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReleasePodListReply"
+                  "$ref": "#/components/schemas/order.v1.ListReleasePodsResponse"
                 }
               }
             }
@@ -2889,7 +2893,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReleasePodReply"
+                  "$ref": "#/components/schemas/order.v1.AddReleasePodResponse"
                 }
               }
             }
@@ -2938,7 +2942,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReleasePodReply"
+                  "$ref": "#/components/schemas/order.v1.UpdateReleasePodResponse"
                 }
               }
             }
@@ -2975,7 +2979,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReleasePodOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemoveReleasePodResponse"
                 }
               }
             }
@@ -3024,7 +3028,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderReleasePodReply"
+                  "$ref": "#/components/schemas/order.v1.TransitionReleasePodStatusResponse"
                 }
               }
             }
@@ -3055,7 +3059,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentListReply"
+                  "$ref": "#/components/schemas/order.v1.ListShippingDocumentsResponse"
                 }
               }
             }
@@ -3094,7 +3098,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                  "$ref": "#/components/schemas/order.v1.AddShippingDocumentResponse"
                 }
               }
             }
@@ -3143,7 +3147,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                  "$ref": "#/components/schemas/order.v1.UpdateShippingDocumentResponse"
                 }
               }
             }
@@ -3180,7 +3184,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentOperationReply"
+                  "$ref": "#/components/schemas/order.v1.RemoveShippingDocumentResponse"
                 }
               }
             }
@@ -3229,7 +3233,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/order.v1.OrderShippingDocumentReply"
+                  "$ref": "#/components/schemas/order.v1.TransitionShippingDocumentStatusResponse"
                 }
               }
             }
@@ -3289,7 +3293,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnersResponse"
                 }
               }
             }
@@ -3317,7 +3321,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerReply"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerResponse"
                 }
               }
             }
@@ -3337,7 +3341,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAssignmentOptionListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse"
                 }
               }
             }
@@ -3381,7 +3385,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerExportReply"
+                  "$ref": "#/components/schemas/partner.v1.ExportPartnersResponse"
                 }
               }
             }
@@ -3411,7 +3415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerImportReply"
+                  "$ref": "#/components/schemas/partner.v1.ImportPartnersResponse"
                 }
               }
             }
@@ -3441,7 +3445,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerReply"
+                  "$ref": "#/components/schemas/partner.v1.GetPartnerResponse"
                 }
               }
             }
@@ -3479,7 +3483,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerReply"
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerResponse"
                 }
               }
             }
@@ -3519,7 +3523,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerReply"
+                  "$ref": "#/components/schemas/partner.v1.SetSupplierBlacklistResponse"
                 }
               }
             }
@@ -3556,7 +3560,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAccountListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAccountsResponse"
                 }
               }
             }
@@ -3594,7 +3598,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAccountReply"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerAccountResponse"
                 }
               }
             }
@@ -3642,7 +3646,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAccountReply"
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerAccountResponse"
                 }
               }
             }
@@ -3672,7 +3676,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAttachmentListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAttachmentsResponse"
                 }
               }
             }
@@ -3710,7 +3714,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAttachmentReply"
+                  "$ref": "#/components/schemas/partner.v1.RegisterPartnerAttachmentResponse"
                 }
               }
             }
@@ -3756,7 +3760,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerAuditLogListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAuditLogsResponse"
                 }
               }
             }
@@ -3794,7 +3798,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerContractListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerContractsResponse"
                 }
               }
             }
@@ -3832,7 +3836,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerContractReply"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerContractResponse"
                 }
               }
             }
@@ -3880,7 +3884,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerContractReply"
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerContractResponse"
                 }
               }
             }
@@ -3919,7 +3923,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerSettlementRuleListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerSettlementRulesResponse"
                 }
               }
             }
@@ -3966,7 +3970,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerSettlementRuleReply"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerSettlementRuleResponse"
                 }
               }
             }
@@ -4023,7 +4027,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerSettlementRuleReply"
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerSettlementRuleResponse"
                 }
               }
             }
@@ -4068,7 +4072,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerShippingPresetListReply"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerShippingPresetsResponse"
                 }
               }
             }
@@ -4106,7 +4110,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerShippingPresetReply"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerShippingPresetResponse"
                 }
               }
             }
@@ -4154,7 +4158,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.PartnerShippingPresetReply"
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerShippingPresetResponse"
                 }
               }
             }
@@ -4198,7 +4202,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.AdministrativeRegionListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListAdministrativeRegionsResponse"
                 }
               }
             }
@@ -4218,7 +4222,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.CurrencyListReply"
+                  "$ref": "#/components/schemas/masterdata.v1.ListCurrenciesResponse"
                 }
               }
             }
@@ -4273,60 +4277,6 @@
           }
         }
       },
-      "admin.v1.AdminAuditLogListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.AdminAuditLog"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "admin.v1.AdminOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "admin.v1.AdminOrganization": {
         "type": "object",
         "properties": {
@@ -4351,51 +4301,6 @@
           }
         }
       },
-      "admin.v1.AdminOrganizationListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.AdminOrganization"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "admin.v1.AdminOrganizationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/admin.v1.AdminOrganization"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "admin.v1.AdminPermission": {
         "type": "object",
         "properties": {
@@ -4409,30 +4314,6 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
-          }
-        }
-      },
-      "admin.v1.AdminPermissionListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.AdminPermission"
-            }
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -4476,51 +4357,6 @@
             "items": {
               "$ref": "#/components/schemas/admin.v1.OrderOrganizationAccess"
             }
-          }
-        }
-      },
-      "admin.v1.AdminRoleListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.AdminRole"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "admin.v1.AdminRoleReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/admin.v1.AdminRole"
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },
@@ -4568,63 +4404,6 @@
           }
         }
       },
-      "admin.v1.AdminUserListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/admin.v1.AdminUser"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "admin.v1.AdminUserReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/admin.v1.AdminUser"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "admin.v1.AuthorizeWeComUserRequest": {
         "required": [
           "id",
@@ -4654,6 +4433,27 @@
           }
         }
       },
+      "admin.v1.AuthorizeWeComUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.CreateOrganizationRequest": {
         "required": [
           "code",
@@ -4675,6 +4475,27 @@
           "kind": {
             "type": "integer",
             "format": "enum"
+          }
+        }
+      },
+      "admin.v1.CreateOrganizationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminOrganization"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -4710,6 +4531,27 @@
           }
         }
       },
+      "admin.v1.CreateRoleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminRole"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.CreateUserRequest": {
         "required": [
           "username",
@@ -4735,6 +4577,195 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "admin.v1.CreateUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListAuditLogsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminAuditLog"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListOrganizationRolesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminRole"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListOrganizationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminOrganization"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListPermissionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminPermission"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListRolesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminRole"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListUsersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminUser"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -4767,6 +4798,24 @@
           }
         }
       },
+      "admin.v1.ResetUserPasswordResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.UpdateOrganizationRequest": {
         "required": [
           "id",
@@ -4782,6 +4831,27 @@
           },
           "enabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "admin.v1.UpdateOrganizationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminOrganization"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -4820,6 +4890,27 @@
           }
         }
       },
+      "admin.v1.UpdateRoleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminRole"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.UpdateUserRequest": {
         "required": [
           "id",
@@ -4844,6 +4935,27 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "admin.v1.UpdateUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -4885,7 +4997,7 @@
           }
         }
       },
-      "auth.v1.LoginReply": {
+      "auth.v1.GetWeComLoginConfigResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -4899,7 +5011,7 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+            "$ref": "#/components/schemas/auth.v1.WeComLoginConfig"
           },
           "traceId": {
             "type": "string"
@@ -4921,7 +5033,7 @@
           }
         }
       },
-      "auth.v1.MeReply": {
+      "auth.v1.LoginResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -4942,7 +5054,11 @@
           }
         }
       },
-      "auth.v1.OperationReply": {
+      "auth.v1.LogoutRequest": {
+        "type": "object",
+        "properties": {}
+      },
+      "auth.v1.LogoutResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -4954,6 +5070,27 @@
           },
           "message": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.MeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
           },
           "traceId": {
             "type": "string"
@@ -4996,18 +5133,7 @@
           }
         }
       },
-      "auth.v1.WeComLoginConfig": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "authorizeUrl": {
-            "type": "string"
-          }
-        }
-      },
-      "auth.v1.WeComLoginConfigReply": {
+      "auth.v1.SwitchOrganizationResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -5021,9 +5147,20 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/auth.v1.WeComLoginConfig"
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.WeComLoginConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "authorizeUrl": {
             "type": "string"
           }
         }
@@ -5039,6 +5176,27 @@
             "type": "string"
           },
           "state": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.WeComLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -5078,30 +5236,6 @@
             "type": "string"
           },
           "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.AdministrativeRegionListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.AdministrativeRegion"
-            }
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -5150,63 +5284,6 @@
             "type": "string"
           },
           "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.AirlineListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.Airline"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.AirlineReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.Airline"
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -5265,63 +5342,6 @@
           }
         }
       },
-      "masterdata.v1.AirportListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.Airport"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.AirportReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.Airport"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.CreateAirlineRequest": {
         "required": [
           "iataCode",
@@ -5362,6 +5382,27 @@
           }
         }
       },
+      "masterdata.v1.CreateAirlineResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airline"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.CreateAirportRequest": {
         "required": [
           "iataCode",
@@ -5399,7 +5440,28 @@
           }
         }
       },
-      "masterdata.v1.CreateMasterDataItemRequest": {
+      "masterdata.v1.CreateAirportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airport"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.CreateItemRequest": {
         "required": [
           "kind",
           "code",
@@ -5438,6 +5500,27 @@
           }
         }
       },
+      "masterdata.v1.CreateItemResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.CreateMilestoneTemplateRequest": {
         "required": [
           "code",
@@ -5473,6 +5556,27 @@
           }
         }
       },
+      "masterdata.v1.CreateMilestoneTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.CreateNumberRuleRequest": {
         "required": [
           "documentType",
@@ -5500,6 +5604,27 @@
           "resetPolicy": {
             "type": "integer",
             "format": "enum"
+          }
+        }
+      },
+      "masterdata.v1.CreateNumberRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.NumberRule"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -5533,6 +5658,27 @@
           "sortOrder": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "masterdata.v1.CreatePortResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Port"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -5578,6 +5724,27 @@
           }
         }
       },
+      "masterdata.v1.CreateShippingLineResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.CreateStatusTemplateRequest": {
         "required": [
           "code",
@@ -5607,6 +5774,27 @@
             "items": {
               "$ref": "#/components/schemas/masterdata.v1.StatusTemplateItemInput"
             }
+          }
+        }
+      },
+      "masterdata.v1.CreateStatusTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -5640,31 +5828,7 @@
           }
         }
       },
-      "masterdata.v1.CurrencyListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.Currency"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.ImportMasterDataItemsRequest": {
+      "masterdata.v1.ImportItemsRequest": {
         "required": [
           "kind",
           "source",
@@ -5689,6 +5853,362 @@
             "items": {
               "$ref": "#/components/schemas/masterdata.v1.MasterDataImportItemInput"
             }
+          }
+        }
+      },
+      "masterdata.v1.ImportItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListAdministrativeRegionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.AdministrativeRegion"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListAirlinesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Airline"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListAirportsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Airport"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListCurrenciesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Currency"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListMilestoneTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListNumberRulesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.NumberRule"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListPortsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Port"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListShippingLinesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.ListStatusTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
+            }
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -5742,38 +6262,6 @@
           }
         }
       },
-      "masterdata.v1.MasterDataImportReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
-            }
-          },
-          "createdCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "updatedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.MasterDataItem": {
         "type": "object",
         "properties": {
@@ -5820,87 +6308,6 @@
           },
           "attributes": {
             "$ref": "#/components/schemas/masterdata.v1.MasterDataAttributes"
-          }
-        }
-      },
-      "masterdata.v1.MasterDataItemListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.MasterDataItemReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.MasterDataOptionsReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
-            }
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },
@@ -6020,51 +6427,6 @@
           }
         }
       },
-      "masterdata.v1.MilestoneTemplateListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.MilestoneTemplateReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.NumberRule": {
         "type": "object",
         "properties": {
@@ -6100,51 +6462,6 @@
             "type": "string"
           },
           "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.NumberRuleListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.NumberRule"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.NumberRuleReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.NumberRule"
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -6200,63 +6517,6 @@
           }
         }
       },
-      "masterdata.v1.PortListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.Port"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.PortReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.Port"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.PublishMilestoneTemplateRequest": {
         "required": [
           "id"
@@ -6268,6 +6528,27 @@
           },
           "isDefault": {
             "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.PublishMilestoneTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -6285,6 +6566,27 @@
           }
         }
       },
+      "masterdata.v1.PublishStatusTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.SetDefaultMilestoneTemplateRequest": {
         "required": [
           "id"
@@ -6296,6 +6598,27 @@
           }
         }
       },
+      "masterdata.v1.SetDefaultMilestoneTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.SetDefaultStatusTemplateRequest": {
         "required": [
           "id"
@@ -6303,6 +6626,27 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.SetDefaultStatusTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -6354,63 +6698,6 @@
             "type": "string"
           },
           "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.ShippingLineListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.ShippingLineReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -6516,51 +6803,6 @@
           }
         }
       },
-      "masterdata.v1.StatusTemplateListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.StatusTemplateReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.UpdateAirlineRequest": {
         "required": [
           "id",
@@ -6604,6 +6846,27 @@
           }
         }
       },
+      "masterdata.v1.UpdateAirlineResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airline"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.UpdateAirportRequest": {
         "required": [
           "id",
@@ -6644,7 +6907,28 @@
           }
         }
       },
-      "masterdata.v1.UpdateMasterDataItemRequest": {
+      "masterdata.v1.UpdateAirportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Airport"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.UpdateItemRequest": {
         "required": [
           "id",
           "name",
@@ -6686,6 +6970,27 @@
           }
         }
       },
+      "masterdata.v1.UpdateItemResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.MasterDataItem"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "masterdata.v1.UpdateNumberRuleRequest": {
         "required": [
           "id",
@@ -6715,6 +7020,27 @@
           },
           "enabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.UpdateNumberRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.NumberRule"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -6751,6 +7077,27 @@
           },
           "enabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "masterdata.v1.UpdatePortResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.Port"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -6799,6 +7146,27 @@
           }
         }
       },
+      "masterdata.v1.UpdateShippingLineResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/masterdata.v1.ShippingLine"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.AddCargoItemRequest": {
         "required": [
           "orderId",
@@ -6836,6 +7204,28 @@
           }
         },
         "description": "AddCargoItemRequest 添加订单货物明细请求。"
+      },
+      "order.v1.AddCargoItemResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoItem"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AddCargoItemResponse 单条订单货物明细响应。"
       },
       "order.v1.AddContainerRequest": {
         "required": [
@@ -6876,6 +7266,28 @@
         },
         "description": "AddContainerRequest 添加订单集装箱请求。"
       },
+      "order.v1.AddContainerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderContainer"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AddContainerResponse 单条订单集装箱响应。"
+      },
       "order.v1.AddReleasePodRequest": {
         "required": [
           "orderId"
@@ -6899,6 +7311,28 @@
           }
         },
         "description": "AddReleasePodRequest 添加放货凭证请求。"
+      },
+      "order.v1.AddReleasePodResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderReleasePod"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AddReleasePodResponse 单条放货凭证响应。"
       },
       "order.v1.AddShippingDocumentRequest": {
         "required": [
@@ -6926,6 +7360,28 @@
         },
         "description": "AddShippingDocumentRequest 添加提单请求。"
       },
+      "order.v1.AddShippingDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AddShippingDocumentResponse 单条提单响应。"
+      },
       "order.v1.AssignPersonnelRequest": {
         "required": [
           "orderId",
@@ -6946,6 +7402,50 @@
           }
         },
         "description": "AssignPersonnelRequest 分配订单协作人员请求。"
+      },
+      "order.v1.AssignPersonnelResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderPersonnel"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AssignPersonnelResponse 单条订单协作人员响应。"
+      },
+      "order.v1.CheckOrderReferenceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderReferenceCheck"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "CheckOrderReferenceResponse 订单业务编号查重响应。"
       },
       "order.v1.CreateOrderRequest": {
         "required": [
@@ -7110,6 +7610,286 @@
         },
         "description": "CreateOrderRequest 创建订单请求。"
       },
+      "order.v1.CreateOrderResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.GetOrderResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "GetOrderResponse 单条订单响应。"
+      },
+      "order.v1.ListAbnormalCasesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListAbnormalCasesResponse 异常标记列表响应。"
+      },
+      "order.v1.ListAttachmentsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderAttachment"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListAttachmentsResponse 订单附件列表响应。"
+      },
+      "order.v1.ListCargoItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderCargoItem"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListCargoItemsResponse 订单货物明细列表响应。"
+      },
+      "order.v1.ListContainersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderContainer"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListContainersResponse 订单集装箱列表响应。"
+      },
+      "order.v1.ListMilestonesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderMilestone"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListMilestonesResponse 订单里程碑列表响应。"
+      },
+      "order.v1.ListOrdersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.Order"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListOrdersResponse 订单列表响应。"
+      },
+      "order.v1.ListPersonnelResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderPersonnel"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListPersonnelResponse 订单协作人员列表响应。"
+      },
+      "order.v1.ListReleasePodsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderReleasePod"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListReleasePodsResponse 放货凭证列表响应。"
+      },
+      "order.v1.ListShippingDocumentsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "ListShippingDocumentsResponse 提单列表响应。"
+      },
       "order.v1.MarkAbnormalCaseRequest": {
         "required": [
           "orderId",
@@ -7125,6 +7905,28 @@
           }
         },
         "description": "MarkAbnormalCaseRequest 标记订单异常请求。"
+      },
+      "order.v1.MarkAbnormalCaseResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "MarkAbnormalCaseResponse 单条异常标记响应。"
       },
       "order.v1.Order": {
         "type": "object",
@@ -7342,72 +8144,6 @@
         },
         "description": "OrderAbnormalCase 订单异常标记信息。"
       },
-      "order.v1.OrderAbnormalCaseListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderAbnormalCaseListReply 异常标记列表响应。"
-      },
-      "order.v1.OrderAbnormalCaseOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderAbnormalCaseOperationReply 异常标记操作响应。"
-      },
-      "order.v1.OrderAbnormalCaseReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderAbnormalCaseReply 单条异常标记响应。"
-      },
       "order.v1.OrderAttachment": {
         "type": "object",
         "properties": {
@@ -7450,53 +8186,6 @@
         },
         "description": "OrderAttachment 订单附件信息。"
       },
-      "order.v1.OrderAttachmentListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderAttachment"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderAttachmentListReply 订单附件列表响应。"
-      },
-      "order.v1.OrderAttachmentReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderAttachment"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderAttachmentReply 单条订单附件响应。"
-      },
       "order.v1.OrderCargoItem": {
         "type": "object",
         "properties": {
@@ -7536,72 +8225,6 @@
           }
         },
         "description": "OrderCargoItem 订单货物明细信息。"
-      },
-      "order.v1.OrderCargoItemListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderCargoItem"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderCargoItemListReply 订单货物明细列表响应。"
-      },
-      "order.v1.OrderCargoItemOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderCargoItemOperationReply 订单货物明细操作响应。"
-      },
-      "order.v1.OrderCargoItemReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderCargoItem"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderCargoItemReply 单条订单货物明细响应。"
       },
       "order.v1.OrderContainer": {
         "type": "object",
@@ -7644,109 +8267,6 @@
         },
         "description": "OrderContainer 订单集装箱信息。"
       },
-      "order.v1.OrderContainerListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderContainer"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderContainerListReply 订单集装箱列表响应。"
-      },
-      "order.v1.OrderContainerOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderContainerOperationReply 订单集装箱操作响应。"
-      },
-      "order.v1.OrderContainerReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderContainer"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderContainerReply 单条订单集装箱响应。"
-      },
-      "order.v1.OrderListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.Order"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderListReply 订单列表响应。"
-      },
       "order.v1.OrderMilestone": {
         "type": "object",
         "properties": {
@@ -7783,53 +8303,6 @@
         },
         "description": "OrderMilestone 订单里程碑信息。"
       },
-      "order.v1.OrderMilestoneListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderMilestone"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderMilestoneListReply 订单里程碑列表响应。"
-      },
-      "order.v1.OrderMilestoneReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderMilestone"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderMilestoneReply 单条订单里程碑响应。"
-      },
       "order.v1.OrderPersonnel": {
         "type": "object",
         "properties": {
@@ -7858,72 +8331,6 @@
         },
         "description": "OrderPersonnel 订单协作人员信息。"
       },
-      "order.v1.OrderPersonnelListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderPersonnel"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderPersonnelListReply 订单协作人员列表响应。"
-      },
-      "order.v1.OrderPersonnelOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderPersonnelOperationReply 订单协作人员操作响应。"
-      },
-      "order.v1.OrderPersonnelReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderPersonnel"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderPersonnelReply 单条订单协作人员响应。"
-      },
       "order.v1.OrderReferenceCheck": {
         "type": "object",
         "properties": {
@@ -7938,28 +8345,6 @@
           }
         },
         "description": "OrderReferenceCheck 订单业务编号查重结果。"
-      },
-      "order.v1.OrderReferenceCheckReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderReferenceCheck"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderReferenceCheckReply 订单业务编号查重响应。"
       },
       "order.v1.OrderReleasePod": {
         "type": "object",
@@ -8001,94 +8386,6 @@
         },
         "description": "OrderReleasePod 放货凭证信息。"
       },
-      "order.v1.OrderReleasePodListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderReleasePod"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderReleasePodListReply 放货凭证列表响应。"
-      },
-      "order.v1.OrderReleasePodOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderReleasePodOperationReply 放货凭证操作响应。"
-      },
-      "order.v1.OrderReleasePodReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderReleasePod"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderReleasePodReply 单条放货凭证响应。"
-      },
-      "order.v1.OrderReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.Order"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderReply 单条订单响应。"
-      },
       "order.v1.OrderShippingDocument": {
         "type": "object",
         "properties": {
@@ -8122,72 +8419,6 @@
           }
         },
         "description": "OrderShippingDocument 提单信息。"
-      },
-      "order.v1.OrderShippingDocumentListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderShippingDocumentListReply 提单列表响应。"
-      },
-      "order.v1.OrderShippingDocumentOperationReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderShippingDocumentOperationReply 提单操作响应。"
-      },
-      "order.v1.OrderShippingDocumentReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        },
-        "description": "OrderShippingDocumentReply 单条提单响应。"
       },
       "order.v1.RegisterAttachmentRequest": {
         "required": [
@@ -8228,6 +8459,142 @@
         },
         "description": "RegisterAttachmentRequest 注册订单附件请求。"
       },
+      "order.v1.RegisterAttachmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderAttachment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RegisterAttachmentResponse 单条订单附件响应。"
+      },
+      "order.v1.RemoveAbnormalCaseResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveAbnormalCaseResponse 异常标记操作响应。"
+      },
+      "order.v1.RemoveCargoItemResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveCargoItemResponse 订单货物明细操作响应。"
+      },
+      "order.v1.RemoveContainerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveContainerResponse 订单集装箱操作响应。"
+      },
+      "order.v1.RemovePersonnelResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemovePersonnelResponse 订单协作人员操作响应。"
+      },
+      "order.v1.RemoveReleasePodResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveReleasePodResponse 放货凭证操作响应。"
+      },
+      "order.v1.RemoveShippingDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveShippingDocumentResponse 提单操作响应。"
+      },
       "order.v1.ResolveAbnormalCaseRequest": {
         "required": [
           "orderId",
@@ -8243,6 +8610,27 @@
           }
         },
         "description": "ResolveAbnormalCaseRequest 解决订单异常请求。"
+      },
+      "order.v1.ResolveAbnormalCaseResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderAbnormalCase"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.SetMilestoneRequest": {
         "required": [
@@ -8273,6 +8661,28 @@
         },
         "description": "SetMilestoneRequest 设置订单里程碑请求。"
       },
+      "order.v1.SetMilestoneResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderMilestone"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "SetMilestoneResponse 单条订单里程碑响应。"
+      },
       "order.v1.TransitionOrderStatusRequest": {
         "required": [
           "id",
@@ -8295,6 +8705,27 @@
           }
         },
         "description": "TransitionOrderStatusRequest 流转订单状态请求。"
+      },
+      "order.v1.TransitionOrderStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.TransitionReleasePodStatusRequest": {
         "required": [
@@ -8322,6 +8753,27 @@
         },
         "description": "TransitionReleasePodStatusRequest 流转凭证状态请求。"
       },
+      "order.v1.TransitionReleasePodStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderReleasePod"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.TransitionShippingDocumentStatusRequest": {
         "required": [
           "orderId",
@@ -8347,6 +8799,27 @@
           }
         },
         "description": "TransitionShippingDocumentStatusRequest 流转提单状态请求。"
+      },
+      "order.v1.TransitionShippingDocumentStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.UpdateCargoItemRequest": {
         "required": [
@@ -8390,6 +8863,27 @@
         },
         "description": "UpdateCargoItemRequest 更新订单货物明细请求。"
       },
+      "order.v1.UpdateCargoItemResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoItem"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.UpdateContainerRequest": {
         "required": [
           "orderId",
@@ -8432,6 +8926,27 @@
           }
         },
         "description": "UpdateContainerRequest 更新订单集装箱请求。"
+      },
+      "order.v1.UpdateContainerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderContainer"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.UpdateOrderRequest": {
         "required": [
@@ -8595,6 +9110,27 @@
         },
         "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。"
       },
+      "order.v1.UpdateOrderResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.UpdateReleasePodRequest": {
         "required": [
           "orderId",
@@ -8622,6 +9158,27 @@
           }
         },
         "description": "UpdateReleasePodRequest 更新放货凭证字段请求。"
+      },
+      "order.v1.UpdateReleasePodResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderReleasePod"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.UpdateShippingDocumentRequest": {
         "required": [
@@ -8653,6 +9210,27 @@
         },
         "description": "UpdateShippingDocumentRequest 更新提单字段请求。"
       },
+      "order.v1.UpdateShippingDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderShippingDocument"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.CreatePartnerAccountRequest": {
         "required": [
           "partnerId",
@@ -8665,6 +9243,27 @@
           },
           "account": {
             "$ref": "#/components/schemas/partner.v1.PartnerAccountInput"
+          }
+        }
+      },
+      "partner.v1.CreatePartnerAccountResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAccount"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -8720,6 +9319,27 @@
           }
         }
       },
+      "partner.v1.CreatePartnerContractResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerContract"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.CreatePartnerRequest": {
         "required": [
           "code",
@@ -8768,6 +9388,27 @@
           }
         }
       },
+      "partner.v1.CreatePartnerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.Partner"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.CreatePartnerSettlementRuleRequest": {
         "required": [
           "partnerId",
@@ -8788,6 +9429,27 @@
           }
         }
       },
+      "partner.v1.CreatePartnerSettlementRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.CreatePartnerShippingPresetRequest": {
         "required": [
           "partnerId",
@@ -8800,6 +9462,72 @@
           },
           "preset": {
             "$ref": "#/components/schemas/partner.v1.PartnerShippingPresetInput"
+          }
+        }
+      },
+      "partner.v1.CreatePartnerShippingPresetResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerShippingPreset"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ExportPartnersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerExportItem"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.GetPartnerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.Partner"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -8823,6 +9551,248 @@
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerImportItemInput"
             }
+          }
+        }
+      },
+      "partner.v1.ImportPartnersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerAccountsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAccount"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerAssignmentOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAssignmentOption"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerAttachmentsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAttachment"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerAuditLogsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAuditLog"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerContractsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerContract"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerSettlementRulesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerShippingPresetsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerShippingPreset"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.Partner"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -8983,51 +9953,6 @@
           }
         }
       },
-      "partner.v1.PartnerAccountListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerAccount"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerAccountReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerAccount"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerAlias": {
         "type": "object",
         "properties": {
@@ -9129,30 +10054,6 @@
           }
         }
       },
-      "partner.v1.PartnerAssignmentOptionListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerAssignmentOption"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerAttachment": {
         "type": "object",
         "properties": {
@@ -9191,51 +10092,6 @@
           }
         }
       },
-      "partner.v1.PartnerAttachmentListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerAttachment"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerAttachmentReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerAttachment"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerAuditLog": {
         "type": "object",
         "properties": {
@@ -9264,42 +10120,6 @@
             }
           },
           "createdAt": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerAuditLogListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerAuditLog"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -9395,51 +10215,6 @@
           }
         }
       },
-      "partner.v1.PartnerContractListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerContract"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerContractReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerContract"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerExportItem": {
         "type": "object",
         "properties": {
@@ -9464,30 +10239,6 @@
               "type": "integer",
               "format": "enum"
             }
-          }
-        }
-      },
-      "partner.v1.PartnerExportReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerExportItem"
-            }
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },
@@ -9539,68 +10290,6 @@
           }
         }
       },
-      "partner.v1.PartnerImportReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "createdCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "updatedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.Partner"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerProfile": {
         "type": "object",
         "properties": {
@@ -9646,27 +10335,6 @@
             }
           },
           "remark": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.Partner"
-          },
-          "traceId": {
             "type": "string"
           }
         }
@@ -9804,51 +10472,6 @@
           }
         }
       },
-      "partner.v1.PartnerSettlementRuleListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerSettlementRuleReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerShippingPartyPayload": {
         "type": "object",
         "properties": {
@@ -9953,51 +10576,6 @@
           }
         }
       },
-      "partner.v1.PartnerShippingPresetListReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/partner.v1.PartnerShippingPreset"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.PartnerShippingPresetReply": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerShippingPreset"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.PartnerShippingTextPayload": {
         "type": "object",
         "properties": {
@@ -10043,6 +10621,27 @@
           }
         }
       },
+      "partner.v1.RegisterPartnerAttachmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAttachment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.SetSupplierBlacklistRequest": {
         "required": [
           "id",
@@ -10057,6 +10656,27 @@
             "type": "boolean"
           },
           "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.SetSupplierBlacklistResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.Partner"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -10077,6 +10697,27 @@
           },
           "account": {
             "$ref": "#/components/schemas/partner.v1.PartnerAccountInput"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerAccountResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerAccount"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -10132,6 +10773,27 @@
           }
         }
       },
+      "partner.v1.UpdatePartnerContractResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerContract"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.UpdatePartnerRequest": {
         "required": [
           "id",
@@ -10183,6 +10845,27 @@
           }
         }
       },
+      "partner.v1.UpdatePartnerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.Partner"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.UpdatePartnerSettlementRuleRequest": {
         "required": [
           "partnerId",
@@ -10207,6 +10890,27 @@
           }
         }
       },
+      "partner.v1.UpdatePartnerSettlementRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.UpdatePartnerShippingPresetRequest": {
         "required": [
           "partnerId",
@@ -10223,6 +10927,27 @@
           },
           "preset": {
             "$ref": "#/components/schemas/partner.v1.PartnerShippingPresetInput"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerShippingPresetResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerShippingPreset"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -10266,7 +10991,29 @@
         },
         "description": "BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。"
       },
-      "task.v1.BackgroundTaskListReply": {
+      "task.v1.GetBackgroundTaskResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/task.v1.BackgroundTask"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "GetBackgroundTaskResponse 单条后台任务响应。"
+      },
+      "task.v1.ListBackgroundTasksResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -10301,9 +11048,21 @@
             "type": "string"
           }
         },
-        "description": "BackgroundTaskListReply 后台任务列表响应。"
+        "description": "ListBackgroundTasksResponse 后台任务列表响应。"
       },
-      "task.v1.BackgroundTaskReply": {
+      "task.v1.RequeueBackgroundTaskRequest": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "description": "RequeueBackgroundTaskRequest 回放后台任务请求。"
+      },
+      "task.v1.RequeueBackgroundTaskResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -10322,20 +11081,7 @@
           "traceId": {
             "type": "string"
           }
-        },
-        "description": "BackgroundTaskReply 单条后台任务响应。"
-      },
-      "task.v1.RequeueBackgroundTaskRequest": {
-        "required": [
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          }
-        },
-        "description": "RequeueBackgroundTaskRequest 回放后台任务请求。"
+        }
       }
     }
   },

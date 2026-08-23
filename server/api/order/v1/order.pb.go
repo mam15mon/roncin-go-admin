@@ -2299,8 +2299,8 @@ func (x *TransitionOrderStatusRequest) GetReason() string {
 	return ""
 }
 
-// OrderReply 单条订单响应。
-type OrderReply struct {
+// GetOrderResponse 单条订单响应。
+type GetOrderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2311,20 +2311,20 @@ type OrderReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderReply) Reset() {
-	*x = OrderReply{}
+func (x *GetOrderResponse) Reset() {
+	*x = GetOrderResponse{}
 	mi := &file_order_v1_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderReply) String() string {
+func (x *GetOrderResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderReply) ProtoMessage() {}
+func (*GetOrderResponse) ProtoMessage() {}
 
-func (x *OrderReply) ProtoReflect() protoreflect.Message {
+func (x *GetOrderResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2336,48 +2336,276 @@ func (x *OrderReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderReply.ProtoReflect.Descriptor instead.
-func (*OrderReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetOrderResponse.ProtoReflect.Descriptor instead.
+func (*GetOrderResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *OrderReply) GetSuccess() bool {
+func (x *GetOrderResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderReply) GetCode() int32 {
+func (x *GetOrderResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderReply) GetMessage() string {
+func (x *GetOrderResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderReply) GetData() *Order {
+func (x *GetOrderResponse) GetData() *Order {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderReply) GetTraceId() string {
+func (x *GetOrderResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderListReply 订单列表响应。
-type OrderListReply struct {
+type CreateOrderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Order                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateOrderResponse) Reset() {
+	*x = CreateOrderResponse{}
+	mi := &file_order_v1_order_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateOrderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateOrderResponse) ProtoMessage() {}
+
+func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateOrderResponse.ProtoReflect.Descriptor instead.
+func (*CreateOrderResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateOrderResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateOrderResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateOrderResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateOrderResponse) GetData() *Order {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateOrderResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateOrderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Order                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateOrderResponse) Reset() {
+	*x = UpdateOrderResponse{}
+	mi := &file_order_v1_order_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateOrderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateOrderResponse) ProtoMessage() {}
+
+func (x *UpdateOrderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateOrderResponse.ProtoReflect.Descriptor instead.
+func (*UpdateOrderResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UpdateOrderResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateOrderResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateOrderResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateOrderResponse) GetData() *Order {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateOrderResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type TransitionOrderStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *Order                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TransitionOrderStatusResponse) Reset() {
+	*x = TransitionOrderStatusResponse{}
+	mi := &file_order_v1_order_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransitionOrderStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransitionOrderStatusResponse) ProtoMessage() {}
+
+func (x *TransitionOrderStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransitionOrderStatusResponse.ProtoReflect.Descriptor instead.
+func (*TransitionOrderStatusResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *TransitionOrderStatusResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *TransitionOrderStatusResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *TransitionOrderStatusResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *TransitionOrderStatusResponse) GetData() *Order {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *TransitionOrderStatusResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListOrdersResponse 订单列表响应。
+type ListOrdersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2391,21 +2619,21 @@ type OrderListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderListReply) Reset() {
-	*x = OrderListReply{}
-	mi := &file_order_v1_order_proto_msgTypes[12]
+func (x *ListOrdersResponse) Reset() {
+	*x = ListOrdersResponse{}
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderListReply) String() string {
+func (x *ListOrdersResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderListReply) ProtoMessage() {}
+func (*ListOrdersResponse) ProtoMessage() {}
 
-func (x *OrderListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[12]
+func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2416,69 +2644,69 @@ func (x *OrderListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderListReply.ProtoReflect.Descriptor instead.
-func (*OrderListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use ListOrdersResponse.ProtoReflect.Descriptor instead.
+func (*ListOrdersResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *OrderListReply) GetSuccess() bool {
+func (x *ListOrdersResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderListReply) GetCode() int32 {
+func (x *ListOrdersResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderListReply) GetMessage() string {
+func (x *ListOrdersResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderListReply) GetData() []*Order {
+func (x *ListOrdersResponse) GetData() []*Order {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderListReply) GetTotal() int32 {
+func (x *ListOrdersResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *OrderListReply) GetPage() int32 {
+func (x *ListOrdersResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *OrderListReply) GetPageSize() int32 {
+func (x *ListOrdersResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *OrderListReply) GetTraceId() string {
+func (x *ListOrdersResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderReferenceCheckReply 订单业务编号查重响应。
-type OrderReferenceCheckReply struct {
+// CheckOrderReferenceResponse 订单业务编号查重响应。
+type CheckOrderReferenceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2489,21 +2717,21 @@ type OrderReferenceCheckReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderReferenceCheckReply) Reset() {
-	*x = OrderReferenceCheckReply{}
-	mi := &file_order_v1_order_proto_msgTypes[13]
+func (x *CheckOrderReferenceResponse) Reset() {
+	*x = CheckOrderReferenceResponse{}
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderReferenceCheckReply) String() string {
+func (x *CheckOrderReferenceResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderReferenceCheckReply) ProtoMessage() {}
+func (*CheckOrderReferenceResponse) ProtoMessage() {}
 
-func (x *OrderReferenceCheckReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[13]
+func (x *CheckOrderReferenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2514,40 +2742,40 @@ func (x *OrderReferenceCheckReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderReferenceCheckReply.ProtoReflect.Descriptor instead.
-func (*OrderReferenceCheckReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
+// Deprecated: Use CheckOrderReferenceResponse.ProtoReflect.Descriptor instead.
+func (*CheckOrderReferenceResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *OrderReferenceCheckReply) GetSuccess() bool {
+func (x *CheckOrderReferenceResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderReferenceCheckReply) GetCode() int32 {
+func (x *CheckOrderReferenceResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderReferenceCheckReply) GetMessage() string {
+func (x *CheckOrderReferenceResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderReferenceCheckReply) GetData() *OrderReferenceCheck {
+func (x *CheckOrderReferenceResponse) GetData() *OrderReferenceCheck {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderReferenceCheckReply) GetTraceId() string {
+func (x *CheckOrderReferenceResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -2921,15 +3149,32 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12(\n" +
 	"\rtarget_status\x18\x03 \x01(\tB\x03\xe0A\x02R\ftargetStatus\x12\x1b\n" +
 	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
-	"\a_reason\"\x94\x01\n" +
-	"\n" +
-	"OrderReply\x12\x18\n" +
+	"\a_reason\"\x9a\x01\n" +
+	"\x10GetOrderResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
 	"\x04data\x18\x04 \x01(\v2\x0f.order.v1.OrderR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xdf\x01\n" +
-	"\x0eOrderListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9d\x01\n" +
+	"\x13CreateOrderResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
+	"\x04data\x18\x04 \x01(\v2\x0f.order.v1.OrderR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9d\x01\n" +
+	"\x13UpdateOrderResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
+	"\x04data\x18\x04 \x01(\v2\x0f.order.v1.OrderR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa7\x01\n" +
+	"\x1dTransitionOrderStatusResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
+	"\x04data\x18\x04 \x01(\v2\x0f.order.v1.OrderR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe3\x01\n" +
+	"\x12ListOrdersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
@@ -2937,8 +3182,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb0\x01\n" +
-	"\x18OrderReferenceCheckReply\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\x1bCheckOrderReferenceResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
@@ -2991,17 +3236,17 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12OrderReferenceType\x12$\n" +
 	" ORDER_REFERENCE_TYPE_UNSPECIFIED\x10\x00\x12!\n" +
 	"\x1dORDER_REFERENCE_TYPE_CUSTOMER\x10\x01\x12!\n" +
-	"\x1dORDER_REFERENCE_TYPE_INTERNAL\x10\x022\xee\x05\n" +
-	"\fOrderService\x12f\n" +
-	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x14.order.v1.OrderReply\")\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12i\n" +
+	"\x1dORDER_REFERENCE_TYPE_INTERNAL\x10\x022\xa0\x06\n" +
+	"\fOrderService\x12l\n" +
+	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x1a.order.v1.GetOrderResponse\")\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12m\n" +
 	"\n" +
-	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x18.order.v1.OrderListReply\"$\x82\xb5\x18\n" +
-	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\x96\x01\n" +
-	"\x13CheckOrderReference\x12$.order.v1.CheckOrderReferenceRequest\x1a\".order.v1.OrderReferenceCheckReply\"5\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/order-reference-check\x12l\n" +
-	"\vCreateOrder\x12\x1c.order.v1.CreateOrderRequest\x1a\x14.order.v1.OrderReply\")\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12q\n" +
-	"\vUpdateOrder\x12\x1c.order.v1.UpdateOrderRequest\x1a\x14.order.v1.OrderReply\".\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/orders/{id}\x12\x90\x01\n" +
-	"\x15TransitionOrderStatus\x12&.order.v1.TransitionOrderStatusRequest\x1a\x14.order.v1.OrderReply\"9\x82\xb5\x18\x10\b\x04\x1a\n" +
+	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x1c.order.v1.ListOrdersResponse\"$\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12\x99\x01\n" +
+	"\x13CheckOrderReference\x12$.order.v1.CheckOrderReferenceRequest\x1a%.order.v1.CheckOrderReferenceResponse\"5\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/order-reference-check\x12u\n" +
+	"\vCreateOrder\x12\x1c.order.v1.CreateOrderRequest\x1a\x1d.order.v1.CreateOrderResponse\")\x82\xb5\x18\f\b\x04\x1a\x06create \x02\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12z\n" +
+	"\vUpdateOrder\x12\x1c.order.v1.UpdateOrderRequest\x1a\x1d.order.v1.UpdateOrderResponse\".\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/orders/{id}\x12\xa3\x01\n" +
+	"\x15TransitionOrderStatus\x12&.order.v1.TransitionOrderStatusRequest\x1a'.order.v1.TransitionOrderStatusResponse\"9\x82\xb5\x18\x10\b\x04\x1a\n" +
 	"transition \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/orders/{id}/statusB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
@@ -3017,30 +3262,33 @@ func file_order_v1_order_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_order_v1_order_proto_goTypes = []any{
-	(BusinessType)(0),                    // 0: order.v1.BusinessType
-	(TradeDirection)(0),                  // 1: order.v1.TradeDirection
-	(TradeTerm)(0),                       // 2: order.v1.TradeTerm
-	(PaymentTerm)(0),                     // 3: order.v1.PaymentTerm
-	(ShipmentType)(0),                    // 4: order.v1.ShipmentType
-	(ContainerOwnership)(0),              // 5: order.v1.ContainerOwnership
-	(ShipmentMode)(0),                    // 6: order.v1.ShipmentMode
-	(OrderReferenceType)(0),              // 7: order.v1.OrderReferenceType
-	(*Order)(nil),                        // 8: order.v1.Order
-	(*OrderServiceSelection)(nil),        // 9: order.v1.OrderServiceSelection
-	(*OrderCargoSelection)(nil),          // 10: order.v1.OrderCargoSelection
-	(*OrderStatusLog)(nil),               // 11: order.v1.OrderStatusLog
-	(*GetOrderRequest)(nil),              // 12: order.v1.GetOrderRequest
-	(*ListOrdersRequest)(nil),            // 13: order.v1.ListOrdersRequest
-	(*CheckOrderReferenceRequest)(nil),   // 14: order.v1.CheckOrderReferenceRequest
-	(*OrderReferenceCheck)(nil),          // 15: order.v1.OrderReferenceCheck
-	(*CreateOrderRequest)(nil),           // 16: order.v1.CreateOrderRequest
-	(*UpdateOrderRequest)(nil),           // 17: order.v1.UpdateOrderRequest
-	(*TransitionOrderStatusRequest)(nil), // 18: order.v1.TransitionOrderStatusRequest
-	(*OrderReply)(nil),                   // 19: order.v1.OrderReply
-	(*OrderListReply)(nil),               // 20: order.v1.OrderListReply
-	(*OrderReferenceCheckReply)(nil),     // 21: order.v1.OrderReferenceCheckReply
+	(BusinessType)(0),                     // 0: order.v1.BusinessType
+	(TradeDirection)(0),                   // 1: order.v1.TradeDirection
+	(TradeTerm)(0),                        // 2: order.v1.TradeTerm
+	(PaymentTerm)(0),                      // 3: order.v1.PaymentTerm
+	(ShipmentType)(0),                     // 4: order.v1.ShipmentType
+	(ContainerOwnership)(0),               // 5: order.v1.ContainerOwnership
+	(ShipmentMode)(0),                     // 6: order.v1.ShipmentMode
+	(OrderReferenceType)(0),               // 7: order.v1.OrderReferenceType
+	(*Order)(nil),                         // 8: order.v1.Order
+	(*OrderServiceSelection)(nil),         // 9: order.v1.OrderServiceSelection
+	(*OrderCargoSelection)(nil),           // 10: order.v1.OrderCargoSelection
+	(*OrderStatusLog)(nil),                // 11: order.v1.OrderStatusLog
+	(*GetOrderRequest)(nil),               // 12: order.v1.GetOrderRequest
+	(*ListOrdersRequest)(nil),             // 13: order.v1.ListOrdersRequest
+	(*CheckOrderReferenceRequest)(nil),    // 14: order.v1.CheckOrderReferenceRequest
+	(*OrderReferenceCheck)(nil),           // 15: order.v1.OrderReferenceCheck
+	(*CreateOrderRequest)(nil),            // 16: order.v1.CreateOrderRequest
+	(*UpdateOrderRequest)(nil),            // 17: order.v1.UpdateOrderRequest
+	(*TransitionOrderStatusRequest)(nil),  // 18: order.v1.TransitionOrderStatusRequest
+	(*GetOrderResponse)(nil),              // 19: order.v1.GetOrderResponse
+	(*CreateOrderResponse)(nil),           // 20: order.v1.CreateOrderResponse
+	(*UpdateOrderResponse)(nil),           // 21: order.v1.UpdateOrderResponse
+	(*TransitionOrderStatusResponse)(nil), // 22: order.v1.TransitionOrderStatusResponse
+	(*ListOrdersResponse)(nil),            // 23: order.v1.ListOrdersResponse
+	(*CheckOrderReferenceResponse)(nil),   // 24: order.v1.CheckOrderReferenceResponse
 }
 var file_order_v1_order_proto_depIdxs = []int32{
 	0,  // 0: order.v1.Order.business_type:type_name -> order.v1.BusinessType
@@ -3066,26 +3314,29 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	4,  // 20: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
 	5,  // 21: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
 	6,  // 22: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	8,  // 23: order.v1.OrderReply.data:type_name -> order.v1.Order
-	8,  // 24: order.v1.OrderListReply.data:type_name -> order.v1.Order
-	15, // 25: order.v1.OrderReferenceCheckReply.data:type_name -> order.v1.OrderReferenceCheck
-	12, // 26: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	13, // 27: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	14, // 28: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	16, // 29: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	17, // 30: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	18, // 31: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	19, // 32: order.v1.OrderService.GetOrder:output_type -> order.v1.OrderReply
-	20, // 33: order.v1.OrderService.ListOrders:output_type -> order.v1.OrderListReply
-	21, // 34: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.OrderReferenceCheckReply
-	19, // 35: order.v1.OrderService.CreateOrder:output_type -> order.v1.OrderReply
-	19, // 36: order.v1.OrderService.UpdateOrder:output_type -> order.v1.OrderReply
-	19, // 37: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.OrderReply
-	32, // [32:38] is the sub-list for method output_type
-	26, // [26:32] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	8,  // 23: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
+	8,  // 24: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
+	8,  // 25: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
+	8,  // 26: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
+	8,  // 27: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
+	15, // 28: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
+	12, // 29: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	13, // 30: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	14, // 31: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	16, // 32: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	17, // 33: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	18, // 34: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	19, // 35: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	23, // 36: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	24, // 37: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	20, // 38: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	21, // 39: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	22, // 40: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	35, // [35:41] is the sub-list for method output_type
+	29, // [29:35] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }
@@ -3107,7 +3358,7 @@ func file_order_v1_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_proto_rawDesc), len(file_order_v1_order_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   14,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

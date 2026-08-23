@@ -8,7 +8,7 @@ export async function partnerServiceListPartners(
   params: API.PartnerServiceListPartnersParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.PartnerListReply>("/api/v1/partners", {
+  return request<API.ListPartnersResponse>("/api/v1/partners", {
     method: "GET",
     params: {
       ...params,
@@ -22,7 +22,7 @@ export async function partnerServiceCreatePartner(
   body: API.CreatePartnerRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.PartnerReply>("/api/v1/partners", {
+  return request<API.CreatePartnerResponse>("/api/v1/partners", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -39,7 +39,7 @@ export async function partnerServiceGetPartner(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.PartnerReply>(`/api/v1/partners/${param0}`, {
+  return request<API.GetPartnerResponse>(`/api/v1/partners/${param0}`, {
     method: "GET",
     params: { ...queryParams },
     ...(options || {}),
@@ -54,7 +54,7 @@ export async function partnerServiceUpdatePartner(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.PartnerReply>(`/api/v1/partners/${param0}`, {
+  return request<API.UpdatePartnerResponse>(`/api/v1/partners/${param0}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export async function partnerServiceListPartnerAccounts(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerAccountListReply>(
+  return request<API.ListPartnerAccountsResponse>(
     `/api/v1/partners/${param0}/accounts`,
     {
       method: "GET",
@@ -92,7 +92,7 @@ export async function partnerServiceCreatePartnerAccount(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerAccountReply>(
+  return request<API.CreatePartnerAccountResponse>(
     `/api/v1/partners/${param0}/accounts`,
     {
       method: "POST",
@@ -114,7 +114,7 @@ export async function partnerServiceUpdatePartnerAccount(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, id: param1, ...queryParams } = params;
-  return request<API.PartnerAccountReply>(
+  return request<API.UpdatePartnerAccountResponse>(
     `/api/v1/partners/${param0}/accounts/${param1}`,
     {
       method: "PUT",
@@ -135,7 +135,7 @@ export async function partnerServiceListPartnerAttachments(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerAttachmentListReply>(
+  return request<API.ListPartnerAttachmentsResponse>(
     `/api/v1/partners/${param0}/attachments`,
     {
       method: "GET",
@@ -153,7 +153,7 @@ export async function partnerServiceRegisterPartnerAttachment(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerAttachmentReply>(
+  return request<API.RegisterPartnerAttachmentResponse>(
     `/api/v1/partners/${param0}/attachments`,
     {
       method: "POST",
@@ -174,7 +174,7 @@ export async function partnerServiceListPartnerAuditLogs(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerAuditLogListReply>(
+  return request<API.ListPartnerAuditLogsResponse>(
     `/api/v1/partners/${param0}/audit-logs`,
     {
       method: "GET",
@@ -193,7 +193,7 @@ export async function partnerServiceListPartnerContracts(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerContractListReply>(
+  return request<API.ListPartnerContractsResponse>(
     `/api/v1/partners/${param0}/contracts`,
     {
       method: "GET",
@@ -213,7 +213,7 @@ export async function partnerServiceCreatePartnerContract(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerContractReply>(
+  return request<API.CreatePartnerContractResponse>(
     `/api/v1/partners/${param0}/contracts`,
     {
       method: "POST",
@@ -235,7 +235,7 @@ export async function partnerServiceUpdatePartnerContract(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, id: param1, ...queryParams } = params;
-  return request<API.PartnerContractReply>(
+  return request<API.UpdatePartnerContractResponse>(
     `/api/v1/partners/${param0}/contracts/${param1}`,
     {
       method: "PUT",
@@ -256,7 +256,7 @@ export async function partnerServiceListPartnerSettlementRules(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, roleType: param1, ...queryParams } = params;
-  return request<API.PartnerSettlementRuleListReply>(
+  return request<API.ListPartnerSettlementRulesResponse>(
     `/api/v1/partners/${param0}/roles/${param1}/settlement-rules`,
     {
       method: "GET",
@@ -274,7 +274,7 @@ export async function partnerServiceCreatePartnerSettlementRule(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, roleType: param1, ...queryParams } = params;
-  return request<API.PartnerSettlementRuleReply>(
+  return request<API.CreatePartnerSettlementRuleResponse>(
     `/api/v1/partners/${param0}/roles/${param1}/settlement-rules`,
     {
       method: "POST",
@@ -301,7 +301,7 @@ export async function partnerServiceUpdatePartnerSettlementRule(
     id: param2,
     ...queryParams
   } = params;
-  return request<API.PartnerSettlementRuleReply>(
+  return request<API.UpdatePartnerSettlementRuleResponse>(
     `/api/v1/partners/${param0}/roles/${param1}/settlement-rules/${param2}`,
     {
       method: "PUT",
@@ -322,7 +322,7 @@ export async function partnerServiceListPartnerShippingPresets(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerShippingPresetListReply>(
+  return request<API.ListPartnerShippingPresetsResponse>(
     `/api/v1/partners/${param0}/shipping-presets`,
     {
       method: "GET",
@@ -342,7 +342,7 @@ export async function partnerServiceCreatePartnerShippingPreset(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.PartnerShippingPresetReply>(
+  return request<API.CreatePartnerShippingPresetResponse>(
     `/api/v1/partners/${param0}/shipping-presets`,
     {
       method: "POST",
@@ -364,7 +364,7 @@ export async function partnerServiceUpdatePartnerShippingPreset(
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, id: param1, ...queryParams } = params;
-  return request<API.PartnerShippingPresetReply>(
+  return request<API.UpdatePartnerShippingPresetResponse>(
     `/api/v1/partners/${param0}/shipping-presets/${param1}`,
     {
       method: "PUT",
@@ -386,7 +386,7 @@ export async function partnerServiceSetSupplierBlacklist(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.PartnerReply>(
+  return request<API.SetSupplierBlacklistResponse>(
     `/api/v1/partners/${param0}/supplier-blacklist`,
     {
       method: "POST",
@@ -404,7 +404,7 @@ export async function partnerServiceSetSupplierBlacklist(
 export async function partnerServiceListPartnerAssignmentOptions(options?: {
   [key: string]: any;
 }) {
-  return request<API.PartnerAssignmentOptionListReply>(
+  return request<API.ListPartnerAssignmentOptionsResponse>(
     "/api/v1/partners/assignment-options",
     {
       method: "GET",
@@ -419,7 +419,7 @@ export async function partnerServiceExportPartners(
   params: API.PartnerServiceExportPartnersParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.PartnerExportReply>("/api/v1/partners/export", {
+  return request<API.ExportPartnersResponse>("/api/v1/partners/export", {
     method: "GET",
     params: {
       ...params,
@@ -433,7 +433,7 @@ export async function partnerServiceImportPartners(
   body: API.ImportPartnersRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.PartnerImportReply>("/api/v1/partners/import", {
+  return request<API.ImportPartnersResponse>("/api/v1/partners/import", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

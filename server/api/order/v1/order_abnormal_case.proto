@@ -12,13 +12,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
 service OrderAbnormalCaseService {
   // ListAbnormalCases 获取指定订单的异常标记列表。
-  rpc ListAbnormalCases(ListAbnormalCasesRequest) returns (OrderAbnormalCaseListReply) {
+  rpc ListAbnormalCases(ListAbnormalCasesRequest) returns (ListAbnormalCasesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "abnormal_case.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/abnormal-cases"};
   }
 
   // MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-  rpc MarkAbnormalCase(MarkAbnormalCaseRequest) returns (OrderAbnormalCaseReply) {
+  rpc MarkAbnormalCase(MarkAbnormalCaseRequest) returns (MarkAbnormalCaseResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "abnormal_case.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/abnormal-cases"
@@ -27,7 +27,7 @@ service OrderAbnormalCaseService {
   }
 
   // ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-  rpc ResolveAbnormalCase(ResolveAbnormalCaseRequest) returns (OrderAbnormalCaseReply) {
+  rpc ResolveAbnormalCase(ResolveAbnormalCaseRequest) returns (ResolveAbnormalCaseResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "abnormal_case.resolve" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve"
@@ -36,7 +36,7 @@ service OrderAbnormalCaseService {
   }
 
   // RemoveAbnormalCase 移除订单异常标记。
-  rpc RemoveAbnormalCase(RemoveAbnormalCaseRequest) returns (OrderAbnormalCaseOperationReply) {
+  rpc RemoveAbnormalCase(RemoveAbnormalCaseRequest) returns (RemoveAbnormalCaseResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "abnormal_case.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/abnormal-cases/{id}"};
   }
@@ -86,8 +86,8 @@ message RemoveAbnormalCaseRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderAbnormalCaseReply 单条异常标记响应。
-message OrderAbnormalCaseReply {
+// MarkAbnormalCaseResponse 单条异常标记响应。
+message MarkAbnormalCaseResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -95,8 +95,16 @@ message OrderAbnormalCaseReply {
   string trace_id = 5;
 }
 
-// OrderAbnormalCaseListReply 异常标记列表响应。
-message OrderAbnormalCaseListReply {
+message ResolveAbnormalCaseResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderAbnormalCase data = 4;
+  string trace_id = 5;
+}
+
+// ListAbnormalCasesResponse 异常标记列表响应。
+message ListAbnormalCasesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -104,8 +112,8 @@ message OrderAbnormalCaseListReply {
   string trace_id = 5;
 }
 
-// OrderAbnormalCaseOperationReply 异常标记操作响应。
-message OrderAbnormalCaseOperationReply {
+// RemoveAbnormalCaseResponse 异常标记操作响应。
+message RemoveAbnormalCaseResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

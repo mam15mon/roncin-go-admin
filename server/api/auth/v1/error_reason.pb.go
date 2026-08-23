@@ -24,31 +24,31 @@ const (
 type ErrorReason int32
 
 const (
-	ErrorReason_AUTH_UNSPECIFIED            ErrorReason = 0
-	ErrorReason_AUTH_INVALID_CREDENTIALS    ErrorReason = 1
-	ErrorReason_AUTH_SESSION_REQUIRED       ErrorReason = 2
-	ErrorReason_AUTH_SESSION_EXPIRED        ErrorReason = 3
-	ErrorReason_AUTH_PERMISSION_DENIED      ErrorReason = 4
-	ErrorReason_AUTH_ORGANIZATION_FORBIDDEN ErrorReason = 5
+	ErrorReason_ERROR_REASON_AUTH_UNSPECIFIED            ErrorReason = 0
+	ErrorReason_ERROR_REASON_AUTH_INVALID_CREDENTIALS    ErrorReason = 1
+	ErrorReason_ERROR_REASON_AUTH_SESSION_REQUIRED       ErrorReason = 2
+	ErrorReason_ERROR_REASON_AUTH_SESSION_EXPIRED        ErrorReason = 3
+	ErrorReason_ERROR_REASON_AUTH_PERMISSION_DENIED      ErrorReason = 4
+	ErrorReason_ERROR_REASON_AUTH_ORGANIZATION_FORBIDDEN ErrorReason = 5
 )
 
 // Enum value maps for ErrorReason.
 var (
 	ErrorReason_name = map[int32]string{
-		0: "AUTH_UNSPECIFIED",
-		1: "AUTH_INVALID_CREDENTIALS",
-		2: "AUTH_SESSION_REQUIRED",
-		3: "AUTH_SESSION_EXPIRED",
-		4: "AUTH_PERMISSION_DENIED",
-		5: "AUTH_ORGANIZATION_FORBIDDEN",
+		0: "ERROR_REASON_AUTH_UNSPECIFIED",
+		1: "ERROR_REASON_AUTH_INVALID_CREDENTIALS",
+		2: "ERROR_REASON_AUTH_SESSION_REQUIRED",
+		3: "ERROR_REASON_AUTH_SESSION_EXPIRED",
+		4: "ERROR_REASON_AUTH_PERMISSION_DENIED",
+		5: "ERROR_REASON_AUTH_ORGANIZATION_FORBIDDEN",
 	}
 	ErrorReason_value = map[string]int32{
-		"AUTH_UNSPECIFIED":            0,
-		"AUTH_INVALID_CREDENTIALS":    1,
-		"AUTH_SESSION_REQUIRED":       2,
-		"AUTH_SESSION_EXPIRED":        3,
-		"AUTH_PERMISSION_DENIED":      4,
-		"AUTH_ORGANIZATION_FORBIDDEN": 5,
+		"ERROR_REASON_AUTH_UNSPECIFIED":            0,
+		"ERROR_REASON_AUTH_INVALID_CREDENTIALS":    1,
+		"ERROR_REASON_AUTH_SESSION_REQUIRED":       2,
+		"ERROR_REASON_AUTH_SESSION_EXPIRED":        3,
+		"ERROR_REASON_AUTH_PERMISSION_DENIED":      4,
+		"ERROR_REASON_AUTH_ORGANIZATION_FORBIDDEN": 5,
 	}
 )
 
@@ -83,14 +83,14 @@ var File_auth_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_auth_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1aauth/v1/error_reason.proto\x12\aauth.v1*\xb3\x01\n" +
-	"\vErrorReason\x12\x14\n" +
-	"\x10AUTH_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18AUTH_INVALID_CREDENTIALS\x10\x01\x12\x19\n" +
-	"\x15AUTH_SESSION_REQUIRED\x10\x02\x12\x18\n" +
-	"\x14AUTH_SESSION_EXPIRED\x10\x03\x12\x1a\n" +
-	"\x16AUTH_PERMISSION_DENIED\x10\x04\x12\x1f\n" +
-	"\x1bAUTH_ORGANIZATION_FORBIDDEN\x10\x05B9Z7github.com/roncin/roncin-go-admin/server/api/auth/v1;v1b\x06proto3"
+	"\x1aauth/v1/error_reason.proto\x12\aauth.v1*\x81\x02\n" +
+	"\vErrorReason\x12!\n" +
+	"\x1dERROR_REASON_AUTH_UNSPECIFIED\x10\x00\x12)\n" +
+	"%ERROR_REASON_AUTH_INVALID_CREDENTIALS\x10\x01\x12&\n" +
+	"\"ERROR_REASON_AUTH_SESSION_REQUIRED\x10\x02\x12%\n" +
+	"!ERROR_REASON_AUTH_SESSION_EXPIRED\x10\x03\x12'\n" +
+	"#ERROR_REASON_AUTH_PERMISSION_DENIED\x10\x04\x12,\n" +
+	"(ERROR_REASON_AUTH_ORGANIZATION_FORBIDDEN\x10\x05B9Z7github.com/roncin/roncin-go-admin/server/api/auth/v1;v1b\x06proto3"
 
 var (
 	file_auth_v1_error_reason_proto_rawDescOnce sync.Once

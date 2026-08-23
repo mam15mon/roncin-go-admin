@@ -23,11 +23,11 @@ const OperationOrderPersonnelServiceRemovePersonnel = "/order.v1.OrderPersonnelS
 
 type OrderPersonnelServiceHTTPServer interface {
 	// AssignPersonnel AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*OrderPersonnelReply, error)
+	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error)
 	// ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
-	ListPersonnel(context.Context, *ListPersonnelRequest) (*OrderPersonnelListReply, error)
+	ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error)
 	// RemovePersonnel RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*OrderPersonnelOperationReply, error)
+	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error)
 }
 
 func RegisterOrderPersonnelServiceHTTPServer(s *http.Server, srv OrderPersonnelServiceHTTPServer) {
@@ -54,7 +54,7 @@ func _OrderPersonnelService_ListPersonnel0_HTTP_Handler(srv OrderPersonnelServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderPersonnelListReply)
+		reply := out.(*ListPersonnelResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -76,7 +76,7 @@ func _OrderPersonnelService_AssignPersonnel0_HTTP_Handler(srv OrderPersonnelServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderPersonnelReply)
+		reply := out.(*AssignPersonnelResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -98,18 +98,18 @@ func _OrderPersonnelService_RemovePersonnel0_HTTP_Handler(srv OrderPersonnelServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderPersonnelOperationReply)
+		reply := out.(*RemovePersonnelResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderPersonnelServiceHTTPClient interface {
 	// AssignPersonnel AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(ctx context.Context, req *AssignPersonnelRequest, opts ...http.CallOption) (rsp *OrderPersonnelReply, err error)
+	AssignPersonnel(ctx context.Context, req *AssignPersonnelRequest, opts ...http.CallOption) (rsp *AssignPersonnelResponse, err error)
 	// ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
-	ListPersonnel(ctx context.Context, req *ListPersonnelRequest, opts ...http.CallOption) (rsp *OrderPersonnelListReply, err error)
+	ListPersonnel(ctx context.Context, req *ListPersonnelRequest, opts ...http.CallOption) (rsp *ListPersonnelResponse, err error)
 	// RemovePersonnel RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(ctx context.Context, req *RemovePersonnelRequest, opts ...http.CallOption) (rsp *OrderPersonnelOperationReply, err error)
+	RemovePersonnel(ctx context.Context, req *RemovePersonnelRequest, opts ...http.CallOption) (rsp *RemovePersonnelResponse, err error)
 }
 
 type OrderPersonnelServiceHTTPClientImpl struct {
@@ -121,8 +121,8 @@ func NewOrderPersonnelServiceHTTPClient(client *http.Client) OrderPersonnelServi
 }
 
 // AssignPersonnel AssignPersonnel 分配订单协作人员。
-func (c *OrderPersonnelServiceHTTPClientImpl) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...http.CallOption) (*OrderPersonnelReply, error) {
-	var out OrderPersonnelReply
+func (c *OrderPersonnelServiceHTTPClientImpl) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...http.CallOption) (*AssignPersonnelResponse, error) {
+	var out AssignPersonnelResponse
 	pattern := "/api/v1/orders/{order_id}/personnel"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -139,8 +139,8 @@ func (c *OrderPersonnelServiceHTTPClientImpl) AssignPersonnel(ctx context.Contex
 }
 
 // ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
-func (c *OrderPersonnelServiceHTTPClientImpl) ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...http.CallOption) (*OrderPersonnelListReply, error) {
-	var out OrderPersonnelListReply
+func (c *OrderPersonnelServiceHTTPClientImpl) ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...http.CallOption) (*ListPersonnelResponse, error) {
+	var out ListPersonnelResponse
 	pattern := "/api/v1/orders/{order_id}/personnel"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -156,8 +156,8 @@ func (c *OrderPersonnelServiceHTTPClientImpl) ListPersonnel(ctx context.Context,
 }
 
 // RemovePersonnel RemovePersonnel 移除订单协作人员。
-func (c *OrderPersonnelServiceHTTPClientImpl) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...http.CallOption) (*OrderPersonnelOperationReply, error) {
-	var out OrderPersonnelOperationReply
+func (c *OrderPersonnelServiceHTTPClientImpl) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...http.CallOption) (*RemovePersonnelResponse, error) {
+	var out RemovePersonnelResponse
 	pattern := "/api/v1/orders/{order_id}/personnel/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{

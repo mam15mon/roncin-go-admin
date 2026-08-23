@@ -13,13 +13,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // PENDING→SIGNED→RETURNED 向前单步流转，签收时记录签收人与时间。
 service OrderReleasePodService {
   // ListReleasePods 获取指定订单的放货凭证列表。
-  rpc ListReleasePods(ListReleasePodsRequest) returns (OrderReleasePodListReply) {
+  rpc ListReleasePods(ListReleasePodsRequest) returns (ListReleasePodsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/release-pods"};
   }
 
   // AddReleasePod 添加放货凭证，初始状态为待签收。
-  rpc AddReleasePod(AddReleasePodRequest) returns (OrderReleasePodReply) {
+  rpc AddReleasePod(AddReleasePodRequest) returns (AddReleasePodResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/release-pods"
@@ -28,7 +28,7 @@ service OrderReleasePodService {
   }
 
   // UpdateReleasePod 更新凭证字段，已回单后不可修改。
-  rpc UpdateReleasePod(UpdateReleasePodRequest) returns (OrderReleasePodReply) {
+  rpc UpdateReleasePod(UpdateReleasePodRequest) returns (UpdateReleasePodResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/release-pods/{id}"
@@ -38,7 +38,7 @@ service OrderReleasePodService {
 
   // TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
   // 流转到已签收时由服务端记录签收人与签收时间。
-  rpc TransitionReleasePodStatus(TransitionReleasePodStatusRequest) returns (OrderReleasePodReply) {
+  rpc TransitionReleasePodStatus(TransitionReleasePodStatusRequest) returns (TransitionReleasePodStatusResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.transition" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/release-pods/{id}/transition"
@@ -47,7 +47,7 @@ service OrderReleasePodService {
   }
 
   // RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-  rpc RemoveReleasePod(RemoveReleasePodRequest) returns (OrderReleasePodOperationReply) {
+  rpc RemoveReleasePod(RemoveReleasePodRequest) returns (RemoveReleasePodResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "release_pod.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/release-pods/{id}"};
   }
@@ -114,8 +114,8 @@ message RemoveReleasePodRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderReleasePodReply 单条放货凭证响应。
-message OrderReleasePodReply {
+// AddReleasePodResponse 单条放货凭证响应。
+message AddReleasePodResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -123,8 +123,24 @@ message OrderReleasePodReply {
   string trace_id = 5;
 }
 
-// OrderReleasePodListReply 放货凭证列表响应。
-message OrderReleasePodListReply {
+message UpdateReleasePodResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderReleasePod data = 4;
+  string trace_id = 5;
+}
+
+message TransitionReleasePodStatusResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderReleasePod data = 4;
+  string trace_id = 5;
+}
+
+// ListReleasePodsResponse 放货凭证列表响应。
+message ListReleasePodsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -132,8 +148,8 @@ message OrderReleasePodListReply {
   string trace_id = 5;
 }
 
-// OrderReleasePodOperationReply 放货凭证操作响应。
-message OrderReleasePodOperationReply {
+// RemoveReleasePodResponse 放货凭证操作响应。
+message RemoveReleasePodResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

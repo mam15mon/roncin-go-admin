@@ -42,29 +42,29 @@ const OperationPartnerServiceUpdatePartnerSettlementRule = "/partner.v1.PartnerS
 const OperationPartnerServiceUpdatePartnerShippingPreset = "/partner.v1.PartnerService/UpdatePartnerShippingPreset"
 
 type PartnerServiceHTTPServer interface {
-	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
-	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error)
-	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
-	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
-	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
-	ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error)
-	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
-	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
-	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
-	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error)
-	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error)
-	ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*PartnerAuditLogListReply, error)
-	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
-	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
-	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error)
-	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
-	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error)
-	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
-	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
-	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error)
-	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
-	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
-	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
+	CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error)
+	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*CreatePartnerAccountResponse, error)
+	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*CreatePartnerContractResponse, error)
+	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*CreatePartnerSettlementRuleResponse, error)
+	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*CreatePartnerShippingPresetResponse, error)
+	ExportPartners(context.Context, *ExportPartnersRequest) (*ExportPartnersResponse, error)
+	GetPartner(context.Context, *GetPartnerRequest) (*GetPartnerResponse, error)
+	ImportPartners(context.Context, *ImportPartnersRequest) (*ImportPartnersResponse, error)
+	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error)
+	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
+	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*ListPartnerAttachmentsResponse, error)
+	ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*ListPartnerAuditLogsResponse, error)
+	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*ListPartnerContractsResponse, error)
+	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*ListPartnerSettlementRulesResponse, error)
+	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error)
+	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
+	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error)
+	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
+	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
+	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
+	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*UpdatePartnerContractResponse, error)
+	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*UpdatePartnerSettlementRuleResponse, error)
+	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*UpdatePartnerShippingPresetResponse, error)
 }
 
 func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServer) {
@@ -111,7 +111,7 @@ func _PartnerService_GetPartner0_HTTP_Handler(srv PartnerServiceHTTPServer) func
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerReply)
+		reply := out.(*GetPartnerResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -130,7 +130,7 @@ func _PartnerService_ListPartners0_HTTP_Handler(srv PartnerServiceHTTPServer) fu
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerListReply)
+		reply := out.(*ListPartnersResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -149,7 +149,7 @@ func _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv PartnerServi
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAssignmentOptionListReply)
+		reply := out.(*ListPartnerAssignmentOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -168,7 +168,7 @@ func _PartnerService_CreatePartner0_HTTP_Handler(srv PartnerServiceHTTPServer) f
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerReply)
+		reply := out.(*CreatePartnerResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -190,7 +190,7 @@ func _PartnerService_UpdatePartner0_HTTP_Handler(srv PartnerServiceHTTPServer) f
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerReply)
+		reply := out.(*UpdatePartnerResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -212,7 +212,7 @@ func _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv PartnerServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerReply)
+		reply := out.(*SetSupplierBlacklistResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -234,7 +234,7 @@ func _PartnerService_ListPartnerAccounts0_HTTP_Handler(srv PartnerServiceHTTPSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAccountListReply)
+		reply := out.(*ListPartnerAccountsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -256,7 +256,7 @@ func _PartnerService_CreatePartnerAccount0_HTTP_Handler(srv PartnerServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAccountReply)
+		reply := out.(*CreatePartnerAccountResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -278,7 +278,7 @@ func _PartnerService_UpdatePartnerAccount0_HTTP_Handler(srv PartnerServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAccountReply)
+		reply := out.(*UpdatePartnerAccountResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -300,7 +300,7 @@ func _PartnerService_ListPartnerContracts0_HTTP_Handler(srv PartnerServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerContractListReply)
+		reply := out.(*ListPartnerContractsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -322,7 +322,7 @@ func _PartnerService_CreatePartnerContract0_HTTP_Handler(srv PartnerServiceHTTPS
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerContractReply)
+		reply := out.(*CreatePartnerContractResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -344,7 +344,7 @@ func _PartnerService_UpdatePartnerContract0_HTTP_Handler(srv PartnerServiceHTTPS
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerContractReply)
+		reply := out.(*UpdatePartnerContractResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -366,7 +366,7 @@ func _PartnerService_ListPartnerSettlementRules0_HTTP_Handler(srv PartnerService
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerSettlementRuleListReply)
+		reply := out.(*ListPartnerSettlementRulesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -388,7 +388,7 @@ func _PartnerService_CreatePartnerSettlementRule0_HTTP_Handler(srv PartnerServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerSettlementRuleReply)
+		reply := out.(*CreatePartnerSettlementRuleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -410,7 +410,7 @@ func _PartnerService_UpdatePartnerSettlementRule0_HTTP_Handler(srv PartnerServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerSettlementRuleReply)
+		reply := out.(*UpdatePartnerSettlementRuleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -432,7 +432,7 @@ func _PartnerService_ListPartnerAttachments0_HTTP_Handler(srv PartnerServiceHTTP
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAttachmentListReply)
+		reply := out.(*ListPartnerAttachmentsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -454,7 +454,7 @@ func _PartnerService_RegisterPartnerAttachment0_HTTP_Handler(srv PartnerServiceH
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAttachmentReply)
+		reply := out.(*RegisterPartnerAttachmentResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -473,7 +473,7 @@ func _PartnerService_ImportPartners0_HTTP_Handler(srv PartnerServiceHTTPServer) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerImportReply)
+		reply := out.(*ImportPartnersResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -492,7 +492,7 @@ func _PartnerService_ExportPartners0_HTTP_Handler(srv PartnerServiceHTTPServer) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerExportReply)
+		reply := out.(*ExportPartnersResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -514,7 +514,7 @@ func _PartnerService_ListPartnerShippingPresets0_HTTP_Handler(srv PartnerService
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerShippingPresetListReply)
+		reply := out.(*ListPartnerShippingPresetsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -536,7 +536,7 @@ func _PartnerService_ListPartnerAuditLogs0_HTTP_Handler(srv PartnerServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerAuditLogListReply)
+		reply := out.(*ListPartnerAuditLogsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -558,7 +558,7 @@ func _PartnerService_CreatePartnerShippingPreset0_HTTP_Handler(srv PartnerServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerShippingPresetReply)
+		reply := out.(*CreatePartnerShippingPresetResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -580,35 +580,35 @@ func _PartnerService_UpdatePartnerShippingPreset0_HTTP_Handler(srv PartnerServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*PartnerShippingPresetReply)
+		reply := out.(*UpdatePartnerShippingPresetResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type PartnerServiceHTTPClient interface {
-	CreatePartner(ctx context.Context, req *CreatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
-	CreatePartnerAccount(ctx context.Context, req *CreatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
-	CreatePartnerContract(ctx context.Context, req *CreatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
-	CreatePartnerSettlementRule(ctx context.Context, req *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleReply, err error)
-	CreatePartnerShippingPreset(ctx context.Context, req *CreatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *PartnerShippingPresetReply, err error)
-	ExportPartners(ctx context.Context, req *ExportPartnersRequest, opts ...http.CallOption) (rsp *PartnerExportReply, err error)
-	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
-	ImportPartners(ctx context.Context, req *ImportPartnersRequest, opts ...http.CallOption) (rsp *PartnerImportReply, err error)
-	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *PartnerAccountListReply, err error)
-	ListPartnerAssignmentOptions(ctx context.Context, req *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *PartnerAssignmentOptionListReply, err error)
-	ListPartnerAttachments(ctx context.Context, req *ListPartnerAttachmentsRequest, opts ...http.CallOption) (rsp *PartnerAttachmentListReply, err error)
-	ListPartnerAuditLogs(ctx context.Context, req *ListPartnerAuditLogsRequest, opts ...http.CallOption) (rsp *PartnerAuditLogListReply, err error)
-	ListPartnerContracts(ctx context.Context, req *ListPartnerContractsRequest, opts ...http.CallOption) (rsp *PartnerContractListReply, err error)
-	ListPartnerSettlementRules(ctx context.Context, req *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleListReply, err error)
-	ListPartnerShippingPresets(ctx context.Context, req *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (rsp *PartnerShippingPresetListReply, err error)
-	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *PartnerListReply, err error)
-	RegisterPartnerAttachment(ctx context.Context, req *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (rsp *PartnerAttachmentReply, err error)
-	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
-	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *PartnerReply, err error)
-	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *PartnerAccountReply, err error)
-	UpdatePartnerContract(ctx context.Context, req *UpdatePartnerContractRequest, opts ...http.CallOption) (rsp *PartnerContractReply, err error)
-	UpdatePartnerSettlementRule(ctx context.Context, req *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *PartnerSettlementRuleReply, err error)
-	UpdatePartnerShippingPreset(ctx context.Context, req *UpdatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *PartnerShippingPresetReply, err error)
+	CreatePartner(ctx context.Context, req *CreatePartnerRequest, opts ...http.CallOption) (rsp *CreatePartnerResponse, err error)
+	CreatePartnerAccount(ctx context.Context, req *CreatePartnerAccountRequest, opts ...http.CallOption) (rsp *CreatePartnerAccountResponse, err error)
+	CreatePartnerContract(ctx context.Context, req *CreatePartnerContractRequest, opts ...http.CallOption) (rsp *CreatePartnerContractResponse, err error)
+	CreatePartnerSettlementRule(ctx context.Context, req *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *CreatePartnerSettlementRuleResponse, err error)
+	CreatePartnerShippingPreset(ctx context.Context, req *CreatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *CreatePartnerShippingPresetResponse, err error)
+	ExportPartners(ctx context.Context, req *ExportPartnersRequest, opts ...http.CallOption) (rsp *ExportPartnersResponse, err error)
+	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *GetPartnerResponse, err error)
+	ImportPartners(ctx context.Context, req *ImportPartnersRequest, opts ...http.CallOption) (rsp *ImportPartnersResponse, err error)
+	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *ListPartnerAccountsResponse, err error)
+	ListPartnerAssignmentOptions(ctx context.Context, req *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListPartnerAssignmentOptionsResponse, err error)
+	ListPartnerAttachments(ctx context.Context, req *ListPartnerAttachmentsRequest, opts ...http.CallOption) (rsp *ListPartnerAttachmentsResponse, err error)
+	ListPartnerAuditLogs(ctx context.Context, req *ListPartnerAuditLogsRequest, opts ...http.CallOption) (rsp *ListPartnerAuditLogsResponse, err error)
+	ListPartnerContracts(ctx context.Context, req *ListPartnerContractsRequest, opts ...http.CallOption) (rsp *ListPartnerContractsResponse, err error)
+	ListPartnerSettlementRules(ctx context.Context, req *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (rsp *ListPartnerSettlementRulesResponse, err error)
+	ListPartnerShippingPresets(ctx context.Context, req *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (rsp *ListPartnerShippingPresetsResponse, err error)
+	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *ListPartnersResponse, err error)
+	RegisterPartnerAttachment(ctx context.Context, req *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (rsp *RegisterPartnerAttachmentResponse, err error)
+	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *SetSupplierBlacklistResponse, err error)
+	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *UpdatePartnerResponse, err error)
+	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *UpdatePartnerAccountResponse, err error)
+	UpdatePartnerContract(ctx context.Context, req *UpdatePartnerContractRequest, opts ...http.CallOption) (rsp *UpdatePartnerContractResponse, err error)
+	UpdatePartnerSettlementRule(ctx context.Context, req *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *UpdatePartnerSettlementRuleResponse, err error)
+	UpdatePartnerShippingPreset(ctx context.Context, req *UpdatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *UpdatePartnerShippingPresetResponse, err error)
 }
 
 type PartnerServiceHTTPClientImpl struct {
@@ -619,8 +619,8 @@ func NewPartnerServiceHTTPClient(client *http.Client) PartnerServiceHTTPClient {
 	return &PartnerServiceHTTPClientImpl{client}
 }
 
-func (c *PartnerServiceHTTPClientImpl) CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
-	var out PartnerReply
+func (c *PartnerServiceHTTPClientImpl) CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...http.CallOption) (*CreatePartnerResponse, error) {
+	var out CreatePartnerResponse
 	pattern := "/api/v1/partners"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -636,8 +636,8 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartner(ctx context.Context, in *Cr
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...http.CallOption) (*PartnerAccountReply, error) {
-	var out PartnerAccountReply
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...http.CallOption) (*CreatePartnerAccountResponse, error) {
+	var out CreatePartnerAccountResponse
 	pattern := "/api/v1/partners/{partner_id}/accounts"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -653,8 +653,8 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartnerAccount(ctx context.Context,
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...http.CallOption) (*PartnerContractReply, error) {
-	var out PartnerContractReply
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...http.CallOption) (*CreatePartnerContractResponse, error) {
+	var out CreatePartnerContractResponse
 	pattern := "/api/v1/partners/{partner_id}/contracts"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -670,8 +670,8 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartnerContract(ctx context.Context
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (*PartnerSettlementRuleReply, error) {
-	var out PartnerSettlementRuleReply
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...http.CallOption) (*CreatePartnerSettlementRuleResponse, error) {
+	var out CreatePartnerSettlementRuleResponse
 	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -687,8 +687,8 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartnerSettlementRule(ctx context.C
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...http.CallOption) (*PartnerShippingPresetReply, error) {
-	var out PartnerShippingPresetReply
+func (c *PartnerServiceHTTPClientImpl) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...http.CallOption) (*CreatePartnerShippingPresetResponse, error) {
+	var out CreatePartnerShippingPresetResponse
 	pattern := "/api/v1/partners/{partner_id}/shipping-presets"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -704,8 +704,8 @@ func (c *PartnerServiceHTTPClientImpl) CreatePartnerShippingPreset(ctx context.C
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...http.CallOption) (*PartnerExportReply, error) {
-	var out PartnerExportReply
+func (c *PartnerServiceHTTPClientImpl) ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...http.CallOption) (*ExportPartnersResponse, error) {
+	var out ExportPartnersResponse
 	pattern := "/api/v1/partners/export"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -720,8 +720,8 @@ func (c *PartnerServiceHTTPClientImpl) ExportPartners(ctx context.Context, in *E
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
-	var out PartnerReply
+func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...http.CallOption) (*GetPartnerResponse, error) {
+	var out GetPartnerResponse
 	pattern := "/api/v1/partners/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -736,8 +736,8 @@ func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPa
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...http.CallOption) (*PartnerImportReply, error) {
-	var out PartnerImportReply
+func (c *PartnerServiceHTTPClientImpl) ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...http.CallOption) (*ImportPartnersResponse, error) {
+	var out ImportPartnersResponse
 	pattern := "/api/v1/partners/import"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -753,8 +753,8 @@ func (c *PartnerServiceHTTPClientImpl) ImportPartners(ctx context.Context, in *I
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...http.CallOption) (*PartnerAccountListReply, error) {
-	var out PartnerAccountListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...http.CallOption) (*ListPartnerAccountsResponse, error) {
+	var out ListPartnerAccountsResponse
 	pattern := "/api/v1/partners/{partner_id}/accounts"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -769,8 +769,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, 
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*PartnerAssignmentOptionListReply, error) {
-	var out PartnerAssignmentOptionListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
+	var out ListPartnerAssignmentOptionsResponse
 	pattern := "/api/v1/partners/assignment-options"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -785,8 +785,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAssignmentOptions(ctx context.
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...http.CallOption) (*PartnerAttachmentListReply, error) {
-	var out PartnerAttachmentListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...http.CallOption) (*ListPartnerAttachmentsResponse, error) {
+	var out ListPartnerAttachmentsResponse
 	pattern := "/api/v1/partners/{partner_id}/attachments"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -801,8 +801,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAttachments(ctx context.Contex
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...http.CallOption) (*PartnerAuditLogListReply, error) {
-	var out PartnerAuditLogListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...http.CallOption) (*ListPartnerAuditLogsResponse, error) {
+	var out ListPartnerAuditLogsResponse
 	pattern := "/api/v1/partners/{partner_id}/audit-logs"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -817,8 +817,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAuditLogs(ctx context.Context,
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...http.CallOption) (*PartnerContractListReply, error) {
-	var out PartnerContractListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...http.CallOption) (*ListPartnerContractsResponse, error) {
+	var out ListPartnerContractsResponse
 	pattern := "/api/v1/partners/{partner_id}/contracts"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -833,8 +833,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerContracts(ctx context.Context,
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (*PartnerSettlementRuleListReply, error) {
-	var out PartnerSettlementRuleListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...http.CallOption) (*ListPartnerSettlementRulesResponse, error) {
+	var out ListPartnerSettlementRulesResponse
 	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -849,8 +849,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerSettlementRules(ctx context.Co
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (*PartnerShippingPresetListReply, error) {
-	var out PartnerShippingPresetListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (*ListPartnerShippingPresetsResponse, error) {
+	var out ListPartnerShippingPresetsResponse
 	pattern := "/api/v1/partners/{partner_id}/shipping-presets"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -865,8 +865,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerShippingPresets(ctx context.Co
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...http.CallOption) (*PartnerListReply, error) {
-	var out PartnerListReply
+func (c *PartnerServiceHTTPClientImpl) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...http.CallOption) (*ListPartnersResponse, error) {
+	var out ListPartnersResponse
 	pattern := "/api/v1/partners"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -881,8 +881,8 @@ func (c *PartnerServiceHTTPClientImpl) ListPartners(ctx context.Context, in *Lis
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (*PartnerAttachmentReply, error) {
-	var out PartnerAttachmentReply
+func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (*RegisterPartnerAttachmentResponse, error) {
+	var out RegisterPartnerAttachmentResponse
 	pattern := "/api/v1/partners/{partner_id}/attachments"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -898,8 +898,8 @@ func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Con
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...http.CallOption) (*PartnerReply, error) {
-	var out PartnerReply
+func (c *PartnerServiceHTTPClientImpl) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...http.CallOption) (*SetSupplierBlacklistResponse, error) {
+	var out SetSupplierBlacklistResponse
 	pattern := "/api/v1/partners/{id}/supplier-blacklist"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -915,8 +915,8 @@ func (c *PartnerServiceHTTPClientImpl) SetSupplierBlacklist(ctx context.Context,
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...http.CallOption) (*PartnerReply, error) {
-	var out PartnerReply
+func (c *PartnerServiceHTTPClientImpl) UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...http.CallOption) (*UpdatePartnerResponse, error) {
+	var out UpdatePartnerResponse
 	pattern := "/api/v1/partners/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -932,8 +932,8 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartner(ctx context.Context, in *Up
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...http.CallOption) (*PartnerAccountReply, error) {
-	var out PartnerAccountReply
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...http.CallOption) (*UpdatePartnerAccountResponse, error) {
+	var out UpdatePartnerAccountResponse
 	pattern := "/api/v1/partners/{partner_id}/accounts/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -949,8 +949,8 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartnerAccount(ctx context.Context,
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...http.CallOption) (*PartnerContractReply, error) {
-	var out PartnerContractReply
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...http.CallOption) (*UpdatePartnerContractResponse, error) {
+	var out UpdatePartnerContractResponse
 	pattern := "/api/v1/partners/{partner_id}/contracts/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -966,8 +966,8 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartnerContract(ctx context.Context
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (*PartnerSettlementRuleReply, error) {
-	var out PartnerSettlementRuleReply
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (*UpdatePartnerSettlementRuleResponse, error) {
+	var out UpdatePartnerSettlementRuleResponse
 	pattern := "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -983,8 +983,8 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartnerSettlementRule(ctx context.C
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...http.CallOption) (*PartnerShippingPresetReply, error) {
-	var out PartnerShippingPresetReply
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...http.CallOption) (*UpdatePartnerShippingPresetResponse, error) {
+	var out UpdatePartnerShippingPresetResponse
 	pattern := "/api/v1/partners/{partner_id}/shipping-presets/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

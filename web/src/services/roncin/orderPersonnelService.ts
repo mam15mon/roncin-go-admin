@@ -9,7 +9,7 @@ export async function orderPersonnelServiceListPersonnel(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderPersonnelListReply>(
+  return request<API.ListPersonnelResponse>(
     `/api/v1/orders/${param0}/personnel`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderPersonnelServiceAssignPersonnel(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderPersonnelReply>(
+  return request<API.AssignPersonnelResponse>(
     `/api/v1/orders/${param0}/personnel`,
     {
       method: "POST",
@@ -48,7 +48,7 @@ export async function orderPersonnelServiceRemovePersonnel(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderPersonnelOperationReply>(
+  return request<API.RemovePersonnelResponse>(
     `/api/v1/orders/${param0}/personnel/${param1}`,
     {
       method: "DELETE",

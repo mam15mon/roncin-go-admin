@@ -20,7 +20,7 @@ func NewOrderReleasePodService(usecase *biz.OrderReleasePodUsecase) *OrderReleas
 	return &OrderReleasePodService{usecase: usecase}
 }
 
-func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v1.ListReleasePodsRequest) (*v1.OrderReleasePodListReply, error) {
+func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v1.ListReleasePodsRequest) (*v1.ListReleasePodsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -37,7 +37,7 @@ func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v
 	for _, item := range items {
 		data = append(data, orderReleasePodToAPI(item))
 	}
-	return &v1.OrderReleasePodListReply{
+	return &v1.ListReleasePodsResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -46,7 +46,7 @@ func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v
 	}, nil
 }
 
-func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.AddReleasePodRequest) (*v1.OrderReleasePodReply, error) {
+func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.AddReleasePodRequest) (*v1.AddReleasePodResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -59,10 +59,10 @@ func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return orderReleasePodReply(ctx, created), nil
+	return &v1.AddReleasePodResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *v1.UpdateReleasePodRequest) (*v1.OrderReleasePodReply, error) {
+func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *v1.UpdateReleasePodRequest) (*v1.UpdateReleasePodResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -79,10 +79,10 @@ func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return orderReleasePodReply(ctx, updated), nil
+	return &v1.UpdateReleasePodResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context, request *v1.TransitionReleasePodStatusRequest) (*v1.OrderReleasePodReply, error) {
+func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context, request *v1.TransitionReleasePodStatusRequest) (*v1.TransitionReleasePodStatusResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -107,10 +107,10 @@ func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return orderReleasePodReply(ctx, updated), nil
+	return &v1.TransitionReleasePodStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *v1.RemoveReleasePodRequest) (*v1.OrderReleasePodOperationReply, error) {
+func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *v1.RemoveReleasePodRequest) (*v1.RemoveReleasePodResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -126,7 +126,7 @@ func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderReleasePodOperationReply{
+	return &v1.RemoveReleasePodResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -134,23 +134,13 @@ func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *
 	}, nil
 }
 
-func orderReleasePodReply(ctx context.Context, value *biz.OrderReleasePod) *v1.OrderReleasePodReply {
-	return &v1.OrderReleasePodReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderReleasePodToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
-}
-
 func orderReleasePodToAPI(value *biz.OrderReleasePod) *v1.OrderReleasePod {
 	item := &v1.OrderReleasePod{
-		Id:         value.ID.String(),
-		OrderId:    value.OrderID.String(),
-		Status:     orderReleasePodStatusToAPI(value.Status),
-		CreatedAt:  value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:  value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:        value.ID.String(),
+		OrderId:   value.OrderID.String(),
+		Status:    orderReleasePodStatusToAPI(value.Status),
+		CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 	if value.ShippingDocumentID != nil {
 		documentID := value.ShippingDocumentID.String()

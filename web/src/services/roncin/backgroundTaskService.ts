@@ -8,7 +8,7 @@ export async function backgroundTaskServiceListBackgroundTasks(
   params: API.BackgroundTaskServiceListBackgroundTasksParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.BackgroundTaskListReply>("/api/v1/background-tasks", {
+  return request<API.ListBackgroundTasksResponse>("/api/v1/background-tasks", {
     method: "GET",
     params: {
       ...params,
@@ -24,7 +24,7 @@ export async function backgroundTaskServiceGetBackgroundTask(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BackgroundTaskReply>(
+  return request<API.GetBackgroundTaskResponse>(
     `/api/v1/background-tasks/${param0}`,
     {
       method: "GET",
@@ -42,7 +42,7 @@ export async function backgroundTaskServiceRequeueBackgroundTask(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BackgroundTaskReply>(
+  return request<API.RequeueBackgroundTaskResponse>(
     `/api/v1/background-tasks/${param0}/requeue`,
     {
       method: "POST",

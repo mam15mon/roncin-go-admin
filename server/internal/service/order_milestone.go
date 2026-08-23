@@ -19,7 +19,7 @@ func NewOrderMilestoneService(usecase *biz.OrderMilestoneUsecase) *OrderMileston
 	return &OrderMilestoneService{usecase: usecase}
 }
 
-func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.ListMilestonesRequest) (*v1.OrderMilestoneListReply, error) {
+func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.ListMilestonesRequest) (*v1.ListMilestonesResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -36,10 +36,10 @@ func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.
 	for _, item := range items {
 		data = append(data, orderMilestoneToAPI(item))
 	}
-	return &v1.OrderMilestoneListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListMilestonesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.SetMilestoneRequest) (*v1.OrderMilestoneReply, error) {
+func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.SetMilestoneRequest) (*v1.SetMilestoneResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -62,7 +62,7 @@ func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.Se
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OrderMilestoneReply{Success: true, Code: 0, Message: "OK", Data: orderMilestoneToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.SetMilestoneResponse{Success: true, Code: 0, Message: "OK", Data: orderMilestoneToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func parseOptionalRFC3339(value string) (*time.Time, error) {

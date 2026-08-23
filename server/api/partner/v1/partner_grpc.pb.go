@@ -48,29 +48,29 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PartnerServiceClient interface {
-	GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
-	ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*PartnerListReply, error)
-	ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*PartnerAssignmentOptionListReply, error)
-	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
-	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error)
-	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error)
-	ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*PartnerAccountListReply, error)
-	CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error)
-	UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error)
-	ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*PartnerContractListReply, error)
-	CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
-	UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error)
-	ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleListReply, error)
-	CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
-	UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error)
-	ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*PartnerAttachmentListReply, error)
-	RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error)
-	ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error)
-	ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error)
-	ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*PartnerShippingPresetListReply, error)
-	ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*PartnerAuditLogListReply, error)
-	CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
-	UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error)
+	GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*GetPartnerResponse, error)
+	ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*ListPartnersResponse, error)
+	ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error)
+	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*CreatePartnerResponse, error)
+	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*UpdatePartnerResponse, error)
+	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*SetSupplierBlacklistResponse, error)
+	ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*ListPartnerAccountsResponse, error)
+	CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*CreatePartnerAccountResponse, error)
+	UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*UpdatePartnerAccountResponse, error)
+	ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*ListPartnerContractsResponse, error)
+	CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*CreatePartnerContractResponse, error)
+	UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*UpdatePartnerContractResponse, error)
+	ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*ListPartnerSettlementRulesResponse, error)
+	CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*CreatePartnerSettlementRuleResponse, error)
+	UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*UpdatePartnerSettlementRuleResponse, error)
+	ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*ListPartnerAttachmentsResponse, error)
+	RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*RegisterPartnerAttachmentResponse, error)
+	ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*ImportPartnersResponse, error)
+	ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*ExportPartnersResponse, error)
+	ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*ListPartnerShippingPresetsResponse, error)
+	ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*ListPartnerAuditLogsResponse, error)
+	CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*CreatePartnerShippingPresetResponse, error)
+	UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*UpdatePartnerShippingPresetResponse, error)
 }
 
 type partnerServiceClient struct {
@@ -81,9 +81,9 @@ func NewPartnerServiceClient(cc grpc.ClientConnInterface) PartnerServiceClient {
 	return &partnerServiceClient{cc}
 }
 
-func (c *partnerServiceClient) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+func (c *partnerServiceClient) GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*GetPartnerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerReply)
+	out := new(GetPartnerResponse)
 	err := c.cc.Invoke(ctx, PartnerService_GetPartner_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -91,9 +91,9 @@ func (c *partnerServiceClient) GetPartner(ctx context.Context, in *GetPartnerReq
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*PartnerListReply, error) {
+func (c *partnerServiceClient) ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*ListPartnersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerListReply)
+	out := new(ListPartnersResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartners_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -101,9 +101,9 @@ func (c *partnerServiceClient) ListPartners(ctx context.Context, in *ListPartner
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*PartnerAssignmentOptionListReply, error) {
+func (c *partnerServiceClient) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAssignmentOptionListReply)
+	out := new(ListPartnerAssignmentOptionsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAssignmentOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -111,9 +111,9 @@ func (c *partnerServiceClient) ListPartnerAssignmentOptions(ctx context.Context,
 	return out, nil
 }
 
-func (c *partnerServiceClient) CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+func (c *partnerServiceClient) CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*CreatePartnerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerReply)
+	out := new(CreatePartnerResponse)
 	err := c.cc.Invoke(ctx, PartnerService_CreatePartner_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -121,9 +121,9 @@ func (c *partnerServiceClient) CreatePartner(ctx context.Context, in *CreatePart
 	return out, nil
 }
 
-func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*UpdatePartnerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerReply)
+	out := new(UpdatePartnerResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartner_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -131,9 +131,9 @@ func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePart
 	return out, nil
 }
 
-func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*PartnerReply, error) {
+func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*SetSupplierBlacklistResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerReply)
+	out := new(SetSupplierBlacklistResponse)
 	err := c.cc.Invoke(ctx, PartnerService_SetSupplierBlacklist_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -141,9 +141,9 @@ func (c *partnerServiceClient) SetSupplierBlacklist(ctx context.Context, in *Set
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*PartnerAccountListReply, error) {
+func (c *partnerServiceClient) ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*ListPartnerAccountsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAccountListReply)
+	out := new(ListPartnerAccountsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAccounts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -151,9 +151,9 @@ func (c *partnerServiceClient) ListPartnerAccounts(ctx context.Context, in *List
 	return out, nil
 }
 
-func (c *partnerServiceClient) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error) {
+func (c *partnerServiceClient) CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*CreatePartnerAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAccountReply)
+	out := new(CreatePartnerAccountResponse)
 	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -161,9 +161,9 @@ func (c *partnerServiceClient) CreatePartnerAccount(ctx context.Context, in *Cre
 	return out, nil
 }
 
-func (c *partnerServiceClient) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*PartnerAccountReply, error) {
+func (c *partnerServiceClient) UpdatePartnerAccount(ctx context.Context, in *UpdatePartnerAccountRequest, opts ...grpc.CallOption) (*UpdatePartnerAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAccountReply)
+	out := new(UpdatePartnerAccountResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -171,9 +171,9 @@ func (c *partnerServiceClient) UpdatePartnerAccount(ctx context.Context, in *Upd
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*PartnerContractListReply, error) {
+func (c *partnerServiceClient) ListPartnerContracts(ctx context.Context, in *ListPartnerContractsRequest, opts ...grpc.CallOption) (*ListPartnerContractsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerContractListReply)
+	out := new(ListPartnerContractsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerContracts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -181,9 +181,9 @@ func (c *partnerServiceClient) ListPartnerContracts(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *partnerServiceClient) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error) {
+func (c *partnerServiceClient) CreatePartnerContract(ctx context.Context, in *CreatePartnerContractRequest, opts ...grpc.CallOption) (*CreatePartnerContractResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerContractReply)
+	out := new(CreatePartnerContractResponse)
 	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerContract_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -191,9 +191,9 @@ func (c *partnerServiceClient) CreatePartnerContract(ctx context.Context, in *Cr
 	return out, nil
 }
 
-func (c *partnerServiceClient) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*PartnerContractReply, error) {
+func (c *partnerServiceClient) UpdatePartnerContract(ctx context.Context, in *UpdatePartnerContractRequest, opts ...grpc.CallOption) (*UpdatePartnerContractResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerContractReply)
+	out := new(UpdatePartnerContractResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerContract_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -201,9 +201,9 @@ func (c *partnerServiceClient) UpdatePartnerContract(ctx context.Context, in *Up
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleListReply, error) {
+func (c *partnerServiceClient) ListPartnerSettlementRules(ctx context.Context, in *ListPartnerSettlementRulesRequest, opts ...grpc.CallOption) (*ListPartnerSettlementRulesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerSettlementRuleListReply)
+	out := new(ListPartnerSettlementRulesResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerSettlementRules_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -211,9 +211,9 @@ func (c *partnerServiceClient) ListPartnerSettlementRules(ctx context.Context, i
 	return out, nil
 }
 
-func (c *partnerServiceClient) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error) {
+func (c *partnerServiceClient) CreatePartnerSettlementRule(ctx context.Context, in *CreatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*CreatePartnerSettlementRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerSettlementRuleReply)
+	out := new(CreatePartnerSettlementRuleResponse)
 	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerSettlementRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -221,9 +221,9 @@ func (c *partnerServiceClient) CreatePartnerSettlementRule(ctx context.Context, 
 	return out, nil
 }
 
-func (c *partnerServiceClient) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*PartnerSettlementRuleReply, error) {
+func (c *partnerServiceClient) UpdatePartnerSettlementRule(ctx context.Context, in *UpdatePartnerSettlementRuleRequest, opts ...grpc.CallOption) (*UpdatePartnerSettlementRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerSettlementRuleReply)
+	out := new(UpdatePartnerSettlementRuleResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerSettlementRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -231,9 +231,9 @@ func (c *partnerServiceClient) UpdatePartnerSettlementRule(ctx context.Context, 
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*PartnerAttachmentListReply, error) {
+func (c *partnerServiceClient) ListPartnerAttachments(ctx context.Context, in *ListPartnerAttachmentsRequest, opts ...grpc.CallOption) (*ListPartnerAttachmentsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAttachmentListReply)
+	out := new(ListPartnerAttachmentsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAttachments_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -241,9 +241,9 @@ func (c *partnerServiceClient) ListPartnerAttachments(ctx context.Context, in *L
 	return out, nil
 }
 
-func (c *partnerServiceClient) RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*PartnerAttachmentReply, error) {
+func (c *partnerServiceClient) RegisterPartnerAttachment(ctx context.Context, in *RegisterPartnerAttachmentRequest, opts ...grpc.CallOption) (*RegisterPartnerAttachmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAttachmentReply)
+	out := new(RegisterPartnerAttachmentResponse)
 	err := c.cc.Invoke(ctx, PartnerService_RegisterPartnerAttachment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -251,9 +251,9 @@ func (c *partnerServiceClient) RegisterPartnerAttachment(ctx context.Context, in
 	return out, nil
 }
 
-func (c *partnerServiceClient) ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*PartnerImportReply, error) {
+func (c *partnerServiceClient) ImportPartners(ctx context.Context, in *ImportPartnersRequest, opts ...grpc.CallOption) (*ImportPartnersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerImportReply)
+	out := new(ImportPartnersResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ImportPartners_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -261,9 +261,9 @@ func (c *partnerServiceClient) ImportPartners(ctx context.Context, in *ImportPar
 	return out, nil
 }
 
-func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*PartnerExportReply, error) {
+func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPartnersRequest, opts ...grpc.CallOption) (*ExportPartnersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerExportReply)
+	out := new(ExportPartnersResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ExportPartners_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -271,9 +271,9 @@ func (c *partnerServiceClient) ExportPartners(ctx context.Context, in *ExportPar
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*PartnerShippingPresetListReply, error) {
+func (c *partnerServiceClient) ListPartnerShippingPresets(ctx context.Context, in *ListPartnerShippingPresetsRequest, opts ...grpc.CallOption) (*ListPartnerShippingPresetsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerShippingPresetListReply)
+	out := new(ListPartnerShippingPresetsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerShippingPresets_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -281,9 +281,9 @@ func (c *partnerServiceClient) ListPartnerShippingPresets(ctx context.Context, i
 	return out, nil
 }
 
-func (c *partnerServiceClient) ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*PartnerAuditLogListReply, error) {
+func (c *partnerServiceClient) ListPartnerAuditLogs(ctx context.Context, in *ListPartnerAuditLogsRequest, opts ...grpc.CallOption) (*ListPartnerAuditLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerAuditLogListReply)
+	out := new(ListPartnerAuditLogsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_ListPartnerAuditLogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -291,9 +291,9 @@ func (c *partnerServiceClient) ListPartnerAuditLogs(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *partnerServiceClient) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error) {
+func (c *partnerServiceClient) CreatePartnerShippingPreset(ctx context.Context, in *CreatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*CreatePartnerShippingPresetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerShippingPresetReply)
+	out := new(CreatePartnerShippingPresetResponse)
 	err := c.cc.Invoke(ctx, PartnerService_CreatePartnerShippingPreset_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -301,9 +301,9 @@ func (c *partnerServiceClient) CreatePartnerShippingPreset(ctx context.Context, 
 	return out, nil
 }
 
-func (c *partnerServiceClient) UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*PartnerShippingPresetReply, error) {
+func (c *partnerServiceClient) UpdatePartnerShippingPreset(ctx context.Context, in *UpdatePartnerShippingPresetRequest, opts ...grpc.CallOption) (*UpdatePartnerShippingPresetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PartnerShippingPresetReply)
+	out := new(UpdatePartnerShippingPresetResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerShippingPreset_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -315,29 +315,29 @@ func (c *partnerServiceClient) UpdatePartnerShippingPreset(ctx context.Context, 
 // All implementations must embed UnimplementedPartnerServiceServer
 // for forward compatibility.
 type PartnerServiceServer interface {
-	GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error)
-	ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error)
-	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error)
-	CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error)
-	UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error)
-	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error)
-	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error)
-	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error)
-	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error)
-	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error)
-	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error)
-	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error)
-	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error)
-	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
-	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error)
-	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error)
-	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error)
-	ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error)
-	ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error)
-	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error)
-	ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*PartnerAuditLogListReply, error)
-	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
-	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error)
+	GetPartner(context.Context, *GetPartnerRequest) (*GetPartnerResponse, error)
+	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
+	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
+	CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error)
+	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
+	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
+	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error)
+	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*CreatePartnerAccountResponse, error)
+	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
+	ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*ListPartnerContractsResponse, error)
+	CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*CreatePartnerContractResponse, error)
+	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*UpdatePartnerContractResponse, error)
+	ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*ListPartnerSettlementRulesResponse, error)
+	CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*CreatePartnerSettlementRuleResponse, error)
+	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*UpdatePartnerSettlementRuleResponse, error)
+	ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*ListPartnerAttachmentsResponse, error)
+	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error)
+	ImportPartners(context.Context, *ImportPartnersRequest) (*ImportPartnersResponse, error)
+	ExportPartners(context.Context, *ExportPartnersRequest) (*ExportPartnersResponse, error)
+	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error)
+	ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*ListPartnerAuditLogsResponse, error)
+	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*CreatePartnerShippingPresetResponse, error)
+	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*UpdatePartnerShippingPresetResponse, error)
 	mustEmbedUnimplementedPartnerServiceServer()
 }
 
@@ -348,73 +348,73 @@ type PartnerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPartnerServiceServer struct{}
 
-func (UnimplementedPartnerServiceServer) GetPartner(context.Context, *GetPartnerRequest) (*PartnerReply, error) {
+func (UnimplementedPartnerServiceServer) GetPartner(context.Context, *GetPartnerRequest) (*GetPartnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPartner not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartners(context.Context, *ListPartnersRequest) (*PartnerListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartners not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*PartnerAssignmentOptionListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAssignmentOptions not implemented")
 }
-func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreatePartnerRequest) (*PartnerReply, error) {
+func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartner not implemented")
 }
-func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdatePartnerRequest) (*PartnerReply, error) {
+func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartner not implemented")
 }
-func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*PartnerReply, error) {
+func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetSupplierBlacklist not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*PartnerAccountListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAccounts not implemented")
 }
-func (UnimplementedPartnerServiceServer) CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*PartnerAccountReply, error) {
+func (UnimplementedPartnerServiceServer) CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*CreatePartnerAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartnerAccount not implemented")
 }
-func (UnimplementedPartnerServiceServer) UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*PartnerAccountReply, error) {
+func (UnimplementedPartnerServiceServer) UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerAccount not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*PartnerContractListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerContracts(context.Context, *ListPartnerContractsRequest) (*ListPartnerContractsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerContracts not implemented")
 }
-func (UnimplementedPartnerServiceServer) CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*PartnerContractReply, error) {
+func (UnimplementedPartnerServiceServer) CreatePartnerContract(context.Context, *CreatePartnerContractRequest) (*CreatePartnerContractResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartnerContract not implemented")
 }
-func (UnimplementedPartnerServiceServer) UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*PartnerContractReply, error) {
+func (UnimplementedPartnerServiceServer) UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*UpdatePartnerContractResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerContract not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*PartnerSettlementRuleListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerSettlementRules(context.Context, *ListPartnerSettlementRulesRequest) (*ListPartnerSettlementRulesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerSettlementRules not implemented")
 }
-func (UnimplementedPartnerServiceServer) CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error) {
+func (UnimplementedPartnerServiceServer) CreatePartnerSettlementRule(context.Context, *CreatePartnerSettlementRuleRequest) (*CreatePartnerSettlementRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartnerSettlementRule not implemented")
 }
-func (UnimplementedPartnerServiceServer) UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*PartnerSettlementRuleReply, error) {
+func (UnimplementedPartnerServiceServer) UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*UpdatePartnerSettlementRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerSettlementRule not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*PartnerAttachmentListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerAttachments(context.Context, *ListPartnerAttachmentsRequest) (*ListPartnerAttachmentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAttachments not implemented")
 }
-func (UnimplementedPartnerServiceServer) RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*PartnerAttachmentReply, error) {
+func (UnimplementedPartnerServiceServer) RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterPartnerAttachment not implemented")
 }
-func (UnimplementedPartnerServiceServer) ImportPartners(context.Context, *ImportPartnersRequest) (*PartnerImportReply, error) {
+func (UnimplementedPartnerServiceServer) ImportPartners(context.Context, *ImportPartnersRequest) (*ImportPartnersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ImportPartners not implemented")
 }
-func (UnimplementedPartnerServiceServer) ExportPartners(context.Context, *ExportPartnersRequest) (*PartnerExportReply, error) {
+func (UnimplementedPartnerServiceServer) ExportPartners(context.Context, *ExportPartnersRequest) (*ExportPartnersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportPartners not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*PartnerShippingPresetListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerShippingPresets not implemented")
 }
-func (UnimplementedPartnerServiceServer) ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*PartnerAuditLogListReply, error) {
+func (UnimplementedPartnerServiceServer) ListPartnerAuditLogs(context.Context, *ListPartnerAuditLogsRequest) (*ListPartnerAuditLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAuditLogs not implemented")
 }
-func (UnimplementedPartnerServiceServer) CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error) {
+func (UnimplementedPartnerServiceServer) CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*CreatePartnerShippingPresetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePartnerShippingPreset not implemented")
 }
-func (UnimplementedPartnerServiceServer) UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*PartnerShippingPresetReply, error) {
+func (UnimplementedPartnerServiceServer) UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*UpdatePartnerShippingPresetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerShippingPreset not implemented")
 }
 func (UnimplementedPartnerServiceServer) mustEmbedUnimplementedPartnerServiceServer() {}

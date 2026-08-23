@@ -9,7 +9,7 @@ export async function orderCargoItemServiceListCargoItems(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderCargoItemListReply>(
+  return request<API.ListCargoItemsResponse>(
     `/api/v1/orders/${param0}/cargo-items`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderCargoItemServiceAddCargoItem(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderCargoItemReply>(
+  return request<API.AddCargoItemResponse>(
     `/api/v1/orders/${param0}/cargo-items`,
     {
       method: "POST",
@@ -49,7 +49,7 @@ export async function orderCargoItemServiceUpdateCargoItem(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderCargoItemReply>(
+  return request<API.UpdateCargoItemResponse>(
     `/api/v1/orders/${param0}/cargo-items/${param1}`,
     {
       method: "PUT",
@@ -70,7 +70,7 @@ export async function orderCargoItemServiceRemoveCargoItem(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderCargoItemOperationReply>(
+  return request<API.RemoveCargoItemResponse>(
     `/api/v1/orders/${param0}/cargo-items/${param1}`,
     {
       method: "DELETE",

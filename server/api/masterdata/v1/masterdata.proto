@@ -9,12 +9,12 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/masterdata/v1;v1";
 
 service MasterDataService {
-  rpc ListItems(ListMasterDataItemsRequest) returns (MasterDataItemListReply) {
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/items"};
   }
 
-  rpc CreateItem(CreateMasterDataItemRequest) returns (MasterDataItemReply) {
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/items"
@@ -22,7 +22,7 @@ service MasterDataService {
     };
   }
 
-  rpc UpdateItem(UpdateMasterDataItemRequest) returns (MasterDataItemReply) {
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/master-data/items/{id}"
@@ -30,7 +30,7 @@ service MasterDataService {
     };
   }
 
-  rpc ImportItems(ImportMasterDataItemsRequest) returns (MasterDataImportReply) {
+  rpc ImportItems(ImportItemsRequest) returns (ImportItemsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.import" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/import"
@@ -38,87 +38,87 @@ service MasterDataService {
     };
   }
 
-  rpc ListOptions(ListMasterDataOptionsRequest) returns (MasterDataOptionsReply) {
+  rpc ListOptions(ListOptionsRequest) returns (ListOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.option.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
-  rpc ListPorts(ListIndustryReferencesRequest) returns (PortListReply) {
+  rpc ListPorts(ListPortsRequest) returns (ListPortsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/ports"};
   }
 
-  rpc CreatePort(CreatePortRequest) returns (PortReply) {
+  rpc CreatePort(CreatePortRequest) returns (CreatePortResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/ports" body: "*"};
   }
 
-  rpc UpdatePort(UpdatePortRequest) returns (PortReply) {
+  rpc UpdatePort(UpdatePortRequest) returns (UpdatePortResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.port.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/ports/{id}" body: "*"};
   }
 
-  rpc ListAirports(ListIndustryReferencesRequest) returns (AirportListReply) {
+  rpc ListAirports(ListAirportsRequest) returns (ListAirportsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/airports"};
   }
 
-  rpc CreateAirport(CreateAirportRequest) returns (AirportReply) {
+  rpc CreateAirport(CreateAirportRequest) returns (CreateAirportResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/airports" body: "*"};
   }
 
-  rpc UpdateAirport(UpdateAirportRequest) returns (AirportReply) {
+  rpc UpdateAirport(UpdateAirportRequest) returns (UpdateAirportResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airport.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/airports/{id}" body: "*"};
   }
 
-  rpc ListAirlines(ListIndustryReferencesRequest) returns (AirlineListReply) {
+  rpc ListAirlines(ListAirlinesRequest) returns (ListAirlinesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/airlines"};
   }
 
-  rpc CreateAirline(CreateAirlineRequest) returns (AirlineReply) {
+  rpc CreateAirline(CreateAirlineRequest) returns (CreateAirlineResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/airlines" body: "*"};
   }
 
-  rpc UpdateAirline(UpdateAirlineRequest) returns (AirlineReply) {
+  rpc UpdateAirline(UpdateAirlineRequest) returns (UpdateAirlineResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.airline.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/airlines/{id}" body: "*"};
   }
 
-  rpc ListShippingLines(ListIndustryReferencesRequest) returns (ShippingLineListReply) {
+  rpc ListShippingLines(ListShippingLinesRequest) returns (ListShippingLinesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/shipping-lines"};
   }
 
-  rpc CreateShippingLine(CreateShippingLineRequest) returns (ShippingLineReply) {
+  rpc CreateShippingLine(CreateShippingLineRequest) returns (CreateShippingLineResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/master-data/shipping-lines" body: "*"};
   }
 
-  rpc UpdateShippingLine(UpdateShippingLineRequest) returns (ShippingLineReply) {
+  rpc UpdateShippingLine(UpdateShippingLineRequest) returns (UpdateShippingLineResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.shipping_line.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/master-data/shipping-lines/{id}" body: "*"};
   }
 
-  rpc ListCurrencies(ListCurrenciesRequest) returns (CurrencyListReply) {
+  rpc ListCurrencies(ListCurrenciesRequest) returns (ListCurrenciesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
 
-  rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (AdministrativeRegionListReply) {
+  rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (ListAdministrativeRegionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.administrative_region.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/administrative-regions"};
   }
 
-  rpc ListNumberRules(ListNumberRulesRequest) returns (NumberRuleListReply) {
+  rpc ListNumberRules(ListNumberRulesRequest) returns (ListNumberRulesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/number-rules"};
   }
 
-  rpc CreateNumberRule(CreateNumberRuleRequest) returns (NumberRuleReply) {
+  rpc CreateNumberRule(CreateNumberRuleRequest) returns (CreateNumberRuleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/number-rules"
@@ -126,7 +126,7 @@ service MasterDataService {
     };
   }
 
-  rpc UpdateNumberRule(UpdateNumberRuleRequest) returns (NumberRuleReply) {
+  rpc UpdateNumberRule(UpdateNumberRuleRequest) returns (UpdateNumberRuleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.number_rule.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/master-data/number-rules/{id}"
@@ -134,12 +134,12 @@ service MasterDataService {
     };
   }
 
-  rpc ListStatusTemplates(ListStatusTemplatesRequest) returns (StatusTemplateListReply) {
+  rpc ListStatusTemplates(ListStatusTemplatesRequest) returns (ListStatusTemplatesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/status-templates"};
   }
 
-  rpc CreateStatusTemplate(CreateStatusTemplateRequest) returns (StatusTemplateReply) {
+  rpc CreateStatusTemplate(CreateStatusTemplateRequest) returns (CreateStatusTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates"
@@ -147,7 +147,7 @@ service MasterDataService {
     };
   }
 
-  rpc PublishStatusTemplate(PublishStatusTemplateRequest) returns (StatusTemplateReply) {
+  rpc PublishStatusTemplate(PublishStatusTemplateRequest) returns (PublishStatusTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.publish" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates/{id}/publish"
@@ -155,7 +155,7 @@ service MasterDataService {
     };
   }
 
-  rpc SetDefaultStatusTemplate(SetDefaultStatusTemplateRequest) returns (StatusTemplateReply) {
+  rpc SetDefaultStatusTemplate(SetDefaultStatusTemplateRequest) returns (SetDefaultStatusTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.set_default" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/status-templates/{id}/set-default"
@@ -163,12 +163,12 @@ service MasterDataService {
     };
   }
 
-  rpc ListMilestoneTemplates(ListMilestoneTemplatesRequest) returns (MilestoneTemplateListReply) {
+  rpc ListMilestoneTemplates(ListMilestoneTemplatesRequest) returns (ListMilestoneTemplatesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/milestone-templates"};
   }
 
-  rpc CreateMilestoneTemplate(CreateMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+  rpc CreateMilestoneTemplate(CreateMilestoneTemplateRequest) returns (CreateMilestoneTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates"
@@ -176,7 +176,7 @@ service MasterDataService {
     };
   }
 
-  rpc PublishMilestoneTemplate(PublishMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+  rpc PublishMilestoneTemplate(PublishMilestoneTemplateRequest) returns (PublishMilestoneTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.publish" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates/{id}/publish"
@@ -184,7 +184,7 @@ service MasterDataService {
     };
   }
 
-  rpc SetDefaultMilestoneTemplate(SetDefaultMilestoneTemplateRequest) returns (MilestoneTemplateReply) {
+  rpc SetDefaultMilestoneTemplate(SetDefaultMilestoneTemplateRequest) returns (SetDefaultMilestoneTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.set_default" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/master-data/milestone-templates/{id}/set-default"
@@ -248,7 +248,7 @@ enum BusinessType {
   BUSINESS_TYPE_RAIL = 6;
 }
 
-message ListMasterDataItemsRequest {
+message ListItemsRequest {
   int32 page = 1;
   int32 page_size = 2;
   MasterDataKind kind = 3;
@@ -263,7 +263,7 @@ message MasterDataAttributes {
   optional int32 region_level = 13;
 }
 
-message CreateMasterDataItemRequest {
+message CreateItemRequest {
   MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
   string code = 2 [(google.api.field_behavior) = REQUIRED];
   string name = 3 [(google.api.field_behavior) = REQUIRED];
@@ -275,7 +275,7 @@ message CreateMasterDataItemRequest {
   MasterDataAttributes attributes = 10;
 }
 
-message UpdateMasterDataItemRequest {
+message UpdateItemRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 3;
@@ -299,14 +299,14 @@ message MasterDataImportItemInput {
   MasterDataAttributes attributes = 9;
 }
 
-message ImportMasterDataItemsRequest {
+message ImportItemsRequest {
   MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
   string source = 2 [(google.api.field_behavior) = REQUIRED];
   MasterDataImportMode mode = 3 [(google.api.field_behavior) = REQUIRED];
   repeated MasterDataImportItemInput items = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
-message MasterDataImportReply {
+message ImportItemsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -316,7 +316,7 @@ message MasterDataImportReply {
   string trace_id = 7;
 }
 
-message ListMasterDataOptionsRequest {}
+message ListOptionsRequest {}
 
 message MasterDataItem {
   string id = 1;
@@ -335,7 +335,7 @@ message MasterDataItem {
   MasterDataAttributes attributes = 15;
 }
 
-message MasterDataItemListReply {
+message ListItemsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -346,7 +346,7 @@ message MasterDataItemListReply {
   string trace_id = 8;
 }
 
-message MasterDataItemReply {
+message CreateItemResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -354,7 +354,15 @@ message MasterDataItemReply {
   string trace_id = 5;
 }
 
-message MasterDataOptionsReply {
+message UpdateItemResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  MasterDataItem data = 4;
+  string trace_id = 5;
+}
+
+message ListOptionsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -362,7 +370,28 @@ message MasterDataOptionsReply {
   string trace_id = 5;
 }
 
-message ListIndustryReferencesRequest {
+message ListPortsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  optional bool enabled = 4;
+}
+
+message ListAirportsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  optional bool enabled = 4;
+}
+
+message ListAirlinesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3;
+  optional bool enabled = 4;
+}
+
+message ListShippingLinesRequest {
   int32 page = 1;
   int32 page_size = 2;
   string keyword = 3;
@@ -409,7 +438,7 @@ message UpdatePortRequest {
   bool enabled = 8;
 }
 
-message PortListReply {
+message ListPortsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -420,7 +449,15 @@ message PortListReply {
   string trace_id = 8;
 }
 
-message PortReply {
+message CreatePortResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Port data = 4;
+  string trace_id = 5;
+}
+
+message UpdatePortResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -474,7 +511,7 @@ message UpdateAirportRequest {
   bool enabled = 10;
 }
 
-message AirportListReply {
+message ListAirportsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -485,7 +522,15 @@ message AirportListReply {
   string trace_id = 8;
 }
 
-message AirportReply {
+message CreateAirportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Airport data = 4;
+  string trace_id = 5;
+}
+
+message UpdateAirportResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -535,7 +580,7 @@ message UpdateAirlineRequest {
   bool enabled = 10;
 }
 
-message AirlineListReply {
+message ListAirlinesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -546,7 +591,15 @@ message AirlineListReply {
   string trace_id = 8;
 }
 
-message AirlineReply {
+message CreateAirlineResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Airline data = 4;
+  string trace_id = 5;
+}
+
+message UpdateAirlineResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -596,7 +649,7 @@ message UpdateShippingLineRequest {
   bool enabled = 10;
 }
 
-message ShippingLineListReply {
+message ListShippingLinesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -607,7 +660,15 @@ message ShippingLineListReply {
   string trace_id = 8;
 }
 
-message ShippingLineReply {
+message CreateShippingLineResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ShippingLine data = 4;
+  string trace_id = 5;
+}
+
+message UpdateShippingLineResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -628,7 +689,7 @@ message Currency {
   string updated_at = 8;
 }
 
-message CurrencyListReply {
+message ListCurrenciesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -656,7 +717,7 @@ message AdministrativeRegion {
   string updated_at = 11;
 }
 
-message AdministrativeRegionListReply {
+message ListAdministrativeRegionsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -696,7 +757,7 @@ message NumberRule {
   string updated_at = 10;
 }
 
-message NumberRuleListReply {
+message ListNumberRulesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -704,7 +765,15 @@ message NumberRuleListReply {
   string trace_id = 5;
 }
 
-message NumberRuleReply {
+message CreateNumberRuleResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  NumberRule data = 4;
+  string trace_id = 5;
+}
+
+message UpdateNumberRuleResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -768,7 +837,7 @@ message StatusTemplate {
   string updated_at = 12;
 }
 
-message StatusTemplateListReply {
+message ListStatusTemplatesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -776,7 +845,23 @@ message StatusTemplateListReply {
   string trace_id = 5;
 }
 
-message StatusTemplateReply {
+message CreateStatusTemplateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  StatusTemplate data = 4;
+  string trace_id = 5;
+}
+
+message PublishStatusTemplateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  StatusTemplate data = 4;
+  string trace_id = 5;
+}
+
+message SetDefaultStatusTemplateResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -845,7 +930,7 @@ message MilestoneTemplate {
   string updated_at = 13;
 }
 
-message MilestoneTemplateListReply {
+message ListMilestoneTemplatesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -853,7 +938,23 @@ message MilestoneTemplateListReply {
   string trace_id = 5;
 }
 
-message MilestoneTemplateReply {
+message CreateMilestoneTemplateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  MilestoneTemplate data = 4;
+  string trace_id = 5;
+}
+
+message PublishMilestoneTemplateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  MilestoneTemplate data = 4;
+  string trace_id = 5;
+}
+
+message SetDefaultMilestoneTemplateResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

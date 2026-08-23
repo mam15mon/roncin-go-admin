@@ -9,7 +9,7 @@ export async function orderAttachmentServiceListAttachments(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderAttachmentListReply>(
+  return request<API.ListAttachmentsResponse>(
     `/api/v1/orders/${param0}/attachments`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderAttachmentServiceRegisterAttachment(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderAttachmentReply>(
+  return request<API.RegisterAttachmentResponse>(
     `/api/v1/orders/${param0}/attachments`,
     {
       method: "POST",

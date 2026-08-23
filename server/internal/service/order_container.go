@@ -20,7 +20,7 @@ func NewOrderContainerService(usecase *biz.OrderContainerUsecase) *OrderContaine
 	return &OrderContainerService{usecase: usecase}
 }
 
-func (s *OrderContainerService) ListContainers(ctx context.Context, request *v1.ListContainersRequest) (*v1.OrderContainerListReply, error) {
+func (s *OrderContainerService) ListContainers(ctx context.Context, request *v1.ListContainersRequest) (*v1.ListContainersResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -37,7 +37,7 @@ func (s *OrderContainerService) ListContainers(ctx context.Context, request *v1.
 	for _, item := range items {
 		data = append(data, orderContainerToAPI(item))
 	}
-	return &v1.OrderContainerListReply{
+	return &v1.ListContainersResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -46,7 +46,7 @@ func (s *OrderContainerService) ListContainers(ctx context.Context, request *v1.
 	}, nil
 }
 
-func (s *OrderContainerService) AddContainer(ctx context.Context, request *v1.AddContainerRequest) (*v1.OrderContainerReply, error) {
+func (s *OrderContainerService) AddContainer(ctx context.Context, request *v1.AddContainerRequest) (*v1.AddContainerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -59,10 +59,10 @@ func (s *OrderContainerService) AddContainer(ctx context.Context, request *v1.Ad
 	if err != nil {
 		return nil, err
 	}
-	return orderContainerReply(ctx, created), nil
+	return &v1.AddContainerResponse{Success: true, Code: 0, Message: "OK", Data: orderContainerToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderContainerService) UpdateContainer(ctx context.Context, request *v1.UpdateContainerRequest) (*v1.OrderContainerReply, error) {
+func (s *OrderContainerService) UpdateContainer(ctx context.Context, request *v1.UpdateContainerRequest) (*v1.UpdateContainerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -79,10 +79,10 @@ func (s *OrderContainerService) UpdateContainer(ctx context.Context, request *v1
 	if err != nil {
 		return nil, err
 	}
-	return orderContainerReply(ctx, updated), nil
+	return &v1.UpdateContainerResponse{Success: true, Code: 0, Message: "OK", Data: orderContainerToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderContainerService) RemoveContainer(ctx context.Context, request *v1.RemoveContainerRequest) (*v1.OrderContainerOperationReply, error) {
+func (s *OrderContainerService) RemoveContainer(ctx context.Context, request *v1.RemoveContainerRequest) (*v1.RemoveContainerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -98,7 +98,7 @@ func (s *OrderContainerService) RemoveContainer(ctx context.Context, request *v1
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderContainerOperationReply{
+	return &v1.RemoveContainerResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -106,29 +106,19 @@ func (s *OrderContainerService) RemoveContainer(ctx context.Context, request *v1
 	}, nil
 }
 
-func orderContainerReply(ctx context.Context, value *biz.OrderContainer) *v1.OrderContainerReply {
-	return &v1.OrderContainerReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderContainerToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
-}
-
 func orderContainerToAPI(value *biz.OrderContainer) *v1.OrderContainer {
 	return &v1.OrderContainer{
-		Id:                  value.ID.String(),
-		OrderId:             value.OrderID.String(),
-		ContainerNo:         value.ContainerNo,
-		ContainerSpecId:     value.ContainerSpecID.String(),
-		ShippingDocumentId:  formatOptionalUUIDString(value.ShippingDocumentID),
-		SealNo:              value.SealNo,
-		GrossWeightKg:       value.GrossWeightKg,
-		VolumeCbm:           value.VolumeCbm,
-		Note:                value.Note,
-		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:                 value.ID.String(),
+		OrderId:            value.OrderID.String(),
+		ContainerNo:        value.ContainerNo,
+		ContainerSpecId:    value.ContainerSpecID.String(),
+		ShippingDocumentId: formatOptionalUUIDString(value.ShippingDocumentID),
+		SealNo:             value.SealNo,
+		GrossWeightKg:      value.GrossWeightKg,
+		VolumeCbm:          value.VolumeCbm,
+		Note:               value.Note,
+		CreatedAt:          value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:          value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

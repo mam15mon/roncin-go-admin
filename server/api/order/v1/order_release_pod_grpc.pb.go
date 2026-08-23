@@ -35,16 +35,16 @@ const (
 // PENDING→SIGNED→RETURNED 向前单步流转，签收时记录签收人与时间。
 type OrderReleasePodServiceClient interface {
 	// ListReleasePods 获取指定订单的放货凭证列表。
-	ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...grpc.CallOption) (*OrderReleasePodListReply, error)
+	ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...grpc.CallOption) (*ListReleasePodsResponse, error)
 	// AddReleasePod 添加放货凭证，初始状态为待签收。
-	AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error)
+	AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...grpc.CallOption) (*AddReleasePodResponse, error)
 	// UpdateReleasePod 更新凭证字段，已回单后不可修改。
-	UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error)
+	UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...grpc.CallOption) (*UpdateReleasePodResponse, error)
 	// TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
 	// 流转到已签收时由服务端记录签收人与签收时间。
-	TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error)
+	TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...grpc.CallOption) (*TransitionReleasePodStatusResponse, error)
 	// RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-	RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodOperationReply, error)
+	RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...grpc.CallOption) (*RemoveReleasePodResponse, error)
 }
 
 type orderReleasePodServiceClient struct {
@@ -55,9 +55,9 @@ func NewOrderReleasePodServiceClient(cc grpc.ClientConnInterface) OrderReleasePo
 	return &orderReleasePodServiceClient{cc}
 }
 
-func (c *orderReleasePodServiceClient) ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...grpc.CallOption) (*OrderReleasePodListReply, error) {
+func (c *orderReleasePodServiceClient) ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...grpc.CallOption) (*ListReleasePodsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderReleasePodListReply)
+	out := new(ListReleasePodsResponse)
 	err := c.cc.Invoke(ctx, OrderReleasePodService_ListReleasePods_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -65,9 +65,9 @@ func (c *orderReleasePodServiceClient) ListReleasePods(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *orderReleasePodServiceClient) AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error) {
+func (c *orderReleasePodServiceClient) AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...grpc.CallOption) (*AddReleasePodResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderReleasePodReply)
+	out := new(AddReleasePodResponse)
 	err := c.cc.Invoke(ctx, OrderReleasePodService_AddReleasePod_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -75,9 +75,9 @@ func (c *orderReleasePodServiceClient) AddReleasePod(ctx context.Context, in *Ad
 	return out, nil
 }
 
-func (c *orderReleasePodServiceClient) UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error) {
+func (c *orderReleasePodServiceClient) UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...grpc.CallOption) (*UpdateReleasePodResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderReleasePodReply)
+	out := new(UpdateReleasePodResponse)
 	err := c.cc.Invoke(ctx, OrderReleasePodService_UpdateReleasePod_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -85,9 +85,9 @@ func (c *orderReleasePodServiceClient) UpdateReleasePod(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *orderReleasePodServiceClient) TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...grpc.CallOption) (*OrderReleasePodReply, error) {
+func (c *orderReleasePodServiceClient) TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...grpc.CallOption) (*TransitionReleasePodStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderReleasePodReply)
+	out := new(TransitionReleasePodStatusResponse)
 	err := c.cc.Invoke(ctx, OrderReleasePodService_TransitionReleasePodStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -95,9 +95,9 @@ func (c *orderReleasePodServiceClient) TransitionReleasePodStatus(ctx context.Co
 	return out, nil
 }
 
-func (c *orderReleasePodServiceClient) RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...grpc.CallOption) (*OrderReleasePodOperationReply, error) {
+func (c *orderReleasePodServiceClient) RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...grpc.CallOption) (*RemoveReleasePodResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderReleasePodOperationReply)
+	out := new(RemoveReleasePodResponse)
 	err := c.cc.Invoke(ctx, OrderReleasePodService_RemoveReleasePod_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -114,16 +114,16 @@ func (c *orderReleasePodServiceClient) RemoveReleasePod(ctx context.Context, in 
 // PENDING→SIGNED→RETURNED 向前单步流转，签收时记录签收人与时间。
 type OrderReleasePodServiceServer interface {
 	// ListReleasePods 获取指定订单的放货凭证列表。
-	ListReleasePods(context.Context, *ListReleasePodsRequest) (*OrderReleasePodListReply, error)
+	ListReleasePods(context.Context, *ListReleasePodsRequest) (*ListReleasePodsResponse, error)
 	// AddReleasePod 添加放货凭证，初始状态为待签收。
-	AddReleasePod(context.Context, *AddReleasePodRequest) (*OrderReleasePodReply, error)
+	AddReleasePod(context.Context, *AddReleasePodRequest) (*AddReleasePodResponse, error)
 	// UpdateReleasePod 更新凭证字段，已回单后不可修改。
-	UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*OrderReleasePodReply, error)
+	UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*UpdateReleasePodResponse, error)
 	// TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
 	// 流转到已签收时由服务端记录签收人与签收时间。
-	TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*OrderReleasePodReply, error)
+	TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*TransitionReleasePodStatusResponse, error)
 	// RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-	RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*OrderReleasePodOperationReply, error)
+	RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*RemoveReleasePodResponse, error)
 	mustEmbedUnimplementedOrderReleasePodServiceServer()
 }
 
@@ -134,19 +134,19 @@ type OrderReleasePodServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderReleasePodServiceServer struct{}
 
-func (UnimplementedOrderReleasePodServiceServer) ListReleasePods(context.Context, *ListReleasePodsRequest) (*OrderReleasePodListReply, error) {
+func (UnimplementedOrderReleasePodServiceServer) ListReleasePods(context.Context, *ListReleasePodsRequest) (*ListReleasePodsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListReleasePods not implemented")
 }
-func (UnimplementedOrderReleasePodServiceServer) AddReleasePod(context.Context, *AddReleasePodRequest) (*OrderReleasePodReply, error) {
+func (UnimplementedOrderReleasePodServiceServer) AddReleasePod(context.Context, *AddReleasePodRequest) (*AddReleasePodResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddReleasePod not implemented")
 }
-func (UnimplementedOrderReleasePodServiceServer) UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*OrderReleasePodReply, error) {
+func (UnimplementedOrderReleasePodServiceServer) UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*UpdateReleasePodResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateReleasePod not implemented")
 }
-func (UnimplementedOrderReleasePodServiceServer) TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*OrderReleasePodReply, error) {
+func (UnimplementedOrderReleasePodServiceServer) TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*TransitionReleasePodStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransitionReleasePodStatus not implemented")
 }
-func (UnimplementedOrderReleasePodServiceServer) RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*OrderReleasePodOperationReply, error) {
+func (UnimplementedOrderReleasePodServiceServer) RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*RemoveReleasePodResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveReleasePod not implemented")
 }
 func (UnimplementedOrderReleasePodServiceServer) mustEmbedUnimplementedOrderReleasePodServiceServer() {

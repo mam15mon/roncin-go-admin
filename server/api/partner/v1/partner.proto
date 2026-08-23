@@ -9,22 +9,22 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/partner/v1;v1";
 
 service PartnerService {
-  rpc GetPartner(GetPartnerRequest) returns (PartnerReply) {
+  rpc GetPartner(GetPartnerRequest) returns (GetPartnerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{id}"};
   }
 
-  rpc ListPartners(ListPartnersRequest) returns (PartnerListReply) {
+  rpc ListPartners(ListPartnersRequest) returns (ListPartnersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners"};
   }
 
-  rpc ListPartnerAssignmentOptions(ListPartnerAssignmentOptionsRequest) returns (PartnerAssignmentOptionListReply) {
+  rpc ListPartnerAssignmentOptions(ListPartnerAssignmentOptionsRequest) returns (ListPartnerAssignmentOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.assignment_option.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/assignment-options"};
   }
 
-  rpc CreatePartner(CreatePartnerRequest) returns (PartnerReply) {
+  rpc CreatePartner(CreatePartnerRequest) returns (CreatePartnerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners"
@@ -32,7 +32,7 @@ service PartnerService {
     };
   }
 
-  rpc UpdatePartner(UpdatePartnerRequest) returns (PartnerReply) {
+  rpc UpdatePartner(UpdatePartnerRequest) returns (UpdatePartnerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{id}"
@@ -40,7 +40,7 @@ service PartnerService {
     };
   }
 
-  rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (PartnerReply) {
+  rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (SetSupplierBlacklistResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.blacklist" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{id}/supplier-blacklist"
@@ -48,12 +48,12 @@ service PartnerService {
     };
   }
 
-  rpc ListPartnerAccounts(ListPartnerAccountsRequest) returns (PartnerAccountListReply) {
+  rpc ListPartnerAccounts(ListPartnerAccountsRequest) returns (ListPartnerAccountsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/accounts"};
   }
 
-  rpc CreatePartnerAccount(CreatePartnerAccountRequest) returns (PartnerAccountReply) {
+  rpc CreatePartnerAccount(CreatePartnerAccountRequest) returns (CreatePartnerAccountResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/accounts"
@@ -61,7 +61,7 @@ service PartnerService {
     };
   }
 
-  rpc UpdatePartnerAccount(UpdatePartnerAccountRequest) returns (PartnerAccountReply) {
+  rpc UpdatePartnerAccount(UpdatePartnerAccountRequest) returns (UpdatePartnerAccountResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.account.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/accounts/{id}"
@@ -69,12 +69,12 @@ service PartnerService {
     };
   }
 
-  rpc ListPartnerContracts(ListPartnerContractsRequest) returns (PartnerContractListReply) {
+  rpc ListPartnerContracts(ListPartnerContractsRequest) returns (ListPartnerContractsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/contracts"};
   }
 
-  rpc CreatePartnerContract(CreatePartnerContractRequest) returns (PartnerContractReply) {
+  rpc CreatePartnerContract(CreatePartnerContractRequest) returns (CreatePartnerContractResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/contracts"
@@ -82,7 +82,7 @@ service PartnerService {
     };
   }
 
-  rpc UpdatePartnerContract(UpdatePartnerContractRequest) returns (PartnerContractReply) {
+  rpc UpdatePartnerContract(UpdatePartnerContractRequest) returns (UpdatePartnerContractResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.contract.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/contracts/{id}"
@@ -90,12 +90,12 @@ service PartnerService {
     };
   }
 
-  rpc ListPartnerSettlementRules(ListPartnerSettlementRulesRequest) returns (PartnerSettlementRuleListReply) {
+  rpc ListPartnerSettlementRules(ListPartnerSettlementRulesRequest) returns (ListPartnerSettlementRulesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"};
   }
 
-  rpc CreatePartnerSettlementRule(CreatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+  rpc CreatePartnerSettlementRule(CreatePartnerSettlementRuleRequest) returns (CreatePartnerSettlementRuleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules"
@@ -103,7 +103,7 @@ service PartnerService {
     };
   }
 
-  rpc UpdatePartnerSettlementRule(UpdatePartnerSettlementRuleRequest) returns (PartnerSettlementRuleReply) {
+  rpc UpdatePartnerSettlementRule(UpdatePartnerSettlementRuleRequest) returns (UpdatePartnerSettlementRuleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.settlement_rule.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/roles/{role_type}/settlement-rules/{id}"
@@ -111,12 +111,12 @@ service PartnerService {
     };
   }
 
-  rpc ListPartnerAttachments(ListPartnerAttachmentsRequest) returns (PartnerAttachmentListReply) {
+  rpc ListPartnerAttachments(ListPartnerAttachmentsRequest) returns (ListPartnerAttachmentsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.attachment.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/attachments"};
   }
 
-  rpc RegisterPartnerAttachment(RegisterPartnerAttachmentRequest) returns (PartnerAttachmentReply) {
+  rpc RegisterPartnerAttachment(RegisterPartnerAttachmentRequest) returns (RegisterPartnerAttachmentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.attachment.register" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/attachments"
@@ -124,7 +124,7 @@ service PartnerService {
     };
   }
 
-  rpc ImportPartners(ImportPartnersRequest) returns (PartnerImportReply) {
+  rpc ImportPartners(ImportPartnersRequest) returns (ImportPartnersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.import" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/import"
@@ -132,22 +132,22 @@ service PartnerService {
     };
   }
 
-  rpc ExportPartners(ExportPartnersRequest) returns (PartnerExportReply) {
+  rpc ExportPartners(ExportPartnersRequest) returns (ExportPartnersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.export" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/export"};
   }
 
-  rpc ListPartnerShippingPresets(ListPartnerShippingPresetsRequest) returns (PartnerShippingPresetListReply) {
+  rpc ListPartnerShippingPresets(ListPartnerShippingPresetsRequest) returns (ListPartnerShippingPresetsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/shipping-presets"};
   }
 
-  rpc ListPartnerAuditLogs(ListPartnerAuditLogsRequest) returns (PartnerAuditLogListReply) {
+  rpc ListPartnerAuditLogs(ListPartnerAuditLogsRequest) returns (ListPartnerAuditLogsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.audit.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/audit-logs"};
   }
 
-  rpc CreatePartnerShippingPreset(CreatePartnerShippingPresetRequest) returns (PartnerShippingPresetReply) {
+  rpc CreatePartnerShippingPreset(CreatePartnerShippingPresetRequest) returns (CreatePartnerShippingPresetResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/partners/{partner_id}/shipping-presets"
@@ -155,7 +155,7 @@ service PartnerService {
     };
   }
 
-  rpc UpdatePartnerShippingPreset(UpdatePartnerShippingPresetRequest) returns (PartnerShippingPresetReply) {
+  rpc UpdatePartnerShippingPreset(UpdatePartnerShippingPresetRequest) returns (UpdatePartnerShippingPresetResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.shipping_preset.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/partners/{partner_id}/shipping-presets/{id}"
@@ -269,7 +269,7 @@ message PartnerAssignmentOption {
 
 message ListPartnerAssignmentOptionsRequest {}
 
-message PartnerAssignmentOptionListReply {
+message ListPartnerAssignmentOptionsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -374,7 +374,7 @@ message ImportPartnersRequest {
   repeated PartnerImportItemInput items = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerImportReply {
+message ImportPartnersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -398,7 +398,7 @@ message PartnerExportItem {
   repeated PartnerRoleType roles = 6;
 }
 
-message PartnerExportReply {
+message ExportPartnersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -478,7 +478,7 @@ message UpdatePartnerShippingPresetRequest {
   PartnerShippingPresetInput preset = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerShippingPresetReply {
+message CreatePartnerShippingPresetResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -486,7 +486,15 @@ message PartnerShippingPresetReply {
   string trace_id = 5;
 }
 
-message PartnerShippingPresetListReply {
+message UpdatePartnerShippingPresetResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerShippingPreset data = 4;
+  string trace_id = 5;
+}
+
+message ListPartnerShippingPresetsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -511,7 +519,7 @@ message ListPartnerAuditLogsRequest {
   int32 page_size = 3;
 }
 
-message PartnerAuditLogListReply {
+message ListPartnerAuditLogsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -583,7 +591,7 @@ message UpdatePartnerAccountRequest {
   PartnerAccountInput account = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerAccountReply {
+message CreatePartnerAccountResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -591,7 +599,15 @@ message PartnerAccountReply {
   string trace_id = 5;
 }
 
-message PartnerAccountListReply {
+message UpdatePartnerAccountResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerAccount data = 4;
+  string trace_id = 5;
+}
+
+message ListPartnerAccountsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -659,7 +675,7 @@ message UpdatePartnerContractRequest {
   UpdatePartnerContractInput contract = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerContractReply {
+message CreatePartnerContractResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -667,7 +683,15 @@ message PartnerContractReply {
   string trace_id = 5;
 }
 
-message PartnerContractListReply {
+message UpdatePartnerContractResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerContract data = 4;
+  string trace_id = 5;
+}
+
+message ListPartnerContractsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -746,7 +770,7 @@ message UpdatePartnerSettlementRuleRequest {
   PartnerSettlementRuleInput rule = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerSettlementRuleReply {
+message CreatePartnerSettlementRuleResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -754,7 +778,15 @@ message PartnerSettlementRuleReply {
   string trace_id = 5;
 }
 
-message PartnerSettlementRuleListReply {
+message UpdatePartnerSettlementRuleResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerSettlementRule data = 4;
+  string trace_id = 5;
+}
+
+message ListPartnerSettlementRulesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -790,7 +822,7 @@ message ListPartnerAttachmentsRequest {
   string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message PartnerAttachmentReply {
+message RegisterPartnerAttachmentResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -798,7 +830,7 @@ message PartnerAttachmentReply {
   string trace_id = 5;
 }
 
-message PartnerAttachmentListReply {
+message ListPartnerAttachmentsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -806,7 +838,7 @@ message PartnerAttachmentListReply {
   string trace_id = 5;
 }
 
-message PartnerReply {
+message GetPartnerResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -814,7 +846,31 @@ message PartnerReply {
   string trace_id = 5;
 }
 
-message PartnerListReply {
+message CreatePartnerResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Partner data = 4;
+  string trace_id = 5;
+}
+
+message UpdatePartnerResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Partner data = 4;
+  string trace_id = 5;
+}
+
+message SetSupplierBlacklistResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Partner data = 4;
+  string trace_id = 5;
+}
+
+message ListPartnersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

@@ -11,13 +11,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // OrderAttachmentService 订单附件服务。
 service OrderAttachmentService {
   // ListAttachments 获取指定订单的附件列表。
-  rpc ListAttachments(ListAttachmentsRequest) returns (OrderAttachmentListReply) {
+  rpc ListAttachments(ListAttachmentsRequest) returns (ListAttachmentsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/attachments"};
   }
 
   // RegisterAttachment 注册订单附件。
-  rpc RegisterAttachment(RegisterAttachmentRequest) returns (OrderAttachmentReply) {
+  rpc RegisterAttachment(RegisterAttachmentRequest) returns (RegisterAttachmentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.register" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/attachments"
@@ -59,8 +59,8 @@ message RegisterAttachmentRequest {
   optional string checksum = 8;
 }
 
-// OrderAttachmentReply 单条订单附件响应。
-message OrderAttachmentReply {
+// RegisterAttachmentResponse 单条订单附件响应。
+message RegisterAttachmentResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -68,8 +68,8 @@ message OrderAttachmentReply {
   string trace_id = 5;
 }
 
-// OrderAttachmentListReply 订单附件列表响应。
-message OrderAttachmentListReply {
+// ListAttachmentsResponse 订单附件列表响应。
+message ListAttachmentsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

@@ -430,8 +430,8 @@ func (x *RequeueBackgroundTaskRequest) GetId() string {
 	return ""
 }
 
-// BackgroundTaskReply 单条后台任务响应。
-type BackgroundTaskReply struct {
+// GetBackgroundTaskResponse 单条后台任务响应。
+type GetBackgroundTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -442,20 +442,20 @@ type BackgroundTaskReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BackgroundTaskReply) Reset() {
-	*x = BackgroundTaskReply{}
+func (x *GetBackgroundTaskResponse) Reset() {
+	*x = GetBackgroundTaskResponse{}
 	mi := &file_task_v1_background_task_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BackgroundTaskReply) String() string {
+func (x *GetBackgroundTaskResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BackgroundTaskReply) ProtoMessage() {}
+func (*GetBackgroundTaskResponse) ProtoMessage() {}
 
-func (x *BackgroundTaskReply) ProtoReflect() protoreflect.Message {
+func (x *GetBackgroundTaskResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_task_v1_background_task_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -467,48 +467,124 @@ func (x *BackgroundTaskReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BackgroundTaskReply.ProtoReflect.Descriptor instead.
-func (*BackgroundTaskReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetBackgroundTaskResponse.ProtoReflect.Descriptor instead.
+func (*GetBackgroundTaskResponse) Descriptor() ([]byte, []int) {
 	return file_task_v1_background_task_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *BackgroundTaskReply) GetSuccess() bool {
+func (x *GetBackgroundTaskResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *BackgroundTaskReply) GetCode() int32 {
+func (x *GetBackgroundTaskResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *BackgroundTaskReply) GetMessage() string {
+func (x *GetBackgroundTaskResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *BackgroundTaskReply) GetData() *BackgroundTask {
+func (x *GetBackgroundTaskResponse) GetData() *BackgroundTask {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *BackgroundTaskReply) GetTraceId() string {
+func (x *GetBackgroundTaskResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// BackgroundTaskListReply 后台任务列表响应。
-type BackgroundTaskListReply struct {
+type RequeueBackgroundTaskResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *BackgroundTask        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequeueBackgroundTaskResponse) Reset() {
+	*x = RequeueBackgroundTaskResponse{}
+	mi := &file_task_v1_background_task_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequeueBackgroundTaskResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequeueBackgroundTaskResponse) ProtoMessage() {}
+
+func (x *RequeueBackgroundTaskResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_task_v1_background_task_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequeueBackgroundTaskResponse.ProtoReflect.Descriptor instead.
+func (*RequeueBackgroundTaskResponse) Descriptor() ([]byte, []int) {
+	return file_task_v1_background_task_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RequeueBackgroundTaskResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RequeueBackgroundTaskResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RequeueBackgroundTaskResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RequeueBackgroundTaskResponse) GetData() *BackgroundTask {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RequeueBackgroundTaskResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListBackgroundTasksResponse 后台任务列表响应。
+type ListBackgroundTasksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -522,21 +598,21 @@ type BackgroundTaskListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BackgroundTaskListReply) Reset() {
-	*x = BackgroundTaskListReply{}
-	mi := &file_task_v1_background_task_proto_msgTypes[5]
+func (x *ListBackgroundTasksResponse) Reset() {
+	*x = ListBackgroundTasksResponse{}
+	mi := &file_task_v1_background_task_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BackgroundTaskListReply) String() string {
+func (x *ListBackgroundTasksResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BackgroundTaskListReply) ProtoMessage() {}
+func (*ListBackgroundTasksResponse) ProtoMessage() {}
 
-func (x *BackgroundTaskListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_task_v1_background_task_proto_msgTypes[5]
+func (x *ListBackgroundTasksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_task_v1_background_task_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,61 +623,61 @@ func (x *BackgroundTaskListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BackgroundTaskListReply.ProtoReflect.Descriptor instead.
-func (*BackgroundTaskListReply) Descriptor() ([]byte, []int) {
-	return file_task_v1_background_task_proto_rawDescGZIP(), []int{5}
+// Deprecated: Use ListBackgroundTasksResponse.ProtoReflect.Descriptor instead.
+func (*ListBackgroundTasksResponse) Descriptor() ([]byte, []int) {
+	return file_task_v1_background_task_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *BackgroundTaskListReply) GetSuccess() bool {
+func (x *ListBackgroundTasksResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *BackgroundTaskListReply) GetCode() int32 {
+func (x *ListBackgroundTasksResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *BackgroundTaskListReply) GetMessage() string {
+func (x *ListBackgroundTasksResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *BackgroundTaskListReply) GetData() []*BackgroundTask {
+func (x *ListBackgroundTasksResponse) GetData() []*BackgroundTask {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *BackgroundTaskListReply) GetTotal() int32 {
+func (x *ListBackgroundTasksResponse) GetTotal() int32 {
 	if x != nil {
 		return x.Total
 	}
 	return 0
 }
 
-func (x *BackgroundTaskListReply) GetPage() int32 {
+func (x *ListBackgroundTasksResponse) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *BackgroundTaskListReply) GetPageSize() int32 {
+func (x *ListBackgroundTasksResponse) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-func (x *BackgroundTaskListReply) GetTraceId() string {
+func (x *ListBackgroundTasksResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -640,14 +716,20 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x18GetBackgroundTaskRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"3\n" +
 	"\x1cRequeueBackgroundTaskRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xa5\x01\n" +
-	"\x13BackgroundTaskReply\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xab\x01\n" +
+	"\x19GetBackgroundTaskResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
 	"\x04data\x18\x04 \x01(\v2\x17.task.v1.BackgroundTaskR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf0\x01\n" +
-	"\x17BackgroundTaskListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaf\x01\n" +
+	"\x1dRequeueBackgroundTaskResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x04 \x01(\v2\x17.task.v1.BackgroundTaskR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf4\x01\n" +
+	"\x1bListBackgroundTasksResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
@@ -668,11 +750,11 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x1eBACKGROUND_TASK_STATUS_RUNNING\x10\x02\x12$\n" +
 	" BACKGROUND_TASK_STATUS_SUCCEEDED\x10\x03\x12!\n" +
 	"\x1dBACKGROUND_TASK_STATUS_FAILED\x10\x04\x12&\n" +
-	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x052\xf8\x03\n" +
-	"\x15BackgroundTaskService\x12\x98\x01\n" +
-	"\x13ListBackgroundTasks\x12#.task.v1.ListBackgroundTasksRequest\x1a .task.v1.BackgroundTaskListReply\":\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/background-tasks\x12\x95\x01\n" +
-	"\x11GetBackgroundTask\x12!.task.v1.GetBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"?\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/background-tasks/{id}\x12\xab\x01\n" +
-	"\x15RequeueBackgroundTask\x12%.task.v1.RequeueBackgroundTaskRequest\x1a\x1c.task.v1.BackgroundTaskReply\"M\x82\xb5\x18\x19\b\x03\x12\x13system.task.requeue \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/background-tasks/{id}/requeueB9Z7github.com/roncin/roncin-go-admin/server/api/task/v1;v1b\x06proto3"
+	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x052\x8c\x04\n" +
+	"\x15BackgroundTaskService\x12\x9c\x01\n" +
+	"\x13ListBackgroundTasks\x12#.task.v1.ListBackgroundTasksRequest\x1a$.task.v1.ListBackgroundTasksResponse\":\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/background-tasks\x12\x9b\x01\n" +
+	"\x11GetBackgroundTask\x12!.task.v1.GetBackgroundTaskRequest\x1a\".task.v1.GetBackgroundTaskResponse\"?\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/background-tasks/{id}\x12\xb5\x01\n" +
+	"\x15RequeueBackgroundTask\x12%.task.v1.RequeueBackgroundTaskRequest\x1a&.task.v1.RequeueBackgroundTaskResponse\"M\x82\xb5\x18\x19\b\x03\x12\x13system.task.requeue \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/background-tasks/{id}/requeueB9Z7github.com/roncin/roncin-go-admin/server/api/task/v1;v1b\x06proto3"
 
 var (
 	file_task_v1_background_task_proto_rawDescOnce sync.Once
@@ -687,35 +769,37 @@ func file_task_v1_background_task_proto_rawDescGZIP() []byte {
 }
 
 var file_task_v1_background_task_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_task_v1_background_task_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_task_v1_background_task_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_task_v1_background_task_proto_goTypes = []any{
-	(BackgroundTaskKind)(0),              // 0: task.v1.BackgroundTaskKind
-	(BackgroundTaskStatus)(0),            // 1: task.v1.BackgroundTaskStatus
-	(*BackgroundTask)(nil),               // 2: task.v1.BackgroundTask
-	(*ListBackgroundTasksRequest)(nil),   // 3: task.v1.ListBackgroundTasksRequest
-	(*GetBackgroundTaskRequest)(nil),     // 4: task.v1.GetBackgroundTaskRequest
-	(*RequeueBackgroundTaskRequest)(nil), // 5: task.v1.RequeueBackgroundTaskRequest
-	(*BackgroundTaskReply)(nil),          // 6: task.v1.BackgroundTaskReply
-	(*BackgroundTaskListReply)(nil),      // 7: task.v1.BackgroundTaskListReply
+	(BackgroundTaskKind)(0),               // 0: task.v1.BackgroundTaskKind
+	(BackgroundTaskStatus)(0),             // 1: task.v1.BackgroundTaskStatus
+	(*BackgroundTask)(nil),                // 2: task.v1.BackgroundTask
+	(*ListBackgroundTasksRequest)(nil),    // 3: task.v1.ListBackgroundTasksRequest
+	(*GetBackgroundTaskRequest)(nil),      // 4: task.v1.GetBackgroundTaskRequest
+	(*RequeueBackgroundTaskRequest)(nil),  // 5: task.v1.RequeueBackgroundTaskRequest
+	(*GetBackgroundTaskResponse)(nil),     // 6: task.v1.GetBackgroundTaskResponse
+	(*RequeueBackgroundTaskResponse)(nil), // 7: task.v1.RequeueBackgroundTaskResponse
+	(*ListBackgroundTasksResponse)(nil),   // 8: task.v1.ListBackgroundTasksResponse
 }
 var file_task_v1_background_task_proto_depIdxs = []int32{
-	0, // 0: task.v1.BackgroundTask.kind:type_name -> task.v1.BackgroundTaskKind
-	1, // 1: task.v1.BackgroundTask.status:type_name -> task.v1.BackgroundTaskStatus
-	1, // 2: task.v1.ListBackgroundTasksRequest.status:type_name -> task.v1.BackgroundTaskStatus
-	0, // 3: task.v1.ListBackgroundTasksRequest.kind:type_name -> task.v1.BackgroundTaskKind
-	2, // 4: task.v1.BackgroundTaskReply.data:type_name -> task.v1.BackgroundTask
-	2, // 5: task.v1.BackgroundTaskListReply.data:type_name -> task.v1.BackgroundTask
-	3, // 6: task.v1.BackgroundTaskService.ListBackgroundTasks:input_type -> task.v1.ListBackgroundTasksRequest
-	4, // 7: task.v1.BackgroundTaskService.GetBackgroundTask:input_type -> task.v1.GetBackgroundTaskRequest
-	5, // 8: task.v1.BackgroundTaskService.RequeueBackgroundTask:input_type -> task.v1.RequeueBackgroundTaskRequest
-	7, // 9: task.v1.BackgroundTaskService.ListBackgroundTasks:output_type -> task.v1.BackgroundTaskListReply
-	6, // 10: task.v1.BackgroundTaskService.GetBackgroundTask:output_type -> task.v1.BackgroundTaskReply
-	6, // 11: task.v1.BackgroundTaskService.RequeueBackgroundTask:output_type -> task.v1.BackgroundTaskReply
-	9, // [9:12] is the sub-list for method output_type
-	6, // [6:9] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0,  // 0: task.v1.BackgroundTask.kind:type_name -> task.v1.BackgroundTaskKind
+	1,  // 1: task.v1.BackgroundTask.status:type_name -> task.v1.BackgroundTaskStatus
+	1,  // 2: task.v1.ListBackgroundTasksRequest.status:type_name -> task.v1.BackgroundTaskStatus
+	0,  // 3: task.v1.ListBackgroundTasksRequest.kind:type_name -> task.v1.BackgroundTaskKind
+	2,  // 4: task.v1.GetBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
+	2,  // 5: task.v1.RequeueBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
+	2,  // 6: task.v1.ListBackgroundTasksResponse.data:type_name -> task.v1.BackgroundTask
+	3,  // 7: task.v1.BackgroundTaskService.ListBackgroundTasks:input_type -> task.v1.ListBackgroundTasksRequest
+	4,  // 8: task.v1.BackgroundTaskService.GetBackgroundTask:input_type -> task.v1.GetBackgroundTaskRequest
+	5,  // 9: task.v1.BackgroundTaskService.RequeueBackgroundTask:input_type -> task.v1.RequeueBackgroundTaskRequest
+	8,  // 10: task.v1.BackgroundTaskService.ListBackgroundTasks:output_type -> task.v1.ListBackgroundTasksResponse
+	6,  // 11: task.v1.BackgroundTaskService.GetBackgroundTask:output_type -> task.v1.GetBackgroundTaskResponse
+	7,  // 12: task.v1.BackgroundTaskService.RequeueBackgroundTask:output_type -> task.v1.RequeueBackgroundTaskResponse
+	10, // [10:13] is the sub-list for method output_type
+	7,  // [7:10] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_task_v1_background_task_proto_init() }
@@ -730,7 +814,7 @@ func file_task_v1_background_task_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_task_v1_background_task_proto_rawDesc), len(file_task_v1_background_task_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

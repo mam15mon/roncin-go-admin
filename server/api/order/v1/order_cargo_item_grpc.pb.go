@@ -33,13 +33,13 @@ const (
 // 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 type OrderCargoItemServiceClient interface {
 	// ListCargoItems 获取指定订单的货物明细列表。
-	ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...grpc.CallOption) (*OrderCargoItemListReply, error)
+	ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...grpc.CallOption) (*ListCargoItemsResponse, error)
 	// AddCargoItem 添加订单货物明细。
-	AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemReply, error)
+	AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...grpc.CallOption) (*AddCargoItemResponse, error)
 	// UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-	UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemReply, error)
+	UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...grpc.CallOption) (*UpdateCargoItemResponse, error)
 	// RemoveCargoItem 移除订单货物明细。
-	RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemOperationReply, error)
+	RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...grpc.CallOption) (*RemoveCargoItemResponse, error)
 }
 
 type orderCargoItemServiceClient struct {
@@ -50,9 +50,9 @@ func NewOrderCargoItemServiceClient(cc grpc.ClientConnInterface) OrderCargoItemS
 	return &orderCargoItemServiceClient{cc}
 }
 
-func (c *orderCargoItemServiceClient) ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...grpc.CallOption) (*OrderCargoItemListReply, error) {
+func (c *orderCargoItemServiceClient) ListCargoItems(ctx context.Context, in *ListCargoItemsRequest, opts ...grpc.CallOption) (*ListCargoItemsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderCargoItemListReply)
+	out := new(ListCargoItemsResponse)
 	err := c.cc.Invoke(ctx, OrderCargoItemService_ListCargoItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -60,9 +60,9 @@ func (c *orderCargoItemServiceClient) ListCargoItems(ctx context.Context, in *Li
 	return out, nil
 }
 
-func (c *orderCargoItemServiceClient) AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemReply, error) {
+func (c *orderCargoItemServiceClient) AddCargoItem(ctx context.Context, in *AddCargoItemRequest, opts ...grpc.CallOption) (*AddCargoItemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderCargoItemReply)
+	out := new(AddCargoItemResponse)
 	err := c.cc.Invoke(ctx, OrderCargoItemService_AddCargoItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *orderCargoItemServiceClient) AddCargoItem(ctx context.Context, in *AddC
 	return out, nil
 }
 
-func (c *orderCargoItemServiceClient) UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemReply, error) {
+func (c *orderCargoItemServiceClient) UpdateCargoItem(ctx context.Context, in *UpdateCargoItemRequest, opts ...grpc.CallOption) (*UpdateCargoItemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderCargoItemReply)
+	out := new(UpdateCargoItemResponse)
 	err := c.cc.Invoke(ctx, OrderCargoItemService_UpdateCargoItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,9 +80,9 @@ func (c *orderCargoItemServiceClient) UpdateCargoItem(ctx context.Context, in *U
 	return out, nil
 }
 
-func (c *orderCargoItemServiceClient) RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...grpc.CallOption) (*OrderCargoItemOperationReply, error) {
+func (c *orderCargoItemServiceClient) RemoveCargoItem(ctx context.Context, in *RemoveCargoItemRequest, opts ...grpc.CallOption) (*RemoveCargoItemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderCargoItemOperationReply)
+	out := new(RemoveCargoItemResponse)
 	err := c.cc.Invoke(ctx, OrderCargoItemService_RemoveCargoItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -98,13 +98,13 @@ func (c *orderCargoItemServiceClient) RemoveCargoItem(ctx context.Context, in *R
 // 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 type OrderCargoItemServiceServer interface {
 	// ListCargoItems 获取指定订单的货物明细列表。
-	ListCargoItems(context.Context, *ListCargoItemsRequest) (*OrderCargoItemListReply, error)
+	ListCargoItems(context.Context, *ListCargoItemsRequest) (*ListCargoItemsResponse, error)
 	// AddCargoItem 添加订单货物明细。
-	AddCargoItem(context.Context, *AddCargoItemRequest) (*OrderCargoItemReply, error)
+	AddCargoItem(context.Context, *AddCargoItemRequest) (*AddCargoItemResponse, error)
 	// UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-	UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*OrderCargoItemReply, error)
+	UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*UpdateCargoItemResponse, error)
 	// RemoveCargoItem 移除订单货物明细。
-	RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*OrderCargoItemOperationReply, error)
+	RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*RemoveCargoItemResponse, error)
 	mustEmbedUnimplementedOrderCargoItemServiceServer()
 }
 
@@ -115,16 +115,16 @@ type OrderCargoItemServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderCargoItemServiceServer struct{}
 
-func (UnimplementedOrderCargoItemServiceServer) ListCargoItems(context.Context, *ListCargoItemsRequest) (*OrderCargoItemListReply, error) {
+func (UnimplementedOrderCargoItemServiceServer) ListCargoItems(context.Context, *ListCargoItemsRequest) (*ListCargoItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCargoItems not implemented")
 }
-func (UnimplementedOrderCargoItemServiceServer) AddCargoItem(context.Context, *AddCargoItemRequest) (*OrderCargoItemReply, error) {
+func (UnimplementedOrderCargoItemServiceServer) AddCargoItem(context.Context, *AddCargoItemRequest) (*AddCargoItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddCargoItem not implemented")
 }
-func (UnimplementedOrderCargoItemServiceServer) UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*OrderCargoItemReply, error) {
+func (UnimplementedOrderCargoItemServiceServer) UpdateCargoItem(context.Context, *UpdateCargoItemRequest) (*UpdateCargoItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateCargoItem not implemented")
 }
-func (UnimplementedOrderCargoItemServiceServer) RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*OrderCargoItemOperationReply, error) {
+func (UnimplementedOrderCargoItemServiceServer) RemoveCargoItem(context.Context, *RemoveCargoItemRequest) (*RemoveCargoItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveCargoItem not implemented")
 }
 func (UnimplementedOrderCargoItemServiceServer) mustEmbedUnimplementedOrderCargoItemServiceServer() {}

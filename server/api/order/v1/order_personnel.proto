@@ -11,13 +11,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // OrderPersonnelService 订单协作人员服务。
 service OrderPersonnelService {
   // ListPersonnel 获取指定订单的协作人员列表。
-  rpc ListPersonnel(ListPersonnelRequest) returns (OrderPersonnelListReply) {
+  rpc ListPersonnel(ListPersonnelRequest) returns (ListPersonnelResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "personnel.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/personnel"};
   }
 
   // AssignPersonnel 分配订单协作人员。
-  rpc AssignPersonnel(AssignPersonnelRequest) returns (OrderPersonnelReply) {
+  rpc AssignPersonnel(AssignPersonnelRequest) returns (AssignPersonnelResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "personnel.assign" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/personnel"
@@ -26,7 +26,7 @@ service OrderPersonnelService {
   }
 
   // RemovePersonnel 移除订单协作人员。
-  rpc RemovePersonnel(RemovePersonnelRequest) returns (OrderPersonnelOperationReply) {
+  rpc RemovePersonnel(RemovePersonnelRequest) returns (RemovePersonnelResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "personnel.remove" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/personnel/{id}"};
   }
@@ -74,8 +74,8 @@ message RemovePersonnelRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderPersonnelReply 单条订单协作人员响应。
-message OrderPersonnelReply {
+// AssignPersonnelResponse 单条订单协作人员响应。
+message AssignPersonnelResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -83,8 +83,8 @@ message OrderPersonnelReply {
   string trace_id = 5;
 }
 
-// OrderPersonnelListReply 订单协作人员列表响应。
-message OrderPersonnelListReply {
+// ListPersonnelResponse 订单协作人员列表响应。
+message ListPersonnelResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -92,8 +92,8 @@ message OrderPersonnelListReply {
   string trace_id = 5;
 }
 
-// OrderPersonnelOperationReply 订单协作人员操作响应。
-message OrderPersonnelOperationReply {
+// RemovePersonnelResponse 订单协作人员操作响应。
+message RemovePersonnelResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

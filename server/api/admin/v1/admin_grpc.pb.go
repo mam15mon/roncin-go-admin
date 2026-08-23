@@ -39,20 +39,20 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminServiceClient interface {
-	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*AdminOrganizationListReply, error)
-	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*AdminOrganizationReply, error)
-	UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*AdminOrganizationReply, error)
-	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
-	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
-	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error)
-	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error)
-	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error)
-	ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error)
-	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
-	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error)
-	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*AdminPermissionListReply, error)
-	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*AdminAuditLogListReply, error)
+	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
+	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
+	UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error)
+	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
+	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
+	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
+	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
+	ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error)
+	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
+	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
+	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
+	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error)
 }
 
 type adminServiceClient struct {
@@ -63,9 +63,9 @@ func NewAdminServiceClient(cc grpc.ClientConnInterface) AdminServiceClient {
 	return &adminServiceClient{cc}
 }
 
-func (c *adminServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*AdminOrganizationListReply, error) {
+func (c *adminServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminOrganizationListReply)
+	out := new(ListOrganizationsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListOrganizations_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -73,9 +73,9 @@ func (c *adminServiceClient) ListOrganizations(ctx context.Context, in *ListOrga
 	return out, nil
 }
 
-func (c *adminServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*AdminOrganizationReply, error) {
+func (c *adminServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminOrganizationReply)
+	out := new(CreateOrganizationResponse)
 	err := c.cc.Invoke(ctx, AdminService_CreateOrganization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -83,9 +83,9 @@ func (c *adminServiceClient) CreateOrganization(ctx context.Context, in *CreateO
 	return out, nil
 }
 
-func (c *adminServiceClient) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*AdminOrganizationReply, error) {
+func (c *adminServiceClient) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminOrganizationReply)
+	out := new(UpdateOrganizationResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateOrganization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -93,9 +93,9 @@ func (c *adminServiceClient) UpdateOrganization(ctx context.Context, in *UpdateO
 	return out, nil
 }
 
-func (c *adminServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*AdminUserListReply, error) {
+func (c *adminServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminUserListReply)
+	out := new(ListUsersResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -103,9 +103,9 @@ func (c *adminServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest
 	return out, nil
 }
 
-func (c *adminServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error) {
+func (c *adminServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminUserReply)
+	out := new(CreateUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_CreateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -113,9 +113,9 @@ func (c *adminServiceClient) CreateUser(ctx context.Context, in *CreateUserReque
 	return out, nil
 }
 
-func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error) {
+func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminUserReply)
+	out := new(UpdateUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -123,9 +123,9 @@ func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReque
 	return out, nil
 }
 
-func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AdminUserReply, error) {
+func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminUserReply)
+	out := new(AuthorizeWeComUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_AuthorizeWeComUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -133,9 +133,9 @@ func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *Authori
 	return out, nil
 }
 
-func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*AdminOperationReply, error) {
+func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminOperationReply)
+	out := new(ResetUserPasswordResponse)
 	err := c.cc.Invoke(ctx, AdminService_ResetUserPassword_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -143,9 +143,9 @@ func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUse
 	return out, nil
 }
 
-func (c *adminServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error) {
+func (c *adminServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminRoleListReply)
+	out := new(ListRolesResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListRoles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -153,9 +153,9 @@ func (c *adminServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest
 	return out, nil
 }
 
-func (c *adminServiceClient) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*AdminRoleListReply, error) {
+func (c *adminServiceClient) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminRoleListReply)
+	out := new(ListOrganizationRolesResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListOrganizationRoles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -163,9 +163,9 @@ func (c *adminServiceClient) ListOrganizationRoles(ctx context.Context, in *List
 	return out, nil
 }
 
-func (c *adminServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error) {
+func (c *adminServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminRoleReply)
+	out := new(CreateRoleResponse)
 	err := c.cc.Invoke(ctx, AdminService_CreateRole_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -173,9 +173,9 @@ func (c *adminServiceClient) CreateRole(ctx context.Context, in *CreateRoleReque
 	return out, nil
 }
 
-func (c *adminServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*AdminRoleReply, error) {
+func (c *adminServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminRoleReply)
+	out := new(UpdateRoleResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateRole_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -183,9 +183,9 @@ func (c *adminServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleReque
 	return out, nil
 }
 
-func (c *adminServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*AdminPermissionListReply, error) {
+func (c *adminServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminPermissionListReply)
+	out := new(ListPermissionsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListPermissions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -193,9 +193,9 @@ func (c *adminServiceClient) ListPermissions(ctx context.Context, in *ListPermis
 	return out, nil
 }
 
-func (c *adminServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*AdminAuditLogListReply, error) {
+func (c *adminServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdminAuditLogListReply)
+	out := new(ListAuditLogsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListAuditLogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -207,20 +207,20 @@ func (c *adminServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLog
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
 type AdminServiceServer interface {
-	ListOrganizations(context.Context, *ListOrganizationsRequest) (*AdminOrganizationListReply, error)
-	CreateOrganization(context.Context, *CreateOrganizationRequest) (*AdminOrganizationReply, error)
-	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*AdminOrganizationReply, error)
-	ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error)
-	CreateUser(context.Context, *CreateUserRequest) (*AdminUserReply, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error)
-	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AdminUserReply, error)
-	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error)
-	ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error)
-	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*AdminRoleListReply, error)
-	CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error)
-	UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error)
-	ListPermissions(context.Context, *ListPermissionsRequest) (*AdminPermissionListReply, error)
-	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*AdminAuditLogListReply, error)
+	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
+	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
+	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
+	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
+	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
+	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
+	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
+	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
+	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -231,46 +231,46 @@ type AdminServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAdminServiceServer struct{}
 
-func (UnimplementedAdminServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*AdminOrganizationListReply, error) {
+func (UnimplementedAdminServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOrganizations not implemented")
 }
-func (UnimplementedAdminServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*AdminOrganizationReply, error) {
+func (UnimplementedAdminServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateOrganization not implemented")
 }
-func (UnimplementedAdminServiceServer) UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*AdminOrganizationReply, error) {
+func (UnimplementedAdminServiceServer) UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateOrganization not implemented")
 }
-func (UnimplementedAdminServiceServer) ListUsers(context.Context, *ListUsersRequest) (*AdminUserListReply, error) {
+func (UnimplementedAdminServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRequest) (*AdminUserReply, error) {
+func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*AdminUserReply, error) {
+func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
 }
-func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AdminUserReply, error) {
+func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
 }
-func (UnimplementedAdminServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*AdminOperationReply, error) {
+func (UnimplementedAdminServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
-func (UnimplementedAdminServiceServer) ListRoles(context.Context, *ListRolesRequest) (*AdminRoleListReply, error) {
+func (UnimplementedAdminServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
 }
-func (UnimplementedAdminServiceServer) ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*AdminRoleListReply, error) {
+func (UnimplementedAdminServiceServer) ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOrganizationRoles not implemented")
 }
-func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*AdminRoleReply, error) {
+func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateRole not implemented")
 }
-func (UnimplementedAdminServiceServer) UpdateRole(context.Context, *UpdateRoleRequest) (*AdminRoleReply, error) {
+func (UnimplementedAdminServiceServer) UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateRole not implemented")
 }
-func (UnimplementedAdminServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*AdminPermissionListReply, error) {
+func (UnimplementedAdminServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
 }
-func (UnimplementedAdminServiceServer) ListAuditLogs(context.Context, *ListAuditLogsRequest) (*AdminAuditLogListReply, error) {
+func (UnimplementedAdminServiceServer) ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAuditLogs not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}

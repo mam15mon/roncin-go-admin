@@ -12,19 +12,19 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/task/v1;v1";
 // 不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
 service BackgroundTaskService {
   // ListBackgroundTasks 查询当前组织的后台任务。
-  rpc ListBackgroundTasks(ListBackgroundTasksRequest) returns (BackgroundTaskListReply) {
+  rpc ListBackgroundTasks(ListBackgroundTasksRequest) returns (ListBackgroundTasksResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/background-tasks"};
   }
 
   // GetBackgroundTask 查询单个后台任务。
-  rpc GetBackgroundTask(GetBackgroundTaskRequest) returns (BackgroundTaskReply) {
+  rpc GetBackgroundTask(GetBackgroundTaskRequest) returns (GetBackgroundTaskResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/background-tasks/{id}"};
   }
 
   // RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-  rpc RequeueBackgroundTask(RequeueBackgroundTaskRequest) returns (BackgroundTaskReply) {
+  rpc RequeueBackgroundTask(RequeueBackgroundTaskRequest) returns (RequeueBackgroundTaskResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.task.requeue" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/background-tasks/{id}/requeue"
@@ -86,8 +86,8 @@ message RequeueBackgroundTaskRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// BackgroundTaskReply 单条后台任务响应。
-message BackgroundTaskReply {
+// GetBackgroundTaskResponse 单条后台任务响应。
+message GetBackgroundTaskResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -95,8 +95,16 @@ message BackgroundTaskReply {
   string trace_id = 5;
 }
 
-// BackgroundTaskListReply 后台任务列表响应。
-message BackgroundTaskListReply {
+message RequeueBackgroundTaskResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  BackgroundTask data = 4;
+  string trace_id = 5;
+}
+
+// ListBackgroundTasksResponse 后台任务列表响应。
+message ListBackgroundTasksResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

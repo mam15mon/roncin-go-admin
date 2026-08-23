@@ -456,8 +456,8 @@ func (x *RemoveContainerRequest) GetId() string {
 	return ""
 }
 
-// OrderContainerReply 单条订单集装箱响应。
-type OrderContainerReply struct {
+// AddContainerResponse 单条订单集装箱响应。
+type AddContainerResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -468,20 +468,20 @@ type OrderContainerReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderContainerReply) Reset() {
-	*x = OrderContainerReply{}
+func (x *AddContainerResponse) Reset() {
+	*x = AddContainerResponse{}
 	mi := &file_order_v1_order_container_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderContainerReply) String() string {
+func (x *AddContainerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderContainerReply) ProtoMessage() {}
+func (*AddContainerResponse) ProtoMessage() {}
 
-func (x *OrderContainerReply) ProtoReflect() protoreflect.Message {
+func (x *AddContainerResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_container_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -493,48 +493,124 @@ func (x *OrderContainerReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderContainerReply.ProtoReflect.Descriptor instead.
-func (*OrderContainerReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddContainerResponse.ProtoReflect.Descriptor instead.
+func (*AddContainerResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_container_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *OrderContainerReply) GetSuccess() bool {
+func (x *AddContainerResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderContainerReply) GetCode() int32 {
+func (x *AddContainerResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderContainerReply) GetMessage() string {
+func (x *AddContainerResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderContainerReply) GetData() *OrderContainer {
+func (x *AddContainerResponse) GetData() *OrderContainer {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderContainerReply) GetTraceId() string {
+func (x *AddContainerResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderContainerListReply 订单集装箱列表响应。
-type OrderContainerListReply struct {
+type UpdateContainerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderContainer        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateContainerResponse) Reset() {
+	*x = UpdateContainerResponse{}
+	mi := &file_order_v1_order_container_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateContainerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateContainerResponse) ProtoMessage() {}
+
+func (x *UpdateContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_container_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateContainerResponse.ProtoReflect.Descriptor instead.
+func (*UpdateContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_container_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateContainerResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateContainerResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateContainerResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateContainerResponse) GetData() *OrderContainer {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateContainerResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListContainersResponse 订单集装箱列表响应。
+type ListContainersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -545,21 +621,21 @@ type OrderContainerListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderContainerListReply) Reset() {
-	*x = OrderContainerListReply{}
-	mi := &file_order_v1_order_container_proto_msgTypes[6]
+func (x *ListContainersResponse) Reset() {
+	*x = ListContainersResponse{}
+	mi := &file_order_v1_order_container_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderContainerListReply) String() string {
+func (x *ListContainersResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderContainerListReply) ProtoMessage() {}
+func (*ListContainersResponse) ProtoMessage() {}
 
-func (x *OrderContainerListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_container_proto_msgTypes[6]
+func (x *ListContainersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_container_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,48 +646,48 @@ func (x *OrderContainerListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderContainerListReply.ProtoReflect.Descriptor instead.
-func (*OrderContainerListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_container_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use ListContainersResponse.ProtoReflect.Descriptor instead.
+func (*ListContainersResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_container_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *OrderContainerListReply) GetSuccess() bool {
+func (x *ListContainersResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderContainerListReply) GetCode() int32 {
+func (x *ListContainersResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderContainerListReply) GetMessage() string {
+func (x *ListContainersResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderContainerListReply) GetData() []*OrderContainer {
+func (x *ListContainersResponse) GetData() []*OrderContainer {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderContainerListReply) GetTraceId() string {
+func (x *ListContainersResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderContainerOperationReply 订单集装箱操作响应。
-type OrderContainerOperationReply struct {
+// RemoveContainerResponse 订单集装箱操作响应。
+type RemoveContainerResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -621,21 +697,21 @@ type OrderContainerOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderContainerOperationReply) Reset() {
-	*x = OrderContainerOperationReply{}
-	mi := &file_order_v1_order_container_proto_msgTypes[7]
+func (x *RemoveContainerResponse) Reset() {
+	*x = RemoveContainerResponse{}
+	mi := &file_order_v1_order_container_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderContainerOperationReply) String() string {
+func (x *RemoveContainerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderContainerOperationReply) ProtoMessage() {}
+func (*RemoveContainerResponse) ProtoMessage() {}
 
-func (x *OrderContainerOperationReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_container_proto_msgTypes[7]
+func (x *RemoveContainerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_container_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,33 +722,33 @@ func (x *OrderContainerOperationReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderContainerOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderContainerOperationReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_container_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use RemoveContainerResponse.ProtoReflect.Descriptor instead.
+func (*RemoveContainerResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_container_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *OrderContainerOperationReply) GetSuccess() bool {
+func (x *RemoveContainerResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderContainerOperationReply) GetCode() int32 {
+func (x *RemoveContainerResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderContainerOperationReply) GetMessage() string {
+func (x *RemoveContainerResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderContainerOperationReply) GetTraceId() string {
+func (x *RemoveContainerResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -737,29 +813,35 @@ const file_order_v1_order_container_proto_rawDesc = "" +
 	"\x15_shipping_document_id\"M\n" +
 	"\x16RemoveContainerRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa6\x01\n" +
-	"\x13OrderContainerReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa7\x01\n" +
+	"\x14AddContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderContainerR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x01\n" +
-	"\x17OrderContainerListReply\x12\x18\n" +
+	"\x17UpdateContainerResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
+	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderContainerR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa9\x01\n" +
+	"\x16ListContainersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderContainerR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x01\n" +
-	"\x1cOrderContainerOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"|\n" +
+	"\x17RemoveContainerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\x9e\x05\n" +
-	"\x15OrderContainerService\x12\x9a\x01\n" +
-	"\x0eListContainers\x12\x1f.order.v1.ListContainersRequest\x1a!.order.v1.OrderContainerListReply\"D\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/containers\x12\x97\x01\n" +
-	"\fAddContainer\x12\x1d.order.v1.AddContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"I\x82\xb5\x18\x16\b\x04\x1a\x10container.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/{order_id}/containers\x12\xa2\x01\n" +
-	"\x0fUpdateContainer\x12 .order.v1.UpdateContainerRequest\x1a\x1d.order.v1.OrderContainerReply\"N\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/{order_id}/containers/{id}\x12\xa8\x01\n" +
-	"\x0fRemoveContainer\x12 .order.v1.RemoveContainerRequest\x1a&.order.v1.OrderContainerOperationReply\"K\x82\xb5\x18\x16\b\x04\x1a\x10container.delete \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/{order_id}/containers/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x04 \x01(\tR\atraceId2\x9d\x05\n" +
+	"\x15OrderContainerService\x12\x99\x01\n" +
+	"\x0eListContainers\x12\x1f.order.v1.ListContainersRequest\x1a .order.v1.ListContainersResponse\"D\x82\xb5\x18\x14\b\x04\x1a\x0econtainer.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/containers\x12\x98\x01\n" +
+	"\fAddContainer\x12\x1d.order.v1.AddContainerRequest\x1a\x1e.order.v1.AddContainerResponse\"I\x82\xb5\x18\x16\b\x04\x1a\x10container.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/orders/{order_id}/containers\x12\xa6\x01\n" +
+	"\x0fUpdateContainer\x12 .order.v1.UpdateContainerRequest\x1a!.order.v1.UpdateContainerResponse\"N\x82\xb5\x18\x16\b\x04\x1a\x10container.update \x02\x82\xd3\xe4\x93\x02.:\x01*\x1a)/api/v1/orders/{order_id}/containers/{id}\x12\xa3\x01\n" +
+	"\x0fRemoveContainer\x12 .order.v1.RemoveContainerRequest\x1a!.order.v1.RemoveContainerResponse\"K\x82\xb5\x18\x16\b\x04\x1a\x10container.delete \x02\x82\xd3\xe4\x93\x02+*)/api/v1/orders/{order_id}/containers/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_container_proto_rawDescOnce sync.Once
@@ -773,33 +855,35 @@ func file_order_v1_order_container_proto_rawDescGZIP() []byte {
 	return file_order_v1_order_container_proto_rawDescData
 }
 
-var file_order_v1_order_container_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_order_v1_order_container_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_order_v1_order_container_proto_goTypes = []any{
-	(*OrderContainer)(nil),               // 0: order.v1.OrderContainer
-	(*ListContainersRequest)(nil),        // 1: order.v1.ListContainersRequest
-	(*AddContainerRequest)(nil),          // 2: order.v1.AddContainerRequest
-	(*UpdateContainerRequest)(nil),       // 3: order.v1.UpdateContainerRequest
-	(*RemoveContainerRequest)(nil),       // 4: order.v1.RemoveContainerRequest
-	(*OrderContainerReply)(nil),          // 5: order.v1.OrderContainerReply
-	(*OrderContainerListReply)(nil),      // 6: order.v1.OrderContainerListReply
-	(*OrderContainerOperationReply)(nil), // 7: order.v1.OrderContainerOperationReply
+	(*OrderContainer)(nil),          // 0: order.v1.OrderContainer
+	(*ListContainersRequest)(nil),   // 1: order.v1.ListContainersRequest
+	(*AddContainerRequest)(nil),     // 2: order.v1.AddContainerRequest
+	(*UpdateContainerRequest)(nil),  // 3: order.v1.UpdateContainerRequest
+	(*RemoveContainerRequest)(nil),  // 4: order.v1.RemoveContainerRequest
+	(*AddContainerResponse)(nil),    // 5: order.v1.AddContainerResponse
+	(*UpdateContainerResponse)(nil), // 6: order.v1.UpdateContainerResponse
+	(*ListContainersResponse)(nil),  // 7: order.v1.ListContainersResponse
+	(*RemoveContainerResponse)(nil), // 8: order.v1.RemoveContainerResponse
 }
 var file_order_v1_order_container_proto_depIdxs = []int32{
-	0, // 0: order.v1.OrderContainerReply.data:type_name -> order.v1.OrderContainer
-	0, // 1: order.v1.OrderContainerListReply.data:type_name -> order.v1.OrderContainer
-	1, // 2: order.v1.OrderContainerService.ListContainers:input_type -> order.v1.ListContainersRequest
-	2, // 3: order.v1.OrderContainerService.AddContainer:input_type -> order.v1.AddContainerRequest
-	3, // 4: order.v1.OrderContainerService.UpdateContainer:input_type -> order.v1.UpdateContainerRequest
-	4, // 5: order.v1.OrderContainerService.RemoveContainer:input_type -> order.v1.RemoveContainerRequest
-	6, // 6: order.v1.OrderContainerService.ListContainers:output_type -> order.v1.OrderContainerListReply
-	5, // 7: order.v1.OrderContainerService.AddContainer:output_type -> order.v1.OrderContainerReply
-	5, // 8: order.v1.OrderContainerService.UpdateContainer:output_type -> order.v1.OrderContainerReply
-	7, // 9: order.v1.OrderContainerService.RemoveContainer:output_type -> order.v1.OrderContainerOperationReply
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: order.v1.AddContainerResponse.data:type_name -> order.v1.OrderContainer
+	0, // 1: order.v1.UpdateContainerResponse.data:type_name -> order.v1.OrderContainer
+	0, // 2: order.v1.ListContainersResponse.data:type_name -> order.v1.OrderContainer
+	1, // 3: order.v1.OrderContainerService.ListContainers:input_type -> order.v1.ListContainersRequest
+	2, // 4: order.v1.OrderContainerService.AddContainer:input_type -> order.v1.AddContainerRequest
+	3, // 5: order.v1.OrderContainerService.UpdateContainer:input_type -> order.v1.UpdateContainerRequest
+	4, // 6: order.v1.OrderContainerService.RemoveContainer:input_type -> order.v1.RemoveContainerRequest
+	7, // 7: order.v1.OrderContainerService.ListContainers:output_type -> order.v1.ListContainersResponse
+	5, // 8: order.v1.OrderContainerService.AddContainer:output_type -> order.v1.AddContainerResponse
+	6, // 9: order.v1.OrderContainerService.UpdateContainer:output_type -> order.v1.UpdateContainerResponse
+	8, // 10: order.v1.OrderContainerService.RemoveContainer:output_type -> order.v1.RemoveContainerResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_container_proto_init() }
@@ -816,7 +900,7 @@ func file_order_v1_order_container_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_container_proto_rawDesc), len(file_order_v1_order_container_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

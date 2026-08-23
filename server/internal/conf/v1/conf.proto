@@ -1,9 +1,10 @@
 syntax = "proto3";
-package kratos.api;
 
-option go_package = "github.com/roncin/roncin-go-admin/server/internal/conf;conf";
+package conf.v1;
 
 import "google/protobuf/duration.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/internal/conf;conf";
 
 message Bootstrap {
   Server server = 1;

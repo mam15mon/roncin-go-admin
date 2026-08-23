@@ -9,7 +9,7 @@ export async function orderMilestoneServiceListMilestones(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderMilestoneListReply>(
+  return request<API.ListMilestonesResponse>(
     `/api/v1/orders/${param0}/milestones`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderMilestoneServiceSetMilestone(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, type: param1, ...queryParams } = params;
-  return request<API.OrderMilestoneReply>(
+  return request<API.SetMilestoneResponse>(
     `/api/v1/orders/${param0}/milestones/${param1}`,
     {
       method: "PUT",

@@ -43,7 +43,7 @@ export default function AirportsPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '机场主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.AirportReply) => {
+  const saveResponse = (response: API.CreateAirportResponse | API.UpdateAirportResponse) => {
     if (!response.data) throw new Error('机场响应缺少数据');
     const saved = mapAirport(response.data);
     setData((current) => {

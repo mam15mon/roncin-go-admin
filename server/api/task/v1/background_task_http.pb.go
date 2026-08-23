@@ -23,11 +23,11 @@ const OperationBackgroundTaskServiceRequeueBackgroundTask = "/task.v1.Background
 
 type BackgroundTaskServiceHTTPServer interface {
 	// GetBackgroundTask GetBackgroundTask 查询单个后台任务。
-	GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*BackgroundTaskReply, error)
+	GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*GetBackgroundTaskResponse, error)
 	// ListBackgroundTasks ListBackgroundTasks 查询当前组织的后台任务。
-	ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*BackgroundTaskListReply, error)
+	ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*ListBackgroundTasksResponse, error)
 	// RequeueBackgroundTask RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-	RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*BackgroundTaskReply, error)
+	RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*RequeueBackgroundTaskResponse, error)
 }
 
 func RegisterBackgroundTaskServiceHTTPServer(s *http.Server, srv BackgroundTaskServiceHTTPServer) {
@@ -51,7 +51,7 @@ func _BackgroundTaskService_ListBackgroundTasks0_HTTP_Handler(srv BackgroundTask
 		if err != nil {
 			return err
 		}
-		reply := out.(*BackgroundTaskListReply)
+		reply := out.(*ListBackgroundTasksResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -73,7 +73,7 @@ func _BackgroundTaskService_GetBackgroundTask0_HTTP_Handler(srv BackgroundTaskSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*BackgroundTaskReply)
+		reply := out.(*GetBackgroundTaskResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -95,18 +95,18 @@ func _BackgroundTaskService_RequeueBackgroundTask0_HTTP_Handler(srv BackgroundTa
 		if err != nil {
 			return err
 		}
-		reply := out.(*BackgroundTaskReply)
+		reply := out.(*RequeueBackgroundTaskResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type BackgroundTaskServiceHTTPClient interface {
 	// GetBackgroundTask GetBackgroundTask 查询单个后台任务。
-	GetBackgroundTask(ctx context.Context, req *GetBackgroundTaskRequest, opts ...http.CallOption) (rsp *BackgroundTaskReply, err error)
+	GetBackgroundTask(ctx context.Context, req *GetBackgroundTaskRequest, opts ...http.CallOption) (rsp *GetBackgroundTaskResponse, err error)
 	// ListBackgroundTasks ListBackgroundTasks 查询当前组织的后台任务。
-	ListBackgroundTasks(ctx context.Context, req *ListBackgroundTasksRequest, opts ...http.CallOption) (rsp *BackgroundTaskListReply, err error)
+	ListBackgroundTasks(ctx context.Context, req *ListBackgroundTasksRequest, opts ...http.CallOption) (rsp *ListBackgroundTasksResponse, err error)
 	// RequeueBackgroundTask RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-	RequeueBackgroundTask(ctx context.Context, req *RequeueBackgroundTaskRequest, opts ...http.CallOption) (rsp *BackgroundTaskReply, err error)
+	RequeueBackgroundTask(ctx context.Context, req *RequeueBackgroundTaskRequest, opts ...http.CallOption) (rsp *RequeueBackgroundTaskResponse, err error)
 }
 
 type BackgroundTaskServiceHTTPClientImpl struct {
@@ -118,8 +118,8 @@ func NewBackgroundTaskServiceHTTPClient(client *http.Client) BackgroundTaskServi
 }
 
 // GetBackgroundTask GetBackgroundTask 查询单个后台任务。
-func (c *BackgroundTaskServiceHTTPClientImpl) GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...http.CallOption) (*BackgroundTaskReply, error) {
-	var out BackgroundTaskReply
+func (c *BackgroundTaskServiceHTTPClientImpl) GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...http.CallOption) (*GetBackgroundTaskResponse, error) {
+	var out GetBackgroundTaskResponse
 	pattern := "/api/v1/background-tasks/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -135,8 +135,8 @@ func (c *BackgroundTaskServiceHTTPClientImpl) GetBackgroundTask(ctx context.Cont
 }
 
 // ListBackgroundTasks ListBackgroundTasks 查询当前组织的后台任务。
-func (c *BackgroundTaskServiceHTTPClientImpl) ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...http.CallOption) (*BackgroundTaskListReply, error) {
-	var out BackgroundTaskListReply
+func (c *BackgroundTaskServiceHTTPClientImpl) ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...http.CallOption) (*ListBackgroundTasksResponse, error) {
+	var out ListBackgroundTasksResponse
 	pattern := "/api/v1/background-tasks"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -152,8 +152,8 @@ func (c *BackgroundTaskServiceHTTPClientImpl) ListBackgroundTasks(ctx context.Co
 }
 
 // RequeueBackgroundTask RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-func (c *BackgroundTaskServiceHTTPClientImpl) RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...http.CallOption) (*BackgroundTaskReply, error) {
-	var out BackgroundTaskReply
+func (c *BackgroundTaskServiceHTTPClientImpl) RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...http.CallOption) (*RequeueBackgroundTaskResponse, error) {
+	var out RequeueBackgroundTaskResponse
 	pattern := "/api/v1/background-tasks/{id}/requeue"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

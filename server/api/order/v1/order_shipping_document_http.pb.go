@@ -25,15 +25,15 @@ const OperationOrderShippingDocumentServiceUpdateShippingDocument = "/order.v1.O
 
 type OrderShippingDocumentServiceHTTPServer interface {
 	// AddShippingDocument AddShippingDocument 添加订单提单，初始状态为草稿。
-	AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*OrderShippingDocumentReply, error)
+	AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*AddShippingDocumentResponse, error)
 	// ListShippingDocuments ListShippingDocuments 获取指定订单的提单列表。
-	ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*OrderShippingDocumentListReply, error)
+	ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*ListShippingDocumentsResponse, error)
 	// RemoveShippingDocument RemoveShippingDocument 移除提单，已放货的提单不可删除。
-	RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*OrderShippingDocumentOperationReply, error)
+	RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*RemoveShippingDocumentResponse, error)
 	// TransitionShippingDocumentStatus TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-	TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*OrderShippingDocumentReply, error)
+	TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*TransitionShippingDocumentStatusResponse, error)
 	// UpdateShippingDocument UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-	UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*OrderShippingDocumentReply, error)
+	UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*UpdateShippingDocumentResponse, error)
 }
 
 func RegisterOrderShippingDocumentServiceHTTPServer(s *http.Server, srv OrderShippingDocumentServiceHTTPServer) {
@@ -62,7 +62,7 @@ func _OrderShippingDocumentService_ListShippingDocuments0_HTTP_Handler(srv Order
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderShippingDocumentListReply)
+		reply := out.(*ListShippingDocumentsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -84,7 +84,7 @@ func _OrderShippingDocumentService_AddShippingDocument0_HTTP_Handler(srv OrderSh
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderShippingDocumentReply)
+		reply := out.(*AddShippingDocumentResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -106,7 +106,7 @@ func _OrderShippingDocumentService_UpdateShippingDocument0_HTTP_Handler(srv Orde
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderShippingDocumentReply)
+		reply := out.(*UpdateShippingDocumentResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -128,7 +128,7 @@ func _OrderShippingDocumentService_TransitionShippingDocumentStatus0_HTTP_Handle
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderShippingDocumentReply)
+		reply := out.(*TransitionShippingDocumentStatusResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -150,22 +150,22 @@ func _OrderShippingDocumentService_RemoveShippingDocument0_HTTP_Handler(srv Orde
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderShippingDocumentOperationReply)
+		reply := out.(*RemoveShippingDocumentResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderShippingDocumentServiceHTTPClient interface {
 	// AddShippingDocument AddShippingDocument 添加订单提单，初始状态为草稿。
-	AddShippingDocument(ctx context.Context, req *AddShippingDocumentRequest, opts ...http.CallOption) (rsp *OrderShippingDocumentReply, err error)
+	AddShippingDocument(ctx context.Context, req *AddShippingDocumentRequest, opts ...http.CallOption) (rsp *AddShippingDocumentResponse, err error)
 	// ListShippingDocuments ListShippingDocuments 获取指定订单的提单列表。
-	ListShippingDocuments(ctx context.Context, req *ListShippingDocumentsRequest, opts ...http.CallOption) (rsp *OrderShippingDocumentListReply, err error)
+	ListShippingDocuments(ctx context.Context, req *ListShippingDocumentsRequest, opts ...http.CallOption) (rsp *ListShippingDocumentsResponse, err error)
 	// RemoveShippingDocument RemoveShippingDocument 移除提单，已放货的提单不可删除。
-	RemoveShippingDocument(ctx context.Context, req *RemoveShippingDocumentRequest, opts ...http.CallOption) (rsp *OrderShippingDocumentOperationReply, err error)
+	RemoveShippingDocument(ctx context.Context, req *RemoveShippingDocumentRequest, opts ...http.CallOption) (rsp *RemoveShippingDocumentResponse, err error)
 	// TransitionShippingDocumentStatus TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-	TransitionShippingDocumentStatus(ctx context.Context, req *TransitionShippingDocumentStatusRequest, opts ...http.CallOption) (rsp *OrderShippingDocumentReply, err error)
+	TransitionShippingDocumentStatus(ctx context.Context, req *TransitionShippingDocumentStatusRequest, opts ...http.CallOption) (rsp *TransitionShippingDocumentStatusResponse, err error)
 	// UpdateShippingDocument UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-	UpdateShippingDocument(ctx context.Context, req *UpdateShippingDocumentRequest, opts ...http.CallOption) (rsp *OrderShippingDocumentReply, err error)
+	UpdateShippingDocument(ctx context.Context, req *UpdateShippingDocumentRequest, opts ...http.CallOption) (rsp *UpdateShippingDocumentResponse, err error)
 }
 
 type OrderShippingDocumentServiceHTTPClientImpl struct {
@@ -177,8 +177,8 @@ func NewOrderShippingDocumentServiceHTTPClient(client *http.Client) OrderShippin
 }
 
 // AddShippingDocument AddShippingDocument 添加订单提单，初始状态为草稿。
-func (c *OrderShippingDocumentServiceHTTPClientImpl) AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...http.CallOption) (*OrderShippingDocumentReply, error) {
-	var out OrderShippingDocumentReply
+func (c *OrderShippingDocumentServiceHTTPClientImpl) AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...http.CallOption) (*AddShippingDocumentResponse, error) {
+	var out AddShippingDocumentResponse
 	pattern := "/api/v1/orders/{order_id}/shipping-documents"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -195,8 +195,8 @@ func (c *OrderShippingDocumentServiceHTTPClientImpl) AddShippingDocument(ctx con
 }
 
 // ListShippingDocuments ListShippingDocuments 获取指定订单的提单列表。
-func (c *OrderShippingDocumentServiceHTTPClientImpl) ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...http.CallOption) (*OrderShippingDocumentListReply, error) {
-	var out OrderShippingDocumentListReply
+func (c *OrderShippingDocumentServiceHTTPClientImpl) ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...http.CallOption) (*ListShippingDocumentsResponse, error) {
+	var out ListShippingDocumentsResponse
 	pattern := "/api/v1/orders/{order_id}/shipping-documents"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -212,8 +212,8 @@ func (c *OrderShippingDocumentServiceHTTPClientImpl) ListShippingDocuments(ctx c
 }
 
 // RemoveShippingDocument RemoveShippingDocument 移除提单，已放货的提单不可删除。
-func (c *OrderShippingDocumentServiceHTTPClientImpl) RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...http.CallOption) (*OrderShippingDocumentOperationReply, error) {
-	var out OrderShippingDocumentOperationReply
+func (c *OrderShippingDocumentServiceHTTPClientImpl) RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...http.CallOption) (*RemoveShippingDocumentResponse, error) {
+	var out RemoveShippingDocumentResponse
 	pattern := "/api/v1/orders/{order_id}/shipping-documents/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -229,8 +229,8 @@ func (c *OrderShippingDocumentServiceHTTPClientImpl) RemoveShippingDocument(ctx 
 }
 
 // TransitionShippingDocumentStatus TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-func (c *OrderShippingDocumentServiceHTTPClientImpl) TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...http.CallOption) (*OrderShippingDocumentReply, error) {
-	var out OrderShippingDocumentReply
+func (c *OrderShippingDocumentServiceHTTPClientImpl) TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...http.CallOption) (*TransitionShippingDocumentStatusResponse, error) {
+	var out TransitionShippingDocumentStatusResponse
 	pattern := "/api/v1/orders/{order_id}/shipping-documents/{id}/transition"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -247,8 +247,8 @@ func (c *OrderShippingDocumentServiceHTTPClientImpl) TransitionShippingDocumentS
 }
 
 // UpdateShippingDocument UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-func (c *OrderShippingDocumentServiceHTTPClientImpl) UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...http.CallOption) (*OrderShippingDocumentReply, error) {
-	var out OrderShippingDocumentReply
+func (c *OrderShippingDocumentServiceHTTPClientImpl) UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...http.CallOption) (*UpdateShippingDocumentResponse, error) {
+	var out UpdateShippingDocumentResponse
 	pattern := "/api/v1/orders/{order_id}/shipping-documents/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

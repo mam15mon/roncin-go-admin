@@ -9,7 +9,7 @@ export async function orderContainerServiceListContainers(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderContainerListReply>(
+  return request<API.ListContainersResponse>(
     `/api/v1/orders/${param0}/containers`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderContainerServiceAddContainer(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderContainerReply>(
+  return request<API.AddContainerResponse>(
     `/api/v1/orders/${param0}/containers`,
     {
       method: "POST",
@@ -49,7 +49,7 @@ export async function orderContainerServiceUpdateContainer(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderContainerReply>(
+  return request<API.UpdateContainerResponse>(
     `/api/v1/orders/${param0}/containers/${param1}`,
     {
       method: "PUT",
@@ -70,7 +70,7 @@ export async function orderContainerServiceRemoveContainer(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderContainerOperationReply>(
+  return request<API.RemoveContainerResponse>(
     `/api/v1/orders/${param0}/containers/${param1}`,
     {
       method: "DELETE",

@@ -3,5 +3,7 @@ inputs:
   - directory: internal
 plugins:
   - local: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11"]
-    out: internal
-    opt: paths=source_relative
+    out: .
+    opt:
+      - paths=import
+      - module=github.com/roncin/roncin-go-admin/server

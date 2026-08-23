@@ -35,15 +35,15 @@ const (
 // DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
 type OrderShippingDocumentServiceClient interface {
 	// ListShippingDocuments 获取指定订单的提单列表。
-	ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...grpc.CallOption) (*OrderShippingDocumentListReply, error)
+	ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...grpc.CallOption) (*ListShippingDocumentsResponse, error)
 	// AddShippingDocument 添加订单提单，初始状态为草稿。
-	AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error)
+	AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...grpc.CallOption) (*AddShippingDocumentResponse, error)
 	// UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-	UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error)
+	UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...grpc.CallOption) (*UpdateShippingDocumentResponse, error)
 	// TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-	TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error)
+	TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...grpc.CallOption) (*TransitionShippingDocumentStatusResponse, error)
 	// RemoveShippingDocument 移除提单，已放货的提单不可删除。
-	RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentOperationReply, error)
+	RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...grpc.CallOption) (*RemoveShippingDocumentResponse, error)
 }
 
 type orderShippingDocumentServiceClient struct {
@@ -54,9 +54,9 @@ func NewOrderShippingDocumentServiceClient(cc grpc.ClientConnInterface) OrderShi
 	return &orderShippingDocumentServiceClient{cc}
 }
 
-func (c *orderShippingDocumentServiceClient) ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...grpc.CallOption) (*OrderShippingDocumentListReply, error) {
+func (c *orderShippingDocumentServiceClient) ListShippingDocuments(ctx context.Context, in *ListShippingDocumentsRequest, opts ...grpc.CallOption) (*ListShippingDocumentsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderShippingDocumentListReply)
+	out := new(ListShippingDocumentsResponse)
 	err := c.cc.Invoke(ctx, OrderShippingDocumentService_ListShippingDocuments_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -64,9 +64,9 @@ func (c *orderShippingDocumentServiceClient) ListShippingDocuments(ctx context.C
 	return out, nil
 }
 
-func (c *orderShippingDocumentServiceClient) AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error) {
+func (c *orderShippingDocumentServiceClient) AddShippingDocument(ctx context.Context, in *AddShippingDocumentRequest, opts ...grpc.CallOption) (*AddShippingDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderShippingDocumentReply)
+	out := new(AddShippingDocumentResponse)
 	err := c.cc.Invoke(ctx, OrderShippingDocumentService_AddShippingDocument_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -74,9 +74,9 @@ func (c *orderShippingDocumentServiceClient) AddShippingDocument(ctx context.Con
 	return out, nil
 }
 
-func (c *orderShippingDocumentServiceClient) UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error) {
+func (c *orderShippingDocumentServiceClient) UpdateShippingDocument(ctx context.Context, in *UpdateShippingDocumentRequest, opts ...grpc.CallOption) (*UpdateShippingDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderShippingDocumentReply)
+	out := new(UpdateShippingDocumentResponse)
 	err := c.cc.Invoke(ctx, OrderShippingDocumentService_UpdateShippingDocument_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -84,9 +84,9 @@ func (c *orderShippingDocumentServiceClient) UpdateShippingDocument(ctx context.
 	return out, nil
 }
 
-func (c *orderShippingDocumentServiceClient) TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...grpc.CallOption) (*OrderShippingDocumentReply, error) {
+func (c *orderShippingDocumentServiceClient) TransitionShippingDocumentStatus(ctx context.Context, in *TransitionShippingDocumentStatusRequest, opts ...grpc.CallOption) (*TransitionShippingDocumentStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderShippingDocumentReply)
+	out := new(TransitionShippingDocumentStatusResponse)
 	err := c.cc.Invoke(ctx, OrderShippingDocumentService_TransitionShippingDocumentStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -94,9 +94,9 @@ func (c *orderShippingDocumentServiceClient) TransitionShippingDocumentStatus(ct
 	return out, nil
 }
 
-func (c *orderShippingDocumentServiceClient) RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...grpc.CallOption) (*OrderShippingDocumentOperationReply, error) {
+func (c *orderShippingDocumentServiceClient) RemoveShippingDocument(ctx context.Context, in *RemoveShippingDocumentRequest, opts ...grpc.CallOption) (*RemoveShippingDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderShippingDocumentOperationReply)
+	out := new(RemoveShippingDocumentResponse)
 	err := c.cc.Invoke(ctx, OrderShippingDocumentService_RemoveShippingDocument_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -113,15 +113,15 @@ func (c *orderShippingDocumentServiceClient) RemoveShippingDocument(ctx context.
 // DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
 type OrderShippingDocumentServiceServer interface {
 	// ListShippingDocuments 获取指定订单的提单列表。
-	ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*OrderShippingDocumentListReply, error)
+	ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*ListShippingDocumentsResponse, error)
 	// AddShippingDocument 添加订单提单，初始状态为草稿。
-	AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*OrderShippingDocumentReply, error)
+	AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*AddShippingDocumentResponse, error)
 	// UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-	UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*OrderShippingDocumentReply, error)
+	UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*UpdateShippingDocumentResponse, error)
 	// TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-	TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*OrderShippingDocumentReply, error)
+	TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*TransitionShippingDocumentStatusResponse, error)
 	// RemoveShippingDocument 移除提单，已放货的提单不可删除。
-	RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*OrderShippingDocumentOperationReply, error)
+	RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*RemoveShippingDocumentResponse, error)
 	mustEmbedUnimplementedOrderShippingDocumentServiceServer()
 }
 
@@ -132,19 +132,19 @@ type OrderShippingDocumentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderShippingDocumentServiceServer struct{}
 
-func (UnimplementedOrderShippingDocumentServiceServer) ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*OrderShippingDocumentListReply, error) {
+func (UnimplementedOrderShippingDocumentServiceServer) ListShippingDocuments(context.Context, *ListShippingDocumentsRequest) (*ListShippingDocumentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListShippingDocuments not implemented")
 }
-func (UnimplementedOrderShippingDocumentServiceServer) AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*OrderShippingDocumentReply, error) {
+func (UnimplementedOrderShippingDocumentServiceServer) AddShippingDocument(context.Context, *AddShippingDocumentRequest) (*AddShippingDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddShippingDocument not implemented")
 }
-func (UnimplementedOrderShippingDocumentServiceServer) UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*OrderShippingDocumentReply, error) {
+func (UnimplementedOrderShippingDocumentServiceServer) UpdateShippingDocument(context.Context, *UpdateShippingDocumentRequest) (*UpdateShippingDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateShippingDocument not implemented")
 }
-func (UnimplementedOrderShippingDocumentServiceServer) TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*OrderShippingDocumentReply, error) {
+func (UnimplementedOrderShippingDocumentServiceServer) TransitionShippingDocumentStatus(context.Context, *TransitionShippingDocumentStatusRequest) (*TransitionShippingDocumentStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransitionShippingDocumentStatus not implemented")
 }
-func (UnimplementedOrderShippingDocumentServiceServer) RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*OrderShippingDocumentOperationReply, error) {
+func (UnimplementedOrderShippingDocumentServiceServer) RemoveShippingDocument(context.Context, *RemoveShippingDocumentRequest) (*RemoveShippingDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveShippingDocument not implemented")
 }
 func (UnimplementedOrderShippingDocumentServiceServer) mustEmbedUnimplementedOrderShippingDocumentServiceServer() {

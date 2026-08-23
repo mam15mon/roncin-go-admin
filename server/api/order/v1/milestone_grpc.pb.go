@@ -30,9 +30,9 @@ const (
 // OrderMilestoneService 订单里程碑服务。
 type OrderMilestoneServiceClient interface {
 	// ListMilestones 获取指定订单的里程碑列表。
-	ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...grpc.CallOption) (*OrderMilestoneListReply, error)
+	ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...grpc.CallOption) (*ListMilestonesResponse, error)
 	// SetMilestone 设置指定订单的单个里程碑。
-	SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...grpc.CallOption) (*OrderMilestoneReply, error)
+	SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...grpc.CallOption) (*SetMilestoneResponse, error)
 }
 
 type orderMilestoneServiceClient struct {
@@ -43,9 +43,9 @@ func NewOrderMilestoneServiceClient(cc grpc.ClientConnInterface) OrderMilestoneS
 	return &orderMilestoneServiceClient{cc}
 }
 
-func (c *orderMilestoneServiceClient) ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...grpc.CallOption) (*OrderMilestoneListReply, error) {
+func (c *orderMilestoneServiceClient) ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...grpc.CallOption) (*ListMilestonesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderMilestoneListReply)
+	out := new(ListMilestonesResponse)
 	err := c.cc.Invoke(ctx, OrderMilestoneService_ListMilestones_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -53,9 +53,9 @@ func (c *orderMilestoneServiceClient) ListMilestones(ctx context.Context, in *Li
 	return out, nil
 }
 
-func (c *orderMilestoneServiceClient) SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...grpc.CallOption) (*OrderMilestoneReply, error) {
+func (c *orderMilestoneServiceClient) SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...grpc.CallOption) (*SetMilestoneResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderMilestoneReply)
+	out := new(SetMilestoneResponse)
 	err := c.cc.Invoke(ctx, OrderMilestoneService_SetMilestone_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *orderMilestoneServiceClient) SetMilestone(ctx context.Context, in *SetM
 // OrderMilestoneService 订单里程碑服务。
 type OrderMilestoneServiceServer interface {
 	// ListMilestones 获取指定订单的里程碑列表。
-	ListMilestones(context.Context, *ListMilestonesRequest) (*OrderMilestoneListReply, error)
+	ListMilestones(context.Context, *ListMilestonesRequest) (*ListMilestonesResponse, error)
 	// SetMilestone 设置指定订单的单个里程碑。
-	SetMilestone(context.Context, *SetMilestoneRequest) (*OrderMilestoneReply, error)
+	SetMilestone(context.Context, *SetMilestoneRequest) (*SetMilestoneResponse, error)
 	mustEmbedUnimplementedOrderMilestoneServiceServer()
 }
 
@@ -83,10 +83,10 @@ type OrderMilestoneServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderMilestoneServiceServer struct{}
 
-func (UnimplementedOrderMilestoneServiceServer) ListMilestones(context.Context, *ListMilestonesRequest) (*OrderMilestoneListReply, error) {
+func (UnimplementedOrderMilestoneServiceServer) ListMilestones(context.Context, *ListMilestonesRequest) (*ListMilestonesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMilestones not implemented")
 }
-func (UnimplementedOrderMilestoneServiceServer) SetMilestone(context.Context, *SetMilestoneRequest) (*OrderMilestoneReply, error) {
+func (UnimplementedOrderMilestoneServiceServer) SetMilestone(context.Context, *SetMilestoneRequest) (*SetMilestoneResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetMilestone not implemented")
 }
 func (UnimplementedOrderMilestoneServiceServer) mustEmbedUnimplementedOrderMilestoneServiceServer() {}

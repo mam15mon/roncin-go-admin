@@ -33,13 +33,13 @@ const (
 // 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
 type OrderAbnormalCaseServiceClient interface {
 	// ListAbnormalCases 获取指定订单的异常标记列表。
-	ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseListReply, error)
+	ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...grpc.CallOption) (*ListAbnormalCasesResponse, error)
 	// MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-	MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseReply, error)
+	MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...grpc.CallOption) (*MarkAbnormalCaseResponse, error)
 	// ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-	ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseReply, error)
+	ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...grpc.CallOption) (*ResolveAbnormalCaseResponse, error)
 	// RemoveAbnormalCase 移除订单异常标记。
-	RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseOperationReply, error)
+	RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...grpc.CallOption) (*RemoveAbnormalCaseResponse, error)
 }
 
 type orderAbnormalCaseServiceClient struct {
@@ -50,9 +50,9 @@ func NewOrderAbnormalCaseServiceClient(cc grpc.ClientConnInterface) OrderAbnorma
 	return &orderAbnormalCaseServiceClient{cc}
 }
 
-func (c *orderAbnormalCaseServiceClient) ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseListReply, error) {
+func (c *orderAbnormalCaseServiceClient) ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...grpc.CallOption) (*ListAbnormalCasesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAbnormalCaseListReply)
+	out := new(ListAbnormalCasesResponse)
 	err := c.cc.Invoke(ctx, OrderAbnormalCaseService_ListAbnormalCases_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -60,9 +60,9 @@ func (c *orderAbnormalCaseServiceClient) ListAbnormalCases(ctx context.Context, 
 	return out, nil
 }
 
-func (c *orderAbnormalCaseServiceClient) MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseReply, error) {
+func (c *orderAbnormalCaseServiceClient) MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...grpc.CallOption) (*MarkAbnormalCaseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAbnormalCaseReply)
+	out := new(MarkAbnormalCaseResponse)
 	err := c.cc.Invoke(ctx, OrderAbnormalCaseService_MarkAbnormalCase_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *orderAbnormalCaseServiceClient) MarkAbnormalCase(ctx context.Context, i
 	return out, nil
 }
 
-func (c *orderAbnormalCaseServiceClient) ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseReply, error) {
+func (c *orderAbnormalCaseServiceClient) ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...grpc.CallOption) (*ResolveAbnormalCaseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAbnormalCaseReply)
+	out := new(ResolveAbnormalCaseResponse)
 	err := c.cc.Invoke(ctx, OrderAbnormalCaseService_ResolveAbnormalCase_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,9 +80,9 @@ func (c *orderAbnormalCaseServiceClient) ResolveAbnormalCase(ctx context.Context
 	return out, nil
 }
 
-func (c *orderAbnormalCaseServiceClient) RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...grpc.CallOption) (*OrderAbnormalCaseOperationReply, error) {
+func (c *orderAbnormalCaseServiceClient) RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...grpc.CallOption) (*RemoveAbnormalCaseResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAbnormalCaseOperationReply)
+	out := new(RemoveAbnormalCaseResponse)
 	err := c.cc.Invoke(ctx, OrderAbnormalCaseService_RemoveAbnormalCase_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -98,13 +98,13 @@ func (c *orderAbnormalCaseServiceClient) RemoveAbnormalCase(ctx context.Context,
 // 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
 type OrderAbnormalCaseServiceServer interface {
 	// ListAbnormalCases 获取指定订单的异常标记列表。
-	ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*OrderAbnormalCaseListReply, error)
+	ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*ListAbnormalCasesResponse, error)
 	// MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-	MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*OrderAbnormalCaseReply, error)
+	MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*MarkAbnormalCaseResponse, error)
 	// ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-	ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*OrderAbnormalCaseReply, error)
+	ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*ResolveAbnormalCaseResponse, error)
 	// RemoveAbnormalCase 移除订单异常标记。
-	RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*OrderAbnormalCaseOperationReply, error)
+	RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*RemoveAbnormalCaseResponse, error)
 	mustEmbedUnimplementedOrderAbnormalCaseServiceServer()
 }
 
@@ -115,16 +115,16 @@ type OrderAbnormalCaseServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderAbnormalCaseServiceServer struct{}
 
-func (UnimplementedOrderAbnormalCaseServiceServer) ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*OrderAbnormalCaseListReply, error) {
+func (UnimplementedOrderAbnormalCaseServiceServer) ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*ListAbnormalCasesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAbnormalCases not implemented")
 }
-func (UnimplementedOrderAbnormalCaseServiceServer) MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*OrderAbnormalCaseReply, error) {
+func (UnimplementedOrderAbnormalCaseServiceServer) MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*MarkAbnormalCaseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkAbnormalCase not implemented")
 }
-func (UnimplementedOrderAbnormalCaseServiceServer) ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*OrderAbnormalCaseReply, error) {
+func (UnimplementedOrderAbnormalCaseServiceServer) ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*ResolveAbnormalCaseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResolveAbnormalCase not implemented")
 }
-func (UnimplementedOrderAbnormalCaseServiceServer) RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*OrderAbnormalCaseOperationReply, error) {
+func (UnimplementedOrderAbnormalCaseServiceServer) RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*RemoveAbnormalCaseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveAbnormalCase not implemented")
 }
 func (UnimplementedOrderAbnormalCaseServiceServer) mustEmbedUnimplementedOrderAbnormalCaseServiceServer() {

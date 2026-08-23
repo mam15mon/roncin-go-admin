@@ -10,22 +10,22 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderService 订单核心服务。
 service OrderService {
-  rpc GetOrder(GetOrderRequest) returns (OrderReply) {
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{id}"};
   }
 
-  rpc ListOrders(ListOrdersRequest) returns (OrderListReply) {
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders"};
   }
 
-  rpc CheckOrderReference(CheckOrderReferenceRequest) returns (OrderReferenceCheckReply) {
+  rpc CheckOrderReference(CheckOrderReferenceRequest) returns (CheckOrderReferenceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/order-reference-check"};
   }
 
-  rpc CreateOrder(CreateOrderRequest) returns (OrderReply) {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders"
@@ -33,7 +33,7 @@ service OrderService {
     };
   }
 
-  rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply) {
+  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{id}"
@@ -41,7 +41,7 @@ service OrderService {
     };
   }
 
-  rpc TransitionOrderStatus(TransitionOrderStatusRequest) returns (OrderReply) {
+  rpc TransitionOrderStatus(TransitionOrderStatusRequest) returns (TransitionOrderStatusResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transition" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{id}/status"
@@ -343,8 +343,8 @@ message TransitionOrderStatusRequest {
   optional string reason = 4;
 }
 
-// OrderReply 单条订单响应。
-message OrderReply {
+// GetOrderResponse 单条订单响应。
+message GetOrderResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -352,8 +352,32 @@ message OrderReply {
   string trace_id = 5;
 }
 
-// OrderListReply 订单列表响应。
-message OrderListReply {
+message CreateOrderResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+message UpdateOrderResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+message TransitionOrderStatusResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+// ListOrdersResponse 订单列表响应。
+message ListOrdersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -364,8 +388,8 @@ message OrderListReply {
   string trace_id = 8;
 }
 
-// OrderReferenceCheckReply 订单业务编号查重响应。
-message OrderReferenceCheckReply {
+// CheckOrderReferenceResponse 订单业务编号查重响应。
+message CheckOrderReferenceResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

@@ -11,7 +11,7 @@ import (
 func TestEncodeResponseUsesProtoJSONFieldNames(t *testing.T) {
 	request := httptest.NewRequest("GET", "/api/v1/auth/me", nil)
 	writer := httptest.NewRecorder()
-	reply := &v1.MeReply{
+	reply := &v1.MeResponse{
 		Success: true,
 		Data: &v1.CurrentUser{
 			CurrentOrganization: &v1.Organization{Code: "HQ"},

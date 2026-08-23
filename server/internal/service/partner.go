@@ -25,7 +25,7 @@ func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerA
 	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase, attachmentUsecase: attachmentUsecase, shippingPresetUsecase: shippingPresetUsecase}
 }
 
-func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.PartnerReply, error) {
+func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.GetPartnerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -38,10 +38,10 @@ func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerR
 	if err != nil {
 		return nil, err
 	}
-	return partnerReply(ctx, item), nil
+	return &v1.GetPartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.PartnerListReply, error) {
+func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.ListPartnersResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -68,13 +68,13 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 	for _, item := range result.Items {
 		data = append(data, partnerToAPI(item))
 	}
-	return &v1.PartnerListReply{
+	return &v1.ListPartnersResponse{
 		Success: true, Code: 0, Message: "OK", Data: data,
 		Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx),
 	}, nil
 }
 
-func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.PartnerAssignmentOptionListReply, error) {
+func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -91,10 +91,10 @@ func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1
 			MembershipEnabled: item.MembershipEnabled,
 		})
 	}
-	return &v1.PartnerAssignmentOptionListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.PartnerReply, error) {
+func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.CreatePartnerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -108,10 +108,10 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 	if err != nil {
 		return nil, err
 	}
-	return partnerReply(ctx, created), nil
+	return &v1.CreatePartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePartnerRequest) (*v1.PartnerReply, error) {
+func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePartnerRequest) (*v1.UpdatePartnerResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -129,10 +129,10 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	if err != nil {
 		return nil, err
 	}
-	return partnerReply(ctx, updated), nil
+	return &v1.UpdatePartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.SetSupplierBlacklistRequest) (*v1.PartnerReply, error) {
+func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.SetSupplierBlacklistRequest) (*v1.SetSupplierBlacklistResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -145,10 +145,10 @@ func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.S
 	if err != nil {
 		return nil, err
 	}
-	return partnerReply(ctx, updated), nil
+	return &v1.SetSupplierBlacklistResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerAccounts(ctx context.Context, request *v1.ListPartnerAccountsRequest) (*v1.PartnerAccountListReply, error) {
+func (s *PartnerService) ListPartnerAccounts(ctx context.Context, request *v1.ListPartnerAccountsRequest) (*v1.ListPartnerAccountsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -170,10 +170,10 @@ func (s *PartnerService) ListPartnerAccounts(ctx context.Context, request *v1.Li
 	for _, item := range items {
 		data = append(data, partnerAccountToAPI(item))
 	}
-	return &v1.PartnerAccountListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerAccountsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.CreatePartnerAccountRequest) (*v1.PartnerAccountReply, error) {
+func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.CreatePartnerAccountRequest) (*v1.CreatePartnerAccountResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -186,10 +186,10 @@ func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.C
 	if err != nil {
 		return nil, err
 	}
-	return partnerAccountReply(ctx, created), nil
+	return &v1.CreatePartnerAccountResponse{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.UpdatePartnerAccountRequest) (*v1.PartnerAccountReply, error) {
+func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.UpdatePartnerAccountRequest) (*v1.UpdatePartnerAccountResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -203,10 +203,10 @@ func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.U
 	if err != nil {
 		return nil, err
 	}
-	return partnerAccountReply(ctx, updated), nil
+	return &v1.UpdatePartnerAccountResponse{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerContracts(ctx context.Context, request *v1.ListPartnerContractsRequest) (*v1.PartnerContractListReply, error) {
+func (s *PartnerService) ListPartnerContracts(ctx context.Context, request *v1.ListPartnerContractsRequest) (*v1.ListPartnerContractsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -228,10 +228,10 @@ func (s *PartnerService) ListPartnerContracts(ctx context.Context, request *v1.L
 	for _, item := range items {
 		data = append(data, partnerContractToAPI(item))
 	}
-	return &v1.PartnerContractListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerContractsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.CreatePartnerContractRequest) (*v1.PartnerContractReply, error) {
+func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.CreatePartnerContractRequest) (*v1.CreatePartnerContractResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -252,10 +252,10 @@ func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return partnerContractReply(ctx, created), nil
+	return &v1.CreatePartnerContractResponse{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.UpdatePartnerContractRequest) (*v1.PartnerContractReply, error) {
+func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.UpdatePartnerContractRequest) (*v1.UpdatePartnerContractResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -277,10 +277,10 @@ func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return partnerContractReply(ctx, updated), nil
+	return &v1.UpdatePartnerContractResponse{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request *v1.ListPartnerSettlementRulesRequest) (*v1.PartnerSettlementRuleListReply, error) {
+func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request *v1.ListPartnerSettlementRulesRequest) (*v1.ListPartnerSettlementRulesResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -298,10 +298,10 @@ func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request
 	for _, item := range items {
 		data = append(data, partnerSettlementRuleToAPI(item))
 	}
-	return &v1.PartnerSettlementRuleListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerSettlementRulesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, request *v1.CreatePartnerSettlementRuleRequest) (*v1.PartnerSettlementRuleReply, error) {
+func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, request *v1.CreatePartnerSettlementRuleRequest) (*v1.CreatePartnerSettlementRuleResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -315,10 +315,10 @@ func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return partnerSettlementRuleReply(ctx, created), nil
+	return &v1.CreatePartnerSettlementRuleResponse{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, request *v1.UpdatePartnerSettlementRuleRequest) (*v1.PartnerSettlementRuleReply, error) {
+func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, request *v1.UpdatePartnerSettlementRuleRequest) (*v1.UpdatePartnerSettlementRuleResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -333,10 +333,10 @@ func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return partnerSettlementRuleReply(ctx, updated), nil
+	return &v1.UpdatePartnerSettlementRuleResponse{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1.ListPartnerAttachmentsRequest) (*v1.PartnerAttachmentListReply, error) {
+func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1.ListPartnerAttachmentsRequest) (*v1.ListPartnerAttachmentsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -353,10 +353,10 @@ func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1
 	for _, item := range items {
 		data = append(data, partnerAttachmentToAPI(item))
 	}
-	return &v1.PartnerAttachmentListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerAttachmentsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request *v1.RegisterPartnerAttachmentRequest) (*v1.PartnerAttachmentReply, error) {
+func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request *v1.RegisterPartnerAttachmentRequest) (*v1.RegisterPartnerAttachmentResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -371,10 +371,10 @@ func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request 
 	if err != nil {
 		return nil, err
 	}
-	return partnerAttachmentReply(ctx, created), nil
+	return partnerAttachmentResponse(ctx, created), nil
 }
 
-func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.PartnerImportReply, error) {
+func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.ImportPartnersResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -397,10 +397,10 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 	if err != nil {
 		return nil, err
 	}
-	return &v1.PartnerImportReply{Success: true, Code: 0, Message: "OK", CreatedCount: int32(result.CreatedCount), UpdatedCount: int32(result.UpdatedCount), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ImportPartnersResponse{Success: true, Code: 0, Message: "OK", CreatedCount: int32(result.CreatedCount), UpdatedCount: int32(result.UpdatedCount), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportPartnersRequest) (*v1.PartnerExportReply, error) {
+func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportPartnersRequest) (*v1.ExportPartnersResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -430,10 +430,10 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 		}
 		options.Page++
 	}
-	return &v1.PartnerExportReply{Success: true, Code: 0, Message: "OK", Data: items, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ExportPartnersResponse{Success: true, Code: 0, Message: "OK", Data: items, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request *v1.ListPartnerShippingPresetsRequest) (*v1.PartnerShippingPresetListReply, error) {
+func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request *v1.ListPartnerShippingPresetsRequest) (*v1.ListPartnerShippingPresetsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -458,10 +458,10 @@ func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request
 	for _, item := range items {
 		data = append(data, partnerShippingPresetToAPI(item))
 	}
-	return &v1.PartnerShippingPresetListReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerShippingPresetsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.PartnerAuditLogListReply, error) {
+func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.ListPartnerAuditLogsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -482,13 +482,13 @@ func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.L
 	for _, item := range list.Items {
 		data = append(data, partnerAuditLogToAPI(item))
 	}
-	return &v1.PartnerAuditLogListReply{
+	return &v1.ListPartnerAuditLogsResponse{
 		Success: true, Code: 0, Message: "OK", Data: data,
 		Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx),
 	}, nil
 }
 
-func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, request *v1.CreatePartnerShippingPresetRequest) (*v1.PartnerShippingPresetReply, error) {
+func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, request *v1.CreatePartnerShippingPresetRequest) (*v1.CreatePartnerShippingPresetResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -501,10 +501,10 @@ func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return partnerShippingPresetReply(ctx, created), nil
+	return &v1.CreatePartnerShippingPresetResponse{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, request *v1.UpdatePartnerShippingPresetRequest) (*v1.PartnerShippingPresetReply, error) {
+func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, request *v1.UpdatePartnerShippingPresetRequest) (*v1.UpdatePartnerShippingPresetResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -518,7 +518,7 @@ func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return partnerShippingPresetReply(ctx, updated), nil
+	return &v1.UpdatePartnerShippingPresetResponse{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func parseContractDates(start, end string) (time.Time, time.Time, error) {
@@ -600,14 +600,6 @@ func partnerContractStatusToAPI(value biz.PartnerContractStatus) v1.PartnerContr
 	default:
 		return v1.PartnerContractStatus_PARTNER_CONTRACT_STATUS_UNSPECIFIED
 	}
-}
-
-func partnerAccountReply(ctx context.Context, value *biz.PartnerAccount) *v1.PartnerAccountReply {
-	return &v1.PartnerAccountReply{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(value), TraceId: requestmeta.TraceID(ctx)}
-}
-
-func partnerContractReply(ctx context.Context, value *biz.PartnerContract) *v1.PartnerContractReply {
-	return &v1.PartnerContractReply{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(value), TraceId: requestmeta.TraceID(ctx)}
 }
 
 func partnerAccountToAPI(value *biz.PartnerAccount) *v1.PartnerAccount {
@@ -718,10 +710,6 @@ func partnerShippingPresetToAPI(value *biz.PartnerShippingPreset) *v1.PartnerShi
 		result.Payload = &v1.PartnerShippingPreset_Text{Text: &v1.PartnerShippingTextPayload{Content: value.Text.Content, Code: value.Text.Code}}
 	}
 	return result
-}
-
-func partnerShippingPresetReply(ctx context.Context, value *biz.PartnerShippingPreset) *v1.PartnerShippingPresetReply {
-	return &v1.PartnerShippingPresetReply{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(value), TraceId: requestmeta.TraceID(ctx)}
 }
 
 func partnerAuditLogToAPI(value *biz.PartnerAuditLog) *v1.PartnerAuditLog {
@@ -945,10 +933,6 @@ func partnerAssignmentsFromAPI(items []*v1.PartnerAssignmentInput) []*biz.Partne
 	return result
 }
 
-func partnerReply(ctx context.Context, value *biz.Partner) *v1.PartnerReply {
-	return &v1.PartnerReply{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(value), TraceId: requestmeta.TraceID(ctx)}
-}
-
 func partnerToAPI(value *biz.Partner) *v1.Partner {
 	roles := make([]*v1.PartnerRole, 0, len(value.Roles))
 	for _, role := range value.Roles {
@@ -1162,10 +1146,6 @@ func partnerSettlementRuleToAPI(value *biz.PartnerSettlementRule) *v1.PartnerSet
 	return result
 }
 
-func partnerSettlementRuleReply(ctx context.Context, value *biz.PartnerSettlementRule) *v1.PartnerSettlementRuleReply {
-	return &v1.PartnerSettlementRuleReply{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(value), TraceId: requestmeta.TraceID(ctx)}
-}
-
 func partnerAttachmentToAPI(value *biz.PartnerAttachment) *v1.PartnerAttachment {
 	result := &v1.PartnerAttachment{
 		Id: value.ID.String(), PartnerId: value.PartnerID.String(), IdempotencyKey: value.IdempotencyKey, FileName: value.FileName,
@@ -1178,8 +1158,8 @@ func partnerAttachmentToAPI(value *biz.PartnerAttachment) *v1.PartnerAttachment 
 	return result
 }
 
-func partnerAttachmentReply(ctx context.Context, value *biz.PartnerAttachment) *v1.PartnerAttachmentReply {
-	return &v1.PartnerAttachmentReply{Success: true, Code: 0, Message: "OK", Data: partnerAttachmentToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+func partnerAttachmentResponse(ctx context.Context, value *biz.PartnerAttachment) *v1.RegisterPartnerAttachmentResponse {
+	return &v1.RegisterPartnerAttachmentResponse{Success: true, Code: 0, Message: "OK", Data: partnerAttachmentToAPI(value), TraceId: requestmeta.TraceID(ctx)}
 }
 
 func formatOptionalTime(value *time.Time) string {

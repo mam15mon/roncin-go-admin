@@ -8,7 +8,7 @@ export async function adminServiceListAuditLogs(
   params: API.AdminServiceListAuditLogsParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.AdminAuditLogListReply>("/api/v1/admin/audit-logs", {
+  return request<API.ListAuditLogsResponse>("/api/v1/admin/audit-logs", {
     method: "GET",
     params: {
       ...params,
@@ -21,13 +21,10 @@ export async function adminServiceListAuditLogs(
 export async function adminServiceListOrganizations(options?: {
   [key: string]: any;
 }) {
-  return request<API.AdminOrganizationListReply>(
-    "/api/v1/admin/organizations",
-    {
-      method: "GET",
-      ...(options || {}),
-    }
-  );
+  return request<API.ListOrganizationsResponse>("/api/v1/admin/organizations", {
+    method: "GET",
+    ...(options || {}),
+  });
 }
 
 /** 此处后端没有提供注释 POST /api/v1/admin/organizations */
@@ -35,14 +32,17 @@ export async function adminServiceCreateOrganization(
   body: API.CreateOrganizationRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.AdminOrganizationReply>("/api/v1/admin/organizations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.CreateOrganizationResponse>(
+    "/api/v1/admin/organizations",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
 }
 
 /** 此处后端没有提供注释 PUT /api/v1/admin/organizations/${param0} */
@@ -53,7 +53,7 @@ export async function adminServiceUpdateOrganization(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.AdminOrganizationReply>(
+  return request<API.UpdateOrganizationResponse>(
     `/api/v1/admin/organizations/${param0}`,
     {
       method: "PUT",
@@ -74,7 +74,7 @@ export async function adminServiceListOrganizationRoles(
   options?: { [key: string]: any }
 ) {
   const { organizationId: param0, ...queryParams } = params;
-  return request<API.AdminRoleListReply>(
+  return request<API.ListOrganizationRolesResponse>(
     `/api/v1/admin/organizations/${param0}/roles`,
     {
       method: "GET",
@@ -88,7 +88,7 @@ export async function adminServiceListOrganizationRoles(
 export async function adminServiceListPermissions(options?: {
   [key: string]: any;
 }) {
-  return request<API.AdminPermissionListReply>("/api/v1/admin/permissions", {
+  return request<API.ListPermissionsResponse>("/api/v1/admin/permissions", {
     method: "GET",
     ...(options || {}),
   });
@@ -96,7 +96,7 @@ export async function adminServiceListPermissions(options?: {
 
 /** 此处后端没有提供注释 GET /api/v1/admin/roles */
 export async function adminServiceListRoles(options?: { [key: string]: any }) {
-  return request<API.AdminRoleListReply>("/api/v1/admin/roles", {
+  return request<API.ListRolesResponse>("/api/v1/admin/roles", {
     method: "GET",
     ...(options || {}),
   });
@@ -107,7 +107,7 @@ export async function adminServiceCreateRole(
   body: API.CreateRoleRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.AdminRoleReply>("/api/v1/admin/roles", {
+  return request<API.CreateRoleResponse>("/api/v1/admin/roles", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -125,7 +125,7 @@ export async function adminServiceUpdateRole(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.AdminRoleReply>(`/api/v1/admin/roles/${param0}`, {
+  return request<API.UpdateRoleResponse>(`/api/v1/admin/roles/${param0}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export async function adminServiceListUsers(
   params: API.AdminServiceListUsersParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.AdminUserListReply>("/api/v1/admin/users", {
+  return request<API.ListUsersResponse>("/api/v1/admin/users", {
     method: "GET",
     params: {
       ...params,
@@ -156,7 +156,7 @@ export async function adminServiceCreateUser(
   body: API.CreateUserRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.AdminUserReply>("/api/v1/admin/users", {
+  return request<API.CreateUserResponse>("/api/v1/admin/users", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -174,7 +174,7 @@ export async function adminServiceUpdateUser(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.AdminUserReply>(`/api/v1/admin/users/${param0}`, {
+  return request<API.UpdateUserResponse>(`/api/v1/admin/users/${param0}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -193,7 +193,7 @@ export async function adminServiceResetUserPassword(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.AdminOperationReply>(
+  return request<API.ResetUserPasswordResponse>(
     `/api/v1/admin/users/${param0}/password`,
     {
       method: "PUT",
@@ -215,7 +215,7 @@ export async function adminServiceAuthorizeWeComUser(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.AdminUserReply>(
+  return request<API.AuthorizeWeComUserResponse>(
     `/api/v1/admin/users/${param0}/wecom-authorization`,
     {
       method: "POST",

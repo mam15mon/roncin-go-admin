@@ -22,9 +22,9 @@ const OperationOrderMilestoneServiceSetMilestone = "/order.v1.OrderMilestoneServ
 
 type OrderMilestoneServiceHTTPServer interface {
 	// ListMilestones ListMilestones 获取指定订单的里程碑列表。
-	ListMilestones(context.Context, *ListMilestonesRequest) (*OrderMilestoneListReply, error)
+	ListMilestones(context.Context, *ListMilestonesRequest) (*ListMilestonesResponse, error)
 	// SetMilestone SetMilestone 设置指定订单的单个里程碑。
-	SetMilestone(context.Context, *SetMilestoneRequest) (*OrderMilestoneReply, error)
+	SetMilestone(context.Context, *SetMilestoneRequest) (*SetMilestoneResponse, error)
 }
 
 func RegisterOrderMilestoneServiceHTTPServer(s *http.Server, srv OrderMilestoneServiceHTTPServer) {
@@ -50,7 +50,7 @@ func _OrderMilestoneService_ListMilestones0_HTTP_Handler(srv OrderMilestoneServi
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderMilestoneListReply)
+		reply := out.(*ListMilestonesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -72,16 +72,16 @@ func _OrderMilestoneService_SetMilestone0_HTTP_Handler(srv OrderMilestoneService
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderMilestoneReply)
+		reply := out.(*SetMilestoneResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderMilestoneServiceHTTPClient interface {
 	// ListMilestones ListMilestones 获取指定订单的里程碑列表。
-	ListMilestones(ctx context.Context, req *ListMilestonesRequest, opts ...http.CallOption) (rsp *OrderMilestoneListReply, err error)
+	ListMilestones(ctx context.Context, req *ListMilestonesRequest, opts ...http.CallOption) (rsp *ListMilestonesResponse, err error)
 	// SetMilestone SetMilestone 设置指定订单的单个里程碑。
-	SetMilestone(ctx context.Context, req *SetMilestoneRequest, opts ...http.CallOption) (rsp *OrderMilestoneReply, err error)
+	SetMilestone(ctx context.Context, req *SetMilestoneRequest, opts ...http.CallOption) (rsp *SetMilestoneResponse, err error)
 }
 
 type OrderMilestoneServiceHTTPClientImpl struct {
@@ -93,8 +93,8 @@ func NewOrderMilestoneServiceHTTPClient(client *http.Client) OrderMilestoneServi
 }
 
 // ListMilestones ListMilestones 获取指定订单的里程碑列表。
-func (c *OrderMilestoneServiceHTTPClientImpl) ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...http.CallOption) (*OrderMilestoneListReply, error) {
-	var out OrderMilestoneListReply
+func (c *OrderMilestoneServiceHTTPClientImpl) ListMilestones(ctx context.Context, in *ListMilestonesRequest, opts ...http.CallOption) (*ListMilestonesResponse, error) {
+	var out ListMilestonesResponse
 	pattern := "/api/v1/orders/{order_id}/milestones"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -110,8 +110,8 @@ func (c *OrderMilestoneServiceHTTPClientImpl) ListMilestones(ctx context.Context
 }
 
 // SetMilestone SetMilestone 设置指定订单的单个里程碑。
-func (c *OrderMilestoneServiceHTTPClientImpl) SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...http.CallOption) (*OrderMilestoneReply, error) {
-	var out OrderMilestoneReply
+func (c *OrderMilestoneServiceHTTPClientImpl) SetMilestone(ctx context.Context, in *SetMilestoneRequest, opts ...http.CallOption) (*SetMilestoneResponse, error) {
+	var out SetMilestoneResponse
 	pattern := "/api/v1/orders/{order_id}/milestones/{type}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

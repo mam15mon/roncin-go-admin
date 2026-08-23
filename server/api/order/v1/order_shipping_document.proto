@@ -13,13 +13,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
 service OrderShippingDocumentService {
   // ListShippingDocuments 获取指定订单的提单列表。
-  rpc ListShippingDocuments(ListShippingDocumentsRequest) returns (OrderShippingDocumentListReply) {
+  rpc ListShippingDocuments(ListShippingDocumentsRequest) returns (ListShippingDocumentsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/shipping-documents"};
   }
 
   // AddShippingDocument 添加订单提单，初始状态为草稿。
-  rpc AddShippingDocument(AddShippingDocumentRequest) returns (OrderShippingDocumentReply) {
+  rpc AddShippingDocument(AddShippingDocumentRequest) returns (AddShippingDocumentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/shipping-documents"
@@ -28,7 +28,7 @@ service OrderShippingDocumentService {
   }
 
   // UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
-  rpc UpdateShippingDocument(UpdateShippingDocumentRequest) returns (OrderShippingDocumentReply) {
+  rpc UpdateShippingDocument(UpdateShippingDocumentRequest) returns (UpdateShippingDocumentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/shipping-documents/{id}"
@@ -37,7 +37,7 @@ service OrderShippingDocumentService {
   }
 
   // TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
-  rpc TransitionShippingDocumentStatus(TransitionShippingDocumentStatusRequest) returns (OrderShippingDocumentReply) {
+  rpc TransitionShippingDocumentStatus(TransitionShippingDocumentStatusRequest) returns (TransitionShippingDocumentStatusResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.transition" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/shipping-documents/{id}/transition"
@@ -46,7 +46,7 @@ service OrderShippingDocumentService {
   }
 
   // RemoveShippingDocument 移除提单，已放货的提单不可删除。
-  rpc RemoveShippingDocument(RemoveShippingDocumentRequest) returns (OrderShippingDocumentOperationReply) {
+  rpc RemoveShippingDocument(RemoveShippingDocumentRequest) returns (RemoveShippingDocumentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/shipping-documents/{id}"};
   }
@@ -111,8 +111,8 @@ message RemoveShippingDocumentRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderShippingDocumentReply 单条提单响应。
-message OrderShippingDocumentReply {
+// AddShippingDocumentResponse 单条提单响应。
+message AddShippingDocumentResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -120,8 +120,24 @@ message OrderShippingDocumentReply {
   string trace_id = 5;
 }
 
-// OrderShippingDocumentListReply 提单列表响应。
-message OrderShippingDocumentListReply {
+message UpdateShippingDocumentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderShippingDocument data = 4;
+  string trace_id = 5;
+}
+
+message TransitionShippingDocumentStatusResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderShippingDocument data = 4;
+  string trace_id = 5;
+}
+
+// ListShippingDocumentsResponse 提单列表响应。
+message ListShippingDocumentsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -129,8 +145,8 @@ message OrderShippingDocumentListReply {
   string trace_id = 5;
 }
 
-// OrderShippingDocumentOperationReply 提单操作响应。
-message OrderShippingDocumentOperationReply {
+// RemoveShippingDocumentResponse 提单操作响应。
+message RemoveShippingDocumentResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

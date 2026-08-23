@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-kratos/kratos/v3/transport"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type AuthService struct {
@@ -24,7 +23,7 @@ func NewAuthService(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) *AuthSe
 	return &AuthService{usecase: usecase, policy: policy}
 }
 
-func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginReply, error) {
+func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
 	userAgent := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
 		userAgent = tr.RequestHeader().Get("User-Agent")
@@ -34,10 +33,10 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 		return nil, err
 	}
 	s.setCookie(ctx, token, expiresAt, 0)
-	return &v1.LoginReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.LoginResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *emptypb.Empty) (*v1.WeComLoginConfigReply, error) {
+func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *v1.GetWeComLoginConfigRequest) (*v1.GetWeComLoginConfigResponse, error) {
 	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartWeComLogin()
 	if err != nil {
 		return nil, err
@@ -47,10 +46,10 @@ func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *emptypb.Empty)
 		config.AuthorizeUrl = &authorizeURL
 		s.setCookieNamed(ctx, s.wecomStateCookieName(), state, expiresAt, 300)
 	}
-	return &v1.WeComLoginConfigReply{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.GetWeComLoginConfigResponse{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequest) (*v1.LoginReply, error) {
+func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequest) (*v1.WeComLoginResponse, error) {
 	userAgent := ""
 	expectedState := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
@@ -63,10 +62,10 @@ func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequ
 		return nil, err
 	}
 	s.setCookie(ctx, token, expiresAt, 0)
-	return &v1.LoginReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.WeComLoginResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, _ *emptypb.Empty) (*v1.OperationReply, error) {
+func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -75,18 +74,18 @@ func (s *AuthService) Logout(ctx context.Context, _ *emptypb.Empty) (*v1.Operati
 		return nil, err
 	}
 	s.setCookie(ctx, "", time.Unix(1, 0), -1)
-	return &v1.OperationReply{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.LogoutResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) Me(ctx context.Context, _ *emptypb.Empty) (*v1.MeReply, error) {
+func (s *AuthService) Me(ctx context.Context, _ *v1.MeRequest) (*v1.MeResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	return &v1.MeReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.MeResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.SwitchOrganizationRequest) (*v1.MeReply, error) {
+func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.SwitchOrganizationRequest) (*v1.SwitchOrganizationResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -99,7 +98,7 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 	if err != nil {
 		return nil, err
 	}
-	return &v1.MeReply{Success: true, Code: 0, Message: "OK", Data: principalToAPI(next), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.SwitchOrganizationResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(next), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {

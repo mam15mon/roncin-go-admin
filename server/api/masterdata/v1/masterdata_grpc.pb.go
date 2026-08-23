@@ -55,36 +55,36 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MasterDataServiceClient interface {
-	ListItems(ctx context.Context, in *ListMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataItemListReply, error)
-	CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
-	UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error)
-	ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataImportReply, error)
-	ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...grpc.CallOption) (*MasterDataOptionsReply, error)
-	ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*PortListReply, error)
-	CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*PortReply, error)
-	UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*PortReply, error)
-	ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirportListReply, error)
-	CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error)
-	UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error)
-	ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirlineListReply, error)
-	CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error)
-	UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error)
-	ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*ShippingLineListReply, error)
-	CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error)
-	UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error)
-	ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*CurrencyListReply, error)
-	ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*AdministrativeRegionListReply, error)
-	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error)
-	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error)
-	UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error)
-	ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*StatusTemplateListReply, error)
-	CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
-	PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
-	SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error)
-	ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*MilestoneTemplateListReply, error)
-	CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error)
-	PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error)
-	SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error)
+	ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error)
+	CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*CreateItemResponse, error)
+	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error)
+	ImportItems(ctx context.Context, in *ImportItemsRequest, opts ...grpc.CallOption) (*ImportItemsResponse, error)
+	ListOptions(ctx context.Context, in *ListOptionsRequest, opts ...grpc.CallOption) (*ListOptionsResponse, error)
+	ListPorts(ctx context.Context, in *ListPortsRequest, opts ...grpc.CallOption) (*ListPortsResponse, error)
+	CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*CreatePortResponse, error)
+	UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*UpdatePortResponse, error)
+	ListAirports(ctx context.Context, in *ListAirportsRequest, opts ...grpc.CallOption) (*ListAirportsResponse, error)
+	CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*CreateAirportResponse, error)
+	UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*UpdateAirportResponse, error)
+	ListAirlines(ctx context.Context, in *ListAirlinesRequest, opts ...grpc.CallOption) (*ListAirlinesResponse, error)
+	CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*CreateAirlineResponse, error)
+	UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*UpdateAirlineResponse, error)
+	ListShippingLines(ctx context.Context, in *ListShippingLinesRequest, opts ...grpc.CallOption) (*ListShippingLinesResponse, error)
+	CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*CreateShippingLineResponse, error)
+	UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*UpdateShippingLineResponse, error)
+	ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error)
+	ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*ListAdministrativeRegionsResponse, error)
+	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error)
+	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error)
+	UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*UpdateNumberRuleResponse, error)
+	ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*ListStatusTemplatesResponse, error)
+	CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*CreateStatusTemplateResponse, error)
+	PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*PublishStatusTemplateResponse, error)
+	SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*SetDefaultStatusTemplateResponse, error)
+	ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error)
+	CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*CreateMilestoneTemplateResponse, error)
+	PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*PublishMilestoneTemplateResponse, error)
+	SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*SetDefaultMilestoneTemplateResponse, error)
 }
 
 type masterDataServiceClient struct {
@@ -95,9 +95,9 @@ func NewMasterDataServiceClient(cc grpc.ClientConnInterface) MasterDataServiceCl
 	return &masterDataServiceClient{cc}
 }
 
-func (c *masterDataServiceClient) ListItems(ctx context.Context, in *ListMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataItemListReply, error) {
+func (c *masterDataServiceClient) ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MasterDataItemListReply)
+	out := new(ListItemsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -105,9 +105,9 @@ func (c *masterDataServiceClient) ListItems(ctx context.Context, in *ListMasterD
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error) {
+func (c *masterDataServiceClient) CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*CreateItemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MasterDataItemReply)
+	out := new(CreateItemResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -115,9 +115,9 @@ func (c *masterDataServiceClient) CreateItem(ctx context.Context, in *CreateMast
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...grpc.CallOption) (*MasterDataItemReply, error) {
+func (c *masterDataServiceClient) UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MasterDataItemReply)
+	out := new(UpdateItemResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -125,9 +125,9 @@ func (c *masterDataServiceClient) UpdateItem(ctx context.Context, in *UpdateMast
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...grpc.CallOption) (*MasterDataImportReply, error) {
+func (c *masterDataServiceClient) ImportItems(ctx context.Context, in *ImportItemsRequest, opts ...grpc.CallOption) (*ImportItemsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MasterDataImportReply)
+	out := new(ImportItemsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ImportItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -135,9 +135,9 @@ func (c *masterDataServiceClient) ImportItems(ctx context.Context, in *ImportMas
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...grpc.CallOption) (*MasterDataOptionsReply, error) {
+func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListOptionsRequest, opts ...grpc.CallOption) (*ListOptionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MasterDataOptionsReply)
+	out := new(ListOptionsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -145,9 +145,9 @@ func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListMaste
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*PortListReply, error) {
+func (c *masterDataServiceClient) ListPorts(ctx context.Context, in *ListPortsRequest, opts ...grpc.CallOption) (*ListPortsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PortListReply)
+	out := new(ListPortsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListPorts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -155,9 +155,9 @@ func (c *masterDataServiceClient) ListPorts(ctx context.Context, in *ListIndustr
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*PortReply, error) {
+func (c *masterDataServiceClient) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*CreatePortResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PortReply)
+	out := new(CreatePortResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreatePort_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -165,9 +165,9 @@ func (c *masterDataServiceClient) CreatePort(ctx context.Context, in *CreatePort
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*PortReply, error) {
+func (c *masterDataServiceClient) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*UpdatePortResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PortReply)
+	out := new(UpdatePortResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdatePort_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -175,9 +175,9 @@ func (c *masterDataServiceClient) UpdatePort(ctx context.Context, in *UpdatePort
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirportListReply, error) {
+func (c *masterDataServiceClient) ListAirports(ctx context.Context, in *ListAirportsRequest, opts ...grpc.CallOption) (*ListAirportsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirportListReply)
+	out := new(ListAirportsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListAirports_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -185,9 +185,9 @@ func (c *masterDataServiceClient) ListAirports(ctx context.Context, in *ListIndu
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error) {
+func (c *masterDataServiceClient) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...grpc.CallOption) (*CreateAirportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirportReply)
+	out := new(CreateAirportResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateAirport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -195,9 +195,9 @@ func (c *masterDataServiceClient) CreateAirport(ctx context.Context, in *CreateA
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*AirportReply, error) {
+func (c *masterDataServiceClient) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...grpc.CallOption) (*UpdateAirportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirportReply)
+	out := new(UpdateAirportResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateAirport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -205,9 +205,9 @@ func (c *masterDataServiceClient) UpdateAirport(ctx context.Context, in *UpdateA
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*AirlineListReply, error) {
+func (c *masterDataServiceClient) ListAirlines(ctx context.Context, in *ListAirlinesRequest, opts ...grpc.CallOption) (*ListAirlinesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirlineListReply)
+	out := new(ListAirlinesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListAirlines_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -215,9 +215,9 @@ func (c *masterDataServiceClient) ListAirlines(ctx context.Context, in *ListIndu
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error) {
+func (c *masterDataServiceClient) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...grpc.CallOption) (*CreateAirlineResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirlineReply)
+	out := new(CreateAirlineResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateAirline_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -225,9 +225,9 @@ func (c *masterDataServiceClient) CreateAirline(ctx context.Context, in *CreateA
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*AirlineReply, error) {
+func (c *masterDataServiceClient) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...grpc.CallOption) (*UpdateAirlineResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AirlineReply)
+	out := new(UpdateAirlineResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateAirline_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -235,9 +235,9 @@ func (c *masterDataServiceClient) UpdateAirline(ctx context.Context, in *UpdateA
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...grpc.CallOption) (*ShippingLineListReply, error) {
+func (c *masterDataServiceClient) ListShippingLines(ctx context.Context, in *ListShippingLinesRequest, opts ...grpc.CallOption) (*ListShippingLinesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShippingLineListReply)
+	out := new(ListShippingLinesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListShippingLines_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -245,9 +245,9 @@ func (c *masterDataServiceClient) ListShippingLines(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error) {
+func (c *masterDataServiceClient) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*CreateShippingLineResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShippingLineReply)
+	out := new(CreateShippingLineResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateShippingLine_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -255,9 +255,9 @@ func (c *masterDataServiceClient) CreateShippingLine(ctx context.Context, in *Cr
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*ShippingLineReply, error) {
+func (c *masterDataServiceClient) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*UpdateShippingLineResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShippingLineReply)
+	out := new(UpdateShippingLineResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateShippingLine_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -265,9 +265,9 @@ func (c *masterDataServiceClient) UpdateShippingLine(ctx context.Context, in *Up
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*CurrencyListReply, error) {
+func (c *masterDataServiceClient) ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CurrencyListReply)
+	out := new(ListCurrenciesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListCurrencies_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -275,9 +275,9 @@ func (c *masterDataServiceClient) ListCurrencies(ctx context.Context, in *ListCu
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*AdministrativeRegionListReply, error) {
+func (c *masterDataServiceClient) ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*ListAdministrativeRegionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AdministrativeRegionListReply)
+	out := new(ListAdministrativeRegionsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListAdministrativeRegions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -285,9 +285,9 @@ func (c *masterDataServiceClient) ListAdministrativeRegions(ctx context.Context,
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*NumberRuleListReply, error) {
+func (c *masterDataServiceClient) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NumberRuleListReply)
+	out := new(ListNumberRulesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListNumberRules_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -295,9 +295,9 @@ func (c *masterDataServiceClient) ListNumberRules(ctx context.Context, in *ListN
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error) {
+func (c *masterDataServiceClient) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NumberRuleReply)
+	out := new(CreateNumberRuleResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateNumberRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -305,9 +305,9 @@ func (c *masterDataServiceClient) CreateNumberRule(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*NumberRuleReply, error) {
+func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*UpdateNumberRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NumberRuleReply)
+	out := new(UpdateNumberRuleResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_UpdateNumberRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -315,9 +315,9 @@ func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *Upda
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*StatusTemplateListReply, error) {
+func (c *masterDataServiceClient) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*ListStatusTemplatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StatusTemplateListReply)
+	out := new(ListStatusTemplatesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListStatusTemplates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -325,9 +325,9 @@ func (c *masterDataServiceClient) ListStatusTemplates(ctx context.Context, in *L
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+func (c *masterDataServiceClient) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*CreateStatusTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StatusTemplateReply)
+	out := new(CreateStatusTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateStatusTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -335,9 +335,9 @@ func (c *masterDataServiceClient) CreateStatusTemplate(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *masterDataServiceClient) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+func (c *masterDataServiceClient) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*PublishStatusTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StatusTemplateReply)
+	out := new(PublishStatusTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_PublishStatusTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -345,9 +345,9 @@ func (c *masterDataServiceClient) PublishStatusTemplate(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *masterDataServiceClient) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*StatusTemplateReply, error) {
+func (c *masterDataServiceClient) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*SetDefaultStatusTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StatusTemplateReply)
+	out := new(SetDefaultStatusTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_SetDefaultStatusTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -355,9 +355,9 @@ func (c *masterDataServiceClient) SetDefaultStatusTemplate(ctx context.Context, 
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*MilestoneTemplateListReply, error) {
+func (c *masterDataServiceClient) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MilestoneTemplateListReply)
+	out := new(ListMilestoneTemplatesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListMilestoneTemplates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -365,9 +365,9 @@ func (c *masterDataServiceClient) ListMilestoneTemplates(ctx context.Context, in
 	return out, nil
 }
 
-func (c *masterDataServiceClient) CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error) {
+func (c *masterDataServiceClient) CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*CreateMilestoneTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MilestoneTemplateReply)
+	out := new(CreateMilestoneTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_CreateMilestoneTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -375,9 +375,9 @@ func (c *masterDataServiceClient) CreateMilestoneTemplate(ctx context.Context, i
 	return out, nil
 }
 
-func (c *masterDataServiceClient) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error) {
+func (c *masterDataServiceClient) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*PublishMilestoneTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MilestoneTemplateReply)
+	out := new(PublishMilestoneTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_PublishMilestoneTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -385,9 +385,9 @@ func (c *masterDataServiceClient) PublishMilestoneTemplate(ctx context.Context, 
 	return out, nil
 }
 
-func (c *masterDataServiceClient) SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*MilestoneTemplateReply, error) {
+func (c *masterDataServiceClient) SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*SetDefaultMilestoneTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MilestoneTemplateReply)
+	out := new(SetDefaultMilestoneTemplateResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_SetDefaultMilestoneTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -399,36 +399,36 @@ func (c *masterDataServiceClient) SetDefaultMilestoneTemplate(ctx context.Contex
 // All implementations must embed UnimplementedMasterDataServiceServer
 // for forward compatibility.
 type MasterDataServiceServer interface {
-	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
-	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
-	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
-	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
-	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
-	ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error)
-	CreatePort(context.Context, *CreatePortRequest) (*PortReply, error)
-	UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error)
-	ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error)
-	CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error)
-	UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error)
-	ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error)
-	CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error)
-	UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error)
-	ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error)
-	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error)
-	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error)
-	ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error)
-	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*AdministrativeRegionListReply, error)
-	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
-	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
-	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error)
-	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error)
-	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
-	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error)
-	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error)
-	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*MilestoneTemplateListReply, error)
-	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
-	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
-	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
+	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
+	CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error)
+	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
+	ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error)
+	ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error)
+	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
+	CreatePort(context.Context, *CreatePortRequest) (*CreatePortResponse, error)
+	UpdatePort(context.Context, *UpdatePortRequest) (*UpdatePortResponse, error)
+	ListAirports(context.Context, *ListAirportsRequest) (*ListAirportsResponse, error)
+	CreateAirport(context.Context, *CreateAirportRequest) (*CreateAirportResponse, error)
+	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
+	ListAirlines(context.Context, *ListAirlinesRequest) (*ListAirlinesResponse, error)
+	CreateAirline(context.Context, *CreateAirlineRequest) (*CreateAirlineResponse, error)
+	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
+	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
+	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error)
+	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*UpdateShippingLineResponse, error)
+	ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error)
+	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
+	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
+	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
+	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error)
+	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error)
+	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error)
+	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error)
+	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error)
+	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error)
+	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error)
+	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
+	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
 	mustEmbedUnimplementedMasterDataServiceServer()
 }
 
@@ -439,94 +439,94 @@ type MasterDataServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMasterDataServiceServer struct{}
 
-func (UnimplementedMasterDataServiceServer) ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListItems not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateItem not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateItem not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error) {
+func (UnimplementedMasterDataServiceServer) ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ImportItems not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error) {
+func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOptions not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPorts not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreatePort(context.Context, *CreatePortRequest) (*PortReply, error) {
+func (UnimplementedMasterDataServiceServer) CreatePort(context.Context, *CreatePortRequest) (*CreatePortResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePort not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdatePort(context.Context, *UpdatePortRequest) (*UpdatePortResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePort not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListAirports(context.Context, *ListAirportsRequest) (*ListAirportsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAirports not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateAirport(context.Context, *CreateAirportRequest) (*CreateAirportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAirport not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAirport not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListAirlines(context.Context, *ListAirlinesRequest) (*ListAirlinesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAirlines not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateAirline(context.Context, *CreateAirlineRequest) (*CreateAirlineResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAirline not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAirline not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListShippingLines not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateShippingLine not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*UpdateShippingLineResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateShippingLine not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCurrencies not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*AdministrativeRegionListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAdministrativeRegions not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNumberRules not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateNumberRule not implemented")
 }
-func (UnimplementedMasterDataServiceServer) UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error) {
+func (UnimplementedMasterDataServiceServer) UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateNumberRule not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListStatusTemplates not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateStatusTemplate not implemented")
 }
-func (UnimplementedMasterDataServiceServer) PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PublishStatusTemplate not implemented")
 }
-func (UnimplementedMasterDataServiceServer) SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetDefaultStatusTemplate not implemented")
 }
-func (UnimplementedMasterDataServiceServer) ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*MilestoneTemplateListReply, error) {
+func (UnimplementedMasterDataServiceServer) ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMilestoneTemplates not implemented")
 }
-func (UnimplementedMasterDataServiceServer) CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*MilestoneTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMilestoneTemplate not implemented")
 }
-func (UnimplementedMasterDataServiceServer) PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*MilestoneTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PublishMilestoneTemplate not implemented")
 }
-func (UnimplementedMasterDataServiceServer) SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*MilestoneTemplateReply, error) {
+func (UnimplementedMasterDataServiceServer) SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetDefaultMilestoneTemplate not implemented")
 }
 func (UnimplementedMasterDataServiceServer) mustEmbedUnimplementedMasterDataServiceServer() {}
@@ -551,7 +551,7 @@ func RegisterMasterDataServiceServer(s grpc.ServiceRegistrar, srv MasterDataServ
 }
 
 func _MasterDataService_ListItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMasterDataItemsRequest)
+	in := new(ListItemsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -563,13 +563,13 @@ func _MasterDataService_ListItems_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: MasterDataService_ListItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListItems(ctx, req.(*ListMasterDataItemsRequest))
+		return srv.(MasterDataServiceServer).ListItems(ctx, req.(*ListItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterDataService_CreateItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMasterDataItemRequest)
+	in := new(CreateItemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -581,13 +581,13 @@ func _MasterDataService_CreateItem_Handler(srv interface{}, ctx context.Context,
 		FullMethod: MasterDataService_CreateItem_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).CreateItem(ctx, req.(*CreateMasterDataItemRequest))
+		return srv.(MasterDataServiceServer).CreateItem(ctx, req.(*CreateItemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterDataService_UpdateItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateMasterDataItemRequest)
+	in := new(UpdateItemRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -599,13 +599,13 @@ func _MasterDataService_UpdateItem_Handler(srv interface{}, ctx context.Context,
 		FullMethod: MasterDataService_UpdateItem_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).UpdateItem(ctx, req.(*UpdateMasterDataItemRequest))
+		return srv.(MasterDataServiceServer).UpdateItem(ctx, req.(*UpdateItemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterDataService_ImportItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ImportMasterDataItemsRequest)
+	in := new(ImportItemsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -617,13 +617,13 @@ func _MasterDataService_ImportItems_Handler(srv interface{}, ctx context.Context
 		FullMethod: MasterDataService_ImportItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ImportItems(ctx, req.(*ImportMasterDataItemsRequest))
+		return srv.(MasterDataServiceServer).ImportItems(ctx, req.(*ImportItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterDataService_ListOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMasterDataOptionsRequest)
+	in := new(ListOptionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -635,13 +635,13 @@ func _MasterDataService_ListOptions_Handler(srv interface{}, ctx context.Context
 		FullMethod: MasterDataService_ListOptions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListOptions(ctx, req.(*ListMasterDataOptionsRequest))
+		return srv.(MasterDataServiceServer).ListOptions(ctx, req.(*ListOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterDataService_ListPorts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListIndustryReferencesRequest)
+	in := new(ListPortsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -653,7 +653,7 @@ func _MasterDataService_ListPorts_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: MasterDataService_ListPorts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListPorts(ctx, req.(*ListIndustryReferencesRequest))
+		return srv.(MasterDataServiceServer).ListPorts(ctx, req.(*ListPortsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -695,7 +695,7 @@ func _MasterDataService_UpdatePort_Handler(srv interface{}, ctx context.Context,
 }
 
 func _MasterDataService_ListAirports_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListIndustryReferencesRequest)
+	in := new(ListAirportsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -707,7 +707,7 @@ func _MasterDataService_ListAirports_Handler(srv interface{}, ctx context.Contex
 		FullMethod: MasterDataService_ListAirports_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListAirports(ctx, req.(*ListIndustryReferencesRequest))
+		return srv.(MasterDataServiceServer).ListAirports(ctx, req.(*ListAirportsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -749,7 +749,7 @@ func _MasterDataService_UpdateAirport_Handler(srv interface{}, ctx context.Conte
 }
 
 func _MasterDataService_ListAirlines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListIndustryReferencesRequest)
+	in := new(ListAirlinesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -761,7 +761,7 @@ func _MasterDataService_ListAirlines_Handler(srv interface{}, ctx context.Contex
 		FullMethod: MasterDataService_ListAirlines_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListAirlines(ctx, req.(*ListIndustryReferencesRequest))
+		return srv.(MasterDataServiceServer).ListAirlines(ctx, req.(*ListAirlinesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -803,7 +803,7 @@ func _MasterDataService_UpdateAirline_Handler(srv interface{}, ctx context.Conte
 }
 
 func _MasterDataService_ListShippingLines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListIndustryReferencesRequest)
+	in := new(ListShippingLinesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -815,7 +815,7 @@ func _MasterDataService_ListShippingLines_Handler(srv interface{}, ctx context.C
 		FullMethod: MasterDataService_ListShippingLines_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListShippingLines(ctx, req.(*ListIndustryReferencesRequest))
+		return srv.(MasterDataServiceServer).ListShippingLines(ctx, req.(*ListShippingLinesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

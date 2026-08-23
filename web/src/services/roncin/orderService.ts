@@ -8,7 +8,7 @@ export async function orderServiceCheckOrderReference(
   params: API.OrderServiceCheckOrderReferenceParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.OrderReferenceCheckReply>(
+  return request<API.CheckOrderReferenceResponse>(
     "/api/v1/order-reference-check",
     {
       method: "GET",
@@ -26,7 +26,7 @@ export async function orderServiceListOrders(
   params: API.OrderServiceListOrdersParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.OrderListReply>("/api/v1/orders", {
+  return request<API.ListOrdersResponse>("/api/v1/orders", {
     method: "GET",
     params: {
       ...params,
@@ -40,7 +40,7 @@ export async function orderServiceCreateOrder(
   body: API.CreateOrderRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.OrderReply>("/api/v1/orders", {
+  return request<API.CreateOrderResponse>("/api/v1/orders", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export async function orderServiceGetOrder(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.OrderReply>(`/api/v1/orders/${param0}`, {
+  return request<API.GetOrderResponse>(`/api/v1/orders/${param0}`, {
     method: "GET",
     params: { ...queryParams },
     ...(options || {}),
@@ -72,7 +72,7 @@ export async function orderServiceUpdateOrder(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.OrderReply>(`/api/v1/orders/${param0}`, {
+  return request<API.UpdateOrderResponse>(`/api/v1/orders/${param0}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -91,13 +91,16 @@ export async function orderServiceTransitionOrderStatus(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.OrderReply>(`/api/v1/orders/${param0}/status`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    params: { ...queryParams },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.TransitionOrderStatusResponse>(
+    `/api/v1/orders/${param0}/status`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
 }

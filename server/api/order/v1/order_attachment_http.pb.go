@@ -22,9 +22,9 @@ const OperationOrderAttachmentServiceRegisterAttachment = "/order.v1.OrderAttach
 
 type OrderAttachmentServiceHTTPServer interface {
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
-	ListAttachments(context.Context, *ListAttachmentsRequest) (*OrderAttachmentListReply, error)
+	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
-	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*OrderAttachmentReply, error)
+	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
 }
 
 func RegisterOrderAttachmentServiceHTTPServer(s *http.Server, srv OrderAttachmentServiceHTTPServer) {
@@ -50,7 +50,7 @@ func _OrderAttachmentService_ListAttachments0_HTTP_Handler(srv OrderAttachmentSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAttachmentListReply)
+		reply := out.(*ListAttachmentsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -72,16 +72,16 @@ func _OrderAttachmentService_RegisterAttachment0_HTTP_Handler(srv OrderAttachmen
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAttachmentReply)
+		reply := out.(*RegisterAttachmentResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderAttachmentServiceHTTPClient interface {
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
-	ListAttachments(ctx context.Context, req *ListAttachmentsRequest, opts ...http.CallOption) (rsp *OrderAttachmentListReply, err error)
+	ListAttachments(ctx context.Context, req *ListAttachmentsRequest, opts ...http.CallOption) (rsp *ListAttachmentsResponse, err error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
-	RegisterAttachment(ctx context.Context, req *RegisterAttachmentRequest, opts ...http.CallOption) (rsp *OrderAttachmentReply, err error)
+	RegisterAttachment(ctx context.Context, req *RegisterAttachmentRequest, opts ...http.CallOption) (rsp *RegisterAttachmentResponse, err error)
 }
 
 type OrderAttachmentServiceHTTPClientImpl struct {
@@ -93,8 +93,8 @@ func NewOrderAttachmentServiceHTTPClient(client *http.Client) OrderAttachmentSer
 }
 
 // ListAttachments ListAttachments 获取指定订单的附件列表。
-func (c *OrderAttachmentServiceHTTPClientImpl) ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...http.CallOption) (*OrderAttachmentListReply, error) {
-	var out OrderAttachmentListReply
+func (c *OrderAttachmentServiceHTTPClientImpl) ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...http.CallOption) (*ListAttachmentsResponse, error) {
+	var out ListAttachmentsResponse
 	pattern := "/api/v1/orders/{order_id}/attachments"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -110,8 +110,8 @@ func (c *OrderAttachmentServiceHTTPClientImpl) ListAttachments(ctx context.Conte
 }
 
 // RegisterAttachment RegisterAttachment 注册订单附件。
-func (c *OrderAttachmentServiceHTTPClientImpl) RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...http.CallOption) (*OrderAttachmentReply, error) {
-	var out OrderAttachmentReply
+func (c *OrderAttachmentServiceHTTPClientImpl) RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...http.CallOption) (*RegisterAttachmentResponse, error) {
+	var out RegisterAttachmentResponse
 	pattern := "/api/v1/orders/{order_id}/attachments"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

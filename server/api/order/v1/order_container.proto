@@ -12,13 +12,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // 箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。
 service OrderContainerService {
   // ListContainers 获取指定订单的集装箱列表。
-  rpc ListContainers(ListContainersRequest) returns (OrderContainerListReply) {
+  rpc ListContainers(ListContainersRequest) returns (ListContainersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/containers"};
   }
 
   // AddContainer 添加订单集装箱。
-  rpc AddContainer(AddContainerRequest) returns (OrderContainerReply) {
+  rpc AddContainer(AddContainerRequest) returns (AddContainerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/containers"
@@ -27,7 +27,7 @@ service OrderContainerService {
   }
 
   // UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-  rpc UpdateContainer(UpdateContainerRequest) returns (OrderContainerReply) {
+  rpc UpdateContainer(UpdateContainerRequest) returns (UpdateContainerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/containers/{id}"
@@ -36,7 +36,7 @@ service OrderContainerService {
   }
 
   // RemoveContainer 移除订单集装箱。
-  rpc RemoveContainer(RemoveContainerRequest) returns (OrderContainerOperationReply) {
+  rpc RemoveContainer(RemoveContainerRequest) returns (RemoveContainerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "container.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/containers/{id}"};
   }
@@ -93,8 +93,8 @@ message RemoveContainerRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderContainerReply 单条订单集装箱响应。
-message OrderContainerReply {
+// AddContainerResponse 单条订单集装箱响应。
+message AddContainerResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -102,8 +102,16 @@ message OrderContainerReply {
   string trace_id = 5;
 }
 
-// OrderContainerListReply 订单集装箱列表响应。
-message OrderContainerListReply {
+message UpdateContainerResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderContainer data = 4;
+  string trace_id = 5;
+}
+
+// ListContainersResponse 订单集装箱列表响应。
+message ListContainersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -111,8 +119,8 @@ message OrderContainerListReply {
   string trace_id = 5;
 }
 
-// OrderContainerOperationReply 订单集装箱操作响应。
-message OrderContainerOperationReply {
+// RemoveContainerResponse 订单集装箱操作响应。
+message RemoveContainerResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

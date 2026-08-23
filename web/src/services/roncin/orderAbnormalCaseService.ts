@@ -9,7 +9,7 @@ export async function orderAbnormalCaseServiceListAbnormalCases(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderAbnormalCaseListReply>(
+  return request<API.ListAbnormalCasesResponse>(
     `/api/v1/orders/${param0}/abnormal-cases`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderAbnormalCaseServiceMarkAbnormalCase(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderAbnormalCaseReply>(
+  return request<API.MarkAbnormalCaseResponse>(
     `/api/v1/orders/${param0}/abnormal-cases`,
     {
       method: "POST",
@@ -48,7 +48,7 @@ export async function orderAbnormalCaseServiceRemoveAbnormalCase(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderAbnormalCaseOperationReply>(
+  return request<API.RemoveAbnormalCaseResponse>(
     `/api/v1/orders/${param0}/abnormal-cases/${param1}`,
     {
       method: "DELETE",
@@ -66,7 +66,7 @@ export async function orderAbnormalCaseServiceResolveAbnormalCase(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderAbnormalCaseReply>(
+  return request<API.ResolveAbnormalCaseResponse>(
     `/api/v1/orders/${param0}/abnormal-cases/${param1}/resolve`,
     {
       method: "POST",

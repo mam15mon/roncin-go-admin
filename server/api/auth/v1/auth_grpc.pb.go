@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -34,12 +33,12 @@ const (
 //
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceClient interface {
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
-	GetWeComLoginConfig(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WeComLoginConfigReply, error)
-	WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
-	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OperationReply, error)
-	Me(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MeReply, error)
-	SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*MeReply, error)
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...grpc.CallOption) (*GetWeComLoginConfigResponse, error)
+	WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*WeComLoginResponse, error)
+	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
+	Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error)
+	SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*SwitchOrganizationResponse, error)
 }
 
 type authServiceClient struct {
@@ -50,9 +49,9 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
+func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LoginReply)
+	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -60,9 +59,9 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	return out, nil
 }
 
-func (c *authServiceClient) GetWeComLoginConfig(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*WeComLoginConfigReply, error) {
+func (c *authServiceClient) GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...grpc.CallOption) (*GetWeComLoginConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WeComLoginConfigReply)
+	out := new(GetWeComLoginConfigResponse)
 	err := c.cc.Invoke(ctx, AuthService_GetWeComLoginConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +69,9 @@ func (c *authServiceClient) GetWeComLoginConfig(ctx context.Context, in *emptypb
 	return out, nil
 }
 
-func (c *authServiceClient) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
+func (c *authServiceClient) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*WeComLoginResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LoginReply)
+	out := new(WeComLoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_WeComLogin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,9 +79,9 @@ func (c *authServiceClient) WeComLogin(ctx context.Context, in *WeComLoginReques
 	return out, nil
 }
 
-func (c *authServiceClient) Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OperationReply, error) {
+func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OperationReply)
+	out := new(LogoutResponse)
 	err := c.cc.Invoke(ctx, AuthService_Logout_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -90,9 +89,9 @@ func (c *authServiceClient) Logout(ctx context.Context, in *emptypb.Empty, opts 
 	return out, nil
 }
 
-func (c *authServiceClient) Me(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MeReply, error) {
+func (c *authServiceClient) Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MeReply)
+	out := new(MeResponse)
 	err := c.cc.Invoke(ctx, AuthService_Me_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -100,9 +99,9 @@ func (c *authServiceClient) Me(ctx context.Context, in *emptypb.Empty, opts ...g
 	return out, nil
 }
 
-func (c *authServiceClient) SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*MeReply, error) {
+func (c *authServiceClient) SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*SwitchOrganizationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MeReply)
+	out := new(SwitchOrganizationResponse)
 	err := c.cc.Invoke(ctx, AuthService_SwitchOrganization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -116,12 +115,12 @@ func (c *authServiceClient) SwitchOrganization(ctx context.Context, in *SwitchOr
 //
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceServer interface {
-	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	GetWeComLoginConfig(context.Context, *emptypb.Empty) (*WeComLoginConfigReply, error)
-	WeComLogin(context.Context, *WeComLoginRequest) (*LoginReply, error)
-	Logout(context.Context, *emptypb.Empty) (*OperationReply, error)
-	Me(context.Context, *emptypb.Empty) (*MeReply, error)
-	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*MeReply, error)
+	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
+	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
+	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	Me(context.Context, *MeRequest) (*MeResponse, error)
+	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -132,22 +131,22 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
-func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginReply, error) {
+func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedAuthServiceServer) GetWeComLoginConfig(context.Context, *emptypb.Empty) (*WeComLoginConfigReply, error) {
+func (UnimplementedAuthServiceServer) GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWeComLoginConfig not implemented")
 }
-func (UnimplementedAuthServiceServer) WeComLogin(context.Context, *WeComLoginRequest) (*LoginReply, error) {
+func (UnimplementedAuthServiceServer) WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method WeComLogin not implemented")
 }
-func (UnimplementedAuthServiceServer) Logout(context.Context, *emptypb.Empty) (*OperationReply, error) {
+func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
 }
-func (UnimplementedAuthServiceServer) Me(context.Context, *emptypb.Empty) (*MeReply, error) {
+func (UnimplementedAuthServiceServer) Me(context.Context, *MeRequest) (*MeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Me not implemented")
 }
-func (UnimplementedAuthServiceServer) SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*MeReply, error) {
+func (UnimplementedAuthServiceServer) SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SwitchOrganization not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
@@ -190,7 +189,7 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _AuthService_GetWeComLoginConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(GetWeComLoginConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -202,7 +201,7 @@ func _AuthService_GetWeComLoginConfig_Handler(srv interface{}, ctx context.Conte
 		FullMethod: AuthService_GetWeComLoginConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetWeComLoginConfig(ctx, req.(*emptypb.Empty))
+		return srv.(AuthServiceServer).GetWeComLoginConfig(ctx, req.(*GetWeComLoginConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -226,7 +225,7 @@ func _AuthService_WeComLogin_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(LogoutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -238,13 +237,13 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: AuthService_Logout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Logout(ctx, req.(*emptypb.Empty))
+		return srv.(AuthServiceServer).Logout(ctx, req.(*LogoutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_Me_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(MeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -256,7 +255,7 @@ func _AuthService_Me_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: AuthService_Me_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Me(ctx, req.(*emptypb.Empty))
+		return srv.(AuthServiceServer).Me(ctx, req.(*MeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

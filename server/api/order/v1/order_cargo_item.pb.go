@@ -432,8 +432,8 @@ func (x *RemoveCargoItemRequest) GetId() string {
 	return ""
 }
 
-// OrderCargoItemReply 单条订单货物明细响应。
-type OrderCargoItemReply struct {
+// AddCargoItemResponse 单条订单货物明细响应。
+type AddCargoItemResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -444,20 +444,20 @@ type OrderCargoItemReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderCargoItemReply) Reset() {
-	*x = OrderCargoItemReply{}
+func (x *AddCargoItemResponse) Reset() {
+	*x = AddCargoItemResponse{}
 	mi := &file_order_v1_order_cargo_item_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderCargoItemReply) String() string {
+func (x *AddCargoItemResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderCargoItemReply) ProtoMessage() {}
+func (*AddCargoItemResponse) ProtoMessage() {}
 
-func (x *OrderCargoItemReply) ProtoReflect() protoreflect.Message {
+func (x *AddCargoItemResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_cargo_item_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -469,48 +469,124 @@ func (x *OrderCargoItemReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderCargoItemReply.ProtoReflect.Descriptor instead.
-func (*OrderCargoItemReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddCargoItemResponse.ProtoReflect.Descriptor instead.
+func (*AddCargoItemResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *OrderCargoItemReply) GetSuccess() bool {
+func (x *AddCargoItemResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderCargoItemReply) GetCode() int32 {
+func (x *AddCargoItemResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderCargoItemReply) GetMessage() string {
+func (x *AddCargoItemResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderCargoItemReply) GetData() *OrderCargoItem {
+func (x *AddCargoItemResponse) GetData() *OrderCargoItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderCargoItemReply) GetTraceId() string {
+func (x *AddCargoItemResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderCargoItemListReply 订单货物明细列表响应。
-type OrderCargoItemListReply struct {
+type UpdateCargoItemResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderCargoItem        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateCargoItemResponse) Reset() {
+	*x = UpdateCargoItemResponse{}
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateCargoItemResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCargoItemResponse) ProtoMessage() {}
+
+func (x *UpdateCargoItemResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCargoItemResponse.ProtoReflect.Descriptor instead.
+func (*UpdateCargoItemResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateCargoItemResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateCargoItemResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateCargoItemResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateCargoItemResponse) GetData() *OrderCargoItem {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateCargoItemResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListCargoItemsResponse 订单货物明细列表响应。
+type ListCargoItemsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -521,21 +597,21 @@ type OrderCargoItemListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderCargoItemListReply) Reset() {
-	*x = OrderCargoItemListReply{}
-	mi := &file_order_v1_order_cargo_item_proto_msgTypes[6]
+func (x *ListCargoItemsResponse) Reset() {
+	*x = ListCargoItemsResponse{}
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderCargoItemListReply) String() string {
+func (x *ListCargoItemsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderCargoItemListReply) ProtoMessage() {}
+func (*ListCargoItemsResponse) ProtoMessage() {}
 
-func (x *OrderCargoItemListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_cargo_item_proto_msgTypes[6]
+func (x *ListCargoItemsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -546,48 +622,48 @@ func (x *OrderCargoItemListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderCargoItemListReply.ProtoReflect.Descriptor instead.
-func (*OrderCargoItemListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use ListCargoItemsResponse.ProtoReflect.Descriptor instead.
+func (*ListCargoItemsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *OrderCargoItemListReply) GetSuccess() bool {
+func (x *ListCargoItemsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderCargoItemListReply) GetCode() int32 {
+func (x *ListCargoItemsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderCargoItemListReply) GetMessage() string {
+func (x *ListCargoItemsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderCargoItemListReply) GetData() []*OrderCargoItem {
+func (x *ListCargoItemsResponse) GetData() []*OrderCargoItem {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderCargoItemListReply) GetTraceId() string {
+func (x *ListCargoItemsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderCargoItemOperationReply 订单货物明细操作响应。
-type OrderCargoItemOperationReply struct {
+// RemoveCargoItemResponse 订单货物明细操作响应。
+type RemoveCargoItemResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -597,21 +673,21 @@ type OrderCargoItemOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderCargoItemOperationReply) Reset() {
-	*x = OrderCargoItemOperationReply{}
-	mi := &file_order_v1_order_cargo_item_proto_msgTypes[7]
+func (x *RemoveCargoItemResponse) Reset() {
+	*x = RemoveCargoItemResponse{}
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderCargoItemOperationReply) String() string {
+func (x *RemoveCargoItemResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderCargoItemOperationReply) ProtoMessage() {}
+func (*RemoveCargoItemResponse) ProtoMessage() {}
 
-func (x *OrderCargoItemOperationReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_cargo_item_proto_msgTypes[7]
+func (x *RemoveCargoItemResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_cargo_item_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -622,33 +698,33 @@ func (x *OrderCargoItemOperationReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderCargoItemOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderCargoItemOperationReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use RemoveCargoItemResponse.ProtoReflect.Descriptor instead.
+func (*RemoveCargoItemResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_cargo_item_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *OrderCargoItemOperationReply) GetSuccess() bool {
+func (x *RemoveCargoItemResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderCargoItemOperationReply) GetCode() int32 {
+func (x *RemoveCargoItemResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderCargoItemOperationReply) GetMessage() string {
+func (x *RemoveCargoItemResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderCargoItemOperationReply) GetTraceId() string {
+func (x *RemoveCargoItemResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -707,29 +783,35 @@ const file_order_v1_order_cargo_item_proto_rawDesc = "" +
 	"\x05_note\"M\n" +
 	"\x16RemoveCargoItemRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa6\x01\n" +
-	"\x13OrderCargoItemReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa7\x01\n" +
+	"\x14AddCargoItemResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderCargoItemR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x01\n" +
-	"\x17OrderCargoItemListReply\x12\x18\n" +
+	"\x17UpdateCargoItemResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
+	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderCargoItemR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa9\x01\n" +
+	"\x16ListCargoItemsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderCargoItemR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x01\n" +
-	"\x1cOrderCargoItemOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"|\n" +
+	"\x17RemoveCargoItemResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xa6\x05\n" +
-	"\x15OrderCargoItemService\x12\x9c\x01\n" +
-	"\x0eListCargoItems\x12\x1f.order.v1.ListCargoItemsRequest\x1a!.order.v1.OrderCargoItemListReply\"F\x82\xb5\x18\x15\b\x04\x1a\x0fcargo_item.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/cargo-items\x12\x99\x01\n" +
-	"\fAddCargoItem\x12\x1d.order.v1.AddCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"K\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/cargo-items\x12\xa4\x01\n" +
-	"\x0fUpdateCargoItem\x12 .order.v1.UpdateCargoItemRequest\x1a\x1d.order.v1.OrderCargoItemReply\"P\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.update \x02\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/orders/{order_id}/cargo-items/{id}\x12\xaa\x01\n" +
-	"\x0fRemoveCargoItem\x12 .order.v1.RemoveCargoItemRequest\x1a&.order.v1.OrderCargoItemOperationReply\"M\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.delete \x02\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/cargo-items/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xa5\x05\n" +
+	"\x15OrderCargoItemService\x12\x9b\x01\n" +
+	"\x0eListCargoItems\x12\x1f.order.v1.ListCargoItemsRequest\x1a .order.v1.ListCargoItemsResponse\"F\x82\xb5\x18\x15\b\x04\x1a\x0fcargo_item.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/cargo-items\x12\x9a\x01\n" +
+	"\fAddCargoItem\x12\x1d.order.v1.AddCargoItemRequest\x1a\x1e.order.v1.AddCargoItemResponse\"K\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/cargo-items\x12\xa8\x01\n" +
+	"\x0fUpdateCargoItem\x12 .order.v1.UpdateCargoItemRequest\x1a!.order.v1.UpdateCargoItemResponse\"P\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.update \x02\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/orders/{order_id}/cargo-items/{id}\x12\xa5\x01\n" +
+	"\x0fRemoveCargoItem\x12 .order.v1.RemoveCargoItemRequest\x1a!.order.v1.RemoveCargoItemResponse\"M\x82\xb5\x18\x17\b\x04\x1a\x11cargo_item.delete \x02\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/cargo-items/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_cargo_item_proto_rawDescOnce sync.Once
@@ -743,33 +825,35 @@ func file_order_v1_order_cargo_item_proto_rawDescGZIP() []byte {
 	return file_order_v1_order_cargo_item_proto_rawDescData
 }
 
-var file_order_v1_order_cargo_item_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_order_v1_order_cargo_item_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_order_v1_order_cargo_item_proto_goTypes = []any{
-	(*OrderCargoItem)(nil),               // 0: order.v1.OrderCargoItem
-	(*ListCargoItemsRequest)(nil),        // 1: order.v1.ListCargoItemsRequest
-	(*AddCargoItemRequest)(nil),          // 2: order.v1.AddCargoItemRequest
-	(*UpdateCargoItemRequest)(nil),       // 3: order.v1.UpdateCargoItemRequest
-	(*RemoveCargoItemRequest)(nil),       // 4: order.v1.RemoveCargoItemRequest
-	(*OrderCargoItemReply)(nil),          // 5: order.v1.OrderCargoItemReply
-	(*OrderCargoItemListReply)(nil),      // 6: order.v1.OrderCargoItemListReply
-	(*OrderCargoItemOperationReply)(nil), // 7: order.v1.OrderCargoItemOperationReply
+	(*OrderCargoItem)(nil),          // 0: order.v1.OrderCargoItem
+	(*ListCargoItemsRequest)(nil),   // 1: order.v1.ListCargoItemsRequest
+	(*AddCargoItemRequest)(nil),     // 2: order.v1.AddCargoItemRequest
+	(*UpdateCargoItemRequest)(nil),  // 3: order.v1.UpdateCargoItemRequest
+	(*RemoveCargoItemRequest)(nil),  // 4: order.v1.RemoveCargoItemRequest
+	(*AddCargoItemResponse)(nil),    // 5: order.v1.AddCargoItemResponse
+	(*UpdateCargoItemResponse)(nil), // 6: order.v1.UpdateCargoItemResponse
+	(*ListCargoItemsResponse)(nil),  // 7: order.v1.ListCargoItemsResponse
+	(*RemoveCargoItemResponse)(nil), // 8: order.v1.RemoveCargoItemResponse
 }
 var file_order_v1_order_cargo_item_proto_depIdxs = []int32{
-	0, // 0: order.v1.OrderCargoItemReply.data:type_name -> order.v1.OrderCargoItem
-	0, // 1: order.v1.OrderCargoItemListReply.data:type_name -> order.v1.OrderCargoItem
-	1, // 2: order.v1.OrderCargoItemService.ListCargoItems:input_type -> order.v1.ListCargoItemsRequest
-	2, // 3: order.v1.OrderCargoItemService.AddCargoItem:input_type -> order.v1.AddCargoItemRequest
-	3, // 4: order.v1.OrderCargoItemService.UpdateCargoItem:input_type -> order.v1.UpdateCargoItemRequest
-	4, // 5: order.v1.OrderCargoItemService.RemoveCargoItem:input_type -> order.v1.RemoveCargoItemRequest
-	6, // 6: order.v1.OrderCargoItemService.ListCargoItems:output_type -> order.v1.OrderCargoItemListReply
-	5, // 7: order.v1.OrderCargoItemService.AddCargoItem:output_type -> order.v1.OrderCargoItemReply
-	5, // 8: order.v1.OrderCargoItemService.UpdateCargoItem:output_type -> order.v1.OrderCargoItemReply
-	7, // 9: order.v1.OrderCargoItemService.RemoveCargoItem:output_type -> order.v1.OrderCargoItemOperationReply
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: order.v1.AddCargoItemResponse.data:type_name -> order.v1.OrderCargoItem
+	0, // 1: order.v1.UpdateCargoItemResponse.data:type_name -> order.v1.OrderCargoItem
+	0, // 2: order.v1.ListCargoItemsResponse.data:type_name -> order.v1.OrderCargoItem
+	1, // 3: order.v1.OrderCargoItemService.ListCargoItems:input_type -> order.v1.ListCargoItemsRequest
+	2, // 4: order.v1.OrderCargoItemService.AddCargoItem:input_type -> order.v1.AddCargoItemRequest
+	3, // 5: order.v1.OrderCargoItemService.UpdateCargoItem:input_type -> order.v1.UpdateCargoItemRequest
+	4, // 6: order.v1.OrderCargoItemService.RemoveCargoItem:input_type -> order.v1.RemoveCargoItemRequest
+	7, // 7: order.v1.OrderCargoItemService.ListCargoItems:output_type -> order.v1.ListCargoItemsResponse
+	5, // 8: order.v1.OrderCargoItemService.AddCargoItem:output_type -> order.v1.AddCargoItemResponse
+	6, // 9: order.v1.OrderCargoItemService.UpdateCargoItem:output_type -> order.v1.UpdateCargoItemResponse
+	8, // 10: order.v1.OrderCargoItemService.RemoveCargoItem:output_type -> order.v1.RemoveCargoItemResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_cargo_item_proto_init() }
@@ -786,7 +870,7 @@ func file_order_v1_order_cargo_item_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_cargo_item_proto_rawDesc), len(file_order_v1_order_cargo_item_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

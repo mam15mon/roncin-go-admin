@@ -47,7 +47,7 @@ export default function ShippingLinesPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '船司主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.ShippingLineReply) => {
+  const saveResponse = (response: API.CreateShippingLineResponse | API.UpdateShippingLineResponse) => {
     if (!response.data) throw new Error('船司响应缺少数据');
     const saved = mapShippingLine(response.data);
     setData((current) => {

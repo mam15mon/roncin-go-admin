@@ -30,9 +30,9 @@ const (
 // OrderAttachmentService 订单附件服务。
 type OrderAttachmentServiceClient interface {
 	// ListAttachments 获取指定订单的附件列表。
-	ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*OrderAttachmentListReply, error)
+	ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*ListAttachmentsResponse, error)
 	// RegisterAttachment 注册订单附件。
-	RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*OrderAttachmentReply, error)
+	RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*RegisterAttachmentResponse, error)
 }
 
 type orderAttachmentServiceClient struct {
@@ -43,9 +43,9 @@ func NewOrderAttachmentServiceClient(cc grpc.ClientConnInterface) OrderAttachmen
 	return &orderAttachmentServiceClient{cc}
 }
 
-func (c *orderAttachmentServiceClient) ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*OrderAttachmentListReply, error) {
+func (c *orderAttachmentServiceClient) ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*ListAttachmentsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAttachmentListReply)
+	out := new(ListAttachmentsResponse)
 	err := c.cc.Invoke(ctx, OrderAttachmentService_ListAttachments_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -53,9 +53,9 @@ func (c *orderAttachmentServiceClient) ListAttachments(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *orderAttachmentServiceClient) RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*OrderAttachmentReply, error) {
+func (c *orderAttachmentServiceClient) RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*RegisterAttachmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderAttachmentReply)
+	out := new(RegisterAttachmentResponse)
 	err := c.cc.Invoke(ctx, OrderAttachmentService_RegisterAttachment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *orderAttachmentServiceClient) RegisterAttachment(ctx context.Context, i
 // OrderAttachmentService 订单附件服务。
 type OrderAttachmentServiceServer interface {
 	// ListAttachments 获取指定订单的附件列表。
-	ListAttachments(context.Context, *ListAttachmentsRequest) (*OrderAttachmentListReply, error)
+	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
 	// RegisterAttachment 注册订单附件。
-	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*OrderAttachmentReply, error)
+	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
 	mustEmbedUnimplementedOrderAttachmentServiceServer()
 }
 
@@ -83,10 +83,10 @@ type OrderAttachmentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderAttachmentServiceServer struct{}
 
-func (UnimplementedOrderAttachmentServiceServer) ListAttachments(context.Context, *ListAttachmentsRequest) (*OrderAttachmentListReply, error) {
+func (UnimplementedOrderAttachmentServiceServer) ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAttachments not implemented")
 }
-func (UnimplementedOrderAttachmentServiceServer) RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*OrderAttachmentReply, error) {
+func (UnimplementedOrderAttachmentServiceServer) RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterAttachment not implemented")
 }
 func (UnimplementedOrderAttachmentServiceServer) mustEmbedUnimplementedOrderAttachmentServiceServer() {

@@ -9,7 +9,7 @@ export async function orderReleasePodServiceListReleasePods(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderReleasePodListReply>(
+  return request<API.ListReleasePodsResponse>(
     `/api/v1/orders/${param0}/release-pods`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderReleasePodServiceAddReleasePod(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderReleasePodReply>(
+  return request<API.AddReleasePodResponse>(
     `/api/v1/orders/${param0}/release-pods`,
     {
       method: "POST",
@@ -49,7 +49,7 @@ export async function orderReleasePodServiceUpdateReleasePod(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderReleasePodReply>(
+  return request<API.UpdateReleasePodResponse>(
     `/api/v1/orders/${param0}/release-pods/${param1}`,
     {
       method: "PUT",
@@ -70,7 +70,7 @@ export async function orderReleasePodServiceRemoveReleasePod(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderReleasePodOperationReply>(
+  return request<API.RemoveReleasePodResponse>(
     `/api/v1/orders/${param0}/release-pods/${param1}`,
     {
       method: "DELETE",
@@ -89,7 +89,7 @@ export async function orderReleasePodServiceTransitionReleasePodStatus(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderReleasePodReply>(
+  return request<API.TransitionReleasePodStatusResponse>(
     `/api/v1/orders/${param0}/release-pods/${param1}/transition`,
     {
       method: "POST",

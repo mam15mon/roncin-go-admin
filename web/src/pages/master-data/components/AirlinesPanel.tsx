@@ -43,7 +43,7 @@ export default function AirlinesPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '航司主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.AirlineReply) => {
+  const saveResponse = (response: API.CreateAirlineResponse | API.UpdateAirlineResponse) => {
     if (!response.data) throw new Error('航司响应缺少数据');
     const saved = mapAirline(response.data);
     setData((current) => {

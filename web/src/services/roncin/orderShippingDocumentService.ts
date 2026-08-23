@@ -9,7 +9,7 @@ export async function orderShippingDocumentServiceListShippingDocuments(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderShippingDocumentListReply>(
+  return request<API.ListShippingDocumentsResponse>(
     `/api/v1/orders/${param0}/shipping-documents`,
     {
       method: "GET",
@@ -27,7 +27,7 @@ export async function orderShippingDocumentServiceAddShippingDocument(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, ...queryParams } = params;
-  return request<API.OrderShippingDocumentReply>(
+  return request<API.AddShippingDocumentResponse>(
     `/api/v1/orders/${param0}/shipping-documents`,
     {
       method: "POST",
@@ -49,7 +49,7 @@ export async function orderShippingDocumentServiceUpdateShippingDocument(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderShippingDocumentReply>(
+  return request<API.UpdateShippingDocumentResponse>(
     `/api/v1/orders/${param0}/shipping-documents/${param1}`,
     {
       method: "PUT",
@@ -70,7 +70,7 @@ export async function orderShippingDocumentServiceRemoveShippingDocument(
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderShippingDocumentOperationReply>(
+  return request<API.RemoveShippingDocumentResponse>(
     `/api/v1/orders/${param0}/shipping-documents/${param1}`,
     {
       method: "DELETE",
@@ -88,7 +88,7 @@ export async function orderShippingDocumentServiceTransitionShippingDocumentStat
   options?: { [key: string]: any }
 ) {
   const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.OrderShippingDocumentReply>(
+  return request<API.TransitionShippingDocumentStatusResponse>(
     `/api/v1/orders/${param0}/shipping-documents/${param1}/transition`,
     {
       method: "POST",

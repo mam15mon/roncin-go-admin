@@ -270,8 +270,8 @@ func (x *SetMilestoneRequest) GetClearOccurredAt() bool {
 	return false
 }
 
-// OrderMilestoneReply 单条订单里程碑响应。
-type OrderMilestoneReply struct {
+// SetMilestoneResponse 单条订单里程碑响应。
+type SetMilestoneResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -282,20 +282,20 @@ type OrderMilestoneReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderMilestoneReply) Reset() {
-	*x = OrderMilestoneReply{}
+func (x *SetMilestoneResponse) Reset() {
+	*x = SetMilestoneResponse{}
 	mi := &file_order_v1_milestone_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderMilestoneReply) String() string {
+func (x *SetMilestoneResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderMilestoneReply) ProtoMessage() {}
+func (*SetMilestoneResponse) ProtoMessage() {}
 
-func (x *OrderMilestoneReply) ProtoReflect() protoreflect.Message {
+func (x *SetMilestoneResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_milestone_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -307,48 +307,48 @@ func (x *OrderMilestoneReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderMilestoneReply.ProtoReflect.Descriptor instead.
-func (*OrderMilestoneReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use SetMilestoneResponse.ProtoReflect.Descriptor instead.
+func (*SetMilestoneResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_milestone_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *OrderMilestoneReply) GetSuccess() bool {
+func (x *SetMilestoneResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderMilestoneReply) GetCode() int32 {
+func (x *SetMilestoneResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderMilestoneReply) GetMessage() string {
+func (x *SetMilestoneResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderMilestoneReply) GetData() *OrderMilestone {
+func (x *SetMilestoneResponse) GetData() *OrderMilestone {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderMilestoneReply) GetTraceId() string {
+func (x *SetMilestoneResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderMilestoneListReply 订单里程碑列表响应。
-type OrderMilestoneListReply struct {
+// ListMilestonesResponse 订单里程碑列表响应。
+type ListMilestonesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -359,20 +359,20 @@ type OrderMilestoneListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderMilestoneListReply) Reset() {
-	*x = OrderMilestoneListReply{}
+func (x *ListMilestonesResponse) Reset() {
+	*x = ListMilestonesResponse{}
 	mi := &file_order_v1_milestone_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderMilestoneListReply) String() string {
+func (x *ListMilestonesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderMilestoneListReply) ProtoMessage() {}
+func (*ListMilestonesResponse) ProtoMessage() {}
 
-func (x *OrderMilestoneListReply) ProtoReflect() protoreflect.Message {
+func (x *ListMilestonesResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_milestone_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -384,40 +384,40 @@ func (x *OrderMilestoneListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderMilestoneListReply.ProtoReflect.Descriptor instead.
-func (*OrderMilestoneListReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListMilestonesResponse.ProtoReflect.Descriptor instead.
+func (*ListMilestonesResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_milestone_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *OrderMilestoneListReply) GetSuccess() bool {
+func (x *ListMilestonesResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderMilestoneListReply) GetCode() int32 {
+func (x *ListMilestonesResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderMilestoneListReply) GetMessage() string {
+func (x *ListMilestonesResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderMilestoneListReply) GetData() []*OrderMilestone {
+func (x *ListMilestonesResponse) GetData() []*OrderMilestone {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderMilestoneListReply) GetTraceId() string {
+func (x *ListMilestonesResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -462,22 +462,22 @@ const file_order_v1_milestone_proto_rawDesc = "" +
 	"\x11clear_occurred_at\x18\x06 \x01(\bH\x02R\x0fclearOccurredAt\x88\x01\x01B\x0e\n" +
 	"\f_occurred_atB\a\n" +
 	"\x05_noteB\x14\n" +
-	"\x12_clear_occurred_at\"\xa6\x01\n" +
-	"\x13OrderMilestoneReply\x12\x18\n" +
+	"\x12_clear_occurred_at\"\xa7\x01\n" +
+	"\x14SetMilestoneResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderMilestoneR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x01\n" +
-	"\x17OrderMilestoneListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa9\x01\n" +
+	"\x16ListMilestonesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderMilestoneR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd2\x02\n" +
-	"\x15OrderMilestoneService\x12\x9a\x01\n" +
-	"\x0eListMilestones\x12\x1f.order.v1.ListMilestonesRequest\x1a!.order.v1.OrderMilestoneListReply\"D\x82\xb5\x18\x14\b\x04\x1a\x0emilestone.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/milestones\x12\x9b\x01\n" +
-	"\fSetMilestone\x12\x1d.order.v1.SetMilestoneRequest\x1a\x1d.order.v1.OrderMilestoneReply\"M\x82\xb5\x18\x13\b\x04\x1a\rmilestone.set \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/milestones/{type}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x15OrderMilestoneService\x12\x99\x01\n" +
+	"\x0eListMilestones\x12\x1f.order.v1.ListMilestonesRequest\x1a .order.v1.ListMilestonesResponse\"D\x82\xb5\x18\x14\b\x04\x1a\x0emilestone.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/milestones\x12\x9c\x01\n" +
+	"\fSetMilestone\x12\x1d.order.v1.SetMilestoneRequest\x1a\x1e.order.v1.SetMilestoneResponse\"M\x82\xb5\x18\x13\b\x04\x1a\rmilestone.set \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/milestones/{type}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_milestone_proto_rawDescOnce sync.Once
@@ -493,19 +493,19 @@ func file_order_v1_milestone_proto_rawDescGZIP() []byte {
 
 var file_order_v1_milestone_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_order_v1_milestone_proto_goTypes = []any{
-	(*OrderMilestone)(nil),          // 0: order.v1.OrderMilestone
-	(*ListMilestonesRequest)(nil),   // 1: order.v1.ListMilestonesRequest
-	(*SetMilestoneRequest)(nil),     // 2: order.v1.SetMilestoneRequest
-	(*OrderMilestoneReply)(nil),     // 3: order.v1.OrderMilestoneReply
-	(*OrderMilestoneListReply)(nil), // 4: order.v1.OrderMilestoneListReply
+	(*OrderMilestone)(nil),         // 0: order.v1.OrderMilestone
+	(*ListMilestonesRequest)(nil),  // 1: order.v1.ListMilestonesRequest
+	(*SetMilestoneRequest)(nil),    // 2: order.v1.SetMilestoneRequest
+	(*SetMilestoneResponse)(nil),   // 3: order.v1.SetMilestoneResponse
+	(*ListMilestonesResponse)(nil), // 4: order.v1.ListMilestonesResponse
 }
 var file_order_v1_milestone_proto_depIdxs = []int32{
-	0, // 0: order.v1.OrderMilestoneReply.data:type_name -> order.v1.OrderMilestone
-	0, // 1: order.v1.OrderMilestoneListReply.data:type_name -> order.v1.OrderMilestone
+	0, // 0: order.v1.SetMilestoneResponse.data:type_name -> order.v1.OrderMilestone
+	0, // 1: order.v1.ListMilestonesResponse.data:type_name -> order.v1.OrderMilestone
 	1, // 2: order.v1.OrderMilestoneService.ListMilestones:input_type -> order.v1.ListMilestonesRequest
 	2, // 3: order.v1.OrderMilestoneService.SetMilestone:input_type -> order.v1.SetMilestoneRequest
-	4, // 4: order.v1.OrderMilestoneService.ListMilestones:output_type -> order.v1.OrderMilestoneListReply
-	3, // 5: order.v1.OrderMilestoneService.SetMilestone:output_type -> order.v1.OrderMilestoneReply
+	4, // 4: order.v1.OrderMilestoneService.ListMilestones:output_type -> order.v1.ListMilestonesResponse
+	3, // 5: order.v1.OrderMilestoneService.SetMilestone:output_type -> order.v1.SetMilestoneResponse
 	4, // [4:6] is the sub-list for method output_type
 	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

@@ -12,13 +12,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // 计费重、线路特有仓储执行字段和申报状态按 P8/M-006 决策后置。
 service OrderCargoItemService {
   // ListCargoItems 获取指定订单的货物明细列表。
-  rpc ListCargoItems(ListCargoItemsRequest) returns (OrderCargoItemListReply) {
+  rpc ListCargoItems(ListCargoItemsRequest) returns (ListCargoItemsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "cargo_item.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/cargo-items"};
   }
 
   // AddCargoItem 添加订单货物明细。
-  rpc AddCargoItem(AddCargoItemRequest) returns (OrderCargoItemReply) {
+  rpc AddCargoItem(AddCargoItemRequest) returns (AddCargoItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "cargo_item.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/cargo-items"
@@ -27,7 +27,7 @@ service OrderCargoItemService {
   }
 
   // UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。
-  rpc UpdateCargoItem(UpdateCargoItemRequest) returns (OrderCargoItemReply) {
+  rpc UpdateCargoItem(UpdateCargoItemRequest) returns (UpdateCargoItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "cargo_item.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/cargo-items/{id}"
@@ -36,7 +36,7 @@ service OrderCargoItemService {
   }
 
   // RemoveCargoItem 移除订单货物明细。
-  rpc RemoveCargoItem(RemoveCargoItemRequest) returns (OrderCargoItemOperationReply) {
+  rpc RemoveCargoItem(RemoveCargoItemRequest) returns (RemoveCargoItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "cargo_item.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/cargo-items/{id}"};
   }
@@ -90,8 +90,8 @@ message RemoveCargoItemRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrderCargoItemReply 单条订单货物明细响应。
-message OrderCargoItemReply {
+// AddCargoItemResponse 单条订单货物明细响应。
+message AddCargoItemResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -99,8 +99,16 @@ message OrderCargoItemReply {
   string trace_id = 5;
 }
 
-// OrderCargoItemListReply 订单货物明细列表响应。
-message OrderCargoItemListReply {
+message UpdateCargoItemResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderCargoItem data = 4;
+  string trace_id = 5;
+}
+
+// ListCargoItemsResponse 订单货物明细列表响应。
+message ListCargoItemsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -108,8 +116,8 @@ message OrderCargoItemListReply {
   string trace_id = 5;
 }
 
-// OrderCargoItemOperationReply 订单货物明细操作响应。
-message OrderCargoItemOperationReply {
+// RemoveCargoItemResponse 订单货物明细操作响应。
+message RemoveCargoItemResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

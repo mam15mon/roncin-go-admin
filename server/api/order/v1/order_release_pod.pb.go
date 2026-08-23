@@ -530,8 +530,8 @@ func (x *RemoveReleasePodRequest) GetId() string {
 	return ""
 }
 
-// OrderReleasePodReply 单条放货凭证响应。
-type OrderReleasePodReply struct {
+// AddReleasePodResponse 单条放货凭证响应。
+type AddReleasePodResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -542,20 +542,20 @@ type OrderReleasePodReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderReleasePodReply) Reset() {
-	*x = OrderReleasePodReply{}
+func (x *AddReleasePodResponse) Reset() {
+	*x = AddReleasePodResponse{}
 	mi := &file_order_v1_order_release_pod_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderReleasePodReply) String() string {
+func (x *AddReleasePodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderReleasePodReply) ProtoMessage() {}
+func (*AddReleasePodResponse) ProtoMessage() {}
 
-func (x *OrderReleasePodReply) ProtoReflect() protoreflect.Message {
+func (x *AddReleasePodResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_release_pod_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -567,48 +567,200 @@ func (x *OrderReleasePodReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderReleasePodReply.ProtoReflect.Descriptor instead.
-func (*OrderReleasePodReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddReleasePodResponse.ProtoReflect.Descriptor instead.
+func (*AddReleasePodResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *OrderReleasePodReply) GetSuccess() bool {
+func (x *AddReleasePodResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderReleasePodReply) GetCode() int32 {
+func (x *AddReleasePodResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderReleasePodReply) GetMessage() string {
+func (x *AddReleasePodResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderReleasePodReply) GetData() *OrderReleasePod {
+func (x *AddReleasePodResponse) GetData() *OrderReleasePod {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderReleasePodReply) GetTraceId() string {
+func (x *AddReleasePodResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderReleasePodListReply 放货凭证列表响应。
-type OrderReleasePodListReply struct {
+type UpdateReleasePodResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderReleasePod       `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateReleasePodResponse) Reset() {
+	*x = UpdateReleasePodResponse{}
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateReleasePodResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateReleasePodResponse) ProtoMessage() {}
+
+func (x *UpdateReleasePodResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateReleasePodResponse.ProtoReflect.Descriptor instead.
+func (*UpdateReleasePodResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateReleasePodResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateReleasePodResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateReleasePodResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateReleasePodResponse) GetData() *OrderReleasePod {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateReleasePodResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type TransitionReleasePodStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderReleasePod       `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TransitionReleasePodStatusResponse) Reset() {
+	*x = TransitionReleasePodStatusResponse{}
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransitionReleasePodStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransitionReleasePodStatusResponse) ProtoMessage() {}
+
+func (x *TransitionReleasePodStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransitionReleasePodStatusResponse.ProtoReflect.Descriptor instead.
+func (*TransitionReleasePodStatusResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *TransitionReleasePodStatusResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *TransitionReleasePodStatusResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *TransitionReleasePodStatusResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *TransitionReleasePodStatusResponse) GetData() *OrderReleasePod {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *TransitionReleasePodStatusResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListReleasePodsResponse 放货凭证列表响应。
+type ListReleasePodsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -619,21 +771,21 @@ type OrderReleasePodListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderReleasePodListReply) Reset() {
-	*x = OrderReleasePodListReply{}
-	mi := &file_order_v1_order_release_pod_proto_msgTypes[7]
+func (x *ListReleasePodsResponse) Reset() {
+	*x = ListReleasePodsResponse{}
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderReleasePodListReply) String() string {
+func (x *ListReleasePodsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderReleasePodListReply) ProtoMessage() {}
+func (*ListReleasePodsResponse) ProtoMessage() {}
 
-func (x *OrderReleasePodListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_release_pod_proto_msgTypes[7]
+func (x *ListReleasePodsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -644,48 +796,48 @@ func (x *OrderReleasePodListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderReleasePodListReply.ProtoReflect.Descriptor instead.
-func (*OrderReleasePodListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use ListReleasePodsResponse.ProtoReflect.Descriptor instead.
+func (*ListReleasePodsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *OrderReleasePodListReply) GetSuccess() bool {
+func (x *ListReleasePodsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderReleasePodListReply) GetCode() int32 {
+func (x *ListReleasePodsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderReleasePodListReply) GetMessage() string {
+func (x *ListReleasePodsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderReleasePodListReply) GetData() []*OrderReleasePod {
+func (x *ListReleasePodsResponse) GetData() []*OrderReleasePod {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderReleasePodListReply) GetTraceId() string {
+func (x *ListReleasePodsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderReleasePodOperationReply 放货凭证操作响应。
-type OrderReleasePodOperationReply struct {
+// RemoveReleasePodResponse 放货凭证操作响应。
+type RemoveReleasePodResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -695,21 +847,21 @@ type OrderReleasePodOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderReleasePodOperationReply) Reset() {
-	*x = OrderReleasePodOperationReply{}
-	mi := &file_order_v1_order_release_pod_proto_msgTypes[8]
+func (x *RemoveReleasePodResponse) Reset() {
+	*x = RemoveReleasePodResponse{}
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderReleasePodOperationReply) String() string {
+func (x *RemoveReleasePodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderReleasePodOperationReply) ProtoMessage() {}
+func (*RemoveReleasePodResponse) ProtoMessage() {}
 
-func (x *OrderReleasePodOperationReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_release_pod_proto_msgTypes[8]
+func (x *RemoveReleasePodResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_release_pod_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,33 +872,33 @@ func (x *OrderReleasePodOperationReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderReleasePodOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderReleasePodOperationReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{8}
+// Deprecated: Use RemoveReleasePodResponse.ProtoReflect.Descriptor instead.
+func (*RemoveReleasePodResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_release_pod_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *OrderReleasePodOperationReply) GetSuccess() bool {
+func (x *RemoveReleasePodResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderReleasePodOperationReply) GetCode() int32 {
+func (x *RemoveReleasePodResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderReleasePodOperationReply) GetMessage() string {
+func (x *RemoveReleasePodResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderReleasePodOperationReply) GetTraceId() string {
+func (x *RemoveReleasePodResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -814,20 +966,32 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"\tto_status\x18\x04 \x01(\x0e2\x1f.order.v1.OrderReleasePodStatusB\x03\xe0A\x02R\btoStatus\"N\n" +
 	"\x17RemoveReleasePodRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa8\x01\n" +
-	"\x14OrderReleasePodReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa9\x01\n" +
+	"\x15AddReleasePodResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x01(\v2\x19.order.v1.OrderReleasePodR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xac\x01\n" +
-	"\x18OrderReleasePodListReply\x12\x18\n" +
+	"\x18UpdateReleasePodResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
+	"\x04data\x18\x04 \x01(\v2\x19.order.v1.OrderReleasePodR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb6\x01\n" +
+	"\"TransitionReleasePodStatusResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
+	"\x04data\x18\x04 \x01(\v2\x19.order.v1.OrderReleasePodR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"\x17ListReleasePodsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.order.v1.OrderReleasePodR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x82\x01\n" +
-	"\x1dOrderReleasePodOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"}\n" +
+	"\x18RemoveReleasePodResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
@@ -836,13 +1000,13 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"$ORDER_RELEASE_POD_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
 	" ORDER_RELEASE_POD_STATUS_PENDING\x10\x01\x12#\n" +
 	"\x1fORDER_RELEASE_POD_STATUS_SIGNED\x10\x02\x12%\n" +
-	"!ORDER_RELEASE_POD_STATUS_RETURNED\x10\x032\x8a\a\n" +
-	"\x16OrderReleasePodService\x12\xa1\x01\n" +
-	"\x0fListReleasePods\x12 .order.v1.ListReleasePodsRequest\x1a\".order.v1.OrderReleasePodListReply\"H\x82\xb5\x18\x16\b\x04\x1a\x10release_pod.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/orders/{order_id}/release-pods\x12\x9e\x01\n" +
-	"\rAddReleasePod\x12\x1e.order.v1.AddReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"M\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.create \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/orders/{order_id}/release-pods\x12\xa9\x01\n" +
-	"\x10UpdateReleasePod\x12!.order.v1.UpdateReleasePodRequest\x1a\x1e.order.v1.OrderReleasePodReply\"R\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.update \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/release-pods/{id}\x12\xcc\x01\n" +
-	"\x1aTransitionReleasePodStatus\x12+.order.v1.TransitionReleasePodStatusRequest\x1a\x1e.order.v1.OrderReleasePodReply\"a\x82\xb5\x18\x1c\b\x04\x1a\x16release_pod.transition \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/orders/{order_id}/release-pods/{id}/transition\x12\xaf\x01\n" +
-	"\x10RemoveReleasePod\x12!.order.v1.RemoveReleasePodRequest\x1a'.order.v1.OrderReleasePodOperationReply\"O\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.delete \x02\x82\xd3\xe4\x93\x02-*+/api/v1/orders/{order_id}/release-pods/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"!ORDER_RELEASE_POD_STATUS_RETURNED\x10\x032\x97\a\n" +
+	"\x16OrderReleasePodService\x12\xa0\x01\n" +
+	"\x0fListReleasePods\x12 .order.v1.ListReleasePodsRequest\x1a!.order.v1.ListReleasePodsResponse\"H\x82\xb5\x18\x16\b\x04\x1a\x10release_pod.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/orders/{order_id}/release-pods\x12\x9f\x01\n" +
+	"\rAddReleasePod\x12\x1e.order.v1.AddReleasePodRequest\x1a\x1f.order.v1.AddReleasePodResponse\"M\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.create \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/orders/{order_id}/release-pods\x12\xad\x01\n" +
+	"\x10UpdateReleasePod\x12!.order.v1.UpdateReleasePodRequest\x1a\".order.v1.UpdateReleasePodResponse\"R\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.update \x02\x82\xd3\xe4\x93\x020:\x01*\x1a+/api/v1/orders/{order_id}/release-pods/{id}\x12\xda\x01\n" +
+	"\x1aTransitionReleasePodStatus\x12+.order.v1.TransitionReleasePodStatusRequest\x1a,.order.v1.TransitionReleasePodStatusResponse\"a\x82\xb5\x18\x1c\b\x04\x1a\x16release_pod.transition \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/orders/{order_id}/release-pods/{id}/transition\x12\xaa\x01\n" +
+	"\x10RemoveReleasePod\x12!.order.v1.RemoveReleasePodRequest\x1a\".order.v1.RemoveReleasePodResponse\"O\x82\xb5\x18\x18\b\x04\x1a\x12release_pod.delete \x02\x82\xd3\xe4\x93\x02-*+/api/v1/orders/{order_id}/release-pods/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_release_pod_proto_rawDescOnce sync.Once
@@ -857,40 +1021,44 @@ func file_order_v1_order_release_pod_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_release_pod_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_order_v1_order_release_pod_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_order_v1_order_release_pod_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_order_v1_order_release_pod_proto_goTypes = []any{
-	(OrderReleasePodStatus)(0),                // 0: order.v1.OrderReleasePodStatus
-	(*OrderReleasePod)(nil),                   // 1: order.v1.OrderReleasePod
-	(*ListReleasePodsRequest)(nil),            // 2: order.v1.ListReleasePodsRequest
-	(*AddReleasePodRequest)(nil),              // 3: order.v1.AddReleasePodRequest
-	(*UpdateReleasePodRequest)(nil),           // 4: order.v1.UpdateReleasePodRequest
-	(*TransitionReleasePodStatusRequest)(nil), // 5: order.v1.TransitionReleasePodStatusRequest
-	(*RemoveReleasePodRequest)(nil),           // 6: order.v1.RemoveReleasePodRequest
-	(*OrderReleasePodReply)(nil),              // 7: order.v1.OrderReleasePodReply
-	(*OrderReleasePodListReply)(nil),          // 8: order.v1.OrderReleasePodListReply
-	(*OrderReleasePodOperationReply)(nil),     // 9: order.v1.OrderReleasePodOperationReply
+	(OrderReleasePodStatus)(0),                 // 0: order.v1.OrderReleasePodStatus
+	(*OrderReleasePod)(nil),                    // 1: order.v1.OrderReleasePod
+	(*ListReleasePodsRequest)(nil),             // 2: order.v1.ListReleasePodsRequest
+	(*AddReleasePodRequest)(nil),               // 3: order.v1.AddReleasePodRequest
+	(*UpdateReleasePodRequest)(nil),            // 4: order.v1.UpdateReleasePodRequest
+	(*TransitionReleasePodStatusRequest)(nil),  // 5: order.v1.TransitionReleasePodStatusRequest
+	(*RemoveReleasePodRequest)(nil),            // 6: order.v1.RemoveReleasePodRequest
+	(*AddReleasePodResponse)(nil),              // 7: order.v1.AddReleasePodResponse
+	(*UpdateReleasePodResponse)(nil),           // 8: order.v1.UpdateReleasePodResponse
+	(*TransitionReleasePodStatusResponse)(nil), // 9: order.v1.TransitionReleasePodStatusResponse
+	(*ListReleasePodsResponse)(nil),            // 10: order.v1.ListReleasePodsResponse
+	(*RemoveReleasePodResponse)(nil),           // 11: order.v1.RemoveReleasePodResponse
 }
 var file_order_v1_order_release_pod_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderReleasePod.status:type_name -> order.v1.OrderReleasePodStatus
 	0,  // 1: order.v1.TransitionReleasePodStatusRequest.expected_status:type_name -> order.v1.OrderReleasePodStatus
 	0,  // 2: order.v1.TransitionReleasePodStatusRequest.to_status:type_name -> order.v1.OrderReleasePodStatus
-	1,  // 3: order.v1.OrderReleasePodReply.data:type_name -> order.v1.OrderReleasePod
-	1,  // 4: order.v1.OrderReleasePodListReply.data:type_name -> order.v1.OrderReleasePod
-	2,  // 5: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
-	3,  // 6: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
-	4,  // 7: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
-	5,  // 8: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
-	6,  // 9: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
-	8,  // 10: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.OrderReleasePodListReply
-	7,  // 11: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.OrderReleasePodReply
-	7,  // 12: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.OrderReleasePodReply
-	7,  // 13: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.OrderReleasePodReply
-	9,  // 14: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.OrderReleasePodOperationReply
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	1,  // 3: order.v1.AddReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 4: order.v1.UpdateReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 5: order.v1.TransitionReleasePodStatusResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 6: order.v1.ListReleasePodsResponse.data:type_name -> order.v1.OrderReleasePod
+	2,  // 7: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
+	3,  // 8: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
+	4,  // 9: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
+	5,  // 10: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
+	6,  // 11: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
+	10, // 12: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.ListReleasePodsResponse
+	7,  // 13: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.AddReleasePodResponse
+	8,  // 14: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.UpdateReleasePodResponse
+	9,  // 15: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.TransitionReleasePodStatusResponse
+	11, // 16: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.RemoveReleasePodResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_release_pod_proto_init() }
@@ -907,7 +1075,7 @@ func file_order_v1_order_release_pod_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_release_pod_proto_rawDesc), len(file_order_v1_order_release_pod_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

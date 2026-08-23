@@ -47,7 +47,7 @@ export default function PortsPanel() {
     void fetchServerData().catch((error: Error) => message.error(error.message || '港口主数据加载失败'));
   }, [fetchServerData, message]);
 
-  const saveResponse = (response: API.PortReply) => {
+  const saveResponse = (response: API.CreatePortResponse | API.UpdatePortResponse) => {
     if (!response.data) throw new Error('港口响应缺少数据');
     const saved = mapPort(response.data);
     setData((current) => {

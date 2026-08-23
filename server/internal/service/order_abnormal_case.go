@@ -20,7 +20,7 @@ func NewOrderAbnormalCaseService(usecase *biz.OrderAbnormalCaseUsecase) *OrderAb
 	return &OrderAbnormalCaseService{usecase: usecase}
 }
 
-func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, request *v1.ListAbnormalCasesRequest) (*v1.OrderAbnormalCaseListReply, error) {
+func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, request *v1.ListAbnormalCasesRequest) (*v1.ListAbnormalCasesResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -37,7 +37,7 @@ func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, reques
 	for _, item := range items {
 		data = append(data, orderAbnormalCaseToAPI(item))
 	}
-	return &v1.OrderAbnormalCaseListReply{
+	return &v1.ListAbnormalCasesResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -46,7 +46,7 @@ func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, reques
 	}, nil
 }
 
-func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request *v1.MarkAbnormalCaseRequest) (*v1.OrderAbnormalCaseReply, error) {
+func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request *v1.MarkAbnormalCaseRequest) (*v1.MarkAbnormalCaseResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -63,10 +63,10 @@ func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request
 	if err != nil {
 		return nil, err
 	}
-	return orderAbnormalCaseReply(ctx, marked), nil
+	return &v1.MarkAbnormalCaseResponse{Success: true, Code: 0, Message: "OK", Data: orderAbnormalCaseToAPI(marked), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, request *v1.ResolveAbnormalCaseRequest) (*v1.OrderAbnormalCaseReply, error) {
+func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, request *v1.ResolveAbnormalCaseRequest) (*v1.ResolveAbnormalCaseResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -83,10 +83,10 @@ func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, requ
 	if err != nil {
 		return nil, err
 	}
-	return orderAbnormalCaseReply(ctx, resolved), nil
+	return &v1.ResolveAbnormalCaseResponse{Success: true, Code: 0, Message: "OK", Data: orderAbnormalCaseToAPI(resolved), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, request *v1.RemoveAbnormalCaseRequest) (*v1.OrderAbnormalCaseOperationReply, error) {
+func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, request *v1.RemoveAbnormalCaseRequest) (*v1.RemoveAbnormalCaseResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -102,22 +102,12 @@ func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, reque
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderAbnormalCaseOperationReply{
+	return &v1.RemoveAbnormalCaseResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
 		TraceId: requestmeta.TraceID(ctx),
 	}, nil
-}
-
-func orderAbnormalCaseReply(ctx context.Context, value *biz.OrderAbnormalCase) *v1.OrderAbnormalCaseReply {
-	return &v1.OrderAbnormalCaseReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderAbnormalCaseToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
 }
 
 func orderAbnormalCaseToAPI(value *biz.OrderAbnormalCase) *v1.OrderAbnormalCase {

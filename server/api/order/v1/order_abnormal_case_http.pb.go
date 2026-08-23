@@ -24,13 +24,13 @@ const OperationOrderAbnormalCaseServiceResolveAbnormalCase = "/order.v1.OrderAbn
 
 type OrderAbnormalCaseServiceHTTPServer interface {
 	// ListAbnormalCases ListAbnormalCases 获取指定订单的异常标记列表。
-	ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*OrderAbnormalCaseListReply, error)
+	ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*ListAbnormalCasesResponse, error)
 	// MarkAbnormalCase MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-	MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*OrderAbnormalCaseReply, error)
+	MarkAbnormalCase(context.Context, *MarkAbnormalCaseRequest) (*MarkAbnormalCaseResponse, error)
 	// RemoveAbnormalCase RemoveAbnormalCase 移除订单异常标记。
-	RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*OrderAbnormalCaseOperationReply, error)
+	RemoveAbnormalCase(context.Context, *RemoveAbnormalCaseRequest) (*RemoveAbnormalCaseResponse, error)
 	// ResolveAbnormalCase ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-	ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*OrderAbnormalCaseReply, error)
+	ResolveAbnormalCase(context.Context, *ResolveAbnormalCaseRequest) (*ResolveAbnormalCaseResponse, error)
 }
 
 func RegisterOrderAbnormalCaseServiceHTTPServer(s *http.Server, srv OrderAbnormalCaseServiceHTTPServer) {
@@ -58,7 +58,7 @@ func _OrderAbnormalCaseService_ListAbnormalCases0_HTTP_Handler(srv OrderAbnormal
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAbnormalCaseListReply)
+		reply := out.(*ListAbnormalCasesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -80,7 +80,7 @@ func _OrderAbnormalCaseService_MarkAbnormalCase0_HTTP_Handler(srv OrderAbnormalC
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAbnormalCaseReply)
+		reply := out.(*MarkAbnormalCaseResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -102,7 +102,7 @@ func _OrderAbnormalCaseService_ResolveAbnormalCase0_HTTP_Handler(srv OrderAbnorm
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAbnormalCaseReply)
+		reply := out.(*ResolveAbnormalCaseResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -124,20 +124,20 @@ func _OrderAbnormalCaseService_RemoveAbnormalCase0_HTTP_Handler(srv OrderAbnorma
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderAbnormalCaseOperationReply)
+		reply := out.(*RemoveAbnormalCaseResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderAbnormalCaseServiceHTTPClient interface {
 	// ListAbnormalCases ListAbnormalCases 获取指定订单的异常标记列表。
-	ListAbnormalCases(ctx context.Context, req *ListAbnormalCasesRequest, opts ...http.CallOption) (rsp *OrderAbnormalCaseListReply, err error)
+	ListAbnormalCases(ctx context.Context, req *ListAbnormalCasesRequest, opts ...http.CallOption) (rsp *ListAbnormalCasesResponse, err error)
 	// MarkAbnormalCase MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-	MarkAbnormalCase(ctx context.Context, req *MarkAbnormalCaseRequest, opts ...http.CallOption) (rsp *OrderAbnormalCaseReply, err error)
+	MarkAbnormalCase(ctx context.Context, req *MarkAbnormalCaseRequest, opts ...http.CallOption) (rsp *MarkAbnormalCaseResponse, err error)
 	// RemoveAbnormalCase RemoveAbnormalCase 移除订单异常标记。
-	RemoveAbnormalCase(ctx context.Context, req *RemoveAbnormalCaseRequest, opts ...http.CallOption) (rsp *OrderAbnormalCaseOperationReply, err error)
+	RemoveAbnormalCase(ctx context.Context, req *RemoveAbnormalCaseRequest, opts ...http.CallOption) (rsp *RemoveAbnormalCaseResponse, err error)
 	// ResolveAbnormalCase ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-	ResolveAbnormalCase(ctx context.Context, req *ResolveAbnormalCaseRequest, opts ...http.CallOption) (rsp *OrderAbnormalCaseReply, err error)
+	ResolveAbnormalCase(ctx context.Context, req *ResolveAbnormalCaseRequest, opts ...http.CallOption) (rsp *ResolveAbnormalCaseResponse, err error)
 }
 
 type OrderAbnormalCaseServiceHTTPClientImpl struct {
@@ -149,8 +149,8 @@ func NewOrderAbnormalCaseServiceHTTPClient(client *http.Client) OrderAbnormalCas
 }
 
 // ListAbnormalCases ListAbnormalCases 获取指定订单的异常标记列表。
-func (c *OrderAbnormalCaseServiceHTTPClientImpl) ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...http.CallOption) (*OrderAbnormalCaseListReply, error) {
-	var out OrderAbnormalCaseListReply
+func (c *OrderAbnormalCaseServiceHTTPClientImpl) ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...http.CallOption) (*ListAbnormalCasesResponse, error) {
+	var out ListAbnormalCasesResponse
 	pattern := "/api/v1/orders/{order_id}/abnormal-cases"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -166,8 +166,8 @@ func (c *OrderAbnormalCaseServiceHTTPClientImpl) ListAbnormalCases(ctx context.C
 }
 
 // MarkAbnormalCase MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。
-func (c *OrderAbnormalCaseServiceHTTPClientImpl) MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...http.CallOption) (*OrderAbnormalCaseReply, error) {
-	var out OrderAbnormalCaseReply
+func (c *OrderAbnormalCaseServiceHTTPClientImpl) MarkAbnormalCase(ctx context.Context, in *MarkAbnormalCaseRequest, opts ...http.CallOption) (*MarkAbnormalCaseResponse, error) {
+	var out MarkAbnormalCaseResponse
 	pattern := "/api/v1/orders/{order_id}/abnormal-cases"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -184,8 +184,8 @@ func (c *OrderAbnormalCaseServiceHTTPClientImpl) MarkAbnormalCase(ctx context.Co
 }
 
 // RemoveAbnormalCase RemoveAbnormalCase 移除订单异常标记。
-func (c *OrderAbnormalCaseServiceHTTPClientImpl) RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...http.CallOption) (*OrderAbnormalCaseOperationReply, error) {
-	var out OrderAbnormalCaseOperationReply
+func (c *OrderAbnormalCaseServiceHTTPClientImpl) RemoveAbnormalCase(ctx context.Context, in *RemoveAbnormalCaseRequest, opts ...http.CallOption) (*RemoveAbnormalCaseResponse, error) {
+	var out RemoveAbnormalCaseResponse
 	pattern := "/api/v1/orders/{order_id}/abnormal-cases/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -201,8 +201,8 @@ func (c *OrderAbnormalCaseServiceHTTPClientImpl) RemoveAbnormalCase(ctx context.
 }
 
 // ResolveAbnormalCase ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。
-func (c *OrderAbnormalCaseServiceHTTPClientImpl) ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...http.CallOption) (*OrderAbnormalCaseReply, error) {
-	var out OrderAbnormalCaseReply
+func (c *OrderAbnormalCaseServiceHTTPClientImpl) ResolveAbnormalCase(ctx context.Context, in *ResolveAbnormalCaseRequest, opts ...http.CallOption) (*ResolveAbnormalCaseResponse, error) {
+	var out ResolveAbnormalCaseResponse
 	pattern := "/api/v1/orders/{order_id}/abnormal-cases/{id}/resolve"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

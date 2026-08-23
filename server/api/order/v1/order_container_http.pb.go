@@ -24,13 +24,13 @@ const OperationOrderContainerServiceUpdateContainer = "/order.v1.OrderContainerS
 
 type OrderContainerServiceHTTPServer interface {
 	// AddContainer AddContainer 添加订单集装箱。
-	AddContainer(context.Context, *AddContainerRequest) (*OrderContainerReply, error)
+	AddContainer(context.Context, *AddContainerRequest) (*AddContainerResponse, error)
 	// ListContainers ListContainers 获取指定订单的集装箱列表。
-	ListContainers(context.Context, *ListContainersRequest) (*OrderContainerListReply, error)
+	ListContainers(context.Context, *ListContainersRequest) (*ListContainersResponse, error)
 	// RemoveContainer RemoveContainer 移除订单集装箱。
-	RemoveContainer(context.Context, *RemoveContainerRequest) (*OrderContainerOperationReply, error)
+	RemoveContainer(context.Context, *RemoveContainerRequest) (*RemoveContainerResponse, error)
 	// UpdateContainer UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-	UpdateContainer(context.Context, *UpdateContainerRequest) (*OrderContainerReply, error)
+	UpdateContainer(context.Context, *UpdateContainerRequest) (*UpdateContainerResponse, error)
 }
 
 func RegisterOrderContainerServiceHTTPServer(s *http.Server, srv OrderContainerServiceHTTPServer) {
@@ -58,7 +58,7 @@ func _OrderContainerService_ListContainers0_HTTP_Handler(srv OrderContainerServi
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderContainerListReply)
+		reply := out.(*ListContainersResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -80,7 +80,7 @@ func _OrderContainerService_AddContainer0_HTTP_Handler(srv OrderContainerService
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderContainerReply)
+		reply := out.(*AddContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -102,7 +102,7 @@ func _OrderContainerService_UpdateContainer0_HTTP_Handler(srv OrderContainerServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderContainerReply)
+		reply := out.(*UpdateContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -124,20 +124,20 @@ func _OrderContainerService_RemoveContainer0_HTTP_Handler(srv OrderContainerServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderContainerOperationReply)
+		reply := out.(*RemoveContainerResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderContainerServiceHTTPClient interface {
 	// AddContainer AddContainer 添加订单集装箱。
-	AddContainer(ctx context.Context, req *AddContainerRequest, opts ...http.CallOption) (rsp *OrderContainerReply, err error)
+	AddContainer(ctx context.Context, req *AddContainerRequest, opts ...http.CallOption) (rsp *AddContainerResponse, err error)
 	// ListContainers ListContainers 获取指定订单的集装箱列表。
-	ListContainers(ctx context.Context, req *ListContainersRequest, opts ...http.CallOption) (rsp *OrderContainerListReply, err error)
+	ListContainers(ctx context.Context, req *ListContainersRequest, opts ...http.CallOption) (rsp *ListContainersResponse, err error)
 	// RemoveContainer RemoveContainer 移除订单集装箱。
-	RemoveContainer(ctx context.Context, req *RemoveContainerRequest, opts ...http.CallOption) (rsp *OrderContainerOperationReply, err error)
+	RemoveContainer(ctx context.Context, req *RemoveContainerRequest, opts ...http.CallOption) (rsp *RemoveContainerResponse, err error)
 	// UpdateContainer UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-	UpdateContainer(ctx context.Context, req *UpdateContainerRequest, opts ...http.CallOption) (rsp *OrderContainerReply, err error)
+	UpdateContainer(ctx context.Context, req *UpdateContainerRequest, opts ...http.CallOption) (rsp *UpdateContainerResponse, err error)
 }
 
 type OrderContainerServiceHTTPClientImpl struct {
@@ -149,8 +149,8 @@ func NewOrderContainerServiceHTTPClient(client *http.Client) OrderContainerServi
 }
 
 // AddContainer AddContainer 添加订单集装箱。
-func (c *OrderContainerServiceHTTPClientImpl) AddContainer(ctx context.Context, in *AddContainerRequest, opts ...http.CallOption) (*OrderContainerReply, error) {
-	var out OrderContainerReply
+func (c *OrderContainerServiceHTTPClientImpl) AddContainer(ctx context.Context, in *AddContainerRequest, opts ...http.CallOption) (*AddContainerResponse, error) {
+	var out AddContainerResponse
 	pattern := "/api/v1/orders/{order_id}/containers"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -167,8 +167,8 @@ func (c *OrderContainerServiceHTTPClientImpl) AddContainer(ctx context.Context, 
 }
 
 // ListContainers ListContainers 获取指定订单的集装箱列表。
-func (c *OrderContainerServiceHTTPClientImpl) ListContainers(ctx context.Context, in *ListContainersRequest, opts ...http.CallOption) (*OrderContainerListReply, error) {
-	var out OrderContainerListReply
+func (c *OrderContainerServiceHTTPClientImpl) ListContainers(ctx context.Context, in *ListContainersRequest, opts ...http.CallOption) (*ListContainersResponse, error) {
+	var out ListContainersResponse
 	pattern := "/api/v1/orders/{order_id}/containers"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -184,8 +184,8 @@ func (c *OrderContainerServiceHTTPClientImpl) ListContainers(ctx context.Context
 }
 
 // RemoveContainer RemoveContainer 移除订单集装箱。
-func (c *OrderContainerServiceHTTPClientImpl) RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...http.CallOption) (*OrderContainerOperationReply, error) {
-	var out OrderContainerOperationReply
+func (c *OrderContainerServiceHTTPClientImpl) RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...http.CallOption) (*RemoveContainerResponse, error) {
+	var out RemoveContainerResponse
 	pattern := "/api/v1/orders/{order_id}/containers/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -201,8 +201,8 @@ func (c *OrderContainerServiceHTTPClientImpl) RemoveContainer(ctx context.Contex
 }
 
 // UpdateContainer UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-func (c *OrderContainerServiceHTTPClientImpl) UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...http.CallOption) (*OrderContainerReply, error) {
-	var out OrderContainerReply
+func (c *OrderContainerServiceHTTPClientImpl) UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...http.CallOption) (*UpdateContainerResponse, error) {
+	var out UpdateContainerResponse
 	pattern := "/api/v1/orders/{order_id}/containers/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

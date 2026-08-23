@@ -302,8 +302,8 @@ func (x *RegisterAttachmentRequest) GetChecksum() string {
 	return ""
 }
 
-// OrderAttachmentReply 单条订单附件响应。
-type OrderAttachmentReply struct {
+// RegisterAttachmentResponse 单条订单附件响应。
+type RegisterAttachmentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -314,20 +314,20 @@ type OrderAttachmentReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderAttachmentReply) Reset() {
-	*x = OrderAttachmentReply{}
+func (x *RegisterAttachmentResponse) Reset() {
+	*x = RegisterAttachmentResponse{}
 	mi := &file_order_v1_order_attachment_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderAttachmentReply) String() string {
+func (x *RegisterAttachmentResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderAttachmentReply) ProtoMessage() {}
+func (*RegisterAttachmentResponse) ProtoMessage() {}
 
-func (x *OrderAttachmentReply) ProtoReflect() protoreflect.Message {
+func (x *RegisterAttachmentResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_attachment_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -339,48 +339,48 @@ func (x *OrderAttachmentReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderAttachmentReply.ProtoReflect.Descriptor instead.
-func (*OrderAttachmentReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterAttachmentResponse.ProtoReflect.Descriptor instead.
+func (*RegisterAttachmentResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *OrderAttachmentReply) GetSuccess() bool {
+func (x *RegisterAttachmentResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderAttachmentReply) GetCode() int32 {
+func (x *RegisterAttachmentResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderAttachmentReply) GetMessage() string {
+func (x *RegisterAttachmentResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderAttachmentReply) GetData() *OrderAttachment {
+func (x *RegisterAttachmentResponse) GetData() *OrderAttachment {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderAttachmentReply) GetTraceId() string {
+func (x *RegisterAttachmentResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderAttachmentListReply 订单附件列表响应。
-type OrderAttachmentListReply struct {
+// ListAttachmentsResponse 订单附件列表响应。
+type ListAttachmentsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -391,20 +391,20 @@ type OrderAttachmentListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderAttachmentListReply) Reset() {
-	*x = OrderAttachmentListReply{}
+func (x *ListAttachmentsResponse) Reset() {
+	*x = ListAttachmentsResponse{}
 	mi := &file_order_v1_order_attachment_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderAttachmentListReply) String() string {
+func (x *ListAttachmentsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderAttachmentListReply) ProtoMessage() {}
+func (*ListAttachmentsResponse) ProtoMessage() {}
 
-func (x *OrderAttachmentListReply) ProtoReflect() protoreflect.Message {
+func (x *ListAttachmentsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_attachment_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -416,40 +416,40 @@ func (x *OrderAttachmentListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderAttachmentListReply.ProtoReflect.Descriptor instead.
-func (*OrderAttachmentListReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListAttachmentsResponse.ProtoReflect.Descriptor instead.
+func (*ListAttachmentsResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *OrderAttachmentListReply) GetSuccess() bool {
+func (x *ListAttachmentsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderAttachmentListReply) GetCode() int32 {
+func (x *ListAttachmentsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderAttachmentListReply) GetMessage() string {
+func (x *ListAttachmentsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderAttachmentListReply) GetData() []*OrderAttachment {
+func (x *ListAttachmentsResponse) GetData() []*OrderAttachment {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderAttachmentListReply) GetTraceId() string {
+func (x *ListAttachmentsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -493,22 +493,22 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\n" +
 	"object_key\x18\a \x01(\tB\x03\xe0A\x02R\tobjectKey\x12\x1f\n" +
 	"\bchecksum\x18\b \x01(\tH\x00R\bchecksum\x88\x01\x01B\v\n" +
-	"\t_checksum\"\xa8\x01\n" +
-	"\x14OrderAttachmentReply\x12\x18\n" +
+	"\t_checksum\"\xae\x01\n" +
+	"\x1aRegisterAttachmentResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x01(\v2\x19.order.v1.OrderAttachmentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xac\x01\n" +
-	"\x18OrderAttachmentListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"\x17ListAttachmentsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.order.v1.OrderAttachmentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xe5\x02\n" +
-	"\x16OrderAttachmentService\x12\x9f\x01\n" +
-	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a\".order.v1.OrderAttachmentListReply\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xa8\x01\n" +
-	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a\x1e.order.v1.OrderAttachmentReply\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachmentsB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xea\x02\n" +
+	"\x16OrderAttachmentService\x12\x9e\x01\n" +
+	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a!.order.v1.ListAttachmentsResponse\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xae\x01\n" +
+	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a$.order.v1.RegisterAttachmentResponse\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachmentsB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_attachment_proto_rawDescOnce sync.Once
@@ -524,19 +524,19 @@ func file_order_v1_order_attachment_proto_rawDescGZIP() []byte {
 
 var file_order_v1_order_attachment_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_order_v1_order_attachment_proto_goTypes = []any{
-	(*OrderAttachment)(nil),           // 0: order.v1.OrderAttachment
-	(*ListAttachmentsRequest)(nil),    // 1: order.v1.ListAttachmentsRequest
-	(*RegisterAttachmentRequest)(nil), // 2: order.v1.RegisterAttachmentRequest
-	(*OrderAttachmentReply)(nil),      // 3: order.v1.OrderAttachmentReply
-	(*OrderAttachmentListReply)(nil),  // 4: order.v1.OrderAttachmentListReply
+	(*OrderAttachment)(nil),            // 0: order.v1.OrderAttachment
+	(*ListAttachmentsRequest)(nil),     // 1: order.v1.ListAttachmentsRequest
+	(*RegisterAttachmentRequest)(nil),  // 2: order.v1.RegisterAttachmentRequest
+	(*RegisterAttachmentResponse)(nil), // 3: order.v1.RegisterAttachmentResponse
+	(*ListAttachmentsResponse)(nil),    // 4: order.v1.ListAttachmentsResponse
 }
 var file_order_v1_order_attachment_proto_depIdxs = []int32{
-	0, // 0: order.v1.OrderAttachmentReply.data:type_name -> order.v1.OrderAttachment
-	0, // 1: order.v1.OrderAttachmentListReply.data:type_name -> order.v1.OrderAttachment
+	0, // 0: order.v1.RegisterAttachmentResponse.data:type_name -> order.v1.OrderAttachment
+	0, // 1: order.v1.ListAttachmentsResponse.data:type_name -> order.v1.OrderAttachment
 	1, // 2: order.v1.OrderAttachmentService.ListAttachments:input_type -> order.v1.ListAttachmentsRequest
 	2, // 3: order.v1.OrderAttachmentService.RegisterAttachment:input_type -> order.v1.RegisterAttachmentRequest
-	4, // 4: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.OrderAttachmentListReply
-	3, // 5: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.OrderAttachmentReply
+	4, // 4: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.ListAttachmentsResponse
+	3, // 5: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.RegisterAttachmentResponse
 	4, // [4:6] is the sub-list for method output_type
 	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

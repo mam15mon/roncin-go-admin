@@ -31,7 +31,7 @@ export function mapPersistedMasterDataItem(
 }
 
 export function requireMasterDataResponse(
-  response: API.MasterDataItemReply,
+  response: API.CreateItemResponse | API.UpdateItemResponse,
 ): API.MasterDataItem {
   if (!response.data) {
     throw new Error('主数据响应缺少数据');

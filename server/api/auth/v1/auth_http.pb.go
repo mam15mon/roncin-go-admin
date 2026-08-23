@@ -9,7 +9,6 @@ package v1
 import (
 	context "context"
 	http "github.com/go-kratos/kratos/v3/transport/http"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -26,12 +25,12 @@ const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrgan
 const OperationAuthServiceWeComLogin = "/auth.v1.AuthService/WeComLogin"
 
 type AuthServiceHTTPServer interface {
-	GetWeComLoginConfig(context.Context, *emptypb.Empty) (*WeComLoginConfigReply, error)
-	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	Logout(context.Context, *emptypb.Empty) (*OperationReply, error)
-	Me(context.Context, *emptypb.Empty) (*MeReply, error)
-	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*MeReply, error)
-	WeComLogin(context.Context, *WeComLoginRequest) (*LoginReply, error)
+	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
+	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	Me(context.Context, *MeRequest) (*MeResponse, error)
+	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
+	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
@@ -58,26 +57,26 @@ func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.C
 		if err != nil {
 			return err
 		}
-		reply := out.(*LoginReply)
+		reply := out.(*LoginResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _AuthService_GetWeComLoginConfig0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in emptypb.Empty
+		var in GetWeComLoginConfigRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationAuthServiceGetWeComLoginConfig)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetWeComLoginConfig(ctx, req.(*emptypb.Empty))
+			return srv.GetWeComLoginConfig(ctx, req.(*GetWeComLoginConfigRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*WeComLoginConfigReply)
+		reply := out.(*GetWeComLoginConfigResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -96,45 +95,45 @@ func _AuthService_WeComLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx h
 		if err != nil {
 			return err
 		}
-		reply := out.(*LoginReply)
+		reply := out.(*WeComLoginResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _AuthService_Logout0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in emptypb.Empty
+		var in LogoutRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationAuthServiceLogout)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.Logout(ctx, req.(*emptypb.Empty))
+			return srv.Logout(ctx, req.(*LogoutRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*OperationReply)
+		reply := out.(*LogoutResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _AuthService_Me0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in emptypb.Empty
+		var in MeRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationAuthServiceMe)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.Me(ctx, req.(*emptypb.Empty))
+			return srv.Me(ctx, req.(*MeRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MeReply)
+		reply := out.(*MeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -153,18 +152,18 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 		if err != nil {
 			return err
 		}
-		reply := out.(*MeReply)
+		reply := out.(*SwitchOrganizationResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type AuthServiceHTTPClient interface {
-	GetWeComLoginConfig(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *WeComLoginConfigReply, err error)
-	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
-	Logout(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *OperationReply, err error)
-	Me(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *MeReply, err error)
-	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *MeReply, err error)
-	WeComLogin(ctx context.Context, req *WeComLoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
+	GetWeComLoginConfig(ctx context.Context, req *GetWeComLoginConfigRequest, opts ...http.CallOption) (rsp *GetWeComLoginConfigResponse, err error)
+	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
+	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
+	Me(ctx context.Context, req *MeRequest, opts ...http.CallOption) (rsp *MeResponse, err error)
+	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *SwitchOrganizationResponse, err error)
+	WeComLogin(ctx context.Context, req *WeComLoginRequest, opts ...http.CallOption) (rsp *WeComLoginResponse, err error)
 }
 
 type AuthServiceHTTPClientImpl struct {
@@ -175,8 +174,8 @@ func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
 }
 
-func (c *AuthServiceHTTPClientImpl) GetWeComLoginConfig(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*WeComLoginConfigReply, error) {
-	var out WeComLoginConfigReply
+func (c *AuthServiceHTTPClientImpl) GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...http.CallOption) (*GetWeComLoginConfigResponse, error) {
+	var out GetWeComLoginConfigResponse
 	pattern := "/api/v1/auth/wecom/login-config"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -191,8 +190,8 @@ func (c *AuthServiceHTTPClientImpl) GetWeComLoginConfig(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
-	var out LoginReply
+func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginResponse, error) {
+	var out LoginResponse
 	pattern := "/api/v1/auth/login"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -208,8 +207,8 @@ func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest,
 	return &out, nil
 }
 
-func (c *AuthServiceHTTPClientImpl) Logout(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*OperationReply, error) {
-	var out OperationReply
+func (c *AuthServiceHTTPClientImpl) Logout(ctx context.Context, in *LogoutRequest, opts ...http.CallOption) (*LogoutResponse, error) {
+	var out LogoutResponse
 	pattern := "/api/v1/auth/logout"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -225,8 +224,8 @@ func (c *AuthServiceHTTPClientImpl) Logout(ctx context.Context, in *emptypb.Empt
 	return &out, nil
 }
 
-func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*MeReply, error) {
-	var out MeReply
+func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *MeRequest, opts ...http.CallOption) (*MeResponse, error) {
+	var out MeResponse
 	pattern := "/api/v1/auth/me"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -241,8 +240,8 @@ func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *emptypb.Empty, o
 	return &out, nil
 }
 
-func (c *AuthServiceHTTPClientImpl) SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...http.CallOption) (*MeReply, error) {
-	var out MeReply
+func (c *AuthServiceHTTPClientImpl) SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...http.CallOption) (*SwitchOrganizationResponse, error) {
+	var out SwitchOrganizationResponse
 	pattern := "/api/v1/auth/switch-organization"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -258,8 +257,8 @@ func (c *AuthServiceHTTPClientImpl) SwitchOrganization(ctx context.Context, in *
 	return &out, nil
 }
 
-func (c *AuthServiceHTTPClientImpl) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...http.CallOption) (*LoginReply, error) {
-	var out LoginReply
+func (c *AuthServiceHTTPClientImpl) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...http.CallOption) (*WeComLoginResponse, error) {
+	var out WeComLoginResponse
 	pattern := "/api/v1/auth/wecom/login"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

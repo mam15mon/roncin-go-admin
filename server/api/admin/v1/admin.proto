@@ -9,12 +9,12 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/admin/v1;v1";
 
 service AdminService {
-  rpc ListOrganizations(ListOrganizationsRequest) returns (AdminOrganizationListReply) {
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.read" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {get: "/api/v1/admin/organizations"};
   }
 
-  rpc CreateOrganization(CreateOrganizationRequest) returns (AdminOrganizationReply) {
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.create" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       post: "/api/v1/admin/organizations"
@@ -22,7 +22,7 @@ service AdminService {
     };
   }
 
-  rpc UpdateOrganization(UpdateOrganizationRequest) returns (AdminOrganizationReply) {
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (UpdateOrganizationResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.update" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       put: "/api/v1/admin/organizations/{id}"
@@ -30,12 +30,12 @@ service AdminService {
     };
   }
 
-  rpc ListUsers(ListUsersRequest) returns (AdminUserListReply) {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/users"};
   }
 
-  rpc CreateUser(CreateUserRequest) returns (AdminUserReply) {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/users"
@@ -43,7 +43,7 @@ service AdminService {
     };
   }
 
-  rpc UpdateUser(UpdateUserRequest) returns (AdminUserReply) {
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}"
@@ -51,7 +51,7 @@ service AdminService {
     };
   }
 
-  rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AdminUserReply) {
+  rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AuthorizeWeComUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_wecom" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
       post: "/api/v1/admin/users/{id}/wecom-authorization"
@@ -59,7 +59,7 @@ service AdminService {
     };
   }
 
-  rpc ResetUserPassword(ResetUserPasswordRequest) returns (AdminOperationReply) {
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.reset_password" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/users/{id}/password"
@@ -67,17 +67,17 @@ service AdminService {
     };
   }
 
-  rpc ListRoles(ListRolesRequest) returns (AdminRoleListReply) {
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/roles"};
   }
 
-  rpc ListOrganizationRoles(ListOrganizationRolesRequest) returns (AdminRoleListReply) {
+  rpc ListOrganizationRoles(ListOrganizationRolesRequest) returns (ListOrganizationRolesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {get: "/api/v1/admin/organizations/{organization_id}/roles"};
   }
 
-  rpc CreateRole(CreateRoleRequest) returns (AdminRoleReply) {
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/roles"
@@ -85,7 +85,7 @@ service AdminService {
     };
   }
 
-  rpc UpdateRole(UpdateRoleRequest) returns (AdminRoleReply) {
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/roles/{id}"
@@ -93,12 +93,12 @@ service AdminService {
     };
   }
 
-  rpc ListPermissions(ListPermissionsRequest) returns (AdminPermissionListReply) {
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.permission.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/permissions"};
   }
 
-  rpc ListAuditLogs(ListAuditLogsRequest) returns (AdminAuditLogListReply) {
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.audit.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/audit-logs"};
   }
@@ -144,7 +144,7 @@ message AdminOrganization {
   OrganizationKind kind = 6;
 }
 
-message AdminOrganizationListReply {
+message ListOrganizationsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -152,14 +152,22 @@ message AdminOrganizationListReply {
   string trace_id = 5;
 }
 
-message AdminOperationReply {
+message ResetUserPasswordResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
 }
 
-message AdminOrganizationReply {
+message CreateOrganizationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminOrganization data = 4;
+  string trace_id = 5;
+}
+
+message UpdateOrganizationResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -220,7 +228,7 @@ message AdminUser {
   optional string wecom_name = 11;
 }
 
-message AdminUserListReply {
+message ListUsersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -231,7 +239,23 @@ message AdminUserListReply {
   string trace_id = 8;
 }
 
-message AdminUserReply {
+message CreateUserResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminUser data = 4;
+  string trace_id = 5;
+}
+
+message UpdateUserResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminUser data = 4;
+  string trace_id = 5;
+}
+
+message AuthorizeWeComUserResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -276,7 +300,7 @@ message AdminRole {
   repeated OrderOrganizationAccess order_organization_accesses = 10;
 }
 
-message AdminRoleListReply {
+message ListRolesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -284,7 +308,23 @@ message AdminRoleListReply {
   string trace_id = 5;
 }
 
-message AdminRoleReply {
+message ListOrganizationRolesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AdminRole data = 4;
+  string trace_id = 5;
+}
+
+message CreateRoleResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminRole data = 4;
+  string trace_id = 5;
+}
+
+message UpdateRoleResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -301,7 +341,7 @@ message AdminPermission {
   string description = 4;
 }
 
-message AdminPermissionListReply {
+message ListPermissionsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -335,7 +375,7 @@ message AdminAuditLog {
   string created_at = 12;
 }
 
-message AdminAuditLogListReply {
+message ListAuditLogsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

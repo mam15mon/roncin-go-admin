@@ -19,7 +19,7 @@ func NewOrderAttachmentService(usecase *biz.OrderAttachmentUsecase) *OrderAttach
 	return &OrderAttachmentService{usecase: usecase}
 }
 
-func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v1.ListAttachmentsRequest) (*v1.OrderAttachmentListReply, error) {
+func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v1.ListAttachmentsRequest) (*v1.ListAttachmentsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -36,7 +36,7 @@ func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v
 	for _, item := range items {
 		data = append(data, orderAttachmentToAPI(item))
 	}
-	return &v1.OrderAttachmentListReply{
+	return &v1.ListAttachmentsResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -45,7 +45,7 @@ func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v
 	}, nil
 }
 
-func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request *v1.RegisterAttachmentRequest) (*v1.OrderAttachmentReply, error) {
+func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request *v1.RegisterAttachmentRequest) (*v1.RegisterAttachmentResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -67,11 +67,11 @@ func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request
 	if err != nil {
 		return nil, err
 	}
-	return orderAttachmentReply(ctx, created), nil
+	return orderAttachmentResponse(ctx, created), nil
 }
 
-func orderAttachmentReply(ctx context.Context, value *biz.OrderAttachment) *v1.OrderAttachmentReply {
-	return &v1.OrderAttachmentReply{
+func orderAttachmentResponse(ctx context.Context, value *biz.OrderAttachment) *v1.RegisterAttachmentResponse {
+	return &v1.RegisterAttachmentResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",

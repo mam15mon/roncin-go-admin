@@ -343,8 +343,8 @@ func (x *RemovePersonnelRequest) GetId() string {
 	return ""
 }
 
-// OrderPersonnelReply 单条订单协作人员响应。
-type OrderPersonnelReply struct {
+// AssignPersonnelResponse 单条订单协作人员响应。
+type AssignPersonnelResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -355,20 +355,20 @@ type OrderPersonnelReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderPersonnelReply) Reset() {
-	*x = OrderPersonnelReply{}
+func (x *AssignPersonnelResponse) Reset() {
+	*x = AssignPersonnelResponse{}
 	mi := &file_order_v1_order_personnel_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderPersonnelReply) String() string {
+func (x *AssignPersonnelResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderPersonnelReply) ProtoMessage() {}
+func (*AssignPersonnelResponse) ProtoMessage() {}
 
-func (x *OrderPersonnelReply) ProtoReflect() protoreflect.Message {
+func (x *AssignPersonnelResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_personnel_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -380,48 +380,48 @@ func (x *OrderPersonnelReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderPersonnelReply.ProtoReflect.Descriptor instead.
-func (*OrderPersonnelReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use AssignPersonnelResponse.ProtoReflect.Descriptor instead.
+func (*AssignPersonnelResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *OrderPersonnelReply) GetSuccess() bool {
+func (x *AssignPersonnelResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderPersonnelReply) GetCode() int32 {
+func (x *AssignPersonnelResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderPersonnelReply) GetMessage() string {
+func (x *AssignPersonnelResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderPersonnelReply) GetData() *OrderPersonnel {
+func (x *AssignPersonnelResponse) GetData() *OrderPersonnel {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderPersonnelReply) GetTraceId() string {
+func (x *AssignPersonnelResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderPersonnelListReply 订单协作人员列表响应。
-type OrderPersonnelListReply struct {
+// ListPersonnelResponse 订单协作人员列表响应。
+type ListPersonnelResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -432,20 +432,20 @@ type OrderPersonnelListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderPersonnelListReply) Reset() {
-	*x = OrderPersonnelListReply{}
+func (x *ListPersonnelResponse) Reset() {
+	*x = ListPersonnelResponse{}
 	mi := &file_order_v1_order_personnel_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderPersonnelListReply) String() string {
+func (x *ListPersonnelResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderPersonnelListReply) ProtoMessage() {}
+func (*ListPersonnelResponse) ProtoMessage() {}
 
-func (x *OrderPersonnelListReply) ProtoReflect() protoreflect.Message {
+func (x *ListPersonnelResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_personnel_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -457,48 +457,48 @@ func (x *OrderPersonnelListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderPersonnelListReply.ProtoReflect.Descriptor instead.
-func (*OrderPersonnelListReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListPersonnelResponse.ProtoReflect.Descriptor instead.
+func (*ListPersonnelResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *OrderPersonnelListReply) GetSuccess() bool {
+func (x *ListPersonnelResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderPersonnelListReply) GetCode() int32 {
+func (x *ListPersonnelResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderPersonnelListReply) GetMessage() string {
+func (x *ListPersonnelResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderPersonnelListReply) GetData() []*OrderPersonnel {
+func (x *ListPersonnelResponse) GetData() []*OrderPersonnel {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderPersonnelListReply) GetTraceId() string {
+func (x *ListPersonnelResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderPersonnelOperationReply 订单协作人员操作响应。
-type OrderPersonnelOperationReply struct {
+// RemovePersonnelResponse 订单协作人员操作响应。
+type RemovePersonnelResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -508,20 +508,20 @@ type OrderPersonnelOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderPersonnelOperationReply) Reset() {
-	*x = OrderPersonnelOperationReply{}
+func (x *RemovePersonnelResponse) Reset() {
+	*x = RemovePersonnelResponse{}
 	mi := &file_order_v1_order_personnel_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderPersonnelOperationReply) String() string {
+func (x *RemovePersonnelResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderPersonnelOperationReply) ProtoMessage() {}
+func (*RemovePersonnelResponse) ProtoMessage() {}
 
-func (x *OrderPersonnelOperationReply) ProtoReflect() protoreflect.Message {
+func (x *RemovePersonnelResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_personnel_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -533,33 +533,33 @@ func (x *OrderPersonnelOperationReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderPersonnelOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderPersonnelOperationReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use RemovePersonnelResponse.ProtoReflect.Descriptor instead.
+func (*RemovePersonnelResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *OrderPersonnelOperationReply) GetSuccess() bool {
+func (x *RemovePersonnelResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderPersonnelOperationReply) GetCode() int32 {
+func (x *RemovePersonnelResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderPersonnelOperationReply) GetMessage() string {
+func (x *RemovePersonnelResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderPersonnelOperationReply) GetTraceId() string {
+func (x *RemovePersonnelResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -590,20 +590,20 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"M\n" +
 	"\x16RemovePersonnelRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xa6\x01\n" +
-	"\x13OrderPersonnelReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xaa\x01\n" +
+	"\x17AssignPersonnelResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderPersonnelR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x01\n" +
-	"\x17OrderPersonnelListReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa8\x01\n" +
+	"\x15ListPersonnelResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderPersonnelR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x01\n" +
-	"\x1cOrderPersonnelOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"|\n" +
+	"\x17RemovePersonnelResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
@@ -617,11 +617,11 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\x1dORDER_PERSONNEL_ROLE_DOCUMENT\x10\x05\x12#\n" +
 	"\x1fORDER_PERSONNEL_ROLE_COMMERCIAL\x10\x06\x12\"\n" +
 	"\x1eORDER_PERSONNEL_ROLE_ASSOCIATE\x10\a\x12#\n" +
-	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xfa\x03\n" +
-	"\x15OrderPersonnelService\x12\x97\x01\n" +
-	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a!.order.v1.OrderPersonnelListReply\"C\x82\xb5\x18\x14\b\x04\x1a\x0epersonnel.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnel\x12\x9c\x01\n" +
-	"\x0fAssignPersonnel\x12 .order.v1.AssignPersonnelRequest\x1a\x1d.order.v1.OrderPersonnelReply\"H\x82\xb5\x18\x16\b\x04\x1a\x10personnel.assign \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/personnel\x12\xa7\x01\n" +
-	"\x0fRemovePersonnel\x12 .order.v1.RemovePersonnelRequest\x1a&.order.v1.OrderPersonnelOperationReply\"J\x82\xb5\x18\x16\b\x04\x1a\x10personnel.remove \x02\x82\xd3\xe4\x93\x02**(/api/v1/orders/{order_id}/personnel/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xf7\x03\n" +
+	"\x15OrderPersonnelService\x12\x95\x01\n" +
+	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a\x1f.order.v1.ListPersonnelResponse\"C\x82\xb5\x18\x14\b\x04\x1a\x0epersonnel.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnel\x12\xa0\x01\n" +
+	"\x0fAssignPersonnel\x12 .order.v1.AssignPersonnelRequest\x1a!.order.v1.AssignPersonnelResponse\"H\x82\xb5\x18\x16\b\x04\x1a\x10personnel.assign \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/personnel\x12\xa2\x01\n" +
+	"\x0fRemovePersonnel\x12 .order.v1.RemovePersonnelRequest\x1a!.order.v1.RemovePersonnelResponse\"J\x82\xb5\x18\x16\b\x04\x1a\x10personnel.remove \x02\x82\xd3\xe4\x93\x02**(/api/v1/orders/{order_id}/personnel/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_personnel_proto_rawDescOnce sync.Once
@@ -638,26 +638,26 @@ func file_order_v1_order_personnel_proto_rawDescGZIP() []byte {
 var file_order_v1_order_personnel_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_order_v1_order_personnel_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_order_v1_order_personnel_proto_goTypes = []any{
-	(OrderPersonnelRole)(0),              // 0: order.v1.OrderPersonnelRole
-	(*OrderPersonnel)(nil),               // 1: order.v1.OrderPersonnel
-	(*ListPersonnelRequest)(nil),         // 2: order.v1.ListPersonnelRequest
-	(*AssignPersonnelRequest)(nil),       // 3: order.v1.AssignPersonnelRequest
-	(*RemovePersonnelRequest)(nil),       // 4: order.v1.RemovePersonnelRequest
-	(*OrderPersonnelReply)(nil),          // 5: order.v1.OrderPersonnelReply
-	(*OrderPersonnelListReply)(nil),      // 6: order.v1.OrderPersonnelListReply
-	(*OrderPersonnelOperationReply)(nil), // 7: order.v1.OrderPersonnelOperationReply
+	(OrderPersonnelRole)(0),         // 0: order.v1.OrderPersonnelRole
+	(*OrderPersonnel)(nil),          // 1: order.v1.OrderPersonnel
+	(*ListPersonnelRequest)(nil),    // 2: order.v1.ListPersonnelRequest
+	(*AssignPersonnelRequest)(nil),  // 3: order.v1.AssignPersonnelRequest
+	(*RemovePersonnelRequest)(nil),  // 4: order.v1.RemovePersonnelRequest
+	(*AssignPersonnelResponse)(nil), // 5: order.v1.AssignPersonnelResponse
+	(*ListPersonnelResponse)(nil),   // 6: order.v1.ListPersonnelResponse
+	(*RemovePersonnelResponse)(nil), // 7: order.v1.RemovePersonnelResponse
 }
 var file_order_v1_order_personnel_proto_depIdxs = []int32{
 	0, // 0: order.v1.OrderPersonnel.role:type_name -> order.v1.OrderPersonnelRole
 	0, // 1: order.v1.AssignPersonnelRequest.role:type_name -> order.v1.OrderPersonnelRole
-	1, // 2: order.v1.OrderPersonnelReply.data:type_name -> order.v1.OrderPersonnel
-	1, // 3: order.v1.OrderPersonnelListReply.data:type_name -> order.v1.OrderPersonnel
+	1, // 2: order.v1.AssignPersonnelResponse.data:type_name -> order.v1.OrderPersonnel
+	1, // 3: order.v1.ListPersonnelResponse.data:type_name -> order.v1.OrderPersonnel
 	2, // 4: order.v1.OrderPersonnelService.ListPersonnel:input_type -> order.v1.ListPersonnelRequest
 	3, // 5: order.v1.OrderPersonnelService.AssignPersonnel:input_type -> order.v1.AssignPersonnelRequest
 	4, // 6: order.v1.OrderPersonnelService.RemovePersonnel:input_type -> order.v1.RemovePersonnelRequest
-	6, // 7: order.v1.OrderPersonnelService.ListPersonnel:output_type -> order.v1.OrderPersonnelListReply
-	5, // 8: order.v1.OrderPersonnelService.AssignPersonnel:output_type -> order.v1.OrderPersonnelReply
-	7, // 9: order.v1.OrderPersonnelService.RemovePersonnel:output_type -> order.v1.OrderPersonnelOperationReply
+	6, // 7: order.v1.OrderPersonnelService.ListPersonnel:output_type -> order.v1.ListPersonnelResponse
+	5, // 8: order.v1.OrderPersonnelService.AssignPersonnel:output_type -> order.v1.AssignPersonnelResponse
+	7, // 9: order.v1.OrderPersonnelService.RemovePersonnel:output_type -> order.v1.RemovePersonnelResponse
 	7, // [7:10] is the sub-list for method output_type
 	4, // [4:7] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name

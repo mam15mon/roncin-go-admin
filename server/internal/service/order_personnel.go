@@ -19,7 +19,7 @@ func NewOrderPersonnelService(usecase *biz.OrderPersonnelUsecase) *OrderPersonne
 	return &OrderPersonnelService{usecase: usecase}
 }
 
-func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.ListPersonnelRequest) (*v1.OrderPersonnelListReply, error) {
+func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.ListPersonnelRequest) (*v1.ListPersonnelResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -36,7 +36,7 @@ func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.L
 	for _, item := range items {
 		data = append(data, orderPersonnelToAPI(item))
 	}
-	return &v1.OrderPersonnelListReply{
+	return &v1.ListPersonnelResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -45,7 +45,7 @@ func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.L
 	}, nil
 }
 
-func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1.AssignPersonnelRequest) (*v1.OrderPersonnelReply, error) {
+func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1.AssignPersonnelRequest) (*v1.AssignPersonnelResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -66,10 +66,10 @@ func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1
 	if err != nil {
 		return nil, err
 	}
-	return orderPersonnelReply(ctx, created), nil
+	return orderPersonnelResponse(ctx, created), nil
 }
 
-func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1.RemovePersonnelRequest) (*v1.OrderPersonnelOperationReply, error) {
+func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1.RemovePersonnelRequest) (*v1.RemovePersonnelResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -85,7 +85,7 @@ func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderPersonnelOperationReply{
+	return &v1.RemovePersonnelResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -93,8 +93,8 @@ func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1
 	}, nil
 }
 
-func orderPersonnelReply(ctx context.Context, value *biz.OrderPersonnel) *v1.OrderPersonnelReply {
-	return &v1.OrderPersonnelReply{
+func orderPersonnelResponse(ctx context.Context, value *biz.OrderPersonnel) *v1.AssignPersonnelResponse {
+	return &v1.AssignPersonnelResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",

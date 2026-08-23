@@ -33,13 +33,13 @@ const (
 // 箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。
 type OrderContainerServiceClient interface {
 	// ListContainers 获取指定订单的集装箱列表。
-	ListContainers(ctx context.Context, in *ListContainersRequest, opts ...grpc.CallOption) (*OrderContainerListReply, error)
+	ListContainers(ctx context.Context, in *ListContainersRequest, opts ...grpc.CallOption) (*ListContainersResponse, error)
 	// AddContainer 添加订单集装箱。
-	AddContainer(ctx context.Context, in *AddContainerRequest, opts ...grpc.CallOption) (*OrderContainerReply, error)
+	AddContainer(ctx context.Context, in *AddContainerRequest, opts ...grpc.CallOption) (*AddContainerResponse, error)
 	// UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-	UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...grpc.CallOption) (*OrderContainerReply, error)
+	UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...grpc.CallOption) (*UpdateContainerResponse, error)
 	// RemoveContainer 移除订单集装箱。
-	RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...grpc.CallOption) (*OrderContainerOperationReply, error)
+	RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...grpc.CallOption) (*RemoveContainerResponse, error)
 }
 
 type orderContainerServiceClient struct {
@@ -50,9 +50,9 @@ func NewOrderContainerServiceClient(cc grpc.ClientConnInterface) OrderContainerS
 	return &orderContainerServiceClient{cc}
 }
 
-func (c *orderContainerServiceClient) ListContainers(ctx context.Context, in *ListContainersRequest, opts ...grpc.CallOption) (*OrderContainerListReply, error) {
+func (c *orderContainerServiceClient) ListContainers(ctx context.Context, in *ListContainersRequest, opts ...grpc.CallOption) (*ListContainersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderContainerListReply)
+	out := new(ListContainersResponse)
 	err := c.cc.Invoke(ctx, OrderContainerService_ListContainers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -60,9 +60,9 @@ func (c *orderContainerServiceClient) ListContainers(ctx context.Context, in *Li
 	return out, nil
 }
 
-func (c *orderContainerServiceClient) AddContainer(ctx context.Context, in *AddContainerRequest, opts ...grpc.CallOption) (*OrderContainerReply, error) {
+func (c *orderContainerServiceClient) AddContainer(ctx context.Context, in *AddContainerRequest, opts ...grpc.CallOption) (*AddContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderContainerReply)
+	out := new(AddContainerResponse)
 	err := c.cc.Invoke(ctx, OrderContainerService_AddContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *orderContainerServiceClient) AddContainer(ctx context.Context, in *AddC
 	return out, nil
 }
 
-func (c *orderContainerServiceClient) UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...grpc.CallOption) (*OrderContainerReply, error) {
+func (c *orderContainerServiceClient) UpdateContainer(ctx context.Context, in *UpdateContainerRequest, opts ...grpc.CallOption) (*UpdateContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderContainerReply)
+	out := new(UpdateContainerResponse)
 	err := c.cc.Invoke(ctx, OrderContainerService_UpdateContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,9 +80,9 @@ func (c *orderContainerServiceClient) UpdateContainer(ctx context.Context, in *U
 	return out, nil
 }
 
-func (c *orderContainerServiceClient) RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...grpc.CallOption) (*OrderContainerOperationReply, error) {
+func (c *orderContainerServiceClient) RemoveContainer(ctx context.Context, in *RemoveContainerRequest, opts ...grpc.CallOption) (*RemoveContainerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(OrderContainerOperationReply)
+	out := new(RemoveContainerResponse)
 	err := c.cc.Invoke(ctx, OrderContainerService_RemoveContainer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -98,13 +98,13 @@ func (c *orderContainerServiceClient) RemoveContainer(ctx context.Context, in *R
 // 箱型必须引用组织级 container_spec 主数据；装载状态与跟踪事件建模时另行引入。
 type OrderContainerServiceServer interface {
 	// ListContainers 获取指定订单的集装箱列表。
-	ListContainers(context.Context, *ListContainersRequest) (*OrderContainerListReply, error)
+	ListContainers(context.Context, *ListContainersRequest) (*ListContainersResponse, error)
 	// AddContainer 添加订单集装箱。
-	AddContainer(context.Context, *AddContainerRequest) (*OrderContainerReply, error)
+	AddContainer(context.Context, *AddContainerRequest) (*AddContainerResponse, error)
 	// UpdateContainer 更新订单集装箱，采用全量字段替换语义。
-	UpdateContainer(context.Context, *UpdateContainerRequest) (*OrderContainerReply, error)
+	UpdateContainer(context.Context, *UpdateContainerRequest) (*UpdateContainerResponse, error)
 	// RemoveContainer 移除订单集装箱。
-	RemoveContainer(context.Context, *RemoveContainerRequest) (*OrderContainerOperationReply, error)
+	RemoveContainer(context.Context, *RemoveContainerRequest) (*RemoveContainerResponse, error)
 	mustEmbedUnimplementedOrderContainerServiceServer()
 }
 
@@ -115,16 +115,16 @@ type OrderContainerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderContainerServiceServer struct{}
 
-func (UnimplementedOrderContainerServiceServer) ListContainers(context.Context, *ListContainersRequest) (*OrderContainerListReply, error) {
+func (UnimplementedOrderContainerServiceServer) ListContainers(context.Context, *ListContainersRequest) (*ListContainersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListContainers not implemented")
 }
-func (UnimplementedOrderContainerServiceServer) AddContainer(context.Context, *AddContainerRequest) (*OrderContainerReply, error) {
+func (UnimplementedOrderContainerServiceServer) AddContainer(context.Context, *AddContainerRequest) (*AddContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddContainer not implemented")
 }
-func (UnimplementedOrderContainerServiceServer) UpdateContainer(context.Context, *UpdateContainerRequest) (*OrderContainerReply, error) {
+func (UnimplementedOrderContainerServiceServer) UpdateContainer(context.Context, *UpdateContainerRequest) (*UpdateContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateContainer not implemented")
 }
-func (UnimplementedOrderContainerServiceServer) RemoveContainer(context.Context, *RemoveContainerRequest) (*OrderContainerOperationReply, error) {
+func (UnimplementedOrderContainerServiceServer) RemoveContainer(context.Context, *RemoveContainerRequest) (*RemoveContainerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveContainer not implemented")
 }
 func (UnimplementedOrderContainerServiceServer) mustEmbedUnimplementedOrderContainerServiceServer() {}

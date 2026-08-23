@@ -49,36 +49,36 @@ const OperationMasterDataServiceUpdatePort = "/masterdata.v1.MasterDataService/U
 const OperationMasterDataServiceUpdateShippingLine = "/masterdata.v1.MasterDataService/UpdateShippingLine"
 
 type MasterDataServiceHTTPServer interface {
-	CreateAirline(context.Context, *CreateAirlineRequest) (*AirlineReply, error)
-	CreateAirport(context.Context, *CreateAirportRequest) (*AirportReply, error)
-	CreateItem(context.Context, *CreateMasterDataItemRequest) (*MasterDataItemReply, error)
-	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
-	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*NumberRuleReply, error)
-	CreatePort(context.Context, *CreatePortRequest) (*PortReply, error)
-	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*ShippingLineReply, error)
-	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*StatusTemplateReply, error)
-	ImportItems(context.Context, *ImportMasterDataItemsRequest) (*MasterDataImportReply, error)
-	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*AdministrativeRegionListReply, error)
-	ListAirlines(context.Context, *ListIndustryReferencesRequest) (*AirlineListReply, error)
-	ListAirports(context.Context, *ListIndustryReferencesRequest) (*AirportListReply, error)
-	ListCurrencies(context.Context, *ListCurrenciesRequest) (*CurrencyListReply, error)
-	ListItems(context.Context, *ListMasterDataItemsRequest) (*MasterDataItemListReply, error)
-	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*MilestoneTemplateListReply, error)
-	ListNumberRules(context.Context, *ListNumberRulesRequest) (*NumberRuleListReply, error)
-	ListOptions(context.Context, *ListMasterDataOptionsRequest) (*MasterDataOptionsReply, error)
-	ListPorts(context.Context, *ListIndustryReferencesRequest) (*PortListReply, error)
-	ListShippingLines(context.Context, *ListIndustryReferencesRequest) (*ShippingLineListReply, error)
-	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*StatusTemplateListReply, error)
-	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
-	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*StatusTemplateReply, error)
-	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*MilestoneTemplateReply, error)
-	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*StatusTemplateReply, error)
-	UpdateAirline(context.Context, *UpdateAirlineRequest) (*AirlineReply, error)
-	UpdateAirport(context.Context, *UpdateAirportRequest) (*AirportReply, error)
-	UpdateItem(context.Context, *UpdateMasterDataItemRequest) (*MasterDataItemReply, error)
-	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*NumberRuleReply, error)
-	UpdatePort(context.Context, *UpdatePortRequest) (*PortReply, error)
-	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*ShippingLineReply, error)
+	CreateAirline(context.Context, *CreateAirlineRequest) (*CreateAirlineResponse, error)
+	CreateAirport(context.Context, *CreateAirportRequest) (*CreateAirportResponse, error)
+	CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error)
+	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error)
+	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
+	CreatePort(context.Context, *CreatePortRequest) (*CreatePortResponse, error)
+	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error)
+	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error)
+	ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error)
+	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
+	ListAirlines(context.Context, *ListAirlinesRequest) (*ListAirlinesResponse, error)
+	ListAirports(context.Context, *ListAirportsRequest) (*ListAirportsResponse, error)
+	ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error)
+	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
+	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error)
+	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
+	ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error)
+	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
+	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
+	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error)
+	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
+	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error)
+	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
+	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error)
+	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
+	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
+	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
+	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error)
+	UpdatePort(context.Context, *UpdatePortRequest) (*UpdatePortResponse, error)
+	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*UpdateShippingLineResponse, error)
 }
 
 func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHTTPServer) {
@@ -117,45 +117,45 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 
 func _MasterDataService_ListItems0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListMasterDataItemsRequest
+		var in ListItemsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListItems)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListItems(ctx, req.(*ListMasterDataItemsRequest))
+			return srv.ListItems(ctx, req.(*ListItemsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MasterDataItemListReply)
+		reply := out.(*ListItemsResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_CreateItem0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in CreateMasterDataItemRequest
+		var in CreateItemRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceCreateItem)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateItem(ctx, req.(*CreateMasterDataItemRequest))
+			return srv.CreateItem(ctx, req.(*CreateItemRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MasterDataItemReply)
+		reply := out.(*CreateItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_UpdateItem0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in UpdateMasterDataItemRequest
+		var in UpdateItemRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
@@ -164,70 +164,70 @@ func _MasterDataService_UpdateItem0_HTTP_Handler(srv MasterDataServiceHTTPServer
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceUpdateItem)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateItem(ctx, req.(*UpdateMasterDataItemRequest))
+			return srv.UpdateItem(ctx, req.(*UpdateItemRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MasterDataItemReply)
+		reply := out.(*UpdateItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ImportItems0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ImportMasterDataItemsRequest
+		var in ImportItemsRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceImportItems)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ImportItems(ctx, req.(*ImportMasterDataItemsRequest))
+			return srv.ImportItems(ctx, req.(*ImportItemsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MasterDataImportReply)
+		reply := out.(*ImportItemsResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ListOptions0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListMasterDataOptionsRequest
+		var in ListOptionsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListOptions)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListOptions(ctx, req.(*ListMasterDataOptionsRequest))
+			return srv.ListOptions(ctx, req.(*ListOptionsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*MasterDataOptionsReply)
+		reply := out.(*ListOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ListPorts0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListIndustryReferencesRequest
+		var in ListPortsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListPorts)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPorts(ctx, req.(*ListIndustryReferencesRequest))
+			return srv.ListPorts(ctx, req.(*ListPortsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*PortListReply)
+		reply := out.(*ListPortsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -246,7 +246,7 @@ func _MasterDataService_CreatePort0_HTTP_Handler(srv MasterDataServiceHTTPServer
 		if err != nil {
 			return err
 		}
-		reply := out.(*PortReply)
+		reply := out.(*CreatePortResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -268,26 +268,26 @@ func _MasterDataService_UpdatePort0_HTTP_Handler(srv MasterDataServiceHTTPServer
 		if err != nil {
 			return err
 		}
-		reply := out.(*PortReply)
+		reply := out.(*UpdatePortResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ListAirports0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListIndustryReferencesRequest
+		var in ListAirportsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListAirports)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListAirports(ctx, req.(*ListIndustryReferencesRequest))
+			return srv.ListAirports(ctx, req.(*ListAirportsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirportListReply)
+		reply := out.(*ListAirportsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -306,7 +306,7 @@ func _MasterDataService_CreateAirport0_HTTP_Handler(srv MasterDataServiceHTTPSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirportReply)
+		reply := out.(*CreateAirportResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -328,26 +328,26 @@ func _MasterDataService_UpdateAirport0_HTTP_Handler(srv MasterDataServiceHTTPSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirportReply)
+		reply := out.(*UpdateAirportResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ListAirlines0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListIndustryReferencesRequest
+		var in ListAirlinesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListAirlines)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListAirlines(ctx, req.(*ListIndustryReferencesRequest))
+			return srv.ListAirlines(ctx, req.(*ListAirlinesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirlineListReply)
+		reply := out.(*ListAirlinesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -366,7 +366,7 @@ func _MasterDataService_CreateAirline0_HTTP_Handler(srv MasterDataServiceHTTPSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirlineReply)
+		reply := out.(*CreateAirlineResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -388,26 +388,26 @@ func _MasterDataService_UpdateAirline0_HTTP_Handler(srv MasterDataServiceHTTPSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*AirlineReply)
+		reply := out.(*UpdateAirlineResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 func _MasterDataService_ListShippingLines0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListIndustryReferencesRequest
+		var in ListShippingLinesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationMasterDataServiceListShippingLines)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListShippingLines(ctx, req.(*ListIndustryReferencesRequest))
+			return srv.ListShippingLines(ctx, req.(*ListShippingLinesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ShippingLineListReply)
+		reply := out.(*ListShippingLinesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -426,7 +426,7 @@ func _MasterDataService_CreateShippingLine0_HTTP_Handler(srv MasterDataServiceHT
 		if err != nil {
 			return err
 		}
-		reply := out.(*ShippingLineReply)
+		reply := out.(*CreateShippingLineResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -448,7 +448,7 @@ func _MasterDataService_UpdateShippingLine0_HTTP_Handler(srv MasterDataServiceHT
 		if err != nil {
 			return err
 		}
-		reply := out.(*ShippingLineReply)
+		reply := out.(*UpdateShippingLineResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -467,7 +467,7 @@ func _MasterDataService_ListCurrencies0_HTTP_Handler(srv MasterDataServiceHTTPSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*CurrencyListReply)
+		reply := out.(*ListCurrenciesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -486,7 +486,7 @@ func _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv MasterDataSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*AdministrativeRegionListReply)
+		reply := out.(*ListAdministrativeRegionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -505,7 +505,7 @@ func _MasterDataService_ListNumberRules0_HTTP_Handler(srv MasterDataServiceHTTPS
 		if err != nil {
 			return err
 		}
-		reply := out.(*NumberRuleListReply)
+		reply := out.(*ListNumberRulesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -524,7 +524,7 @@ func _MasterDataService_CreateNumberRule0_HTTP_Handler(srv MasterDataServiceHTTP
 		if err != nil {
 			return err
 		}
-		reply := out.(*NumberRuleReply)
+		reply := out.(*CreateNumberRuleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -546,7 +546,7 @@ func _MasterDataService_UpdateNumberRule0_HTTP_Handler(srv MasterDataServiceHTTP
 		if err != nil {
 			return err
 		}
-		reply := out.(*NumberRuleReply)
+		reply := out.(*UpdateNumberRuleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -565,7 +565,7 @@ func _MasterDataService_ListStatusTemplates0_HTTP_Handler(srv MasterDataServiceH
 		if err != nil {
 			return err
 		}
-		reply := out.(*StatusTemplateListReply)
+		reply := out.(*ListStatusTemplatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -584,7 +584,7 @@ func _MasterDataService_CreateStatusTemplate0_HTTP_Handler(srv MasterDataService
 		if err != nil {
 			return err
 		}
-		reply := out.(*StatusTemplateReply)
+		reply := out.(*CreateStatusTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -606,7 +606,7 @@ func _MasterDataService_PublishStatusTemplate0_HTTP_Handler(srv MasterDataServic
 		if err != nil {
 			return err
 		}
-		reply := out.(*StatusTemplateReply)
+		reply := out.(*PublishStatusTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -628,7 +628,7 @@ func _MasterDataService_SetDefaultStatusTemplate0_HTTP_Handler(srv MasterDataSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*StatusTemplateReply)
+		reply := out.(*SetDefaultStatusTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -647,7 +647,7 @@ func _MasterDataService_ListMilestoneTemplates0_HTTP_Handler(srv MasterDataServi
 		if err != nil {
 			return err
 		}
-		reply := out.(*MilestoneTemplateListReply)
+		reply := out.(*ListMilestoneTemplatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -666,7 +666,7 @@ func _MasterDataService_CreateMilestoneTemplate0_HTTP_Handler(srv MasterDataServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*MilestoneTemplateReply)
+		reply := out.(*CreateMilestoneTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -688,7 +688,7 @@ func _MasterDataService_PublishMilestoneTemplate0_HTTP_Handler(srv MasterDataSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*MilestoneTemplateReply)
+		reply := out.(*PublishMilestoneTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -710,42 +710,42 @@ func _MasterDataService_SetDefaultMilestoneTemplate0_HTTP_Handler(srv MasterData
 		if err != nil {
 			return err
 		}
-		reply := out.(*MilestoneTemplateReply)
+		reply := out.(*SetDefaultMilestoneTemplateResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type MasterDataServiceHTTPClient interface {
-	CreateAirline(ctx context.Context, req *CreateAirlineRequest, opts ...http.CallOption) (rsp *AirlineReply, err error)
-	CreateAirport(ctx context.Context, req *CreateAirportRequest, opts ...http.CallOption) (rsp *AirportReply, err error)
-	CreateItem(ctx context.Context, req *CreateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
-	CreateMilestoneTemplate(ctx context.Context, req *CreateMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
-	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
-	CreatePort(ctx context.Context, req *CreatePortRequest, opts ...http.CallOption) (rsp *PortReply, err error)
-	CreateShippingLine(ctx context.Context, req *CreateShippingLineRequest, opts ...http.CallOption) (rsp *ShippingLineReply, err error)
-	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
-	ImportItems(ctx context.Context, req *ImportMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataImportReply, err error)
-	ListAdministrativeRegions(ctx context.Context, req *ListAdministrativeRegionsRequest, opts ...http.CallOption) (rsp *AdministrativeRegionListReply, err error)
-	ListAirlines(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *AirlineListReply, err error)
-	ListAirports(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *AirportListReply, err error)
-	ListCurrencies(ctx context.Context, req *ListCurrenciesRequest, opts ...http.CallOption) (rsp *CurrencyListReply, err error)
-	ListItems(ctx context.Context, req *ListMasterDataItemsRequest, opts ...http.CallOption) (rsp *MasterDataItemListReply, err error)
-	ListMilestoneTemplates(ctx context.Context, req *ListMilestoneTemplatesRequest, opts ...http.CallOption) (rsp *MilestoneTemplateListReply, err error)
-	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *NumberRuleListReply, err error)
-	ListOptions(ctx context.Context, req *ListMasterDataOptionsRequest, opts ...http.CallOption) (rsp *MasterDataOptionsReply, err error)
-	ListPorts(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *PortListReply, err error)
-	ListShippingLines(ctx context.Context, req *ListIndustryReferencesRequest, opts ...http.CallOption) (rsp *ShippingLineListReply, err error)
-	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *StatusTemplateListReply, err error)
-	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
-	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
-	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *MilestoneTemplateReply, err error)
-	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *StatusTemplateReply, err error)
-	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *AirlineReply, err error)
-	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *AirportReply, err error)
-	UpdateItem(ctx context.Context, req *UpdateMasterDataItemRequest, opts ...http.CallOption) (rsp *MasterDataItemReply, err error)
-	UpdateNumberRule(ctx context.Context, req *UpdateNumberRuleRequest, opts ...http.CallOption) (rsp *NumberRuleReply, err error)
-	UpdatePort(ctx context.Context, req *UpdatePortRequest, opts ...http.CallOption) (rsp *PortReply, err error)
-	UpdateShippingLine(ctx context.Context, req *UpdateShippingLineRequest, opts ...http.CallOption) (rsp *ShippingLineReply, err error)
+	CreateAirline(ctx context.Context, req *CreateAirlineRequest, opts ...http.CallOption) (rsp *CreateAirlineResponse, err error)
+	CreateAirport(ctx context.Context, req *CreateAirportRequest, opts ...http.CallOption) (rsp *CreateAirportResponse, err error)
+	CreateItem(ctx context.Context, req *CreateItemRequest, opts ...http.CallOption) (rsp *CreateItemResponse, err error)
+	CreateMilestoneTemplate(ctx context.Context, req *CreateMilestoneTemplateRequest, opts ...http.CallOption) (rsp *CreateMilestoneTemplateResponse, err error)
+	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *CreateNumberRuleResponse, err error)
+	CreatePort(ctx context.Context, req *CreatePortRequest, opts ...http.CallOption) (rsp *CreatePortResponse, err error)
+	CreateShippingLine(ctx context.Context, req *CreateShippingLineRequest, opts ...http.CallOption) (rsp *CreateShippingLineResponse, err error)
+	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *CreateStatusTemplateResponse, err error)
+	ImportItems(ctx context.Context, req *ImportItemsRequest, opts ...http.CallOption) (rsp *ImportItemsResponse, err error)
+	ListAdministrativeRegions(ctx context.Context, req *ListAdministrativeRegionsRequest, opts ...http.CallOption) (rsp *ListAdministrativeRegionsResponse, err error)
+	ListAirlines(ctx context.Context, req *ListAirlinesRequest, opts ...http.CallOption) (rsp *ListAirlinesResponse, err error)
+	ListAirports(ctx context.Context, req *ListAirportsRequest, opts ...http.CallOption) (rsp *ListAirportsResponse, err error)
+	ListCurrencies(ctx context.Context, req *ListCurrenciesRequest, opts ...http.CallOption) (rsp *ListCurrenciesResponse, err error)
+	ListItems(ctx context.Context, req *ListItemsRequest, opts ...http.CallOption) (rsp *ListItemsResponse, err error)
+	ListMilestoneTemplates(ctx context.Context, req *ListMilestoneTemplatesRequest, opts ...http.CallOption) (rsp *ListMilestoneTemplatesResponse, err error)
+	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *ListNumberRulesResponse, err error)
+	ListOptions(ctx context.Context, req *ListOptionsRequest, opts ...http.CallOption) (rsp *ListOptionsResponse, err error)
+	ListPorts(ctx context.Context, req *ListPortsRequest, opts ...http.CallOption) (rsp *ListPortsResponse, err error)
+	ListShippingLines(ctx context.Context, req *ListShippingLinesRequest, opts ...http.CallOption) (rsp *ListShippingLinesResponse, err error)
+	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *ListStatusTemplatesResponse, err error)
+	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *PublishMilestoneTemplateResponse, err error)
+	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *PublishStatusTemplateResponse, err error)
+	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultMilestoneTemplateResponse, err error)
+	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultStatusTemplateResponse, err error)
+	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
+	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *UpdateAirportResponse, err error)
+	UpdateItem(ctx context.Context, req *UpdateItemRequest, opts ...http.CallOption) (rsp *UpdateItemResponse, err error)
+	UpdateNumberRule(ctx context.Context, req *UpdateNumberRuleRequest, opts ...http.CallOption) (rsp *UpdateNumberRuleResponse, err error)
+	UpdatePort(ctx context.Context, req *UpdatePortRequest, opts ...http.CallOption) (rsp *UpdatePortResponse, err error)
+	UpdateShippingLine(ctx context.Context, req *UpdateShippingLineRequest, opts ...http.CallOption) (rsp *UpdateShippingLineResponse, err error)
 }
 
 type MasterDataServiceHTTPClientImpl struct {
@@ -756,8 +756,8 @@ func NewMasterDataServiceHTTPClient(client *http.Client) MasterDataServiceHTTPCl
 	return &MasterDataServiceHTTPClientImpl{client}
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...http.CallOption) (*AirlineReply, error) {
-	var out AirlineReply
+func (c *MasterDataServiceHTTPClientImpl) CreateAirline(ctx context.Context, in *CreateAirlineRequest, opts ...http.CallOption) (*CreateAirlineResponse, error) {
+	var out CreateAirlineResponse
 	pattern := "/api/v1/master-data/airlines"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -773,8 +773,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateAirline(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...http.CallOption) (*AirportReply, error) {
-	var out AirportReply
+func (c *MasterDataServiceHTTPClientImpl) CreateAirport(ctx context.Context, in *CreateAirportRequest, opts ...http.CallOption) (*CreateAirportResponse, error) {
+	var out CreateAirportResponse
 	pattern := "/api/v1/master-data/airports"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -790,8 +790,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateAirport(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateItem(ctx context.Context, in *CreateMasterDataItemRequest, opts ...http.CallOption) (*MasterDataItemReply, error) {
-	var out MasterDataItemReply
+func (c *MasterDataServiceHTTPClientImpl) CreateItem(ctx context.Context, in *CreateItemRequest, opts ...http.CallOption) (*CreateItemResponse, error) {
+	var out CreateItemResponse
 	pattern := "/api/v1/master-data/items"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -807,8 +807,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateItem(ctx context.Context, in *Cr
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...http.CallOption) (*MilestoneTemplateReply, error) {
-	var out MilestoneTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...http.CallOption) (*CreateMilestoneTemplateResponse, error) {
+	var out CreateMilestoneTemplateResponse
 	pattern := "/api/v1/master-data/milestone-templates"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -824,8 +824,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateMilestoneTemplate(ctx context.Co
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...http.CallOption) (*NumberRuleReply, error) {
-	var out NumberRuleReply
+func (c *MasterDataServiceHTTPClientImpl) CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...http.CallOption) (*CreateNumberRuleResponse, error) {
+	var out CreateNumberRuleResponse
 	pattern := "/api/v1/master-data/number-rules"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -841,8 +841,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateNumberRule(ctx context.Context, 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...http.CallOption) (*PortReply, error) {
-	var out PortReply
+func (c *MasterDataServiceHTTPClientImpl) CreatePort(ctx context.Context, in *CreatePortRequest, opts ...http.CallOption) (*CreatePortResponse, error) {
+	var out CreatePortResponse
 	pattern := "/api/v1/master-data/ports"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -858,8 +858,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreatePort(ctx context.Context, in *Cr
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...http.CallOption) (*ShippingLineReply, error) {
-	var out ShippingLineReply
+func (c *MasterDataServiceHTTPClientImpl) CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...http.CallOption) (*CreateShippingLineResponse, error) {
+	var out CreateShippingLineResponse
 	pattern := "/api/v1/master-data/shipping-lines"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -875,8 +875,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateShippingLine(ctx context.Context
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
-	var out StatusTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...http.CallOption) (*CreateStatusTemplateResponse, error) {
+	var out CreateStatusTemplateResponse
 	pattern := "/api/v1/master-data/status-templates"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -892,8 +892,8 @@ func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Conte
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ImportItems(ctx context.Context, in *ImportMasterDataItemsRequest, opts ...http.CallOption) (*MasterDataImportReply, error) {
-	var out MasterDataImportReply
+func (c *MasterDataServiceHTTPClientImpl) ImportItems(ctx context.Context, in *ImportItemsRequest, opts ...http.CallOption) (*ImportItemsResponse, error) {
+	var out ImportItemsResponse
 	pattern := "/api/v1/master-data/import"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -909,8 +909,8 @@ func (c *MasterDataServiceHTTPClientImpl) ImportItems(ctx context.Context, in *I
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...http.CallOption) (*AdministrativeRegionListReply, error) {
-	var out AdministrativeRegionListReply
+func (c *MasterDataServiceHTTPClientImpl) ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...http.CallOption) (*ListAdministrativeRegionsResponse, error) {
+	var out ListAdministrativeRegionsResponse
 	pattern := "/api/v1/reference/administrative-regions"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -925,8 +925,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListAdministrativeRegions(ctx context.
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListAirlines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*AirlineListReply, error) {
-	var out AirlineListReply
+func (c *MasterDataServiceHTTPClientImpl) ListAirlines(ctx context.Context, in *ListAirlinesRequest, opts ...http.CallOption) (*ListAirlinesResponse, error) {
+	var out ListAirlinesResponse
 	pattern := "/api/v1/master-data/airlines"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -941,8 +941,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListAirlines(ctx context.Context, in *
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListAirports(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*AirportListReply, error) {
-	var out AirportListReply
+func (c *MasterDataServiceHTTPClientImpl) ListAirports(ctx context.Context, in *ListAirportsRequest, opts ...http.CallOption) (*ListAirportsResponse, error) {
+	var out ListAirportsResponse
 	pattern := "/api/v1/master-data/airports"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -957,8 +957,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListAirports(ctx context.Context, in *
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...http.CallOption) (*CurrencyListReply, error) {
-	var out CurrencyListReply
+func (c *MasterDataServiceHTTPClientImpl) ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...http.CallOption) (*ListCurrenciesResponse, error) {
+	var out ListCurrenciesResponse
 	pattern := "/api/v1/reference/currencies"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -973,8 +973,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListCurrencies(ctx context.Context, in
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListItems(ctx context.Context, in *ListMasterDataItemsRequest, opts ...http.CallOption) (*MasterDataItemListReply, error) {
-	var out MasterDataItemListReply
+func (c *MasterDataServiceHTTPClientImpl) ListItems(ctx context.Context, in *ListItemsRequest, opts ...http.CallOption) (*ListItemsResponse, error) {
+	var out ListItemsResponse
 	pattern := "/api/v1/master-data/items"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -989,8 +989,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListItems(ctx context.Context, in *Lis
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...http.CallOption) (*MilestoneTemplateListReply, error) {
-	var out MilestoneTemplateListReply
+func (c *MasterDataServiceHTTPClientImpl) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...http.CallOption) (*ListMilestoneTemplatesResponse, error) {
+	var out ListMilestoneTemplatesResponse
 	pattern := "/api/v1/master-data/milestone-templates"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1005,8 +1005,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListMilestoneTemplates(ctx context.Con
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...http.CallOption) (*NumberRuleListReply, error) {
-	var out NumberRuleListReply
+func (c *MasterDataServiceHTTPClientImpl) ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...http.CallOption) (*ListNumberRulesResponse, error) {
+	var out ListNumberRulesResponse
 	pattern := "/api/v1/master-data/number-rules"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1021,8 +1021,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListNumberRules(ctx context.Context, i
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListOptions(ctx context.Context, in *ListMasterDataOptionsRequest, opts ...http.CallOption) (*MasterDataOptionsReply, error) {
-	var out MasterDataOptionsReply
+func (c *MasterDataServiceHTTPClientImpl) ListOptions(ctx context.Context, in *ListOptionsRequest, opts ...http.CallOption) (*ListOptionsResponse, error) {
+	var out ListOptionsResponse
 	pattern := "/api/v1/master-data/options"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1037,8 +1037,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListOptions(ctx context.Context, in *L
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListPorts(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*PortListReply, error) {
-	var out PortListReply
+func (c *MasterDataServiceHTTPClientImpl) ListPorts(ctx context.Context, in *ListPortsRequest, opts ...http.CallOption) (*ListPortsResponse, error) {
+	var out ListPortsResponse
 	pattern := "/api/v1/master-data/ports"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1053,8 +1053,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListPorts(ctx context.Context, in *Lis
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListShippingLines(ctx context.Context, in *ListIndustryReferencesRequest, opts ...http.CallOption) (*ShippingLineListReply, error) {
-	var out ShippingLineListReply
+func (c *MasterDataServiceHTTPClientImpl) ListShippingLines(ctx context.Context, in *ListShippingLinesRequest, opts ...http.CallOption) (*ListShippingLinesResponse, error) {
+	var out ListShippingLinesResponse
 	pattern := "/api/v1/master-data/shipping-lines"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1069,8 +1069,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListShippingLines(ctx context.Context,
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...http.CallOption) (*StatusTemplateListReply, error) {
-	var out StatusTemplateListReply
+func (c *MasterDataServiceHTTPClientImpl) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...http.CallOption) (*ListStatusTemplatesResponse, error) {
+	var out ListStatusTemplatesResponse
 	pattern := "/api/v1/master-data/status-templates"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -1085,8 +1085,8 @@ func (c *MasterDataServiceHTTPClientImpl) ListStatusTemplates(ctx context.Contex
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...http.CallOption) (*MilestoneTemplateReply, error) {
-	var out MilestoneTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...http.CallOption) (*PublishMilestoneTemplateResponse, error) {
+	var out PublishMilestoneTemplateResponse
 	pattern := "/api/v1/master-data/milestone-templates/{id}/publish"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1102,8 +1102,8 @@ func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.C
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
-	var out StatusTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...http.CallOption) (*PublishStatusTemplateResponse, error) {
+	var out PublishStatusTemplateResponse
 	pattern := "/api/v1/master-data/status-templates/{id}/publish"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1119,8 +1119,8 @@ func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Cont
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (*MilestoneTemplateReply, error) {
-	var out MilestoneTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (*SetDefaultMilestoneTemplateResponse, error) {
+	var out SetDefaultMilestoneTemplateResponse
 	pattern := "/api/v1/master-data/milestone-templates/{id}/set-default"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1136,8 +1136,8 @@ func (c *MasterDataServiceHTTPClientImpl) SetDefaultMilestoneTemplate(ctx contex
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (*StatusTemplateReply, error) {
-	var out StatusTemplateReply
+func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (*SetDefaultStatusTemplateResponse, error) {
+	var out SetDefaultStatusTemplateResponse
 	pattern := "/api/v1/master-data/status-templates/{id}/set-default"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1153,8 +1153,8 @@ func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.C
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...http.CallOption) (*AirlineReply, error) {
-	var out AirlineReply
+func (c *MasterDataServiceHTTPClientImpl) UpdateAirline(ctx context.Context, in *UpdateAirlineRequest, opts ...http.CallOption) (*UpdateAirlineResponse, error) {
+	var out UpdateAirlineResponse
 	pattern := "/api/v1/master-data/airlines/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1170,8 +1170,8 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateAirline(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...http.CallOption) (*AirportReply, error) {
-	var out AirportReply
+func (c *MasterDataServiceHTTPClientImpl) UpdateAirport(ctx context.Context, in *UpdateAirportRequest, opts ...http.CallOption) (*UpdateAirportResponse, error) {
+	var out UpdateAirportResponse
 	pattern := "/api/v1/master-data/airports/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1187,8 +1187,8 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateAirport(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *UpdateMasterDataItemRequest, opts ...http.CallOption) (*MasterDataItemReply, error) {
-	var out MasterDataItemReply
+func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...http.CallOption) (*UpdateItemResponse, error) {
+	var out UpdateItemResponse
 	pattern := "/api/v1/master-data/items/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1204,8 +1204,8 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateItem(ctx context.Context, in *Up
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...http.CallOption) (*NumberRuleReply, error) {
-	var out NumberRuleReply
+func (c *MasterDataServiceHTTPClientImpl) UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...http.CallOption) (*UpdateNumberRuleResponse, error) {
+	var out UpdateNumberRuleResponse
 	pattern := "/api/v1/master-data/number-rules/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1221,8 +1221,8 @@ func (c *MasterDataServiceHTTPClientImpl) UpdateNumberRule(ctx context.Context, 
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...http.CallOption) (*PortReply, error) {
-	var out PortReply
+func (c *MasterDataServiceHTTPClientImpl) UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...http.CallOption) (*UpdatePortResponse, error) {
+	var out UpdatePortResponse
 	pattern := "/api/v1/master-data/ports/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -1238,8 +1238,8 @@ func (c *MasterDataServiceHTTPClientImpl) UpdatePort(ctx context.Context, in *Up
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...http.CallOption) (*ShippingLineReply, error) {
-	var out ShippingLineReply
+func (c *MasterDataServiceHTTPClientImpl) UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...http.CallOption) (*UpdateShippingLineResponse, error) {
+	var out UpdateShippingLineResponse
 	pattern := "/api/v1/master-data/shipping-lines/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

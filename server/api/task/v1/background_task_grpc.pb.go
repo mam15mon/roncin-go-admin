@@ -32,11 +32,11 @@ const (
 // 不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
 type BackgroundTaskServiceClient interface {
 	// ListBackgroundTasks 查询当前组织的后台任务。
-	ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...grpc.CallOption) (*BackgroundTaskListReply, error)
+	ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...grpc.CallOption) (*ListBackgroundTasksResponse, error)
 	// GetBackgroundTask 查询单个后台任务。
-	GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...grpc.CallOption) (*BackgroundTaskReply, error)
+	GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...grpc.CallOption) (*GetBackgroundTaskResponse, error)
 	// RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-	RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...grpc.CallOption) (*BackgroundTaskReply, error)
+	RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...grpc.CallOption) (*RequeueBackgroundTaskResponse, error)
 }
 
 type backgroundTaskServiceClient struct {
@@ -47,9 +47,9 @@ func NewBackgroundTaskServiceClient(cc grpc.ClientConnInterface) BackgroundTaskS
 	return &backgroundTaskServiceClient{cc}
 }
 
-func (c *backgroundTaskServiceClient) ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...grpc.CallOption) (*BackgroundTaskListReply, error) {
+func (c *backgroundTaskServiceClient) ListBackgroundTasks(ctx context.Context, in *ListBackgroundTasksRequest, opts ...grpc.CallOption) (*ListBackgroundTasksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BackgroundTaskListReply)
+	out := new(ListBackgroundTasksResponse)
 	err := c.cc.Invoke(ctx, BackgroundTaskService_ListBackgroundTasks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -57,9 +57,9 @@ func (c *backgroundTaskServiceClient) ListBackgroundTasks(ctx context.Context, i
 	return out, nil
 }
 
-func (c *backgroundTaskServiceClient) GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...grpc.CallOption) (*BackgroundTaskReply, error) {
+func (c *backgroundTaskServiceClient) GetBackgroundTask(ctx context.Context, in *GetBackgroundTaskRequest, opts ...grpc.CallOption) (*GetBackgroundTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BackgroundTaskReply)
+	out := new(GetBackgroundTaskResponse)
 	err := c.cc.Invoke(ctx, BackgroundTaskService_GetBackgroundTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -67,9 +67,9 @@ func (c *backgroundTaskServiceClient) GetBackgroundTask(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *backgroundTaskServiceClient) RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...grpc.CallOption) (*BackgroundTaskReply, error) {
+func (c *backgroundTaskServiceClient) RequeueBackgroundTask(ctx context.Context, in *RequeueBackgroundTaskRequest, opts ...grpc.CallOption) (*RequeueBackgroundTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BackgroundTaskReply)
+	out := new(RequeueBackgroundTaskResponse)
 	err := c.cc.Invoke(ctx, BackgroundTaskService_RequeueBackgroundTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -85,11 +85,11 @@ func (c *backgroundTaskServiceClient) RequeueBackgroundTask(ctx context.Context,
 // 不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
 type BackgroundTaskServiceServer interface {
 	// ListBackgroundTasks 查询当前组织的后台任务。
-	ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*BackgroundTaskListReply, error)
+	ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*ListBackgroundTasksResponse, error)
 	// GetBackgroundTask 查询单个后台任务。
-	GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*BackgroundTaskReply, error)
+	GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*GetBackgroundTaskResponse, error)
 	// RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。
-	RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*BackgroundTaskReply, error)
+	RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*RequeueBackgroundTaskResponse, error)
 	mustEmbedUnimplementedBackgroundTaskServiceServer()
 }
 
@@ -100,13 +100,13 @@ type BackgroundTaskServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedBackgroundTaskServiceServer struct{}
 
-func (UnimplementedBackgroundTaskServiceServer) ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*BackgroundTaskListReply, error) {
+func (UnimplementedBackgroundTaskServiceServer) ListBackgroundTasks(context.Context, *ListBackgroundTasksRequest) (*ListBackgroundTasksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBackgroundTasks not implemented")
 }
-func (UnimplementedBackgroundTaskServiceServer) GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*BackgroundTaskReply, error) {
+func (UnimplementedBackgroundTaskServiceServer) GetBackgroundTask(context.Context, *GetBackgroundTaskRequest) (*GetBackgroundTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBackgroundTask not implemented")
 }
-func (UnimplementedBackgroundTaskServiceServer) RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*BackgroundTaskReply, error) {
+func (UnimplementedBackgroundTaskServiceServer) RequeueBackgroundTask(context.Context, *RequeueBackgroundTaskRequest) (*RequeueBackgroundTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequeueBackgroundTask not implemented")
 }
 func (UnimplementedBackgroundTaskServiceServer) mustEmbedUnimplementedBackgroundTaskServiceServer() {}

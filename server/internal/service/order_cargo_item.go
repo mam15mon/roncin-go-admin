@@ -20,7 +20,7 @@ func NewOrderCargoItemService(usecase *biz.OrderCargoItemUsecase) *OrderCargoIte
 	return &OrderCargoItemService{usecase: usecase}
 }
 
-func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.ListCargoItemsRequest) (*v1.OrderCargoItemListReply, error) {
+func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.ListCargoItemsRequest) (*v1.ListCargoItemsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -37,7 +37,7 @@ func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.
 	for _, item := range items {
 		data = append(data, orderCargoItemToAPI(item))
 	}
-	return &v1.OrderCargoItemListReply{
+	return &v1.ListCargoItemsResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -46,7 +46,7 @@ func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.
 	}, nil
 }
 
-func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.AddCargoItemRequest) (*v1.OrderCargoItemReply, error) {
+func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.AddCargoItemRequest) (*v1.AddCargoItemResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -59,10 +59,10 @@ func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.Ad
 	if err != nil {
 		return nil, err
 	}
-	return orderCargoItemReply(ctx, created), nil
+	return &v1.AddCargoItemResponse{Success: true, Code: 0, Message: "OK", Data: orderCargoItemToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1.UpdateCargoItemRequest) (*v1.OrderCargoItemReply, error) {
+func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1.UpdateCargoItemRequest) (*v1.UpdateCargoItemResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -79,10 +79,10 @@ func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1
 	if err != nil {
 		return nil, err
 	}
-	return orderCargoItemReply(ctx, updated), nil
+	return &v1.UpdateCargoItemResponse{Success: true, Code: 0, Message: "OK", Data: orderCargoItemToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1.RemoveCargoItemRequest) (*v1.OrderCargoItemOperationReply, error) {
+func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1.RemoveCargoItemRequest) (*v1.RemoveCargoItemResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -98,7 +98,7 @@ func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.OrderCargoItemOperationReply{
+	return &v1.RemoveCargoItemResponse{
 		Success: true,
 		Code:    0,
 		Message: "OK",
@@ -106,28 +106,18 @@ func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1
 	}, nil
 }
 
-func orderCargoItemReply(ctx context.Context, value *biz.OrderCargoItem) *v1.OrderCargoItemReply {
-	return &v1.OrderCargoItemReply{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderCargoItemToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
-}
-
 func orderCargoItemToAPI(value *biz.OrderCargoItem) *v1.OrderCargoItem {
 	return &v1.OrderCargoItem{
-		Id:             value.ID.String(),
-		OrderId:        value.OrderID.String(),
-		CargoName:      value.CargoName,
-		PackageCount:   int32(value.PackageCount),
-		GrossWeightKg:  value.GrossWeightKg,
-		VolumeCbm:      value.VolumeCbm,
-		NetWeightKg:    value.NetWeightKg,
-		Note:           value.Note,
-		CreatedAt:      value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:      value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:            value.ID.String(),
+		OrderId:       value.OrderID.String(),
+		CargoName:     value.CargoName,
+		PackageCount:  int32(value.PackageCount),
+		GrossWeightKg: value.GrossWeightKg,
+		VolumeCbm:     value.VolumeCbm,
+		NetWeightKg:   value.NetWeightKg,
+		Note:          value.Note,
+		CreatedAt:     value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:     value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

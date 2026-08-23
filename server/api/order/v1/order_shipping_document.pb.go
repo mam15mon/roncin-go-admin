@@ -514,8 +514,8 @@ func (x *RemoveShippingDocumentRequest) GetId() string {
 	return ""
 }
 
-// OrderShippingDocumentReply 单条提单响应。
-type OrderShippingDocumentReply struct {
+// AddShippingDocumentResponse 单条提单响应。
+type AddShippingDocumentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -526,20 +526,20 @@ type OrderShippingDocumentReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderShippingDocumentReply) Reset() {
-	*x = OrderShippingDocumentReply{}
+func (x *AddShippingDocumentResponse) Reset() {
+	*x = AddShippingDocumentResponse{}
 	mi := &file_order_v1_order_shipping_document_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderShippingDocumentReply) String() string {
+func (x *AddShippingDocumentResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderShippingDocumentReply) ProtoMessage() {}
+func (*AddShippingDocumentResponse) ProtoMessage() {}
 
-func (x *OrderShippingDocumentReply) ProtoReflect() protoreflect.Message {
+func (x *AddShippingDocumentResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_order_v1_order_shipping_document_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -551,48 +551,200 @@ func (x *OrderShippingDocumentReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderShippingDocumentReply.ProtoReflect.Descriptor instead.
-func (*OrderShippingDocumentReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddShippingDocumentResponse.ProtoReflect.Descriptor instead.
+func (*AddShippingDocumentResponse) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *OrderShippingDocumentReply) GetSuccess() bool {
+func (x *AddShippingDocumentResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderShippingDocumentReply) GetCode() int32 {
+func (x *AddShippingDocumentResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderShippingDocumentReply) GetMessage() string {
+func (x *AddShippingDocumentResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderShippingDocumentReply) GetData() *OrderShippingDocument {
+func (x *AddShippingDocumentResponse) GetData() *OrderShippingDocument {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderShippingDocumentReply) GetTraceId() string {
+func (x *AddShippingDocumentResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderShippingDocumentListReply 提单列表响应。
-type OrderShippingDocumentListReply struct {
+type UpdateShippingDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderShippingDocument `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateShippingDocumentResponse) Reset() {
+	*x = UpdateShippingDocumentResponse{}
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateShippingDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateShippingDocumentResponse) ProtoMessage() {}
+
+func (x *UpdateShippingDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateShippingDocumentResponse.ProtoReflect.Descriptor instead.
+func (*UpdateShippingDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateShippingDocumentResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateShippingDocumentResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateShippingDocumentResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateShippingDocumentResponse) GetData() *OrderShippingDocument {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateShippingDocumentResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type TransitionShippingDocumentStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderShippingDocument `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TransitionShippingDocumentStatusResponse) Reset() {
+	*x = TransitionShippingDocumentStatusResponse{}
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransitionShippingDocumentStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransitionShippingDocumentStatusResponse) ProtoMessage() {}
+
+func (x *TransitionShippingDocumentStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransitionShippingDocumentStatusResponse.ProtoReflect.Descriptor instead.
+func (*TransitionShippingDocumentStatusResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *TransitionShippingDocumentStatusResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *TransitionShippingDocumentStatusResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *TransitionShippingDocumentStatusResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *TransitionShippingDocumentStatusResponse) GetData() *OrderShippingDocument {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *TransitionShippingDocumentStatusResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+// ListShippingDocumentsResponse 提单列表响应。
+type ListShippingDocumentsResponse struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
 	Success       bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -603,21 +755,21 @@ type OrderShippingDocumentListReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderShippingDocumentListReply) Reset() {
-	*x = OrderShippingDocumentListReply{}
-	mi := &file_order_v1_order_shipping_document_proto_msgTypes[7]
+func (x *ListShippingDocumentsResponse) Reset() {
+	*x = ListShippingDocumentsResponse{}
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderShippingDocumentListReply) String() string {
+func (x *ListShippingDocumentsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderShippingDocumentListReply) ProtoMessage() {}
+func (*ListShippingDocumentsResponse) ProtoMessage() {}
 
-func (x *OrderShippingDocumentListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_shipping_document_proto_msgTypes[7]
+func (x *ListShippingDocumentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -628,48 +780,48 @@ func (x *OrderShippingDocumentListReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderShippingDocumentListReply.ProtoReflect.Descriptor instead.
-func (*OrderShippingDocumentListReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use ListShippingDocumentsResponse.ProtoReflect.Descriptor instead.
+func (*ListShippingDocumentsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *OrderShippingDocumentListReply) GetSuccess() bool {
+func (x *ListShippingDocumentsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderShippingDocumentListReply) GetCode() int32 {
+func (x *ListShippingDocumentsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderShippingDocumentListReply) GetMessage() string {
+func (x *ListShippingDocumentsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderShippingDocumentListReply) GetData() []*OrderShippingDocument {
+func (x *ListShippingDocumentsResponse) GetData() []*OrderShippingDocument {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *OrderShippingDocumentListReply) GetTraceId() string {
+func (x *ListShippingDocumentsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-// OrderShippingDocumentOperationReply 提单操作响应。
-type OrderShippingDocumentOperationReply struct {
+// RemoveShippingDocumentResponse 提单操作响应。
+type RemoveShippingDocumentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -679,21 +831,21 @@ type OrderShippingDocumentOperationReply struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderShippingDocumentOperationReply) Reset() {
-	*x = OrderShippingDocumentOperationReply{}
-	mi := &file_order_v1_order_shipping_document_proto_msgTypes[8]
+func (x *RemoveShippingDocumentResponse) Reset() {
+	*x = RemoveShippingDocumentResponse{}
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderShippingDocumentOperationReply) String() string {
+func (x *RemoveShippingDocumentResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderShippingDocumentOperationReply) ProtoMessage() {}
+func (*RemoveShippingDocumentResponse) ProtoMessage() {}
 
-func (x *OrderShippingDocumentOperationReply) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_shipping_document_proto_msgTypes[8]
+func (x *RemoveShippingDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_shipping_document_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -704,33 +856,33 @@ func (x *OrderShippingDocumentOperationReply) ProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderShippingDocumentOperationReply.ProtoReflect.Descriptor instead.
-func (*OrderShippingDocumentOperationReply) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{8}
+// Deprecated: Use RemoveShippingDocumentResponse.ProtoReflect.Descriptor instead.
+func (*RemoveShippingDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_shipping_document_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *OrderShippingDocumentOperationReply) GetSuccess() bool {
+func (x *RemoveShippingDocumentResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *OrderShippingDocumentOperationReply) GetCode() int32 {
+func (x *RemoveShippingDocumentResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *OrderShippingDocumentOperationReply) GetMessage() string {
+func (x *RemoveShippingDocumentResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *OrderShippingDocumentOperationReply) GetTraceId() string {
+func (x *RemoveShippingDocumentResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -782,20 +934,32 @@ const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"\tto_status\x18\x04 \x01(\x0e2%.order.v1.OrderShippingDocumentStatusB\x03\xe0A\x02R\btoStatus\"T\n" +
 	"\x1dRemoveShippingDocumentRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xb4\x01\n" +
-	"\x1aOrderShippingDocumentReply\x12\x18\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xb5\x01\n" +
+	"\x1bAddShippingDocumentResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.order.v1.OrderShippingDocumentR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb8\x01\n" +
-	"\x1eOrderShippingDocumentListReply\x12\x18\n" +
+	"\x1eUpdateShippingDocumentResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.order.v1.OrderShippingDocumentR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc2\x01\n" +
+	"(TransitionShippingDocumentStatusResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.order.v1.OrderShippingDocumentR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb7\x01\n" +
+	"\x1dListShippingDocumentsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x03(\v2\x1f.order.v1.OrderShippingDocumentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
-	"#OrderShippingDocumentOperationReply\x12\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x83\x01\n" +
+	"\x1eRemoveShippingDocumentResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
@@ -804,13 +968,13 @@ const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"*ORDER_SHIPPING_DOCUMENT_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT\x10\x01\x12,\n" +
 	"(ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED\x10\x02\x12+\n" +
-	"'ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED\x10\x032\xa6\b\n" +
-	"\x1cOrderShippingDocumentService\x12\xbf\x01\n" +
-	"\x15ListShippingDocuments\x12&.order.v1.ListShippingDocumentsRequest\x1a(.order.v1.OrderShippingDocumentListReply\"T\x82\xb5\x18\x1c\b\x04\x1a\x16shipping_document.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/orders/{order_id}/shipping-documents\x12\xbc\x01\n" +
-	"\x13AddShippingDocument\x12$.order.v1.AddShippingDocumentRequest\x1a$.order.v1.OrderShippingDocumentReply\"Y\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.create \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/shipping-documents\x12\xc7\x01\n" +
-	"\x16UpdateShippingDocument\x12'.order.v1.UpdateShippingDocumentRequest\x1a$.order.v1.OrderShippingDocumentReply\"^\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.update \x02\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v1/orders/{order_id}/shipping-documents/{id}\x12\xea\x01\n" +
-	" TransitionShippingDocumentStatus\x121.order.v1.TransitionShippingDocumentStatusRequest\x1a$.order.v1.OrderShippingDocumentReply\"m\x82\xb5\x18\"\b\x04\x1a\x1cshipping_document.transition \x02\x82\xd3\xe4\x93\x02A:\x01*\"</api/v1/orders/{order_id}/shipping-documents/{id}/transition\x12\xcd\x01\n" +
-	"\x16RemoveShippingDocument\x12'.order.v1.RemoveShippingDocumentRequest\x1a-.order.v1.OrderShippingDocumentOperationReply\"[\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.delete \x02\x82\xd3\xe4\x93\x023*1/api/v1/orders/{order_id}/shipping-documents/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"'ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED\x10\x032\xb3\b\n" +
+	"\x1cOrderShippingDocumentService\x12\xbe\x01\n" +
+	"\x15ListShippingDocuments\x12&.order.v1.ListShippingDocumentsRequest\x1a'.order.v1.ListShippingDocumentsResponse\"T\x82\xb5\x18\x1c\b\x04\x1a\x16shipping_document.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/orders/{order_id}/shipping-documents\x12\xbd\x01\n" +
+	"\x13AddShippingDocument\x12$.order.v1.AddShippingDocumentRequest\x1a%.order.v1.AddShippingDocumentResponse\"Y\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.create \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/shipping-documents\x12\xcb\x01\n" +
+	"\x16UpdateShippingDocument\x12'.order.v1.UpdateShippingDocumentRequest\x1a(.order.v1.UpdateShippingDocumentResponse\"^\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.update \x02\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v1/orders/{order_id}/shipping-documents/{id}\x12\xf8\x01\n" +
+	" TransitionShippingDocumentStatus\x121.order.v1.TransitionShippingDocumentStatusRequest\x1a2.order.v1.TransitionShippingDocumentStatusResponse\"m\x82\xb5\x18\"\b\x04\x1a\x1cshipping_document.transition \x02\x82\xd3\xe4\x93\x02A:\x01*\"</api/v1/orders/{order_id}/shipping-documents/{id}/transition\x12\xc8\x01\n" +
+	"\x16RemoveShippingDocument\x12'.order.v1.RemoveShippingDocumentRequest\x1a(.order.v1.RemoveShippingDocumentResponse\"[\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.delete \x02\x82\xd3\xe4\x93\x023*1/api/v1/orders/{order_id}/shipping-documents/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_shipping_document_proto_rawDescOnce sync.Once
@@ -825,40 +989,44 @@ func file_order_v1_order_shipping_document_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_shipping_document_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_order_v1_order_shipping_document_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_order_v1_order_shipping_document_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_order_v1_order_shipping_document_proto_goTypes = []any{
-	(OrderShippingDocumentStatus)(0),                // 0: order.v1.OrderShippingDocumentStatus
-	(*OrderShippingDocument)(nil),                   // 1: order.v1.OrderShippingDocument
-	(*ListShippingDocumentsRequest)(nil),            // 2: order.v1.ListShippingDocumentsRequest
-	(*AddShippingDocumentRequest)(nil),              // 3: order.v1.AddShippingDocumentRequest
-	(*UpdateShippingDocumentRequest)(nil),           // 4: order.v1.UpdateShippingDocumentRequest
-	(*TransitionShippingDocumentStatusRequest)(nil), // 5: order.v1.TransitionShippingDocumentStatusRequest
-	(*RemoveShippingDocumentRequest)(nil),           // 6: order.v1.RemoveShippingDocumentRequest
-	(*OrderShippingDocumentReply)(nil),              // 7: order.v1.OrderShippingDocumentReply
-	(*OrderShippingDocumentListReply)(nil),          // 8: order.v1.OrderShippingDocumentListReply
-	(*OrderShippingDocumentOperationReply)(nil),     // 9: order.v1.OrderShippingDocumentOperationReply
+	(OrderShippingDocumentStatus)(0),                 // 0: order.v1.OrderShippingDocumentStatus
+	(*OrderShippingDocument)(nil),                    // 1: order.v1.OrderShippingDocument
+	(*ListShippingDocumentsRequest)(nil),             // 2: order.v1.ListShippingDocumentsRequest
+	(*AddShippingDocumentRequest)(nil),               // 3: order.v1.AddShippingDocumentRequest
+	(*UpdateShippingDocumentRequest)(nil),            // 4: order.v1.UpdateShippingDocumentRequest
+	(*TransitionShippingDocumentStatusRequest)(nil),  // 5: order.v1.TransitionShippingDocumentStatusRequest
+	(*RemoveShippingDocumentRequest)(nil),            // 6: order.v1.RemoveShippingDocumentRequest
+	(*AddShippingDocumentResponse)(nil),              // 7: order.v1.AddShippingDocumentResponse
+	(*UpdateShippingDocumentResponse)(nil),           // 8: order.v1.UpdateShippingDocumentResponse
+	(*TransitionShippingDocumentStatusResponse)(nil), // 9: order.v1.TransitionShippingDocumentStatusResponse
+	(*ListShippingDocumentsResponse)(nil),            // 10: order.v1.ListShippingDocumentsResponse
+	(*RemoveShippingDocumentResponse)(nil),           // 11: order.v1.RemoveShippingDocumentResponse
 }
 var file_order_v1_order_shipping_document_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderShippingDocument.status:type_name -> order.v1.OrderShippingDocumentStatus
 	0,  // 1: order.v1.TransitionShippingDocumentStatusRequest.expected_status:type_name -> order.v1.OrderShippingDocumentStatus
 	0,  // 2: order.v1.TransitionShippingDocumentStatusRequest.to_status:type_name -> order.v1.OrderShippingDocumentStatus
-	1,  // 3: order.v1.OrderShippingDocumentReply.data:type_name -> order.v1.OrderShippingDocument
-	1,  // 4: order.v1.OrderShippingDocumentListReply.data:type_name -> order.v1.OrderShippingDocument
-	2,  // 5: order.v1.OrderShippingDocumentService.ListShippingDocuments:input_type -> order.v1.ListShippingDocumentsRequest
-	3,  // 6: order.v1.OrderShippingDocumentService.AddShippingDocument:input_type -> order.v1.AddShippingDocumentRequest
-	4,  // 7: order.v1.OrderShippingDocumentService.UpdateShippingDocument:input_type -> order.v1.UpdateShippingDocumentRequest
-	5,  // 8: order.v1.OrderShippingDocumentService.TransitionShippingDocumentStatus:input_type -> order.v1.TransitionShippingDocumentStatusRequest
-	6,  // 9: order.v1.OrderShippingDocumentService.RemoveShippingDocument:input_type -> order.v1.RemoveShippingDocumentRequest
-	8,  // 10: order.v1.OrderShippingDocumentService.ListShippingDocuments:output_type -> order.v1.OrderShippingDocumentListReply
-	7,  // 11: order.v1.OrderShippingDocumentService.AddShippingDocument:output_type -> order.v1.OrderShippingDocumentReply
-	7,  // 12: order.v1.OrderShippingDocumentService.UpdateShippingDocument:output_type -> order.v1.OrderShippingDocumentReply
-	7,  // 13: order.v1.OrderShippingDocumentService.TransitionShippingDocumentStatus:output_type -> order.v1.OrderShippingDocumentReply
-	9,  // 14: order.v1.OrderShippingDocumentService.RemoveShippingDocument:output_type -> order.v1.OrderShippingDocumentOperationReply
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	1,  // 3: order.v1.AddShippingDocumentResponse.data:type_name -> order.v1.OrderShippingDocument
+	1,  // 4: order.v1.UpdateShippingDocumentResponse.data:type_name -> order.v1.OrderShippingDocument
+	1,  // 5: order.v1.TransitionShippingDocumentStatusResponse.data:type_name -> order.v1.OrderShippingDocument
+	1,  // 6: order.v1.ListShippingDocumentsResponse.data:type_name -> order.v1.OrderShippingDocument
+	2,  // 7: order.v1.OrderShippingDocumentService.ListShippingDocuments:input_type -> order.v1.ListShippingDocumentsRequest
+	3,  // 8: order.v1.OrderShippingDocumentService.AddShippingDocument:input_type -> order.v1.AddShippingDocumentRequest
+	4,  // 9: order.v1.OrderShippingDocumentService.UpdateShippingDocument:input_type -> order.v1.UpdateShippingDocumentRequest
+	5,  // 10: order.v1.OrderShippingDocumentService.TransitionShippingDocumentStatus:input_type -> order.v1.TransitionShippingDocumentStatusRequest
+	6,  // 11: order.v1.OrderShippingDocumentService.RemoveShippingDocument:input_type -> order.v1.RemoveShippingDocumentRequest
+	10, // 12: order.v1.OrderShippingDocumentService.ListShippingDocuments:output_type -> order.v1.ListShippingDocumentsResponse
+	7,  // 13: order.v1.OrderShippingDocumentService.AddShippingDocument:output_type -> order.v1.AddShippingDocumentResponse
+	8,  // 14: order.v1.OrderShippingDocumentService.UpdateShippingDocument:output_type -> order.v1.UpdateShippingDocumentResponse
+	9,  // 15: order.v1.OrderShippingDocumentService.TransitionShippingDocumentStatus:output_type -> order.v1.TransitionShippingDocumentStatusResponse
+	11, // 16: order.v1.OrderShippingDocumentService.RemoveShippingDocument:output_type -> order.v1.RemoveShippingDocumentResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_shipping_document_proto_init() }
@@ -875,7 +1043,7 @@ func file_order_v1_order_shipping_document_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_shipping_document_proto_rawDesc), len(file_order_v1_order_shipping_document_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

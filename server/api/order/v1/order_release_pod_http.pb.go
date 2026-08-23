@@ -25,16 +25,16 @@ const OperationOrderReleasePodServiceUpdateReleasePod = "/order.v1.OrderReleaseP
 
 type OrderReleasePodServiceHTTPServer interface {
 	// AddReleasePod AddReleasePod 添加放货凭证，初始状态为待签收。
-	AddReleasePod(context.Context, *AddReleasePodRequest) (*OrderReleasePodReply, error)
+	AddReleasePod(context.Context, *AddReleasePodRequest) (*AddReleasePodResponse, error)
 	// ListReleasePods ListReleasePods 获取指定订单的放货凭证列表。
-	ListReleasePods(context.Context, *ListReleasePodsRequest) (*OrderReleasePodListReply, error)
+	ListReleasePods(context.Context, *ListReleasePodsRequest) (*ListReleasePodsResponse, error)
 	// RemoveReleasePod RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-	RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*OrderReleasePodOperationReply, error)
+	RemoveReleasePod(context.Context, *RemoveReleasePodRequest) (*RemoveReleasePodResponse, error)
 	// TransitionReleasePodStatus TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
 	// 流转到已签收时由服务端记录签收人与签收时间。
-	TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*OrderReleasePodReply, error)
+	TransitionReleasePodStatus(context.Context, *TransitionReleasePodStatusRequest) (*TransitionReleasePodStatusResponse, error)
 	// UpdateReleasePod UpdateReleasePod 更新凭证字段，已回单后不可修改。
-	UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*OrderReleasePodReply, error)
+	UpdateReleasePod(context.Context, *UpdateReleasePodRequest) (*UpdateReleasePodResponse, error)
 }
 
 func RegisterOrderReleasePodServiceHTTPServer(s *http.Server, srv OrderReleasePodServiceHTTPServer) {
@@ -63,7 +63,7 @@ func _OrderReleasePodService_ListReleasePods0_HTTP_Handler(srv OrderReleasePodSe
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderReleasePodListReply)
+		reply := out.(*ListReleasePodsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -85,7 +85,7 @@ func _OrderReleasePodService_AddReleasePod0_HTTP_Handler(srv OrderReleasePodServ
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderReleasePodReply)
+		reply := out.(*AddReleasePodResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -107,7 +107,7 @@ func _OrderReleasePodService_UpdateReleasePod0_HTTP_Handler(srv OrderReleasePodS
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderReleasePodReply)
+		reply := out.(*UpdateReleasePodResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -129,7 +129,7 @@ func _OrderReleasePodService_TransitionReleasePodStatus0_HTTP_Handler(srv OrderR
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderReleasePodReply)
+		reply := out.(*TransitionReleasePodStatusResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -151,23 +151,23 @@ func _OrderReleasePodService_RemoveReleasePod0_HTTP_Handler(srv OrderReleasePodS
 		if err != nil {
 			return err
 		}
-		reply := out.(*OrderReleasePodOperationReply)
+		reply := out.(*RemoveReleasePodResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
 type OrderReleasePodServiceHTTPClient interface {
 	// AddReleasePod AddReleasePod 添加放货凭证，初始状态为待签收。
-	AddReleasePod(ctx context.Context, req *AddReleasePodRequest, opts ...http.CallOption) (rsp *OrderReleasePodReply, err error)
+	AddReleasePod(ctx context.Context, req *AddReleasePodRequest, opts ...http.CallOption) (rsp *AddReleasePodResponse, err error)
 	// ListReleasePods ListReleasePods 获取指定订单的放货凭证列表。
-	ListReleasePods(ctx context.Context, req *ListReleasePodsRequest, opts ...http.CallOption) (rsp *OrderReleasePodListReply, err error)
+	ListReleasePods(ctx context.Context, req *ListReleasePodsRequest, opts ...http.CallOption) (rsp *ListReleasePodsResponse, err error)
 	// RemoveReleasePod RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-	RemoveReleasePod(ctx context.Context, req *RemoveReleasePodRequest, opts ...http.CallOption) (rsp *OrderReleasePodOperationReply, err error)
+	RemoveReleasePod(ctx context.Context, req *RemoveReleasePodRequest, opts ...http.CallOption) (rsp *RemoveReleasePodResponse, err error)
 	// TransitionReleasePodStatus TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
 	// 流转到已签收时由服务端记录签收人与签收时间。
-	TransitionReleasePodStatus(ctx context.Context, req *TransitionReleasePodStatusRequest, opts ...http.CallOption) (rsp *OrderReleasePodReply, err error)
+	TransitionReleasePodStatus(ctx context.Context, req *TransitionReleasePodStatusRequest, opts ...http.CallOption) (rsp *TransitionReleasePodStatusResponse, err error)
 	// UpdateReleasePod UpdateReleasePod 更新凭证字段，已回单后不可修改。
-	UpdateReleasePod(ctx context.Context, req *UpdateReleasePodRequest, opts ...http.CallOption) (rsp *OrderReleasePodReply, err error)
+	UpdateReleasePod(ctx context.Context, req *UpdateReleasePodRequest, opts ...http.CallOption) (rsp *UpdateReleasePodResponse, err error)
 }
 
 type OrderReleasePodServiceHTTPClientImpl struct {
@@ -179,8 +179,8 @@ func NewOrderReleasePodServiceHTTPClient(client *http.Client) OrderReleasePodSer
 }
 
 // AddReleasePod AddReleasePod 添加放货凭证，初始状态为待签收。
-func (c *OrderReleasePodServiceHTTPClientImpl) AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...http.CallOption) (*OrderReleasePodReply, error) {
-	var out OrderReleasePodReply
+func (c *OrderReleasePodServiceHTTPClientImpl) AddReleasePod(ctx context.Context, in *AddReleasePodRequest, opts ...http.CallOption) (*AddReleasePodResponse, error) {
+	var out AddReleasePodResponse
 	pattern := "/api/v1/orders/{order_id}/release-pods"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -197,8 +197,8 @@ func (c *OrderReleasePodServiceHTTPClientImpl) AddReleasePod(ctx context.Context
 }
 
 // ListReleasePods ListReleasePods 获取指定订单的放货凭证列表。
-func (c *OrderReleasePodServiceHTTPClientImpl) ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...http.CallOption) (*OrderReleasePodListReply, error) {
-	var out OrderReleasePodListReply
+func (c *OrderReleasePodServiceHTTPClientImpl) ListReleasePods(ctx context.Context, in *ListReleasePodsRequest, opts ...http.CallOption) (*ListReleasePodsResponse, error) {
+	var out ListReleasePodsResponse
 	pattern := "/api/v1/orders/{order_id}/release-pods"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -214,8 +214,8 @@ func (c *OrderReleasePodServiceHTTPClientImpl) ListReleasePods(ctx context.Conte
 }
 
 // RemoveReleasePod RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。
-func (c *OrderReleasePodServiceHTTPClientImpl) RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...http.CallOption) (*OrderReleasePodOperationReply, error) {
-	var out OrderReleasePodOperationReply
+func (c *OrderReleasePodServiceHTTPClientImpl) RemoveReleasePod(ctx context.Context, in *RemoveReleasePodRequest, opts ...http.CallOption) (*RemoveReleasePodResponse, error) {
+	var out RemoveReleasePodResponse
 	pattern := "/api/v1/orders/{order_id}/release-pods/{id}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
@@ -232,8 +232,8 @@ func (c *OrderReleasePodServiceHTTPClientImpl) RemoveReleasePod(ctx context.Cont
 
 // TransitionReleasePodStatus TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；
 // 流转到已签收时由服务端记录签收人与签收时间。
-func (c *OrderReleasePodServiceHTTPClientImpl) TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...http.CallOption) (*OrderReleasePodReply, error) {
-	var out OrderReleasePodReply
+func (c *OrderReleasePodServiceHTTPClientImpl) TransitionReleasePodStatus(ctx context.Context, in *TransitionReleasePodStatusRequest, opts ...http.CallOption) (*TransitionReleasePodStatusResponse, error) {
+	var out TransitionReleasePodStatusResponse
 	pattern := "/api/v1/orders/{order_id}/release-pods/{id}/transition"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
@@ -250,8 +250,8 @@ func (c *OrderReleasePodServiceHTTPClientImpl) TransitionReleasePodStatus(ctx co
 }
 
 // UpdateReleasePod UpdateReleasePod 更新凭证字段，已回单后不可修改。
-func (c *OrderReleasePodServiceHTTPClientImpl) UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...http.CallOption) (*OrderReleasePodReply, error) {
-	var out OrderReleasePodReply
+func (c *OrderReleasePodServiceHTTPClientImpl) UpdateReleasePod(ctx context.Context, in *UpdateReleasePodRequest, opts ...http.CallOption) (*UpdateReleasePodResponse, error) {
+	var out UpdateReleasePodResponse
 	pattern := "/api/v1/orders/{order_id}/release-pods/{id}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{

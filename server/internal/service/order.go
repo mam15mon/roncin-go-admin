@@ -17,7 +17,7 @@ type OrderService struct {
 
 func NewOrderService(usecase *biz.OrderUsecase) *OrderService { return &OrderService{usecase: usecase} }
 
-func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest) (*v1.OrderReply, error) {
+func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest) (*v1.GetOrderResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -30,10 +30,10 @@ func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest
 	if err != nil {
 		return nil, err
 	}
-	return orderReply(ctx, item), nil
+	return &v1.GetOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersRequest) (*v1.OrderListReply, error) {
+func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersRequest) (*v1.ListOrdersResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -63,10 +63,10 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		output.CanModify = principal.CanAccessOrderOrganization(item.OrganizationID, true)
 		data = append(data, output)
 	}
-	return &v1.OrderListReply{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListOrdersResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.OrderReferenceCheckReply, error) {
+func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.CheckOrderReferenceResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -102,10 +102,10 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 		data.OrderId = &orderID
 		data.OrderNo = &match.OrderNo
 	}
-	return &v1.OrderReferenceCheckReply{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.CheckOrderReferenceResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.OrderReply, error) {
+func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.CreateOrderResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -118,10 +118,10 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	if err != nil {
 		return nil, err
 	}
-	return orderReply(ctx, created), nil
+	return &v1.CreateOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderRequest) (*v1.OrderReply, error) {
+func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderRequest) (*v1.UpdateOrderResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -142,10 +142,10 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderR
 	if err != nil {
 		return nil, err
 	}
-	return orderReply(ctx, updated), nil
+	return &v1.UpdateOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.TransitionOrderStatusRequest) (*v1.OrderReply, error) {
+func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.TransitionOrderStatusRequest) (*v1.TransitionOrderStatusResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -158,7 +158,7 @@ func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.Tr
 	if err != nil {
 		return nil, err
 	}
-	return orderReply(ctx, updated), nil
+	return &v1.TransitionOrderStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) {
@@ -395,10 +395,6 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 		output.Notes = request.GetNotes()
 	}
 	return &output, nil
-}
-
-func orderReply(ctx context.Context, item *biz.Order) *v1.OrderReply {
-	return &v1.OrderReply{Success: true, Code: 0, Message: "OK", Data: orderToAPI(item), TraceId: requestmeta.TraceID(ctx)}
 }
 
 func orderToAPI(item *biz.Order) *v1.Order {
