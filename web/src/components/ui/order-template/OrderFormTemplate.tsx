@@ -2,6 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { Card, Row, Space, Spin, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import './OrderFormTemplate.less';
 import type { OrderFormTemplateProps } from './types';
 
 const { Text } = Typography;
@@ -47,6 +48,7 @@ export function OrderFormTemplate<T>({
         </Card>
       ) : (
         <ProForm<T>
+          className="roncin-order-form"
           formRef={resolvedFormRef}
           autoComplete="off"
           grid
