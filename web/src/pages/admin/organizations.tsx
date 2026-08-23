@@ -243,12 +243,19 @@ export default function OrganizationsPanel() {
       };
     });
 
-    const edges: { source: string; target: string }[] = [];
+    const edges: {
+      source: string;
+      target: string;
+      sourcePort: string;
+      targetPort: string;
+    }[] = [];
     for (const org of organizations) {
       if (org.parentId && validIds.has(org.parentId) && org.id) {
         edges.push({
           source: org.parentId,
           target: org.id,
+          sourcePort: 'out',
+          targetPort: 'in',
         });
       }
     }
@@ -439,6 +446,16 @@ export default function OrganizationsPanel() {
                   node={{
                     style: {
                       size: [210, 80],
+                      ports:
+                        chartDirection === 'vertical'
+                          ? [
+                              { key: 'in', placement: 'top' },
+                              { key: 'out', placement: 'bottom' },
+                            ]
+                          : [
+                              { key: 'in', placement: 'left' },
+                              { key: 'out', placement: 'right' },
+                            ],
                       component: (nodeData: Record<string, unknown>) => {
                         const item = (nodeData.data || nodeData) as {
                           id: string;
@@ -446,6 +463,7 @@ export default function OrganizationsPanel() {
                           code: string;
                           kind: number;
                           enabled: boolean;
+                          parentId?: string;
                           childrenCount?: number;
                         };
                         const isCurrentSelected = item.id === selectedId;
@@ -473,6 +491,33 @@ export default function OrganizationsPanel() {
                               transition: 'all 0.15s ease',
                             }}
                           >
+                            {/* Inlet Anchor / 上级入口连接桩（有上级组织时显示） */}
+                            {item.parentId && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  ...(chartDirection === 'vertical'
+                                    ? {
+                                        top: -4,
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                      }
+                                    : {
+                                        left: -4,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                      }),
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#1677ff',
+                                  border: '2px solid #ffffff',
+                                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                                  zIndex: 5,
+                                }}
+                              />
+                            )}
+
                             {/* Card Top Row: Name + Status */}
                             <div
                               style={{
@@ -647,6 +692,19 @@ export default function OrganizationsPanel() {
                             )}
                           </div>
                         );
+                      },
+                    },
+                  }}
+                  edge={{
+                    type: 'polyline',
+                    style: {
+                      stroke: '#94a3b8',
+                      lineWidth: 1.5,
+                      radius: 6,
+                      endArrow: true,
+                      endArrowType: 'vee',
+                      router: {
+                        type: 'orth',
                       },
                     },
                   }}
