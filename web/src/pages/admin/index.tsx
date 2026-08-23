@@ -138,7 +138,6 @@ export default function Admin() {
   return (
     <PageContainer
       title="系统管理"
-      subTitle="维护多级组织架构、成员账号体系、角色权限策略、安全审计日志与异步任务"
       tabList={tabItems.map((item) => ({
         key: item.key,
         tab: item.tab,
