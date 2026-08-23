@@ -4,7 +4,6 @@ import {
   EyeOutlined,
   LoadingOutlined,
   LockOutlined,
-  SafetyCertificateOutlined,
   UserOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
@@ -88,7 +87,7 @@ export default function Login() {
         <title>登录 - {Settings.title}</title>
       </Helmet>
 
-      {/* ── 左侧：深色科技交互区 (Decorative & Animated Hero Section) ── */}
+      {/* ── 左侧：深色科技交互区 ── */}
       <div className={styles.heroSection}>
         {/* 点阵网格背景 */}
         <div className={styles.dotGridBackground} />
@@ -104,13 +103,12 @@ export default function Login() {
             alt="RONCIN"
             className={styles.brandLogoImg}
             onError={(e) => {
-              // 降级使用 SVG
               (e.currentTarget as HTMLImageElement).src = '/logo.svg';
             }}
           />
           <div>
             <div className={styles.brandTitle}>RONCIN</div>
-            <div className={styles.brandSubtitle}>LOGISTICS INTELLIGENCE</div>
+            <div className={styles.brandSubtitle}>LOGISTICS</div>
           </div>
         </div>
 
@@ -122,15 +120,9 @@ export default function Login() {
             passwordLength={passwordValue.length}
           />
         </div>
-
-        {/* 底部功能标识 */}
-        <div className={styles.heroFooterBadge}>
-          <SafetyCertificateOutlined style={{ color: '#38bdf8' }} />
-          <span>多级组织隔离 · 角色权限边界保护</span>
-        </div>
       </div>
 
-      {/* ── 右侧：现代化认证表单区 (Auth Form Section) ── */}
+      {/* ── 右侧：认证表单区 ── */}
       <div className={styles.formSection}>
         <div className={styles.formCard}>
           {/* 移动端 Logo 展示 */}
@@ -140,14 +132,13 @@ export default function Login() {
               <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '0.08em', color: '#0f172a' }}>
                 RONCIN
               </span>
-              <span style={{ fontSize: 10, color: '#64748b', display: 'block' }}>货代智能协同管理平台</span>
             </div>
           </div>
 
           {/* 表单头部 */}
           <div>
-            <h1 className={styles.headerTitle}>欢迎回来 👋</h1>
-            <p className={styles.headerSubtitle}>国际货运代理与供应链协同管理平台</p>
+            <h1 className={styles.headerTitle}>登录</h1>
+            <p className={styles.headerSubtitle}>Roncin 货代协同管理平台</p>
           </div>
 
           {/* 登录表单 */}
@@ -161,17 +152,17 @@ export default function Login() {
             {/* 用户名 */}
             <Form.Item
               name="username"
-              rules={[{ required: true, message: '请输入用户名（登录账号）' }]}
+              rules={[{ required: true, message: '请输入用户名' }]}
               style={{ marginBottom: 20 }}
             >
               <div>
                 <label className={styles.inputLabel} htmlFor="login_username">
-                  访问账号
+                  账号
                 </label>
                 <Input
                   id="login_username"
                   size="large"
-                  placeholder="用户名 / 邮箱地址"
+                  placeholder="用户名 / 邮箱"
                   prefix={<UserOutlined style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }} />}
                   className={styles.pillInput}
                   disabled={loading}
@@ -184,19 +175,17 @@ export default function Login() {
             {/* 密码 */}
             <Form.Item
               name="password"
-              rules={[{ required: true, message: '请输入登录密码' }]}
+              rules={[{ required: true, message: '请输入密码' }]}
               style={{ marginBottom: 20 }}
             >
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className={styles.inputLabel} htmlFor="login_password">
-                    验证密码
-                  </label>
-                </div>
+                <label className={styles.inputLabel} htmlFor="login_password">
+                  密码
+                </label>
                 <Input.Password
                   id="login_password"
                   size="large"
-                  placeholder="••••••••"
+                  placeholder="请输入密码"
                   prefix={<LockOutlined style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }} />}
                   className={styles.pillInput}
                   disabled={loading}
@@ -232,9 +221,6 @@ export default function Login() {
               <Checkbox defaultChecked disabled={loading} style={{ fontSize: 13, color: '#64748b' }}>
                 保持登录
               </Checkbox>
-              <span style={{ fontSize: 12, color: '#1677ff', cursor: 'pointer', fontWeight: 500 }}>
-                安全验证模式
-              </span>
             </div>
 
             {/* 登录操作按钮 */}
@@ -248,7 +234,7 @@ export default function Login() {
                 icon={loading ? <LoadingOutlined /> : <ArrowRightOutlined />}
                 iconPosition="end"
               >
-                {loading ? '授权验证中...' : '授权并登录'}
+                {loading ? '登录中...' : '登录'}
               </Button>
             </Form.Item>
           </Form>
@@ -267,25 +253,10 @@ export default function Login() {
                 className={styles.wecomButton}
                 onClick={handleWeComLogin}
               >
-                使用企业微信扫码登录
+                企业微信登录
               </Button>
             </>
           )}
-
-          {/* 底部安全与协议区 */}
-          <div className={styles.footerWrapper}>
-            <div className={styles.footerSecurityBadge}>
-              <SafetyCertificateOutlined style={{ color: '#1677ff', fontSize: 13 }} />
-              <span>受限访问区域 · 仅限授权人员</span>
-            </div>
-            <div className={styles.footerLinks}>
-              <span>服务协议</span>
-              <span>·</span>
-              <span>隐私条款</span>
-              <span>·</span>
-              <span>运维支持</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
