@@ -12,7 +12,6 @@ import {
   paymentTermOptions,
   shipmentModeOptions,
   shipmentTypeOptions,
-  tradeDirectionOptions,
   tradeTermOptions,
 } from '../common';
 import type { TemplateProps, TemplateSection } from './types';
@@ -72,14 +71,6 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
               placeholder: '搜索订舱代理',
             }}
             request={async ({ keyWords }) => searchBookingAgents(keyWords)}
-          />
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, md: 8 }}
-            name="tradeDirection"
-            label="贸易方向"
-            rules={[{ required: true, message: '请选择贸易方向' }]}
-            options={tradeDirectionOptions}
-            placeholder="请选择贸易方向"
           />
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, md: 8 }}

@@ -21,7 +21,6 @@ import {
 
 type CreateOrderFormValues = {
   customerId: string;
-  tradeDirection: number;
   tradeTerm: number;
   paymentTerm: number;
   statusTemplateId: string;
@@ -157,7 +156,7 @@ export default function NewOrderPage() {
       const payload: API.CreateOrderRequest = {
         customerId: values.customerId,
         businessType: config.businessType,
-        tradeDirection: Number(values.tradeDirection),
+        tradeDirection: config.tradeDirection,
         tradeTerm: Number(values.tradeTerm),
         paymentTerm: Number(values.paymentTerm),
         statusTemplateId: defaultStatusTemplateId,
@@ -225,7 +224,6 @@ export default function NewOrderPage() {
       formRef={formRef}
       sections={sections}
       initialValues={{
-        tradeDirection: config.tradeDirection,
         statusTemplateId: statusTemplateOptions[0]?.value,
       }}
       onFinish={handleFinish}
