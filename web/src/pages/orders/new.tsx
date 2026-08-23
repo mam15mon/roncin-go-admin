@@ -244,9 +244,6 @@ export default function NewOrderPage() {
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>
-      title={`新建${config.title.replace('订单', '')}订单`}
-      subTitle={`录入${config.title}信息，套用${config.category === 'sea' ? '海运' : '空运'}专业业务模板`}
-      onBack={() => history.push(`/orders/${config.kind}`)}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}

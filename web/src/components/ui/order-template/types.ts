@@ -9,12 +9,6 @@ export interface OrderFormTemplateSection {
 }
 
 export interface OrderFormTemplateProps<T> {
-  /** 页面标题。 */
-  title: string;
-  /** 页面副标题。 */
-  subTitle?: string;
-  /** 页头返回回调；不传则不显示返回按钮。 */
-  onBack?: () => void;
   /** 主数据加载态；为 true 时渲染加载占位。 */
   loading?: boolean;
   /** 加载占位提示文案。 */

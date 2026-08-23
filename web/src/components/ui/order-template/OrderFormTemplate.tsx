@@ -14,9 +14,6 @@ const { Text } = Typography;
  * 组件即可让全部业务类型（海运/空运、出口/进口）的订单表单同步生效。
  */
 export function OrderFormTemplate<T>({
-  title,
-  subTitle,
-  onBack,
   loading = false,
   loadingTip,
   formRef,
@@ -40,13 +37,7 @@ export function OrderFormTemplate<T>({
   };
 
   return (
-    <PageContainer
-      header={{
-        title,
-        subTitle,
-        onBack,
-      }}
-    >
+    <PageContainer title={false}>
       {loading ? (
         <Card bordered={false} style={{ textAlign: 'center', padding: '60px 0' }}>
           <Space direction="vertical" size="middle">
