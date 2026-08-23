@@ -89,10 +89,42 @@ export default [
   },
   {
     path: '/orders',
+    redirect: '/orders/sea-export',
+  },
+  {
+    path: '/orders',
     name: '订单管理',
     icon: 'orderedList',
     access: 'canReadOrders',
-    component: './orders',
+    routes: [
+      {
+        path: '/orders/sea-export',
+        name: '海运出口',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/sea-import',
+        name: '海运进口',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/air-export',
+        name: '空运出口',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/air-import',
+        name: '空运进口',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/:kind/new',
+        name: '新建订单',
+        hideInMenu: true,
+        access: 'canManageOrders',
+        component: './orders/new',
+      },
+    ],
   },
   {
     path: '/master-data',

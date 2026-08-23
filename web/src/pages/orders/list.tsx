@@ -31,7 +31,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { history, useAccess, useLocation } from '@umijs/max';
 import {
   Alert,
   App,
@@ -39,6 +39,7 @@ import {
   Drawer,
   Dropdown,
   Popconfirm,
+  Result,
   Space,
   Tag,
   Typography,
@@ -77,7 +78,6 @@ import {
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
 import {
-  orderServiceCreateOrder,
   orderServiceListOrders,
   orderServiceTransitionOrderStatus,
   orderServiceUpdateOrder,
@@ -93,84 +93,37 @@ import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
+import {
+  MASTER_DATA_KINDS,
+  businessTypeMap,
+  businessTypeValueEnum,
+  orderPersonnelRoleOptions,
+  orderPersonnelRoleValueEnum,
+  parseOrderKind,
+  paymentTermOptions,
+  shipmentTypeOptions,
+  shippingDocumentStatusValueEnum,
+  tradeDirectionOptions,
+  tradeDirectionValueEnum,
+  tradeTermOptions,
+} from './common';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 
 const { Text } = Typography;
 
-const businessTypeOptions = [
-  { label: '海运出口', value: 1, color: 'blue' },
-  { label: '海运进口', value: 2, color: 'cyan' },
-  { label: '空运出口', value: 3, color: 'geekblue' },
-  { label: '空运进口', value: 4, color: 'purple' },
-  { label: '陆运', value: 5, color: 'green' },
-  { label: '铁路', value: 6, color: 'volcano' },
-];
-
-const businessTypeMap = new Map(
-  businessTypeOptions.map((opt) => [opt.value, opt]),
-);
-
-const businessTypeValueEnum = Object.fromEntries(
-  businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
-);
-
-const tradeDirectionOptions = [
-  { label: '出口', value: 1 },
-  { label: '进口', value: 2 },
-];
-
-const tradeDirectionValueEnum = Object.fromEntries(
-  tradeDirectionOptions.map((opt) => [opt.value, { text: opt.label }]),
-);
-
-const tradeTermOptions = [
-  { label: 'EXW', value: 1 },
-  { label: 'FCA', value: 2 },
-  { label: 'FOB', value: 3 },
-  { label: 'CFR', value: 4 },
-  { label: 'CIF', value: 5 },
-  { label: 'CPT', value: 6 },
-  { label: 'CIP', value: 7 },
-  { label: 'DAP', value: 8 },
-  { label: 'DPU', value: 9 },
-  { label: 'DDU', value: 10 },
-  { label: 'DDP', value: 11 },
-  { label: 'LDP', value: 12 },
-];
-
-const paymentTermOptions = [
-  { label: '预付 (PP)', value: 1 },
-  { label: '到付 (CC)', value: 2 },
-];
-
-const shipmentTypeOptions = [
-  { label: '整箱 (FCL)', value: 1 },
-  { label: '拼箱 (LCL)', value: 2 },
-  { label: '散杂货 (Break Bulk)', value: 3 },
-];
-
-const MASTER_DATA_KINDS = {
-  REGION: 3,
-  CONTAINER_SPEC: 7,
-  SERVICE_TYPE: 8,
-  CARGO_CATEGORY: 9,
-} as const;
-
-type OrderFormValues = {
+type EditOrderFormValues = {
   customerId: string;
-  businessType: number;
   tradeDirection: number;
   tradeTerm: number;
   paymentTerm: number;
-  statusTemplateId?: string;
   shipmentType?: number;
   serviceTypeIds?: string[];
   cargoCategoryIds?: string[];
   originLocationId?: string;
   destinationLocationId?: string;
   vesselVoyage?: string;
-  etd?: string;
-  eta?: string;
+  etd?: string | dayjs.Dayjs;
+  eta?: string | dayjs.Dayjs;
   goodsDescription?: string;
   totalPackages?: number;
   totalPackageUnit?: string;
@@ -198,21 +151,6 @@ type AttachmentFormValues = {
   objectKey: string;
   checksum?: string;
 };
-
-const orderPersonnelRoleOptions = [
-  { label: '创建人 (CREATOR)', value: 1 },
-  { label: '操作专员 (OPERATOR)', value: 2 },
-  { label: '业务销售 (SALES)', value: 3 },
-  { label: '客服专员 (CUSTOMER_SERVICE)', value: 4 },
-  { label: '单证专员 (DOCUMENT)', value: 5 },
-  { label: '商务采购 (COMMERCIAL)', value: 6 },
-  { label: '协同助理 (ASSOCIATE)', value: 7 },
-  { label: '副协同 (ASSOCIATE2)', value: 8 },
-];
-
-const orderPersonnelRoleValueEnum = Object.fromEntries(
-  orderPersonnelRoleOptions.map((opt) => [opt.value, { text: opt.label }]),
-);
 
 type PersonnelFormValues = {
   userId: string;
@@ -245,18 +183,11 @@ type ShippingDocumentFormValues = {
   note?: string;
 };
 
-const shippingDocumentStatusValueEnum: Record<
-  number,
-  { text: string; status: 'Default' | 'Processing' | 'Success' }
-> = {
-  1: { text: '草稿', status: 'Default' },
-  2: { text: '已确认', status: 'Processing' },
-  3: { text: '已放货', status: 'Success' },
-};
+export default function OrderListPage() {
+  const location = useLocation();
+  const config = parseOrderKind(location.pathname);
 
-export default function Orders() {
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const createFormRef = useRef<ProFormInstance | undefined>(undefined);
   const editFormRef = useRef<ProFormInstance | undefined>(undefined);
   const transitionFormRef = useRef<ProFormInstance | undefined>(undefined);
   const milestoneActionRef = useRef<ActionType | undefined>(undefined);
@@ -278,7 +209,6 @@ export default function Orders() {
   const { message } = App.useApp();
   const access = useAccess();
 
-  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [transitionModalOpen, setTransitionModalOpen] = useState(false);
   const [milestoneDrawerOpen, setMilestoneDrawerOpen] = useState(false);
@@ -330,11 +260,15 @@ export default function Orders() {
       masterDataServiceListOptions(),
       masterDataServiceListPorts({ page: 1, pageSize: 100 }),
       masterDataServiceListAirports({ page: 1, pageSize: 100 }),
-    ]).then(([optionsResponse, portsResponse, airportsResponse]) => {
-      setMasterOptions(optionsResponse.data ?? []);
-      setPorts(portsResponse.data ?? []);
-      setAirports(airportsResponse.data ?? []);
-    }).catch((error: Error) => message.error(error.message || '订单主数据加载失败'));
+    ])
+      .then(([optionsResponse, portsResponse, airportsResponse]) => {
+        setMasterOptions(optionsResponse.data ?? []);
+        setPorts(portsResponse.data ?? []);
+        setAirports(airportsResponse.data ?? []);
+      })
+      .catch((error: Error) =>
+        message.error(error.message || '订单主数据加载失败'),
+      );
   }, [message]);
 
   const containerSpecOptions = masterOptions
@@ -383,8 +317,7 @@ export default function Orders() {
   const regionLocationOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.REGION &&
-        item.enabled !== false,
+        item.kind === MASTER_DATA_KINDS.REGION && item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -393,8 +326,18 @@ export default function Orders() {
 
   const locationOptions = [
     ...regionLocationOptions,
-    ...ports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`, value: item.id ?? '' })),
-    ...airports.filter((item) => item.enabled !== false).map((item) => ({ label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`, value: item.id ?? '' })),
+    ...ports
+      .filter((item) => item.enabled !== false)
+      .map((item) => ({
+        label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
+        value: item.id ?? '',
+      })),
+    ...airports
+      .filter((item) => item.enabled !== false)
+      .map((item) => ({
+        label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
+        value: item.id ?? '',
+      })),
   ];
 
   const searchCustomers = async (keyword?: string) => {
@@ -421,36 +364,10 @@ export default function Orders() {
     }));
   };
 
-  const loadStatusTemplates = async (businessType?: number) => {
-    if (!businessType) {
-      return [];
-    }
-    const res = await masterDataServiceListStatusTemplates({
-      businessType,
-      published: true,
-    });
-    return (res.data ?? [])
-      .filter(
-        (tpl) =>
-          tpl.enabled !== false &&
-          (tpl.items ?? []).some((item) => item.code === 'DRAFT'),
-      )
-      .map((tpl) => ({
-        label: `${tpl.name} (v${tpl.version})`,
-        value: tpl.id ?? '',
-      }));
-  };
-
-  const openCreate = () => {
-    createFormRef.current?.resetFields();
-    setCreateModalOpen(true);
-  };
-
   const openEdit = (record: API.Order) => {
     setEditingRecord(record);
     editFormRef.current?.setFieldsValue({
       customerId: record.customerId,
-      businessType: record.businessType,
       tradeDirection: record.tradeDirection,
       tradeTerm: record.tradeTerm,
       paymentTerm: record.paymentTerm,
@@ -641,6 +558,26 @@ export default function Orders() {
     setShippingDocumentModalOpen(true);
   };
 
+  if (!config) {
+    return (
+      <PageContainer>
+        <Result
+          status="404"
+          title="未知的业务类型"
+          subTitle="请求的订单列表业务类型无效，请通过系统菜单导航进入。"
+          extra={
+            <Button
+              type="primary"
+              onClick={() => history.push('/orders/sea-export')}
+            >
+              前往海运出口订单
+            </Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
+
   const shippingDocumentColumns: ProColumns<API.OrderShippingDocument>[] = [
     {
       title: '主单号',
@@ -659,29 +596,43 @@ export default function Orders() {
     {
       title: '放货类型',
       dataIndex: 'releaseType',
-      ellipsis: true,
-      render: (_, record) => record.releaseType || '-',
+      width: 140,
+      render: (_, record) =>
+        record.releaseType ? (
+          <Tag color="geekblue" bordered={false}>
+            {record.releaseType}
+          </Tag>
+        ) : (
+          '-'
+        ),
     },
     {
-      title: '状态',
+      title: '单证状态',
       dataIndex: 'status',
+      width: 120,
       valueType: 'select',
       valueEnum: shippingDocumentStatusValueEnum,
-      render: (_, record) => {
-        if (record.status === 1) {
-          return <Tag color="default">草稿</Tag>;
-        }
-        if (record.status === 2) {
-          return <Tag color="processing">已确认</Tag>;
-        }
-        if (record.status === 3) {
-          return <Tag color="success">已放货</Tag>;
-        }
-        return '-';
-      },
+      render: (_, record) =>
+        record.status !== undefined &&
+        shippingDocumentStatusValueEnum[record.status] ? (
+          <Tag
+            color={
+              record.status === 3
+                ? 'success'
+                : record.status === 2
+                  ? 'processing'
+                  : 'default'
+            }
+            bordered={false}
+          >
+            {shippingDocumentStatusValueEnum[record.status]?.text}
+          </Tag>
+        ) : (
+          '-'
+        ),
     },
     {
-      title: '备注',
+      title: '备注说明',
       dataIndex: 'note',
       ellipsis: true,
       render: (_, record) => record.note || '-',
@@ -699,13 +650,9 @@ export default function Orders() {
     {
       title: '操作',
       valueType: 'option',
-      search: false,
-      width: 180,
+      width: 160,
       render: (_, record) => {
         if (!access.canManageOrders) return null;
-        if (record.status !== 1 && record.status !== 2) return null;
-        const currentText = record.status === 1 ? '草稿' : '已确认';
-        const nextText = record.status === 1 ? '已确认' : '已放货';
         return (
           <Space size="small">
             <Button
@@ -715,32 +662,32 @@ export default function Orders() {
             >
               编辑
             </Button>
-            <Popconfirm
-              title={`确定将提单状态从「${currentText}」流转为「${nextText}」？`}
-              onConfirm={async () => {
-                if (!shippingDocumentOrder?.id || !record.id || !record.status)
-                  return;
-                const toStatus = record.status === 1 ? 2 : 3;
-                await orderShippingDocumentServiceTransitionShippingDocumentStatus(
-                  {
-                    orderId: shippingDocumentOrder.id,
-                    id: record.id,
-                  },
-                  {
-                    orderId: shippingDocumentOrder.id,
-                    id: record.id,
-                    expectedStatus: record.status,
-                    toStatus,
-                  },
-                );
-                message.success('流转提单状态成功');
-                shippingDocumentActionRef.current?.reload();
-              }}
-            >
-              <Button type="link" size="small">
-                流转
-              </Button>
-            </Popconfirm>
+            {record.status === 1 && (
+              <Popconfirm
+                title="确认将该提单状态流转为【已确认】？"
+                onConfirm={async () => {
+                  if (!shippingDocumentOrder?.id || !record.id) return;
+                  await orderShippingDocumentServiceTransitionShippingDocumentStatus(
+                    {
+                      orderId: shippingDocumentOrder.id,
+                      id: record.id,
+                    },
+                    {
+                      orderId: shippingDocumentOrder.id,
+                      id: record.id,
+                      expectedStatus: 1,
+                      toStatus: 2,
+                    },
+                  );
+                  message.success('提单已确认');
+                  shippingDocumentActionRef.current?.reload();
+                }}
+              >
+                <Button type="link" size="small">
+                  确认
+                </Button>
+              </Popconfirm>
+            )}
             <Popconfirm
               title="确定移除该提单？"
               onConfirm={async () => {
@@ -769,28 +716,36 @@ export default function Orders() {
       dataIndex: 'containerNo',
       copyable: true,
       ellipsis: true,
-      render: (_, record) => record.containerNo || '-',
+      render: (_, record) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+          {record.containerNo || '-'}
+        </Text>
+      ),
     },
     {
-      title: '箱型',
+      title: '集装箱规格',
       dataIndex: 'containerSpecId',
-      ellipsis: true,
+      width: 160,
       render: (_, record) =>
-        (record.containerSpecId && containerSpecMap[record.containerSpecId]) ||
-        '-',
+        record.containerSpecId
+          ? containerSpecMap[record.containerSpecId] || record.containerSpecId
+          : '-',
     },
     {
       title: '关联提单',
       dataIndex: 'shippingDocumentId',
+      width: 180,
       ellipsis: true,
       render: (_, record) =>
-        (record.shippingDocumentId &&
-          containerDocumentMap[record.shippingDocumentId]) ||
-        '-',
+        record.shippingDocumentId
+          ? containerDocumentMap[record.shippingDocumentId] ||
+            record.shippingDocumentId
+          : <Text type="secondary">未关联</Text>,
     },
     {
-      title: '封号',
+      title: '铅封号',
       dataIndex: 'sealNo',
+      copyable: true,
       ellipsis: true,
       render: (_, record) => record.sealNo || '-',
     },
@@ -798,22 +753,16 @@ export default function Orders() {
       title: '毛重(KG)',
       dataIndex: 'grossWeightKg',
       width: 120,
-      render: (_, record) =>
-        record.grossWeightKg !== undefined && record.grossWeightKg !== null
-          ? record.grossWeightKg
-          : '-',
+      render: (_, record) => record.grossWeightKg ?? '-',
     },
     {
       title: '体积(CBM)',
       dataIndex: 'volumeCbm',
       width: 120,
-      render: (_, record) =>
-        record.volumeCbm !== undefined && record.volumeCbm !== null
-          ? record.volumeCbm
-          : '-',
+      render: (_, record) => record.volumeCbm ?? '-',
     },
     {
-      title: '备注',
+      title: '备注说明',
       dataIndex: 'note',
       ellipsis: true,
       render: (_, record) => record.note || '-',
@@ -867,37 +816,28 @@ export default function Orders() {
 
   const cargoColumns: ProColumns<API.OrderCargoItem>[] = [
     {
-      title: '货名',
+      title: '货物名称',
       dataIndex: 'cargoName',
       ellipsis: true,
-      render: (_, record) => record.cargoName || '-',
+      render: (_, record) => <Text strong>{record.cargoName || '-'}</Text>,
     },
     {
       title: '件数',
       dataIndex: 'packageCount',
       width: 100,
-      render: (_, record) =>
-        record.packageCount !== undefined && record.packageCount !== null
-          ? record.packageCount
-          : '-',
+      render: (_, record) => record.packageCount ?? '-',
     },
     {
       title: '毛重(KG)',
       dataIndex: 'grossWeightKg',
       width: 120,
-      render: (_, record) =>
-        record.grossWeightKg !== undefined && record.grossWeightKg !== null
-          ? record.grossWeightKg
-          : '-',
+      render: (_, record) => record.grossWeightKg ?? '-',
     },
     {
       title: '体积(CBM)',
       dataIndex: 'volumeCbm',
       width: 120,
-      render: (_, record) =>
-        record.volumeCbm !== undefined && record.volumeCbm !== null
-          ? record.volumeCbm
-          : '-',
+      render: (_, record) => record.volumeCbm ?? '-',
     },
     {
       title: '净重(KG)',
@@ -1115,9 +1055,11 @@ export default function Orders() {
       valueType: 'dateTime',
       width: 180,
       render: (_, record) =>
-        record.occurredAt
-          ? dayjs(record.occurredAt).format('YYYY-MM-DD HH:mm:ss')
-          : <Text type="secondary">未完成</Text>,
+        record.occurredAt ? (
+          dayjs(record.occurredAt).format('YYYY-MM-DD HH:mm:ss')
+        ) : (
+          <Text type="secondary">未完成</Text>
+        ),
     },
     {
       title: '备注说明',
@@ -1161,7 +1103,13 @@ export default function Orders() {
       search: false,
       width: 170,
       render: (_, record) => (
-        <Text style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0f172a' }}>
+        <Text
+          style={{
+            fontFamily: 'monospace',
+            fontWeight: 600,
+            color: '#0f172a',
+          }}
+        >
           {record.orderNo || record.id}
         </Text>
       ),
@@ -1170,6 +1118,7 @@ export default function Orders() {
       title: '业务类型',
       dataIndex: 'businessType',
       width: 130,
+      search: false,
       valueType: 'select',
       valueEnum: businessTypeValueEnum,
       render: (_, record) => {
@@ -1237,7 +1186,11 @@ export default function Orders() {
       width: 130,
       search: false,
       render: (_, record) =>
-        record.etd ? dayjs(record.etd).format('YYYY-MM-DD') : <Text type="secondary">-</Text>,
+        record.etd ? (
+          dayjs(record.etd).format('YYYY-MM-DD')
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
       title: '预计到港 (ETA)',
@@ -1245,7 +1198,11 @@ export default function Orders() {
       width: 130,
       search: false,
       render: (_, record) =>
-        record.eta ? dayjs(record.eta).format('YYYY-MM-DD') : <Text type="secondary">-</Text>,
+        record.eta ? (
+          dayjs(record.eta).format('YYYY-MM-DD')
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
       title: '操作',
@@ -1355,15 +1312,12 @@ export default function Orders() {
   ];
 
   return (
-    <PageContainer
-      title="订单管理"
-      subTitle="全链路海运、空运与多式联运货代订单协同，统一管理状态流转、单证箱货与履约里程碑"
-    >
+    <PageContainer title={config.title} subTitle={config.subTitle}>
       <ProTable<API.Order>
         headerTitle={
           <Space size={8}>
             <OrderedListOutlined style={{ color: '#1677ff' }} />
-            <span>货代订单列表</span>
+            <span>{config.title}列表</span>
           </Space>
         }
         actionRef={actionRef}
@@ -1377,7 +1331,7 @@ export default function Orders() {
             pageSize: params.pageSize,
             keyword: params.keyword,
             status: params.status,
-            businessType: params.businessType,
+            businessType: config.businessType,
             customerId: params.customerId,
           });
           return {
@@ -1399,7 +1353,7 @@ export default function Orders() {
               key="create"
               type="primary"
               icon={<PlusOutlined />}
-              onClick={openCreate}
+              onClick={() => history.push(`/orders/${config.kind}/new`)}
             >
               新增订单
             </Button>
@@ -1407,186 +1361,7 @@ export default function Orders() {
         ]}
       />
 
-      <ModalForm<OrderFormValues>
-        title="新增货代订单"
-        open={createModalOpen}
-        formRef={createFormRef}
-        grid
-        modalProps={{
-          destroyOnHidden: true,
-          width: 820,
-          onCancel: () => setCreateModalOpen(false),
-        }}
-        onOpenChange={setCreateModalOpen}
-        onFinish={async (values) => {
-          if (!values.statusTemplateId) return false;
-          await orderServiceCreateOrder({
-            customerId: values.customerId,
-            businessType: values.businessType,
-            tradeDirection: values.tradeDirection,
-            tradeTerm: values.tradeTerm,
-            paymentTerm: values.paymentTerm,
-            statusTemplateId: values.statusTemplateId,
-            shipmentType: values.shipmentType,
-            serviceTypeIds: values.serviceTypeIds,
-            cargoCategoryIds: values.cargoCategoryIds,
-            originLocationId: values.originLocationId,
-            destinationLocationId: values.destinationLocationId,
-            vesselVoyage: values.vesselVoyage,
-            etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
-            eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
-            goodsDescription: values.goodsDescription,
-            totalPackages: values.totalPackages,
-            totalPackageUnit: values.totalPackageUnit,
-            notes: values.notes,
-          });
-          message.success('创建订单成功');
-          setCreateModalOpen(false);
-          actionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="customerId"
-          label="客户单位"
-          rules={[{ required: true, message: '请选择客户' }]}
-          fieldProps={{
-            showSearch: true,
-            placeholder: '搜索客户',
-          }}
-          request={async ({ keyWords }) => searchCustomers(keyWords)}
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="businessType"
-          label="业务类型"
-          rules={[{ required: true, message: '请选择业务类型' }]}
-          options={businessTypeOptions}
-          placeholder="请选择业务类型"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="statusTemplateId"
-          label="状态流转模板"
-          rules={[{ required: true, message: '请选择状态模板' }]}
-          dependencies={['businessType']}
-          request={async ({ businessType }) =>
-            loadStatusTemplates(businessType ? Number(businessType) : undefined)
-          }
-          placeholder="请选择状态模板"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="tradeDirection"
-          label="贸易方向"
-          rules={[{ required: true, message: '请选择贸易方向' }]}
-          options={tradeDirectionOptions}
-          placeholder="请选择贸易方向"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="tradeTerm"
-          label="贸易条款"
-          rules={[{ required: true, message: '请选择贸易条款' }]}
-          options={tradeTermOptions}
-          placeholder="请选择贸易条款"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="paymentTerm"
-          label="运费条款"
-          rules={[{ required: true, message: '请选择付款条款' }]}
-          options={paymentTermOptions}
-          placeholder="请选择付款条款"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="shipmentType"
-          label="装载方式"
-          options={shipmentTypeOptions}
-          placeholder="请选择装载类型"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="originLocationId"
-          label="起运港 / 地点"
-          options={locationOptions}
-          fieldProps={{ showSearch: true }}
-          placeholder="请选择起运地点"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="destinationLocationId"
-          label="目的港 / 地点"
-          options={locationOptions}
-          fieldProps={{ showSearch: true }}
-          placeholder="请选择目的地点"
-        />
-        <ProFormText
-          colProps={{ span: 12 }}
-          name="vesselVoyage"
-          label="船名航次 / 车次"
-          placeholder="请输入船名航次"
-        />
-        <ProFormDatePicker
-          colProps={{ span: 12 }}
-          name="etd"
-          label="预计离港时间 (ETD)"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDatePicker
-          colProps={{ span: 12 }}
-          name="eta"
-          label="预计到达时间 (ETA)"
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="serviceTypeIds"
-          label="服务类型"
-          mode="multiple"
-          options={serviceTypeOptions}
-          placeholder="请选择服务类型"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
-          name="cargoCategoryIds"
-          label="货物类别"
-          mode="multiple"
-          options={cargoCategoryOptions}
-          placeholder="请选择货物类别"
-        />
-        <ProFormDigit
-          colProps={{ span: 12 }}
-          name="totalPackages"
-          label="总件数"
-          min={0}
-          placeholder="请输入件数"
-        />
-        <ProFormText
-          colProps={{ span: 12 }}
-          name="totalPackageUnit"
-          label="包装单位"
-          placeholder="例如: CTNS, PLTS"
-        />
-        <ProFormTextArea
-          colProps={{ span: 24 }}
-          name="goodsDescription"
-          label="货物描述"
-          placeholder="请输入货物描述"
-          fieldProps={{ maxLength: 1000, showCount: true }}
-        />
-        <ProFormTextArea
-          colProps={{ span: 24 }}
-          name="notes"
-          label="业务备注"
-          placeholder="请输入备注说明"
-          fieldProps={{ maxLength: 1000, showCount: true }}
-        />
-      </ModalForm>
-
-      <ModalForm<OrderFormValues>
+      <ModalForm<EditOrderFormValues>
         title="编辑订单草稿"
         open={editModalOpen}
         formRef={editFormRef}
@@ -1595,7 +1370,6 @@ export default function Orders() {
           editingRecord
             ? {
                 customerId: editingRecord.customerId,
-                businessType: editingRecord.businessType,
                 tradeDirection: editingRecord.tradeDirection,
                 tradeTerm: editingRecord.tradeTerm,
                 paymentTerm: editingRecord.paymentTerm,
@@ -1628,7 +1402,6 @@ export default function Orders() {
               id: editingRecord.id,
               expectedStatus: editingRecord.status,
               customerId: values.customerId,
-              businessType: values.businessType,
               tradeDirection: values.tradeDirection,
               tradeTerm: values.tradeTerm,
               paymentTerm: values.paymentTerm,
@@ -1665,14 +1438,6 @@ export default function Orders() {
         />
         <ProFormSelect
           colProps={{ span: 12 }}
-          name="businessType"
-          label="业务类型"
-          rules={[{ required: true, message: '请选择业务类型' }]}
-          options={businessTypeOptions}
-          placeholder="请选择业务类型"
-        />
-        <ProFormSelect
-          colProps={{ span: 12 }}
           name="tradeDirection"
           label="贸易方向"
           rules={[{ required: true, message: '请选择贸易方向' }]}
@@ -1721,8 +1486,8 @@ export default function Orders() {
         <ProFormText
           colProps={{ span: 12 }}
           name="vesselVoyage"
-          label="船名航次 / 车次"
-          placeholder="请输入船名航次"
+          label="船名航次 / 车次 / 航班号"
+          placeholder="请输入船名航次/航班号"
         />
         <ProFormDatePicker
           colProps={{ span: 12 }}
