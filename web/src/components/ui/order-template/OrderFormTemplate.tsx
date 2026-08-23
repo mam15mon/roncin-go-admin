@@ -58,6 +58,11 @@ export function OrderFormTemplate<T>({
         <ProForm<T>
           formRef={resolvedFormRef}
           grid
+          layout="horizontal"
+          labelAlign="right"
+          labelCol={{ flex: '96px' }}
+          labelWrap={false}
+          wrapperCol={{ flex: 'auto' }}
           initialValues={initialValues}
           onFinish={handleFinish}
           submitter={{
