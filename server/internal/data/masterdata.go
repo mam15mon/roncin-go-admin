@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -14,6 +15,23 @@ import (
 type masterDataRepo struct{ data *Data }
 
 func NewMasterDataRepo(data *Data) biz.MasterDataRepo { return &masterDataRepo{data: data} }
+
+func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+	for _, item := range biz.DefaultOrderOptions() {
+		if _, err := tx.MasterDataItem.Create().
+			SetOrganizationID(organizationID).
+			SetKind(masterdataent.Kind(item.Kind)).
+			SetCode(item.Code).
+			SetName(item.Name).
+			SetSource(item.Source).
+			SetSortOrder(item.SortOrder).
+			SetEnabled(true).
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建订单默认选项 %s/%s: %w", item.Kind, item.Code, err)
+		}
+	}
+	return nil
+}
 
 func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
 	query := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID))

@@ -23,7 +23,6 @@ type CreateOrderFormValues = {
   customerId: string;
   tradeTerm: number;
   paymentTerm: number;
-  statusTemplateId: string;
   carrierId?: string;
   bookingAgentId?: string;
   shipmentType?: number;
@@ -85,9 +84,6 @@ export default function NewOrderPage() {
             : masterData.airLocationOptions,
         );
         setStatusTemplateOptions(templates);
-        if (templates.length > 0 && formRef.current) {
-          formRef.current.setFieldValue('statusTemplateId', templates[0].value);
-        }
       })
       .catch((error: Error) => {
         message.error(error.message || '加载主数据或状态模板失败');
@@ -99,7 +95,6 @@ export default function NewOrderPage() {
 
   const templateProps = useMemo(
     () => ({
-      statusTemplateOptions,
       serviceTypeOptions,
       cargoCategoryOptions,
       locationOptions,
@@ -110,12 +105,7 @@ export default function NewOrderPage() {
       searchBookingAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
     }),
-    [
-      statusTemplateOptions,
-      serviceTypeOptions,
-      cargoCategoryOptions,
-      locationOptions,
-    ],
+    [serviceTypeOptions, cargoCategoryOptions, locationOptions],
   );
 
   const sections = useMemo(() => {
@@ -224,7 +214,7 @@ export default function NewOrderPage() {
       formRef={formRef}
       sections={sections}
       initialValues={{
-        statusTemplateId: statusTemplateOptions[0]?.value,
+        orderDate: dayjs(),
       }}
       onFinish={handleFinish}
       submitText="创建订单"

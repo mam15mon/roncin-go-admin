@@ -113,6 +113,10 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return err
 	}
+	if err := data.CreateDefaultOrderOptions(ctx, tx, organization.ID); err != nil {
+		tx.Rollback()
+		return err
+	}
 	permissions := make([]*ent.Permission, 0, len(access.Manifest()))
 	for _, definition := range access.Manifest() {
 		permission, createErr := tx.Permission.Create().SetKey(definition.Key).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)

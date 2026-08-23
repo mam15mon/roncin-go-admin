@@ -12,7 +12,6 @@ import type { TemplateProps, TemplateSection } from './types';
 
 export function getAirTemplateSections(props: TemplateProps): TemplateSection[] {
   const {
-    statusTemplateOptions,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
@@ -37,14 +36,6 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
               placeholder: '搜索客户单位',
             }}
             request={async ({ keyWords }) => searchCustomers(keyWords)}
-          />
-          <ProFormSelect
-            colProps={{ xs: 24, sm: 12, md: 8 }}
-            name="statusTemplateId"
-            label="状态流转模板（系统内置）"
-            options={statusTemplateOptions}
-            placeholder="系统自动匹配"
-            fieldProps={{ disabled: true }}
           />
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, md: 8 }}

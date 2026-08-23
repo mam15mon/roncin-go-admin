@@ -60,6 +60,33 @@ func (s *masterDataRepoStub) Import(_ context.Context, organizationID uuid.UUID,
 	}, nil
 }
 
+func TestDefaultOrderOptions(t *testing.T) {
+	items := DefaultOrderOptions()
+	if len(items) != 24 {
+		t.Fatalf("DefaultOrderOptions() count = %d, want 24", len(items))
+	}
+
+	counts := map[MasterDataKind]int{}
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		if item.Kind != MasterDataKindServiceType && item.Kind != MasterDataKindCargoCategory {
+			t.Fatalf("unexpected kind %q", item.Kind)
+		}
+		key := string(item.Kind) + "/" + item.Code
+		if _, exists := seen[key]; exists {
+			t.Fatalf("duplicate option %q", key)
+		}
+		seen[key] = struct{}{}
+		counts[item.Kind]++
+		if item.Code == "" || item.Name == "" || item.Source != "system" || item.SortOrder <= 0 || !item.Enabled {
+			t.Fatalf("invalid default option: %#v", item)
+		}
+	}
+	if counts[MasterDataKindServiceType] != 19 || counts[MasterDataKindCargoCategory] != 5 {
+		t.Fatalf("option counts = %#v", counts)
+	}
+}
+
 func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 	repo := &masterDataRepoStub{}
 	audit := &auditRepoStub{}

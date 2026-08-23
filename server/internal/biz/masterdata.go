@@ -57,6 +57,46 @@ type MasterDataItem struct {
 	UpdatedAt      time.Time
 }
 
+func DefaultOrderOptions() []MasterDataItem {
+	serviceTypes := []struct{ code, name string }{
+		{"BOOKING", "订舱"},
+		{"TRUCKING", "拖车"},
+		{"STUFFING", "内装"},
+		{"CUSTOMS_EXPORT", "报关"},
+		{"CUSTOMS_IMPORT", "清关"},
+		{"OVERSEA_SEGMENT", "海外段"},
+		{"INSURANCE", "保险"},
+		{"PALLET_CHARTER", "包板"},
+		{"CONTAINER_LEASE", "租箱"},
+		{"FUMIGATION", "熏蒸"},
+		{"DOC_BUY", "买单"},
+		{"CERTIFICATE", "办证"},
+		{"DOC_PREP", "制单"},
+		{"DANGEROUS_SERVICE", "危险品"},
+		{"OVERWEIGHT_SERVICE", "超重"},
+		{"DOCUMENT_EXCHANGE", "换单"},
+		{"WAREHOUSING", "仓储"},
+		{"INSPECTION", "报检"},
+		{"CONTAINER_PURCHASE", "买箱"},
+	}
+	cargoCategories := []struct{ code, name string }{
+		{"GENERAL", "普货"},
+		{"REEFER", "冷藏货物"},
+		{"OVERSIZE", "超限货"},
+		{"DANGEROUS", "危险品"},
+		{"BREAK_BULK_PIECE", "散杂件货"},
+	}
+
+	items := make([]MasterDataItem, 0, len(serviceTypes)+len(cargoCategories))
+	for index, item := range serviceTypes {
+		items = append(items, MasterDataItem{Kind: MasterDataKindServiceType, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
+	}
+	for index, item := range cargoCategories {
+		items = append(items, MasterDataItem{Kind: MasterDataKindCargoCategory, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
+	}
+	return items
+}
+
 type MasterDataAttributes struct {
 	Continent    *string
 	CurrencyCode *string

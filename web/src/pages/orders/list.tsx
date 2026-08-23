@@ -97,6 +97,7 @@ import {
   MASTER_DATA_KINDS,
   businessTypeMap,
   businessTypeValueEnum,
+  isMasterDataKind,
   orderPersonnelRoleOptions,
   orderPersonnelRoleValueEnum,
   parseOrderKind,
@@ -274,7 +275,7 @@ export default function OrderListPage() {
   const containerSpecOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC &&
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
         item.enabled !== false,
     )
     .map((item) => ({
@@ -285,7 +286,9 @@ export default function OrderListPage() {
   const containerSpecMap = Object.fromEntries(
     masterOptions
       .filter(
-        (item) => item.kind === MASTER_DATA_KINDS.CONTAINER_SPEC && item.id,
+        (item) =>
+          isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
+          item.id,
       )
       .map((item) => [
         item.id as string,
@@ -296,7 +299,8 @@ export default function OrderListPage() {
   const serviceTypeOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.SERVICE_TYPE && item.enabled !== false,
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.SERVICE_TYPE) &&
+        item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -306,7 +310,7 @@ export default function OrderListPage() {
   const cargoCategoryOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.CARGO_CATEGORY &&
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.CARGO_CATEGORY) &&
         item.enabled !== false,
     )
     .map((item) => ({
@@ -317,7 +321,8 @@ export default function OrderListPage() {
   const regionLocationOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.REGION && item.enabled !== false,
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.REGION) &&
+        item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),

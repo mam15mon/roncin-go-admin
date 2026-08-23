@@ -90,9 +90,23 @@ export function OrderFormTemplate<T>({
           {sections.map((section) => (
             <Card
               key={section.key}
-              title={section.title}
+              size="small"
+              title={
+                <Space size={8}>
+                  <span
+                    style={{
+                      width: 3,
+                      height: 16,
+                      borderRadius: 2,
+                      background: '#1677ff',
+                    }}
+                  />
+                  <Text strong>{section.title}</Text>
+                </Space>
+              }
               bordered={false}
-              style={{ marginBottom: 16 }}
+              styles={{ body: { padding: 16 } }}
+              style={{ width: '100%', marginBottom: 12 }}
             >
               <Row gutter={16}>{section.content}</Row>
             </Card>

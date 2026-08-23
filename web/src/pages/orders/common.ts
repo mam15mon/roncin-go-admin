@@ -102,11 +102,18 @@ export const shippingDocumentStatusValueEnum: Record<
 };
 
 export const MASTER_DATA_KINDS = {
-  REGION: 3,
-  CONTAINER_SPEC: 7,
-  SERVICE_TYPE: 8,
-  CARGO_CATEGORY: 9,
+  REGION: 'MASTER_DATA_KIND_REGION',
+  CONTAINER_SPEC: 'MASTER_DATA_KIND_CONTAINER_SPEC',
+  SERVICE_TYPE: 'MASTER_DATA_KIND_SERVICE_TYPE',
+  CARGO_CATEGORY: 'MASTER_DATA_KIND_CARGO_CATEGORY',
 } as const;
+
+export function isMasterDataKind(
+  value: number | string | undefined,
+  kind: (typeof MASTER_DATA_KINDS)[keyof typeof MASTER_DATA_KINDS],
+) {
+  return value === kind;
+}
 
 export const PARTNER_ROLES = {
   CUSTOMER: 1,
@@ -233,28 +240,30 @@ export async function fetchOrderMasterData() {
   const serviceTypeOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.SERVICE_TYPE && item.enabled !== false,
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.SERVICE_TYPE) &&
+        item.enabled !== false,
     )
     .map((item) => ({
-      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      label: item.name ?? '',
       value: item.id ?? '',
     }));
 
   const cargoCategoryOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.CARGO_CATEGORY &&
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.CARGO_CATEGORY) &&
         item.enabled !== false,
     )
     .map((item) => ({
-      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+      label: item.name ?? '',
       value: item.id ?? '',
     }));
 
   const regionOptions = masterOptions
     .filter(
       (item) =>
-        item.kind === MASTER_DATA_KINDS.REGION && item.enabled !== false,
+        isMasterDataKind(item.kind, MASTER_DATA_KINDS.REGION) &&
+        item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),

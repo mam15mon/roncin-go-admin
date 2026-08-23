@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MASTER_DATA_KINDS,
   ORDER_KIND_CONFIGS,
   businessTypeOptions,
+  isMasterDataKind,
   parseOrderKind,
   tradeDirectionOptions,
 } from './common';
@@ -33,5 +35,20 @@ describe('orders common and config', () => {
 
     expect(businessTypeOptions).toHaveLength(6);
     expect(tradeDirectionOptions).toHaveLength(2);
+  });
+
+  it('按 REST 枚举名称识别订单主数据类型', () => {
+    expect(
+      isMasterDataKind(
+        'MASTER_DATA_KIND_SERVICE_TYPE',
+        MASTER_DATA_KINDS.SERVICE_TYPE,
+      ),
+    ).toBe(true);
+    expect(
+      isMasterDataKind(
+        'MASTER_DATA_KIND_CARGO_CATEGORY',
+        MASTER_DATA_KINDS.SERVICE_TYPE,
+      ),
+    ).toBe(false);
   });
 });

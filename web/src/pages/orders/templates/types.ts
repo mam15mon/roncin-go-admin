@@ -9,7 +9,6 @@ export interface SelectOption {
 export type TemplateSection = OrderFormTemplateSection;
 
 export interface TemplateProps {
-  statusTemplateOptions: SelectOption[];
   serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
