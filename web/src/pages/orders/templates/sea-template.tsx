@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Input, Row, Select, Space, message } from 'antd';
+import { Button, Col, Form, Input, Row, Select, message } from 'antd';
 import React from 'react';
 import {
   containerOwnershipOptions,
@@ -127,36 +127,42 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
           {/* 第 5 行：一行 5 列（客户业务编号、企业内部编号、贸易条款、订舱代理、国外代理） */}
           <Col className="col-5">
             <Form.Item label="客户业务编号">
-              <Space.Compact block>
-                <Form.Item noStyle name="customerReferenceNo">
-                  <Input placeholder="请输入" maxLength={100} />
-                </Form.Item>
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ fontSize: 12, padding: '0 4px', height: 32 }}
-                  onClick={() => message.info('正在校验客户业务编号')}
-                >
-                  重复校验
-                </Button>
-              </Space.Compact>
+              <Form.Item noStyle name="customerReferenceNo">
+                <Input
+                  placeholder="请输入"
+                  maxLength={100}
+                  suffix={
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ fontSize: 12, height: 22, padding: '0 2px' }}
+                      onClick={() => message.info('正在校验客户业务编号')}
+                    >
+                      重复校验
+                    </Button>
+                  }
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
           <Col className="col-5">
             <Form.Item label="企业内部编号">
-              <Space.Compact block>
-                <Form.Item noStyle name="internalReferenceNo">
-                  <Input placeholder="请输入" maxLength={100} />
-                </Form.Item>
-                <Button
-                  type="link"
-                  size="small"
-                  style={{ fontSize: 12, padding: '0 4px', height: 32 }}
-                  onClick={() => message.info('正在校验企业内部编号')}
-                >
-                  重复校验
-                </Button>
-              </Space.Compact>
+              <Form.Item noStyle name="internalReferenceNo">
+                <Input
+                  placeholder="请输入"
+                  maxLength={100}
+                  suffix={
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ fontSize: 12, height: 22, padding: '0 2px' }}
+                      onClick={() => message.info('正在校验企业内部编号')}
+                    >
+                      重复校验
+                    </Button>
+                  }
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
           <Col className="col-5">
@@ -224,92 +230,102 @@ export function getSeaTemplateSections(props: TemplateProps): TemplateSection[] 
           </Col>
           <Col className="col-5">
             <Form.Item label="货值">
-              <Space.Compact block>
-                <Form.Item
-                  noStyle
-                  name="cargoValue"
-                  dependencies={['cargoCurrency']}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator: async (_, value) => {
-                        if (!value && !getFieldValue('cargoCurrency')) return;
-                        if (!value) throw new Error('请输入货值');
-                        if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                          throw new Error('请输入正确的货值，最多 4 位小数');
-                        }
-                      },
-                    }),
-                  ]}
-                >
-                  <Input placeholder="金额" maxLength={23} />
-                </Form.Item>
-                <Form.Item
-                  noStyle
-                  name="cargoCurrency"
-                  dependencies={['cargoValue']}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator: async (_, value) => {
-                        if (!getFieldValue('cargoValue') || value) return;
-                        throw new Error('请选择币种');
-                      },
-                    }),
-                  ]}
-                >
-                  <Select
-                    showSearch
-                    optionFilterProp="label"
-                    options={currencyOptions}
-                    placeholder="币种"
-                    style={{ width: 100 }}
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item
+                noStyle
+                name="cargoValue"
+                dependencies={['cargoCurrency']}
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator: async (_, value) => {
+                      if (!value && !getFieldValue('cargoCurrency')) return;
+                      if (!value) throw new Error('请输入货值');
+                      if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
+                        throw new Error('请输入正确的货值，最多 4 位小数');
+                      }
+                    },
+                  }),
+                ]}
+              >
+                <Input
+                  placeholder="金额"
+                  maxLength={23}
+                  suffix={
+                    <Form.Item
+                      noStyle
+                      name="cargoCurrency"
+                      dependencies={['cargoValue']}
+                      rules={[
+                        ({ getFieldValue }) => ({
+                          validator: async (_, value) => {
+                            if (!getFieldValue('cargoValue') || value) return;
+                            throw new Error('请选择币种');
+                          },
+                        }),
+                      ]}
+                    >
+                      <Select
+                        showSearch
+                        optionFilterProp="label"
+                        options={currencyOptions}
+                        placeholder="币种"
+                        size="small"
+                        variant="borderless"
+                        style={{ width: 72 }}
+                      />
+                    </Form.Item>
+                  }
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
           <Col className="col-5">
             <Form.Item label="保费">
-              <Space.Compact block>
-                <Form.Item
-                  noStyle
-                  name="insurancePremium"
-                  dependencies={['insuranceCurrency']}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator: async (_, value) => {
-                        if (!value && !getFieldValue('insuranceCurrency')) return;
-                        if (!value) throw new Error('请输入保费');
-                        if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
-                          throw new Error('请输入正确的保费，最多 4 位小数');
-                        }
-                      },
-                    }),
-                  ]}
-                >
-                  <Input placeholder="金额" maxLength={23} />
-                </Form.Item>
-                <Form.Item
-                  noStyle
-                  name="insuranceCurrency"
-                  dependencies={['insurancePremium']}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator: async (_, value) => {
-                        if (!getFieldValue('insurancePremium') || value) return;
-                        throw new Error('请选择币种');
-                      },
-                    }),
-                  ]}
-                >
-                  <Select
-                    showSearch
-                    optionFilterProp="label"
-                    options={currencyOptions}
-                    placeholder="币种"
-                    style={{ width: 100 }}
-                  />
-                </Form.Item>
-              </Space.Compact>
+              <Form.Item
+                noStyle
+                name="insurancePremium"
+                dependencies={['insuranceCurrency']}
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator: async (_, value) => {
+                      if (!value && !getFieldValue('insuranceCurrency')) return;
+                      if (!value) throw new Error('请输入保费');
+                      if (!/^(0|[1-9]\d{0,17})(\.\d{1,4})?$/.test(value)) {
+                        throw new Error('请输入正确的保费，最多 4 位小数');
+                      }
+                    },
+                  }),
+                ]}
+              >
+                <Input
+                  placeholder="金额"
+                  maxLength={23}
+                  suffix={
+                    <Form.Item
+                      noStyle
+                      name="insuranceCurrency"
+                      dependencies={['insurancePremium']}
+                      rules={[
+                        ({ getFieldValue }) => ({
+                          validator: async (_, value) => {
+                            if (!getFieldValue('insurancePremium') || value) return;
+                            throw new Error('请选择币种');
+                          },
+                        }),
+                      ]}
+                    >
+                      <Select
+                        showSearch
+                        optionFilterProp="label"
+                        options={currencyOptions}
+                        placeholder="币种"
+                        size="small"
+                        variant="borderless"
+                        style={{ width: 72 }}
+                      />
+                    </Form.Item>
+                  }
+                />
+              </Form.Item>
             </Form.Item>
           </Col>
 
