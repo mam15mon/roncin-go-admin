@@ -299,7 +299,7 @@ body,
   align-items: center !important;
   gap: 4px !important;
   height: 32px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   color: rgba(0, 0, 0, 0.65) !important;
@@ -314,7 +314,7 @@ body,
 
   &:hover {
     color: #1677ff !important;
-    background: transparent !important;
+    background: rgba(0, 0, 0, 0.04) !important;
 
     .roncin-header-menu-icon {
       color: #1677ff !important;
@@ -327,6 +327,24 @@ body,
 
     .roncin-header-menu-icon {
       color: #1677ff !important;
+    }
+  }
+}
+
+// 清除 ProLayout 右侧 actionsRender 外层容器自带的整体灰色背景
+.ant-pro-global-header-right-content,
+.ant-pro-global-header-header-actions,
+.ant-pro-global-header-layout-mix {
+  .ant-pro-global-header-action,
+  .ant-pro-global-header-action-item {
+    &:has(.roncin-header-menu-btn),
+    &:has(.roncin-avatar-trigger) {
+      background: transparent !important;
+      padding: 0 2px !important;
+
+      &:hover {
+        background: transparent !important;
+      }
     }
   }
 }
