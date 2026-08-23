@@ -13,6 +13,7 @@ import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
 const loginPath = '/user/login';
+const publicAuthPaths = new Set([loginPath, '/user/login/wecom/callback']);
 const layoutSettings = defaultSettings as Partial<LayoutSettings>;
 
 export interface InitialState {
@@ -27,7 +28,7 @@ export async function getInitialState(): Promise<InitialState> {
     return response.data;
   };
 
-  if (history.location.pathname === loginPath) {
+  if (publicAuthPaths.has(history.location.pathname)) {
     return { fetchUserInfo, settings: layoutSettings };
   }
 
@@ -84,7 +85,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
     ),
   },
   onPageChange: () => {
-    if (!initialState?.currentUser && history.location.pathname !== loginPath) {
+    if (
+      !initialState?.currentUser &&
+      !publicAuthPaths.has(history.location.pathname)
+    ) {
       history.replace(loginPath);
     }
   },
