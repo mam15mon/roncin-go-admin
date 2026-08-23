@@ -424,11 +424,11 @@ body,
   top: 56px;
   z-index: 19;
   height: 38px;
-  background: #f0f2f5;
-  border-bottom: 1px solid #e5e7eb;
+  background: #dfe1e5;
+  border-bottom: 1px solid #ffffff;
   display: flex;
   align-items: flex-end;
-  padding: 0 8px;
+  padding: 0 6px 0 10px;
   user-select: none;
   overflow: hidden;
 
@@ -453,12 +453,13 @@ body,
   justify-content: center;
   height: 34px;
   padding: 0 18px;
+  margin-right: -10px;
   cursor: pointer;
   outline: none;
   flex-shrink: 0;
-  min-width: 100px;
-  max-width: 190px;
-  transition: color 0.15s ease;
+  min-width: 110px;
+  max-width: 200px;
+  transition: all 0.15s ease;
 
   // SVG 矢量反角背景
   .roncin-chrome-tab-svg {
@@ -468,8 +469,22 @@ body,
     width: 100%;
     height: 100%;
     pointer-events: none;
-    fill: transparent;
+    fill: #ffffff;
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.15));
     transition: fill 0.15s ease;
+  }
+
+  // 未激活悬浮微交互胶囊背景
+  .roncin-chrome-tab-hover-bg {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 5px;
+    bottom: 5px;
+    border-radius: 6px;
+    background: transparent;
+    pointer-events: none;
+    transition: background 0.15s ease;
   }
 
   // 内部主体内容
@@ -518,7 +533,7 @@ body,
     transition: all 0.15s ease;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.12);
       color: #ff4d4f;
     }
   }
@@ -526,19 +541,21 @@ body,
   // 未激活标签之间的细分隔线
   .roncin-chrome-tab-divider {
     position: absolute;
-    right: 0;
+    right: 5px;
     top: 50%;
     transform: translateY(-50%);
     width: 1px;
     height: 14px;
-    background: #d0d5dd;
+    background: rgba(0, 0, 0, 0.2);
     transition: opacity 0.15s ease;
   }
 
   // 悬浮状态（未激活）
   &:hover:not(.roncin-chrome-tab-active) {
-    .roncin-chrome-tab-svg {
-      fill: rgba(0, 0, 0, 0.05);
+    z-index: 5;
+
+    .roncin-chrome-tab-hover-bg {
+      background: rgba(255, 255, 255, 0.65);
     }
     .roncin-chrome-tab-content {
       color: #1677ff;
@@ -546,16 +563,14 @@ body,
     .roncin-chrome-tab-icon {
       color: #1677ff;
     }
+    .roncin-chrome-tab-divider {
+      opacity: 0;
+    }
   }
 
   // 激活状态
   &-active {
-    z-index: 3;
-
-    .roncin-chrome-tab-svg {
-      fill: #ffffff !important;
-      filter: drop-shadow(0 -1px 2px rgba(0, 0, 0, 0.03));
-    }
+    z-index: 10;
 
     .roncin-chrome-tab-content {
       color: #1677ff !important;

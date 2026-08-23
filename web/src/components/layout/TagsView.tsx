@@ -90,17 +90,17 @@ function getRouteIcon(path: string) {
 }
 
 /**
- * Chrome 经典双反角矢量背景图形组件
+ * Chrome 经典贝塞尔光滑内凹双反角 SVG 矢量图形
  */
-const ChromeTabBg: React.FC<{ active?: boolean }> = ({ active }) => (
+const ChromeTabBg: React.FC = () => (
   <svg
     aria-hidden="true"
-    className={`roncin-chrome-tab-svg ${active ? 'active' : ''}`}
-    viewBox="0 0 214 36"
+    className="roncin-chrome-tab-svg"
+    viewBox="0 0 214 34"
     preserveAspectRatio="none"
   >
     <path
-      d="M17 0h180c4.4 0 8.3 2.5 10.1 6.4L214 36H0l6.9-29.6C8.7 2.5 12.6 0 17 0z"
+      d="M 0,34 Q 10,34 14,24 L 24,6 Q 28,0 38,0 L 176,0 Q 186,0 190,6 L 200,24 Q 204,34 214,34 Z"
     />
   </svg>
 );
@@ -252,12 +252,19 @@ export const TagsView: React.FC = () => {
   return (
     <nav className="roncin-tags-view" aria-label="多页签导航">
       <div className="roncin-tags-view-container" role="tablist">
-        {tags.map((tag) => {
+        {tags.map((tag, index) => {
           const isActive =
             tag.path === '/welcome'
               ? currentPath === '/welcome' || currentPath === '/'
               : currentPath === tag.path ||
                 currentPath.startsWith(`${tag.path}/`);
+
+          const isNextActive =
+            index < tags.length - 1 &&
+            (tags[index + 1].path === '/welcome'
+              ? currentPath === '/welcome' || currentPath === '/'
+              : currentPath === tags[index + 1].path ||
+                currentPath.startsWith(`${tags[index + 1].path}/`));
 
           return (
             <Dropdown
@@ -280,8 +287,11 @@ export const TagsView: React.FC = () => {
                   }
                 }}
               >
-                {/* SVG 矢量内凹双反角背景 */}
-                <ChromeTabBg active={isActive} />
+                {/* 激活状态下的经典贝塞尔反角背景 */}
+                {isActive && <ChromeTabBg />}
+
+                {/* 悬停微交互胶囊背景 */}
+                <div className="roncin-chrome-tab-hover-bg" />
 
                 {/* 标签主体内容 */}
                 <div className="roncin-chrome-tab-content">
@@ -294,13 +304,15 @@ export const TagsView: React.FC = () => {
                       className="roncin-chrome-tab-close"
                       onClick={(e) => handleClose(e, tag)}
                     >
-                      <CloseOutlined style={{ fontSize: 10 }} />
+                      <CloseOutlined style={{ fontSize: 9 }} />
                     </button>
                   )}
                 </div>
 
-                {/* 未激活标签之间的竖向细分割线 */}
-                <div className="roncin-chrome-tab-divider" />
+                {/* 未激活标签之间的竖向细分割线（当前或下一标签激活时隐藏） */}
+                {!isActive && !isNextActive && (
+                  <div className="roncin-chrome-tab-divider" />
+                )}
               </div>
             </Dropdown>
           );
