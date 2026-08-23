@@ -37,7 +37,7 @@ export function OrderFormTemplate<T>({
   };
 
   return (
-    <PageContainer title={false}>
+    <PageContainer title={false} style={{ marginTop: -6 }}>
       {loading ? (
         <Card bordered={false} style={{ textAlign: 'center', padding: '60px 0' }}>
           <Space direction="vertical" size="middle">
