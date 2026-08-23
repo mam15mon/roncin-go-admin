@@ -437,7 +437,14 @@ export default function OrganizationsPanel() {
           {/* Org Chart Container */}
           <Spin spinning={loading}>
             {graphData.nodes.length > 0 ? (
-              <div style={{ height: 'calc(100vh - 270px)', minHeight: 600 }}>
+              <div
+                style={{ height: 'calc(100vh - 270px)', minHeight: 600 }}
+                onMouseDown={(e) => {
+                  if (e.button === 1) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <OrganizationChart
                   ref={graphRef}
                   data={graphData}
@@ -707,7 +714,30 @@ export default function OrganizationsPanel() {
                       endArrowType: 'vee',
                     },
                   }}
-                  behaviors={['drag-canvas', 'click-select']}
+                  behaviors={[
+                    {
+                      key: 'drag-canvas',
+                      type: 'drag-canvas',
+                      enable: (event: any) => {
+                        const btn =
+                          event.button ?? event.nativeEvent?.button;
+                        if (btn === 1) return false;
+                        const buttons =
+                          event.buttons ?? event.nativeEvent?.buttons;
+                        if (
+                          typeof buttons === 'number' &&
+                          (buttons & 4) === 4
+                        ) {
+                          return false;
+                        }
+                        if ('targetType' in event) {
+                          return event.targetType === 'canvas';
+                        }
+                        return true;
+                      },
+                    },
+                    'click-select',
+                  ]}
                   onReady={(graph: any) => {
                     graphRef.current = graph;
                     void graph.fitCenter();
