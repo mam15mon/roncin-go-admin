@@ -1317,7 +1317,7 @@ export default function OrderListPage() {
   ];
 
   return (
-    <PageContainer title={config.title} subTitle={config.subTitle}>
+    <PageContainer title={config.title}>
       <ProTable<API.Order>
         headerTitle={
           <Space size={8}>

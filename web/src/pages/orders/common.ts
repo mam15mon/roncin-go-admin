@@ -151,7 +151,6 @@ export interface OrderKindConfig {
   tradeDirection: number;
   title: string;
   category: 'sea' | 'air';
-  subTitle: string;
 }
 
 export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
@@ -161,7 +160,6 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     tradeDirection: 1,
     title: '海运出口订单',
     category: 'sea',
-    subTitle: '全链路海运出口货代订单协同，统一管理状态流转、单证箱货与履约里程碑',
   },
   'sea-import': {
     kind: 'sea-import',
@@ -169,7 +167,6 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     tradeDirection: 2,
     title: '海运进口订单',
     category: 'sea',
-    subTitle: '全链路海运进口货代订单协同，统一管理状态流转、单证箱货与履约里程碑',
   },
   'air-export': {
     kind: 'air-export',
@@ -177,7 +174,6 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     tradeDirection: 1,
     title: '空运出口订单',
     category: 'air',
-    subTitle: '全链路空运出口货代订单协同，统一管理状态流转、单证箱货与履约里程碑',
   },
   'air-import': {
     kind: 'air-import',
@@ -185,7 +181,6 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     tradeDirection: 2,
     title: '空运进口订单',
     category: 'air',
-    subTitle: '全链路空运进口货代订单协同，统一管理状态流转、单证箱货与履约里程碑',
   },
 };
 
