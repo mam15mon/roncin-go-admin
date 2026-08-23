@@ -144,7 +144,7 @@ export default function BackgroundTasksPanel() {
       fixed: 'right',
       search: false,
       render: (_, record) => {
-        if (!access.canManageTasks) return null;
+        if (!access.canRequeueTasks) return null;
         if (record.status !== 4 && record.status !== 5) return null;
         return (
           <Popconfirm

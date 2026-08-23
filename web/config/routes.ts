@@ -37,7 +37,7 @@ export default [
   {
     path: '/partners/customers/create',
     name: '新建客户',
-    access: 'canReadPartners',
+    access: 'canCreatePartners',
     hideInMenu: true,
     component: './partners/partner-detail',
   },
@@ -59,7 +59,7 @@ export default [
   {
     path: '/partners/suppliers/create',
     name: '新建供应商',
-    access: 'canReadPartners',
+    access: 'canCreatePartners',
     hideInMenu: true,
     component: './partners/partner-detail',
   },
@@ -81,7 +81,7 @@ export default [
   {
     path: '/partners/foreign-agents/create',
     name: '新建国外代理',
-    access: 'canReadPartners',
+    access: 'canCreatePartners',
     hideInMenu: true,
     component: './partners/partner-detail',
   },
@@ -100,33 +100,36 @@ export default [
     path: '/orders',
     name: '订单管理',
     icon: 'orderedList',
-    access: 'canReadOrders',
+    access: 'canReadAnyOrders',
     routes: [
       {
         path: '/orders/sea-export',
         name: '海运出口',
+        access: 'canReadSEOrders',
         component: './orders/list',
       },
       {
         path: '/orders/sea-import',
         name: '海运进口',
+        access: 'canReadSIOrders',
         component: './orders/list',
       },
       {
         path: '/orders/air-export',
         name: '空运出口',
+        access: 'canReadAEOrders',
         component: './orders/list',
       },
       {
         path: '/orders/air-import',
         name: '空运进口',
+        access: 'canReadAIOrders',
         component: './orders/list',
       },
       {
         path: '/orders/:kind/new',
         name: '新建订单',
         hideInMenu: true,
-        access: 'canManageOrders',
         component: './orders/new',
       },
     ],

@@ -1,6 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useParams } from '@umijs/max';
+import { history, useAccess, useParams } from '@umijs/max';
 import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -79,6 +79,7 @@ export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
+  const access = useAccess();
 
   const config = parseOrderKind(params.kind);
 
@@ -237,6 +238,10 @@ export default function NewOrderPage() {
         />
       </PageContainer>
     );
+  }
+
+  if (!access.canOrder(config.businessType, 'create')) {
+    return <Result status="403" title="无权新建此类订单" />;
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {

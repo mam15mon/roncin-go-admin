@@ -37,6 +37,7 @@ import {
   Typography,
 } from 'antd';
 import type { DataNode } from 'antd/es/tree';
+import { useAccess } from '@umijs/max';
 import React, {
   useCallback,
   useEffect,
@@ -107,6 +108,7 @@ type EditFormValues = {
 
 export default function OrganizationsPanel() {
   const { message } = App.useApp();
+  const access = useAccess();
   const [loading, setLoading] = useState(false);
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
     [],
@@ -342,6 +344,7 @@ export default function OrganizationsPanel() {
   };
 
   const openCreateChild = (parent?: API.AdminOrganization | null) => {
+    if (!access.canCreateOrganizations) return;
     const targetParent = parent || selectedOrg;
     if (!targetParent || !getChildOrganizationKind(targetParent.kind)) return;
     setParentForCreate(targetParent);
@@ -350,6 +353,7 @@ export default function OrganizationsPanel() {
   };
 
   const openEdit = (org?: API.AdminOrganization | null) => {
+    if (!access.canUpdateOrganizations) return;
     const targetOrg = org || selectedOrg;
     if (!targetOrg) return;
     setEditingOrg(targetOrg);
@@ -655,7 +659,7 @@ export default function OrganizationsPanel() {
                               )}
                             </div>
 
-                            {getChildOrganizationKind(item.kind) && (
+                            {access.canCreateOrganizations && getChildOrganizationKind(item.kind) && (
                               <Tooltip
                                 title={`在「${item.name}」下新增${getOrganizationKindMeta(getChildOrganizationKind(item.kind))?.label}`}
                               >
@@ -895,7 +899,7 @@ export default function OrganizationsPanel() {
             extra={
               selectedOrg ? (
                 <Space size={8}>
-                  {getChildOrganizationKind(selectedOrg.kind) && (
+                  {access.canCreateOrganizations && getChildOrganizationKind(selectedOrg.kind) && (
                     <Button
                       icon={<PlusOutlined />}
                       onClick={() => openCreateChild(selectedOrg)}
@@ -908,13 +912,15 @@ export default function OrganizationsPanel() {
                       }
                     </Button>
                   )}
-                  <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => openEdit(selectedOrg)}
-                  >
-                    编辑组织
-                  </Button>
+                  {access.canUpdateOrganizations && (
+                    <Button
+                      type="primary"
+                      icon={<EditOutlined />}
+                      onClick={() => openEdit(selectedOrg)}
+                    >
+                      编辑组织
+                    </Button>
+                  )}
                 </Space>
               ) : null
             }
@@ -989,7 +995,7 @@ export default function OrganizationsPanel() {
                     </Space>
                   }
                   size="small"
-                  extra={
+                  extra={access.canCreateOrganizations ? (
                     <Button
                       type="link"
                       size="small"
@@ -998,7 +1004,7 @@ export default function OrganizationsPanel() {
                     >
                       添加下级组织
                     </Button>
-                  }
+                  ) : null}
                 >
                   <Table<API.AdminOrganization>
                     rowKey="id"
@@ -1117,7 +1123,7 @@ export default function OrganizationsPanel() {
         extra={
           selectedOrg && (
             <Space>
-              {getChildOrganizationKind(selectedOrg.kind) && (
+              {access.canCreateOrganizations && getChildOrganizationKind(selectedOrg.kind) && (
                 <Button
                   size="small"
                   icon={<PlusOutlined />}
@@ -1131,14 +1137,16 @@ export default function OrganizationsPanel() {
                   }
                 </Button>
               )}
-              <Button
-                type="primary"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => openEdit(selectedOrg)}
-              >
-                编辑
-              </Button>
+              {access.canUpdateOrganizations && (
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => openEdit(selectedOrg)}
+                >
+                  编辑
+                </Button>
+              )}
             </Space>
           )
         }

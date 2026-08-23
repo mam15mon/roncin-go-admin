@@ -24,7 +24,7 @@ export default function Admin() {
   const tabItems = useMemo(
     () =>
       [
-        access.canManageOrganizations
+        access.canReadOrganizations
           ? {
               key: 'organizations',
               tab: (
@@ -36,7 +36,7 @@ export default function Admin() {
               children: <OrganizationsPanel />,
             }
           : null,
-        access.canManageUsers
+        access.canReadUsers
           ? {
               key: 'users',
               tab: (
@@ -48,7 +48,7 @@ export default function Admin() {
               children: <UsersPanel />,
             }
           : null,
-        access.canManageRoles
+        access.canReadRoles
           ? {
               key: 'roles',
               tab: (
@@ -84,7 +84,7 @@ export default function Admin() {
               children: <BackgroundTasksPanel />,
             }
           : null,
-        access.canManageRoles
+        access.canReadPermissions
           ? {
               key: 'permissions',
               tab: (

@@ -1,0 +1,332 @@
+-- 将粗粒度权限展开到具体资源与动作，并等价迁移已有角色授权。
+CREATE TEMP TABLE expanded_permission_definitions (
+  "key" varchar NOT NULL,
+  "name" varchar NOT NULL,
+  "group" varchar NOT NULL,
+  "description" varchar NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO expanded_permission_definitions ("key", "name", "group", "description") VALUES
+  ('system.platform.access', '访问管理后台', '系统管理 · 平台', '登录并访问管理后台'),
+  ('system.organization.read', '查看组织', '系统管理 · 组织', '查看公司、部门和组的组织架构'),
+  ('system.organization.create', '新建组织', '系统管理 · 组织', '新建公司、部门或组'),
+  ('system.organization.update', '编辑组织', '系统管理 · 组织', '修改组织名称和启停状态'),
+  ('system.user.read', '查看用户', '系统管理 · 用户', '查看用户及其组织成员关系'),
+  ('system.user.create', '新建用户', '系统管理 · 用户', '新建用户并配置初始成员关系'),
+  ('system.user.update', '编辑用户', '系统管理 · 用户', '修改用户资料、状态和成员关系'),
+  ('system.user.authorize_wecom', '授权企业微信成员', '系统管理 · 用户', '读取企业微信成员并创建或绑定系统用户'),
+  ('system.user.reset_password', '重置用户密码', '系统管理 · 用户', '为系统用户重置登录密码'),
+  ('system.role.read', '查看角色', '系统管理 · 角色', '查看角色、权限和数据范围'),
+  ('system.role.create', '新建角色', '系统管理 · 角色', '新建角色并配置权限和数据范围'),
+  ('system.role.update', '编辑角色', '系统管理 · 角色', '修改角色、权限和数据范围'),
+  ('system.permission.read', '查看权限字典', '系统管理 · 权限', '查看系统功能权限字典'),
+  ('system.audit.read', '查看审计日志', '系统管理 · 审计', '查看安全与业务操作审计'),
+  ('business.partner.read', '查看往来单位', '业务资料 · 单位档案', '查看客户、供应商和国外代理档案'),
+  ('business.partner.create', '新建往来单位', '业务资料 · 单位档案', '新建客户、供应商或国外代理档案'),
+  ('business.partner.update', '编辑往来单位', '业务资料 · 单位档案', '修改客户、供应商或国外代理档案'),
+  ('business.partner.blacklist', '管理供应商黑名单', '业务资料 · 单位档案', '调整供应商黑名单状态'),
+  ('business.partner.import', '导入往来单位', '业务资料 · 单位档案', '批量导入往来单位档案'),
+  ('business.partner.export', '导出往来单位', '业务资料 · 单位档案', '批量导出往来单位档案'),
+  ('business.partner.account.read', '查看收付款账户', '业务资料 · 单位账户', '查看往来单位收付款账户'),
+  ('business.partner.account.create', '新建收付款账户', '业务资料 · 单位账户', '新建往来单位收付款账户'),
+  ('business.partner.account.update', '编辑收付款账户', '业务资料 · 单位账户', '修改往来单位收付款账户'),
+  ('business.partner.contract.read', '查看合同', '业务资料 · 单位合同', '查看往来单位合同'),
+  ('business.partner.contract.create', '新建合同', '业务资料 · 单位合同', '新建往来单位合同'),
+  ('business.partner.contract.update', '编辑合同', '业务资料 · 单位合同', '修改往来单位合同'),
+  ('business.partner.settlement_rule.read', '查看结算规则', '业务资料 · 结算规则', '查看往来单位结算规则'),
+  ('business.partner.settlement_rule.create', '新建结算规则', '业务资料 · 结算规则', '新建往来单位结算规则'),
+  ('business.partner.settlement_rule.update', '编辑结算规则', '业务资料 · 结算规则', '修改往来单位结算规则'),
+  ('business.partner.attachment.read', '查看单位附件', '业务资料 · 单位附件', '查看往来单位附件'),
+  ('business.partner.attachment.register', '登记单位附件', '业务资料 · 单位附件', '登记往来单位附件元数据'),
+  ('business.partner.shipping_preset.read', '查看单证预设', '业务资料 · 单证预设', '查看往来单位常用单证预设'),
+  ('business.partner.shipping_preset.create', '新建单证预设', '业务资料 · 单证预设', '新建往来单位常用单证预设'),
+  ('business.partner.shipping_preset.update', '编辑单证预设', '业务资料 · 单证预设', '修改往来单位常用单证预设'),
+  ('business.partner.audit.read', '查看单位操作记录', '业务资料 · 单位审计', '查看往来单位操作记录'),
+  ('business.partner.assignment_option.read', '查看责任人选项', '业务资料 · 责任人', '查看往来单位责任人候选项'),
+  ('system.master_data.currency.read', '查看币种', '主数据 · 公共字典', '查看币种字典'),
+  ('system.master_data.administrative_region.read', '查看行政区划', '主数据 · 公共字典', '查看行政区划字典'),
+  ('system.master_data.option.read', '查看订单选项', '主数据 · 公共字典', '查看订单表单的聚合选项'),
+  ('system.master_data.item.read', '查看目录项', '主数据 · 基础目录', '查看主数据基础目录项'),
+  ('system.master_data.item.create', '新建目录项', '主数据 · 基础目录', '新建主数据基础目录项'),
+  ('system.master_data.item.update', '编辑目录项', '主数据 · 基础目录', '修改主数据基础目录项'),
+  ('system.master_data.item.import', '导入目录项', '主数据 · 基础目录', '批量导入主数据基础目录项'),
+  ('system.master_data.port.read', '查看港口', '主数据 · 港口', '查看港口资料'),
+  ('system.master_data.port.create', '新建港口', '主数据 · 港口', '新建港口资料'),
+  ('system.master_data.port.update', '编辑港口', '主数据 · 港口', '修改港口资料'),
+  ('system.master_data.airport.read', '查看机场', '主数据 · 机场', '查看机场资料'),
+  ('system.master_data.airport.create', '新建机场', '主数据 · 机场', '新建机场资料'),
+  ('system.master_data.airport.update', '编辑机场', '主数据 · 机场', '修改机场资料'),
+  ('system.master_data.airline.read', '查看航空公司', '主数据 · 航空公司', '查看航空公司资料'),
+  ('system.master_data.airline.create', '新建航空公司', '主数据 · 航空公司', '新建航空公司资料'),
+  ('system.master_data.airline.update', '编辑航空公司', '主数据 · 航空公司', '修改航空公司资料'),
+  ('system.master_data.shipping_line.read', '查看船公司', '主数据 · 船公司', '查看船公司资料'),
+  ('system.master_data.shipping_line.create', '新建船公司', '主数据 · 船公司', '新建船公司资料'),
+  ('system.master_data.shipping_line.update', '编辑船公司', '主数据 · 船公司', '修改船公司资料'),
+  ('system.master_data.number_rule.read', '查看编号规则', '主数据 · 编号规则', '查看业务编号规则'),
+  ('system.master_data.number_rule.create', '新建编号规则', '主数据 · 编号规则', '新建业务编号规则'),
+  ('system.master_data.number_rule.update', '编辑编号规则', '主数据 · 编号规则', '修改业务编号规则'),
+  ('system.master_data.status_template.read', '查看状态模板', '主数据 · 状态模板', '查看订单状态模板'),
+  ('system.master_data.status_template.create', '新建状态模板', '主数据 · 状态模板', '新建订单状态模板'),
+  ('system.master_data.status_template.publish', '发布状态模板', '主数据 · 状态模板', '发布订单状态模板版本'),
+  ('system.master_data.status_template.set_default', '设置默认状态模板', '主数据 · 状态模板', '设置订单默认状态模板'),
+  ('system.master_data.milestone_template.read', '查看里程碑模板', '主数据 · 里程碑模板', '查看订单里程碑模板'),
+  ('system.master_data.milestone_template.create', '新建里程碑模板', '主数据 · 里程碑模板', '新建订单里程碑模板'),
+  ('system.master_data.milestone_template.publish', '发布里程碑模板', '主数据 · 里程碑模板', '发布订单里程碑模板版本'),
+  ('system.master_data.milestone_template.set_default', '设置默认里程碑模板', '主数据 · 里程碑模板', '设置订单默认里程碑模板'),
+  ('business.order.read', '查看订单', '订单管理 · 订单', '查看当前数据范围内的订单'),
+  ('business.order.create', '新建订单', '订单管理 · 订单', '新建订单并检查业务编号'),
+  ('business.order.update', '编辑订单', '订单管理 · 订单', '修改订单基础与业务资料'),
+  ('business.order.transition', '流转订单状态', '订单管理 · 订单', '执行订单状态流转'),
+  ('business.order.milestone.read', '查看订单里程碑', '订单管理 · 里程碑', '查看订单里程碑'),
+  ('business.order.milestone.set', '设置订单里程碑', '订单管理 · 里程碑', '完成、跳过或重置订单里程碑'),
+  ('business.order.attachment.read', '查看订单附件', '订单管理 · 附件', '查看订单附件'),
+  ('business.order.attachment.register', '登记订单附件', '订单管理 · 附件', '登记订单附件元数据'),
+  ('business.order.personnel.read', '查看协作人员', '订单管理 · 协作人员', '查看订单协作人员'),
+  ('business.order.personnel.assign', '指派协作人员', '订单管理 · 协作人员', '指派订单协作人员'),
+  ('business.order.personnel.remove', '移除协作人员', '订单管理 · 协作人员', '移除订单协作人员'),
+  ('business.order.container.read', '查看集装箱', '订单管理 · 集装箱', '查看订单集装箱'),
+  ('business.order.container.create', '新增集装箱', '订单管理 · 集装箱', '新增订单集装箱'),
+  ('business.order.container.update', '编辑集装箱', '订单管理 · 集装箱', '修改订单集装箱'),
+  ('business.order.container.delete', '删除集装箱', '订单管理 · 集装箱', '删除订单集装箱'),
+  ('business.order.cargo_item.read', '查看货物明细', '订单管理 · 货物', '查看订单货物明细'),
+  ('business.order.cargo_item.create', '新增货物明细', '订单管理 · 货物', '新增订单货物明细'),
+  ('business.order.cargo_item.update', '编辑货物明细', '订单管理 · 货物', '修改订单货物明细'),
+  ('business.order.cargo_item.delete', '删除货物明细', '订单管理 · 货物', '删除订单货物明细'),
+  ('business.order.shipping_document.read', '查看提单', '订单管理 · 提单', '查看订单提单'),
+  ('business.order.shipping_document.create', '新增提单', '订单管理 · 提单', '新增订单提单'),
+  ('business.order.shipping_document.update', '编辑提单', '订单管理 · 提单', '修改订单提单'),
+  ('business.order.shipping_document.transition', '流转提单状态', '订单管理 · 提单', '执行提单状态流转'),
+  ('business.order.shipping_document.delete', '删除提单', '订单管理 · 提单', '删除订单提单'),
+  ('business.order.abnormal_case.read', '查看异常事件', '订单管理 · 异常', '查看订单异常事件'),
+  ('business.order.abnormal_case.create', '登记异常事件', '订单管理 · 异常', '登记订单异常事件'),
+  ('business.order.abnormal_case.resolve', '处理异常事件', '订单管理 · 异常', '解决或重新打开订单异常事件'),
+  ('business.order.abnormal_case.delete', '删除异常事件', '订单管理 · 异常', '删除订单异常事件'),
+  ('business.order.release_pod.read', '查看放货凭证', '订单管理 · 放货', '查看订单放货凭证'),
+  ('business.order.release_pod.create', '新增放货凭证', '订单管理 · 放货', '新增订单放货凭证'),
+  ('business.order.release_pod.update', '编辑放货凭证', '订单管理 · 放货', '修改订单放货凭证'),
+  ('business.order.release_pod.transition', '流转放货状态', '订单管理 · 放货', '执行放货状态流转'),
+  ('business.order.release_pod.delete', '删除放货凭证', '订单管理 · 放货', '删除订单放货凭证'),
+  ('system.task.read', '查看后台任务', '系统管理 · 后台任务', '查看后台任务执行状态'),
+  ('system.task.requeue', '重新入队后台任务', '系统管理 · 后台任务', '重新入队失败或死信后台任务');
+
+CREATE TEMP TABLE order_business_types (
+  "code" varchar NOT NULL,
+  "name" varchar NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO order_business_types ("code", "name") VALUES
+  ('se', '海运出口（SE）'), ('si', '海运进口（SI）'),
+  ('ae', '空运出口（AE）'), ('ai', '空运进口（AI）');
+
+CREATE TEMP TABLE order_permission_definitions (
+  "operation" varchar NOT NULL,
+  "name" varchar NOT NULL,
+  "resource" varchar NOT NULL,
+  "description" varchar NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO order_permission_definitions ("operation", "name", "resource", "description") VALUES
+  ('read', '查看订单', '订单', '查看当前数据范围内的订单'), ('create', '新建订单', '订单', '新建订单并检查业务编号'), ('update', '编辑订单', '订单', '修改订单基础与业务资料'), ('transition', '流转订单状态', '订单', '执行订单状态流转'),
+  ('milestone.read', '查看里程碑', '里程碑', '查看订单里程碑'), ('milestone.set', '设置里程碑', '里程碑', '完成、跳过或重置订单里程碑'),
+  ('attachment.read', '查看附件', '附件', '查看订单附件'), ('attachment.register', '登记附件', '附件', '登记订单附件元数据'),
+  ('personnel.read', '查看协作人员', '协作人员', '查看订单协作人员'), ('personnel.assign', '指派协作人员', '协作人员', '指派订单协作人员'), ('personnel.remove', '移除协作人员', '协作人员', '移除订单协作人员'),
+  ('container.read', '查看集装箱', '集装箱', '查看订单集装箱'), ('container.create', '新增集装箱', '集装箱', '新增订单集装箱'), ('container.update', '编辑集装箱', '集装箱', '修改订单集装箱'), ('container.delete', '删除集装箱', '集装箱', '删除订单集装箱'),
+  ('cargo_item.read', '查看货物明细', '货物', '查看订单货物明细'), ('cargo_item.create', '新增货物明细', '货物', '新增订单货物明细'), ('cargo_item.update', '编辑货物明细', '货物', '修改订单货物明细'), ('cargo_item.delete', '删除货物明细', '货物', '删除订单货物明细'),
+  ('shipping_document.read', '查看提单', '提单', '查看订单提单'), ('shipping_document.create', '新增提单', '提单', '新增订单提单'), ('shipping_document.update', '编辑提单', '提单', '修改订单提单'), ('shipping_document.transition', '流转提单状态', '提单', '执行提单状态流转'), ('shipping_document.delete', '删除提单', '提单', '删除订单提单'),
+  ('abnormal_case.read', '查看异常事件', '异常', '查看订单异常事件'), ('abnormal_case.create', '登记异常事件', '异常', '登记订单异常事件'), ('abnormal_case.resolve', '处理异常事件', '异常', '解决或重新打开订单异常事件'), ('abnormal_case.delete', '删除异常事件', '异常', '删除订单异常事件'),
+  ('release_pod.read', '查看放货凭证', '放货', '查看订单放货凭证'), ('release_pod.create', '新增放货凭证', '放货', '新增订单放货凭证'), ('release_pod.update', '编辑放货凭证', '放货', '修改订单放货凭证'), ('release_pod.transition', '流转放货状态', '放货', '执行放货状态流转'), ('release_pod.delete', '删除放货凭证', '放货', '删除订单放货凭证');
+
+INSERT INTO expanded_permission_definitions ("key", "name", "group", "description")
+SELECT format('business.order.%s.%s', business_type."code", definition."operation"),
+       definition."name",
+       format('订单管理 · %s · %s', business_type."name", definition."resource"),
+       definition."description"
+FROM order_business_types AS business_type
+CROSS JOIN order_permission_definitions AS definition;
+
+INSERT INTO "permissions" ("id", "created_at", "updated_at", "key", "name", "group", "description")
+SELECT md5(definition."key")::uuid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+       definition."key", definition."name", definition."group", definition."description"
+FROM expanded_permission_definitions AS definition
+ON CONFLICT ("key") DO UPDATE SET
+  "updated_at" = EXCLUDED."updated_at",
+  "name" = EXCLUDED."name",
+  "group" = EXCLUDED."group",
+  "description" = EXCLUDED."description";
+
+CREATE TEMP TABLE expanded_permission_grants (
+  "old_key" varchar NOT NULL,
+  "new_key" varchar NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO expanded_permission_grants ("old_key", "new_key") VALUES
+  ('system.organization.manage', 'system.organization.read'),
+  ('system.organization.manage', 'system.organization.create'),
+  ('system.organization.manage', 'system.organization.update'),
+  ('system.user.manage', 'system.user.read'),
+  ('system.user.manage', 'system.user.create'),
+  ('system.user.manage', 'system.user.update'),
+  ('system.user.manage', 'system.user.authorize_wecom'),
+  ('system.user.manage', 'system.user.reset_password'),
+  ('system.role.manage', 'system.role.read'),
+  ('system.role.manage', 'system.role.create'),
+  ('system.role.manage', 'system.role.update'),
+  ('system.role.manage', 'system.permission.read'),
+  ('business.partner.read', 'business.partner.read'),
+  ('business.partner.read', 'business.partner.export'),
+  ('business.partner.read', 'business.partner.account.read'),
+  ('business.partner.read', 'business.partner.contract.read'),
+  ('business.partner.read', 'business.partner.settlement_rule.read'),
+  ('business.partner.read', 'business.partner.attachment.read'),
+  ('business.partner.read', 'business.partner.shipping_preset.read'),
+  ('business.partner.read', 'business.partner.audit.read'),
+  ('business.partner.read', 'business.partner.assignment_option.read'),
+  ('business.partner.manage', 'business.partner.create'),
+  ('business.partner.manage', 'business.partner.update'),
+  ('business.partner.manage', 'business.partner.blacklist'),
+  ('business.partner.manage', 'business.partner.import'),
+  ('business.partner.manage', 'business.partner.account.create'),
+  ('business.partner.manage', 'business.partner.account.update'),
+  ('business.partner.manage', 'business.partner.contract.create'),
+  ('business.partner.manage', 'business.partner.contract.update'),
+  ('business.partner.manage', 'business.partner.settlement_rule.create'),
+  ('business.partner.manage', 'business.partner.settlement_rule.update'),
+  ('business.partner.manage', 'business.partner.attachment.register'),
+  ('business.partner.manage', 'business.partner.shipping_preset.create'),
+  ('business.partner.manage', 'business.partner.shipping_preset.update'),
+  ('system.master_data.read', 'system.master_data.currency.read'),
+  ('system.master_data.read', 'system.master_data.administrative_region.read'),
+  ('system.master_data.read', 'system.master_data.option.read'),
+  ('system.master_data.read', 'system.master_data.item.read'),
+  ('system.master_data.read', 'system.master_data.port.read'),
+  ('system.master_data.read', 'system.master_data.airport.read'),
+  ('system.master_data.read', 'system.master_data.airline.read'),
+  ('system.master_data.read', 'system.master_data.shipping_line.read'),
+  ('system.master_data.read', 'system.master_data.number_rule.read'),
+  ('system.master_data.read', 'system.master_data.status_template.read'),
+  ('system.master_data.read', 'system.master_data.milestone_template.read'),
+  ('system.master_data.manage', 'system.master_data.item.create'),
+  ('system.master_data.manage', 'system.master_data.item.update'),
+  ('system.master_data.manage', 'system.master_data.item.import'),
+  ('system.master_data.manage', 'system.master_data.port.create'),
+  ('system.master_data.manage', 'system.master_data.port.update'),
+  ('system.master_data.manage', 'system.master_data.airport.create'),
+  ('system.master_data.manage', 'system.master_data.airport.update'),
+  ('system.master_data.manage', 'system.master_data.airline.create'),
+  ('system.master_data.manage', 'system.master_data.airline.update'),
+  ('system.master_data.manage', 'system.master_data.shipping_line.create'),
+  ('system.master_data.manage', 'system.master_data.shipping_line.update'),
+  ('system.master_data.manage', 'system.master_data.number_rule.create'),
+  ('system.master_data.manage', 'system.master_data.number_rule.update'),
+  ('system.master_data.manage', 'system.master_data.status_template.create'),
+  ('system.master_data.manage', 'system.master_data.status_template.publish'),
+  ('system.master_data.manage', 'system.master_data.status_template.set_default'),
+  ('system.master_data.manage', 'system.master_data.milestone_template.create'),
+  ('system.master_data.manage', 'system.master_data.milestone_template.publish'),
+  ('system.master_data.manage', 'system.master_data.milestone_template.set_default'),
+  ('business.order.read', 'business.order.read'),
+  ('business.order.read', 'business.order.milestone.read'),
+  ('business.order.read', 'business.order.attachment.read'),
+  ('business.order.read', 'business.order.personnel.read'),
+  ('business.order.read', 'business.order.container.read'),
+  ('business.order.read', 'business.order.cargo_item.read'),
+  ('business.order.read', 'business.order.shipping_document.read'),
+  ('business.order.read', 'business.order.abnormal_case.read'),
+  ('business.order.read', 'business.order.release_pod.read'),
+  ('business.order.manage', 'business.order.create'),
+  ('business.order.manage', 'business.order.update'),
+  ('business.order.manage', 'business.order.transition'),
+  ('business.order.manage', 'business.order.milestone.set'),
+  ('business.order.manage', 'business.order.attachment.register'),
+  ('business.order.manage', 'business.order.personnel.assign'),
+  ('business.order.manage', 'business.order.personnel.remove'),
+  ('business.order.manage', 'business.order.container.create'),
+  ('business.order.manage', 'business.order.container.update'),
+  ('business.order.manage', 'business.order.container.delete'),
+  ('business.order.manage', 'business.order.cargo_item.create'),
+  ('business.order.manage', 'business.order.cargo_item.update'),
+  ('business.order.manage', 'business.order.cargo_item.delete'),
+  ('business.order.manage', 'business.order.shipping_document.create'),
+  ('business.order.manage', 'business.order.shipping_document.update'),
+  ('business.order.manage', 'business.order.shipping_document.transition'),
+  ('business.order.manage', 'business.order.shipping_document.delete'),
+  ('business.order.manage', 'business.order.abnormal_case.create'),
+  ('business.order.manage', 'business.order.abnormal_case.resolve'),
+  ('business.order.manage', 'business.order.abnormal_case.delete'),
+  ('business.order.manage', 'business.order.release_pod.create'),
+  ('business.order.manage', 'business.order.release_pod.update'),
+  ('business.order.manage', 'business.order.release_pod.transition'),
+  ('business.order.manage', 'business.order.release_pod.delete'),
+  ('system.task.manage', 'system.task.requeue');
+
+INSERT INTO expanded_permission_grants ("old_key", "new_key")
+SELECT 'business.order.read', format('business.order.%s.%s', business_type."code", definition."operation")
+FROM order_business_types AS business_type
+CROSS JOIN order_permission_definitions AS definition
+WHERE definition."operation" IN ('read', 'milestone.read', 'attachment.read', 'personnel.read', 'container.read', 'cargo_item.read', 'shipping_document.read', 'abnormal_case.read', 'release_pod.read')
+UNION ALL
+SELECT 'business.order.manage', format('business.order.%s.%s', business_type."code", definition."operation")
+FROM order_business_types AS business_type
+CROSS JOIN order_permission_definitions AS definition
+WHERE definition."operation" NOT IN ('read', 'milestone.read', 'attachment.read', 'personnel.read', 'container.read', 'cargo_item.read', 'shipping_document.read', 'abnormal_case.read', 'release_pod.read');
+
+INSERT INTO "role_permissions" ("role_id", "permission_id")
+SELECT current_grant."role_id", new_permission."id"
+FROM "role_permissions" AS current_grant
+JOIN "permissions" AS old_permission ON old_permission."id" = current_grant."permission_id"
+JOIN expanded_permission_grants AS expansion ON expansion."old_key" = old_permission."key"
+JOIN "permissions" AS new_permission ON new_permission."key" = expansion."new_key"
+ON CONFLICT ("role_id", "permission_id") DO NOTHING;
+
+INSERT INTO "role_permissions" ("role_id", "permission_id")
+SELECT administrator_role."id", permission."id"
+FROM "roles" AS administrator_role
+CROSS JOIN expanded_permission_definitions AS definition
+JOIN "permissions" AS permission ON permission."key" = definition."key"
+WHERE administrator_role."code" = 'administrator'
+ON CONFLICT ("role_id", "permission_id") DO NOTHING;
+
+DELETE FROM "permissions"
+WHERE "key" IN (
+  'system.organization.manage',
+  'system.user.manage',
+  'system.role.manage',
+  'business.partner.manage',
+  'system.master_data.read',
+  'system.master_data.manage',
+  'business.order.read',
+  'business.order.manage',
+  'business.order.create',
+  'business.order.update',
+  'business.order.transition',
+  'business.order.milestone.read',
+  'business.order.milestone.set',
+  'business.order.attachment.read',
+  'business.order.attachment.register',
+  'business.order.personnel.read',
+  'business.order.personnel.assign',
+  'business.order.personnel.remove',
+  'business.order.container.read',
+  'business.order.container.create',
+  'business.order.container.update',
+  'business.order.container.delete',
+  'business.order.cargo_item.read',
+  'business.order.cargo_item.create',
+  'business.order.cargo_item.update',
+  'business.order.cargo_item.delete',
+  'business.order.shipping_document.read',
+  'business.order.shipping_document.create',
+  'business.order.shipping_document.update',
+  'business.order.shipping_document.transition',
+  'business.order.shipping_document.delete',
+  'business.order.abnormal_case.read',
+  'business.order.abnormal_case.create',
+  'business.order.abnormal_case.resolve',
+  'business.order.abnormal_case.delete',
+  'business.order.release_pod.read',
+  'business.order.release_pod.create',
+  'business.order.release_pod.update',
+  'business.order.release_pod.transition',
+  'business.order.release_pod.delete',
+  'system.task.manage'
+);

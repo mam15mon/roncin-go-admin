@@ -657,7 +657,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 160,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'shipping_document.update')) return null;
         return (
           <Space size="small">
             <Button
@@ -787,7 +787,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 120,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'container.update')) return null;
         return (
           <Space size="small">
             <Button
@@ -874,7 +874,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 120,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'cargo_item.update')) return null;
         return (
           <Space size="small">
             <Button
@@ -947,7 +947,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 80,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'personnel.remove')) return null;
         return (
           <Popconfirm
             title="确定移除该协作人员？"
@@ -1077,7 +1077,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 80,
       render: (_, record) => {
-        if (!access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'milestone.set')) return null;
         return (
           <Button
             type="link"
@@ -1216,7 +1216,7 @@ export default function OrderListPage() {
       width: 320,
       fixed: 'right',
       render: (_, record) => {
-        if (!access.canReadOrders && !access.canManageOrders) return null;
+        if (!access.canOrder(config.businessType, 'read')) return null;
 
         const fulfillmentMenu = {
           items: [
@@ -1278,7 +1278,7 @@ export default function OrderListPage() {
 
         return (
           <Space size={8}>
-            {access.canManageOrders && record.status === 'DRAFT' && (
+            {access.canOrder(config.businessType, 'update') && record.status === 'DRAFT' && (
               <Button
                 type="link"
                 size="small"
@@ -1289,7 +1289,7 @@ export default function OrderListPage() {
                 编辑
               </Button>
             )}
-            {access.canManageOrders && (
+            {access.canOrder(config.businessType, 'transition') && (
               <Button
                 type="link"
                 size="small"
@@ -1353,7 +1353,7 @@ export default function OrderListPage() {
           >
             刷新
           </Button>,
-          access.canManageOrders && (
+          access.canOrder(config.businessType, 'create') && (
             <Button
               key="create"
               type="primary"
@@ -1636,7 +1636,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'milestone.set') && (
                 <Button
                   key="create"
                   type="primary"
@@ -1747,7 +1747,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'attachment.register') && (
                 <Button
                   key="create"
                   type="primary"
@@ -1876,7 +1876,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'personnel.assign') && (
                 <Button
                   key="create"
                   type="primary"
@@ -1966,7 +1966,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'container.create') && (
                 <Button
                   key="create"
                   type="primary"
@@ -2126,7 +2126,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'cargo_item.create') && (
                 <Button
                   key="create"
                   type="primary"
@@ -2288,7 +2288,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canManageOrders && (
+              access.canOrder(config.businessType, 'shipping_document.create') && (
                 <Button
                   key="create"
                   type="primary"
@@ -2388,11 +2388,11 @@ export default function OrderListPage() {
 
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canManageOrders}
+        canManage={access.canOrder(config.businessType, 'release_pod.create')}
       />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canManageOrders}
+        canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
         masterOptions={masterOptions}
       />
     </PageContainer>

@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { Tabs } from 'antd';
+import { useAccess } from '@umijs/max';
 import React, { useState } from 'react';
 import AirlinesPanel from './components/AirlinesPanel';
 import AirportsPanel from './components/AirportsPanel';
@@ -19,11 +20,13 @@ import ShippingLinesPanel from './components/ShippingLinesPanel';
 import MilestoneTemplatesPanel from './milestone-templates-panel';
 
 export default function MasterDataPage() {
+  const access = useAccess();
   const [activeTab, setActiveTab] = useState('ports');
 
   const tabItems = [
     {
       key: 'ports',
+      visible: access.canReadMasterDataPorts,
       label: (
         <span>
           <CompassOutlined style={{ marginRight: 6 }} />
@@ -34,6 +37,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'airports',
+      visible: access.canReadMasterDataAirports,
       label: (
         <span>
           <SendOutlined style={{ marginRight: 6 }} />
@@ -44,6 +48,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'airlines',
+      visible: access.canReadMasterDataAirlines,
       label: (
         <span>
           <RocketOutlined style={{ marginRight: 6 }} />
@@ -54,6 +59,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'shipping-lines',
+      visible: access.canReadMasterDataShippingLines,
       label: (
         <span>
           <GlobalOutlined style={{ marginRight: 6 }} />
@@ -64,6 +70,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'countries',
+      visible: access.canReadMasterDataItems,
       label: (
         <span>
           <GlobalOutlined style={{ marginRight: 6 }} />
@@ -74,6 +81,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'cities',
+      visible: access.canReadMasterDataAdministrativeRegions,
       label: (
         <span>
           <CompassOutlined style={{ marginRight: 6 }} />
@@ -84,6 +92,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'number-rules',
+      visible: access.canReadMasterDataNumberRules,
       label: (
         <span>
           <NumberOutlined style={{ marginRight: 6 }} />
@@ -94,6 +103,7 @@ export default function MasterDataPage() {
     },
     {
       key: 'milestones',
+      visible: access.canReadMasterDataMilestoneTemplates,
       label: (
         <span>
           <NodeIndexOutlined style={{ marginRight: 6 }} />
@@ -102,7 +112,13 @@ export default function MasterDataPage() {
       ),
       children: <MilestoneTemplatesPanel />,
     },
-  ];
+  ]
+    .filter((item) => item.visible)
+    .map(({ visible: _visible, ...item }) => item);
+
+  const visibleActiveTab = tabItems.some((item) => item.key === activeTab)
+    ? activeTab
+    : tabItems[0]?.key;
 
   return (
     <PageContainer
@@ -115,7 +131,7 @@ export default function MasterDataPage() {
     >
       <div style={{ marginTop: 8 }}>
         <Tabs
-          activeKey={activeTab}
+          activeKey={visibleActiveTab}
           onChange={setActiveTab}
           type="card"
           items={tabItems}

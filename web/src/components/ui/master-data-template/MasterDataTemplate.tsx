@@ -301,15 +301,17 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       align: 'right',
       render: (_: any, record: T) => (
         <Space size={6}>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            style={{ padding: 0 }}
-            onClick={() => handleOpenEdit(record)}
-          >
-            编辑
-          </Button>
+          {onUpdate && (
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              style={{ padding: 0 }}
+              onClick={() => handleOpenEdit(record)}
+            >
+              编辑
+            </Button>
+          )}
           {onToggleActive && (
             <Popconfirm
               title={`确定要${record.enabled ? '停用' : '启用'}【${record.name}】吗？`}
