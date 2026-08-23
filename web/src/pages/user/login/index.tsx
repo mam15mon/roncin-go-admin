@@ -106,10 +106,6 @@ export default function Login() {
               (e.currentTarget as HTMLImageElement).src = '/logo.svg';
             }}
           />
-          <div>
-            <div className={styles.brandTitle}>RONCIN</div>
-            <div className={styles.brandSubtitle}>LOGISTICS</div>
-          </div>
         </div>
 
         {/* 核心互动动画角色 */}
@@ -138,7 +134,6 @@ export default function Login() {
           {/* 表单头部 */}
           <div>
             <h1 className={styles.headerTitle}>登录</h1>
-            <p className={styles.headerSubtitle}>Roncin 货代协同管理平台</p>
           </div>
 
           {/* 登录表单 */}
