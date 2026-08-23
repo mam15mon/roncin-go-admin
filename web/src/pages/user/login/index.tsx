@@ -267,13 +267,13 @@ export default function Login() {
         footer={null}
         destroyOnClose
         centered
-        width={400}
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16 }}>
-            <WechatWorkOutlined style={{ color: '#2b7ffc' }} />
-            <span>企业微信扫码登录</span>
-          </div>
-        }
+        width={380}
+        title={null}
+        styles={{
+          body: {
+            padding: '16px 8px 8px',
+          },
+        }}
       >
         <div
           style={{
@@ -296,7 +296,7 @@ export default function Login() {
                 zIndex: 10,
               }}
             >
-              <Spin description="正在加载企业微信二维码..." />
+              <Spin />
             </div>
           )}
           {wecomAuthUrl && (
