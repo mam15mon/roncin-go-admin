@@ -70,7 +70,7 @@ function postgresIsReady(stdio = 'inherit') {
 }
 
 async function waitForPostgres() {
-  const deadline = Date.now() + 60_000;
+  const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     if (postgresIsReady('ignore')) {
       return;
@@ -78,7 +78,9 @@ async function waitForPostgres() {
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
   postgresIsReady();
-  throw new Error('PostgreSQL 进程已存在，但 127.0.0.1:5432 在 60 秒内未就绪');
+  throw new Error(
+    'PostgreSQL 进程已存在，但 127.0.0.1:5432 连续 10 秒无响应，疑似卡死，请重启 PostgreSQL',
+  );
 }
 
 function findExistingDevelopmentServerTrees() {
