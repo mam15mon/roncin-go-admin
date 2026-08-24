@@ -25,6 +25,10 @@ const (
 	RoleUpdate         = "system.role.update"
 	PermissionRead     = "system.permission.read"
 	AuditRead          = "system.audit.read"
+	FinanceExchangeRateRead    = "system.finance.exchange_rate.read"
+	FinanceExchangeRateCreate  = "system.finance.exchange_rate.create"
+	FinanceExchangeRateUpdate  = "system.finance.exchange_rate.update"
+	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -150,6 +154,10 @@ var manifest = append([]Permission{
 	{Key: RoleUpdate, Name: "编辑角色", Group: "系统管理 · 角色", Description: "修改角色、权限和数据范围"},
 	{Key: PermissionRead, Name: "查看权限字典", Group: "系统管理 · 权限", Description: "查看系统功能权限字典"},
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理 · 审计", Description: "查看安全与业务操作审计"},
+	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "财务管理 · 汇率", Description: "查看组织结算汇率主数据"},
+	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "财务管理 · 汇率", Description: "新建组织结算汇率"},
+	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织结算汇率"},
+	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织结算汇率"},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案"},
 	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案"},
