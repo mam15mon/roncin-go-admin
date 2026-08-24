@@ -126,6 +126,7 @@ declare namespace API {
     parentId?: string;
     enabled?: boolean;
     kind?: number;
+    baseCurrency?: string;
   };
 
   type AdminPermission = {
@@ -479,6 +480,7 @@ declare namespace API {
     name: string;
     parentId: string;
     kind: number;
+    baseCurrency?: string;
   };
 
   type CreateOrganizationResponse = {
@@ -885,6 +887,7 @@ declare namespace API {
     message?: string;
     data?: ExchangeRateSetting[];
     traceId?: string;
+    baseCurrency?: string;
   };
 
   type ListFeeOptionsResponse = {
@@ -894,6 +897,7 @@ declare namespace API {
     settlementParties?: OrderFeeSettlementPartyOption[];
     currencies?: OrderFeeCurrencyOption[];
     traceId?: string;
+    baseCurrency?: string;
   };
 
   type ListFeesResponse = {
@@ -2677,6 +2681,7 @@ declare namespace API {
     id: string;
     name: string;
     enabled?: boolean;
+    baseCurrency?: string;
   };
 
   type UpdateOrganizationResponse = {

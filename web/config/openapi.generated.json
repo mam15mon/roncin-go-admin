@@ -4666,6 +4666,9 @@
           "kind": {
             "type": "integer",
             "format": "enum"
+          },
+          "baseCurrency": {
+            "type": "string"
           }
         }
       },
@@ -4843,6 +4846,9 @@
           "kind": {
             "type": "integer",
             "format": "enum"
+          },
+          "baseCurrency": {
+            "type": "string"
           }
         }
       },
@@ -5199,6 +5205,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "baseCurrency": {
+            "type": "string"
           }
         }
       },
@@ -5721,6 +5730,9 @@
             }
           },
           "traceId": {
+            "type": "string"
+          },
+          "baseCurrency": {
             "type": "string"
           }
         }
@@ -8438,6 +8450,9 @@
             }
           },
           "traceId": {
+            "type": "string"
+          },
+          "baseCurrency": {
             "type": "string"
           }
         }
