@@ -20,13 +20,17 @@ const _ = http.SupportPackageIsVersion3
 const OperationExchangeRateServiceCreateExchangeRateSetting = "/finance.v1.ExchangeRateService/CreateExchangeRateSetting"
 const OperationExchangeRateServiceDisableExchangeRateSetting = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
 const OperationExchangeRateServiceListExchangeRateSettings = "/finance.v1.ExchangeRateService/ListExchangeRateSettings"
+const OperationExchangeRateServiceListExchangeRateTimeStandards = "/finance.v1.ExchangeRateService/ListExchangeRateTimeStandards"
 const OperationExchangeRateServiceUpdateExchangeRateSetting = "/finance.v1.ExchangeRateService/UpdateExchangeRateSetting"
+const OperationExchangeRateServiceUpdateExchangeRateTimeStandards = "/finance.v1.ExchangeRateService/UpdateExchangeRateTimeStandards"
 
 type ExchangeRateServiceHTTPServer interface {
 	CreateExchangeRateSetting(context.Context, *CreateExchangeRateSettingRequest) (*CreateExchangeRateSettingResponse, error)
 	DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error)
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
+	ListExchangeRateTimeStandards(context.Context, *ListExchangeRateTimeStandardsRequest) (*ListExchangeRateTimeStandardsResponse, error)
 	UpdateExchangeRateSetting(context.Context, *UpdateExchangeRateSettingRequest) (*UpdateExchangeRateSettingResponse, error)
+	UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error)
 }
 
 func RegisterExchangeRateServiceHTTPServer(s *http.Server, srv ExchangeRateServiceHTTPServer) {
@@ -35,6 +39,8 @@ func RegisterExchangeRateServiceHTTPServer(s *http.Server, srv ExchangeRateServi
 	r.Handle("POST", "/api/v1/finance/exchange-rates", _ExchangeRateService_CreateExchangeRateSetting0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/exchange-rates/{id}", _ExchangeRateService_UpdateExchangeRateSetting0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/exchange-rates/{id}/disable", _ExchangeRateService_DisableExchangeRateSetting0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/exchange-rate-time-standards", _ExchangeRateService_ListExchangeRateTimeStandards0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/exchange-rate-time-standards", _ExchangeRateService_UpdateExchangeRateTimeStandards0_HTTP_Handler(srv))
 }
 
 func _ExchangeRateService_ListExchangeRateSettings0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
@@ -119,11 +125,51 @@ func _ExchangeRateService_DisableExchangeRateSetting0_HTTP_Handler(srv ExchangeR
 	}
 }
 
+func _ExchangeRateService_ListExchangeRateTimeStandards0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListExchangeRateTimeStandardsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceListExchangeRateTimeStandards)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListExchangeRateTimeStandards(ctx, req.(*ListExchangeRateTimeStandardsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListExchangeRateTimeStandardsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ExchangeRateService_UpdateExchangeRateTimeStandards0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateExchangeRateTimeStandardsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceUpdateExchangeRateTimeStandards)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateExchangeRateTimeStandards(ctx, req.(*UpdateExchangeRateTimeStandardsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateExchangeRateTimeStandardsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ExchangeRateServiceHTTPClient interface {
 	CreateExchangeRateSetting(ctx context.Context, req *CreateExchangeRateSettingRequest, opts ...http.CallOption) (rsp *CreateExchangeRateSettingResponse, err error)
 	DisableExchangeRateSetting(ctx context.Context, req *DisableExchangeRateSettingRequest, opts ...http.CallOption) (rsp *DisableExchangeRateSettingResponse, err error)
 	ListExchangeRateSettings(ctx context.Context, req *ListExchangeRateSettingsRequest, opts ...http.CallOption) (rsp *ListExchangeRateSettingsResponse, err error)
+	ListExchangeRateTimeStandards(ctx context.Context, req *ListExchangeRateTimeStandardsRequest, opts ...http.CallOption) (rsp *ListExchangeRateTimeStandardsResponse, err error)
 	UpdateExchangeRateSetting(ctx context.Context, req *UpdateExchangeRateSettingRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateSettingResponse, err error)
+	UpdateExchangeRateTimeStandards(ctx context.Context, req *UpdateExchangeRateTimeStandardsRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateTimeStandardsResponse, err error)
 }
 
 type ExchangeRateServiceHTTPClientImpl struct {
@@ -184,6 +230,22 @@ func (c *ExchangeRateServiceHTTPClientImpl) ListExchangeRateSettings(ctx context
 	return &out, nil
 }
 
+func (c *ExchangeRateServiceHTTPClientImpl) ListExchangeRateTimeStandards(ctx context.Context, in *ListExchangeRateTimeStandardsRequest, opts ...http.CallOption) (*ListExchangeRateTimeStandardsResponse, error) {
+	var out ListExchangeRateTimeStandardsResponse
+	pattern := "/api/v1/finance/exchange-rate-time-standards"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationExchangeRateServiceListExchangeRateTimeStandards),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ExchangeRateServiceHTTPClientImpl) UpdateExchangeRateSetting(ctx context.Context, in *UpdateExchangeRateSettingRequest, opts ...http.CallOption) (*UpdateExchangeRateSettingResponse, error) {
 	var out UpdateExchangeRateSettingResponse
 	pattern := "/api/v1/finance/exchange-rates/{id}"
@@ -192,6 +254,23 @@ func (c *ExchangeRateServiceHTTPClientImpl) UpdateExchangeRateSetting(ctx contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationExchangeRateServiceUpdateExchangeRateSetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ExchangeRateServiceHTTPClientImpl) UpdateExchangeRateTimeStandards(ctx context.Context, in *UpdateExchangeRateTimeStandardsRequest, opts ...http.CallOption) (*UpdateExchangeRateTimeStandardsResponse, error) {
+	var out UpdateExchangeRateTimeStandardsResponse
+	pattern := "/api/v1/finance/exchange-rate-time-standards"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationExchangeRateServiceUpdateExchangeRateTimeStandards),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

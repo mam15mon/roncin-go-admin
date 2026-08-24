@@ -1,4 +1,21 @@
-import { EditOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
+import { EditOutlined, HolderOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  sortableKeyboardCoordinates,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
@@ -9,13 +26,15 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Popconfirm, Space, Tag } from 'antd';
+import { App, Button, Modal, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
+  exchangeRateServiceListExchangeRateTimeStandards,
   exchangeRateServiceListExchangeRateSettings,
+  exchangeRateServiceUpdateExchangeRateTimeStandards,
   exchangeRateServiceUpdateExchangeRateSetting,
 } from '@/services/roncin/exchangeRateService';
 import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
@@ -32,6 +51,28 @@ const exchangeRateTypeOptions = Object.entries(exchangeRateTypeLabels).map(([val
   label,
   value,
 }));
+const timeStandardLabels: Record<string, string> = {
+  ETD_ETA_TRAIN_DATE: 'ETD/ETA/班列日期',
+  BUSINESS_TIME: '业务时间',
+  BARGE_ETD: '驳船 ETD',
+  EXPENSE_TIME: '费用时间',
+  ORDER_CREATED_AT: '订单创建时间',
+  BILL_CREATED_AT: '账单创建时间',
+  WRITE_OFF_TIME: '核销时间',
+};
+const timeStandardsByRateType: Record<string, string[]> = {
+  BASE_CURRENCY: ['ETD_ETA_TRAIN_DATE', 'BUSINESS_TIME', 'BARGE_ETD', 'ORDER_CREATED_AT'],
+  INVOICE: ['BILL_CREATED_AT'],
+  SETTLEMENT: [
+    'ETD_ETA_TRAIN_DATE',
+    'BUSINESS_TIME',
+    'BARGE_ETD',
+    'EXPENSE_TIME',
+    'ORDER_CREATED_AT',
+  ],
+  WRITE_OFF: ['WRITE_OFF_TIME'],
+  BILL: ['BILL_CREATED_AT'],
+};
 
 type ExchangeRateFormValues = {
   rateType: string;
@@ -41,8 +82,67 @@ type ExchangeRateFormValues = {
   effectiveTo?: string | Dayjs;
   receivableRate: string;
   payableRate: string;
-  matchingRule: string;
 };
+
+type SortableTimeStandardsProps = {
+  values: string[];
+  onChange: (values: string[]) => void;
+};
+
+function SortableTimeStandards({ values, onChange }: SortableTimeStandardsProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = values.indexOf(String(active.id));
+    const newIndex = values.indexOf(String(over.id));
+    onChange(arrayMove(values, oldIndex, newIndex));
+  };
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={values} strategy={verticalListSortingStrategy}>
+        <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+          {values.map((value) => (
+            <SortableTimeStandard key={value} value={value} />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function SortableTimeStandard({ value }: { value: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: value });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        alignItems: 'center',
+        background: '#fff',
+        border: '1px solid #f0f0f0',
+        borderRadius: 6,
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '6px 8px',
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <span>{timeStandardLabels[value]}</span>
+      <Button
+        type="text"
+        size="small"
+        icon={<HolderOutlined />}
+        aria-label={`拖拽排序：${timeStandardLabels[value]}`}
+        style={{ cursor: 'grab' }}
+        {...attributes}
+        {...listeners}
+      />
+    </div>
+  );
+}
 
 const rateRule = async (_: unknown, value?: string) => {
   if (!value) throw new Error('请输入汇率');
@@ -58,10 +158,46 @@ export default function ExchangeRatesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
+  const [timeStandardsOpen, setTimeStandardsOpen] = useState(false);
+  const [timeStandardsSaving, setTimeStandardsSaving] = useState(false);
+  const [timeStandards, setTimeStandards] = useState<Record<string, string[]>>({});
 
   const openCreate = () => {
     setEditing(undefined);
     setModalOpen(true);
+  };
+
+  const openTimeStandards = async () => {
+    const response = await exchangeRateServiceListExchangeRateTimeStandards();
+    setTimeStandards(
+      Object.fromEntries(
+        (response.data ?? []).map((setting) => [
+          setting.rateType ?? '',
+          setting.timeStandards ?? [],
+        ]),
+      ),
+    );
+    setTimeStandardsOpen(true);
+  };
+
+  const saveTimeStandards = async () => {
+    if (exchangeRateTypeOptions.some(({ value }) => !timeStandards[value]?.length)) {
+      message.error('每种汇率类型至少选择一个时间标准');
+      return;
+    }
+    setTimeStandardsSaving(true);
+    try {
+      await exchangeRateServiceUpdateExchangeRateTimeStandards({
+        data: exchangeRateTypeOptions.map(({ value }) => ({
+          rateType: value,
+          timeStandards: timeStandards[value],
+        })),
+      });
+      message.success('汇率类型时间标准已更新');
+      setTimeStandardsOpen(false);
+    } finally {
+      setTimeStandardsSaving(false);
+    }
   };
 
   const columns: ProColumns<API.ExchangeRateSetting>[] = [
@@ -174,15 +310,26 @@ export default function ExchangeRatesPage() {
           setBaseCurrency(response.baseCurrency ?? '');
           return { data: response.data ?? [], success: response.success ?? true };
         }}
-        toolBarRender={() =>
-          access.canCreateExchangeRates
+        toolBarRender={() => [
+          ...(access.canUpdateExchangeRates
+            ? [
+                <Button
+                  key="time-standards"
+                  icon={<SettingOutlined />}
+                  onClick={openTimeStandards}
+                >
+                  时间标准配置
+                </Button>,
+              ]
+            : []),
+          ...(access.canCreateExchangeRates
             ? [
                 <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
                   新建汇率
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<ExchangeRateFormValues>
@@ -204,7 +351,6 @@ export default function ExchangeRatesPage() {
             rateType: values.rateType,
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
             toCurrency: values.toCurrency.trim().toUpperCase(),
-            timeStandard: 'EXPENSE_DATE',
             effectiveFrom,
             effectiveTo,
             receivableRate: values.receivableRate,
@@ -257,14 +403,41 @@ export default function ExchangeRatesPage() {
           label="生效结束日期（不含）"
           fieldProps={{ style: { width: '100%' } }}
         />
-        <ProFormSelect
-          name="matchingRule"
-          label="匹配规则"
-          initialValue="EXPENSE_DATE"
-          disabled
-          options={[{ label: '按费用日期', value: 'EXPENSE_DATE' }]}
-        />
       </ModalForm>
+
+      <Modal
+        title="汇率类型时间标准"
+        open={timeStandardsOpen}
+        width={720}
+        confirmLoading={timeStandardsSaving}
+        onCancel={() => setTimeStandardsOpen(false)}
+        onOk={saveTimeStandards}
+        okText="保存"
+      >
+        {exchangeRateTypeOptions.map(({ label, value }) => (
+          <div key={value} style={{ marginBottom: 20 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>{label}</div>
+            <Select
+              mode="multiple"
+              value={timeStandards[value] ?? []}
+              options={timeStandardsByRateType[value].map((standard) => ({
+                label: timeStandardLabels[standard],
+                value: standard,
+              }))}
+              style={{ width: '100%' }}
+              onChange={(values) =>
+                setTimeStandards((current) => ({ ...current, [value]: values }))
+              }
+            />
+            <SortableTimeStandards
+              values={timeStandards[value] ?? []}
+              onChange={(values) =>
+                setTimeStandards((current) => ({ ...current, [value]: values }))
+              }
+            />
+          </div>
+        ))}
+      </Modal>
     </PageContainer>
   );
 }

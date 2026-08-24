@@ -19,22 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ExchangeRateService_ListExchangeRateSettings_FullMethodName   = "/finance.v1.ExchangeRateService/ListExchangeRateSettings"
-	ExchangeRateService_CreateExchangeRateSetting_FullMethodName  = "/finance.v1.ExchangeRateService/CreateExchangeRateSetting"
-	ExchangeRateService_UpdateExchangeRateSetting_FullMethodName  = "/finance.v1.ExchangeRateService/UpdateExchangeRateSetting"
-	ExchangeRateService_DisableExchangeRateSetting_FullMethodName = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
+	ExchangeRateService_ListExchangeRateSettings_FullMethodName        = "/finance.v1.ExchangeRateService/ListExchangeRateSettings"
+	ExchangeRateService_CreateExchangeRateSetting_FullMethodName       = "/finance.v1.ExchangeRateService/CreateExchangeRateSetting"
+	ExchangeRateService_UpdateExchangeRateSetting_FullMethodName       = "/finance.v1.ExchangeRateService/UpdateExchangeRateSetting"
+	ExchangeRateService_DisableExchangeRateSetting_FullMethodName      = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
+	ExchangeRateService_ListExchangeRateTimeStandards_FullMethodName   = "/finance.v1.ExchangeRateService/ListExchangeRateTimeStandards"
+	ExchangeRateService_UpdateExchangeRateTimeStandards_FullMethodName = "/finance.v1.ExchangeRateService/UpdateExchangeRateTimeStandards"
 )
 
 // ExchangeRateServiceClient is the client API for ExchangeRateService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ExchangeRateService 维护订单费用结算汇率主数据。
+// ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。
 type ExchangeRateServiceClient interface {
 	ListExchangeRateSettings(ctx context.Context, in *ListExchangeRateSettingsRequest, opts ...grpc.CallOption) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(ctx context.Context, in *CreateExchangeRateSettingRequest, opts ...grpc.CallOption) (*CreateExchangeRateSettingResponse, error)
 	UpdateExchangeRateSetting(ctx context.Context, in *UpdateExchangeRateSettingRequest, opts ...grpc.CallOption) (*UpdateExchangeRateSettingResponse, error)
 	DisableExchangeRateSetting(ctx context.Context, in *DisableExchangeRateSettingRequest, opts ...grpc.CallOption) (*DisableExchangeRateSettingResponse, error)
+	ListExchangeRateTimeStandards(ctx context.Context, in *ListExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*ListExchangeRateTimeStandardsResponse, error)
+	UpdateExchangeRateTimeStandards(ctx context.Context, in *UpdateExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*UpdateExchangeRateTimeStandardsResponse, error)
 }
 
 type exchangeRateServiceClient struct {
@@ -85,16 +89,38 @@ func (c *exchangeRateServiceClient) DisableExchangeRateSetting(ctx context.Conte
 	return out, nil
 }
 
+func (c *exchangeRateServiceClient) ListExchangeRateTimeStandards(ctx context.Context, in *ListExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*ListExchangeRateTimeStandardsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListExchangeRateTimeStandardsResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_ListExchangeRateTimeStandards_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exchangeRateServiceClient) UpdateExchangeRateTimeStandards(ctx context.Context, in *UpdateExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*UpdateExchangeRateTimeStandardsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateExchangeRateTimeStandardsResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_UpdateExchangeRateTimeStandards_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ExchangeRateServiceServer is the server API for ExchangeRateService service.
 // All implementations must embed UnimplementedExchangeRateServiceServer
 // for forward compatibility.
 //
-// ExchangeRateService 维护订单费用结算汇率主数据。
+// ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。
 type ExchangeRateServiceServer interface {
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(context.Context, *CreateExchangeRateSettingRequest) (*CreateExchangeRateSettingResponse, error)
 	UpdateExchangeRateSetting(context.Context, *UpdateExchangeRateSettingRequest) (*UpdateExchangeRateSettingResponse, error)
 	DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error)
+	ListExchangeRateTimeStandards(context.Context, *ListExchangeRateTimeStandardsRequest) (*ListExchangeRateTimeStandardsResponse, error)
+	UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error)
 	mustEmbedUnimplementedExchangeRateServiceServer()
 }
 
@@ -116,6 +142,12 @@ func (UnimplementedExchangeRateServiceServer) UpdateExchangeRateSetting(context.
 }
 func (UnimplementedExchangeRateServiceServer) DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DisableExchangeRateSetting not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) ListExchangeRateTimeStandards(context.Context, *ListExchangeRateTimeStandardsRequest) (*ListExchangeRateTimeStandardsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListExchangeRateTimeStandards not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateExchangeRateTimeStandards not implemented")
 }
 func (UnimplementedExchangeRateServiceServer) mustEmbedUnimplementedExchangeRateServiceServer() {}
 func (UnimplementedExchangeRateServiceServer) testEmbeddedByValue()                             {}
@@ -210,6 +242,42 @@ func _ExchangeRateService_DisableExchangeRateSetting_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExchangeRateService_ListExchangeRateTimeStandards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListExchangeRateTimeStandardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).ListExchangeRateTimeStandards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_ListExchangeRateTimeStandards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).ListExchangeRateTimeStandards(ctx, req.(*ListExchangeRateTimeStandardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExchangeRateService_UpdateExchangeRateTimeStandards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateExchangeRateTimeStandardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).UpdateExchangeRateTimeStandards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_UpdateExchangeRateTimeStandards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).UpdateExchangeRateTimeStandards(ctx, req.(*UpdateExchangeRateTimeStandardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ExchangeRateService_ServiceDesc is the grpc.ServiceDesc for ExchangeRateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -232,6 +300,14 @@ var ExchangeRateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisableExchangeRateSetting",
 			Handler:    _ExchangeRateService_DisableExchangeRateSetting_Handler,
+		},
+		{
+			MethodName: "ListExchangeRateTimeStandards",
+			Handler:    _ExchangeRateService_ListExchangeRateTimeStandards_Handler,
+		},
+		{
+			MethodName: "UpdateExchangeRateTimeStandards",
+			Handler:    _ExchangeRateService_UpdateExchangeRateTimeStandards_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -780,7 +781,7 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescEffectiveFrom is the schema descriptor for effective_from field.
-	exchangeratesettingDescEffectiveFrom := exchangeratesettingFields[5].Descriptor()
+	exchangeratesettingDescEffectiveFrom := exchangeratesettingFields[4].Descriptor()
 	// exchangeratesetting.EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
 	exchangeratesetting.EffectiveFromValidator = func() func(string) error {
 		validators := exchangeratesettingDescEffectiveFrom.Validators
@@ -799,7 +800,7 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescEffectiveTo is the schema descriptor for effective_to field.
-	exchangeratesettingDescEffectiveTo := exchangeratesettingFields[6].Descriptor()
+	exchangeratesettingDescEffectiveTo := exchangeratesettingFields[5].Descriptor()
 	// exchangeratesetting.EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
 	exchangeratesetting.EffectiveToValidator = func() func(string) error {
 		validators := exchangeratesettingDescEffectiveTo.Validators
@@ -817,13 +818,38 @@ func init() {
 		}
 	}()
 	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
-	exchangeratesettingDescIsActive := exchangeratesettingFields[9].Descriptor()
+	exchangeratesettingDescIsActive := exchangeratesettingFields[8].Descriptor()
 	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.
 	exchangeratesetting.DefaultIsActive = exchangeratesettingDescIsActive.Default.(bool)
 	// exchangeratesettingDescID is the schema descriptor for id field.
 	exchangeratesettingDescID := exchangeratesettingMixinFields0[0].Descriptor()
 	// exchangeratesetting.DefaultID holds the default value on creation for the id field.
 	exchangeratesetting.DefaultID = exchangeratesettingDescID.Default.(func() uuid.UUID)
+	exchangeratetimestandardMixin := schema.ExchangeRateTimeStandard{}.Mixin()
+	exchangeratetimestandardMixinFields0 := exchangeratetimestandardMixin[0].Fields()
+	_ = exchangeratetimestandardMixinFields0
+	exchangeratetimestandardMixinFields1 := exchangeratetimestandardMixin[1].Fields()
+	_ = exchangeratetimestandardMixinFields1
+	exchangeratetimestandardFields := schema.ExchangeRateTimeStandard{}.Fields()
+	_ = exchangeratetimestandardFields
+	// exchangeratetimestandardDescCreatedAt is the schema descriptor for created_at field.
+	exchangeratetimestandardDescCreatedAt := exchangeratetimestandardMixinFields1[0].Descriptor()
+	// exchangeratetimestandard.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exchangeratetimestandard.DefaultCreatedAt = exchangeratetimestandardDescCreatedAt.Default.(func() time.Time)
+	// exchangeratetimestandardDescUpdatedAt is the schema descriptor for updated_at field.
+	exchangeratetimestandardDescUpdatedAt := exchangeratetimestandardMixinFields1[1].Descriptor()
+	// exchangeratetimestandard.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	exchangeratetimestandard.DefaultUpdatedAt = exchangeratetimestandardDescUpdatedAt.Default.(func() time.Time)
+	// exchangeratetimestandard.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	exchangeratetimestandard.UpdateDefaultUpdatedAt = exchangeratetimestandardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// exchangeratetimestandardDescSortOrder is the schema descriptor for sort_order field.
+	exchangeratetimestandardDescSortOrder := exchangeratetimestandardFields[3].Descriptor()
+	// exchangeratetimestandard.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	exchangeratetimestandard.SortOrderValidator = exchangeratetimestandardDescSortOrder.Validators[0].(func(int) error)
+	// exchangeratetimestandardDescID is the schema descriptor for id field.
+	exchangeratetimestandardDescID := exchangeratetimestandardMixinFields0[0].Descriptor()
+	// exchangeratetimestandard.DefaultID holds the default value on creation for the id field.
+	exchangeratetimestandard.DefaultID = exchangeratetimestandardDescID.Default.(func() uuid.UUID)
 	feesettingMixin := schema.FeeSetting{}.Mixin()
 	feesettingMixinFields0 := feesettingMixin[0].Fields()
 	_ = feesettingMixinFields0

@@ -86,6 +86,20 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 	return result, nil
 }
 
+func (r *orderFeeRepo) ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeExchangeRateContext, error) {
+	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderFeeNotFound
+		}
+		return nil, err
+	}
+	return &biz.OrderFeeExchangeRateContext{
+		TradeDirection: biz.OrderTradeDirection(item.TradeDirection),
+		ETD:            item.Etd, ETA: item.Eta, BusinessTime: item.OrderDate, OrderCreatedAt: item.CreatedAt,
+	}, nil
+}
+
 func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {
 	applicability, err := r.loadApplicability(ctx, organizationID, orderID)
 	if err != nil {

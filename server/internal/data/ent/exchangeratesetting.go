@@ -30,8 +30,6 @@ type ExchangeRateSetting struct {
 	FromCurrency string `json:"from_currency,omitempty"`
 	// ToCurrency holds the value of the "to_currency" field.
 	ToCurrency string `json:"to_currency,omitempty"`
-	// TimeStandard holds the value of the "time_standard" field.
-	TimeStandard exchangeratesetting.TimeStandard `json:"time_standard,omitempty"`
 	// EffectiveFrom holds the value of the "effective_from" field.
 	EffectiveFrom string `json:"effective_from,omitempty"`
 	// EffectiveTo holds the value of the "effective_to" field.
@@ -52,7 +50,7 @@ func (*ExchangeRateSetting) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case exchangeratesetting.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case exchangeratesetting.FieldRateType, exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldTimeStandard, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo, exchangeratesetting.FieldReceivableRate, exchangeratesetting.FieldPayableRate:
+		case exchangeratesetting.FieldRateType, exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo, exchangeratesetting.FieldReceivableRate, exchangeratesetting.FieldPayableRate:
 			values[i] = new(sql.NullString)
 		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -114,12 +112,6 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field to_currency", values[i])
 			} else if value.Valid {
 				_m.ToCurrency = value.String
-			}
-		case exchangeratesetting.FieldTimeStandard:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field time_standard", values[i])
-			} else if value.Valid {
-				_m.TimeStandard = exchangeratesetting.TimeStandard(value.String)
 			}
 		case exchangeratesetting.FieldEffectiveFrom:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -205,9 +197,6 @@ func (_m *ExchangeRateSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("to_currency=")
 	builder.WriteString(_m.ToCurrency)
-	builder.WriteString(", ")
-	builder.WriteString("time_standard=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TimeStandard))
 	builder.WriteString(", ")
 	builder.WriteString("effective_from=")
 	builder.WriteString(_m.EffectiveFrom)

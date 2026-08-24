@@ -403,7 +403,6 @@ declare namespace API {
     rateType: string;
     fromCurrency: string;
     toCurrency: string;
-    timeStandard: string;
     effectiveFrom: string;
     effectiveTo?: string;
     receivableRate: string;
@@ -822,7 +821,6 @@ declare namespace API {
     rateType?: string;
     fromCurrency?: string;
     toCurrency?: string;
-    timeStandard?: string;
     effectiveFrom?: string;
     effectiveTo?: string;
     receivableRate?: string;
@@ -830,6 +828,11 @@ declare namespace API {
     isActive?: boolean;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type ExchangeRateTimeStandardSetting = {
+    rateType?: string;
+    timeStandards?: string[];
   };
 
   type ExportPartnersResponse = {
@@ -1054,6 +1057,14 @@ declare namespace API {
     data?: ExchangeRateSetting[];
     traceId?: string;
     baseCurrency?: string;
+  };
+
+  type ListExchangeRateTimeStandardsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateTimeStandardSetting[];
+    traceId?: string;
   };
 
   type ListFeeOptionsResponse = {
@@ -2781,7 +2792,6 @@ declare namespace API {
     rateType: string;
     fromCurrency: string;
     toCurrency: string;
-    timeStandard: string;
     effectiveFrom: string;
     effectiveTo?: string;
     receivableRate: string;
@@ -2793,6 +2803,18 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateSetting;
+    traceId?: string;
+  };
+
+  type UpdateExchangeRateTimeStandardsRequest = {
+    data: ExchangeRateTimeStandardSetting[];
+  };
+
+  type UpdateExchangeRateTimeStandardsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateTimeStandardSetting[];
     traceId?: string;
   };
 

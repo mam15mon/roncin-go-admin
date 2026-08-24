@@ -112,8 +112,17 @@ type OrderFeeOptions struct {
 	BaseCurrency      string
 }
 
+type OrderFeeExchangeRateContext struct {
+	TradeDirection OrderTradeDirection
+	ETD            string
+	ETA            string
+	BusinessTime   string
+	OrderCreatedAt time.Time
+}
+
 type OrderFeeRepo interface {
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
+	ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeExchangeRateContext, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
@@ -164,7 +173,7 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
 		return nil, err
 	}
-	if err := uc.resolveExchangeRate(ctx, organizationID, normalized, canOverrideExchangeRate); err != nil {
+	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
 	return uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
@@ -181,7 +190,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
 		return nil, err
 	}
-	if err := uc.resolveExchangeRate(ctx, organizationID, normalized, canOverrideExchangeRate); err != nil {
+	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
 	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", normalized))
@@ -205,10 +214,14 @@ func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organization
 	if organizationID == uuid.Nil || orderID == uuid.Nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
-	return uc.exchangeRate.Resolve(ctx, organizationID, direction, currency, expenseDate)
+	candidates, err := uc.exchangeRateDateCandidates(ctx, organizationID, orderID, expenseDate)
+	if err != nil {
+		return nil, err
+	}
+	return uc.exchangeRate.Resolve(ctx, organizationID, BaseCurrencyRateType, direction, currency, candidates)
 }
 
-func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
+func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
 	if fee.ExchangeRateOverride != nil {
 		if !canOverrideExchangeRate {
 			return ErrOrderFeeExchangeRateOverrideForbidden
@@ -219,7 +232,11 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, fee.Direction, fee.Currency, fee.ExpenseDate)
+	candidates, err := uc.exchangeRateDateCandidates(ctx, organizationID, orderID, fee.ExpenseDate)
+	if err != nil {
+		return err
+	}
+	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, BaseCurrencyRateType, fee.Direction, fee.Currency, candidates)
 	if err != nil {
 		return err
 	}
@@ -228,6 +245,33 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 	fee.ExchangeRateDate = resolved.RateDate
 	fee.ExchangeRateSettingID = resolved.SettingID
 	return nil
+}
+
+func (uc *OrderFeeUsecase) exchangeRateDateCandidates(ctx context.Context, organizationID, orderID uuid.UUID, expenseDate string) (map[string]string, error) {
+	rateContext, err := uc.repo.ExchangeRateContext(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	candidates := map[string]string{ExpenseTimeStandard: expenseDate}
+	scheduleTime := rateContext.ETD
+	if rateContext.TradeDirection == OrderTradeImport {
+		scheduleTime = rateContext.ETA
+	}
+	for standard, value := range map[string]string{
+		ETDETAOrTrainDateStandard: scheduleTime,
+		BusinessTimeStandard:      rateContext.BusinessTime,
+	} {
+		if value == "" {
+			continue
+		}
+		parsed, parseErr := time.Parse(time.RFC3339, value)
+		if parseErr != nil {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+		candidates[standard] = parsed.In(exchangeRateBusinessLocation).Format("2006-01-02")
+	}
+	candidates[OrderCreatedAtStandard] = rateContext.OrderCreatedAt.In(exchangeRateBusinessLocation).Format("2006-01-02")
+	return candidates, nil
 }
 
 func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {

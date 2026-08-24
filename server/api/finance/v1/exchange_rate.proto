@@ -8,7 +8,7 @@ import "google/api/field_behavior.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
-// ExchangeRateService 维护订单费用结算汇率主数据。
+// ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。
 service ExchangeRateService {
   rpc ListExchangeRateSettings(ListExchangeRateSettingsRequest) returns (ListExchangeRateSettingsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -29,6 +29,16 @@ service ExchangeRateService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.disable" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/exchange-rates/{id}/disable" body: "*"};
   }
+
+  rpc ListExchangeRateTimeStandards(ListExchangeRateTimeStandardsRequest) returns (ListExchangeRateTimeStandardsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-time-standards"};
+  }
+
+  rpc UpdateExchangeRateTimeStandards(UpdateExchangeRateTimeStandardsRequest) returns (UpdateExchangeRateTimeStandardsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/exchange-rate-time-standards" body: "*"};
+  }
 }
 
 message ExchangeRateSetting {
@@ -37,7 +47,8 @@ message ExchangeRateSetting {
   string rate_type = 3;
   string from_currency = 4;
   string to_currency = 5;
-  string time_standard = 6;
+  reserved 6;
+  reserved "time_standard";
   string effective_from = 7;
   optional string effective_to = 8;
   string receivable_rate = 9;
@@ -62,7 +73,8 @@ message CreateExchangeRateSettingRequest {
   string rate_type = 1 [(google.api.field_behavior) = REQUIRED];
   string from_currency = 2 [(google.api.field_behavior) = REQUIRED];
   string to_currency = 3 [(google.api.field_behavior) = REQUIRED];
-  string time_standard = 4 [(google.api.field_behavior) = REQUIRED];
+  reserved 4;
+  reserved "time_standard";
   string effective_from = 5 [(google.api.field_behavior) = REQUIRED];
   optional string effective_to = 6;
   string receivable_rate = 7 [(google.api.field_behavior) = REQUIRED];
@@ -74,7 +86,8 @@ message UpdateExchangeRateSettingRequest {
   string rate_type = 2 [(google.api.field_behavior) = REQUIRED];
   string from_currency = 3 [(google.api.field_behavior) = REQUIRED];
   string to_currency = 4 [(google.api.field_behavior) = REQUIRED];
-  string time_standard = 5 [(google.api.field_behavior) = REQUIRED];
+  reserved 5;
+  reserved "time_standard";
   string effective_from = 6 [(google.api.field_behavior) = REQUIRED];
   optional string effective_to = 7;
   string receivable_rate = 8 [(google.api.field_behavior) = REQUIRED];
@@ -106,4 +119,31 @@ message DisableExchangeRateSettingResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
+}
+
+message ExchangeRateTimeStandardSetting {
+  string rate_type = 1;
+  repeated string time_standards = 2;
+}
+
+message ListExchangeRateTimeStandardsRequest {}
+
+message ListExchangeRateTimeStandardsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated ExchangeRateTimeStandardSetting data = 4;
+  string trace_id = 5;
+}
+
+message UpdateExchangeRateTimeStandardsRequest {
+  repeated ExchangeRateTimeStandardSetting data = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateExchangeRateTimeStandardsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated ExchangeRateTimeStandardSetting data = 4;
+  string trace_id = 5;
 }

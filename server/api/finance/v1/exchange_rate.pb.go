@@ -30,7 +30,6 @@ type ExchangeRateSetting struct {
 	RateType       string                 `protobuf:"bytes,3,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
 	FromCurrency   string                 `protobuf:"bytes,4,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency     string                 `protobuf:"bytes,5,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	TimeStandard   string                 `protobuf:"bytes,6,opt,name=time_standard,json=timeStandard,proto3" json:"time_standard,omitempty"`
 	EffectiveFrom  string                 `protobuf:"bytes,7,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	EffectiveTo    *string                `protobuf:"bytes,8,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
 	ReceivableRate string                 `protobuf:"bytes,9,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
@@ -103,13 +102,6 @@ func (x *ExchangeRateSetting) GetFromCurrency() string {
 func (x *ExchangeRateSetting) GetToCurrency() string {
 	if x != nil {
 		return x.ToCurrency
-	}
-	return ""
-}
-
-func (x *ExchangeRateSetting) GetTimeStandard() string {
-	if x != nil {
-		return x.TimeStandard
 	}
 	return ""
 }
@@ -288,7 +280,6 @@ type CreateExchangeRateSettingRequest struct {
 	RateType       string                 `protobuf:"bytes,1,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
 	FromCurrency   string                 `protobuf:"bytes,2,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency     string                 `protobuf:"bytes,3,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	TimeStandard   string                 `protobuf:"bytes,4,opt,name=time_standard,json=timeStandard,proto3" json:"time_standard,omitempty"`
 	EffectiveFrom  string                 `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	EffectiveTo    *string                `protobuf:"bytes,6,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
 	ReceivableRate string                 `protobuf:"bytes,7,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
@@ -348,13 +339,6 @@ func (x *CreateExchangeRateSettingRequest) GetToCurrency() string {
 	return ""
 }
 
-func (x *CreateExchangeRateSettingRequest) GetTimeStandard() string {
-	if x != nil {
-		return x.TimeStandard
-	}
-	return ""
-}
-
 func (x *CreateExchangeRateSettingRequest) GetEffectiveFrom() string {
 	if x != nil {
 		return x.EffectiveFrom
@@ -389,7 +373,6 @@ type UpdateExchangeRateSettingRequest struct {
 	RateType       string                 `protobuf:"bytes,2,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
 	FromCurrency   string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency     string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	TimeStandard   string                 `protobuf:"bytes,5,opt,name=time_standard,json=timeStandard,proto3" json:"time_standard,omitempty"`
 	EffectiveFrom  string                 `protobuf:"bytes,6,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	EffectiveTo    *string                `protobuf:"bytes,7,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
 	ReceivableRate string                 `protobuf:"bytes,8,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
@@ -452,13 +435,6 @@ func (x *UpdateExchangeRateSettingRequest) GetFromCurrency() string {
 func (x *UpdateExchangeRateSettingRequest) GetToCurrency() string {
 	if x != nil {
 		return x.ToCurrency
-	}
-	return ""
-}
-
-func (x *UpdateExchangeRateSettingRequest) GetTimeStandard() string {
-	if x != nil {
-		return x.TimeStandard
 	}
 	return ""
 }
@@ -755,20 +731,303 @@ func (x *DisableExchangeRateSettingResponse) GetTraceId() string {
 	return ""
 }
 
+type ExchangeRateTimeStandardSetting struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RateType      string                 `protobuf:"bytes,1,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
+	TimeStandards []string               `protobuf:"bytes,2,rep,name=time_standards,json=timeStandards,proto3" json:"time_standards,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeRateTimeStandardSetting) Reset() {
+	*x = ExchangeRateTimeStandardSetting{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeRateTimeStandardSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeRateTimeStandardSetting) ProtoMessage() {}
+
+func (x *ExchangeRateTimeStandardSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeRateTimeStandardSetting.ProtoReflect.Descriptor instead.
+func (*ExchangeRateTimeStandardSetting) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ExchangeRateTimeStandardSetting) GetRateType() string {
+	if x != nil {
+		return x.RateType
+	}
+	return ""
+}
+
+func (x *ExchangeRateTimeStandardSetting) GetTimeStandards() []string {
+	if x != nil {
+		return x.TimeStandards
+	}
+	return nil
+}
+
+type ListExchangeRateTimeStandardsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListExchangeRateTimeStandardsRequest) Reset() {
+	*x = ListExchangeRateTimeStandardsRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListExchangeRateTimeStandardsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListExchangeRateTimeStandardsRequest) ProtoMessage() {}
+
+func (x *ListExchangeRateTimeStandardsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListExchangeRateTimeStandardsRequest.ProtoReflect.Descriptor instead.
+func (*ListExchangeRateTimeStandardsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{10}
+}
+
+type ListExchangeRateTimeStandardsResponse struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Success       bool                               `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                              `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                             `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*ExchangeRateTimeStandardSetting `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                             `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) Reset() {
+	*x = ListExchangeRateTimeStandardsResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListExchangeRateTimeStandardsResponse) ProtoMessage() {}
+
+func (x *ListExchangeRateTimeStandardsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListExchangeRateTimeStandardsResponse.ProtoReflect.Descriptor instead.
+func (*ListExchangeRateTimeStandardsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) GetData() []*ExchangeRateTimeStandardSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListExchangeRateTimeStandardsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateExchangeRateTimeStandardsRequest struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Data          []*ExchangeRateTimeStandardSetting `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateExchangeRateTimeStandardsRequest) Reset() {
+	*x = UpdateExchangeRateTimeStandardsRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateExchangeRateTimeStandardsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateExchangeRateTimeStandardsRequest) ProtoMessage() {}
+
+func (x *UpdateExchangeRateTimeStandardsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateExchangeRateTimeStandardsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateExchangeRateTimeStandardsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UpdateExchangeRateTimeStandardsRequest) GetData() []*ExchangeRateTimeStandardSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type UpdateExchangeRateTimeStandardsResponse struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Success       bool                               `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                              `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                             `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*ExchangeRateTimeStandardSetting `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                             `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) Reset() {
+	*x = UpdateExchangeRateTimeStandardsResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateExchangeRateTimeStandardsResponse) ProtoMessage() {}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateExchangeRateTimeStandardsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateExchangeRateTimeStandardsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) GetData() []*ExchangeRateTimeStandardSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateExchangeRateTimeStandardsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_finance_v1_exchange_rate_proto protoreflect.FileDescriptor
 
 const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\n" +
 	"\x1efinance/v1/exchange_rate.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xdd\x03\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xcd\x03\n" +
 	"\x13ExchangeRateSetting\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
 	"\trate_type\x18\x03 \x01(\tR\brateType\x12#\n" +
 	"\rfrom_currency\x18\x04 \x01(\tR\ffromCurrency\x12\x1f\n" +
 	"\vto_currency\x18\x05 \x01(\tR\n" +
-	"toCurrency\x12#\n" +
-	"\rtime_standard\x18\x06 \x01(\tR\ftimeStandard\x12%\n" +
+	"toCurrency\x12%\n" +
 	"\x0eeffective_from\x18\a \x01(\tR\reffectiveFrom\x12&\n" +
 	"\feffective_to\x18\b \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12'\n" +
 	"\x0freceivable_rate\x18\t \x01(\tR\x0ereceivableRate\x12!\n" +
@@ -779,7 +1038,7 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAtB\x0f\n" +
-	"\r_effective_to\"!\n" +
+	"\r_effective_toJ\x04\b\x06\x10\aR\rtime_standard\"!\n" +
 	"\x1fListExchangeRateSettingsRequest\"\xdf\x01\n" +
 	" ListExchangeRateSettingsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -787,30 +1046,28 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x03(\v2\x1f.finance.v1.ExchangeRateSettingR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12#\n" +
-	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\xf9\x02\n" +
+	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\xe4\x02\n" +
 	" CreateExchangeRateSettingRequest\x12 \n" +
 	"\trate_type\x18\x01 \x01(\tB\x03\xe0A\x02R\brateType\x12(\n" +
 	"\rfrom_currency\x18\x02 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +
 	"\vto_currency\x18\x03 \x01(\tB\x03\xe0A\x02R\n" +
-	"toCurrency\x12(\n" +
-	"\rtime_standard\x18\x04 \x01(\tB\x03\xe0A\x02R\ftimeStandard\x12*\n" +
+	"toCurrency\x12*\n" +
 	"\x0eeffective_from\x18\x05 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12&\n" +
 	"\feffective_to\x18\x06 \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12,\n" +
 	"\x0freceivable_rate\x18\a \x01(\tB\x03\xe0A\x02R\x0ereceivableRate\x12&\n" +
 	"\fpayable_rate\x18\b \x01(\tB\x03\xe0A\x02R\vpayableRateB\x0f\n" +
-	"\r_effective_to\"\x8e\x03\n" +
+	"\r_effective_toJ\x04\b\x04\x10\x05R\rtime_standard\"\xf9\x02\n" +
 	" UpdateExchangeRateSettingRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\trate_type\x18\x02 \x01(\tB\x03\xe0A\x02R\brateType\x12(\n" +
 	"\rfrom_currency\x18\x03 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +
 	"\vto_currency\x18\x04 \x01(\tB\x03\xe0A\x02R\n" +
-	"toCurrency\x12(\n" +
-	"\rtime_standard\x18\x05 \x01(\tB\x03\xe0A\x02R\ftimeStandard\x12*\n" +
+	"toCurrency\x12*\n" +
 	"\x0eeffective_from\x18\x06 \x01(\tB\x03\xe0A\x02R\reffectiveFrom\x12&\n" +
 	"\feffective_to\x18\a \x01(\tH\x00R\veffectiveTo\x88\x01\x01\x12,\n" +
 	"\x0freceivable_rate\x18\b \x01(\tB\x03\xe0A\x02R\x0ereceivableRate\x12&\n" +
 	"\fpayable_rate\x18\t \x01(\tB\x03\xe0A\x02R\vpayableRateB\x0f\n" +
-	"\r_effective_to\"8\n" +
+	"\r_effective_toJ\x04\b\x05\x10\x06R\rtime_standard\"8\n" +
 	"!DisableExchangeRateSettingRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbb\x01\n" +
 	"!CreateExchangeRateSettingResponse\x12\x18\n" +
@@ -829,12 +1086,33 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xef\x06\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"e\n" +
+	"\x1fExchangeRateTimeStandardSetting\x12\x1b\n" +
+	"\trate_type\x18\x01 \x01(\tR\brateType\x12%\n" +
+	"\x0etime_standards\x18\x02 \x03(\tR\rtimeStandards\"&\n" +
+	"$ListExchangeRateTimeStandardsRequest\"\xcb\x01\n" +
+	"%ListExchangeRateTimeStandardsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12?\n" +
+	"\x04data\x18\x04 \x03(\v2+.finance.v1.ExchangeRateTimeStandardSettingR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"n\n" +
+	"&UpdateExchangeRateTimeStandardsRequest\x12D\n" +
+	"\x04data\x18\x01 \x03(\v2+.finance.v1.ExchangeRateTimeStandardSettingB\x03\xe0A\x02R\x04data\"\xcd\x01\n" +
+	"'UpdateExchangeRateTimeStandardsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12?\n" +
+	"\x04data\x18\x04 \x03(\v2+.finance.v1.ExchangeRateTimeStandardSettingR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xca\n" +
+	"\n" +
 	"\x13ExchangeRateService\x12\xc8\x01\n" +
 	"\x18ListExchangeRateSettings\x12+.finance.v1.ListExchangeRateSettingsRequest\x1a,.finance.v1.ListExchangeRateSettingsResponse\"Q\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/finance/exchange-rates\x12\xd0\x01\n" +
 	"\x19CreateExchangeRateSetting\x12,.finance.v1.CreateExchangeRateSettingRequest\x1a-.finance.v1.CreateExchangeRateSettingResponse\"V\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/finance/exchange-rates\x12\xd5\x01\n" +
 	"\x19UpdateExchangeRateSetting\x12,.finance.v1.UpdateExchangeRateSettingRequest\x1a-.finance.v1.UpdateExchangeRateSettingResponse\"[\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x02(:\x01*\x1a#/api/v1/finance/exchange-rates/{id}\x12\xe1\x01\n" +
-	"\x1aDisableExchangeRateSetting\x12-.finance.v1.DisableExchangeRateSettingRequest\x1a..finance.v1.DisableExchangeRateSettingResponse\"d\x82\xb5\x18*\b\x03\x12$system.finance.exchange_rate.disable \x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/finance/exchange-rates/{id}/disableB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"\x1aDisableExchangeRateSetting\x12-.finance.v1.DisableExchangeRateSettingRequest\x1a..finance.v1.DisableExchangeRateSettingResponse\"d\x82\xb5\x18*\b\x03\x12$system.finance.exchange_rate.disable \x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/finance/exchange-rates/{id}/disable\x12\xe5\x01\n" +
+	"\x1dListExchangeRateTimeStandards\x120.finance.v1.ListExchangeRateTimeStandardsRequest\x1a1.finance.v1.ListExchangeRateTimeStandardsResponse\"_\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/finance/exchange-rate-time-standards\x12\xf0\x01\n" +
+	"\x1fUpdateExchangeRateTimeStandards\x122.finance.v1.UpdateExchangeRateTimeStandardsRequest\x1a3.finance.v1.UpdateExchangeRateTimeStandardsResponse\"d\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/finance/exchange-rate-time-standardsB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_exchange_rate_proto_rawDescOnce sync.Once
@@ -848,35 +1126,47 @@ func file_finance_v1_exchange_rate_proto_rawDescGZIP() []byte {
 	return file_finance_v1_exchange_rate_proto_rawDescData
 }
 
-var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_finance_v1_exchange_rate_proto_goTypes = []any{
-	(*ExchangeRateSetting)(nil),                // 0: finance.v1.ExchangeRateSetting
-	(*ListExchangeRateSettingsRequest)(nil),    // 1: finance.v1.ListExchangeRateSettingsRequest
-	(*ListExchangeRateSettingsResponse)(nil),   // 2: finance.v1.ListExchangeRateSettingsResponse
-	(*CreateExchangeRateSettingRequest)(nil),   // 3: finance.v1.CreateExchangeRateSettingRequest
-	(*UpdateExchangeRateSettingRequest)(nil),   // 4: finance.v1.UpdateExchangeRateSettingRequest
-	(*DisableExchangeRateSettingRequest)(nil),  // 5: finance.v1.DisableExchangeRateSettingRequest
-	(*CreateExchangeRateSettingResponse)(nil),  // 6: finance.v1.CreateExchangeRateSettingResponse
-	(*UpdateExchangeRateSettingResponse)(nil),  // 7: finance.v1.UpdateExchangeRateSettingResponse
-	(*DisableExchangeRateSettingResponse)(nil), // 8: finance.v1.DisableExchangeRateSettingResponse
+	(*ExchangeRateSetting)(nil),                     // 0: finance.v1.ExchangeRateSetting
+	(*ListExchangeRateSettingsRequest)(nil),         // 1: finance.v1.ListExchangeRateSettingsRequest
+	(*ListExchangeRateSettingsResponse)(nil),        // 2: finance.v1.ListExchangeRateSettingsResponse
+	(*CreateExchangeRateSettingRequest)(nil),        // 3: finance.v1.CreateExchangeRateSettingRequest
+	(*UpdateExchangeRateSettingRequest)(nil),        // 4: finance.v1.UpdateExchangeRateSettingRequest
+	(*DisableExchangeRateSettingRequest)(nil),       // 5: finance.v1.DisableExchangeRateSettingRequest
+	(*CreateExchangeRateSettingResponse)(nil),       // 6: finance.v1.CreateExchangeRateSettingResponse
+	(*UpdateExchangeRateSettingResponse)(nil),       // 7: finance.v1.UpdateExchangeRateSettingResponse
+	(*DisableExchangeRateSettingResponse)(nil),      // 8: finance.v1.DisableExchangeRateSettingResponse
+	(*ExchangeRateTimeStandardSetting)(nil),         // 9: finance.v1.ExchangeRateTimeStandardSetting
+	(*ListExchangeRateTimeStandardsRequest)(nil),    // 10: finance.v1.ListExchangeRateTimeStandardsRequest
+	(*ListExchangeRateTimeStandardsResponse)(nil),   // 11: finance.v1.ListExchangeRateTimeStandardsResponse
+	(*UpdateExchangeRateTimeStandardsRequest)(nil),  // 12: finance.v1.UpdateExchangeRateTimeStandardsRequest
+	(*UpdateExchangeRateTimeStandardsResponse)(nil), // 13: finance.v1.UpdateExchangeRateTimeStandardsResponse
 }
 var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
-	0, // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	0, // 1: finance.v1.CreateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	0, // 2: finance.v1.UpdateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
-	1, // 3: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
-	3, // 4: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
-	4, // 5: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
-	5, // 6: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
-	2, // 7: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
-	6, // 8: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
-	7, // 9: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
-	8, // 10: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	0,  // 1: finance.v1.CreateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	0,  // 2: finance.v1.UpdateExchangeRateSettingResponse.data:type_name -> finance.v1.ExchangeRateSetting
+	9,  // 3: finance.v1.ListExchangeRateTimeStandardsResponse.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
+	9,  // 4: finance.v1.UpdateExchangeRateTimeStandardsRequest.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
+	9,  // 5: finance.v1.UpdateExchangeRateTimeStandardsResponse.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
+	1,  // 6: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
+	3,  // 7: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
+	4,  // 8: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
+	5,  // 9: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
+	10, // 10: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:input_type -> finance.v1.ListExchangeRateTimeStandardsRequest
+	12, // 11: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:input_type -> finance.v1.UpdateExchangeRateTimeStandardsRequest
+	2,  // 12: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
+	6,  // 13: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
+	7,  // 14: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
+	8,  // 15: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
+	11, // 16: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:output_type -> finance.v1.ListExchangeRateTimeStandardsResponse
+	13, // 17: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:output_type -> finance.v1.UpdateExchangeRateTimeStandardsResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_exchange_rate_proto_init() }
@@ -893,7 +1183,7 @@ func file_finance_v1_exchange_rate_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_exchange_rate_proto_rawDesc), len(file_finance_v1_exchange_rate_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

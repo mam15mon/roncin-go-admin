@@ -2,6 +2,37 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** 此处后端没有提供注释 GET /api/v1/finance/exchange-rate-time-standards */
+export async function exchangeRateServiceListExchangeRateTimeStandards(options?: {
+  [key: string]: any;
+}) {
+  return request<API.ListExchangeRateTimeStandardsResponse>(
+    "/api/v1/finance/exchange-rate-time-standards",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/finance/exchange-rate-time-standards */
+export async function exchangeRateServiceUpdateExchangeRateTimeStandards(
+  body: API.UpdateExchangeRateTimeStandardsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.UpdateExchangeRateTimeStandardsResponse>(
+    "/api/v1/finance/exchange-rate-time-standards",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/exchange-rates */
 export async function exchangeRateServiceListExchangeRateSettings(options?: {
   [key: string]: any;

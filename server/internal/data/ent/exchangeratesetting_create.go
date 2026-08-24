@@ -73,12 +73,6 @@ func (_c *ExchangeRateSettingCreate) SetToCurrency(v string) *ExchangeRateSettin
 	return _c
 }
 
-// SetTimeStandard sets the "time_standard" field.
-func (_c *ExchangeRateSettingCreate) SetTimeStandard(v exchangeratesetting.TimeStandard) *ExchangeRateSettingCreate {
-	_c.mutation.SetTimeStandard(v)
-	return _c
-}
-
 // SetEffectiveFrom sets the "effective_from" field.
 func (_c *ExchangeRateSettingCreate) SetEffectiveFrom(v string) *ExchangeRateSettingCreate {
 	_c.mutation.SetEffectiveFrom(v)
@@ -227,14 +221,6 @@ func (_c *ExchangeRateSettingCreate) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.TimeStandard(); !ok {
-		return &ValidationError{Name: "time_standard", err: errors.New(`ent: missing required field "ExchangeRateSetting.time_standard"`)}
-	}
-	if v, ok := _c.mutation.TimeStandard(); ok {
-		if err := exchangeratesetting.TimeStandardValidator(v); err != nil {
-			return &ValidationError{Name: "time_standard", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.time_standard": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.EffectiveFrom(); !ok {
 		return &ValidationError{Name: "effective_from", err: errors.New(`ent: missing required field "ExchangeRateSetting.effective_from"`)}
 	}
@@ -315,10 +301,6 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 	if value, ok := _c.mutation.ToCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldToCurrency, field.TypeString, value)
 		_node.ToCurrency = value
-	}
-	if value, ok := _c.mutation.TimeStandard(); ok {
-		_spec.SetField(exchangeratesetting.FieldTimeStandard, field.TypeEnum, value)
-		_node.TimeStandard = value
 	}
 	if value, ok := _c.mutation.EffectiveFrom(); ok {
 		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)

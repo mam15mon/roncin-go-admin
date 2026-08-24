@@ -28,6 +28,8 @@ type Tx struct {
 	Currency *CurrencyClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
+	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
+	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
@@ -255,6 +257,7 @@ func (tx *Tx) init() {
 	tx.BillingUnit = NewBillingUnitClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
+	tx.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)

@@ -105,6 +105,18 @@ func (f ExchangeRateSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateSettingMutation", m)
 }
 
+// The ExchangeRateTimeStandardFunc type is an adapter to allow the use of ordinary
+// function as ExchangeRateTimeStandard mutator.
+type ExchangeRateTimeStandardFunc func(context.Context, *ent.ExchangeRateTimeStandardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExchangeRateTimeStandardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExchangeRateTimeStandardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateTimeStandardMutation", m)
+}
+
 // The FeeSettingFunc type is an adapter to allow the use of ordinary
 // function as FeeSetting mutator.
 type FeeSettingFunc func(context.Context, *ent.FeeSettingMutation) (ent.Value, error)

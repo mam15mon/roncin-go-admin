@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -12,15 +13,30 @@ type orderFeeExchangeRateRepoStub struct {
 	ExchangeRateRepo
 	resolveCalls int
 	resolved     *ResolvedExchangeRate
+	rateType     string
 }
 
 func (r *orderFeeExchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*ExchangeRateContext, error) {
 	return &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}, nil
 }
 
-func (r *orderFeeExchangeRateRepoStub) Resolve(context.Context, uuid.UUID, OrderFeeDirection, string, string, string) (*ResolvedExchangeRate, error) {
+func (r *orderFeeExchangeRateRepoStub) ListTimeStandards(context.Context, uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error) {
+	return []*ExchangeRateTimeStandardSetting{{RateType: BaseCurrencyRateType, TimeStandards: []string{OrderCreatedAtStandard}}}, nil
+}
+
+func (r *orderFeeExchangeRateRepoStub) Resolve(_ context.Context, _ uuid.UUID, rateType string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
 	r.resolveCalls++
+	r.rateType = rateType
 	return r.resolved, nil
+}
+
+type orderFeeRepoStub struct {
+	OrderFeeRepo
+	rateContext *OrderFeeExchangeRateContext
+}
+
+func (r *orderFeeRepoStub) ExchangeRateContext(context.Context, uuid.UUID, uuid.UUID) (*OrderFeeExchangeRateContext, error) {
+	return r.rateContext, nil
 }
 
 func TestNormalizeOrderFeeCalculatesExactTotal(t *testing.T) {
@@ -86,7 +102,7 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
 
-	err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), fee, false)
+	err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false)
 	if err != ErrOrderFeeExchangeRateOverrideForbidden {
 		t.Fatalf("无权用户手工覆盖汇率应被拒绝，实际错误为 %v", err)
 	}
@@ -104,7 +120,7 @@ func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	fee.ExchangeRateOverride = &override
 	fee.ExchangeRateSettingID = &settingID
 
-	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), fee, true); err != nil {
+	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, true); err != nil {
 		t.Fatalf("有权用户手工覆盖汇率失败: %v", err)
 	}
 	if got := fee.ExchangeRate.StringFixed(8); got != "0.10000000" {
@@ -126,11 +142,11 @@ func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) 
 		RateDate:  "2026-08-24",
 		SettingID: &settingID,
 	}}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{rateContext: &OrderFeeExchangeRateContext{OrderCreatedAt: time.Date(2026, 8, 24, 0, 0, 0, 0, time.UTC)}}, NewExchangeRateUsecase(rateRepo))
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
-	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), fee, false); err != nil {
+	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false); err != nil {
 		t.Fatalf("系统汇率解析失败: %v", err)
 	}
 	if got := fee.ExchangeRate.StringFixed(8); got != "7.12345678" || fee.ExchangeRateSource != "SYSTEM" || fee.ExchangeRateSettingID == nil || *fee.ExchangeRateSettingID != settingID {
@@ -138,6 +154,9 @@ func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) 
 	}
 	if rateRepo.resolveCalls != 1 {
 		t.Fatalf("未覆盖时应解析一次系统汇率，实际调用 %d 次", rateRepo.resolveCalls)
+	}
+	if rateRepo.rateType != BaseCurrencyRateType {
+		t.Fatalf("订单费用应使用折本币汇率，实际类型为 %s", rateRepo.rateType)
 	}
 }
 

@@ -27,8 +27,6 @@ const (
 	FieldFromCurrency = "from_currency"
 	// FieldToCurrency holds the string denoting the to_currency field in the database.
 	FieldToCurrency = "to_currency"
-	// FieldTimeStandard holds the string denoting the time_standard field in the database.
-	FieldTimeStandard = "time_standard"
 	// FieldEffectiveFrom holds the string denoting the effective_from field in the database.
 	FieldEffectiveFrom = "effective_from"
 	// FieldEffectiveTo holds the string denoting the effective_to field in the database.
@@ -52,7 +50,6 @@ var Columns = []string{
 	FieldRateType,
 	FieldFromCurrency,
 	FieldToCurrency,
-	FieldTimeStandard,
 	FieldEffectiveFrom,
 	FieldEffectiveTo,
 	FieldReceivableRate,
@@ -117,28 +114,6 @@ func RateTypeValidator(rt RateType) error {
 	}
 }
 
-// TimeStandard defines the type for the "time_standard" enum field.
-type TimeStandard string
-
-// TimeStandard values.
-const (
-	TimeStandardEXPENSE_DATE TimeStandard = "EXPENSE_DATE"
-)
-
-func (ts TimeStandard) String() string {
-	return string(ts)
-}
-
-// TimeStandardValidator is a validator for the "time_standard" field enum values. It is called by the builders before save.
-func TimeStandardValidator(ts TimeStandard) error {
-	switch ts {
-	case TimeStandardEXPENSE_DATE:
-		return nil
-	default:
-		return fmt.Errorf("exchangeratesetting: invalid enum value for time_standard field: %q", ts)
-	}
-}
-
 // OrderOption defines the ordering options for the ExchangeRateSetting queries.
 type OrderOption func(*sql.Selector)
 
@@ -175,11 +150,6 @@ func ByFromCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByToCurrency orders the results by the to_currency field.
 func ByToCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldToCurrency, opts...).ToFunc()
-}
-
-// ByTimeStandard orders the results by the time_standard field.
-func ByTimeStandard(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTimeStandard, opts...).ToFunc()
 }
 
 // ByEffectiveFrom orders the results by the effective_from field.

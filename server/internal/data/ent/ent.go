@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -132,6 +133,7 @@ func checkColumn(t, c string) error {
 			billingunit.Table:                 billingunit.ValidColumn,
 			currency.Table:                    currency.ValidColumn,
 			exchangeratesetting.Table:         exchangeratesetting.ValidColumn,
+			exchangeratetimestandard.Table:    exchangeratetimestandard.ValidColumn,
 			feesetting.Table:                  feesetting.ValidColumn,
 			masterdataitem.Table:              masterdataitem.ValidColumn,
 			membership.Table:                  membership.ValidColumn,

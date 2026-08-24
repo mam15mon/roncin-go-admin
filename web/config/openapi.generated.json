@@ -1012,6 +1012,54 @@
         }
       }
     },
+    "/api/v1/finance/exchange-rate-time-standards": {
+      "get": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "operationId": "ExchangeRateService_ListExchangeRateTimeStandards",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListExchangeRateTimeStandardsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "operationId": "ExchangeRateService_UpdateExchangeRateTimeStandards",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateTimeStandardsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateTimeStandardsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/exchange-rates": {
       "get": {
         "tags": [
@@ -3158,7 +3206,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。",
+        "description": "ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。",
         "operationId": "OrderFeeService_ResolveFeeExchangeRate",
         "parameters": [
           {
@@ -6187,7 +6235,6 @@
           "rateType",
           "fromCurrency",
           "toCurrency",
-          "timeStandard",
           "effectiveFrom",
           "receivableRate",
           "payableRate"
@@ -6201,9 +6248,6 @@
             "type": "string"
           },
           "toCurrency": {
-            "type": "string"
-          },
-          "timeStandard": {
             "type": "string"
           },
           "effectiveFrom": {
@@ -6398,9 +6442,6 @@
           "toCurrency": {
             "type": "string"
           },
-          "timeStandard": {
-            "type": "string"
-          },
           "effectiveFrom": {
             "type": "string"
           },
@@ -6421,6 +6462,20 @@
           },
           "updatedAt": {
             "type": "string"
+          }
+        }
+      },
+      "finance.v1.ExchangeRateTimeStandardSetting": {
+        "type": "object",
+        "properties": {
+          "rateType": {
+            "type": "string"
+          },
+          "timeStandards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6537,6 +6592,30 @@
             "type": "string"
           },
           "baseCurrency": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListExchangeRateTimeStandardsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
+            }
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -6674,7 +6753,6 @@
           "rateType",
           "fromCurrency",
           "toCurrency",
-          "timeStandard",
           "effectiveFrom",
           "receivableRate",
           "payableRate"
@@ -6691,9 +6769,6 @@
             "type": "string"
           },
           "toCurrency": {
-            "type": "string"
-          },
-          "timeStandard": {
             "type": "string"
           },
           "effectiveFrom": {
@@ -6725,6 +6800,44 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.ExchangeRateSetting"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.UpdateExchangeRateTimeStandardsRequest": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
+            }
+          }
+        }
+      },
+      "finance.v1.UpdateExchangeRateTimeStandardsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting"
+            }
           },
           "traceId": {
             "type": "string"
@@ -13176,7 +13289,7 @@
     },
     {
       "name": "ExchangeRateService",
-      "description": "ExchangeRateService 维护订单费用结算汇率主数据。"
+      "description": "ExchangeRateService 维护组织汇率主数据及各类型的取值时间标准。"
     },
     {
       "name": "FeeCatalogService",

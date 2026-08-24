@@ -23,7 +23,7 @@ service OrderFeeService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fees"};
   }
 
-  // ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+  // ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
   rpc ResolveFeeExchangeRate(ResolveFeeExchangeRateRequest) returns (ResolveFeeExchangeRateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-exchange-rate"};

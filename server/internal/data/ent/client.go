@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -91,6 +92,8 @@ type Client struct {
 	Currency *CurrencyClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
+	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
+	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
@@ -198,6 +201,7 @@ func (c *Client) init() {
 	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
+	c.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(c.config)
 	c.FeeSetting = NewFeeSettingClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
@@ -342,6 +346,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BillingUnit:                 NewBillingUnitClient(cfg),
 		Currency:                    NewCurrencyClient(cfg),
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
+		ExchangeRateTimeStandard:    NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                  NewFeeSettingClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
@@ -413,6 +418,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BillingUnit:                 NewBillingUnitClient(cfg),
 		Currency:                    NewCurrencyClient(cfg),
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
+		ExchangeRateTimeStandard:    NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                  NewFeeSettingClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
@@ -487,18 +493,19 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.FeeSetting,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
-		c.OrderFee, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
+		c.FeeSetting, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
+		c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -509,18 +516,19 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.FeeSetting,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
-		c.OrderFee, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
-		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
-		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
+		c.FeeSetting, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
+		c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -545,6 +553,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Currency.mutate(ctx, m)
 	case *ExchangeRateSettingMutation:
 		return c.ExchangeRateSetting.mutate(ctx, m)
+	case *ExchangeRateTimeStandardMutation:
+		return c.ExchangeRateTimeStandard.mutate(ctx, m)
 	case *FeeSettingMutation:
 		return c.FeeSetting.mutate(ctx, m)
 	case *MasterDataItemMutation:
@@ -1795,6 +1805,139 @@ func (c *ExchangeRateSettingClient) mutate(ctx context.Context, m *ExchangeRateS
 		return (&ExchangeRateSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ExchangeRateSetting mutation op: %q", m.Op())
+	}
+}
+
+// ExchangeRateTimeStandardClient is a client for the ExchangeRateTimeStandard schema.
+type ExchangeRateTimeStandardClient struct {
+	config
+}
+
+// NewExchangeRateTimeStandardClient returns a client for the ExchangeRateTimeStandard from the given config.
+func NewExchangeRateTimeStandardClient(c config) *ExchangeRateTimeStandardClient {
+	return &ExchangeRateTimeStandardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `exchangeratetimestandard.Hooks(f(g(h())))`.
+func (c *ExchangeRateTimeStandardClient) Use(hooks ...Hook) {
+	c.hooks.ExchangeRateTimeStandard = append(c.hooks.ExchangeRateTimeStandard, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `exchangeratetimestandard.Intercept(f(g(h())))`.
+func (c *ExchangeRateTimeStandardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExchangeRateTimeStandard = append(c.inters.ExchangeRateTimeStandard, interceptors...)
+}
+
+// Create returns a builder for creating a ExchangeRateTimeStandard entity.
+func (c *ExchangeRateTimeStandardClient) Create() *ExchangeRateTimeStandardCreate {
+	mutation := newExchangeRateTimeStandardMutation(c.config, OpCreate)
+	return &ExchangeRateTimeStandardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExchangeRateTimeStandard entities.
+func (c *ExchangeRateTimeStandardClient) CreateBulk(builders ...*ExchangeRateTimeStandardCreate) *ExchangeRateTimeStandardCreateBulk {
+	return &ExchangeRateTimeStandardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExchangeRateTimeStandardClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateTimeStandardCreate, int)) *ExchangeRateTimeStandardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExchangeRateTimeStandardCreateBulk{err: fmt.Errorf("calling to ExchangeRateTimeStandardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExchangeRateTimeStandardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExchangeRateTimeStandardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExchangeRateTimeStandard.
+func (c *ExchangeRateTimeStandardClient) Update() *ExchangeRateTimeStandardUpdate {
+	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdate)
+	return &ExchangeRateTimeStandardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExchangeRateTimeStandardClient) UpdateOne(_m *ExchangeRateTimeStandard) *ExchangeRateTimeStandardUpdateOne {
+	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdateOne, withExchangeRateTimeStandard(_m))
+	return &ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExchangeRateTimeStandardClient) UpdateOneID(id uuid.UUID) *ExchangeRateTimeStandardUpdateOne {
+	mutation := newExchangeRateTimeStandardMutation(c.config, OpUpdateOne, withExchangeRateTimeStandardID(id))
+	return &ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExchangeRateTimeStandard.
+func (c *ExchangeRateTimeStandardClient) Delete() *ExchangeRateTimeStandardDelete {
+	mutation := newExchangeRateTimeStandardMutation(c.config, OpDelete)
+	return &ExchangeRateTimeStandardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExchangeRateTimeStandardClient) DeleteOne(_m *ExchangeRateTimeStandard) *ExchangeRateTimeStandardDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExchangeRateTimeStandardClient) DeleteOneID(id uuid.UUID) *ExchangeRateTimeStandardDeleteOne {
+	builder := c.Delete().Where(exchangeratetimestandard.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExchangeRateTimeStandardDeleteOne{builder}
+}
+
+// Query returns a query builder for ExchangeRateTimeStandard.
+func (c *ExchangeRateTimeStandardClient) Query() *ExchangeRateTimeStandardQuery {
+	return &ExchangeRateTimeStandardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExchangeRateTimeStandard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExchangeRateTimeStandard entity by its id.
+func (c *ExchangeRateTimeStandardClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRateTimeStandard, error) {
+	return c.Query().Where(exchangeratetimestandard.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExchangeRateTimeStandardClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRateTimeStandard {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExchangeRateTimeStandardClient) Hooks() []Hook {
+	return c.hooks.ExchangeRateTimeStandard
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExchangeRateTimeStandardClient) Interceptors() []Interceptor {
+	return c.inters.ExchangeRateTimeStandard
+}
+
+func (c *ExchangeRateTimeStandardClient) mutate(ctx context.Context, m *ExchangeRateTimeStandardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExchangeRateTimeStandardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExchangeRateTimeStandardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExchangeRateTimeStandardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExchangeRateTimeStandardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExchangeRateTimeStandard mutation op: %q", m.Op())
 	}
 }
 
@@ -9638,30 +9781,30 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateSetting, FeeSetting, MasterDataItem, Membership,
-		MilestoneTemplate, MilestoneTemplateItem, NumberRule, NumberSequence, Order,
-		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
-		OrderContainer, OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, OrderStatusLog, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
+		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateSetting, FeeSetting, MasterDataItem, Membership,
-		MilestoneTemplate, MilestoneTemplateItem, NumberRule, NumberSequence, Order,
-		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
-		OrderContainer, OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, OrderStatusLog, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
+		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Interceptor
 	}
 )

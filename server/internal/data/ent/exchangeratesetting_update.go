@@ -91,20 +91,6 @@ func (_u *ExchangeRateSettingUpdate) SetNillableToCurrency(v *string) *ExchangeR
 	return _u
 }
 
-// SetTimeStandard sets the "time_standard" field.
-func (_u *ExchangeRateSettingUpdate) SetTimeStandard(v exchangeratesetting.TimeStandard) *ExchangeRateSettingUpdate {
-	_u.mutation.SetTimeStandard(v)
-	return _u
-}
-
-// SetNillableTimeStandard sets the "time_standard" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillableTimeStandard(v *exchangeratesetting.TimeStandard) *ExchangeRateSettingUpdate {
-	if v != nil {
-		_u.SetTimeStandard(*v)
-	}
-	return _u
-}
-
 // SetEffectiveFrom sets the "effective_from" field.
 func (_u *ExchangeRateSettingUpdate) SetEffectiveFrom(v string) *ExchangeRateSettingUpdate {
 	_u.mutation.SetEffectiveFrom(v)
@@ -239,11 +225,6 @@ func (_u *ExchangeRateSettingUpdate) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TimeStandard(); ok {
-		if err := exchangeratesetting.TimeStandardValidator(v); err != nil {
-			return &ValidationError{Name: "time_standard", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.time_standard": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.EffectiveFrom(); ok {
 		if err := exchangeratesetting.EffectiveFromValidator(v); err != nil {
 			return &ValidationError{Name: "effective_from", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_from": %w`, err)}
@@ -283,9 +264,6 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 	}
 	if value, ok := _u.mutation.ToCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldToCurrency, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.TimeStandard(); ok {
-		_spec.SetField(exchangeratesetting.FieldTimeStandard, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.EffectiveFrom(); ok {
 		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)
@@ -383,20 +361,6 @@ func (_u *ExchangeRateSettingUpdateOne) SetToCurrency(v string) *ExchangeRateSet
 func (_u *ExchangeRateSettingUpdateOne) SetNillableToCurrency(v *string) *ExchangeRateSettingUpdateOne {
 	if v != nil {
 		_u.SetToCurrency(*v)
-	}
-	return _u
-}
-
-// SetTimeStandard sets the "time_standard" field.
-func (_u *ExchangeRateSettingUpdateOne) SetTimeStandard(v exchangeratesetting.TimeStandard) *ExchangeRateSettingUpdateOne {
-	_u.mutation.SetTimeStandard(v)
-	return _u
-}
-
-// SetNillableTimeStandard sets the "time_standard" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillableTimeStandard(v *exchangeratesetting.TimeStandard) *ExchangeRateSettingUpdateOne {
-	if v != nil {
-		_u.SetTimeStandard(*v)
 	}
 	return _u
 }
@@ -548,11 +512,6 @@ func (_u *ExchangeRateSettingUpdateOne) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TimeStandard(); ok {
-		if err := exchangeratesetting.TimeStandardValidator(v); err != nil {
-			return &ValidationError{Name: "time_standard", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.time_standard": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.EffectiveFrom(); ok {
 		if err := exchangeratesetting.EffectiveFromValidator(v); err != nil {
 			return &ValidationError{Name: "effective_from", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_from": %w`, err)}
@@ -609,9 +568,6 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 	}
 	if value, ok := _u.mutation.ToCurrency(); ok {
 		_spec.SetField(exchangeratesetting.FieldToCurrency, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.TimeStandard(); ok {
-		_spec.SetField(exchangeratesetting.FieldTimeStandard, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.EffectiveFrom(); ok {
 		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)

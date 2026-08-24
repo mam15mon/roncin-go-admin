@@ -20,7 +20,6 @@ func (ExchangeRateSetting) Fields() []ent.Field {
 		field.Enum("rate_type").Values("BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"),
 		field.String("from_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("to_currency").NotEmpty().MinLen(3).MaxLen(3),
-		field.Enum("time_standard").Values("EXPENSE_DATE"),
 		field.String("effective_from").NotEmpty().MinLen(10).MaxLen(10),
 		field.String("effective_to").Optional().Nillable().MinLen(10).MaxLen(10),
 		field.String("receivable_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
@@ -31,8 +30,8 @@ func (ExchangeRateSetting) Fields() []ent.Field {
 
 func (ExchangeRateSetting) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "effective_from").Unique().StorageKey("exchange_rate_setting_unique_effective_from"),
-		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "is_active").StorageKey("exchange_rate_setting_active_lookup"),
+		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "effective_from").Unique().StorageKey("exchange_rate_setting_unique_effective_from"),
+		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "is_active").StorageKey("exchange_rate_setting_active_lookup"),
 		index.Fields("organization_id", "effective_from", "effective_to").StorageKey("exchange_rate_setting_effective_range"),
 	}
 }

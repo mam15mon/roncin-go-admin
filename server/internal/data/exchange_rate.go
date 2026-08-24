@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/shopspring/decimal"
 )
@@ -44,7 +45,7 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateSetting, error) {
 	items, err := r.data.db.ExchangeRateSetting.Query().
 		Where(exchangerateent.OrganizationIDEQ(organizationID)).
-		Order(exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
+		Order(exchangerateent.ByRateType(), exchangerateent.ByFromCurrency(), exchangerateent.ByEffectiveFrom(), exchangerateent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	if err := r.validateCurrencies(ctx, input.FromCurrency, input.ToCurrency); err != nil {
 		return nil, err
 	}
-	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s:%s:%s", input.OrganizationID, input.RateType, input.FromCurrency, input.ToCurrency, input.TimeStandard)
+	lockKey := fmt.Sprintf("exchange-rate:%s:%s:%s:%s", input.OrganizationID, input.RateType, input.FromCurrency, input.ToCurrency)
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	conflict := tx.ExchangeRateSetting.Query().Where(
 		exchangerateent.OrganizationIDEQ(input.OrganizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(input.RateType)),
 		exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
-		exchangerateent.TimeStandardEQ(exchangerateent.TimeStandard(input.TimeStandard)), exchangerateent.IsActiveEQ(true),
+		exchangerateent.IsActiveEQ(true),
 		exchangerateent.IDNEQ(input.ID),
 		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(input.EffectiveFrom)),
 	)
@@ -124,7 +125,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	if updating {
 		builder := tx.ExchangeRateSetting.UpdateOneID(input.ID).
 			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetTimeStandard(exchangerateent.TimeStandard(input.TimeStandard)).SetEffectiveFrom(input.EffectiveFrom).
+			SetEffectiveFrom(input.EffectiveFrom).
 			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8))
 		if input.EffectiveTo == nil {
 			builder.ClearEffectiveTo()
@@ -135,7 +136,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	} else {
 		builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
 			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetTimeStandard(exchangerateent.TimeStandard(input.TimeStandard)).SetEffectiveFrom(input.EffectiveFrom).
+			SetEffectiveFrom(input.EffectiveFrom).
 			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8)).SetIsActive(true)
 		if input.EffectiveTo != nil {
 			builder.SetEffectiveTo(*input.EffectiveTo)
@@ -180,11 +181,62 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 	return tx.Commit()
 }
 
-func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
+func (r *exchangeRateRepo) ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateTimeStandardSetting, error) {
+	items, err := r.data.db.ExchangeRateTimeStandard.Query().
+		Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).
+		Order(exchangeratetimestandardent.ByRateType(), exchangeratetimestandardent.BySortOrder()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.ExchangeRateTimeStandardSetting, 0, 5)
+	byType := make(map[string]*biz.ExchangeRateTimeStandardSetting, 5)
+	for _, item := range items {
+		rateType := string(item.RateType)
+		setting := byType[rateType]
+		if setting == nil {
+			setting = &biz.ExchangeRateTimeStandardSetting{RateType: rateType, TimeStandards: []string{}}
+			byType[rateType] = setting
+			result = append(result, setting)
+		}
+		setting.TimeStandards = append(setting.TimeStandards, string(item.TimeStandard))
+	}
+	return result, nil
+}
+
+func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizationID uuid.UUID, settings []*biz.ExchangeRateTimeStandardSetting, audit *biz.AuditEvent) error {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	for _, setting := range settings {
+		for index, standard := range setting.TimeStandards {
+			if _, err := tx.ExchangeRateTimeStandard.Create().
+				SetOrganizationID(organizationID).
+				SetRateType(exchangeratetimestandardent.RateType(setting.RateType)).
+				SetTimeStandard(exchangeratetimestandardent.TimeStandard(standard)).
+				SetSortOrder(index).
+				Save(ctx); err != nil {
+				_ = tx.Rollback()
+				return err
+			}
+		}
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
 	items, err := r.data.db.ExchangeRateSetting.Query().Where(
-		exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.RateTypeEQ(exchangerateent.RateTypeSETTLEMENT),
+		exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(rateType)),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
-		exchangerateent.TimeStandardEQ(exchangerateent.TimeStandardEXPENSE_DATE), exchangerateent.IsActiveEQ(true),
+		exchangerateent.IsActiveEQ(true),
 		exchangerateent.EffectiveFromLTE(rateDate), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(rateDate)),
 	).Limit(2).All(ctx)
 	if err != nil {
@@ -228,7 +280,7 @@ func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting,
 	if err != nil {
 		return nil, err
 	}
-	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, TimeStandard: string(item.TimeStandard), EffectiveFrom: item.EffectiveFrom, EffectiveTo: item.EffectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
+	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: item.EffectiveFrom, EffectiveTo: item.EffectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
 }
 
 var _ biz.ExchangeRateRepo = (*exchangeRateRepo)(nil)

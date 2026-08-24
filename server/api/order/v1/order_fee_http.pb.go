@@ -33,7 +33,7 @@ type OrderFeeServiceHTTPServer interface {
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
 	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
-	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
@@ -190,7 +190,7 @@ type OrderFeeServiceHTTPClient interface {
 	ListFees(ctx context.Context, req *ListFeesRequest, opts ...http.CallOption) (rsp *ListFeesResponse, err error)
 	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
-	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
@@ -273,7 +273,7 @@ func (c *OrderFeeServiceHTTPClientImpl) RemoveFee(ctx context.Context, in *Remov
 	return &out, nil
 }
 
-// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (*ResolveFeeExchangeRateResponse, error) {
 	var out ResolveFeeExchangeRateResponse
 	pattern := "/api/v1/orders/{order_id}/fee-exchange-rate"

@@ -40,7 +40,7 @@ func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, req
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	input, err := exchangeRateInputFromAPI(request.GetRateType(), request.GetFromCurrency(), request.GetToCurrency(), request.GetTimeStandard(), request.GetEffectiveFrom(), request.EffectiveTo, request.GetReceivableRate(), request.GetPayableRate())
+	input, err := exchangeRateInputFromAPI(request.GetRateType(), request.GetFromCurrency(), request.GetToCurrency(), request.GetEffectiveFrom(), request.EffectiveTo, request.GetReceivableRate(), request.GetPayableRate())
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *ExchangeRateService) UpdateExchangeRateSetting(ctx context.Context, req
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
-	input, err := exchangeRateInputFromAPI(request.GetRateType(), request.GetFromCurrency(), request.GetToCurrency(), request.GetTimeStandard(), request.GetEffectiveFrom(), request.EffectiveTo, request.GetReceivableRate(), request.GetPayableRate())
+	input, err := exchangeRateInputFromAPI(request.GetRateType(), request.GetFromCurrency(), request.GetToCurrency(), request.GetEffectiveFrom(), request.EffectiveTo, request.GetReceivableRate(), request.GetPayableRate())
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,35 @@ func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, re
 	return &v1.DisableExchangeRateSettingResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func exchangeRateInputFromAPI(rateType, fromCurrency, toCurrency, timeStandard, effectiveFrom string, effectiveTo *string, receivableText, payableText string) (*biz.ExchangeRateSetting, error) {
+func (s *ExchangeRateService) ListExchangeRateTimeStandards(ctx context.Context, _ *v1.ListExchangeRateTimeStandardsRequest) (*v1.ListExchangeRateTimeStandardsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	settings, err := s.usecase.ListTimeStandards(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(settings), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Context, request *v1.UpdateExchangeRateTimeStandardsRequest) (*v1.UpdateExchangeRateTimeStandardsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	settings := make([]*biz.ExchangeRateTimeStandardSetting, 0, len(request.GetData()))
+	for _, item := range request.GetData() {
+		settings = append(settings, &biz.ExchangeRateTimeStandardSetting{RateType: item.GetRateType(), TimeStandards: append([]string(nil), item.GetTimeStandards()...)})
+	}
+	updated, err := s.usecase.UpdateTimeStandards(ctx, principal.Organization.ID, principal.UserID, settings)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func exchangeRateInputFromAPI(rateType, fromCurrency, toCurrency, effectiveFrom string, effectiveTo *string, receivableText, payableText string) (*biz.ExchangeRateSetting, error) {
 	receivable, err := parsePlainDecimal(receivableText)
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
@@ -95,11 +123,19 @@ func exchangeRateInputFromAPI(rateType, fromCurrency, toCurrency, timeStandard, 
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
-	return &biz.ExchangeRateSetting{RateType: rateType, FromCurrency: fromCurrency, ToCurrency: toCurrency, TimeStandard: timeStandard, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, ReceivableRate: receivable, PayableRate: payable}, nil
+	return &biz.ExchangeRateSetting{RateType: rateType, FromCurrency: fromCurrency, ToCurrency: toCurrency, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, ReceivableRate: receivable, PayableRate: payable}, nil
 }
 
 func exchangeRateToAPI(value *biz.ExchangeRateSetting) *v1.ExchangeRateSetting {
-	return &v1.ExchangeRateSetting{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), RateType: value.RateType, FromCurrency: value.FromCurrency, ToCurrency: value.ToCurrency, TimeStandard: value.TimeStandard, EffectiveFrom: value.EffectiveFrom, EffectiveTo: value.EffectiveTo, ReceivableRate: value.ReceivableRate.StringFixed(8), PayableRate: value.PayableRate.StringFixed(8), IsActive: value.IsActive, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.ExchangeRateSetting{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), RateType: value.RateType, FromCurrency: value.FromCurrency, ToCurrency: value.ToCurrency, EffectiveFrom: value.EffectiveFrom, EffectiveTo: value.EffectiveTo, ReceivableRate: value.ReceivableRate.StringFixed(8), PayableRate: value.PayableRate.StringFixed(8), IsActive: value.IsActive, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func exchangeRateTimeStandardsToAPI(settings []*biz.ExchangeRateTimeStandardSetting) []*v1.ExchangeRateTimeStandardSetting {
+	result := make([]*v1.ExchangeRateTimeStandardSetting, 0, len(settings))
+	for _, setting := range settings {
+		result = append(result, &v1.ExchangeRateTimeStandardSetting{RateType: setting.RateType, TimeStandards: append([]string(nil), setting.TimeStandards...)})
+	}
+	return result
 }
 
 var _ v1.ExchangeRateServiceServer = (*ExchangeRateService)(nil)

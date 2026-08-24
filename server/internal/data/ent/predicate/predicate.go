@@ -30,6 +30,9 @@ type Currency func(*sql.Selector)
 // ExchangeRateSetting is the predicate function for exchangeratesetting builders.
 type ExchangeRateSetting func(*sql.Selector)
 
+// ExchangeRateTimeStandard is the predicate function for exchangeratetimestandard builders.
+type ExchangeRateTimeStandard func(*sql.Selector)
+
 // FeeSetting is the predicate function for feesetting builders.
 type FeeSetting func(*sql.Selector)
 

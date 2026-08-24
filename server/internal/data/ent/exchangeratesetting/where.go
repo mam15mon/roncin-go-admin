@@ -375,26 +375,6 @@ func ToCurrencyContainsFold(v string) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldToCurrency, v))
 }
 
-// TimeStandardEQ applies the EQ predicate on the "time_standard" field.
-func TimeStandardEQ(v TimeStandard) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldTimeStandard, v))
-}
-
-// TimeStandardNEQ applies the NEQ predicate on the "time_standard" field.
-func TimeStandardNEQ(v TimeStandard) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldTimeStandard, v))
-}
-
-// TimeStandardIn applies the In predicate on the "time_standard" field.
-func TimeStandardIn(vs ...TimeStandard) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldIn(FieldTimeStandard, vs...))
-}
-
-// TimeStandardNotIn applies the NotIn predicate on the "time_standard" field.
-func TimeStandardNotIn(vs ...TimeStandard) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldTimeStandard, vs...))
-}
-
 // EffectiveFromEQ applies the EQ predicate on the "effective_from" field.
 func EffectiveFromEQ(v string) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveFrom, v))
