@@ -85,6 +85,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [settlementParties, setSettlementParties] = useState<
       API.OrderFeeSettlementPartyOption[]
     >([]);
+    const [baseCurrency, setBaseCurrency] = useState('');
     const [totalPreview, setTotalPreview] = useState<string>();
     const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
 
@@ -96,6 +97,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           .then((response) => {
             setCurrencies(response.currencies ?? []);
             setSettlementParties(response.settlementParties ?? []);
+            setBaseCurrency(response.baseCurrency ?? '');
           })
           .catch((error: Error) =>
             message.error(error.message || '费用录入选项加载失败'),
@@ -265,7 +267,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           direction: RECEIVABLE,
           billingUnit: '票',
           quantity: '1',
-          currency: 'CNY',
+          currency: baseCurrency,
           expenseDate: dayjs(),
         };
 
@@ -279,6 +281,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setOrder(undefined);
             setCurrencies([]);
             setSettlementParties([]);
+            setBaseCurrency('');
           }}
           width={1280}
           destroyOnHidden

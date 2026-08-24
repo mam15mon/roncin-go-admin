@@ -45,6 +45,7 @@ export default function ExchangeRatesPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
+  const [baseCurrency, setBaseCurrency] = useState('');
 
   const openCreate = () => {
     setEditing(undefined);
@@ -136,7 +137,7 @@ export default function ExchangeRatesPage() {
         receivableRate: trimExactDecimal(editing.receivableRate),
         payableRate: trimExactDecimal(editing.payableRate),
       }
-    : { toCurrency: 'CNY', effectiveFrom: dayjs() };
+    : { toCurrency: baseCurrency, effectiveFrom: dayjs() };
 
   return (
     <PageContainer
@@ -151,6 +152,7 @@ export default function ExchangeRatesPage() {
         pagination={false}
         request={async () => {
           const response = await exchangeRateServiceListExchangeRateSettings();
+          setBaseCurrency(response.baseCurrency ?? '');
           return { data: response.data ?? [], success: response.success ?? true };
         }}
         toolBarRender={() =>

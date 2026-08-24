@@ -99,11 +99,13 @@ function getChildOrganizationKind(kind?: number): 2 | 3 | 4 | undefined {
 type CreateFormValues = {
   code?: string;
   name?: string;
+  baseCurrency?: string;
 };
 
 type EditFormValues = {
   name?: string;
   enabled?: boolean;
+  baseCurrency?: string;
 };
 
 export default function OrganizationsPanel() {
@@ -349,6 +351,12 @@ export default function OrganizationsPanel() {
     if (!targetParent || !getChildOrganizationKind(targetParent.kind)) return;
     setParentForCreate(targetParent);
     createFormRef.current?.resetFields();
+    if (getChildOrganizationKind(targetParent.kind) === 2) {
+      createFormRef.current?.setFieldValue(
+        'baseCurrency',
+        targetParent.baseCurrency,
+      );
+    }
     setCreateModalOpen(true);
   };
 
@@ -360,6 +368,10 @@ export default function OrganizationsPanel() {
     editFormRef.current?.setFieldsValue({
       name: targetOrg.name,
       enabled: targetOrg.enabled ?? true,
+      baseCurrency:
+        targetOrg.kind === 1 || targetOrg.kind === 2
+          ? targetOrg.baseCurrency
+          : undefined,
     });
     setEditModalOpen(true);
   };
@@ -941,6 +953,12 @@ export default function OrganizationsPanel() {
                   <Descriptions.Item label="组织名称">
                     <Text strong>{selectedOrg.name}</Text>
                   </Descriptions.Item>
+                  <Descriptions.Item label="本币">
+                    <Tag color="blue">{selectedOrg.baseCurrency}</Tag>
+                    {selectedOrg.kind === 3 || selectedOrg.kind === 4 ? (
+                      <Text type="secondary">从所属公司继承</Text>
+                    ) : null}
+                  </Descriptions.Item>
                   <Descriptions.Item label="上级组织">
                     {parentOrgOfSelected ? (
                       <Button
@@ -1165,6 +1183,12 @@ export default function OrganizationsPanel() {
               <Descriptions.Item label="组织名称">
                 <Text strong>{selectedOrg.name}</Text>
               </Descriptions.Item>
+              <Descriptions.Item label="本币">
+                <Tag color="blue">{selectedOrg.baseCurrency}</Tag>
+                {selectedOrg.kind === 3 || selectedOrg.kind === 4 ? (
+                  <Text type="secondary">从所属公司继承</Text>
+                ) : null}
+              </Descriptions.Item>
               <Descriptions.Item label="所属上级">
                 {parentOrgOfSelected ? (
                   <span>
@@ -1259,6 +1283,10 @@ export default function OrganizationsPanel() {
               name: values.name?.trim() ?? '',
               parentId: parentForCreate.id,
               kind: childKindForCreate,
+              baseCurrency:
+                childKindForCreate === 2
+                  ? values.baseCurrency?.trim().toUpperCase()
+                  : undefined,
             });
             message.success(`${childKindMetaForCreate?.label}已成功创建`);
             setCreateModalOpen(false);
@@ -1297,6 +1325,18 @@ export default function OrganizationsPanel() {
           placeholder="例如：上海分公司 / 华东海运中心"
           rules={[{ required: true, message: '请输入组织名称' }]}
         />
+        {childKindForCreate === 2 && (
+          <ProFormText
+            name="baseCurrency"
+            label="本币"
+            placeholder="例如 CNY、USD"
+            fieldProps={{ maxLength: 3 }}
+            rules={[
+              { required: true, message: '请输入公司本币' },
+              { pattern: /^[A-Za-z]{3}$/, message: '请输入 3 位币种代码' },
+            ]}
+          />
+        )}
       </ModalForm>
 
       {/* Modal: Edit Organization */}
@@ -1319,6 +1359,10 @@ export default function OrganizationsPanel() {
                 id: editingOrg.id,
                 name: values.name?.trim() ?? '',
                 enabled: values.enabled ?? true,
+                baseCurrency:
+                  editingOrg.kind === 1 || editingOrg.kind === 2
+                    ? values.baseCurrency?.trim().toUpperCase()
+                    : undefined,
               },
             );
             message.success('组织已成功更新');
@@ -1352,6 +1396,19 @@ export default function OrganizationsPanel() {
           label="启用状态"
           extra="停用后该组织及其关联成员将无法进行业务操作"
         />
+        {(editingOrg?.kind === 1 || editingOrg?.kind === 2) && (
+          <ProFormText
+            name="baseCurrency"
+            label="本币"
+            placeholder="例如 CNY、USD"
+            fieldProps={{ maxLength: 3 }}
+            rules={[
+              { required: true, message: '请输入组织本币' },
+              { pattern: /^[A-Za-z]{3}$/, message: '请输入 3 位币种代码' },
+            ]}
+            extra="修改本币不会改变已保存费用的汇率快照"
+          />
+        )}
       </ModalForm>
     </>
   );
