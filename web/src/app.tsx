@@ -65,7 +65,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   ),
   menuItemRender: (item, dom) =>
     item.path ? (
-      <Link to={item.path} prefetch>
+      <Link to={item.path} className="roncin-menu-item-link" prefetch>
         {dom}
       </Link>
     ) : (
