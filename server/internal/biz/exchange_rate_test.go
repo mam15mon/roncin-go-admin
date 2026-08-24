@@ -8,6 +8,34 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type exchangeRateRepoStub struct {
+	accountingOrganization *AccountingOrganization
+}
+
+func (s *exchangeRateRepoStub) AccountingOrganization(context.Context, uuid.UUID) (*AccountingOrganization, error) {
+	return s.accountingOrganization, nil
+}
+
+func (*exchangeRateRepoStub) List(context.Context, uuid.UUID) ([]*ExchangeRateSetting, error) {
+	return nil, nil
+}
+
+func (*exchangeRateRepoStub) Create(context.Context, *ExchangeRateSetting, *AuditEvent) (*ExchangeRateSetting, error) {
+	return nil, nil
+}
+
+func (*exchangeRateRepoStub) Update(context.Context, *ExchangeRateSetting, *AuditEvent) (*ExchangeRateSetting, error) {
+	return nil, nil
+}
+
+func (*exchangeRateRepoStub) Disable(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error {
+	return nil
+}
+
+func (*exchangeRateRepoStub) Resolve(context.Context, uuid.UUID, OrderFeeDirection, string, string, string) (*ResolvedExchangeRate, error) {
+	return nil, nil
+}
+
 func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
 	effectiveTo := "2026-09-01"
 	input := &ExchangeRateSetting{
@@ -25,7 +53,7 @@ func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
 }
 
 func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
-	usecase := NewExchangeRateUsecase(nil)
+	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{accountingOrganization: &AccountingOrganization{ID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}})
 	resolved, err := usecase.Resolve(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "CNY", "2026-08-24")
 	if err != nil {
 		t.Fatalf("解析本币汇率失败: %v", err)

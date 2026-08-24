@@ -9,12 +9,36 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/shopspring/decimal"
 )
 
 type exchangeRateRepo struct{ data *Data }
 
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
+
+func (r *exchangeRateRepo) AccountingOrganization(ctx context.Context, organizationID uuid.UUID) (*biz.AccountingOrganization, error) {
+	currentID := organizationID
+	for {
+		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			return nil, err
+		}
+		if item.Kind == organizationent.KindHeadquarters || item.Kind == organizationent.KindCompany {
+			if item.BaseCurrency == nil {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			return &biz.AccountingOrganization{ID: item.ID, BaseCurrency: *item.BaseCurrency}, nil
+		}
+		if item.ParentID == nil {
+			return nil, biz.ErrExchangeRateOrganizationInvalid
+		}
+		currentID = *item.ParentID
+	}
+}
 
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateSetting, error) {
 	items, err := r.data.db.ExchangeRateSetting.Query().

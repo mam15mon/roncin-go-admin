@@ -24,7 +24,7 @@ func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	items, err := s.usecase.List(ctx, principal.Organization.ID)
+	items, baseCurrency, err := s.usecase.List(ctx, principal.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v
 	for _, item := range items {
 		data = append(data, exchangeRateToAPI(item))
 	}
-	return &v1.ListExchangeRateSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListExchangeRateSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx), BaseCurrency: baseCurrency}, nil
 }
 
 func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, request *v1.CreateExchangeRateSettingRequest) (*v1.CreateExchangeRateSettingResponse, error) {

@@ -45,7 +45,7 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	for _, item := range options.Currencies {
 		currencies = append(currencies, &v1.OrderFeeCurrencyOption{Code: item.Code, Name: item.Name, MinorUnit: int32(item.MinorUnit)})
 	}
-	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency}, nil
 }
 
 func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequest) (*v1.ListFeesResponse, error) {

@@ -12,18 +12,18 @@ import (
 )
 
 var (
-	ErrExchangeRateNotFound        = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
-	ErrExchangeRateInvalidArgument = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
-	ErrExchangeRateOverlap         = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效区间与现有设置重叠")
-	ErrExchangeRateMissing         = errors.BadRequest("FEE_EXCHANGE_RATE_MISSING", "费用日期未命中生效汇率")
-	ErrExchangeRateConflict        = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "费用日期命中多条生效汇率")
-	ErrExchangeRateCurrencyInvalid = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
+	ErrExchangeRateNotFound            = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
+	ErrExchangeRateInvalidArgument     = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
+	ErrExchangeRateOverlap             = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效区间与现有设置重叠")
+	ErrExchangeRateMissing             = errors.BadRequest("FEE_EXCHANGE_RATE_MISSING", "费用日期未命中生效汇率")
+	ErrExchangeRateConflict            = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "费用日期命中多条生效汇率")
+	ErrExchangeRateCurrencyInvalid     = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
+	ErrExchangeRateOrganizationInvalid = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织未配置有效本币")
 )
 
 const (
 	SettlementRateType  = "SETTLEMENT"
 	ExpenseDateStandard = "EXPENSE_DATE"
-	BaseCurrencyCode    = "CNY"
 )
 
 var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$`)
@@ -51,7 +51,13 @@ type ResolvedExchangeRate struct {
 	SettingID *uuid.UUID
 }
 
+type AccountingOrganization struct {
+	ID           uuid.UUID
+	BaseCurrency string
+}
+
 type ExchangeRateRepo interface {
+	AccountingOrganization(ctx context.Context, organizationID uuid.UUID) (*AccountingOrganization, error)
 	List(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateSetting, error)
 	Create(ctx context.Context, input *ExchangeRateSetting, audit *AuditEvent) (*ExchangeRateSetting, error)
 	Update(ctx context.Context, input *ExchangeRateSetting, audit *AuditEvent) (*ExchangeRateSetting, error)
@@ -65,11 +71,16 @@ func NewExchangeRateUsecase(repo ExchangeRateRepo) *ExchangeRateUsecase {
 	return &ExchangeRateUsecase{repo: repo}
 }
 
-func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateSetting, error) {
+func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateSetting, string, error) {
 	if organizationID == uuid.Nil {
-		return nil, ErrExchangeRateInvalidArgument
+		return nil, "", ErrExchangeRateInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationID)
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, "", err
+	}
+	items, err := uc.repo.List(ctx, accountingOrganization.ID)
+	return items, accountingOrganization.BaseCurrency, err
 }
 
 func (uc *ExchangeRateUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *ExchangeRateSetting) (*ExchangeRateSetting, error) {
@@ -78,7 +89,14 @@ func (uc *ExchangeRateUsecase) Create(ctx context.Context, organizationID, actor
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	normalized.OrganizationID = organizationID
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if normalized.ToCurrency != accountingOrganization.BaseCurrency {
+		return nil, ErrExchangeRateCurrencyInvalid
+	}
+	normalized.OrganizationID = accountingOrganization.ID
 	normalized.IsActive = true
 	return uc.repo.Create(ctx, normalized, exchangeRateAudit(organizationID, actorID, normalized.ID, "finance.exchange_rate.create"))
 }
@@ -89,7 +107,14 @@ func (uc *ExchangeRateUsecase) Update(ctx context.Context, organizationID, actor
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	normalized.ID = id
-	normalized.OrganizationID = organizationID
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if normalized.ToCurrency != accountingOrganization.BaseCurrency {
+		return nil, ErrExchangeRateCurrencyInvalid
+	}
+	normalized.OrganizationID = accountingOrganization.ID
 	return uc.repo.Update(ctx, normalized, exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.update"))
 }
 
@@ -97,7 +122,11 @@ func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, acto
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return ErrExchangeRateInvalidArgument
 	}
-	return uc.repo.Disable(ctx, organizationID, id, exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	return uc.repo.Disable(ctx, accountingOrganization.ID, id, exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
 }
 
 func (uc *ExchangeRateUsecase) Resolve(ctx context.Context, organizationID uuid.UUID, direction OrderFeeDirection, currency, rateDate string) (*ResolvedExchangeRate, error) {
@@ -105,10 +134,25 @@ func (uc *ExchangeRateUsecase) Resolve(ctx context.Context, organizationID uuid.
 	if organizationID == uuid.Nil || !currencyPattern.MatchString(currency) || (direction != OrderFeeReceivable && direction != OrderFeePayable) || !validISODate(rateDate) {
 		return nil, ErrExchangeRateInvalidArgument
 	}
-	if currency == BaseCurrencyCode {
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if currency == accountingOrganization.BaseCurrency {
 		return &ResolvedExchangeRate{Rate: decimal.NewFromInt(1), Source: "BASE_CURRENCY", RateDate: rateDate}, nil
 	}
-	return uc.repo.Resolve(ctx, organizationID, direction, currency, BaseCurrencyCode, rateDate)
+	return uc.repo.Resolve(ctx, accountingOrganization.ID, direction, currency, accountingOrganization.BaseCurrency, rateDate)
+}
+
+func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID uuid.UUID) (string, error) {
+	if organizationID == uuid.Nil {
+		return "", ErrExchangeRateInvalidArgument
+	}
+	accountingOrganization, err := uc.repo.AccountingOrganization(ctx, organizationID)
+	if err != nil {
+		return "", err
+	}
+	return accountingOrganization.BaseCurrency, nil
 }
 
 func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSetting, error) {

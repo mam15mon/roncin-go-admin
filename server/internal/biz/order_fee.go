@@ -70,6 +70,7 @@ type OrderFeeCurrencyOption struct {
 type OrderFeeOptions struct {
 	SettlementParties []OrderFeeSettlementPartyOption
 	Currencies        []OrderFeeCurrencyOption
+	BaseCurrency      string
 }
 
 type OrderFeeRepo interface {
@@ -100,7 +101,15 @@ func (uc *OrderFeeUsecase) Options(ctx context.Context, organizationID, orderID 
 	if organizationID == uuid.Nil || orderID == uuid.Nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
-	return uc.repo.Options(ctx, organizationID, orderID)
+	options, err := uc.repo.Options(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	options.BaseCurrency, err = uc.exchangeRate.BaseCurrency(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	return options, nil
 }
 
 func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *OrderFee) (*OrderFee, error) {
