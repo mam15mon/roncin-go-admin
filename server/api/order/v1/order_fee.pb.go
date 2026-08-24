@@ -571,20 +571,21 @@ func (x *ListFeeOptionsResponse) GetBaseCurrency() string {
 }
 
 type AddFeeRequest struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	OrderId           string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Direction         OrderFeeDirection      `protobuf:"varint,2,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
-	FeeCode           string                 `protobuf:"bytes,3,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	FeeName           string                 `protobuf:"bytes,4,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
-	SettlementPartyId string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	BillingUnit       string                 `protobuf:"bytes,6,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
-	Quantity          string                 `protobuf:"bytes,7,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	UnitPrice         string                 `protobuf:"bytes,8,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
-	Currency          string                 `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate       string                 `protobuf:"bytes,11,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
-	Note              *string                `protobuf:"bytes,12,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	OrderId              string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Direction            OrderFeeDirection      `protobuf:"varint,2,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
+	FeeCode              string                 `protobuf:"bytes,3,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	FeeName              string                 `protobuf:"bytes,4,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	SettlementPartyId    string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	BillingUnit          string                 `protobuf:"bytes,6,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	Quantity             string                 `protobuf:"bytes,7,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice            string                 `protobuf:"bytes,8,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	Currency             string                 `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExpenseDate          string                 `protobuf:"bytes,11,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
+	Note                 *string                `protobuf:"bytes,12,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExchangeRateOverride *string                `protobuf:"bytes,13,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *AddFeeRequest) Reset() {
@@ -694,22 +695,30 @@ func (x *AddFeeRequest) GetNote() string {
 	return ""
 }
 
+func (x *AddFeeRequest) GetExchangeRateOverride() string {
+	if x != nil && x.ExchangeRateOverride != nil {
+		return *x.ExchangeRateOverride
+	}
+	return ""
+}
+
 type UpdateFeeRequest struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	OrderId           string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id                string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	Direction         OrderFeeDirection      `protobuf:"varint,3,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
-	FeeCode           string                 `protobuf:"bytes,4,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	FeeName           string                 `protobuf:"bytes,5,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
-	SettlementPartyId string                 `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	BillingUnit       string                 `protobuf:"bytes,7,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
-	Quantity          string                 `protobuf:"bytes,8,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	UnitPrice         string                 `protobuf:"bytes,9,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
-	Currency          string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate       string                 `protobuf:"bytes,12,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
-	Note              *string                `protobuf:"bytes,13,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	OrderId              string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id                   string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Direction            OrderFeeDirection      `protobuf:"varint,3,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
+	FeeCode              string                 `protobuf:"bytes,4,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	FeeName              string                 `protobuf:"bytes,5,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	SettlementPartyId    string                 `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	BillingUnit          string                 `protobuf:"bytes,7,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	Quantity             string                 `protobuf:"bytes,8,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice            string                 `protobuf:"bytes,9,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	Currency             string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExpenseDate          string                 `protobuf:"bytes,12,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
+	Note                 *string                `protobuf:"bytes,13,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExchangeRateOverride *string                `protobuf:"bytes,14,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *UpdateFeeRequest) Reset() {
@@ -822,6 +831,13 @@ func (x *UpdateFeeRequest) GetExpenseDate() string {
 func (x *UpdateFeeRequest) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
+	}
+	return ""
+}
+
+func (x *UpdateFeeRequest) GetExchangeRateOverride() string {
+	if x != nil && x.ExchangeRateOverride != nil {
+		return *x.ExchangeRateOverride
 	}
 	return ""
 }
@@ -1396,7 +1412,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"currencies\x18\x05 \x03(\v2 .order.v1.OrderFeeCurrencyOptionR\n" +
 	"currencies\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12#\n" +
-	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\"\xc2\x03\n" +
+	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\"\x98\x04\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12\x1e\n" +
@@ -1409,9 +1425,11 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"unit_price\x18\b \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
 	"\bcurrency\x18\t \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
 	"\fexpense_date\x18\v \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
-	"\x04note\x18\f \x01(\tH\x00R\x04note\x88\x01\x01B\a\n" +
-	"\x05_noteJ\x04\b\n" +
-	"\x10\v\"\xda\x03\n" +
+	"\x04note\x18\f \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
+	"\x16exchange_rate_override\x18\r \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01B\a\n" +
+	"\x05_noteB\x19\n" +
+	"\x17_exchange_rate_overrideJ\x04\b\n" +
+	"\x10\v\"\xb0\x04\n" +
 	"\x10UpdateFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12>\n" +
@@ -1426,8 +1444,10 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\bcurrency\x18\n" +
 	" \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
 	"\fexpense_date\x18\f \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
-	"\x04note\x18\r \x01(\tH\x00R\x04note\x88\x01\x01B\a\n" +
-	"\x05_noteJ\x04\b\v\x10\f\"G\n" +
+	"\x04note\x18\r \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
+	"\x16exchange_rate_override\x18\x0e \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01B\a\n" +
+	"\x05_noteB\x19\n" +
+	"\x17_exchange_rate_overrideJ\x04\b\v\x10\f\"G\n" +
 	"\x10RemoveFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xc8\x01\n" +

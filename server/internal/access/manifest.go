@@ -29,6 +29,7 @@ const (
 	FinanceExchangeRateCreate  = "system.finance.exchange_rate.create"
 	FinanceExchangeRateUpdate  = "system.finance.exchange_rate.update"
 	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
+	FinanceExchangeRateOverride = "system.finance.exchange_rate.override"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -158,6 +159,7 @@ var manifest = append([]Permission{
 	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "财务管理 · 汇率", Description: "新建组织结算汇率"},
 	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织结算汇率"},
 	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织结算汇率"},
+	{Key: FinanceExchangeRateOverride, Name: "覆盖费用汇率", Group: "财务管理 · 汇率", Description: "在订单费用中手工覆盖系统结算汇率"},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案"},
 	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案"},

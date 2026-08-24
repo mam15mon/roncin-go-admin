@@ -5058,6 +5058,8 @@ components:
                     type: string
                 note:
                     type: string
+                exchangeRateOverride:
+                    type: string
         order.v1.AddFeeResponse:
             type: object
             properties:
@@ -6387,6 +6389,8 @@ components:
                 expenseDate:
                     type: string
                 note:
+                    type: string
+                exchangeRateOverride:
                     type: string
         order.v1.UpdateFeeResponse:
             type: object

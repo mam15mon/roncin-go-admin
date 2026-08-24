@@ -128,6 +128,7 @@ message AddFeeRequest {
   reserved 10;
   string expense_date = 11 [(google.api.field_behavior) = REQUIRED];
   optional string note = 12;
+  optional string exchange_rate_override = 13;
 }
 
 message UpdateFeeRequest {
@@ -144,6 +145,7 @@ message UpdateFeeRequest {
   reserved 11;
   string expense_date = 12 [(google.api.field_behavior) = REQUIRED];
   optional string note = 13;
+  optional string exchange_rate_override = 14;
 }
 
 message RemoveFeeRequest {
