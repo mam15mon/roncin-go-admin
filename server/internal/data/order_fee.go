@@ -91,6 +91,10 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	if err != nil {
 		return nil, err
 	}
+	headquartersID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	parties, err := r.data.db.Partner.Query().
 		Where(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).
 		Order(partnerent.ByLegalName(), partnerent.ByCode()).
@@ -106,14 +110,14 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		return nil, err
 	}
 	billingUnits, err := r.data.db.BillingUnit.Query().
-		Where(billingunitent.OrganizationIDEQ(organizationID), billingunitent.EnabledEQ(true)).
+		Where(billingunitent.OrganizationIDEQ(headquartersID), billingunitent.EnabledEQ(true)).
 		Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	feeSettings, err := r.data.db.FeeSetting.Query().
-		Where(feesettingent.OrganizationIDEQ(organizationID), feesettingent.EnabledEQ(true)).
+		Where(feesettingent.OrganizationIDEQ(headquartersID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().
 		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
 		All(ctx)
@@ -162,8 +166,12 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	if err != nil {
 		return nil, err
 	}
+	headquartersID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	feeSetting, err := r.data.db.FeeSetting.Query().
-		Where(feesettingent.IDEQ(feeSettingID), feesettingent.OrganizationIDEQ(organizationID), feesettingent.EnabledEQ(true)).
+		Where(feesettingent.IDEQ(feeSettingID), feesettingent.OrganizationIDEQ(headquartersID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -181,7 +189,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 		return nil, biz.ErrOrderFeeSettingInvalid
 	}
 	billingUnit, err := r.data.db.BillingUnit.Query().
-		Where(billingunitent.IDEQ(billingUnitID), billingunitent.OrganizationIDEQ(organizationID), billingunitent.EnabledEQ(true)).Only(ctx)
+		Where(billingunitent.IDEQ(billingUnitID), billingunitent.OrganizationIDEQ(headquartersID), billingunitent.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrOrderFeeBillingUnitInvalid

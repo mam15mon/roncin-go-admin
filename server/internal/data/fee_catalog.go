@@ -18,9 +18,28 @@ type feeCatalogRepo struct{ data *Data }
 
 func NewFeeCatalogRepo(data *Data) biz.FeeCatalogRepo { return &feeCatalogRepo{data: data} }
 
+func (r *feeCatalogRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
+	return resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+}
+
+func (r *feeCatalogRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	if headquartersID != organizationID {
+		return biz.ErrFeeCatalogHeadquartersRequired
+	}
+	return nil
+}
+
 func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uuid.UUID) ([]*biz.FeeSetting, error) {
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	items, err := r.data.db.FeeSetting.Query().
-		Where(feesettingent.OrganizationIDEQ(organizationID)).
+		Where(feesettingent.OrganizationIDEQ(headquartersID)).
 		WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().
 		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).All(ctx)
 	if err != nil {
@@ -38,6 +57,9 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 }
 
 func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
@@ -79,6 +101,9 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 }
 
 func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
@@ -184,7 +209,11 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 }
 
 func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uuid.UUID) ([]*biz.BillingUnit, error) {
-	items, err := r.data.db.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(organizationID)).Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).All(ctx)
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := r.data.db.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID)).Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +225,9 @@ func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uu
 }
 
 func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.BillingUnit, audit *biz.AuditEvent) (*biz.BillingUnit, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -219,6 +251,9 @@ func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.Billi
 }
 
 func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.BillingUnit, audit *biz.AuditEvent) (*biz.BillingUnit, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -250,7 +285,11 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 }
 
 func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID uuid.UUID) ([]*biz.TaxableService, error) {
-	items, err := r.data.db.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(organizationID)).Order(taxableserviceent.ByName(), taxableserviceent.ByID()).All(ctx)
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := r.data.db.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID)).Order(taxableserviceent.ByName(), taxableserviceent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -266,6 +305,9 @@ func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID
 }
 
 func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.TaxableService, audit *biz.AuditEvent) (*biz.TaxableService, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -289,6 +331,9 @@ func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.Ta
 }
 
 func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.TaxableService, audit *biz.AuditEvent) (*biz.TaxableService, error) {
+	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
+		return nil, err
+	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err

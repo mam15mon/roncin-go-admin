@@ -32,10 +32,14 @@ func (r *orderAbnormalCaseRepo) order(ctx context.Context, organizationID, order
 }
 
 func (r *orderAbnormalCaseRepo) validateAbnormalCaseKind(ctx context.Context, organizationID, abnormalCaseID uuid.UUID) error {
+	headquartersID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+	if err != nil {
+		return err
+	}
 	count, err := r.data.db.MasterDataItem.Query().
 		Where(
 			masterdataitement.IDEQ(abnormalCaseID),
-			masterdataitement.OrganizationIDEQ(organizationID),
+			masterdataitement.OrganizationIDEQ(headquartersID),
 			masterdataitement.KindEQ(masterdataitement.KindAbnormalCase),
 			masterdataitement.EnabledEQ(true),
 		).

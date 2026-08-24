@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
@@ -12,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 func setupTestOrderAbnormalCaseRepo(t *testing.T) (biz.OrderAbnormalCaseRepo, sqlmock.Sqlmock, func()) {
@@ -43,6 +45,9 @@ func TestOrderAbnormalCaseRepo_Mark_UniqueConstraintMapping(t *testing.T) {
 	mock.ExpectQuery(`SELECT "orders"\."id"`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(orderRows(orderID, orgID))
+	mock.ExpectQuery(`SELECT "organizations"\."id"`).
+		WithArgs(orgID).
+		WillReturnRows(headquartersOrganizationRows(orgID))
 
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
 		WithArgs(caseID, orgID, "abnormal_case").
@@ -88,6 +93,7 @@ func TestOrderAbnormalCaseRepo_Mark_AuditErrorRollsBack(t *testing.T) {
 	}
 
 	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(orderRows(orderID, orgID))
+	mock.ExpectQuery(`SELECT "organizations"\."id"`).WithArgs(orgID).WillReturnRows(headquartersOrganizationRows(orgID))
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
 		WithArgs(caseID, orgID, "abnormal_case").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
@@ -109,4 +115,10 @@ func TestOrderAbnormalCaseRepo_Mark_AuditErrorRollsBack(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("未满足 sqlmock 期望: %v", err)
 	}
+}
+
+func headquartersOrganizationRows(id uuid.UUID) *sqlmock.Rows {
+	now := time.Now()
+	return sqlmock.NewRows(organizationent.Columns).
+		AddRow(id, now, now, "HQ", "总部", organizationent.KindHeadquarters, nil, true, "CNY")
 }

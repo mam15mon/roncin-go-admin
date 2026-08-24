@@ -16,6 +16,21 @@ type masterDataRepo struct{ data *Data }
 
 func NewMasterDataRepo(data *Data) biz.MasterDataRepo { return &masterDataRepo{data: data} }
 
+func (r *masterDataRepo) headquartersOrganizationID(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
+	return resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
+}
+
+func (r *masterDataRepo) requireHeadquarters(ctx context.Context, organizationID uuid.UUID) error {
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	if headquartersID != organizationID {
+		return biz.ErrMasterDataHeadquartersRequired
+	}
+	return nil
+}
+
 func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
 	for _, item := range biz.DefaultOrderOptions() {
 		if _, err := tx.MasterDataItem.Create().
@@ -34,7 +49,11 @@ func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID u
 }
 
 func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
-	query := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID))
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	query := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(headquartersID))
 	if options.Kind != "" {
 		query.Where(masterdataent.KindEQ(masterdataent.Kind(options.Kind)))
 	}
@@ -56,7 +75,11 @@ func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, opt
 }
 
 func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UUID) ([]*biz.MasterDataItem, error) {
-	items, err := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID), masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
+	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := r.data.db.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(headquartersID), masterdataent.EnabledEQ(true)).Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +87,9 @@ func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UU
 }
 
 func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.MasterDataItem) (*biz.MasterDataItem, error) {
+	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
+		return nil, err
+	}
 	create := r.data.db.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 	created, err := create.Save(ctx)
 	if err != nil {
@@ -76,6 +102,9 @@ func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, i
 }
 
 func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.MasterDataItem) (*biz.MasterDataItem, error) {
+	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
+		return nil, err
+	}
 	existing, err := r.data.db.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -101,6 +130,9 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 }
 
 func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem) (*biz.MasterDataImportResult, error) {
+	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
+		return nil, err
+	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err

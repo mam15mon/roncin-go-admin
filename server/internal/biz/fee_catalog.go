@@ -13,14 +13,15 @@ import (
 )
 
 var (
-	ErrFeeCatalogInvalidArgument  = errors.BadRequest("FEE_CATALOG_INVALID_ARGUMENT", "费用设置字段不合法")
-	ErrFeeSettingNotFound         = errors.NotFound("FEE_SETTING_NOT_FOUND", "费用设置不存在")
-	ErrFeeSettingCodeExists       = errors.Conflict("FEE_SETTING_CODE_EXISTS", "费用代码已存在")
-	ErrBillingUnitNotFound        = errors.NotFound("BILLING_UNIT_NOT_FOUND", "计费单位不存在")
-	ErrBillingUnitCodeExists      = errors.Conflict("BILLING_UNIT_CODE_EXISTS", "计费单位代码已存在")
-	ErrTaxableServiceNotFound     = errors.NotFound("TAXABLE_SERVICE_NOT_FOUND", "货物或应税劳务名称不存在")
-	ErrTaxableServiceNameExists   = errors.Conflict("TAXABLE_SERVICE_NAME_EXISTS", "货物或应税劳务名称已存在")
-	ErrFeeCatalogReferenceInvalid = errors.BadRequest("FEE_CATALOG_REFERENCE_INVALID", "费用设置引用的基础资料不存在、已停用或不属于当前组织")
+	ErrFeeCatalogInvalidArgument      = errors.BadRequest("FEE_CATALOG_INVALID_ARGUMENT", "费用设置字段不合法")
+	ErrFeeSettingNotFound             = errors.NotFound("FEE_SETTING_NOT_FOUND", "费用设置不存在")
+	ErrFeeSettingCodeExists           = errors.Conflict("FEE_SETTING_CODE_EXISTS", "费用代码已存在")
+	ErrBillingUnitNotFound            = errors.NotFound("BILLING_UNIT_NOT_FOUND", "计费单位不存在")
+	ErrBillingUnitCodeExists          = errors.Conflict("BILLING_UNIT_CODE_EXISTS", "计费单位代码已存在")
+	ErrTaxableServiceNotFound         = errors.NotFound("TAXABLE_SERVICE_NOT_FOUND", "货物或应税劳务名称不存在")
+	ErrTaxableServiceNameExists       = errors.Conflict("TAXABLE_SERVICE_NAME_EXISTS", "货物或应税劳务名称已存在")
+	ErrFeeCatalogReferenceInvalid     = errors.BadRequest("FEE_CATALOG_REFERENCE_INVALID", "费用设置引用的基础资料不存在、已停用或不属于当前组织")
+	ErrFeeCatalogHeadquartersRequired = errors.Forbidden("FEE_CATALOG_HEADQUARTERS_REQUIRED", "费用基础资料只能由总部维护")
 )
 
 var catalogCodePattern = regexp.MustCompile(`^[A-Z0-9_]{2,32}$`)

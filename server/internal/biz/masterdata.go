@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	ErrMasterDataInvalidArgument = errors.BadRequest("MASTER_DATA_INVALID_ARGUMENT", "主数据字段不合法")
-	ErrMasterDataNotFound        = errors.NotFound("MASTER_DATA_NOT_FOUND", "主数据不存在")
-	ErrMasterDataCodeExists      = errors.Conflict("MASTER_DATA_CODE_EXISTS", "主数据编码已存在")
-	ErrMasterDataInvalidKind     = errors.BadRequest("MASTER_DATA_INVALID_KIND", "主数据类型不合法")
+	ErrMasterDataInvalidArgument      = errors.BadRequest("MASTER_DATA_INVALID_ARGUMENT", "主数据字段不合法")
+	ErrMasterDataNotFound             = errors.NotFound("MASTER_DATA_NOT_FOUND", "主数据不存在")
+	ErrMasterDataCodeExists           = errors.Conflict("MASTER_DATA_CODE_EXISTS", "主数据编码已存在")
+	ErrMasterDataInvalidKind          = errors.BadRequest("MASTER_DATA_INVALID_KIND", "主数据类型不合法")
+	ErrMasterDataHeadquartersRequired = errors.Forbidden("MASTER_DATA_HEADQUARTERS_REQUIRED", "主数据只能由总部维护")
 )
 
 type MasterDataKind string
