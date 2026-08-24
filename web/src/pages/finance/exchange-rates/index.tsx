@@ -21,13 +21,17 @@ import {
 import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
-const exchangeRateTypeOptions = [
-  { label: '汇率（折本币）', value: 'BASE_CURRENCY' },
-  { label: '开票汇率', value: 'INVOICE' },
-  { label: '结算汇率', value: 'SETTLEMENT' },
-  { label: '核销汇率', value: 'WRITE_OFF' },
-  { label: '账单汇率', value: 'BILL' },
-];
+const exchangeRateTypeLabels: Record<string, string> = {
+  BASE_CURRENCY: '汇率（折本币）',
+  INVOICE: '开票汇率',
+  SETTLEMENT: '结算汇率',
+  WRITE_OFF: '核销汇率',
+  BILL: '账单汇率',
+};
+const exchangeRateTypeOptions = Object.entries(exchangeRateTypeLabels).map(([value, label]) => ({
+  label,
+  value,
+}));
 
 type ExchangeRateFormValues = {
   rateType: string;
@@ -65,8 +69,7 @@ export default function ExchangeRatesPage() {
       title: '汇率类型',
       dataIndex: 'rateType',
       width: 130,
-      render: (_, record) =>
-        exchangeRateTypeOptions.find((option) => option.value === record.rateType)!.label,
+      render: (_, record) => record.rateType && exchangeRateTypeLabels[record.rateType],
     },
     { title: '原币', dataIndex: 'fromCurrency', width: 90 },
     { title: '目标币', dataIndex: 'toCurrency', width: 90 },
