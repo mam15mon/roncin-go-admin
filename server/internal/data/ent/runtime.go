@@ -12,6 +12,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -655,6 +656,106 @@ func init() {
 	currencyDescID := currencyMixinFields0[0].Descriptor()
 	// currency.DefaultID holds the default value on creation for the id field.
 	currency.DefaultID = currencyDescID.Default.(func() uuid.UUID)
+	exchangeratesettingMixin := schema.ExchangeRateSetting{}.Mixin()
+	exchangeratesettingMixinFields0 := exchangeratesettingMixin[0].Fields()
+	_ = exchangeratesettingMixinFields0
+	exchangeratesettingMixinFields1 := exchangeratesettingMixin[1].Fields()
+	_ = exchangeratesettingMixinFields1
+	exchangeratesettingFields := schema.ExchangeRateSetting{}.Fields()
+	_ = exchangeratesettingFields
+	// exchangeratesettingDescCreatedAt is the schema descriptor for created_at field.
+	exchangeratesettingDescCreatedAt := exchangeratesettingMixinFields1[0].Descriptor()
+	// exchangeratesetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exchangeratesetting.DefaultCreatedAt = exchangeratesettingDescCreatedAt.Default.(func() time.Time)
+	// exchangeratesettingDescUpdatedAt is the schema descriptor for updated_at field.
+	exchangeratesettingDescUpdatedAt := exchangeratesettingMixinFields1[1].Descriptor()
+	// exchangeratesetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	exchangeratesetting.DefaultUpdatedAt = exchangeratesettingDescUpdatedAt.Default.(func() time.Time)
+	// exchangeratesetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	exchangeratesetting.UpdateDefaultUpdatedAt = exchangeratesettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// exchangeratesettingDescFromCurrency is the schema descriptor for from_currency field.
+	exchangeratesettingDescFromCurrency := exchangeratesettingFields[2].Descriptor()
+	// exchangeratesetting.FromCurrencyValidator is a validator for the "from_currency" field. It is called by the builders before save.
+	exchangeratesetting.FromCurrencyValidator = func() func(string) error {
+		validators := exchangeratesettingDescFromCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(from_currency string) error {
+			for _, fn := range fns {
+				if err := fn(from_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangeratesettingDescToCurrency is the schema descriptor for to_currency field.
+	exchangeratesettingDescToCurrency := exchangeratesettingFields[3].Descriptor()
+	// exchangeratesetting.ToCurrencyValidator is a validator for the "to_currency" field. It is called by the builders before save.
+	exchangeratesetting.ToCurrencyValidator = func() func(string) error {
+		validators := exchangeratesettingDescToCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(to_currency string) error {
+			for _, fn := range fns {
+				if err := fn(to_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangeratesettingDescEffectiveFrom is the schema descriptor for effective_from field.
+	exchangeratesettingDescEffectiveFrom := exchangeratesettingFields[5].Descriptor()
+	// exchangeratesetting.EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
+	exchangeratesetting.EffectiveFromValidator = func() func(string) error {
+		validators := exchangeratesettingDescEffectiveFrom.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(effective_from string) error {
+			for _, fn := range fns {
+				if err := fn(effective_from); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangeratesettingDescEffectiveTo is the schema descriptor for effective_to field.
+	exchangeratesettingDescEffectiveTo := exchangeratesettingFields[6].Descriptor()
+	// exchangeratesetting.EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
+	exchangeratesetting.EffectiveToValidator = func() func(string) error {
+		validators := exchangeratesettingDescEffectiveTo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(effective_to string) error {
+			for _, fn := range fns {
+				if err := fn(effective_to); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
+	exchangeratesettingDescIsActive := exchangeratesettingFields[9].Descriptor()
+	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.
+	exchangeratesetting.DefaultIsActive = exchangeratesettingDescIsActive.Default.(bool)
+	// exchangeratesettingDescID is the schema descriptor for id field.
+	exchangeratesettingDescID := exchangeratesettingMixinFields0[0].Descriptor()
+	// exchangeratesetting.DefaultID holds the default value on creation for the id field.
+	exchangeratesetting.DefaultID = exchangeratesettingDescID.Default.(func() uuid.UUID)
 	masterdataitemMixin := schema.MasterDataItem{}.Mixin()
 	masterdataitemMixinFields0 := masterdataitemMixin[0].Fields()
 	_ = masterdataitemMixinFields0

@@ -81,6 +81,18 @@ func (f CurrencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CurrencyMutation", m)
 }
 
+// The ExchangeRateSettingFunc type is an adapter to allow the use of ordinary
+// function as ExchangeRateSetting mutator.
+type ExchangeRateSettingFunc func(context.Context, *ent.ExchangeRateSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExchangeRateSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExchangeRateSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateSettingMutation", m)
+}
+
 // The MasterDataItemFunc type is an adapter to allow the use of ordinary
 // function as MasterDataItem mutator.
 type MasterDataItemFunc func(context.Context, *ent.MasterDataItemMutation) (ent.Value, error)

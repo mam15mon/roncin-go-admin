@@ -24,6 +24,8 @@ type Tx struct {
 	BackgroundTask *BackgroundTaskClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
+	ExchangeRateSetting *ExchangeRateSettingClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -245,6 +247,7 @@ func (tx *Tx) init() {
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
+	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)

@@ -309,6 +309,50 @@ var (
 			},
 		},
 	}
+	// ExchangeRateSettingsColumns holds the columns for the "exchange_rate_settings" table.
+	ExchangeRateSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "rate_type", Type: field.TypeEnum, Enums: []string{"SETTLEMENT"}},
+		{Name: "from_currency", Type: field.TypeString, Size: 3},
+		{Name: "to_currency", Type: field.TypeString, Size: 3},
+		{Name: "time_standard", Type: field.TypeEnum, Enums: []string{"EXPENSE_DATE"}},
+		{Name: "effective_from", Type: field.TypeString, Size: 10},
+		{Name: "effective_to", Type: field.TypeString, Nullable: true, Size: 10},
+		{Name: "receivable_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "payable_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+	}
+	// ExchangeRateSettingsTable holds the schema information for the "exchange_rate_settings" table.
+	ExchangeRateSettingsTable = &schema.Table{
+		Name:       "exchange_rate_settings",
+		Columns:    ExchangeRateSettingsColumns,
+		PrimaryKey: []*schema.Column{ExchangeRateSettingsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "exchangeratesetting_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[2]},
+			},
+			{
+				Name:    "exchangeratesetting_organization_id_rate_type_from_currency_to_currency_time_standard_effective_from",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7], ExchangeRateSettingsColumns[8]},
+			},
+			{
+				Name:    "exchangeratesetting_organization_id_rate_type_from_currency_to_currency_time_standard_is_active",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7], ExchangeRateSettingsColumns[12]},
+			},
+			{
+				Name:    "exchangeratesetting_organization_id_effective_from_effective_to",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[8], ExchangeRateSettingsColumns[9]},
+			},
+		},
+	}
 	// MasterDataItemsColumns holds the columns for the "master_data_items" table.
 	MasterDataItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2346,6 +2390,7 @@ var (
 		AuditLogsTable,
 		BackgroundTasksTable,
 		CurrenciesTable,
+		ExchangeRateSettingsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
 		MilestoneTemplatesTable,

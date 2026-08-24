@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -126,6 +127,7 @@ func checkColumn(t, c string) error {
 			auditlog.Table:                    auditlog.ValidColumn,
 			backgroundtask.Table:              backgroundtask.ValidColumn,
 			currency.Table:                    currency.ValidColumn,
+			exchangeratesetting.Table:         exchangeratesetting.ValidColumn,
 			masterdataitem.Table:              masterdataitem.ValidColumn,
 			membership.Table:                  membership.ValidColumn,
 			milestonetemplate.Table:           milestonetemplate.ValidColumn,

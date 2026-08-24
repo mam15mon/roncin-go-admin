@@ -24,6 +24,9 @@ type BackgroundTask func(*sql.Selector)
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 
+// ExchangeRateSetting is the predicate function for exchangeratesetting builders.
+type ExchangeRateSetting func(*sql.Selector)
+
 // MasterDataItem is the predicate function for masterdataitem builders.
 type MasterDataItem func(*sql.Selector)
 
