@@ -3385,6 +3385,8 @@ components:
                     type: string
                 name:
                     type: string
+                baseCurrency:
+                    type: string
         auth.v1.RoleScope:
             type: object
             properties:

@@ -138,7 +138,11 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		organizationView := biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name}
+		baseCurrency, currencyErr := resolveOrganizationBaseCurrency(ctx, r.data.db.Organization, org)
+		if currencyErr != nil {
+			return nil, currencyErr
+		}
+		organizationView := biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name, BaseCurrency: baseCurrency}
 		organizations = append(organizations, organizationView)
 		if org.ID != organizationID {
 			continue

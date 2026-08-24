@@ -134,6 +134,7 @@ message Organization {
   string id = 1;
   string code = 2;
   string name = 3;
+  string base_currency = 4;
 }
 
 message RoleScope {

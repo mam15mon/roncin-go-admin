@@ -41,9 +41,10 @@ const (
 )
 
 type Organization struct {
-	ID   uuid.UUID
-	Code string
-	Name string
+	ID           uuid.UUID
+	Code         string
+	Name         string
+	BaseCurrency string
 }
 
 type RoleScope struct {

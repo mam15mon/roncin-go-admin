@@ -776,6 +776,7 @@ type Organization struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	BaseCurrency  string                 `protobuf:"bytes,4,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -827,6 +828,13 @@ func (x *Organization) GetCode() string {
 func (x *Organization) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *Organization) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
 	}
 	return ""
 }
@@ -1054,11 +1062,12 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\vpermissions\x18\a \x03(\tR\vpermissions\x123\n" +
 	"\vrole_scopes\x18\b \x03(\v2\x12.auth.v1.RoleScopeR\n" +
 	"roleScopesB\b\n" +
-	"\x06_email\"F\n" +
+	"\x06_email\"k\n" +
 	"\fOrganization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"G\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
+	"\rbase_currency\x18\x04 \x01(\tR\fbaseCurrency\"G\n" +
 	"\tRoleScope\x12\x1b\n" +
 	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1d\n" +
 	"\n" +
