@@ -1746,6 +1746,7 @@ declare namespace API {
     id?: string;
     code?: string;
     name?: string;
+    baseCurrency?: string;
   };
 
   type Partner = {
