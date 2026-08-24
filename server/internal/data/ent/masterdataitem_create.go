@@ -11,9 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItemCreate is the builder for creating a MasterDataItem entity.
@@ -182,6 +183,36 @@ func (_c *MasterDataItemCreate) SetNillableID(v *uuid.UUID) *MasterDataItemCreat
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *MasterDataItemCreate) SetOrganization(v *Organization) *MasterDataItemCreate {
 	return _c.SetOrganizationID(v.ID)
+}
+
+// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
+func (_c *MasterDataItemCreate) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
+	_c.mutation.AddServiceTypeFeeSettingIDs(ids...)
+	return _c
+}
+
+// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
+func (_c *MasterDataItemCreate) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddServiceTypeFeeSettingIDs(ids...)
+}
+
+// AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
+func (_c *MasterDataItemCreate) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
+	_c.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
+	return _c
+}
+
+// AddAbnormalCaseFeeSettings adds the "abnormal_case_fee_settings" edges to the FeeSetting entity.
+func (_c *MasterDataItemCreate) AddAbnormalCaseFeeSettings(v ...*FeeSetting) *MasterDataItemCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAbnormalCaseFeeSettingIDs(ids...)
 }
 
 // Mutation returns the MasterDataItemMutation object of the builder.
@@ -417,6 +448,38 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AbnormalCaseFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

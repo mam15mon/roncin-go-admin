@@ -14,6 +14,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -28,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
 
 // OrganizationCreate is the builder for creating a Organization entity.
@@ -262,6 +265,51 @@ func (_c *OrganizationCreate) AddMasterDataItems(v ...*MasterDataItem) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddMasterDataItemIDs(ids...)
+}
+
+// AddBillingUnitIDs adds the "billing_units" edge to the BillingUnit entity by IDs.
+func (_c *OrganizationCreate) AddBillingUnitIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddBillingUnitIDs(ids...)
+	return _c
+}
+
+// AddBillingUnits adds the "billing_units" edges to the BillingUnit entity.
+func (_c *OrganizationCreate) AddBillingUnits(v ...*BillingUnit) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBillingUnitIDs(ids...)
+}
+
+// AddTaxableServiceIDs adds the "taxable_services" edge to the TaxableService entity by IDs.
+func (_c *OrganizationCreate) AddTaxableServiceIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddTaxableServiceIDs(ids...)
+	return _c
+}
+
+// AddTaxableServices adds the "taxable_services" edges to the TaxableService entity.
+func (_c *OrganizationCreate) AddTaxableServices(v ...*TaxableService) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTaxableServiceIDs(ids...)
+}
+
+// AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
+func (_c *OrganizationCreate) AddFeeSettingIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFeeSettingIDs(ids...)
+	return _c
+}
+
+// AddFeeSettings adds the "fee_settings" edges to the FeeSetting entity.
+func (_c *OrganizationCreate) AddFeeSettings(v ...*FeeSetting) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeSettingIDs(ids...)
 }
 
 // AddPortIDs adds the "ports" edge to the Port entity by IDs.
@@ -693,6 +741,54 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BillingUnitsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TaxableServicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

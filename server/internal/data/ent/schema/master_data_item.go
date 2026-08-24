@@ -40,6 +40,8 @@ func (MasterDataItem) Fields() []ent.Field {
 func (MasterDataItem) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("master_data_items").Field("organization_id").Unique().Required(),
+		edge.To("service_type_fee_settings", FeeSetting.Type),
+		edge.To("abnormal_case_fee_settings", FeeSetting.Type),
 	}
 }
 

@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -49,12 +52,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -570,6 +573,71 @@ func init() {
 	backgroundtaskDescID := backgroundtaskMixinFields0[0].Descriptor()
 	// backgroundtask.DefaultID holds the default value on creation for the id field.
 	backgroundtask.DefaultID = backgroundtaskDescID.Default.(func() uuid.UUID)
+	billingunitMixin := schema.BillingUnit{}.Mixin()
+	billingunitMixinFields0 := billingunitMixin[0].Fields()
+	_ = billingunitMixinFields0
+	billingunitMixinFields1 := billingunitMixin[1].Fields()
+	_ = billingunitMixinFields1
+	billingunitFields := schema.BillingUnit{}.Fields()
+	_ = billingunitFields
+	// billingunitDescCreatedAt is the schema descriptor for created_at field.
+	billingunitDescCreatedAt := billingunitMixinFields1[0].Descriptor()
+	// billingunit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	billingunit.DefaultCreatedAt = billingunitDescCreatedAt.Default.(func() time.Time)
+	// billingunitDescUpdatedAt is the schema descriptor for updated_at field.
+	billingunitDescUpdatedAt := billingunitMixinFields1[1].Descriptor()
+	// billingunit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	billingunit.DefaultUpdatedAt = billingunitDescUpdatedAt.Default.(func() time.Time)
+	// billingunit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	billingunit.UpdateDefaultUpdatedAt = billingunitDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// billingunitDescCode is the schema descriptor for code field.
+	billingunitDescCode := billingunitFields[1].Descriptor()
+	// billingunit.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	billingunit.CodeValidator = func() func(string) error {
+		validators := billingunitDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// billingunitDescName is the schema descriptor for name field.
+	billingunitDescName := billingunitFields[2].Descriptor()
+	// billingunit.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	billingunit.NameValidator = func() func(string) error {
+		validators := billingunitDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// billingunitDescSortOrder is the schema descriptor for sort_order field.
+	billingunitDescSortOrder := billingunitFields[3].Descriptor()
+	// billingunit.DefaultSortOrder holds the default value on creation for the sort_order field.
+	billingunit.DefaultSortOrder = billingunitDescSortOrder.Default.(int)
+	// billingunitDescEnabled is the schema descriptor for enabled field.
+	billingunitDescEnabled := billingunitFields[4].Descriptor()
+	// billingunit.DefaultEnabled holds the default value on creation for the enabled field.
+	billingunit.DefaultEnabled = billingunitDescEnabled.Default.(bool)
+	// billingunitDescID is the schema descriptor for id field.
+	billingunitDescID := billingunitMixinFields0[0].Descriptor()
+	// billingunit.DefaultID holds the default value on creation for the id field.
+	billingunit.DefaultID = billingunitDescID.Default.(func() uuid.UUID)
 	currencyMixin := schema.Currency{}.Mixin()
 	currencyMixinFields0 := currencyMixin[0].Fields()
 	_ = currencyMixinFields0
@@ -756,6 +824,98 @@ func init() {
 	exchangeratesettingDescID := exchangeratesettingMixinFields0[0].Descriptor()
 	// exchangeratesetting.DefaultID holds the default value on creation for the id field.
 	exchangeratesetting.DefaultID = exchangeratesettingDescID.Default.(func() uuid.UUID)
+	feesettingMixin := schema.FeeSetting{}.Mixin()
+	feesettingMixinFields0 := feesettingMixin[0].Fields()
+	_ = feesettingMixinFields0
+	feesettingMixinFields1 := feesettingMixin[1].Fields()
+	_ = feesettingMixinFields1
+	feesettingFields := schema.FeeSetting{}.Fields()
+	_ = feesettingFields
+	// feesettingDescCreatedAt is the schema descriptor for created_at field.
+	feesettingDescCreatedAt := feesettingMixinFields1[0].Descriptor()
+	// feesetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	feesetting.DefaultCreatedAt = feesettingDescCreatedAt.Default.(func() time.Time)
+	// feesettingDescUpdatedAt is the schema descriptor for updated_at field.
+	feesettingDescUpdatedAt := feesettingMixinFields1[1].Descriptor()
+	// feesetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	feesetting.DefaultUpdatedAt = feesettingDescUpdatedAt.Default.(func() time.Time)
+	// feesetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	feesetting.UpdateDefaultUpdatedAt = feesettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// feesettingDescFeeCode is the schema descriptor for fee_code field.
+	feesettingDescFeeCode := feesettingFields[1].Descriptor()
+	// feesetting.FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
+	feesetting.FeeCodeValidator = func() func(string) error {
+		validators := feesettingDescFeeCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(fee_code string) error {
+			for _, fn := range fns {
+				if err := fn(fee_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingDescNameZh is the schema descriptor for name_zh field.
+	feesettingDescNameZh := feesettingFields[2].Descriptor()
+	// feesetting.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	feesetting.NameZhValidator = func() func(string) error {
+		validators := feesettingDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingDescNameEn is the schema descriptor for name_en field.
+	feesettingDescNameEn := feesettingFields[3].Descriptor()
+	// feesetting.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	feesetting.NameEnValidator = feesettingDescNameEn.Validators[0].(func(string) error)
+	// feesettingDescAliasName is the schema descriptor for alias_name field.
+	feesettingDescAliasName := feesettingFields[4].Descriptor()
+	// feesetting.AliasNameValidator is a validator for the "alias_name" field. It is called by the builders before save.
+	feesetting.AliasNameValidator = feesettingDescAliasName.Validators[0].(func(string) error)
+	// feesettingDescDefaultCurrency is the schema descriptor for default_currency field.
+	feesettingDescDefaultCurrency := feesettingFields[6].Descriptor()
+	// feesetting.DefaultCurrencyValidator is a validator for the "default_currency" field. It is called by the builders before save.
+	feesetting.DefaultCurrencyValidator = func() func(string) error {
+		validators := feesettingDescDefaultCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(default_currency string) error {
+			for _, fn := range fns {
+				if err := fn(default_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingDescEnabled is the schema descriptor for enabled field.
+	feesettingDescEnabled := feesettingFields[11].Descriptor()
+	// feesetting.DefaultEnabled holds the default value on creation for the enabled field.
+	feesetting.DefaultEnabled = feesettingDescEnabled.Default.(bool)
+	// feesettingDescSortOrder is the schema descriptor for sort_order field.
+	feesettingDescSortOrder := feesettingFields[12].Descriptor()
+	// feesetting.DefaultSortOrder holds the default value on creation for the sort_order field.
+	feesetting.DefaultSortOrder = feesettingDescSortOrder.Default.(int)
+	// feesettingDescID is the schema descriptor for id field.
+	feesettingDescID := feesettingMixinFields0[0].Descriptor()
+	// feesetting.DefaultID holds the default value on creation for the id field.
+	feesetting.DefaultID = feesettingDescID.Default.(func() uuid.UUID)
 	masterdataitemMixin := schema.MasterDataItem{}.Mixin()
 	masterdataitemMixinFields0 := masterdataitemMixin[0].Fields()
 	_ = masterdataitemMixinFields0
@@ -3442,6 +3602,57 @@ func init() {
 	statustemplateitemDescID := statustemplateitemMixinFields0[0].Descriptor()
 	// statustemplateitem.DefaultID holds the default value on creation for the id field.
 	statustemplateitem.DefaultID = statustemplateitemDescID.Default.(func() uuid.UUID)
+	taxableserviceMixin := schema.TaxableService{}.Mixin()
+	taxableserviceMixinFields0 := taxableserviceMixin[0].Fields()
+	_ = taxableserviceMixinFields0
+	taxableserviceMixinFields1 := taxableserviceMixin[1].Fields()
+	_ = taxableserviceMixinFields1
+	taxableserviceFields := schema.TaxableService{}.Fields()
+	_ = taxableserviceFields
+	// taxableserviceDescCreatedAt is the schema descriptor for created_at field.
+	taxableserviceDescCreatedAt := taxableserviceMixinFields1[0].Descriptor()
+	// taxableservice.DefaultCreatedAt holds the default value on creation for the created_at field.
+	taxableservice.DefaultCreatedAt = taxableserviceDescCreatedAt.Default.(func() time.Time)
+	// taxableserviceDescUpdatedAt is the schema descriptor for updated_at field.
+	taxableserviceDescUpdatedAt := taxableserviceMixinFields1[1].Descriptor()
+	// taxableservice.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	taxableservice.DefaultUpdatedAt = taxableserviceDescUpdatedAt.Default.(func() time.Time)
+	// taxableservice.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	taxableservice.UpdateDefaultUpdatedAt = taxableserviceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// taxableserviceDescName is the schema descriptor for name field.
+	taxableserviceDescName := taxableserviceFields[1].Descriptor()
+	// taxableservice.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	taxableservice.NameValidator = func() func(string) error {
+		validators := taxableserviceDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// taxableserviceDescShortName is the schema descriptor for short_name field.
+	taxableserviceDescShortName := taxableserviceFields[2].Descriptor()
+	// taxableservice.ShortNameValidator is a validator for the "short_name" field. It is called by the builders before save.
+	taxableservice.ShortNameValidator = taxableserviceDescShortName.Validators[0].(func(string) error)
+	// taxableserviceDescGoodsCode is the schema descriptor for goods_code field.
+	taxableserviceDescGoodsCode := taxableserviceFields[3].Descriptor()
+	// taxableservice.GoodsCodeValidator is a validator for the "goods_code" field. It is called by the builders before save.
+	taxableservice.GoodsCodeValidator = taxableserviceDescGoodsCode.Validators[0].(func(string) error)
+	// taxableserviceDescEnabled is the schema descriptor for enabled field.
+	taxableserviceDescEnabled := taxableserviceFields[5].Descriptor()
+	// taxableservice.DefaultEnabled holds the default value on creation for the enabled field.
+	taxableservice.DefaultEnabled = taxableserviceDescEnabled.Default.(bool)
+	// taxableserviceDescID is the schema descriptor for id field.
+	taxableserviceDescID := taxableserviceMixinFields0[0].Descriptor()
+	// taxableservice.DefaultID holds the default value on creation for the id field.
+	taxableservice.DefaultID = taxableserviceDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

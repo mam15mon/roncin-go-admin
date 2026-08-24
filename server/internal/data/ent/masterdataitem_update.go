@@ -12,10 +12,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItemUpdate is the builder for updating MasterDataItem entities.
@@ -199,6 +200,36 @@ func (_u *MasterDataItemUpdate) SetOrganization(v *Organization) *MasterDataItem
 	return _u.SetOrganizationID(v.ID)
 }
 
+// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdate) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.AddServiceTypeFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddServiceTypeFeeSettingIDs(ids...)
+}
+
+// AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdate) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddAbnormalCaseFeeSettings adds the "abnormal_case_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) AddAbnormalCaseFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbnormalCaseFeeSettingIDs(ids...)
+}
+
 // Mutation returns the MasterDataItemMutation object of the builder.
 func (_u *MasterDataItemUpdate) Mutation() *MasterDataItemMutation {
 	return _u.mutation
@@ -208,6 +239,48 @@ func (_u *MasterDataItemUpdate) Mutation() *MasterDataItemMutation {
 func (_u *MasterDataItemUpdate) ClearOrganization() *MasterDataItemUpdate {
 	_u.mutation.ClearOrganization()
 	return _u
+}
+
+// ClearServiceTypeFeeSettings clears all "service_type_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) ClearServiceTypeFeeSettings() *MasterDataItemUpdate {
+	_u.mutation.ClearServiceTypeFeeSettings()
+	return _u
+}
+
+// RemoveServiceTypeFeeSettingIDs removes the "service_type_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdate) RemoveServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.RemoveServiceTypeFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveServiceTypeFeeSettings removes "service_type_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdate) RemoveServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveServiceTypeFeeSettingIDs(ids...)
+}
+
+// ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdate) ClearAbnormalCaseFeeSettings() *MasterDataItemUpdate {
+	_u.mutation.ClearAbnormalCaseFeeSettings()
+	return _u
+}
+
+// RemoveAbnormalCaseFeeSettingIDs removes the "abnormal_case_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdate) RemoveAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
+	_u.mutation.RemoveAbnormalCaseFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveAbnormalCaseFeeSettings removes "abnormal_case_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdate) RemoveAbnormalCaseFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbnormalCaseFeeSettingIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -360,6 +433,96 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ServiceTypeFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedServiceTypeFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypeFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbnormalCaseFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbnormalCaseFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.AbnormalCaseFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbnormalCaseFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -555,6 +718,36 @@ func (_u *MasterDataItemUpdateOne) SetOrganization(v *Organization) *MasterDataI
 	return _u.SetOrganizationID(v.ID)
 }
 
+// AddServiceTypeFeeSettingIDs adds the "service_type_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdateOne) AddServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.AddServiceTypeFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddServiceTypeFeeSettings adds the "service_type_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) AddServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddServiceTypeFeeSettingIDs(ids...)
+}
+
+// AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *MasterDataItemUpdateOne) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddAbnormalCaseFeeSettings adds the "abnormal_case_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) AddAbnormalCaseFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbnormalCaseFeeSettingIDs(ids...)
+}
+
 // Mutation returns the MasterDataItemMutation object of the builder.
 func (_u *MasterDataItemUpdateOne) Mutation() *MasterDataItemMutation {
 	return _u.mutation
@@ -564,6 +757,48 @@ func (_u *MasterDataItemUpdateOne) Mutation() *MasterDataItemMutation {
 func (_u *MasterDataItemUpdateOne) ClearOrganization() *MasterDataItemUpdateOne {
 	_u.mutation.ClearOrganization()
 	return _u
+}
+
+// ClearServiceTypeFeeSettings clears all "service_type_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) ClearServiceTypeFeeSettings() *MasterDataItemUpdateOne {
+	_u.mutation.ClearServiceTypeFeeSettings()
+	return _u
+}
+
+// RemoveServiceTypeFeeSettingIDs removes the "service_type_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdateOne) RemoveServiceTypeFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.RemoveServiceTypeFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveServiceTypeFeeSettings removes "service_type_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdateOne) RemoveServiceTypeFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveServiceTypeFeeSettingIDs(ids...)
+}
+
+// ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
+func (_u *MasterDataItemUpdateOne) ClearAbnormalCaseFeeSettings() *MasterDataItemUpdateOne {
+	_u.mutation.ClearAbnormalCaseFeeSettings()
+	return _u
+}
+
+// RemoveAbnormalCaseFeeSettingIDs removes the "abnormal_case_fee_settings" edge to FeeSetting entities by IDs.
+func (_u *MasterDataItemUpdateOne) RemoveAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
+	_u.mutation.RemoveAbnormalCaseFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveAbnormalCaseFeeSettings removes "abnormal_case_fee_settings" edges to FeeSetting entities.
+func (_u *MasterDataItemUpdateOne) RemoveAbnormalCaseFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbnormalCaseFeeSettingIDs(ids...)
 }
 
 // Where appends a list predicates to the MasterDataItemUpdate builder.
@@ -746,6 +981,96 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ServiceTypeFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedServiceTypeFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypeFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ServiceTypeFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.ServiceTypeFeeSettingsTable,
+			Columns: []string{masterdataitem.ServiceTypeFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbnormalCaseFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbnormalCaseFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.AbnormalCaseFeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbnormalCaseFeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   masterdataitem.AbnormalCaseFeeSettingsTable,
+			Columns: []string{masterdataitem.AbnormalCaseFeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

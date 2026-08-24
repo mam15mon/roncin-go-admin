@@ -17,8 +17,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -60,6 +62,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -126,8 +129,10 @@ func checkColumn(t, c string) error {
 			airport.Table:                     airport.ValidColumn,
 			auditlog.Table:                    auditlog.ValidColumn,
 			backgroundtask.Table:              backgroundtask.ValidColumn,
+			billingunit.Table:                 billingunit.ValidColumn,
 			currency.Table:                    currency.ValidColumn,
 			exchangeratesetting.Table:         exchangeratesetting.ValidColumn,
+			feesetting.Table:                  feesetting.ValidColumn,
 			masterdataitem.Table:              masterdataitem.ValidColumn,
 			membership.Table:                  membership.ValidColumn,
 			milestonetemplate.Table:           milestonetemplate.ValidColumn,
@@ -169,6 +174,7 @@ func checkColumn(t, c string) error {
 			shippinglinecontainerprefix.Table: shippinglinecontainerprefix.ValidColumn,
 			statustemplate.Table:              statustemplate.ValidColumn,
 			statustemplateitem.Table:          statustemplateitem.ValidColumn,
+			taxableservice.Table:              taxableservice.ValidColumn,
 			user.Table:                        user.ValidColumn,
 		})
 	})

@@ -724,6 +724,52 @@ func HasOrganizationWith(preds ...predicate.Organization) predicate.MasterDataIt
 	})
 }
 
+// HasServiceTypeFeeSettings applies the HasEdge predicate on the "service_type_fee_settings" edge.
+func HasServiceTypeFeeSettings() predicate.MasterDataItem {
+	return predicate.MasterDataItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypeFeeSettingsTable, ServiceTypeFeeSettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasServiceTypeFeeSettingsWith applies the HasEdge predicate on the "service_type_fee_settings" edge with a given conditions (other predicates).
+func HasServiceTypeFeeSettingsWith(preds ...predicate.FeeSetting) predicate.MasterDataItem {
+	return predicate.MasterDataItem(func(s *sql.Selector) {
+		step := newServiceTypeFeeSettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAbnormalCaseFeeSettings applies the HasEdge predicate on the "abnormal_case_fee_settings" edge.
+func HasAbnormalCaseFeeSettings() predicate.MasterDataItem {
+	return predicate.MasterDataItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AbnormalCaseFeeSettingsTable, AbnormalCaseFeeSettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAbnormalCaseFeeSettingsWith applies the HasEdge predicate on the "abnormal_case_fee_settings" edge with a given conditions (other predicates).
+func HasAbnormalCaseFeeSettingsWith(preds ...predicate.FeeSetting) predicate.MasterDataItem {
+	return predicate.MasterDataItem(func(s *sql.Selector) {
+		step := newAbnormalCaseFeeSettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.MasterDataItem) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.AndPredicates(predicates...))

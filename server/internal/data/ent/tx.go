@@ -22,10 +22,14 @@ type Tx struct {
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
 	BackgroundTask *BackgroundTaskClient
+	// BillingUnit is the client for interacting with the BillingUnit builders.
+	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
+	// FeeSetting is the client for interacting with the FeeSetting builders.
+	FeeSetting *FeeSettingClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -108,6 +112,8 @@ type Tx struct {
 	StatusTemplate *StatusTemplateClient
 	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
 	StatusTemplateItem *StatusTemplateItemClient
+	// TaxableService is the client for interacting with the TaxableService builders.
+	TaxableService *TaxableServiceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -246,8 +252,10 @@ func (tx *Tx) init() {
 	tx.Airport = NewAirportClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
+	tx.BillingUnit = NewBillingUnitClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
+	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)
@@ -289,6 +297,7 @@ func (tx *Tx) init() {
 	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)
 	tx.StatusTemplate = NewStatusTemplateClient(tx.config)
 	tx.StatusTemplateItem = NewStatusTemplateItemClient(tx.config)
+	tx.TaxableService = NewTaxableServiceClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

@@ -21,11 +21,17 @@ type AuditLog func(*sql.Selector)
 // BackgroundTask is the predicate function for backgroundtask builders.
 type BackgroundTask func(*sql.Selector)
 
+// BillingUnit is the predicate function for billingunit builders.
+type BillingUnit func(*sql.Selector)
+
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 
 // ExchangeRateSetting is the predicate function for exchangeratesetting builders.
 type ExchangeRateSetting func(*sql.Selector)
+
+// FeeSetting is the predicate function for feesetting builders.
+type FeeSetting func(*sql.Selector)
 
 // MasterDataItem is the predicate function for masterdataitem builders.
 type MasterDataItem func(*sql.Selector)
@@ -149,6 +155,9 @@ type StatusTemplate func(*sql.Selector)
 
 // StatusTemplateItem is the predicate function for statustemplateitem builders.
 type StatusTemplateItem func(*sql.Selector)
+
+// TaxableService is the predicate function for taxableservice builders.
+type TaxableService func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

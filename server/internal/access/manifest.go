@@ -12,24 +12,27 @@ type Permission struct {
 const (
 	PlatformAccess = "system.platform.access"
 
-	OrganizationRead   = "system.organization.read"
-	OrganizationCreate = "system.organization.create"
-	OrganizationUpdate = "system.organization.update"
-	UserRead           = "system.user.read"
-	UserCreate         = "system.user.create"
-	UserUpdate         = "system.user.update"
-	UserAuthorizeWeCom = "system.user.authorize_wecom"
-	UserResetPassword  = "system.user.reset_password"
-	RoleRead           = "system.role.read"
-	RoleCreate         = "system.role.create"
-	RoleUpdate         = "system.role.update"
-	PermissionRead     = "system.permission.read"
-	AuditRead          = "system.audit.read"
-	FinanceExchangeRateRead    = "system.finance.exchange_rate.read"
-	FinanceExchangeRateCreate  = "system.finance.exchange_rate.create"
-	FinanceExchangeRateUpdate  = "system.finance.exchange_rate.update"
-	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
+	OrganizationRead            = "system.organization.read"
+	OrganizationCreate          = "system.organization.create"
+	OrganizationUpdate          = "system.organization.update"
+	UserRead                    = "system.user.read"
+	UserCreate                  = "system.user.create"
+	UserUpdate                  = "system.user.update"
+	UserAuthorizeWeCom          = "system.user.authorize_wecom"
+	UserResetPassword           = "system.user.reset_password"
+	RoleRead                    = "system.role.read"
+	RoleCreate                  = "system.role.create"
+	RoleUpdate                  = "system.role.update"
+	PermissionRead              = "system.permission.read"
+	AuditRead                   = "system.audit.read"
+	FinanceExchangeRateRead     = "system.finance.exchange_rate.read"
+	FinanceExchangeRateCreate   = "system.finance.exchange_rate.create"
+	FinanceExchangeRateUpdate   = "system.finance.exchange_rate.update"
+	FinanceExchangeRateDisable  = "system.finance.exchange_rate.disable"
 	FinanceExchangeRateOverride = "system.finance.exchange_rate.override"
+	FinanceFeeSettingRead       = "system.finance.fee_setting.read"
+	FinanceFeeSettingCreate     = "system.finance.fee_setting.create"
+	FinanceFeeSettingUpdate     = "system.finance.fee_setting.update"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -163,6 +166,9 @@ var manifest = append([]Permission{
 	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织结算汇率"},
 	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织结算汇率"},
 	{Key: FinanceExchangeRateOverride, Name: "覆盖费用汇率", Group: "财务管理 · 汇率", Description: "在订单费用中手工覆盖系统结算汇率"},
+	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "财务管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
+	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "财务管理 · 费用设置", Description: "新建费用设置及关联基础资料"},
+	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "财务管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料"},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案"},
 	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案"},

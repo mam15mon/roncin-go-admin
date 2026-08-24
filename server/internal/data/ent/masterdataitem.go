@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
 // MasterDataItem is the model entity for the MasterDataItem schema.
@@ -57,9 +57,13 @@ type MasterDataItem struct {
 type MasterDataItemEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// ServiceTypeFeeSettings holds the value of the service_type_fee_settings edge.
+	ServiceTypeFeeSettings []*FeeSetting `json:"service_type_fee_settings,omitempty"`
+	// AbnormalCaseFeeSettings holds the value of the abnormal_case_fee_settings edge.
+	AbnormalCaseFeeSettings []*FeeSetting `json:"abnormal_case_fee_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -71,6 +75,24 @@ func (e MasterDataItemEdges) OrganizationOrErr() (*Organization, error) {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "organization"}
+}
+
+// ServiceTypeFeeSettingsOrErr returns the ServiceTypeFeeSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e MasterDataItemEdges) ServiceTypeFeeSettingsOrErr() ([]*FeeSetting, error) {
+	if e.loadedTypes[1] {
+		return e.ServiceTypeFeeSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "service_type_fee_settings"}
+}
+
+// AbnormalCaseFeeSettingsOrErr returns the AbnormalCaseFeeSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e MasterDataItemEdges) AbnormalCaseFeeSettingsOrErr() ([]*FeeSetting, error) {
+	if e.loadedTypes[2] {
+		return e.AbnormalCaseFeeSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "abnormal_case_fee_settings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -210,6 +232,16 @@ func (_m *MasterDataItem) Value(name string) (ent.Value, error) {
 // QueryOrganization queries the "organization" edge of the MasterDataItem entity.
 func (_m *MasterDataItem) QueryOrganization() *OrganizationQuery {
 	return NewMasterDataItemClient(_m.config).QueryOrganization(_m)
+}
+
+// QueryServiceTypeFeeSettings queries the "service_type_fee_settings" edge of the MasterDataItem entity.
+func (_m *MasterDataItem) QueryServiceTypeFeeSettings() *FeeSettingQuery {
+	return NewMasterDataItemClient(_m.config).QueryServiceTypeFeeSettings(_m)
+}
+
+// QueryAbnormalCaseFeeSettings queries the "abnormal_case_fee_settings" edge of the MasterDataItem entity.
+func (_m *MasterDataItem) QueryAbnormalCaseFeeSettings() *FeeSettingQuery {
+	return NewMasterDataItemClient(_m.config).QueryAbnormalCaseFeeSettings(_m)
 }
 
 // Update returns a builder for updating this MasterDataItem.

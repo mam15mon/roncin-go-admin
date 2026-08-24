@@ -17,6 +17,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -32,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
 
 // OrganizationQuery is the builder for querying Organization entities.
@@ -50,6 +53,9 @@ type OrganizationQuery struct {
 	withPartners                      *PartnerQuery
 	withPartnerAssignments            *PartnerAssignmentQuery
 	withMasterDataItems               *MasterDataItemQuery
+	withBillingUnits                  *BillingUnitQuery
+	withTaxableServices               *TaxableServiceQuery
+	withFeeSettings                   *FeeSettingQuery
 	withPorts                         *PortQuery
 	withAirports                      *AirportQuery
 	withAirlines                      *AirlineQuery
@@ -287,6 +293,72 @@ func (_q *OrganizationQuery) QueryMasterDataItems() *MasterDataItemQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryBillingUnits chains the current query on the "billing_units" edge.
+func (_q *OrganizationQuery) QueryBillingUnits() *BillingUnitQuery {
+	query := (&BillingUnitClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(billingunit.Table, billingunit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.BillingUnitsTable, organization.BillingUnitsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTaxableServices chains the current query on the "taxable_services" edge.
+func (_q *OrganizationQuery) QueryTaxableServices() *TaxableServiceQuery {
+	query := (&TaxableServiceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(taxableservice.Table, taxableservice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.TaxableServicesTable, organization.TaxableServicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeeSettings chains the current query on the "fee_settings" edge.
+func (_q *OrganizationQuery) QueryFeeSettings() *FeeSettingQuery {
+	query := (&FeeSettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeeSettingsTable, organization.FeeSettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -693,6 +765,9 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withPartners:                      _q.withPartners.Clone(),
 		withPartnerAssignments:            _q.withPartnerAssignments.Clone(),
 		withMasterDataItems:               _q.withMasterDataItems.Clone(),
+		withBillingUnits:                  _q.withBillingUnits.Clone(),
+		withTaxableServices:               _q.withTaxableServices.Clone(),
+		withFeeSettings:                   _q.withFeeSettings.Clone(),
 		withPorts:                         _q.withPorts.Clone(),
 		withAirports:                      _q.withAirports.Clone(),
 		withAirlines:                      _q.withAirlines.Clone(),
@@ -804,6 +879,39 @@ func (_q *OrganizationQuery) WithMasterDataItems(opts ...func(*MasterDataItemQue
 		opt(query)
 	}
 	_q.withMasterDataItems = query
+	return _q
+}
+
+// WithBillingUnits tells the query-builder to eager-load the nodes that are connected to
+// the "billing_units" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithBillingUnits(opts ...func(*BillingUnitQuery)) *OrganizationQuery {
+	query := (&BillingUnitClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBillingUnits = query
+	return _q
+}
+
+// WithTaxableServices tells the query-builder to eager-load the nodes that are connected to
+// the "taxable_services" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithTaxableServices(opts ...func(*TaxableServiceQuery)) *OrganizationQuery {
+	query := (&TaxableServiceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTaxableServices = query
+	return _q
+}
+
+// WithFeeSettings tells the query-builder to eager-load the nodes that are connected to
+// the "fee_settings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFeeSettings(opts ...func(*FeeSettingQuery)) *OrganizationQuery {
+	query := (&FeeSettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeeSettings = query
 	return _q
 }
 
@@ -984,7 +1092,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [18]bool{
+		loadedTypes = [21]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -994,6 +1102,9 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withPartners != nil,
 			_q.withPartnerAssignments != nil,
 			_q.withMasterDataItems != nil,
+			_q.withBillingUnits != nil,
+			_q.withTaxableServices != nil,
+			_q.withFeeSettings != nil,
 			_q.withPorts != nil,
 			_q.withAirports != nil,
 			_q.withAirlines != nil,
@@ -1089,6 +1200,27 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadMasterDataItems(ctx, query, nodes,
 			func(n *Organization) { n.Edges.MasterDataItems = []*MasterDataItem{} },
 			func(n *Organization, e *MasterDataItem) { n.Edges.MasterDataItems = append(n.Edges.MasterDataItems, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBillingUnits; query != nil {
+		if err := _q.loadBillingUnits(ctx, query, nodes,
+			func(n *Organization) { n.Edges.BillingUnits = []*BillingUnit{} },
+			func(n *Organization, e *BillingUnit) { n.Edges.BillingUnits = append(n.Edges.BillingUnits, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTaxableServices; query != nil {
+		if err := _q.loadTaxableServices(ctx, query, nodes,
+			func(n *Organization) { n.Edges.TaxableServices = []*TaxableService{} },
+			func(n *Organization, e *TaxableService) { n.Edges.TaxableServices = append(n.Edges.TaxableServices, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeeSettings; query != nil {
+		if err := _q.loadFeeSettings(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FeeSettings = []*FeeSetting{} },
+			func(n *Organization, e *FeeSetting) { n.Edges.FeeSettings = append(n.Edges.FeeSettings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1420,6 +1552,96 @@ func (_q *OrganizationQuery) loadMasterDataItems(ctx context.Context, query *Mas
 	}
 	query.Where(predicate.MasterDataItem(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.MasterDataItemsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadBillingUnits(ctx context.Context, query *BillingUnitQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *BillingUnit)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(billingunit.FieldOrganizationID)
+	}
+	query.Where(predicate.BillingUnit(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.BillingUnitsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadTaxableServices(ctx context.Context, query *TaxableServiceQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *TaxableService)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(taxableservice.FieldOrganizationID)
+	}
+	query.Where(predicate.TaxableService(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.TaxableServicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFeeSettings(ctx context.Context, query *FeeSettingQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FeeSetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(feesetting.FieldOrganizationID)
+	}
+	query.Where(predicate.FeeSetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FeeSettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

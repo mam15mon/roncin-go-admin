@@ -275,6 +275,48 @@ var (
 			},
 		},
 	}
+	// BillingUnitsColumns holds the columns for the "billing_units" table.
+	BillingUnitsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 32},
+		{Name: "name", Type: field.TypeString, Size: 64},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// BillingUnitsTable holds the schema information for the "billing_units" table.
+	BillingUnitsTable = &schema.Table{
+		Name:       "billing_units",
+		Columns:    BillingUnitsColumns,
+		PrimaryKey: []*schema.Column{BillingUnitsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "billing_units_organizations_billing_units",
+				Columns:    []*schema.Column{BillingUnitsColumns[7]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "billingunit_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{BillingUnitsColumns[2]},
+			},
+			{
+				Name:    "billingunit_organization_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[3]},
+			},
+			{
+				Name:    "billingunit_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[6], BillingUnitsColumns[5]},
+			},
+		},
+	}
 	// CurrenciesColumns holds the columns for the "currencies" table.
 	CurrenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -350,6 +392,85 @@ var (
 				Name:    "exchange_rate_setting_effective_range",
 				Unique:  false,
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[8], ExchangeRateSettingsColumns[9]},
+			},
+		},
+	}
+	// FeeSettingsColumns holds the columns for the "fee_settings" table.
+	FeeSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "fee_code", Type: field.TypeString, Size: 32},
+		{Name: "name_zh", Type: field.TypeString, Size: 64},
+		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "alias_name", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "default_currency", Type: field.TypeString, Size: 3},
+		{Name: "tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "billing_unit_id", Type: field.TypeUUID},
+		{Name: "service_type_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "abnormal_case_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "taxable_service_id", Type: field.TypeUUID},
+	}
+	// FeeSettingsTable holds the schema information for the "fee_settings" table.
+	FeeSettingsTable = &schema.Table{
+		Name:       "fee_settings",
+		Columns:    FeeSettingsColumns,
+		PrimaryKey: []*schema.Column{FeeSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "fee_settings_billing_units_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[11]},
+				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "fee_settings_master_data_items_service_type_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[12]},
+				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "fee_settings_master_data_items_abnormal_case_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[13]},
+				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "fee_settings_organizations_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[14]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "fee_settings_taxable_services_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[15]},
+				RefColumns: []*schema.Column{TaxableServicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "feesetting_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FeeSettingsColumns[2]},
+			},
+			{
+				Name:    "feesetting_organization_id_fee_code",
+				Unique:  true,
+				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[3]},
+			},
+			{
+				Name:    "feesetting_organization_id_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[9], FeeSettingsColumns[10]},
+			},
+			{
+				Name:    "feesetting_organization_id_service_type_id_abnormal_case_id",
+				Unique:  false,
+				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[12], FeeSettingsColumns[13]},
 			},
 		},
 	}
@@ -2320,6 +2441,49 @@ var (
 			},
 		},
 	}
+	// TaxableServicesColumns holds the columns for the "taxable_services" table.
+	TaxableServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 128},
+		{Name: "short_name", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "goods_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "default_tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// TaxableServicesTable holds the schema information for the "taxable_services" table.
+	TaxableServicesTable = &schema.Table{
+		Name:       "taxable_services",
+		Columns:    TaxableServicesColumns,
+		PrimaryKey: []*schema.Column{TaxableServicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "taxable_services_organizations_taxable_services",
+				Columns:    []*schema.Column{TaxableServicesColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "taxableservice_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{TaxableServicesColumns[2]},
+			},
+			{
+				Name:    "taxableservice_organization_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{TaxableServicesColumns[8], TaxableServicesColumns[3]},
+			},
+			{
+				Name:    "taxableservice_organization_id_enabled_name",
+				Unique:  false,
+				Columns: []*schema.Column{TaxableServicesColumns[8], TaxableServicesColumns[7], TaxableServicesColumns[3]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2400,8 +2564,10 @@ var (
 		AirportsTable,
 		AuditLogsTable,
 		BackgroundTasksTable,
+		BillingUnitsTable,
 		CurrenciesTable,
 		ExchangeRateSettingsTable,
+		FeeSettingsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
 		MilestoneTemplatesTable,
@@ -2443,6 +2609,7 @@ var (
 		ShippingLineContainerPrefixesTable,
 		StatusTemplatesTable,
 		StatusTemplateItemsTable,
+		TaxableServicesTable,
 		UsersTable,
 		RolePermissionsTable,
 	}
@@ -2452,6 +2619,12 @@ func init() {
 	AirlinesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
+	BillingUnitsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FeeSettingsTable.ForeignKeys[0].RefTable = BillingUnitsTable
+	FeeSettingsTable.ForeignKeys[1].RefTable = MasterDataItemsTable
+	FeeSettingsTable.ForeignKeys[2].RefTable = MasterDataItemsTable
+	FeeSettingsTable.ForeignKeys[3].RefTable = OrganizationsTable
+	FeeSettingsTable.ForeignKeys[4].RefTable = TaxableServicesTable
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
@@ -2504,6 +2677,7 @@ func init() {
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	StatusTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	StatusTemplateItemsTable.ForeignKeys[0].RefTable = StatusTemplatesTable
+	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable
 	RolePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
 }

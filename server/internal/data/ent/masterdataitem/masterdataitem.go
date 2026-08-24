@@ -45,6 +45,10 @@ const (
 	FieldAttributes = "attributes"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeServiceTypeFeeSettings holds the string denoting the service_type_fee_settings edge name in mutations.
+	EdgeServiceTypeFeeSettings = "service_type_fee_settings"
+	// EdgeAbnormalCaseFeeSettings holds the string denoting the abnormal_case_fee_settings edge name in mutations.
+	EdgeAbnormalCaseFeeSettings = "abnormal_case_fee_settings"
 	// Table holds the table name of the masterdataitem in the database.
 	Table = "master_data_items"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -54,6 +58,20 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// ServiceTypeFeeSettingsTable is the table that holds the service_type_fee_settings relation/edge.
+	ServiceTypeFeeSettingsTable = "fee_settings"
+	// ServiceTypeFeeSettingsInverseTable is the table name for the FeeSetting entity.
+	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
+	ServiceTypeFeeSettingsInverseTable = "fee_settings"
+	// ServiceTypeFeeSettingsColumn is the table column denoting the service_type_fee_settings relation/edge.
+	ServiceTypeFeeSettingsColumn = "service_type_id"
+	// AbnormalCaseFeeSettingsTable is the table that holds the abnormal_case_fee_settings relation/edge.
+	AbnormalCaseFeeSettingsTable = "fee_settings"
+	// AbnormalCaseFeeSettingsInverseTable is the table name for the FeeSetting entity.
+	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
+	AbnormalCaseFeeSettingsInverseTable = "fee_settings"
+	// AbnormalCaseFeeSettingsColumn is the table column denoting the abnormal_case_fee_settings relation/edge.
+	AbnormalCaseFeeSettingsColumn = "abnormal_case_id"
 )
 
 // Columns holds all SQL columns for masterdataitem fields.
@@ -217,10 +235,52 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByServiceTypeFeeSettingsCount orders the results by service_type_fee_settings count.
+func ByServiceTypeFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServiceTypeFeeSettingsStep(), opts...)
+	}
+}
+
+// ByServiceTypeFeeSettings orders the results by service_type_fee_settings terms.
+func ByServiceTypeFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServiceTypeFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAbnormalCaseFeeSettingsCount orders the results by abnormal_case_fee_settings count.
+func ByAbnormalCaseFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAbnormalCaseFeeSettingsStep(), opts...)
+	}
+}
+
+// ByAbnormalCaseFeeSettings orders the results by abnormal_case_fee_settings terms.
+func ByAbnormalCaseFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAbnormalCaseFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newServiceTypeFeeSettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServiceTypeFeeSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypeFeeSettingsTable, ServiceTypeFeeSettingsColumn),
+	)
+}
+func newAbnormalCaseFeeSettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AbnormalCaseFeeSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AbnormalCaseFeeSettingsTable, AbnormalCaseFeeSettingsColumn),
 	)
 }

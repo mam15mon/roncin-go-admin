@@ -541,6 +541,59 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/task.v1.RequeueBackgroundTaskResponse'
+    /api/v1/finance/billing-units:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_ListBillingUnits
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListBillingUnitsResponse'
+        post:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_CreateBillingUnit
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateBillingUnitRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateBillingUnitResponse'
+    /api/v1/finance/billing-units/{id}:
+        put:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_UpdateBillingUnit
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateBillingUnitRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateBillingUnitResponse'
     /api/v1/finance/exchange-rates:
         get:
             tags:
@@ -618,6 +671,112 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.DisableExchangeRateSettingResponse'
+    /api/v1/finance/fee-settings:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_ListFeeSettings
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFeeSettingsResponse'
+        post:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_CreateFeeSetting
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateFeeSettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateFeeSettingResponse'
+    /api/v1/finance/fee-settings/{id}:
+        put:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_UpdateFeeSetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateFeeSettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateFeeSettingResponse'
+    /api/v1/finance/taxable-services:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_ListTaxableServices
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListTaxableServicesResponse'
+        post:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_CreateTaxableService
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateTaxableServiceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateTaxableServiceResponse'
+    /api/v1/finance/taxable-services/{id}:
+        put:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_UpdateTaxableService
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateTaxableServiceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateTaxableServiceResponse'
     /api/v1/master-data/airlines:
         get:
             tags:
@@ -3583,6 +3742,53 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 traceId:
                     type: string
+        finance.v1.BillingUnit:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        finance.v1.CreateBillingUnitRequest:
+            required:
+                - code
+                - name
+            type: object
+            properties:
+                code:
+                    type: string
+                name:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+        finance.v1.CreateBillingUnitResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.BillingUnit'
+                traceId:
+                    type: string
         finance.v1.CreateExchangeRateSettingRequest:
             required:
                 - rateType
@@ -3622,6 +3828,81 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
+                traceId:
+                    type: string
+        finance.v1.CreateFeeSettingRequest:
+            required:
+                - feeCode
+                - nameZh
+                - defaultCurrency
+                - billingUnitId
+                - taxRate
+                - taxableServiceId
+            type: object
+            properties:
+                feeCode:
+                    type: string
+                nameZh:
+                    type: string
+                nameEn:
+                    type: string
+                aliasName:
+                    type: string
+                serviceTypeId:
+                    type: string
+                defaultCurrency:
+                    type: string
+                billingUnitId:
+                    type: string
+                abnormalCaseId:
+                    type: string
+                taxRate:
+                    type: string
+                taxableServiceId:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+        finance.v1.CreateFeeSettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FeeSetting'
+                traceId:
+                    type: string
+        finance.v1.CreateTaxableServiceRequest:
+            required:
+                - name
+                - defaultTaxRate
+            type: object
+            properties:
+                name:
+                    type: string
+                shortName:
+                    type: string
+                goodsCode:
+                    type: string
+                defaultTaxRate:
+                    type: string
+        finance.v1.CreateTaxableServiceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.TaxableService'
                 traceId:
                     type: string
         finance.v1.DisableExchangeRateSettingRequest:
@@ -3672,6 +3953,66 @@ components:
                     type: string
                 updatedAt:
                     type: string
+        finance.v1.FeeSetting:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                feeCode:
+                    type: string
+                nameZh:
+                    type: string
+                nameEn:
+                    type: string
+                aliasName:
+                    type: string
+                serviceTypeId:
+                    type: string
+                serviceTypeName:
+                    type: string
+                defaultCurrency:
+                    type: string
+                billingUnitId:
+                    type: string
+                billingUnitName:
+                    type: string
+                abnormalCaseId:
+                    type: string
+                abnormalCaseName:
+                    type: string
+                taxRate:
+                    type: string
+                taxableServiceId:
+                    type: string
+                taxableServiceName:
+                    type: string
+                enabled:
+                    type: boolean
+                sortOrder:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        finance.v1.ListBillingUnitsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BillingUnit'
+                traceId:
+                    type: string
         finance.v1.ListExchangeRateSettingsResponse:
             type: object
             properties:
@@ -3689,6 +4030,91 @@ components:
                 traceId:
                     type: string
                 baseCurrency:
+                    type: string
+        finance.v1.ListFeeSettingsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeSetting'
+                traceId:
+                    type: string
+        finance.v1.ListTaxableServicesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.TaxableService'
+                traceId:
+                    type: string
+        finance.v1.TaxableService:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                name:
+                    type: string
+                shortName:
+                    type: string
+                goodsCode:
+                    type: string
+                defaultTaxRate:
+                    type: string
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        finance.v1.UpdateBillingUnitRequest:
+            required:
+                - id
+                - code
+                - name
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                enabled:
+                    type: boolean
+        finance.v1.UpdateBillingUnitResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.BillingUnit'
+                traceId:
                     type: string
         finance.v1.UpdateExchangeRateSettingRequest:
             required:
@@ -3732,6 +4158,91 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
+                traceId:
+                    type: string
+        finance.v1.UpdateFeeSettingRequest:
+            required:
+                - id
+                - feeCode
+                - nameZh
+                - defaultCurrency
+                - billingUnitId
+                - taxRate
+                - taxableServiceId
+            type: object
+            properties:
+                id:
+                    type: string
+                feeCode:
+                    type: string
+                nameZh:
+                    type: string
+                nameEn:
+                    type: string
+                aliasName:
+                    type: string
+                serviceTypeId:
+                    type: string
+                defaultCurrency:
+                    type: string
+                billingUnitId:
+                    type: string
+                abnormalCaseId:
+                    type: string
+                taxRate:
+                    type: string
+                taxableServiceId:
+                    type: string
+                enabled:
+                    type: boolean
+                sortOrder:
+                    type: integer
+                    format: int32
+        finance.v1.UpdateFeeSettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FeeSetting'
+                traceId:
+                    type: string
+        finance.v1.UpdateTaxableServiceRequest:
+            required:
+                - id
+                - name
+                - defaultTaxRate
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                shortName:
+                    type: string
+                goodsCode:
+                    type: string
+                defaultTaxRate:
+                    type: string
+                enabled:
+                    type: boolean
+        finance.v1.UpdateTaxableServiceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.TaxableService'
                 traceId:
                     type: string
         masterdata.v1.AdministrativeRegion:
@@ -7997,6 +8508,8 @@ tags:
          不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
     - name: ExchangeRateService
       description: ExchangeRateService 维护订单费用结算汇率主数据。
+    - name: FeeCatalogService
+      description: FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
     - name: MasterDataService
     - name: OrderAbnormalCaseService
       description: |-

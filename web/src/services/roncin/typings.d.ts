@@ -323,6 +323,17 @@ declare namespace API {
     id: string;
   };
 
+  type BillingUnit = {
+    id?: string;
+    organizationId?: string;
+    code?: string;
+    name?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
   type CheckOrderReferenceResponse = {
     success?: boolean;
     code?: number;
@@ -370,6 +381,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateBillingUnitRequest = {
+    code: string;
+    name: string;
+    sortOrder?: number;
+  };
+
+  type CreateBillingUnitResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BillingUnit;
+    traceId?: string;
+  };
+
   type CreateExchangeRateSettingRequest = {
     rateType: string;
     fromCurrency: string;
@@ -386,6 +411,28 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateSetting;
+    traceId?: string;
+  };
+
+  type CreateFeeSettingRequest = {
+    feeCode: string;
+    nameZh: string;
+    nameEn?: string;
+    aliasName?: string;
+    serviceTypeId?: string;
+    defaultCurrency: string;
+    billingUnitId: string;
+    abnormalCaseId?: string;
+    taxRate: string;
+    taxableServiceId: string;
+    sortOrder?: number;
+  };
+
+  type CreateFeeSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSetting;
     traceId?: string;
   };
 
@@ -667,6 +714,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateTaxableServiceRequest = {
+    name: string;
+    shortName?: string;
+    goodsCode?: string;
+    defaultTaxRate: string;
+  };
+
+  type CreateTaxableServiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: TaxableService;
+    traceId?: string;
+  };
+
   type CreateUserRequest = {
     username: string;
     displayName: string;
@@ -764,6 +826,41 @@ declare namespace API {
     message?: string;
     data?: PartnerExportItem[];
     traceId?: string;
+  };
+
+  type FeeCatalogServiceUpdateBillingUnitParams = {
+    id: string;
+  };
+
+  type FeeCatalogServiceUpdateFeeSettingParams = {
+    id: string;
+  };
+
+  type FeeCatalogServiceUpdateTaxableServiceParams = {
+    id: string;
+  };
+
+  type FeeSetting = {
+    id?: string;
+    organizationId?: string;
+    feeCode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    aliasName?: string;
+    serviceTypeId?: string;
+    serviceTypeName?: string;
+    defaultCurrency?: string;
+    billingUnitId?: string;
+    billingUnitName?: string;
+    abnormalCaseId?: string;
+    abnormalCaseName?: string;
+    taxRate?: string;
+    taxableServiceId?: string;
+    taxableServiceName?: string;
+    enabled?: boolean;
+    sortOrder?: number;
+    createdAt?: string;
+    updatedAt?: string;
   };
 
   type GetBackgroundTaskResponse = {
@@ -906,6 +1003,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListBillingUnitsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BillingUnit[];
+    traceId?: string;
+  };
+
   type ListCargoItemsResponse = {
     success?: boolean;
     code?: number;
@@ -947,6 +1052,14 @@ declare namespace API {
     currencies?: OrderFeeCurrencyOption[];
     traceId?: string;
     baseCurrency?: string;
+  };
+
+  type ListFeeSettingsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSetting[];
+    traceId?: string;
   };
 
   type ListFeesResponse = {
@@ -1164,6 +1277,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: StatusTemplate[];
+    traceId?: string;
+  };
+
+  type ListTaxableServicesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: TaxableService[];
     traceId?: string;
   };
 
@@ -2464,6 +2585,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type TaxableService = {
+    id?: string;
+    organizationId?: string;
+    name?: string;
+    shortName?: string;
+    goodsCode?: string;
+    defaultTaxRate?: string;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
   type TransitionOrderStatusRequest = {
     id: string;
     expectedStatus: string;
@@ -2550,6 +2683,22 @@ declare namespace API {
     traceId?: string;
   };
 
+  type UpdateBillingUnitRequest = {
+    id: string;
+    code: string;
+    name: string;
+    sortOrder?: number;
+    enabled?: boolean;
+  };
+
+  type UpdateBillingUnitResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BillingUnit;
+    traceId?: string;
+  };
+
   type UpdateCargoItemRequest = {
     orderId: string;
     id: string;
@@ -2630,6 +2779,30 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee;
+    traceId?: string;
+  };
+
+  type UpdateFeeSettingRequest = {
+    id: string;
+    feeCode: string;
+    nameZh: string;
+    nameEn?: string;
+    aliasName?: string;
+    serviceTypeId?: string;
+    defaultCurrency: string;
+    billingUnitId: string;
+    abnormalCaseId?: string;
+    taxRate: string;
+    taxableServiceId: string;
+    enabled?: boolean;
+    sortOrder?: number;
+  };
+
+  type UpdateFeeSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSetting;
     traceId?: string;
   };
 
@@ -2918,6 +3091,23 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ShippingLine;
+    traceId?: string;
+  };
+
+  type UpdateTaxableServiceRequest = {
+    id: string;
+    name: string;
+    shortName?: string;
+    goodsCode?: string;
+    defaultTaxRate: string;
+    enabled?: boolean;
+  };
+
+  type UpdateTaxableServiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: TaxableService;
     traceId?: string;
   };
 

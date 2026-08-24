@@ -15,6 +15,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -30,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
 
 // OrganizationUpdate is the builder for updating Organization entities.
@@ -242,6 +245,51 @@ func (_u *OrganizationUpdate) AddMasterDataItems(v ...*MasterDataItem) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _u.AddMasterDataItemIDs(ids...)
+}
+
+// AddBillingUnitIDs adds the "billing_units" edge to the BillingUnit entity by IDs.
+func (_u *OrganizationUpdate) AddBillingUnitIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddBillingUnitIDs(ids...)
+	return _u
+}
+
+// AddBillingUnits adds the "billing_units" edges to the BillingUnit entity.
+func (_u *OrganizationUpdate) AddBillingUnits(v ...*BillingUnit) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBillingUnitIDs(ids...)
+}
+
+// AddTaxableServiceIDs adds the "taxable_services" edge to the TaxableService entity by IDs.
+func (_u *OrganizationUpdate) AddTaxableServiceIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddTaxableServiceIDs(ids...)
+	return _u
+}
+
+// AddTaxableServices adds the "taxable_services" edges to the TaxableService entity.
+func (_u *OrganizationUpdate) AddTaxableServices(v ...*TaxableService) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTaxableServiceIDs(ids...)
+}
+
+// AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *OrganizationUpdate) AddFeeSettingIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddFeeSettings adds the "fee_settings" edges to the FeeSetting entity.
+func (_u *OrganizationUpdate) AddFeeSettings(v ...*FeeSetting) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeSettingIDs(ids...)
 }
 
 // AddPortIDs adds the "ports" edge to the Port entity by IDs.
@@ -556,6 +604,69 @@ func (_u *OrganizationUpdate) RemoveMasterDataItems(v ...*MasterDataItem) *Organ
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterDataItemIDs(ids...)
+}
+
+// ClearBillingUnits clears all "billing_units" edges to the BillingUnit entity.
+func (_u *OrganizationUpdate) ClearBillingUnits() *OrganizationUpdate {
+	_u.mutation.ClearBillingUnits()
+	return _u
+}
+
+// RemoveBillingUnitIDs removes the "billing_units" edge to BillingUnit entities by IDs.
+func (_u *OrganizationUpdate) RemoveBillingUnitIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveBillingUnitIDs(ids...)
+	return _u
+}
+
+// RemoveBillingUnits removes "billing_units" edges to BillingUnit entities.
+func (_u *OrganizationUpdate) RemoveBillingUnits(v ...*BillingUnit) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBillingUnitIDs(ids...)
+}
+
+// ClearTaxableServices clears all "taxable_services" edges to the TaxableService entity.
+func (_u *OrganizationUpdate) ClearTaxableServices() *OrganizationUpdate {
+	_u.mutation.ClearTaxableServices()
+	return _u
+}
+
+// RemoveTaxableServiceIDs removes the "taxable_services" edge to TaxableService entities by IDs.
+func (_u *OrganizationUpdate) RemoveTaxableServiceIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveTaxableServiceIDs(ids...)
+	return _u
+}
+
+// RemoveTaxableServices removes "taxable_services" edges to TaxableService entities.
+func (_u *OrganizationUpdate) RemoveTaxableServices(v ...*TaxableService) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTaxableServiceIDs(ids...)
+}
+
+// ClearFeeSettings clears all "fee_settings" edges to the FeeSetting entity.
+func (_u *OrganizationUpdate) ClearFeeSettings() *OrganizationUpdate {
+	_u.mutation.ClearFeeSettings()
+	return _u
+}
+
+// RemoveFeeSettingIDs removes the "fee_settings" edge to FeeSetting entities by IDs.
+func (_u *OrganizationUpdate) RemoveFeeSettingIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveFeeSettings removes "fee_settings" edges to FeeSetting entities.
+func (_u *OrganizationUpdate) RemoveFeeSettings(v ...*FeeSetting) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeSettingIDs(ids...)
 }
 
 // ClearPorts clears all "ports" edges to the Port entity.
@@ -1214,6 +1325,141 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.BillingUnitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBillingUnitsIDs(); len(nodes) > 0 && !_u.mutation.BillingUnitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BillingUnitsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TaxableServicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTaxableServicesIDs(); len(nodes) > 0 && !_u.mutation.TaxableServicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TaxableServicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.FeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.PortsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1838,6 +2084,51 @@ func (_u *OrganizationUpdateOne) AddMasterDataItems(v ...*MasterDataItem) *Organ
 	return _u.AddMasterDataItemIDs(ids...)
 }
 
+// AddBillingUnitIDs adds the "billing_units" edge to the BillingUnit entity by IDs.
+func (_u *OrganizationUpdateOne) AddBillingUnitIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddBillingUnitIDs(ids...)
+	return _u
+}
+
+// AddBillingUnits adds the "billing_units" edges to the BillingUnit entity.
+func (_u *OrganizationUpdateOne) AddBillingUnits(v ...*BillingUnit) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBillingUnitIDs(ids...)
+}
+
+// AddTaxableServiceIDs adds the "taxable_services" edge to the TaxableService entity by IDs.
+func (_u *OrganizationUpdateOne) AddTaxableServiceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddTaxableServiceIDs(ids...)
+	return _u
+}
+
+// AddTaxableServices adds the "taxable_services" edges to the TaxableService entity.
+func (_u *OrganizationUpdateOne) AddTaxableServices(v ...*TaxableService) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTaxableServiceIDs(ids...)
+}
+
+// AddFeeSettingIDs adds the "fee_settings" edge to the FeeSetting entity by IDs.
+func (_u *OrganizationUpdateOne) AddFeeSettingIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFeeSettingIDs(ids...)
+	return _u
+}
+
+// AddFeeSettings adds the "fee_settings" edges to the FeeSetting entity.
+func (_u *OrganizationUpdateOne) AddFeeSettings(v ...*FeeSetting) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeSettingIDs(ids...)
+}
+
 // AddPortIDs adds the "ports" edge to the Port entity by IDs.
 func (_u *OrganizationUpdateOne) AddPortIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddPortIDs(ids...)
@@ -2150,6 +2441,69 @@ func (_u *OrganizationUpdateOne) RemoveMasterDataItems(v ...*MasterDataItem) *Or
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMasterDataItemIDs(ids...)
+}
+
+// ClearBillingUnits clears all "billing_units" edges to the BillingUnit entity.
+func (_u *OrganizationUpdateOne) ClearBillingUnits() *OrganizationUpdateOne {
+	_u.mutation.ClearBillingUnits()
+	return _u
+}
+
+// RemoveBillingUnitIDs removes the "billing_units" edge to BillingUnit entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveBillingUnitIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveBillingUnitIDs(ids...)
+	return _u
+}
+
+// RemoveBillingUnits removes "billing_units" edges to BillingUnit entities.
+func (_u *OrganizationUpdateOne) RemoveBillingUnits(v ...*BillingUnit) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBillingUnitIDs(ids...)
+}
+
+// ClearTaxableServices clears all "taxable_services" edges to the TaxableService entity.
+func (_u *OrganizationUpdateOne) ClearTaxableServices() *OrganizationUpdateOne {
+	_u.mutation.ClearTaxableServices()
+	return _u
+}
+
+// RemoveTaxableServiceIDs removes the "taxable_services" edge to TaxableService entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveTaxableServiceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveTaxableServiceIDs(ids...)
+	return _u
+}
+
+// RemoveTaxableServices removes "taxable_services" edges to TaxableService entities.
+func (_u *OrganizationUpdateOne) RemoveTaxableServices(v ...*TaxableService) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTaxableServiceIDs(ids...)
+}
+
+// ClearFeeSettings clears all "fee_settings" edges to the FeeSetting entity.
+func (_u *OrganizationUpdateOne) ClearFeeSettings() *OrganizationUpdateOne {
+	_u.mutation.ClearFeeSettings()
+	return _u
+}
+
+// RemoveFeeSettingIDs removes the "fee_settings" edge to FeeSetting entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFeeSettingIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFeeSettingIDs(ids...)
+	return _u
+}
+
+// RemoveFeeSettings removes "fee_settings" edges to FeeSetting entities.
+func (_u *OrganizationUpdateOne) RemoveFeeSettings(v ...*FeeSetting) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeSettingIDs(ids...)
 }
 
 // ClearPorts clears all "ports" edges to the Port entity.
@@ -2831,6 +3185,141 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BillingUnitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBillingUnitsIDs(); len(nodes) > 0 && !_u.mutation.BillingUnitsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BillingUnitsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.BillingUnitsTable,
+			Columns: []string{organization.BillingUnitsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TaxableServicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTaxableServicesIDs(); len(nodes) > 0 && !_u.mutation.TaxableServicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TaxableServicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.TaxableServicesTable,
+			Columns: []string{organization.TaxableServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(taxableservice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.FeeSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeeSettingsTable,
+			Columns: []string{organization.FeeSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -21,8 +21,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -64,6 +66,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -82,10 +85,14 @@ type Client struct {
 	AuditLog *AuditLogClient
 	// BackgroundTask is the client for interacting with the BackgroundTask builders.
 	BackgroundTask *BackgroundTaskClient
+	// BillingUnit is the client for interacting with the BillingUnit builders.
+	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
+	// FeeSetting is the client for interacting with the FeeSetting builders.
+	FeeSetting *FeeSettingClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -168,6 +175,8 @@ type Client struct {
 	StatusTemplate *StatusTemplateClient
 	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
 	StatusTemplateItem *StatusTemplateItemClient
+	// TaxableService is the client for interacting with the TaxableService builders.
+	TaxableService *TaxableServiceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -186,8 +195,10 @@ func (c *Client) init() {
 	c.Airport = NewAirportClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
+	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
+	c.FeeSetting = NewFeeSettingClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
@@ -229,6 +240,7 @@ func (c *Client) init() {
 	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
 	c.StatusTemplate = NewStatusTemplateClient(c.config)
 	c.StatusTemplateItem = NewStatusTemplateItemClient(c.config)
+	c.TaxableService = NewTaxableServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -327,8 +339,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Airport:                     NewAirportClient(cfg),
 		AuditLog:                    NewAuditLogClient(cfg),
 		BackgroundTask:              NewBackgroundTaskClient(cfg),
+		BillingUnit:                 NewBillingUnitClient(cfg),
 		Currency:                    NewCurrencyClient(cfg),
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
+		FeeSetting:                  NewFeeSettingClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
 		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
@@ -370,6 +384,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
 		StatusTemplate:              NewStatusTemplateClient(cfg),
 		StatusTemplateItem:          NewStatusTemplateItemClient(cfg),
+		TaxableService:              NewTaxableServiceClient(cfg),
 		User:                        NewUserClient(cfg),
 	}, nil
 }
@@ -395,8 +410,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Airport:                     NewAirportClient(cfg),
 		AuditLog:                    NewAuditLogClient(cfg),
 		BackgroundTask:              NewBackgroundTaskClient(cfg),
+		BillingUnit:                 NewBillingUnitClient(cfg),
 		Currency:                    NewCurrencyClient(cfg),
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
+		FeeSetting:                  NewFeeSettingClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
 		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
@@ -438,6 +455,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ShippingLineContainerPrefix: NewShippingLineContainerPrefixClient(cfg),
 		StatusTemplate:              NewStatusTemplateClient(cfg),
 		StatusTemplateItem:          NewStatusTemplateItemClient(cfg),
+		TaxableService:              NewTaxableServiceClient(cfg),
 		User:                        NewUserClient(cfg),
 	}, nil
 }
@@ -469,17 +487,18 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.Currency, c.ExchangeRateSetting, c.MasterDataItem, c.Membership,
-		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderFee, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.FeeSetting,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
+		c.OrderFee, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -490,17 +509,18 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.Currency, c.ExchangeRateSetting, c.MasterDataItem, c.Membership,
-		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
-		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderFee, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.FeeSetting,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem, c.OrderContainer,
+		c.OrderFee, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.OrderStatusLog, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -519,10 +539,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AuditLog.mutate(ctx, m)
 	case *BackgroundTaskMutation:
 		return c.BackgroundTask.mutate(ctx, m)
+	case *BillingUnitMutation:
+		return c.BillingUnit.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
 	case *ExchangeRateSettingMutation:
 		return c.ExchangeRateSetting.mutate(ctx, m)
+	case *FeeSettingMutation:
+		return c.FeeSetting.mutate(ctx, m)
 	case *MasterDataItemMutation:
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
@@ -605,6 +629,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.StatusTemplate.mutate(ctx, m)
 	case *StatusTemplateItemMutation:
 		return c.StatusTemplateItem.mutate(ctx, m)
+	case *TaxableServiceMutation:
+		return c.TaxableService.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -1325,6 +1351,171 @@ func (c *BackgroundTaskClient) mutate(ctx context.Context, m *BackgroundTaskMuta
 	}
 }
 
+// BillingUnitClient is a client for the BillingUnit schema.
+type BillingUnitClient struct {
+	config
+}
+
+// NewBillingUnitClient returns a client for the BillingUnit from the given config.
+func NewBillingUnitClient(c config) *BillingUnitClient {
+	return &BillingUnitClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `billingunit.Hooks(f(g(h())))`.
+func (c *BillingUnitClient) Use(hooks ...Hook) {
+	c.hooks.BillingUnit = append(c.hooks.BillingUnit, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `billingunit.Intercept(f(g(h())))`.
+func (c *BillingUnitClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BillingUnit = append(c.inters.BillingUnit, interceptors...)
+}
+
+// Create returns a builder for creating a BillingUnit entity.
+func (c *BillingUnitClient) Create() *BillingUnitCreate {
+	mutation := newBillingUnitMutation(c.config, OpCreate)
+	return &BillingUnitCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BillingUnit entities.
+func (c *BillingUnitClient) CreateBulk(builders ...*BillingUnitCreate) *BillingUnitCreateBulk {
+	return &BillingUnitCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BillingUnitClient) MapCreateBulk(slice any, setFunc func(*BillingUnitCreate, int)) *BillingUnitCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BillingUnitCreateBulk{err: fmt.Errorf("calling to BillingUnitClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BillingUnitCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BillingUnitCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BillingUnit.
+func (c *BillingUnitClient) Update() *BillingUnitUpdate {
+	mutation := newBillingUnitMutation(c.config, OpUpdate)
+	return &BillingUnitUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BillingUnitClient) UpdateOne(_m *BillingUnit) *BillingUnitUpdateOne {
+	mutation := newBillingUnitMutation(c.config, OpUpdateOne, withBillingUnit(_m))
+	return &BillingUnitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BillingUnitClient) UpdateOneID(id uuid.UUID) *BillingUnitUpdateOne {
+	mutation := newBillingUnitMutation(c.config, OpUpdateOne, withBillingUnitID(id))
+	return &BillingUnitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BillingUnit.
+func (c *BillingUnitClient) Delete() *BillingUnitDelete {
+	mutation := newBillingUnitMutation(c.config, OpDelete)
+	return &BillingUnitDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BillingUnitClient) DeleteOne(_m *BillingUnit) *BillingUnitDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BillingUnitClient) DeleteOneID(id uuid.UUID) *BillingUnitDeleteOne {
+	builder := c.Delete().Where(billingunit.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BillingUnitDeleteOne{builder}
+}
+
+// Query returns a query builder for BillingUnit.
+func (c *BillingUnitClient) Query() *BillingUnitQuery {
+	return &BillingUnitQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBillingUnit},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BillingUnit entity by its id.
+func (c *BillingUnitClient) Get(ctx context.Context, id uuid.UUID) (*BillingUnit, error) {
+	return c.Query().Where(billingunit.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BillingUnitClient) GetX(ctx context.Context, id uuid.UUID) *BillingUnit {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a BillingUnit.
+func (c *BillingUnitClient) QueryOrganization(_m *BillingUnit) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(billingunit.Table, billingunit.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, billingunit.OrganizationTable, billingunit.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeSettings queries the fee_settings edge of a BillingUnit.
+func (c *BillingUnitClient) QueryFeeSettings(_m *BillingUnit) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(billingunit.Table, billingunit.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, billingunit.FeeSettingsTable, billingunit.FeeSettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BillingUnitClient) Hooks() []Hook {
+	return c.hooks.BillingUnit
+}
+
+// Interceptors returns the client interceptors.
+func (c *BillingUnitClient) Interceptors() []Interceptor {
+	return c.inters.BillingUnit
+}
+
+func (c *BillingUnitClient) mutate(ctx context.Context, m *BillingUnitMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BillingUnitCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BillingUnitUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BillingUnitUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BillingUnitDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BillingUnit mutation op: %q", m.Op())
+	}
+}
+
 // CurrencyClient is a client for the Currency schema.
 type CurrencyClient struct {
 	config
@@ -1591,6 +1782,219 @@ func (c *ExchangeRateSettingClient) mutate(ctx context.Context, m *ExchangeRateS
 	}
 }
 
+// FeeSettingClient is a client for the FeeSetting schema.
+type FeeSettingClient struct {
+	config
+}
+
+// NewFeeSettingClient returns a client for the FeeSetting from the given config.
+func NewFeeSettingClient(c config) *FeeSettingClient {
+	return &FeeSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `feesetting.Hooks(f(g(h())))`.
+func (c *FeeSettingClient) Use(hooks ...Hook) {
+	c.hooks.FeeSetting = append(c.hooks.FeeSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `feesetting.Intercept(f(g(h())))`.
+func (c *FeeSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FeeSetting = append(c.inters.FeeSetting, interceptors...)
+}
+
+// Create returns a builder for creating a FeeSetting entity.
+func (c *FeeSettingClient) Create() *FeeSettingCreate {
+	mutation := newFeeSettingMutation(c.config, OpCreate)
+	return &FeeSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FeeSetting entities.
+func (c *FeeSettingClient) CreateBulk(builders ...*FeeSettingCreate) *FeeSettingCreateBulk {
+	return &FeeSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FeeSettingClient) MapCreateBulk(slice any, setFunc func(*FeeSettingCreate, int)) *FeeSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FeeSettingCreateBulk{err: fmt.Errorf("calling to FeeSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FeeSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FeeSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FeeSetting.
+func (c *FeeSettingClient) Update() *FeeSettingUpdate {
+	mutation := newFeeSettingMutation(c.config, OpUpdate)
+	return &FeeSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FeeSettingClient) UpdateOne(_m *FeeSetting) *FeeSettingUpdateOne {
+	mutation := newFeeSettingMutation(c.config, OpUpdateOne, withFeeSetting(_m))
+	return &FeeSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FeeSettingClient) UpdateOneID(id uuid.UUID) *FeeSettingUpdateOne {
+	mutation := newFeeSettingMutation(c.config, OpUpdateOne, withFeeSettingID(id))
+	return &FeeSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FeeSetting.
+func (c *FeeSettingClient) Delete() *FeeSettingDelete {
+	mutation := newFeeSettingMutation(c.config, OpDelete)
+	return &FeeSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FeeSettingClient) DeleteOne(_m *FeeSetting) *FeeSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FeeSettingClient) DeleteOneID(id uuid.UUID) *FeeSettingDeleteOne {
+	builder := c.Delete().Where(feesetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FeeSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for FeeSetting.
+func (c *FeeSettingClient) Query() *FeeSettingQuery {
+	return &FeeSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFeeSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FeeSetting entity by its id.
+func (c *FeeSettingClient) Get(ctx context.Context, id uuid.UUID) (*FeeSetting, error) {
+	return c.Query().Where(feesetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FeeSettingClient) GetX(ctx context.Context, id uuid.UUID) *FeeSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FeeSetting.
+func (c *FeeSettingClient) QueryOrganization(_m *FeeSetting) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.OrganizationTable, feesetting.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceType queries the service_type edge of a FeeSetting.
+func (c *FeeSettingClient) QueryServiceType(_m *FeeSetting) *MasterDataItemQuery {
+	query := (&MasterDataItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.ServiceTypeTable, feesetting.ServiceTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBillingUnit queries the billing_unit edge of a FeeSetting.
+func (c *FeeSettingClient) QueryBillingUnit(_m *FeeSetting) *BillingUnitQuery {
+	query := (&BillingUnitClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(billingunit.Table, billingunit.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.BillingUnitTable, feesetting.BillingUnitColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAbnormalCase queries the abnormal_case edge of a FeeSetting.
+func (c *FeeSettingClient) QueryAbnormalCase(_m *FeeSetting) *MasterDataItemQuery {
+	query := (&MasterDataItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.AbnormalCaseTable, feesetting.AbnormalCaseColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTaxableService queries the taxable_service edge of a FeeSetting.
+func (c *FeeSettingClient) QueryTaxableService(_m *FeeSetting) *TaxableServiceQuery {
+	query := (&TaxableServiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(taxableservice.Table, taxableservice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.TaxableServiceTable, feesetting.TaxableServiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FeeSettingClient) Hooks() []Hook {
+	return c.hooks.FeeSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *FeeSettingClient) Interceptors() []Interceptor {
+	return c.inters.FeeSetting
+}
+
+func (c *FeeSettingClient) mutate(ctx context.Context, m *FeeSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FeeSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FeeSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FeeSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FeeSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FeeSetting mutation op: %q", m.Op())
+	}
+}
+
 // MasterDataItemClient is a client for the MasterDataItem schema.
 type MasterDataItemClient struct {
 	config
@@ -1708,6 +2112,38 @@ func (c *MasterDataItemClient) QueryOrganization(_m *MasterDataItem) *Organizati
 			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
 			sqlgraph.To(organization.Table, organization.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, masterdataitem.OrganizationTable, masterdataitem.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceTypeFeeSettings queries the service_type_fee_settings edge of a MasterDataItem.
+func (c *MasterDataItemClient) QueryServiceTypeFeeSettings(_m *MasterDataItem) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, masterdataitem.ServiceTypeFeeSettingsTable, masterdataitem.ServiceTypeFeeSettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAbnormalCaseFeeSettings queries the abnormal_case_fee_settings edge of a MasterDataItem.
+func (c *MasterDataItemClient) QueryAbnormalCaseFeeSettings(_m *MasterDataItem) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, masterdataitem.AbnormalCaseFeeSettingsTable, masterdataitem.AbnormalCaseFeeSettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -5051,6 +5487,54 @@ func (c *OrganizationClient) QueryMasterDataItems(_m *Organization) *MasterDataI
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(masterdataitem.Table, masterdataitem.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.MasterDataItemsTable, organization.MasterDataItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBillingUnits queries the billing_units edge of a Organization.
+func (c *OrganizationClient) QueryBillingUnits(_m *Organization) *BillingUnitQuery {
+	query := (&BillingUnitClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(billingunit.Table, billingunit.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.BillingUnitsTable, organization.BillingUnitsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTaxableServices queries the taxable_services edge of a Organization.
+func (c *OrganizationClient) QueryTaxableServices(_m *Organization) *TaxableServiceQuery {
+	query := (&TaxableServiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(taxableservice.Table, taxableservice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.TaxableServicesTable, organization.TaxableServicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeSettings queries the fee_settings edge of a Organization.
+func (c *OrganizationClient) QueryFeeSettings(_m *Organization) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeeSettingsTable, organization.FeeSettingsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8724,6 +9208,171 @@ func (c *StatusTemplateItemClient) mutate(ctx context.Context, m *StatusTemplate
 	}
 }
 
+// TaxableServiceClient is a client for the TaxableService schema.
+type TaxableServiceClient struct {
+	config
+}
+
+// NewTaxableServiceClient returns a client for the TaxableService from the given config.
+func NewTaxableServiceClient(c config) *TaxableServiceClient {
+	return &TaxableServiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `taxableservice.Hooks(f(g(h())))`.
+func (c *TaxableServiceClient) Use(hooks ...Hook) {
+	c.hooks.TaxableService = append(c.hooks.TaxableService, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `taxableservice.Intercept(f(g(h())))`.
+func (c *TaxableServiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TaxableService = append(c.inters.TaxableService, interceptors...)
+}
+
+// Create returns a builder for creating a TaxableService entity.
+func (c *TaxableServiceClient) Create() *TaxableServiceCreate {
+	mutation := newTaxableServiceMutation(c.config, OpCreate)
+	return &TaxableServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TaxableService entities.
+func (c *TaxableServiceClient) CreateBulk(builders ...*TaxableServiceCreate) *TaxableServiceCreateBulk {
+	return &TaxableServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TaxableServiceClient) MapCreateBulk(slice any, setFunc func(*TaxableServiceCreate, int)) *TaxableServiceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TaxableServiceCreateBulk{err: fmt.Errorf("calling to TaxableServiceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TaxableServiceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TaxableServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TaxableService.
+func (c *TaxableServiceClient) Update() *TaxableServiceUpdate {
+	mutation := newTaxableServiceMutation(c.config, OpUpdate)
+	return &TaxableServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaxableServiceClient) UpdateOne(_m *TaxableService) *TaxableServiceUpdateOne {
+	mutation := newTaxableServiceMutation(c.config, OpUpdateOne, withTaxableService(_m))
+	return &TaxableServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaxableServiceClient) UpdateOneID(id uuid.UUID) *TaxableServiceUpdateOne {
+	mutation := newTaxableServiceMutation(c.config, OpUpdateOne, withTaxableServiceID(id))
+	return &TaxableServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TaxableService.
+func (c *TaxableServiceClient) Delete() *TaxableServiceDelete {
+	mutation := newTaxableServiceMutation(c.config, OpDelete)
+	return &TaxableServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TaxableServiceClient) DeleteOne(_m *TaxableService) *TaxableServiceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TaxableServiceClient) DeleteOneID(id uuid.UUID) *TaxableServiceDeleteOne {
+	builder := c.Delete().Where(taxableservice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaxableServiceDeleteOne{builder}
+}
+
+// Query returns a query builder for TaxableService.
+func (c *TaxableServiceClient) Query() *TaxableServiceQuery {
+	return &TaxableServiceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTaxableService},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TaxableService entity by its id.
+func (c *TaxableServiceClient) Get(ctx context.Context, id uuid.UUID) (*TaxableService, error) {
+	return c.Query().Where(taxableservice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaxableServiceClient) GetX(ctx context.Context, id uuid.UUID) *TaxableService {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a TaxableService.
+func (c *TaxableServiceClient) QueryOrganization(_m *TaxableService) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(taxableservice.Table, taxableservice.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, taxableservice.OrganizationTable, taxableservice.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeSettings queries the fee_settings edge of a TaxableService.
+func (c *TaxableServiceClient) QueryFeeSettings(_m *TaxableService) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(taxableservice.Table, taxableservice.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, taxableservice.FeeSettingsTable, taxableservice.FeeSettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TaxableServiceClient) Hooks() []Hook {
+	return c.hooks.TaxableService
+}
+
+// Interceptors returns the client interceptors.
+func (c *TaxableServiceClient) Interceptors() []Interceptor {
+	return c.inters.TaxableService
+}
+
+func (c *TaxableServiceClient) mutate(ctx context.Context, m *TaxableServiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TaxableServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TaxableServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TaxableServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TaxableServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TaxableService mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -8924,31 +9573,31 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
-		ExchangeRateSetting, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, Session, ShippingLine,
+		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
+		Currency, ExchangeRateSetting, FeeSetting, MasterDataItem, Membership,
+		MilestoneTemplate, MilestoneTemplateItem, NumberRule, NumberSequence, Order,
+		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
+		OrderContainer, OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, OrderStatusLog, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
-		User []ent.Hook
+		TaxableService, User []ent.Hook
 	}
 	inters struct {
-		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, Currency,
-		ExchangeRateSetting, MasterDataItem, Membership, MilestoneTemplate,
-		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, Session, ShippingLine,
+		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
+		Currency, ExchangeRateSetting, FeeSetting, MasterDataItem, Membership,
+		MilestoneTemplate, MilestoneTemplateItem, NumberRule, NumberSequence, Order,
+		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
+		OrderContainer, OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, OrderStatusLog, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
-		User []ent.Interceptor
+		TaxableService, User []ent.Interceptor
 	}
 )

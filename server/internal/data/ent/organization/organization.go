@@ -50,6 +50,12 @@ const (
 	EdgePartnerAssignments = "partner_assignments"
 	// EdgeMasterDataItems holds the string denoting the master_data_items edge name in mutations.
 	EdgeMasterDataItems = "master_data_items"
+	// EdgeBillingUnits holds the string denoting the billing_units edge name in mutations.
+	EdgeBillingUnits = "billing_units"
+	// EdgeTaxableServices holds the string denoting the taxable_services edge name in mutations.
+	EdgeTaxableServices = "taxable_services"
+	// EdgeFeeSettings holds the string denoting the fee_settings edge name in mutations.
+	EdgeFeeSettings = "fee_settings"
 	// EdgePorts holds the string denoting the ports edge name in mutations.
 	EdgePorts = "ports"
 	// EdgeAirports holds the string denoting the airports edge name in mutations.
@@ -127,6 +133,27 @@ const (
 	MasterDataItemsInverseTable = "master_data_items"
 	// MasterDataItemsColumn is the table column denoting the master_data_items relation/edge.
 	MasterDataItemsColumn = "organization_id"
+	// BillingUnitsTable is the table that holds the billing_units relation/edge.
+	BillingUnitsTable = "billing_units"
+	// BillingUnitsInverseTable is the table name for the BillingUnit entity.
+	// It exists in this package in order to avoid circular dependency with the "billingunit" package.
+	BillingUnitsInverseTable = "billing_units"
+	// BillingUnitsColumn is the table column denoting the billing_units relation/edge.
+	BillingUnitsColumn = "organization_id"
+	// TaxableServicesTable is the table that holds the taxable_services relation/edge.
+	TaxableServicesTable = "taxable_services"
+	// TaxableServicesInverseTable is the table name for the TaxableService entity.
+	// It exists in this package in order to avoid circular dependency with the "taxableservice" package.
+	TaxableServicesInverseTable = "taxable_services"
+	// TaxableServicesColumn is the table column denoting the taxable_services relation/edge.
+	TaxableServicesColumn = "organization_id"
+	// FeeSettingsTable is the table that holds the fee_settings relation/edge.
+	FeeSettingsTable = "fee_settings"
+	// FeeSettingsInverseTable is the table name for the FeeSetting entity.
+	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
+	FeeSettingsInverseTable = "fee_settings"
+	// FeeSettingsColumn is the table column denoting the fee_settings relation/edge.
+	FeeSettingsColumn = "organization_id"
 	// PortsTable is the table that holds the ports relation/edge.
 	PortsTable = "ports"
 	// PortsInverseTable is the table name for the Port entity.
@@ -426,6 +453,48 @@ func ByMasterDataItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByBillingUnitsCount orders the results by billing_units count.
+func ByBillingUnitsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBillingUnitsStep(), opts...)
+	}
+}
+
+// ByBillingUnits orders the results by billing_units terms.
+func ByBillingUnits(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBillingUnitsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTaxableServicesCount orders the results by taxable_services count.
+func ByTaxableServicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTaxableServicesStep(), opts...)
+	}
+}
+
+// ByTaxableServices orders the results by taxable_services terms.
+func ByTaxableServices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTaxableServicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFeeSettingsCount orders the results by fee_settings count.
+func ByFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeSettingsStep(), opts...)
+	}
+}
+
+// ByFeeSettings orders the results by fee_settings terms.
+func ByFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByPortsCount orders the results by ports count.
 func ByPortsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -612,6 +681,27 @@ func newMasterDataItemsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MasterDataItemsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MasterDataItemsTable, MasterDataItemsColumn),
+	)
+}
+func newBillingUnitsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BillingUnitsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BillingUnitsTable, BillingUnitsColumn),
+	)
+}
+func newTaxableServicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TaxableServicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TaxableServicesTable, TaxableServicesColumn),
+	)
+}
+func newFeeSettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeSettingsTable, FeeSettingsColumn),
 	)
 }
 func newPortsStep() *sqlgraph.Step {

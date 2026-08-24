@@ -60,6 +60,12 @@ type OrganizationEdges struct {
 	PartnerAssignments []*PartnerAssignment `json:"partner_assignments,omitempty"`
 	// MasterDataItems holds the value of the master_data_items edge.
 	MasterDataItems []*MasterDataItem `json:"master_data_items,omitempty"`
+	// BillingUnits holds the value of the billing_units edge.
+	BillingUnits []*BillingUnit `json:"billing_units,omitempty"`
+	// TaxableServices holds the value of the taxable_services edge.
+	TaxableServices []*TaxableService `json:"taxable_services,omitempty"`
+	// FeeSettings holds the value of the fee_settings edge.
+	FeeSettings []*FeeSetting `json:"fee_settings,omitempty"`
 	// Ports holds the value of the ports edge.
 	Ports []*Port `json:"ports,omitempty"`
 	// Airports holds the value of the airports edge.
@@ -80,7 +86,7 @@ type OrganizationEdges struct {
 	BackgroundTasks []*BackgroundTask `json:"background_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [18]bool
+	loadedTypes [21]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -166,10 +172,37 @@ func (e OrganizationEdges) MasterDataItemsOrErr() ([]*MasterDataItem, error) {
 	return nil, &NotLoadedError{edge: "master_data_items"}
 }
 
+// BillingUnitsOrErr returns the BillingUnits value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) BillingUnitsOrErr() ([]*BillingUnit, error) {
+	if e.loadedTypes[9] {
+		return e.BillingUnits, nil
+	}
+	return nil, &NotLoadedError{edge: "billing_units"}
+}
+
+// TaxableServicesOrErr returns the TaxableServices value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) TaxableServicesOrErr() ([]*TaxableService, error) {
+	if e.loadedTypes[10] {
+		return e.TaxableServices, nil
+	}
+	return nil, &NotLoadedError{edge: "taxable_services"}
+}
+
+// FeeSettingsOrErr returns the FeeSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FeeSettingsOrErr() ([]*FeeSetting, error) {
+	if e.loadedTypes[11] {
+		return e.FeeSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_settings"}
+}
+
 // PortsOrErr returns the Ports value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) PortsOrErr() ([]*Port, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[12] {
 		return e.Ports, nil
 	}
 	return nil, &NotLoadedError{edge: "ports"}
@@ -178,7 +211,7 @@ func (e OrganizationEdges) PortsOrErr() ([]*Port, error) {
 // AirportsOrErr returns the Airports value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) AirportsOrErr() ([]*Airport, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[13] {
 		return e.Airports, nil
 	}
 	return nil, &NotLoadedError{edge: "airports"}
@@ -187,7 +220,7 @@ func (e OrganizationEdges) AirportsOrErr() ([]*Airport, error) {
 // AirlinesOrErr returns the Airlines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) AirlinesOrErr() ([]*Airline, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[14] {
 		return e.Airlines, nil
 	}
 	return nil, &NotLoadedError{edge: "airlines"}
@@ -196,7 +229,7 @@ func (e OrganizationEdges) AirlinesOrErr() ([]*Airline, error) {
 // ShippingLinesOrErr returns the ShippingLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) ShippingLinesOrErr() ([]*ShippingLine, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[15] {
 		return e.ShippingLines, nil
 	}
 	return nil, &NotLoadedError{edge: "shipping_lines"}
@@ -205,7 +238,7 @@ func (e OrganizationEdges) ShippingLinesOrErr() ([]*ShippingLine, error) {
 // NumberRulesOrErr returns the NumberRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[16] {
 		return e.NumberRules, nil
 	}
 	return nil, &NotLoadedError{edge: "number_rules"}
@@ -214,7 +247,7 @@ func (e OrganizationEdges) NumberRulesOrErr() ([]*NumberRule, error) {
 // StatusTemplatesOrErr returns the StatusTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[17] {
 		return e.StatusTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "status_templates"}
@@ -223,7 +256,7 @@ func (e OrganizationEdges) StatusTemplatesOrErr() ([]*StatusTemplate, error) {
 // MilestoneTemplatesOrErr returns the MilestoneTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[18] {
 		return e.MilestoneTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "milestone_templates"}
@@ -232,7 +265,7 @@ func (e OrganizationEdges) MilestoneTemplatesOrErr() ([]*MilestoneTemplate, erro
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[16] {
+	if e.loadedTypes[19] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -241,7 +274,7 @@ func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[20] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -389,6 +422,21 @@ func (_m *Organization) QueryPartnerAssignments() *PartnerAssignmentQuery {
 // QueryMasterDataItems queries the "master_data_items" edge of the Organization entity.
 func (_m *Organization) QueryMasterDataItems() *MasterDataItemQuery {
 	return NewOrganizationClient(_m.config).QueryMasterDataItems(_m)
+}
+
+// QueryBillingUnits queries the "billing_units" edge of the Organization entity.
+func (_m *Organization) QueryBillingUnits() *BillingUnitQuery {
+	return NewOrganizationClient(_m.config).QueryBillingUnits(_m)
+}
+
+// QueryTaxableServices queries the "taxable_services" edge of the Organization entity.
+func (_m *Organization) QueryTaxableServices() *TaxableServiceQuery {
+	return NewOrganizationClient(_m.config).QueryTaxableServices(_m)
+}
+
+// QueryFeeSettings queries the "fee_settings" edge of the Organization entity.
+func (_m *Organization) QueryFeeSettings() *FeeSettingQuery {
+	return NewOrganizationClient(_m.config).QueryFeeSettings(_m)
 }
 
 // QueryPorts queries the "ports" edge of the Organization entity.

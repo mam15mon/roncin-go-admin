@@ -69,6 +69,18 @@ func (f BackgroundTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BackgroundTaskMutation", m)
 }
 
+// The BillingUnitFunc type is an adapter to allow the use of ordinary
+// function as BillingUnit mutator.
+type BillingUnitFunc func(context.Context, *ent.BillingUnitMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BillingUnitFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BillingUnitMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BillingUnitMutation", m)
+}
+
 // The CurrencyFunc type is an adapter to allow the use of ordinary
 // function as Currency mutator.
 type CurrencyFunc func(context.Context, *ent.CurrencyMutation) (ent.Value, error)
@@ -91,6 +103,18 @@ func (f ExchangeRateSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateSettingMutation", m)
+}
+
+// The FeeSettingFunc type is an adapter to allow the use of ordinary
+// function as FeeSetting mutator.
+type FeeSettingFunc func(context.Context, *ent.FeeSettingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeeSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FeeSettingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeeSettingMutation", m)
 }
 
 // The MasterDataItemFunc type is an adapter to allow the use of ordinary
@@ -583,6 +607,18 @@ func (f StatusTemplateItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusTemplateItemMutation", m)
+}
+
+// The TaxableServiceFunc type is an adapter to allow the use of ordinary
+// function as TaxableService mutator.
+type TaxableServiceFunc func(context.Context, *ent.TaxableServiceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TaxableServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TaxableServiceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TaxableServiceMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
