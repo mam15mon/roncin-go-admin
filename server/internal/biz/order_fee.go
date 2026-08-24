@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	ErrOrderFeeNotFound        = errors.NotFound("ORDER_FEE_NOT_FOUND", "订单费用不存在")
-	ErrOrderFeeInvalidArgument = errors.BadRequest("ORDER_FEE_INVALID_ARGUMENT", "订单费用字段不合法")
-	ErrOrderFeePartyInvalid    = errors.BadRequest("ORDER_FEE_PARTY_INVALID", "结算单位必须是当前组织启用的往来单位")
-	ErrOrderFeeCurrencyInvalid = errors.BadRequest("ORDER_FEE_CURRENCY_INVALID", "币种必须是启用的 ISO 币种")
+	ErrOrderFeeNotFound                      = errors.NotFound("ORDER_FEE_NOT_FOUND", "订单费用不存在")
+	ErrOrderFeeInvalidArgument               = errors.BadRequest("ORDER_FEE_INVALID_ARGUMENT", "订单费用字段不合法")
+	ErrOrderFeePartyInvalid                  = errors.BadRequest("ORDER_FEE_PARTY_INVALID", "结算单位必须是当前组织启用的往来单位")
+	ErrOrderFeeCurrencyInvalid               = errors.BadRequest("ORDER_FEE_CURRENCY_INVALID", "币种必须是启用的 ISO 币种")
+	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
 )
 
 var (
@@ -49,6 +50,7 @@ type OrderFee struct {
 	ExchangeRateSource    string
 	ExchangeRateDate      string
 	ExchangeRateSettingID *uuid.UUID
+	ExchangeRateOverride  *decimal.Decimal
 	ExpenseDate           string
 	Note                  *string
 	CreatedAt             time.Time
@@ -112,7 +114,7 @@ func (uc *OrderFeeUsecase) Options(ctx context.Context, organizationID, orderID 
 	return options, nil
 }
 
-func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *OrderFee) (*OrderFee, error) {
+func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *OrderFee, canOverrideExchangeRate bool) (*OrderFee, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
@@ -121,13 +123,13 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	if err := uc.resolveExchangeRate(ctx, organizationID, normalized); err != nil {
+	if err := uc.resolveExchangeRate(ctx, organizationID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
 	return uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
 }
 
-func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderFee) (*OrderFee, error) {
+func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderFee, canOverrideExchangeRate bool) (*OrderFee, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
@@ -135,7 +137,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.resolveExchangeRate(ctx, organizationID, normalized); err != nil {
+	if err := uc.resolveExchangeRate(ctx, organizationID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
 	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", normalized))
@@ -148,7 +150,17 @@ func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organization
 	return uc.exchangeRate.Resolve(ctx, organizationID, direction, currency, expenseDate)
 }
 
-func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID uuid.UUID, fee *OrderFee) error {
+func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
+	if fee.ExchangeRateOverride != nil {
+		if !canOverrideExchangeRate {
+			return ErrOrderFeeExchangeRateOverrideForbidden
+		}
+		fee.ExchangeRate = *fee.ExchangeRateOverride
+		fee.ExchangeRateSource = "MANUAL"
+		fee.ExchangeRateDate = fee.ExpenseDate
+		fee.ExchangeRateSettingID = nil
+		return nil
+	}
 	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, fee.Direction, fee.Currency, fee.ExpenseDate)
 	if err != nil {
 		return err
@@ -183,12 +195,13 @@ func orderFeeAudit(organizationID, actorID, orderID, feeID uuid.UUID, action str
 		Action:         action,
 		Result:         "success",
 		Details: map[string]string{
-			"fee.id":        feeID.String(),
-			"order.id":      orderID.String(),
-			"fee.code":      fee.FeeCode,
-			"fee.direction": string(fee.Direction),
-			"fee.amount":    fee.TotalAmount.StringFixed(8),
-			"fee.currency":  fee.Currency,
+			"fee.id":                   feeID.String(),
+			"order.id":                 orderID.String(),
+			"fee.code":                 fee.FeeCode,
+			"fee.direction":            string(fee.Direction),
+			"fee.amount":               fee.TotalAmount.StringFixed(8),
+			"fee.currency":             fee.Currency,
+			"fee.exchange_rate_source": fee.ExchangeRateSource,
 		},
 	}
 }
@@ -218,6 +231,9 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 	}
 	currency := strings.ToUpper(strings.TrimSpace(input.Currency))
 	if !currencyPattern.MatchString(currency) {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	if input.ExchangeRateOverride != nil && !validExchangeRate(*input.ExchangeRateOverride) {
 		return nil, ErrOrderFeeInvalidArgument
 	}
 	expenseDate := strings.TrimSpace(input.ExpenseDate)

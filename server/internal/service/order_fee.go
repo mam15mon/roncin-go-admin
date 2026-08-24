@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 	"github.com/shopspring/decimal"
@@ -98,11 +99,11 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote())
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input)
+	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermission(access.FinanceExchangeRateOverride))
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +119,11 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if err != nil {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote())
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
 	if err != nil {
 		return nil, err
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input)
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermission(access.FinanceExchangeRateOverride))
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +178,7 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 	return result
 }
 
-func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeCode, feeName, partyIDText, billingUnit, quantityText, unitPriceText, currency, expenseDate, note string) (uuid.UUID, *biz.OrderFee, error) {
+func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeCode, feeName, partyIDText, billingUnit, quantityText, unitPriceText, currency, expenseDate, note string, exchangeRateOverrideText *string) (uuid.UUID, *biz.OrderFee, error) {
 	orderID, err := uuid.Parse(orderIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
@@ -208,6 +209,13 @@ func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, fe
 		UnitPrice:         unitPrice,
 		Currency:          currency,
 		ExpenseDate:       expenseDate,
+	}
+	if exchangeRateOverrideText != nil {
+		exchangeRateOverride, parseErr := parsePlainDecimal(*exchangeRateOverrideText)
+		if parseErr != nil {
+			return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+		}
+		input.ExchangeRateOverride = &exchangeRateOverride
 	}
 	if note != "" {
 		input.Note = &note
