@@ -20,6 +20,7 @@ var (
 	ErrAdminOrganizationCurrency       = errors.BadRequest("ADMIN_ORGANIZATION_CURRENCY_INVALID", "组织本币必须是启用的 ISO 币种")
 	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
 	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
+	ErrAdminUserSelfDelete             = errors.BadRequest("ADMIN_USER_SELF_DELETE", "不能删除当前登录账号")
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
 	ErrAdminRoleCodeExists             = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
 	ErrAdminPermissionInvalid          = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
@@ -129,6 +130,7 @@ type AdminRepo interface {
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	DeleteUser(context.Context, uuid.UUID, uuid.UUID) error
 	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
@@ -254,6 +256,19 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 		return nil, err
 	}
 	return updated, uc.writeAudit(ctx, actorID, &id, "admin.user.update", updated.Username)
+}
+
+func (uc *AdminUsecase) DeleteUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
+		return ErrAdminInvalidArgument
+	}
+	if actorID == id {
+		return ErrAdminUserSelfDelete
+	}
+	if err := uc.repo.DeleteUser(ctx, organizationID, id); err != nil {
+		return err
+	}
+	return uc.writeAudit(ctx, actorID, &id, "admin.user.delete", "")
 }
 
 func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {

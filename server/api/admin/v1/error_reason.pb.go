@@ -33,6 +33,7 @@ const (
 	ErrorReason_ERROR_REASON_ADMIN_ROLE_CODE_EXISTS         ErrorReason = 6
 	ErrorReason_ERROR_REASON_ADMIN_PERMISSION_INVALID       ErrorReason = 7
 	ErrorReason_ERROR_REASON_ADMIN_INVALID_ARGUMENT         ErrorReason = 8
+	ErrorReason_ERROR_REASON_ADMIN_USER_SELF_DELETE         ErrorReason = 9
 )
 
 // Enum value maps for ErrorReason.
@@ -47,6 +48,7 @@ var (
 		6: "ERROR_REASON_ADMIN_ROLE_CODE_EXISTS",
 		7: "ERROR_REASON_ADMIN_PERMISSION_INVALID",
 		8: "ERROR_REASON_ADMIN_INVALID_ARGUMENT",
+		9: "ERROR_REASON_ADMIN_USER_SELF_DELETE",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_ADMIN_UNSPECIFIED":              0,
@@ -58,6 +60,7 @@ var (
 		"ERROR_REASON_ADMIN_ROLE_CODE_EXISTS":         6,
 		"ERROR_REASON_ADMIN_PERMISSION_INVALID":       7,
 		"ERROR_REASON_ADMIN_INVALID_ARGUMENT":         8,
+		"ERROR_REASON_ADMIN_USER_SELF_DELETE":         9,
 	}
 )
 
@@ -92,7 +95,7 @@ var File_admin_v1_error_reason_proto protoreflect.FileDescriptor
 
 const file_admin_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
-	"\x1badmin/v1/error_reason.proto\x12\badmin.v1*\x84\x03\n" +
+	"\x1badmin/v1/error_reason.proto\x12\badmin.v1*\xad\x03\n" +
 	"\vErrorReason\x12\"\n" +
 	"\x1eERROR_REASON_ADMIN_UNSPECIFIED\x10\x00\x12-\n" +
 	")ERROR_REASON_ADMIN_ORGANIZATION_NOT_FOUND\x10\x01\x12/\n" +
@@ -102,7 +105,8 @@ const file_admin_v1_error_reason_proto_rawDesc = "" +
 	"!ERROR_REASON_ADMIN_ROLE_NOT_FOUND\x10\x05\x12'\n" +
 	"#ERROR_REASON_ADMIN_ROLE_CODE_EXISTS\x10\x06\x12)\n" +
 	"%ERROR_REASON_ADMIN_PERMISSION_INVALID\x10\a\x12'\n" +
-	"#ERROR_REASON_ADMIN_INVALID_ARGUMENT\x10\bB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
+	"#ERROR_REASON_ADMIN_INVALID_ARGUMENT\x10\b\x12'\n" +
+	"#ERROR_REASON_ADMIN_USER_SELF_DELETE\x10\tB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
 
 var (
 	file_admin_v1_error_reason_proto_rawDescOnce sync.Once

@@ -235,6 +235,34 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 	return r.findUser(ctx, organizationID, id)
 }
 
+func (r *adminRepo) DeleteUser(ctx context.Context, organizationID, id uuid.UUID) error {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrAdminUserNotFound
+		}
+		return err
+	}
+	if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(membershipRecord.ID)).Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Membership.DeleteOneID(membershipRecord.ID).Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.OrganizationIDEQ(organizationID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
 func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
 	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
 		return account.WecomUserid != nil

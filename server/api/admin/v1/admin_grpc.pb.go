@@ -25,6 +25,7 @@ const (
 	AdminService_ListUsers_FullMethodName             = "/admin.v1.AdminService/ListUsers"
 	AdminService_CreateUser_FullMethodName            = "/admin.v1.AdminService/CreateUser"
 	AdminService_UpdateUser_FullMethodName            = "/admin.v1.AdminService/UpdateUser"
+	AdminService_DeleteUser_FullMethodName            = "/admin.v1.AdminService/DeleteUser"
 	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
 	AdminService_AuthorizeDingTalkUser_FullMethodName = "/admin.v1.AdminService/AuthorizeDingTalkUser"
 	AdminService_ResetUserPassword_FullMethodName     = "/admin.v1.AdminService/ResetUserPassword"
@@ -46,6 +47,8 @@ type AdminServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
+	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(ctx context.Context, in *AuthorizeDingTalkUserRequest, opts ...grpc.CallOption) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
@@ -119,6 +122,16 @@ func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,6 +238,8 @@ type AdminServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
@@ -261,6 +276,9 @@ func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRe
 }
 func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
@@ -414,6 +432,24 @@ func _AdminService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -610,6 +646,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUser",
 			Handler:    _AdminService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _AdminService_DeleteUser_Handler,
 		},
 		{
 			MethodName: "AuthorizeWeComUser",

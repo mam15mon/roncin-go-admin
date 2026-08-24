@@ -157,6 +157,10 @@ declare namespace API {
     id: string;
   };
 
+  type AdminServiceDeleteUserParams = {
+    id: string;
+  };
+
   type AdminServiceListAuditLogsParams = {
     page?: number;
     pageSize?: number;
@@ -764,6 +768,13 @@ declare namespace API {
     organizations?: Organization[];
     permissions?: string[];
     roleScopes?: RoleScope[];
+  };
+
+  type DeleteUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
   };
 
   type DingTalkLoginConfig = {

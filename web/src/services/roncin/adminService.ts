@@ -185,6 +185,20 @@ export async function adminServiceUpdateUser(
   });
 }
 
+/** DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。 DELETE /api/v1/admin/users/${param0} */
+export async function adminServiceDeleteUser(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServiceDeleteUserParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.DeleteUserResponse>(`/api/v1/admin/users/${param0}`, {
+    method: "DELETE",
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 POST /api/v1/admin/users/${param0}/dingtalk-authorization */
 export async function adminServiceAuthorizeDingTalkUser(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

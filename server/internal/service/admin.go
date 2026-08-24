@@ -127,6 +127,21 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	return &v1.UpdateUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AdminService) DeleteUser(ctx context.Context, request *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	if err := s.usecase.DeleteUser(ctx, principal.Organization.ID, principal.UserID, userID); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteUserResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.AuthorizeWeComUserRequest) (*v1.AuthorizeWeComUserResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {

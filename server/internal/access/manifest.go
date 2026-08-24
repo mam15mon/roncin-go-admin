@@ -18,6 +18,7 @@ const (
 	UserRead                    = "system.user.read"
 	UserCreate                  = "system.user.create"
 	UserUpdate                  = "system.user.update"
+	UserDelete                  = "system.user.delete"
 	UserAuthorizeWeCom          = "system.user.authorize_wecom"
 	UserResetPassword           = "system.user.reset_password"
 	RoleRead                    = "system.role.read"
@@ -153,6 +154,7 @@ var manifest = append([]Permission{
 	{Key: UserRead, Name: "查看用户", Group: "系统管理 · 用户", Description: "查看用户及其组织成员关系"},
 	{Key: UserCreate, Name: "新建用户", Group: "系统管理 · 用户", Description: "新建用户并配置初始成员关系"},
 	{Key: UserUpdate, Name: "编辑用户", Group: "系统管理 · 用户", Description: "修改用户资料、状态和成员关系"},
+	{Key: UserDelete, Name: "删除用户", Group: "系统管理 · 用户", Description: "从当前组织移除用户并撤销其组织会话"},
 	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户"},
 	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "读取钉钉成员并创建或绑定系统用户"},
 	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码"},

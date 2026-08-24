@@ -13,6 +13,7 @@ var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/CreateOrganization":                               {mode: accessModePermission, permission: "system.organization.create", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/CreateRole":                                       {mode: accessModePermission, permission: "system.role.create", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/CreateUser":                                       {mode: accessModePermission, permission: "system.user.create", scope: biz.DataScopeOrganization},
+	"/admin.v1.AdminService/DeleteUser":                                       {mode: accessModePermission, permission: "system.user.delete", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/ListAuditLogs":                                    {mode: accessModePermission, permission: "system.audit.read", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/ListOrganizationRoles":                            {mode: accessModePermission, permission: "system.role.read", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/ListOrganizations":                                {mode: accessModePermission, permission: "system.organization.read", scope: biz.DataScopeAll},

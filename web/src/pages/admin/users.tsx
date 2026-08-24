@@ -1,4 +1,5 @@
 import {
+  DeleteOutlined,
   EditOutlined,
   KeyOutlined,
   MailOutlined,
@@ -15,13 +16,14 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Alert, App, Avatar, Button, Space, Tag, Typography } from 'antd';
-import { useModel } from '@umijs/max';
+import { Alert, App, Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
+import { useAccess, useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   adminServiceAuthorizeDingTalkUser,
   adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
+  adminServiceDeleteUser,
   adminServiceListOrganizationRoles,
   adminServiceListOrganizations,
   adminServiceListRoles,
@@ -59,6 +61,7 @@ export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
+  const access = useAccess();
   const { initialState } = useModel('@@initialState');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminUser>();
@@ -260,7 +263,7 @@ export default function UsersPanel() {
     {
       title: '操作',
       valueType: 'option',
-      width: 160,
+      width: 230,
       fixed: 'right',
       render: (_, record) => (
         <Space size={8}>
@@ -282,6 +285,32 @@ export default function UsersPanel() {
           >
             重置密码
           </Button>
+          {access.canDeleteUsers &&
+            record.id !== initialState?.currentUser?.id && (
+              <Popconfirm
+                title={`确定删除员工“${record.displayName || record.username}”？`}
+                description="将从当前组织移除该员工并撤销其组织会话，账号及历史业务记录仍会保留。"
+                okText="删除"
+                cancelText="取消"
+                okButtonProps={{ danger: true }}
+                onConfirm={async () => {
+                  if (!record.id) return;
+                  await adminServiceDeleteUser({ id: record.id });
+                  message.success('员工已从当前组织删除');
+                  actionRef.current?.reload();
+                }}
+              >
+                <Button
+                  type="link"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  style={{ padding: 0 }}
+                >
+                  删除
+                </Button>
+              </Popconfirm>
+            )}
         </Space>
       ),
     },

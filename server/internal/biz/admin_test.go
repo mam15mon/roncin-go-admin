@@ -18,6 +18,8 @@ type adminRepoStub struct {
 	userPassword      string
 	userInput         *AdminUser
 	resetPassword     string
+	deletedUserID     uuid.UUID
+	deleteOrgID       uuid.UUID
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -54,6 +56,12 @@ func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminU
 
 func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	return input, nil
+}
+
+func (s *adminRepoStub) DeleteUser(_ context.Context, organizationID, id uuid.UUID) error {
+	s.deleteOrgID = organizationID
+	s.deletedUserID = id
+	return nil
 }
 
 func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
@@ -321,6 +329,32 @@ func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 		t.Fatal("reset password was not hashed")
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.password.reset" {
+		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestAdminUsecaseDeleteUserRejectsSelfAndAudits(t *testing.T) {
+	repo := &adminRepoStub{}
+	audit := &auditRepoStub{}
+	usecase := NewAdminUsecase(repo, audit)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+
+	if err := usecase.DeleteUser(context.Background(), organizationID, actorID, actorID); err != ErrAdminUserSelfDelete {
+		t.Fatalf("DeleteUser() self error = %v, want ErrAdminUserSelfDelete", err)
+	}
+	if repo.deletedUserID != uuid.Nil {
+		t.Fatal("self deletion was sent to repository")
+	}
+
+	userID := uuid.New()
+	if err := usecase.DeleteUser(context.Background(), organizationID, actorID, userID); err != nil {
+		t.Fatalf("DeleteUser() error = %v", err)
+	}
+	if repo.deleteOrgID != organizationID || repo.deletedUserID != userID {
+		t.Fatalf("deleted organization/user = %s/%s", repo.deleteOrgID, repo.deletedUserID)
+	}
+	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.delete" || audit.events[0].Details["resource_id"] != userID.String() {
 		t.Fatalf("audit events = %#v", audit.events)
 	}
 }
