@@ -53,8 +53,8 @@ func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
 }
 
 func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
-	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{accountingOrganization: &AccountingOrganization{ID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}})
-	resolved, err := usecase.Resolve(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "CNY", "2026-08-24")
+	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{accountingOrganization: &AccountingOrganization{ID: uuid.Must(uuid.NewV7()), BaseCurrency: "USD"}})
+	resolved, err := usecase.Resolve(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-08-24")
 	if err != nil {
 		t.Fatalf("解析本币汇率失败: %v", err)
 	}

@@ -149,6 +149,9 @@ func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	if repo.organizationID != parentID || created.ParentID == nil || *created.ParentID != parentID {
 		t.Fatalf("created organization = %#v, looked up parent = %s", created, repo.organizationID)
 	}
+	if created.BaseCurrency != "USD" {
+		t.Fatalf("company base currency = %s, want USD", created.BaseCurrency)
+	}
 
 	missingParentID := uuid.New()
 	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: "missing", Name: "缺失父组织", Kind: OrganizationKindCompany, ParentID: &missingParentID}); err != ErrAdminOrganizationNotFound {
@@ -179,8 +182,8 @@ func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateOrganization() error = %v", err)
 	}
-	if created.Kind != OrganizationKindDepartment {
-		t.Fatalf("created kind = %s", created.Kind)
+	if created.Kind != OrganizationKindDepartment || created.BaseCurrency != "CNY" {
+		t.Fatalf("created department = %#v", created)
 	}
 
 	_, err = usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{
@@ -190,15 +193,15 @@ func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 		t.Fatalf("invalid hierarchy error = %v, want ErrAdminOrganizationHierarchy", err)
 	}
 
-	repo.organization = &AdminOrganization{ID: parentID, Kind: OrganizationKindDepartment}
+	repo.organization = &AdminOrganization{ID: parentID, Kind: OrganizationKindDepartment, BaseCurrency: "CNY"}
 	created, err = usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{
 		Code: "customer_service", Name: "客服组", Kind: OrganizationKindTeam, ParentID: &parentID,
 	})
 	if err != nil {
 		t.Fatalf("create team error = %v", err)
 	}
-	if created.Kind != OrganizationKindTeam {
-		t.Fatalf("created team kind = %s", created.Kind)
+	if created.Kind != OrganizationKindTeam || created.BaseCurrency != "CNY" {
+		t.Fatalf("created team = %#v", created)
 	}
 }
 
