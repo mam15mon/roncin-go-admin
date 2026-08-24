@@ -3825,6 +3825,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                isContainerUnit:
+                    type: boolean
         finance.v1.CreateBillingUnitRequest:
             required:
                 - code
@@ -3838,6 +3840,8 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
+                isContainerUnit:
+                    type: boolean
         finance.v1.CreateBillingUnitResponse:
             type: object
             properties:
@@ -4184,6 +4188,8 @@ components:
                     type: integer
                     format: int32
                 enabled:
+                    type: boolean
+                isContainerUnit:
                     type: boolean
         finance.v1.UpdateBillingUnitResponse:
             type: object

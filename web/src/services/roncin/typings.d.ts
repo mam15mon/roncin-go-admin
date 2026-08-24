@@ -336,6 +336,7 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    isContainerUnit?: boolean;
   };
 
   type CheckOrderReferenceResponse = {
@@ -389,6 +390,7 @@ declare namespace API {
     code: string;
     name: string;
     sortOrder?: number;
+    isContainerUnit?: boolean;
   };
 
   type CreateBillingUnitResponse = {
@@ -2738,6 +2740,7 @@ declare namespace API {
     name: string;
     sortOrder?: number;
     enabled?: boolean;
+    isContainerUnit?: boolean;
   };
 
   type UpdateBillingUnitResponse = {

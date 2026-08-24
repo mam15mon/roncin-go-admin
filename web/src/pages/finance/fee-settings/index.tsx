@@ -55,6 +55,7 @@ type FeeSettingFormValues = {
 type BillingUnitFormValues = {
   code: string;
   name: string;
+  isContainerUnit: boolean;
   enabled: boolean;
   sortOrder: number;
 };
@@ -398,6 +399,16 @@ function BillingUnitsPanel() {
   const columns: ProColumns<API.BillingUnit>[] = [
     { title: '单位代码', dataIndex: 'code', width: 160, copyable: true },
     { title: '单位名称', dataIndex: 'name' },
+    {
+      title: '是否为箱型单位',
+      dataIndex: 'isContainerUnit',
+      width: 140,
+      render: (_, record) => (
+        <Tag color={record.isContainerUnit ? 'blue' : 'default'}>
+          {record.isContainerUnit ? '是' : '否'}
+        </Tag>
+      ),
+    },
     { title: '排序', dataIndex: 'sortOrder', width: 90 },
     enabledColumn<API.BillingUnit>(),
     {
@@ -461,10 +472,11 @@ function BillingUnitsPanel() {
             ? {
                 code: editing.code,
                 name: editing.name,
+                isContainerUnit: editing.isContainerUnit ?? false,
                 sortOrder: editing.sortOrder ?? 100,
                 enabled: editing.enabled ?? true,
               }
-            : { sortOrder: 100, enabled: true }
+            : { isContainerUnit: false, sortOrder: 100, enabled: true }
         }
         modalProps={{
           destroyOnHidden: true,
@@ -475,6 +487,7 @@ function BillingUnitsPanel() {
           const input = {
             code: values.code.trim().toUpperCase(),
             name: values.name.trim(),
+            isContainerUnit: values.isContainerUnit,
             sortOrder: values.sortOrder,
           };
           if (editing?.id) {
@@ -516,6 +529,7 @@ function BillingUnitsPanel() {
           min={0}
           fieldProps={{ precision: 0 }}
         />
+        <ProFormSwitch name="isContainerUnit" label="是否为箱型单位" />
         {editing && <ProFormSwitch name="enabled" label="启用状态" />}
       </ModalForm>
     </>

@@ -282,6 +282,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 32},
 		{Name: "name", Type: field.TypeString, Size: 64},
+		{Name: "is_container_unit", Type: field.TypeBool, Default: false},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -294,7 +295,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "billing_units_organizations_billing_units",
-				Columns:    []*schema.Column{BillingUnitsColumns[7]},
+				Columns:    []*schema.Column{BillingUnitsColumns[8]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -308,12 +309,12 @@ var (
 			{
 				Name:    "billingunit_organization_id_code",
 				Unique:  true,
-				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[3]},
+				Columns: []*schema.Column{BillingUnitsColumns[8], BillingUnitsColumns[3]},
 			},
 			{
 				Name:    "billingunit_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[6], BillingUnitsColumns[5]},
+				Columns: []*schema.Column{BillingUnitsColumns[8], BillingUnitsColumns[7], BillingUnitsColumns[6]},
 			},
 		},
 	}

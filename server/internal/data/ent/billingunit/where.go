@@ -81,6 +81,11 @@ func Name(v string) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldName, v))
 }
 
+// IsContainerUnit applies equality check predicate on the "is_container_unit" field. It's identical to IsContainerUnitEQ.
+func IsContainerUnit(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldIsContainerUnit, v))
+}
+
 // SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
 func SortOrder(v int) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldSortOrder, v))
@@ -319,6 +324,16 @@ func NameEqualFold(v string) predicate.BillingUnit {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldContainsFold(FieldName, v))
+}
+
+// IsContainerUnitEQ applies the EQ predicate on the "is_container_unit" field.
+func IsContainerUnitEQ(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldIsContainerUnit, v))
+}
+
+// IsContainerUnitNEQ applies the NEQ predicate on the "is_container_unit" field.
+func IsContainerUnitNEQ(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldNEQ(FieldIsContainerUnit, v))
 }
 
 // SortOrderEQ applies the EQ predicate on the "sort_order" field.

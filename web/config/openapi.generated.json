@@ -6187,6 +6187,9 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "isContainerUnit": {
+            "type": "boolean"
           }
         }
       },
@@ -6206,6 +6209,9 @@
           "sortOrder": {
             "type": "integer",
             "format": "int32"
+          },
+          "isContainerUnit": {
+            "type": "boolean"
           }
         }
       },
@@ -6722,6 +6728,9 @@
             "format": "int32"
           },
           "enabled": {
+            "type": "boolean"
+          },
+          "isContainerUnit": {
             "type": "boolean"
           }
         }

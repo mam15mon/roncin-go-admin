@@ -70,6 +70,20 @@ func (_c *BillingUnitCreate) SetName(v string) *BillingUnitCreate {
 	return _c
 }
 
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (_c *BillingUnitCreate) SetIsContainerUnit(v bool) *BillingUnitCreate {
+	_c.mutation.SetIsContainerUnit(v)
+	return _c
+}
+
+// SetNillableIsContainerUnit sets the "is_container_unit" field if the given value is not nil.
+func (_c *BillingUnitCreate) SetNillableIsContainerUnit(v *bool) *BillingUnitCreate {
+	if v != nil {
+		_c.SetIsContainerUnit(*v)
+	}
+	return _c
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_c *BillingUnitCreate) SetSortOrder(v int) *BillingUnitCreate {
 	_c.mutation.SetSortOrder(v)
@@ -190,6 +204,10 @@ func (_c *BillingUnitCreate) defaults() {
 		v := billingunit.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.IsContainerUnit(); !ok {
+		v := billingunit.DefaultIsContainerUnit
+		_c.mutation.SetIsContainerUnit(v)
+	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		v := billingunit.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
@@ -230,6 +248,9 @@ func (_c *BillingUnitCreate) check() error {
 		if err := billingunit.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "BillingUnit.name": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IsContainerUnit(); !ok {
+		return &ValidationError{Name: "is_container_unit", err: errors.New(`ent: missing required field "BillingUnit.is_container_unit"`)}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		return &ValidationError{Name: "sort_order", err: errors.New(`ent: missing required field "BillingUnit.sort_order"`)}
@@ -290,6 +311,10 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(billingunit.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.IsContainerUnit(); ok {
+		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
+		_node.IsContainerUnit = value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)

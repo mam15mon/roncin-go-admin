@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
@@ -52,7 +53,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -627,12 +627,16 @@ func init() {
 			return nil
 		}
 	}()
+	// billingunitDescIsContainerUnit is the schema descriptor for is_container_unit field.
+	billingunitDescIsContainerUnit := billingunitFields[3].Descriptor()
+	// billingunit.DefaultIsContainerUnit holds the default value on creation for the is_container_unit field.
+	billingunit.DefaultIsContainerUnit = billingunitDescIsContainerUnit.Default.(bool)
 	// billingunitDescSortOrder is the schema descriptor for sort_order field.
-	billingunitDescSortOrder := billingunitFields[3].Descriptor()
+	billingunitDescSortOrder := billingunitFields[4].Descriptor()
 	// billingunit.DefaultSortOrder holds the default value on creation for the sort_order field.
 	billingunit.DefaultSortOrder = billingunitDescSortOrder.Default.(int)
 	// billingunitDescEnabled is the schema descriptor for enabled field.
-	billingunitDescEnabled := billingunitFields[4].Descriptor()
+	billingunitDescEnabled := billingunitFields[5].Descriptor()
 	// billingunit.DefaultEnabled holds the default value on creation for the enabled field.
 	billingunit.DefaultEnabled = billingunitDescEnabled.Default.(bool)
 	// billingunitDescID is the schema descriptor for id field.

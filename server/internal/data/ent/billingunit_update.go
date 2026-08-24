@@ -80,6 +80,20 @@ func (_u *BillingUnitUpdate) SetNillableName(v *string) *BillingUnitUpdate {
 	return _u
 }
 
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (_u *BillingUnitUpdate) SetIsContainerUnit(v bool) *BillingUnitUpdate {
+	_u.mutation.SetIsContainerUnit(v)
+	return _u
+}
+
+// SetNillableIsContainerUnit sets the "is_container_unit" field if the given value is not nil.
+func (_u *BillingUnitUpdate) SetNillableIsContainerUnit(v *bool) *BillingUnitUpdate {
+	if v != nil {
+		_u.SetIsContainerUnit(*v)
+	}
+	return _u
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_u *BillingUnitUpdate) SetSortOrder(v int) *BillingUnitUpdate {
 	_u.mutation.ResetSortOrder()
@@ -278,6 +292,9 @@ func (_u *BillingUnitUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(billingunit.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.IsContainerUnit(); ok {
+		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)
 	}
@@ -470,6 +487,20 @@ func (_u *BillingUnitUpdateOne) SetName(v string) *BillingUnitUpdateOne {
 func (_u *BillingUnitUpdateOne) SetNillableName(v *string) *BillingUnitUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (_u *BillingUnitUpdateOne) SetIsContainerUnit(v bool) *BillingUnitUpdateOne {
+	_u.mutation.SetIsContainerUnit(v)
+	return _u
+}
+
+// SetNillableIsContainerUnit sets the "is_container_unit" field if the given value is not nil.
+func (_u *BillingUnitUpdateOne) SetNillableIsContainerUnit(v *bool) *BillingUnitUpdateOne {
+	if v != nil {
+		_u.SetIsContainerUnit(*v)
 	}
 	return _u
 }
@@ -701,6 +732,9 @@ func (_u *BillingUnitUpdateOne) sqlSave(ctx context.Context) (_node *BillingUnit
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(billingunit.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsContainerUnit(); ok {
+		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)

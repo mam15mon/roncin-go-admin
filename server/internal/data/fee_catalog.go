@@ -232,7 +232,7 @@ func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.Billi
 	if err != nil {
 		return nil, err
 	}
-	saved, err := tx.BillingUnit.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetCode(input.Code).SetName(input.Name).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+	saved, err := tx.BillingUnit.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
@@ -266,7 +266,7 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 		}
 		return nil, err
 	}
-	saved, err := current.Update().SetCode(input.Code).SetName(input.Name).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
+	saved, err := current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
@@ -401,7 +401,7 @@ func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
 }
 
 func billingUnitToBiz(item *ent.BillingUnit) *biz.BillingUnit {
-	return &biz.BillingUnit{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.BillingUnit{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, IsContainerUnit: item.IsContainerUnit, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func taxableServiceToBiz(item *ent.TaxableService) (*biz.TaxableService, error) {

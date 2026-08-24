@@ -27,14 +27,15 @@ var (
 var catalogCodePattern = regexp.MustCompile(`^[A-Z0-9_]{2,32}$`)
 
 type BillingUnit struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
-	Code           string
-	Name           string
-	SortOrder      int
-	Enabled        bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              uuid.UUID
+	OrganizationID  uuid.UUID
+	Code            string
+	Name            string
+	IsContainerUnit bool
+	SortOrder       int
+	Enabled         bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type TaxableService struct {

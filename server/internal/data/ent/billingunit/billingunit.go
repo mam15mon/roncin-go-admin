@@ -25,6 +25,8 @@ const (
 	FieldCode = "code"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldIsContainerUnit holds the string denoting the is_container_unit field in the database.
+	FieldIsContainerUnit = "is_container_unit"
 	// FieldSortOrder holds the string denoting the sort_order field in the database.
 	FieldSortOrder = "sort_order"
 	// FieldEnabled holds the string denoting the enabled field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldCode,
 	FieldName,
+	FieldIsContainerUnit,
 	FieldSortOrder,
 	FieldEnabled,
 }
@@ -93,6 +96,8 @@ var (
 	CodeValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultIsContainerUnit holds the default value on creation for the "is_container_unit" field.
+	DefaultIsContainerUnit bool
 	// DefaultSortOrder holds the default value on creation for the "sort_order" field.
 	DefaultSortOrder int
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
@@ -132,6 +137,11 @@ func ByCode(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByIsContainerUnit orders the results by the is_container_unit field.
+func ByIsContainerUnit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsContainerUnit, opts...).ToFunc()
 }
 
 // BySortOrder orders the results by the sort_order field.

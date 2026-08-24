@@ -59,6 +59,7 @@ message BillingUnit {
   bool enabled = 6;
   string created_at = 7;
   string updated_at = 8;
+  bool is_container_unit = 9;
 }
 
 message TaxableService {
@@ -134,6 +135,7 @@ message CreateBillingUnitRequest {
   string code = 1 [(google.api.field_behavior) = REQUIRED];
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   int32 sort_order = 3;
+  bool is_container_unit = 4;
 }
 
 message UpdateBillingUnitRequest {
@@ -142,6 +144,7 @@ message UpdateBillingUnitRequest {
   string name = 3 [(google.api.field_behavior) = REQUIRED];
   int32 sort_order = 4;
   bool enabled = 5;
+  bool is_container_unit = 6;
 }
 
 message CreateTaxableServiceRequest {

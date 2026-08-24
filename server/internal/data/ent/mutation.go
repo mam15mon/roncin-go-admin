@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
@@ -60,7 +61,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -5652,6 +5652,7 @@ type BillingUnitMutation struct {
 	updated_at          *time.Time
 	code                *string
 	name                *string
+	is_container_unit   *bool
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
@@ -5953,6 +5954,42 @@ func (m *BillingUnitMutation) ResetName() {
 	m.name = nil
 }
 
+// SetIsContainerUnit sets the "is_container_unit" field.
+func (m *BillingUnitMutation) SetIsContainerUnit(b bool) {
+	m.is_container_unit = &b
+}
+
+// IsContainerUnit returns the value of the "is_container_unit" field in the mutation.
+func (m *BillingUnitMutation) IsContainerUnit() (r bool, exists bool) {
+	v := m.is_container_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsContainerUnit returns the old "is_container_unit" field's value of the BillingUnit entity.
+// If the BillingUnit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillingUnitMutation) OldIsContainerUnit(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsContainerUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsContainerUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsContainerUnit: %w", err)
+	}
+	return oldValue.IsContainerUnit, nil
+}
+
+// ResetIsContainerUnit resets all changes to the "is_container_unit" field.
+func (m *BillingUnitMutation) ResetIsContainerUnit() {
+	m.is_container_unit = nil
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (m *BillingUnitMutation) SetSortOrder(i int) {
 	m.sort_order = &i
@@ -6214,7 +6251,7 @@ func (m *BillingUnitMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BillingUnitMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, billingunit.FieldCreatedAt)
 	}
@@ -6229,6 +6266,9 @@ func (m *BillingUnitMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, billingunit.FieldName)
+	}
+	if m.is_container_unit != nil {
+		fields = append(fields, billingunit.FieldIsContainerUnit)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, billingunit.FieldSortOrder)
@@ -6254,6 +6294,8 @@ func (m *BillingUnitMutation) Field(name string) (ent.Value, bool) {
 		return m.Code()
 	case billingunit.FieldName:
 		return m.Name()
+	case billingunit.FieldIsContainerUnit:
+		return m.IsContainerUnit()
 	case billingunit.FieldSortOrder:
 		return m.SortOrder()
 	case billingunit.FieldEnabled:
@@ -6277,6 +6319,8 @@ func (m *BillingUnitMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCode(ctx)
 	case billingunit.FieldName:
 		return m.OldName(ctx)
+	case billingunit.FieldIsContainerUnit:
+		return m.OldIsContainerUnit(ctx)
 	case billingunit.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	case billingunit.FieldEnabled:
@@ -6324,6 +6368,13 @@ func (m *BillingUnitMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case billingunit.FieldIsContainerUnit:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsContainerUnit(v)
 		return nil
 	case billingunit.FieldSortOrder:
 		v, ok := value.(int)
@@ -6417,6 +6468,9 @@ func (m *BillingUnitMutation) ResetField(name string) error {
 		return nil
 	case billingunit.FieldName:
 		m.ResetName()
+		return nil
+	case billingunit.FieldIsContainerUnit:
+		m.ResetIsContainerUnit()
 		return nil
 	case billingunit.FieldSortOrder:
 		m.ResetSortOrder()
