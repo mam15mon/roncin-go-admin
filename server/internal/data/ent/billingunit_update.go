@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -134,6 +135,21 @@ func (_u *BillingUnitUpdate) AddFeeSettings(v ...*FeeSetting) *BillingUnitUpdate
 	return _u.AddFeeSettingIDs(ids...)
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_u *BillingUnitUpdate) AddOrderFeeIDs(ids ...uuid.UUID) *BillingUnitUpdate {
+	_u.mutation.AddOrderFeeIDs(ids...)
+	return _u
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_u *BillingUnitUpdate) AddOrderFees(v ...*OrderFee) *BillingUnitUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeIDs(ids...)
+}
+
 // Mutation returns the BillingUnitMutation object of the builder.
 func (_u *BillingUnitUpdate) Mutation() *BillingUnitMutation {
 	return _u.mutation
@@ -164,6 +180,27 @@ func (_u *BillingUnitUpdate) RemoveFeeSettings(v ...*FeeSetting) *BillingUnitUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSettingIDs(ids...)
+}
+
+// ClearOrderFees clears all "order_fees" edges to the OrderFee entity.
+func (_u *BillingUnitUpdate) ClearOrderFees() *BillingUnitUpdate {
+	_u.mutation.ClearOrderFees()
+	return _u
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to OrderFee entities by IDs.
+func (_u *BillingUnitUpdate) RemoveOrderFeeIDs(ids ...uuid.UUID) *BillingUnitUpdate {
+	_u.mutation.RemoveOrderFeeIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFees removes "order_fees" edges to OrderFee entities.
+func (_u *BillingUnitUpdate) RemoveOrderFees(v ...*OrderFee) *BillingUnitUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -324,6 +361,51 @@ func (_u *BillingUnitUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{billingunit.Label}
@@ -447,6 +529,21 @@ func (_u *BillingUnitUpdateOne) AddFeeSettings(v ...*FeeSetting) *BillingUnitUpd
 	return _u.AddFeeSettingIDs(ids...)
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_u *BillingUnitUpdateOne) AddOrderFeeIDs(ids ...uuid.UUID) *BillingUnitUpdateOne {
+	_u.mutation.AddOrderFeeIDs(ids...)
+	return _u
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_u *BillingUnitUpdateOne) AddOrderFees(v ...*OrderFee) *BillingUnitUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeIDs(ids...)
+}
+
 // Mutation returns the BillingUnitMutation object of the builder.
 func (_u *BillingUnitUpdateOne) Mutation() *BillingUnitMutation {
 	return _u.mutation
@@ -477,6 +574,27 @@ func (_u *BillingUnitUpdateOne) RemoveFeeSettings(v ...*FeeSetting) *BillingUnit
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSettingIDs(ids...)
+}
+
+// ClearOrderFees clears all "order_fees" edges to the OrderFee entity.
+func (_u *BillingUnitUpdateOne) ClearOrderFees() *BillingUnitUpdateOne {
+	_u.mutation.ClearOrderFees()
+	return _u
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to OrderFee entities by IDs.
+func (_u *BillingUnitUpdateOne) RemoveOrderFeeIDs(ids ...uuid.UUID) *BillingUnitUpdateOne {
+	_u.mutation.RemoveOrderFeeIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFees removes "order_fees" edges to OrderFee entities.
+func (_u *BillingUnitUpdateOne) RemoveOrderFees(v ...*OrderFee) *BillingUnitUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeIDs(ids...)
 }
 
 // Where appends a list predicates to the BillingUnitUpdate builder.
@@ -660,6 +778,51 @@ func (_u *BillingUnitUpdateOne) sqlSave(ctx context.Context) (_node *BillingUnit
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.OrderFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

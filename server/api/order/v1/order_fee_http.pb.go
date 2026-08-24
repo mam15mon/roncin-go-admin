@@ -27,7 +27,7 @@ const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 type OrderFeeServiceHTTPServer interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
-	// ListFeeOptions ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
@@ -184,7 +184,7 @@ func _OrderFeeService_RemoveFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 type OrderFeeServiceHTTPClient interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, req *AddFeeRequest, opts ...http.CallOption) (rsp *AddFeeResponse, err error)
-	// ListFeeOptions ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, req *ListFeeOptionsRequest, opts ...http.CallOption) (rsp *ListFeeOptionsResponse, err error)
 	// ListFees ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, req *ListFeesRequest, opts ...http.CallOption) (rsp *ListFeesResponse, err error)
@@ -222,7 +222,7 @@ func (c *OrderFeeServiceHTTPClientImpl) AddFee(ctx context.Context, in *AddFeeRe
 	return &out, nil
 }
 
-// ListFeeOptions ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 func (c *OrderFeeServiceHTTPClientImpl) ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...http.CallOption) (*ListFeeOptionsResponse, error) {
 	var out ListFeeOptionsResponse
 	pattern := "/api/v1/orders/{order_id}/fee-options"

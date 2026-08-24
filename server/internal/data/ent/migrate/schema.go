@@ -1094,7 +1094,10 @@ var (
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
 		{Name: "fee_code", Type: field.TypeString, Size: 30},
 		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "fee_name_en", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "billing_unit", Type: field.TypeString, Size: 32},
+		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "taxable_service_name", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -1105,6 +1108,8 @@ var (
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "expense_date", Type: field.TypeString, Size: 10},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "billing_unit_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "fee_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 	}
@@ -1115,14 +1120,26 @@ var (
 		PrimaryKey: []*schema.Column{OrderFeesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "order_fees_billing_units_order_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[20]},
+				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "order_fees_fee_settings_order_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[21]},
+				RefColumns: []*schema.Column{FeeSettingsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[17]},
+				Columns:    []*schema.Column{OrderFeesColumns[22]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[18]},
+				Columns:    []*schema.Column{OrderFeesColumns[23]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1136,12 +1153,22 @@ var (
 			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[17], OrderFeesColumns[3], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[22], OrderFeesColumns[3], OrderFeesColumns[1]},
+			},
+			{
+				Name:    "orderfee_fee_setting_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[21]},
+			},
+			{
+				Name:    "orderfee_billing_unit_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[20]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[18], OrderFeesColumns[3], OrderFeesColumns[10]},
+				Columns: []*schema.Column{OrderFeesColumns[23], OrderFeesColumns[3], OrderFeesColumns[13]},
 			},
 		},
 	}
@@ -2641,8 +2668,10 @@ func init() {
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
-	OrderFeesTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderFeesTable.ForeignKeys[1].RefTable = PartnersTable
+	OrderFeesTable.ForeignKeys[0].RefTable = BillingUnitsTable
+	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
+	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
+	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable

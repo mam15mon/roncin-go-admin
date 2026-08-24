@@ -21,7 +21,7 @@ export async function orderFeeServiceResolveFeeExchangeRate(
   );
 }
 
-/** ListFeeOptions 获取费用录入所需的结算单位和币种候选项。 GET /api/v1/orders/${param0}/fee-options */
+/** ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。 GET /api/v1/orders/${param0}/fee-options */
 export async function orderFeeServiceListFeeOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceListFeeOptionsParams,

@@ -42,10 +42,9 @@ const PAYABLE = 2;
 
 type FeeFormValues = {
   direction: number;
-  feeCode: string;
-  feeName: string;
+  feeSettingId: string;
   settlementPartyId: string;
-  billingUnit: string;
+  billingUnitId: string;
   quantity: string;
   unitPrice: string;
   currency: string;
@@ -94,7 +93,14 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [settlementParties, setSettlementParties] = useState<
       API.OrderFeeSettlementPartyOption[]
     >([]);
-    const [baseCurrency, setBaseCurrency] = useState('');
+    const [feeSettings, setFeeSettings] = useState<
+      API.OrderFeeSettingOption[]
+    >([]);
+    const [billingUnits, setBillingUnits] = useState<
+      API.OrderFeeBillingUnitOption[]
+    >([]);
+    const [selectedFeeSetting, setSelectedFeeSetting] =
+      useState<API.OrderFeeSettingOption>();
     const [totalPreview, setTotalPreview] = useState<string>();
     const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
     const [exchangeRateStatus, setExchangeRateStatus] =
@@ -109,7 +115,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           .then((response) => {
             setCurrencies(response.currencies ?? []);
             setSettlementParties(response.settlementParties ?? []);
-            setBaseCurrency(response.baseCurrency ?? '');
+            setFeeSettings(response.feeSettings ?? []);
+            setBillingUnits(response.billingUnits ?? []);
           })
           .catch((error: Error) =>
             message.error(error.message || '费用录入选项加载失败'),
@@ -157,21 +164,21 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     };
 
     const openCreate = () => {
-      const expenseDate = dayjs().format('YYYY-MM-DD');
       setEditingFee(undefined);
+      setSelectedFeeSetting(undefined);
       setTotalPreview(undefined);
       setExchangeRatePreview(undefined);
       setExchangeRateStatus('idle');
       setManualExchangeRate(false);
       formRef.current?.resetFields();
       setModalOpen(true);
-      if (order?.id && baseCurrency) {
-        resolveExchangeRate(order.id, RECEIVABLE, baseCurrency, expenseDate);
-      }
     };
 
     const openEdit = (fee: API.OrderFee) => {
       setEditingFee(fee);
+      setSelectedFeeSetting(
+        feeSettings.find((item) => item.id === fee.feeSettingId),
+      );
       setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
       setExchangeRatePreview(undefined);
       setExchangeRateStatus('idle');
@@ -329,10 +336,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const initialValues: Partial<FeeFormValues> = editingFee
       ? {
           direction: editingFee.direction,
-          feeCode: editingFee.feeCode,
-          feeName: editingFee.feeName,
+          feeSettingId: editingFee.feeSettingId,
           settlementPartyId: editingFee.settlementPartyId,
-          billingUnit: editingFee.billingUnit,
+          billingUnitId: editingFee.billingUnitId,
           quantity: trimExactDecimal(editingFee.quantity),
           unitPrice: trimExactDecimal(editingFee.unitPrice),
           currency: editingFee.currency,
@@ -343,9 +349,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         }
       : {
           direction: RECEIVABLE,
-          billingUnit: '票',
           quantity: '1',
-          currency: baseCurrency,
           expenseDate: dayjs(),
         };
 
@@ -373,7 +377,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setOrder(undefined);
             setCurrencies([]);
             setSettlementParties([]);
-            setBaseCurrency('');
+            setFeeSettings([]);
+            setBillingUnits([]);
+            setSelectedFeeSetting(undefined);
           }}
           width={1280}
           destroyOnHidden
@@ -428,6 +434,34 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             submitButtonProps: { disabled: exchangeRateSubmissionBlocked },
           }}
           onValuesChange={(changed, values) => {
+            if ('feeSettingId' in changed) {
+              const setting = feeSettings.find(
+                (item) => item.id === values.feeSettingId,
+              );
+              setSelectedFeeSetting(setting);
+              formRef.current?.setFieldsValue({
+                billingUnitId: setting?.defaultBillingUnitId,
+                currency: setting?.defaultCurrency,
+              });
+              if (
+                setting?.defaultCurrency &&
+                order?.id &&
+                values.direction &&
+                values.expenseDate
+              ) {
+                resolveExchangeRate(
+                  order.id,
+                  values.direction,
+                  setting.defaultCurrency,
+                  dayjs(values.expenseDate).format('YYYY-MM-DD'),
+                );
+              } else {
+                exchangeRateRequestRef.current++;
+                setExchangeRateStatus('idle');
+                setExchangeRatePreview(undefined);
+                setManualExchangeRate(false);
+              }
+            }
             if (
               'currency' in changed ||
               'direction' in changed ||
@@ -470,10 +504,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             const payload = {
               orderId: order.id,
               direction: values.direction,
-              feeCode: values.feeCode.trim(),
-              feeName: values.feeName.trim(),
+              feeSettingId: values.feeSettingId,
               settlementPartyId: values.settlementPartyId,
-              billingUnit: values.billingUnit.trim(),
+              billingUnitId: values.billingUnitId,
               quantity: values.quantity,
               unitPrice: values.unitPrice,
               currency: values.currency,
@@ -508,21 +541,59 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               { label: '应付', value: PAYABLE },
             ]}
           />
-          <ProFormText
-            colProps={{ span: 12 }}
-            name="feeCode"
-            label="费用代码"
-            rules={[{ required: true, message: '请输入费用代码' }]}
-            fieldProps={{ maxLength: 30 }}
-            placeholder="例如 OCEAN_FREIGHT"
+          <ProFormSelect
+            colProps={{ span: 24 }}
+            name="feeSettingId"
+            label="费用设置"
+            rules={[{ required: true, message: '请选择费用设置' }]}
+            showSearch
+            options={feeSettings.map((item) => ({
+              label: `${item.feeCode} - ${item.nameZh}${item.aliasName ? `（${item.aliasName}）` : ''}`,
+              value: item.id,
+            }))}
+            placeholder="请选择适用于当前订单的费用"
           />
           <ProFormText
             colProps={{ span: 12 }}
-            name="feeName"
+            label="费用代码"
+            fieldProps={{
+              value: selectedFeeSetting?.feeCode ?? '',
+              disabled: true,
+            }}
+          />
+          <ProFormText
+            colProps={{ span: 12 }}
             label="费用名称"
-            rules={[{ required: true, message: '请输入费用名称' }]}
-            fieldProps={{ maxLength: 80 }}
-            placeholder="例如 海运费"
+            fieldProps={{
+              value: selectedFeeSetting?.nameZh ?? '',
+              disabled: true,
+            }}
+          />
+          <ProFormText
+            colProps={{ span: 12 }}
+            label="费用名称（英文）"
+            fieldProps={{
+              value: selectedFeeSetting?.nameEn ?? '',
+              disabled: true,
+            }}
+          />
+          <ProFormText
+            colProps={{ span: 12 }}
+            label="税率"
+            fieldProps={{
+              value: selectedFeeSetting?.taxRate
+                ? `${trimExactDecimal(selectedFeeSetting.taxRate)}%`
+                : '',
+              disabled: true,
+            }}
+          />
+          <ProFormText
+            colProps={{ span: 12 }}
+            label="货物或应税劳务名称"
+            fieldProps={{
+              value: selectedFeeSetting?.taxableServiceName ?? '',
+              disabled: true,
+            }}
           />
           <ProFormSelect
             colProps={{ span: 12 }}
@@ -536,13 +607,17 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             }))}
             placeholder="搜索往来单位"
           />
-          <ProFormText
+          <ProFormSelect
             colProps={{ span: 12 }}
-            name="billingUnit"
+            name="billingUnitId"
             label="计费单位"
-            rules={[{ required: true, message: '请输入计费单位' }]}
-            fieldProps={{ maxLength: 32 }}
-            placeholder="例如 票、箱、公斤"
+            rules={[{ required: true, message: '请选择计费单位' }]}
+            options={billingUnits.map((item) => ({
+              label: `${item.name} (${item.code})`,
+              value: item.id,
+            }))}
+            showSearch
+            placeholder="请选择计费单位"
           />
           <ProFormSelect
             colProps={{ span: 12 }}

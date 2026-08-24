@@ -33,6 +33,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeFeeSettings holds the string denoting the fee_settings edge name in mutations.
 	EdgeFeeSettings = "fee_settings"
+	// EdgeOrderFees holds the string denoting the order_fees edge name in mutations.
+	EdgeOrderFees = "order_fees"
 	// Table holds the table name of the billingunit in the database.
 	Table = "billing_units"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -49,6 +51,13 @@ const (
 	FeeSettingsInverseTable = "fee_settings"
 	// FeeSettingsColumn is the table column denoting the fee_settings relation/edge.
 	FeeSettingsColumn = "billing_unit_id"
+	// OrderFeesTable is the table that holds the order_fees relation/edge.
+	OrderFeesTable = "order_fees"
+	// OrderFeesInverseTable is the table name for the OrderFee entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfee" package.
+	OrderFeesInverseTable = "order_fees"
+	// OrderFeesColumn is the table column denoting the order_fees relation/edge.
+	OrderFeesColumn = "billing_unit_id"
 )
 
 // Columns holds all SQL columns for billingunit fields.
@@ -155,6 +164,20 @@ func ByFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderFeesCount orders the results by order_fees count.
+func ByOrderFeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderFeesStep(), opts...)
+	}
+}
+
+// ByOrderFees orders the results by order_fees terms.
+func ByOrderFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -167,5 +190,12 @@ func newFeeSettingsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeeSettingsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeeSettingsTable, FeeSettingsColumn),
+	)
+}
+func newOrderFeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderFeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeesTable, OrderFeesColumn),
 	)
 }

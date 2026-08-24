@@ -70,9 +70,11 @@ type FeeSettingEdges struct {
 	AbnormalCase *MasterDataItem `json:"abnormal_case,omitempty"`
 	// TaxableService holds the value of the taxable_service edge.
 	TaxableService *TaxableService `json:"taxable_service,omitempty"`
+	// OrderFees holds the value of the order_fees edge.
+	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -128,6 +130,15 @@ func (e FeeSettingEdges) TaxableServiceOrErr() (*TaxableService, error) {
 		return nil, &NotFoundError{label: taxableservice.Label}
 	}
 	return nil, &NotLoadedError{edge: "taxable_service"}
+}
+
+// OrderFeesOrErr returns the OrderFees value or an error if the edge
+// was not loaded in eager-loading.
+func (e FeeSettingEdges) OrderFeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[5] {
+		return e.OrderFees, nil
+	}
+	return nil, &NotLoadedError{edge: "order_fees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -298,6 +309,11 @@ func (_m *FeeSetting) QueryAbnormalCase() *MasterDataItemQuery {
 // QueryTaxableService queries the "taxable_service" edge of the FeeSetting entity.
 func (_m *FeeSetting) QueryTaxableService() *TaxableServiceQuery {
 	return NewFeeSettingClient(_m.config).QueryTaxableService(_m)
+}
+
+// QueryOrderFees queries the "order_fees" edge of the FeeSetting entity.
+func (_m *FeeSetting) QueryOrderFees() *OrderFeeQuery {
+	return NewFeeSettingClient(_m.config).QueryOrderFees(_m)
 }
 
 // Update returns a builder for updating this FeeSetting.

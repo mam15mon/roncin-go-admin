@@ -39,16 +39,15 @@ declare namespace API {
   type AddFeeRequest = {
     orderId: string;
     direction: number;
-    feeCode: string;
-    feeName: string;
     settlementPartyId: string;
-    billingUnit: string;
     quantity: string;
     unitPrice: string;
     currency: string;
     expenseDate: string;
     note?: string;
     exchangeRateOverride?: string;
+    feeSettingId: string;
+    billingUnitId: string;
   };
 
   type AddFeeResponse = {
@@ -1052,6 +1051,8 @@ declare namespace API {
     currencies?: OrderFeeCurrencyOption[];
     traceId?: string;
     baseCurrency?: string;
+    feeSettings?: OrderFeeSettingOption[];
+    billingUnits?: OrderFeeBillingUnitOption[];
   };
 
   type ListFeeSettingsResponse = {
@@ -1713,6 +1714,17 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
+    feeSettingId?: string;
+    billingUnitId?: string;
+    feeNameEn?: string;
+    taxRate?: string;
+    taxableServiceName?: string;
+  };
+
+  type OrderFeeBillingUnitOption = {
+    id?: string;
+    code?: string;
+    name?: string;
   };
 
   type OrderFeeCurrencyOption = {
@@ -1748,6 +1760,19 @@ declare namespace API {
   type OrderFeeServiceUpdateFeeParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderFeeSettingOption = {
+    id?: string;
+    feeCode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    aliasName?: string;
+    defaultCurrency?: string;
+    defaultBillingUnitId?: string;
+    defaultBillingUnitName?: string;
+    taxRate?: string;
+    taxableServiceName?: string;
   };
 
   type OrderFeeSettlementPartyOption = {
@@ -2762,16 +2787,15 @@ declare namespace API {
     orderId: string;
     id: string;
     direction: number;
-    feeCode: string;
-    feeName: string;
     settlementPartyId: string;
-    billingUnit: string;
     quantity: string;
     unitPrice: string;
     currency: string;
     expenseDate: string;
     note?: string;
     exchangeRateOverride?: string;
+    feeSettingId: string;
+    billingUnitId: string;
   };
 
   type UpdateFeeResponse = {

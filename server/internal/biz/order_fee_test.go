@@ -60,6 +60,25 @@ func TestNormalizeOrderFeeRejectsExcessPrecision(t *testing.T) {
 	}
 }
 
+func TestNormalizeOrderFeeRequiresCatalogReferences(t *testing.T) {
+	tests := []struct {
+		name   string
+		modify func(*OrderFee)
+	}{
+		{name: "缺少费用设置", modify: func(value *OrderFee) { value.FeeSettingID = nil }},
+		{name: "缺少计费单位", modify: func(value *OrderFee) { value.BillingUnitID = nil }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fee := validOrderFeeForTest()
+			test.modify(fee)
+			if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
+				t.Fatalf("%s应被拒绝，实际错误为 %v", test.name, err)
+			}
+		})
+	}
+}
+
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
 	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
@@ -133,12 +152,13 @@ func TestNormalizeOrderFeeRejectsExchangeRateOverrideExcessPrecision(t *testing.
 }
 
 func validOrderFeeForTest() *OrderFee {
+	feeSettingID := uuid.Must(uuid.NewV7())
+	billingUnitID := uuid.Must(uuid.NewV7())
 	return &OrderFee{
 		Direction:         OrderFeeReceivable,
-		FeeCode:           "OCEAN_FREIGHT",
-		FeeName:           "海运费",
+		FeeSettingID:      &feeSettingID,
 		SettlementPartyID: uuid.Must(uuid.NewV7()),
-		BillingUnit:       "票",
+		BillingUnitID:     &billingUnitID,
 		Quantity:          decimal.RequireFromString("1"),
 		UnitPrice:         decimal.RequireFromString("100"),
 		Currency:          "CNY",

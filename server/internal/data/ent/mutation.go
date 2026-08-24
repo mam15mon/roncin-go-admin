@@ -5659,6 +5659,9 @@ type BillingUnitMutation struct {
 	fee_settings        map[uuid.UUID]struct{}
 	removedfee_settings map[uuid.UUID]struct{}
 	clearedfee_settings bool
+	order_fees          map[uuid.UUID]struct{}
+	removedorder_fees   map[uuid.UUID]struct{}
+	clearedorder_fees   bool
 	done                bool
 	oldValue            func(context.Context) (*BillingUnit, error)
 	predicates          []predicate.BillingUnit
@@ -6121,6 +6124,60 @@ func (m *BillingUnitMutation) ResetFeeSettings() {
 	m.removedfee_settings = nil
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by ids.
+func (m *BillingUnitMutation) AddOrderFeeIDs(ids ...uuid.UUID) {
+	if m.order_fees == nil {
+		m.order_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFees clears the "order_fees" edge to the OrderFee entity.
+func (m *BillingUnitMutation) ClearOrderFees() {
+	m.clearedorder_fees = true
+}
+
+// OrderFeesCleared reports if the "order_fees" edge to the OrderFee entity was cleared.
+func (m *BillingUnitMutation) OrderFeesCleared() bool {
+	return m.clearedorder_fees
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to the OrderFee entity by IDs.
+func (m *BillingUnitMutation) RemoveOrderFeeIDs(ids ...uuid.UUID) {
+	if m.removedorder_fees == nil {
+		m.removedorder_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fees, ids[i])
+		m.removedorder_fees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFees returns the removed IDs of the "order_fees" edge to the OrderFee entity.
+func (m *BillingUnitMutation) RemovedOrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeesIDs returns the "order_fees" edge IDs in the mutation.
+func (m *BillingUnitMutation) OrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.order_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFees resets all changes to the "order_fees" edge.
+func (m *BillingUnitMutation) ResetOrderFees() {
+	m.order_fees = nil
+	m.clearedorder_fees = false
+	m.removedorder_fees = nil
+}
+
 // Where appends a list predicates to the BillingUnitMutation builder.
 func (m *BillingUnitMutation) Where(ps ...predicate.BillingUnit) {
 	m.predicates = append(m.predicates, ps...)
@@ -6371,12 +6428,15 @@ func (m *BillingUnitMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *BillingUnitMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.organization != nil {
 		edges = append(edges, billingunit.EdgeOrganization)
 	}
 	if m.fee_settings != nil {
 		edges = append(edges, billingunit.EdgeFeeSettings)
+	}
+	if m.order_fees != nil {
+		edges = append(edges, billingunit.EdgeOrderFees)
 	}
 	return edges
 }
@@ -6395,15 +6455,24 @@ func (m *BillingUnitMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case billingunit.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.order_fees))
+		for id := range m.order_fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *BillingUnitMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedfee_settings != nil {
 		edges = append(edges, billingunit.EdgeFeeSettings)
+	}
+	if m.removedorder_fees != nil {
+		edges = append(edges, billingunit.EdgeOrderFees)
 	}
 	return edges
 }
@@ -6418,18 +6487,27 @@ func (m *BillingUnitMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case billingunit.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.removedorder_fees))
+		for id := range m.removedorder_fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *BillingUnitMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedorganization {
 		edges = append(edges, billingunit.EdgeOrganization)
 	}
 	if m.clearedfee_settings {
 		edges = append(edges, billingunit.EdgeFeeSettings)
+	}
+	if m.clearedorder_fees {
+		edges = append(edges, billingunit.EdgeOrderFees)
 	}
 	return edges
 }
@@ -6442,6 +6520,8 @@ func (m *BillingUnitMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case billingunit.EdgeFeeSettings:
 		return m.clearedfee_settings
+	case billingunit.EdgeOrderFees:
+		return m.clearedorder_fees
 	}
 	return false
 }
@@ -6466,6 +6546,9 @@ func (m *BillingUnitMutation) ResetEdge(name string) error {
 		return nil
 	case billingunit.EdgeFeeSettings:
 		m.ResetFeeSettings()
+		return nil
+	case billingunit.EdgeOrderFees:
+		m.ResetOrderFees()
 		return nil
 	}
 	return fmt.Errorf("unknown BillingUnit edge %s", name)
@@ -8161,6 +8244,9 @@ type FeeSettingMutation struct {
 	clearedabnormal_case   bool
 	taxable_service        *uuid.UUID
 	clearedtaxable_service bool
+	order_fees             map[uuid.UUID]struct{}
+	removedorder_fees      map[uuid.UUID]struct{}
+	clearedorder_fees      bool
 	done                   bool
 	oldValue               func(context.Context) (*FeeSetting, error)
 	predicates             []predicate.FeeSetting
@@ -9017,6 +9103,60 @@ func (m *FeeSettingMutation) ResetTaxableService() {
 	m.clearedtaxable_service = false
 }
 
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by ids.
+func (m *FeeSettingMutation) AddOrderFeeIDs(ids ...uuid.UUID) {
+	if m.order_fees == nil {
+		m.order_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFees clears the "order_fees" edge to the OrderFee entity.
+func (m *FeeSettingMutation) ClearOrderFees() {
+	m.clearedorder_fees = true
+}
+
+// OrderFeesCleared reports if the "order_fees" edge to the OrderFee entity was cleared.
+func (m *FeeSettingMutation) OrderFeesCleared() bool {
+	return m.clearedorder_fees
+}
+
+// RemoveOrderFeeIDs removes the "order_fees" edge to the OrderFee entity by IDs.
+func (m *FeeSettingMutation) RemoveOrderFeeIDs(ids ...uuid.UUID) {
+	if m.removedorder_fees == nil {
+		m.removedorder_fees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fees, ids[i])
+		m.removedorder_fees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFees returns the removed IDs of the "order_fees" edge to the OrderFee entity.
+func (m *FeeSettingMutation) RemovedOrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeesIDs returns the "order_fees" edge IDs in the mutation.
+func (m *FeeSettingMutation) OrderFeesIDs() (ids []uuid.UUID) {
+	for id := range m.order_fees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFees resets all changes to the "order_fees" edge.
+func (m *FeeSettingMutation) ResetOrderFees() {
+	m.order_fees = nil
+	m.clearedorder_fees = false
+	m.removedorder_fees = nil
+}
+
 // Where appends a list predicates to the FeeSettingMutation builder.
 func (m *FeeSettingMutation) Where(ps ...predicate.FeeSetting) {
 	m.predicates = append(m.predicates, ps...)
@@ -9430,7 +9570,7 @@ func (m *FeeSettingMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FeeSettingMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.organization != nil {
 		edges = append(edges, feesetting.EdgeOrganization)
 	}
@@ -9445,6 +9585,9 @@ func (m *FeeSettingMutation) AddedEdges() []string {
 	}
 	if m.taxable_service != nil {
 		edges = append(edges, feesetting.EdgeTaxableService)
+	}
+	if m.order_fees != nil {
+		edges = append(edges, feesetting.EdgeOrderFees)
 	}
 	return edges
 }
@@ -9473,25 +9616,42 @@ func (m *FeeSettingMutation) AddedIDs(name string) []ent.Value {
 		if id := m.taxable_service; id != nil {
 			return []ent.Value{*id}
 		}
+	case feesetting.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.order_fees))
+		for id := range m.order_fees {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FeeSettingMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
+	if m.removedorder_fees != nil {
+		edges = append(edges, feesetting.EdgeOrderFees)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *FeeSettingMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case feesetting.EdgeOrderFees:
+		ids := make([]ent.Value, 0, len(m.removedorder_fees))
+		for id := range m.removedorder_fees {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FeeSettingMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedorganization {
 		edges = append(edges, feesetting.EdgeOrganization)
 	}
@@ -9506,6 +9666,9 @@ func (m *FeeSettingMutation) ClearedEdges() []string {
 	}
 	if m.clearedtaxable_service {
 		edges = append(edges, feesetting.EdgeTaxableService)
+	}
+	if m.clearedorder_fees {
+		edges = append(edges, feesetting.EdgeOrderFees)
 	}
 	return edges
 }
@@ -9524,6 +9687,8 @@ func (m *FeeSettingMutation) EdgeCleared(name string) bool {
 		return m.clearedabnormal_case
 	case feesetting.EdgeTaxableService:
 		return m.clearedtaxable_service
+	case feesetting.EdgeOrderFees:
+		return m.clearedorder_fees
 	}
 	return false
 }
@@ -9569,6 +9734,9 @@ func (m *FeeSettingMutation) ResetEdge(name string) error {
 		return nil
 	case feesetting.EdgeTaxableService:
 		m.ResetTaxableService()
+		return nil
+	case feesetting.EdgeOrderFees:
+		m.ResetOrderFees()
 		return nil
 	}
 	return fmt.Errorf("unknown FeeSetting edge %s", name)
@@ -24510,7 +24678,10 @@ type OrderFeeMutation struct {
 	direction                *orderfee.Direction
 	fee_code                 *string
 	fee_name                 *string
+	fee_name_en              *string
 	billing_unit             *string
+	tax_rate                 *string
+	taxable_service_name     *string
 	quantity                 *string
 	unit_price               *string
 	total_amount             *string
@@ -24524,8 +24695,12 @@ type OrderFeeMutation struct {
 	clearedFields            map[string]struct{}
 	_order                   *uuid.UUID
 	cleared_order            bool
+	fee_setting              *uuid.UUID
+	clearedfee_setting       bool
 	settlement_party         *uuid.UUID
 	clearedsettlement_party  bool
+	billing_unit_ref         *uuid.UUID
+	clearedbilling_unit_ref  bool
 	done                     bool
 	oldValue                 func(context.Context) (*OrderFee, error)
 	predicates               []predicate.OrderFee
@@ -24779,6 +24954,55 @@ func (m *OrderFeeMutation) ResetDirection() {
 	m.direction = nil
 }
 
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (m *OrderFeeMutation) SetFeeSettingID(u uuid.UUID) {
+	m.fee_setting = &u
+}
+
+// FeeSettingID returns the value of the "fee_setting_id" field in the mutation.
+func (m *OrderFeeMutation) FeeSettingID() (r uuid.UUID, exists bool) {
+	v := m.fee_setting
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeSettingID returns the old "fee_setting_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldFeeSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeSettingID: %w", err)
+	}
+	return oldValue.FeeSettingID, nil
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (m *OrderFeeMutation) ClearFeeSettingID() {
+	m.fee_setting = nil
+	m.clearedFields[orderfee.FieldFeeSettingID] = struct{}{}
+}
+
+// FeeSettingIDCleared returns if the "fee_setting_id" field was cleared in this mutation.
+func (m *OrderFeeMutation) FeeSettingIDCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldFeeSettingID]
+	return ok
+}
+
+// ResetFeeSettingID resets all changes to the "fee_setting_id" field.
+func (m *OrderFeeMutation) ResetFeeSettingID() {
+	m.fee_setting = nil
+	delete(m.clearedFields, orderfee.FieldFeeSettingID)
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (m *OrderFeeMutation) SetFeeCode(s string) {
 	m.fee_code = &s
@@ -24851,6 +25075,55 @@ func (m *OrderFeeMutation) ResetFeeName() {
 	m.fee_name = nil
 }
 
+// SetFeeNameEn sets the "fee_name_en" field.
+func (m *OrderFeeMutation) SetFeeNameEn(s string) {
+	m.fee_name_en = &s
+}
+
+// FeeNameEn returns the value of the "fee_name_en" field in the mutation.
+func (m *OrderFeeMutation) FeeNameEn() (r string, exists bool) {
+	v := m.fee_name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeNameEn returns the old "fee_name_en" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldFeeNameEn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeNameEn: %w", err)
+	}
+	return oldValue.FeeNameEn, nil
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (m *OrderFeeMutation) ClearFeeNameEn() {
+	m.fee_name_en = nil
+	m.clearedFields[orderfee.FieldFeeNameEn] = struct{}{}
+}
+
+// FeeNameEnCleared returns if the "fee_name_en" field was cleared in this mutation.
+func (m *OrderFeeMutation) FeeNameEnCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldFeeNameEn]
+	return ok
+}
+
+// ResetFeeNameEn resets all changes to the "fee_name_en" field.
+func (m *OrderFeeMutation) ResetFeeNameEn() {
+	m.fee_name_en = nil
+	delete(m.clearedFields, orderfee.FieldFeeNameEn)
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (m *OrderFeeMutation) SetSettlementPartyID(u uuid.UUID) {
 	m.settlement_party = &u
@@ -24887,6 +25160,55 @@ func (m *OrderFeeMutation) ResetSettlementPartyID() {
 	m.settlement_party = nil
 }
 
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (m *OrderFeeMutation) SetBillingUnitID(u uuid.UUID) {
+	m.billing_unit_ref = &u
+}
+
+// BillingUnitID returns the value of the "billing_unit_id" field in the mutation.
+func (m *OrderFeeMutation) BillingUnitID() (r uuid.UUID, exists bool) {
+	v := m.billing_unit_ref
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingUnitID returns the old "billing_unit_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldBillingUnitID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingUnitID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingUnitID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingUnitID: %w", err)
+	}
+	return oldValue.BillingUnitID, nil
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (m *OrderFeeMutation) ClearBillingUnitID() {
+	m.billing_unit_ref = nil
+	m.clearedFields[orderfee.FieldBillingUnitID] = struct{}{}
+}
+
+// BillingUnitIDCleared returns if the "billing_unit_id" field was cleared in this mutation.
+func (m *OrderFeeMutation) BillingUnitIDCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldBillingUnitID]
+	return ok
+}
+
+// ResetBillingUnitID resets all changes to the "billing_unit_id" field.
+func (m *OrderFeeMutation) ResetBillingUnitID() {
+	m.billing_unit_ref = nil
+	delete(m.clearedFields, orderfee.FieldBillingUnitID)
+}
+
 // SetBillingUnit sets the "billing_unit" field.
 func (m *OrderFeeMutation) SetBillingUnit(s string) {
 	m.billing_unit = &s
@@ -24921,6 +25243,104 @@ func (m *OrderFeeMutation) OldBillingUnit(ctx context.Context) (v string, err er
 // ResetBillingUnit resets all changes to the "billing_unit" field.
 func (m *OrderFeeMutation) ResetBillingUnit() {
 	m.billing_unit = nil
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (m *OrderFeeMutation) SetTaxRate(s string) {
+	m.tax_rate = &s
+}
+
+// TaxRate returns the value of the "tax_rate" field in the mutation.
+func (m *OrderFeeMutation) TaxRate() (r string, exists bool) {
+	v := m.tax_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxRate returns the old "tax_rate" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldTaxRate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxRate: %w", err)
+	}
+	return oldValue.TaxRate, nil
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (m *OrderFeeMutation) ClearTaxRate() {
+	m.tax_rate = nil
+	m.clearedFields[orderfee.FieldTaxRate] = struct{}{}
+}
+
+// TaxRateCleared returns if the "tax_rate" field was cleared in this mutation.
+func (m *OrderFeeMutation) TaxRateCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldTaxRate]
+	return ok
+}
+
+// ResetTaxRate resets all changes to the "tax_rate" field.
+func (m *OrderFeeMutation) ResetTaxRate() {
+	m.tax_rate = nil
+	delete(m.clearedFields, orderfee.FieldTaxRate)
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (m *OrderFeeMutation) SetTaxableServiceName(s string) {
+	m.taxable_service_name = &s
+}
+
+// TaxableServiceName returns the value of the "taxable_service_name" field in the mutation.
+func (m *OrderFeeMutation) TaxableServiceName() (r string, exists bool) {
+	v := m.taxable_service_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxableServiceName returns the old "taxable_service_name" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldTaxableServiceName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxableServiceName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxableServiceName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxableServiceName: %w", err)
+	}
+	return oldValue.TaxableServiceName, nil
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (m *OrderFeeMutation) ClearTaxableServiceName() {
+	m.taxable_service_name = nil
+	m.clearedFields[orderfee.FieldTaxableServiceName] = struct{}{}
+}
+
+// TaxableServiceNameCleared returns if the "taxable_service_name" field was cleared in this mutation.
+func (m *OrderFeeMutation) TaxableServiceNameCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldTaxableServiceName]
+	return ok
+}
+
+// ResetTaxableServiceName resets all changes to the "taxable_service_name" field.
+func (m *OrderFeeMutation) ResetTaxableServiceName() {
+	m.taxable_service_name = nil
+	delete(m.clearedFields, orderfee.FieldTaxableServiceName)
 }
 
 // SetQuantity sets the "quantity" field.
@@ -25336,6 +25756,33 @@ func (m *OrderFeeMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
+// ClearFeeSetting clears the "fee_setting" edge to the FeeSetting entity.
+func (m *OrderFeeMutation) ClearFeeSetting() {
+	m.clearedfee_setting = true
+	m.clearedFields[orderfee.FieldFeeSettingID] = struct{}{}
+}
+
+// FeeSettingCleared reports if the "fee_setting" edge to the FeeSetting entity was cleared.
+func (m *OrderFeeMutation) FeeSettingCleared() bool {
+	return m.FeeSettingIDCleared() || m.clearedfee_setting
+}
+
+// FeeSettingIDs returns the "fee_setting" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FeeSettingID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeMutation) FeeSettingIDs() (ids []uuid.UUID) {
+	if id := m.fee_setting; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFeeSetting resets all changes to the "fee_setting" edge.
+func (m *OrderFeeMutation) ResetFeeSetting() {
+	m.fee_setting = nil
+	m.clearedfee_setting = false
+}
+
 // ClearSettlementParty clears the "settlement_party" edge to the Partner entity.
 func (m *OrderFeeMutation) ClearSettlementParty() {
 	m.clearedsettlement_party = true
@@ -25361,6 +25808,46 @@ func (m *OrderFeeMutation) SettlementPartyIDs() (ids []uuid.UUID) {
 func (m *OrderFeeMutation) ResetSettlementParty() {
 	m.settlement_party = nil
 	m.clearedsettlement_party = false
+}
+
+// SetBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by id.
+func (m *OrderFeeMutation) SetBillingUnitRefID(id uuid.UUID) {
+	m.billing_unit_ref = &id
+}
+
+// ClearBillingUnitRef clears the "billing_unit_ref" edge to the BillingUnit entity.
+func (m *OrderFeeMutation) ClearBillingUnitRef() {
+	m.clearedbilling_unit_ref = true
+	m.clearedFields[orderfee.FieldBillingUnitID] = struct{}{}
+}
+
+// BillingUnitRefCleared reports if the "billing_unit_ref" edge to the BillingUnit entity was cleared.
+func (m *OrderFeeMutation) BillingUnitRefCleared() bool {
+	return m.BillingUnitIDCleared() || m.clearedbilling_unit_ref
+}
+
+// BillingUnitRefID returns the "billing_unit_ref" edge ID in the mutation.
+func (m *OrderFeeMutation) BillingUnitRefID() (id uuid.UUID, exists bool) {
+	if m.billing_unit_ref != nil {
+		return *m.billing_unit_ref, true
+	}
+	return
+}
+
+// BillingUnitRefIDs returns the "billing_unit_ref" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BillingUnitRefID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeMutation) BillingUnitRefIDs() (ids []uuid.UUID) {
+	if id := m.billing_unit_ref; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBillingUnitRef resets all changes to the "billing_unit_ref" edge.
+func (m *OrderFeeMutation) ResetBillingUnitRef() {
+	m.billing_unit_ref = nil
+	m.clearedbilling_unit_ref = false
 }
 
 // Where appends a list predicates to the OrderFeeMutation builder.
@@ -25397,7 +25884,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 23)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -25410,17 +25897,32 @@ func (m *OrderFeeMutation) Fields() []string {
 	if m.direction != nil {
 		fields = append(fields, orderfee.FieldDirection)
 	}
+	if m.fee_setting != nil {
+		fields = append(fields, orderfee.FieldFeeSettingID)
+	}
 	if m.fee_code != nil {
 		fields = append(fields, orderfee.FieldFeeCode)
 	}
 	if m.fee_name != nil {
 		fields = append(fields, orderfee.FieldFeeName)
 	}
+	if m.fee_name_en != nil {
+		fields = append(fields, orderfee.FieldFeeNameEn)
+	}
 	if m.settlement_party != nil {
 		fields = append(fields, orderfee.FieldSettlementPartyID)
 	}
+	if m.billing_unit_ref != nil {
+		fields = append(fields, orderfee.FieldBillingUnitID)
+	}
 	if m.billing_unit != nil {
 		fields = append(fields, orderfee.FieldBillingUnit)
+	}
+	if m.tax_rate != nil {
+		fields = append(fields, orderfee.FieldTaxRate)
+	}
+	if m.taxable_service_name != nil {
+		fields = append(fields, orderfee.FieldTaxableServiceName)
 	}
 	if m.quantity != nil {
 		fields = append(fields, orderfee.FieldQuantity)
@@ -25468,14 +25970,24 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case orderfee.FieldDirection:
 		return m.Direction()
+	case orderfee.FieldFeeSettingID:
+		return m.FeeSettingID()
 	case orderfee.FieldFeeCode:
 		return m.FeeCode()
 	case orderfee.FieldFeeName:
 		return m.FeeName()
+	case orderfee.FieldFeeNameEn:
+		return m.FeeNameEn()
 	case orderfee.FieldSettlementPartyID:
 		return m.SettlementPartyID()
+	case orderfee.FieldBillingUnitID:
+		return m.BillingUnitID()
 	case orderfee.FieldBillingUnit:
 		return m.BillingUnit()
+	case orderfee.FieldTaxRate:
+		return m.TaxRate()
+	case orderfee.FieldTaxableServiceName:
+		return m.TaxableServiceName()
 	case orderfee.FieldQuantity:
 		return m.Quantity()
 	case orderfee.FieldUnitPrice:
@@ -25513,14 +26025,24 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldOrderID(ctx)
 	case orderfee.FieldDirection:
 		return m.OldDirection(ctx)
+	case orderfee.FieldFeeSettingID:
+		return m.OldFeeSettingID(ctx)
 	case orderfee.FieldFeeCode:
 		return m.OldFeeCode(ctx)
 	case orderfee.FieldFeeName:
 		return m.OldFeeName(ctx)
+	case orderfee.FieldFeeNameEn:
+		return m.OldFeeNameEn(ctx)
 	case orderfee.FieldSettlementPartyID:
 		return m.OldSettlementPartyID(ctx)
+	case orderfee.FieldBillingUnitID:
+		return m.OldBillingUnitID(ctx)
 	case orderfee.FieldBillingUnit:
 		return m.OldBillingUnit(ctx)
+	case orderfee.FieldTaxRate:
+		return m.OldTaxRate(ctx)
+	case orderfee.FieldTaxableServiceName:
+		return m.OldTaxableServiceName(ctx)
 	case orderfee.FieldQuantity:
 		return m.OldQuantity(ctx)
 	case orderfee.FieldUnitPrice:
@@ -25578,6 +26100,13 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDirection(v)
 		return nil
+	case orderfee.FieldFeeSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeSettingID(v)
+		return nil
 	case orderfee.FieldFeeCode:
 		v, ok := value.(string)
 		if !ok {
@@ -25592,6 +26121,13 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFeeName(v)
 		return nil
+	case orderfee.FieldFeeNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeNameEn(v)
+		return nil
 	case orderfee.FieldSettlementPartyID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -25599,12 +26135,33 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSettlementPartyID(v)
 		return nil
+	case orderfee.FieldBillingUnitID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingUnitID(v)
+		return nil
 	case orderfee.FieldBillingUnit:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBillingUnit(v)
+		return nil
+	case orderfee.FieldTaxRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxRate(v)
+		return nil
+	case orderfee.FieldTaxableServiceName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxableServiceName(v)
 		return nil
 	case orderfee.FieldQuantity:
 		v, ok := value.(string)
@@ -25706,6 +26263,21 @@ func (m *OrderFeeMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderFeeMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(orderfee.FieldFeeSettingID) {
+		fields = append(fields, orderfee.FieldFeeSettingID)
+	}
+	if m.FieldCleared(orderfee.FieldFeeNameEn) {
+		fields = append(fields, orderfee.FieldFeeNameEn)
+	}
+	if m.FieldCleared(orderfee.FieldBillingUnitID) {
+		fields = append(fields, orderfee.FieldBillingUnitID)
+	}
+	if m.FieldCleared(orderfee.FieldTaxRate) {
+		fields = append(fields, orderfee.FieldTaxRate)
+	}
+	if m.FieldCleared(orderfee.FieldTaxableServiceName) {
+		fields = append(fields, orderfee.FieldTaxableServiceName)
+	}
 	if m.FieldCleared(orderfee.FieldExchangeRateSettingID) {
 		fields = append(fields, orderfee.FieldExchangeRateSettingID)
 	}
@@ -25726,6 +26298,21 @@ func (m *OrderFeeMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderFeeMutation) ClearField(name string) error {
 	switch name {
+	case orderfee.FieldFeeSettingID:
+		m.ClearFeeSettingID()
+		return nil
+	case orderfee.FieldFeeNameEn:
+		m.ClearFeeNameEn()
+		return nil
+	case orderfee.FieldBillingUnitID:
+		m.ClearBillingUnitID()
+		return nil
+	case orderfee.FieldTaxRate:
+		m.ClearTaxRate()
+		return nil
+	case orderfee.FieldTaxableServiceName:
+		m.ClearTaxableServiceName()
+		return nil
 	case orderfee.FieldExchangeRateSettingID:
 		m.ClearExchangeRateSettingID()
 		return nil
@@ -25752,17 +26339,32 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 	case orderfee.FieldDirection:
 		m.ResetDirection()
 		return nil
+	case orderfee.FieldFeeSettingID:
+		m.ResetFeeSettingID()
+		return nil
 	case orderfee.FieldFeeCode:
 		m.ResetFeeCode()
 		return nil
 	case orderfee.FieldFeeName:
 		m.ResetFeeName()
 		return nil
+	case orderfee.FieldFeeNameEn:
+		m.ResetFeeNameEn()
+		return nil
 	case orderfee.FieldSettlementPartyID:
 		m.ResetSettlementPartyID()
 		return nil
+	case orderfee.FieldBillingUnitID:
+		m.ResetBillingUnitID()
+		return nil
 	case orderfee.FieldBillingUnit:
 		m.ResetBillingUnit()
+		return nil
+	case orderfee.FieldTaxRate:
+		m.ResetTaxRate()
+		return nil
+	case orderfee.FieldTaxableServiceName:
+		m.ResetTaxableServiceName()
 		return nil
 	case orderfee.FieldQuantity:
 		m.ResetQuantity()
@@ -25800,12 +26402,18 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderFeeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m._order != nil {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
+	if m.fee_setting != nil {
+		edges = append(edges, orderfee.EdgeFeeSetting)
+	}
 	if m.settlement_party != nil {
 		edges = append(edges, orderfee.EdgeSettlementParty)
+	}
+	if m.billing_unit_ref != nil {
+		edges = append(edges, orderfee.EdgeBillingUnitRef)
 	}
 	return edges
 }
@@ -25818,8 +26426,16 @@ func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
 		if id := m._order; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderfee.EdgeFeeSetting:
+		if id := m.fee_setting; id != nil {
+			return []ent.Value{*id}
+		}
 	case orderfee.EdgeSettlementParty:
 		if id := m.settlement_party; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfee.EdgeBillingUnitRef:
+		if id := m.billing_unit_ref; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -25828,7 +26444,7 @@ func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderFeeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -25840,12 +26456,18 @@ func (m *OrderFeeMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderFeeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.cleared_order {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
+	if m.clearedfee_setting {
+		edges = append(edges, orderfee.EdgeFeeSetting)
+	}
 	if m.clearedsettlement_party {
 		edges = append(edges, orderfee.EdgeSettlementParty)
+	}
+	if m.clearedbilling_unit_ref {
+		edges = append(edges, orderfee.EdgeBillingUnitRef)
 	}
 	return edges
 }
@@ -25856,8 +26478,12 @@ func (m *OrderFeeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case orderfee.EdgeOrder:
 		return m.cleared_order
+	case orderfee.EdgeFeeSetting:
+		return m.clearedfee_setting
 	case orderfee.EdgeSettlementParty:
 		return m.clearedsettlement_party
+	case orderfee.EdgeBillingUnitRef:
+		return m.clearedbilling_unit_ref
 	}
 	return false
 }
@@ -25869,8 +26495,14 @@ func (m *OrderFeeMutation) ClearEdge(name string) error {
 	case orderfee.EdgeOrder:
 		m.ClearOrder()
 		return nil
+	case orderfee.EdgeFeeSetting:
+		m.ClearFeeSetting()
+		return nil
 	case orderfee.EdgeSettlementParty:
 		m.ClearSettlementParty()
+		return nil
+	case orderfee.EdgeBillingUnitRef:
+		m.ClearBillingUnitRef()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderFee unique edge %s", name)
@@ -25883,8 +26515,14 @@ func (m *OrderFeeMutation) ResetEdge(name string) error {
 	case orderfee.EdgeOrder:
 		m.ResetOrder()
 		return nil
+	case orderfee.EdgeFeeSetting:
+		m.ResetFeeSetting()
+		return nil
 	case orderfee.EdgeSettlementParty:
 		m.ResetSettlementParty()
+		return nil
+	case orderfee.EdgeBillingUnitRef:
+		m.ResetBillingUnitRef()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderFee edge %s", name)

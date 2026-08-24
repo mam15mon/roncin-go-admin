@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
@@ -216,6 +217,21 @@ func (_c *FeeSettingCreate) SetAbnormalCase(v *MasterDataItem) *FeeSettingCreate
 // SetTaxableService sets the "taxable_service" edge to the TaxableService entity.
 func (_c *FeeSettingCreate) SetTaxableService(v *TaxableService) *FeeSettingCreate {
 	return _c.SetTaxableServiceID(v.ID)
+}
+
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_c *FeeSettingCreate) AddOrderFeeIDs(ids ...uuid.UUID) *FeeSettingCreate {
+	_c.mutation.AddOrderFeeIDs(ids...)
+	return _c
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_c *FeeSettingCreate) AddOrderFees(v ...*OrderFee) *FeeSettingCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderFeeIDs(ids...)
 }
 
 // Mutation returns the FeeSettingMutation object of the builder.
@@ -502,6 +518,22 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.TaxableServiceID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   feesetting.OrderFeesTable,
+			Columns: []string{feesetting.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

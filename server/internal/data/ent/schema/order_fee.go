@@ -19,10 +19,15 @@ func (OrderFee) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("order_id", uuid.Nil),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE"),
+		field.UUID("fee_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("fee_code").NotEmpty().MaxLen(30),
 		field.String("fee_name").NotEmpty().MaxLen(80),
+		field.String("fee_name_en").Optional().Nillable().MaxLen(128),
 		field.UUID("settlement_party_id", uuid.Nil),
+		field.UUID("billing_unit_id", uuid.Nil).Optional().Nillable(),
 		field.String("billing_unit").NotEmpty().MaxLen(32),
+		field.String("tax_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(5,2)"}),
+		field.String("taxable_service_name").Optional().Nillable().MaxLen(128),
 		field.String("quantity").SchemaType(map[string]string{dialect.Postgres: "numeric(18,4)"}),
 		field.String("unit_price").SchemaType(map[string]string{dialect.Postgres: "numeric(18,4)"}),
 		field.String("total_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
@@ -39,13 +44,17 @@ func (OrderFee) Fields() []ent.Field {
 func (OrderFee) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).Ref("fees").Field("order_id").Unique().Required(),
+		edge.From("fee_setting", FeeSetting.Type).Ref("order_fees").Field("fee_setting_id").Unique(),
 		edge.From("settlement_party", Partner.Type).Ref("order_fees").Field("settlement_party_id").Unique().Required(),
+		edge.From("billing_unit_ref", BillingUnit.Type).Ref("order_fees").Field("billing_unit_id").Unique(),
 	}
 }
 
 func (OrderFee) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("order_id", "direction", "created_at"),
+		index.Fields("fee_setting_id"),
+		index.Fields("billing_unit_id"),
 		index.Fields("settlement_party_id", "direction", "currency"),
 	}
 }

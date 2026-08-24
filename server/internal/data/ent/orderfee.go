@@ -10,6 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -28,14 +30,24 @@ type OrderFee struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// Direction holds the value of the "direction" field.
 	Direction orderfee.Direction `json:"direction,omitempty"`
+	// FeeSettingID holds the value of the "fee_setting_id" field.
+	FeeSettingID *uuid.UUID `json:"fee_setting_id,omitempty"`
 	// FeeCode holds the value of the "fee_code" field.
 	FeeCode string `json:"fee_code,omitempty"`
 	// FeeName holds the value of the "fee_name" field.
 	FeeName string `json:"fee_name,omitempty"`
+	// FeeNameEn holds the value of the "fee_name_en" field.
+	FeeNameEn *string `json:"fee_name_en,omitempty"`
 	// SettlementPartyID holds the value of the "settlement_party_id" field.
 	SettlementPartyID uuid.UUID `json:"settlement_party_id,omitempty"`
+	// BillingUnitID holds the value of the "billing_unit_id" field.
+	BillingUnitID *uuid.UUID `json:"billing_unit_id,omitempty"`
 	// BillingUnit holds the value of the "billing_unit" field.
 	BillingUnit string `json:"billing_unit,omitempty"`
+	// TaxRate holds the value of the "tax_rate" field.
+	TaxRate *string `json:"tax_rate,omitempty"`
+	// TaxableServiceName holds the value of the "taxable_service_name" field.
+	TaxableServiceName *string `json:"taxable_service_name,omitempty"`
 	// Quantity holds the value of the "quantity" field.
 	Quantity string `json:"quantity,omitempty"`
 	// UnitPrice holds the value of the "unit_price" field.
@@ -66,11 +78,15 @@ type OrderFee struct {
 type OrderFeeEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
+	// FeeSetting holds the value of the fee_setting edge.
+	FeeSetting *FeeSetting `json:"fee_setting,omitempty"`
 	// SettlementParty holds the value of the settlement_party edge.
 	SettlementParty *Partner `json:"settlement_party,omitempty"`
+	// BillingUnitRef holds the value of the billing_unit_ref edge.
+	BillingUnitRef *BillingUnit `json:"billing_unit_ref,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -84,15 +100,37 @@ func (e OrderFeeEdges) OrderOrErr() (*Order, error) {
 	return nil, &NotLoadedError{edge: "order"}
 }
 
+// FeeSettingOrErr returns the FeeSetting value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) FeeSettingOrErr() (*FeeSetting, error) {
+	if e.FeeSetting != nil {
+		return e.FeeSetting, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: feesetting.Label}
+	}
+	return nil, &NotLoadedError{edge: "fee_setting"}
+}
+
 // SettlementPartyOrErr returns the SettlementParty value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e OrderFeeEdges) SettlementPartyOrErr() (*Partner, error) {
 	if e.SettlementParty != nil {
 		return e.SettlementParty, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: partner.Label}
 	}
 	return nil, &NotLoadedError{edge: "settlement_party"}
+}
+
+// BillingUnitRefOrErr returns the BillingUnitRef value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) BillingUnitRefOrErr() (*BillingUnit, error) {
+	if e.BillingUnitRef != nil {
+		return e.BillingUnitRef, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: billingunit.Label}
+	}
+	return nil, &NotLoadedError{edge: "billing_unit_ref"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -100,9 +138,9 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfee.FieldExchangeRateSettingID:
+		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldBillingUnit, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldExpenseDate, orderfee.FieldNote:
+		case orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldExpenseDate, orderfee.FieldNote:
 			values[i] = new(sql.NullString)
 		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -153,6 +191,13 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Direction = orderfee.Direction(value.String)
 			}
+		case orderfee.FieldFeeSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_setting_id", values[i])
+			} else if value.Valid {
+				_m.FeeSettingID = new(uuid.UUID)
+				*_m.FeeSettingID = *value.S.(*uuid.UUID)
+			}
 		case orderfee.FieldFeeCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field fee_code", values[i])
@@ -165,17 +210,45 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.FeeName = value.String
 			}
+		case orderfee.FieldFeeNameEn:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_name_en", values[i])
+			} else if value.Valid {
+				_m.FeeNameEn = new(string)
+				*_m.FeeNameEn = value.String
+			}
 		case orderfee.FieldSettlementPartyID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field settlement_party_id", values[i])
 			} else if value != nil {
 				_m.SettlementPartyID = *value
 			}
+		case orderfee.FieldBillingUnitID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field billing_unit_id", values[i])
+			} else if value.Valid {
+				_m.BillingUnitID = new(uuid.UUID)
+				*_m.BillingUnitID = *value.S.(*uuid.UUID)
+			}
 		case orderfee.FieldBillingUnit:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field billing_unit", values[i])
 			} else if value.Valid {
 				_m.BillingUnit = value.String
+			}
+		case orderfee.FieldTaxRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tax_rate", values[i])
+			} else if value.Valid {
+				_m.TaxRate = new(string)
+				*_m.TaxRate = value.String
+			}
+		case orderfee.FieldTaxableServiceName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field taxable_service_name", values[i])
+			} else if value.Valid {
+				_m.TaxableServiceName = new(string)
+				*_m.TaxableServiceName = value.String
 			}
 		case orderfee.FieldQuantity:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -256,9 +329,19 @@ func (_m *OrderFee) QueryOrder() *OrderQuery {
 	return NewOrderFeeClient(_m.config).QueryOrder(_m)
 }
 
+// QueryFeeSetting queries the "fee_setting" edge of the OrderFee entity.
+func (_m *OrderFee) QueryFeeSetting() *FeeSettingQuery {
+	return NewOrderFeeClient(_m.config).QueryFeeSetting(_m)
+}
+
 // QuerySettlementParty queries the "settlement_party" edge of the OrderFee entity.
 func (_m *OrderFee) QuerySettlementParty() *PartnerQuery {
 	return NewOrderFeeClient(_m.config).QuerySettlementParty(_m)
+}
+
+// QueryBillingUnitRef queries the "billing_unit_ref" edge of the OrderFee entity.
+func (_m *OrderFee) QueryBillingUnitRef() *BillingUnitQuery {
+	return NewOrderFeeClient(_m.config).QueryBillingUnitRef(_m)
 }
 
 // Update returns a builder for updating this OrderFee.
@@ -296,17 +379,42 @@ func (_m *OrderFee) String() string {
 	builder.WriteString("direction=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Direction))
 	builder.WriteString(", ")
+	if v := _m.FeeSettingID; v != nil {
+		builder.WriteString("fee_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("fee_code=")
 	builder.WriteString(_m.FeeCode)
 	builder.WriteString(", ")
 	builder.WriteString("fee_name=")
 	builder.WriteString(_m.FeeName)
 	builder.WriteString(", ")
+	if v := _m.FeeNameEn; v != nil {
+		builder.WriteString("fee_name_en=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
 	builder.WriteString("settlement_party_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SettlementPartyID))
 	builder.WriteString(", ")
+	if v := _m.BillingUnitID; v != nil {
+		builder.WriteString("billing_unit_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("billing_unit=")
 	builder.WriteString(_m.BillingUnit)
+	builder.WriteString(", ")
+	if v := _m.TaxRate; v != nil {
+		builder.WriteString("tax_rate=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.TaxableServiceName; v != nil {
+		builder.WriteString("taxable_service_name=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("quantity=")
 	builder.WriteString(_m.Quantity)

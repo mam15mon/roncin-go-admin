@@ -27,6 +27,7 @@ func (BillingUnit) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("billing_units").Field("organization_id").Unique().Required(),
 		edge.To("fee_settings", FeeSetting.Type),
+		edge.To("order_fees", OrderFee.Type),
 	}
 }
 

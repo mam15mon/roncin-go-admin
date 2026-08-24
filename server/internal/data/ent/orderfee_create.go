@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -63,6 +65,20 @@ func (_c *OrderFeeCreate) SetDirection(v orderfee.Direction) *OrderFeeCreate {
 	return _c
 }
 
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (_c *OrderFeeCreate) SetFeeSettingID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetFeeSettingID(v)
+	return _c
+}
+
+// SetNillableFeeSettingID sets the "fee_setting_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableFeeSettingID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetFeeSettingID(*v)
+	}
+	return _c
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (_c *OrderFeeCreate) SetFeeCode(v string) *OrderFeeCreate {
 	_c.mutation.SetFeeCode(v)
@@ -75,15 +91,71 @@ func (_c *OrderFeeCreate) SetFeeName(v string) *OrderFeeCreate {
 	return _c
 }
 
+// SetFeeNameEn sets the "fee_name_en" field.
+func (_c *OrderFeeCreate) SetFeeNameEn(v string) *OrderFeeCreate {
+	_c.mutation.SetFeeNameEn(v)
+	return _c
+}
+
+// SetNillableFeeNameEn sets the "fee_name_en" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableFeeNameEn(v *string) *OrderFeeCreate {
+	if v != nil {
+		_c.SetFeeNameEn(*v)
+	}
+	return _c
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_c *OrderFeeCreate) SetSettlementPartyID(v uuid.UUID) *OrderFeeCreate {
 	_c.mutation.SetSettlementPartyID(v)
 	return _c
 }
 
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (_c *OrderFeeCreate) SetBillingUnitID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetBillingUnitID(v)
+	return _c
+}
+
+// SetNillableBillingUnitID sets the "billing_unit_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableBillingUnitID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetBillingUnitID(*v)
+	}
+	return _c
+}
+
 // SetBillingUnit sets the "billing_unit" field.
 func (_c *OrderFeeCreate) SetBillingUnit(v string) *OrderFeeCreate {
 	_c.mutation.SetBillingUnit(v)
+	return _c
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (_c *OrderFeeCreate) SetTaxRate(v string) *OrderFeeCreate {
+	_c.mutation.SetTaxRate(v)
+	return _c
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableTaxRate(v *string) *OrderFeeCreate {
+	if v != nil {
+		_c.SetTaxRate(*v)
+	}
+	return _c
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (_c *OrderFeeCreate) SetTaxableServiceName(v string) *OrderFeeCreate {
+	_c.mutation.SetTaxableServiceName(v)
+	return _c
+}
+
+// SetNillableTaxableServiceName sets the "taxable_service_name" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableTaxableServiceName(v *string) *OrderFeeCreate {
+	if v != nil {
+		_c.SetTaxableServiceName(*v)
+	}
 	return _c
 }
 
@@ -182,9 +254,33 @@ func (_c *OrderFeeCreate) SetOrder(v *Order) *OrderFeeCreate {
 	return _c.SetOrderID(v.ID)
 }
 
+// SetFeeSetting sets the "fee_setting" edge to the FeeSetting entity.
+func (_c *OrderFeeCreate) SetFeeSetting(v *FeeSetting) *OrderFeeCreate {
+	return _c.SetFeeSettingID(v.ID)
+}
+
 // SetSettlementParty sets the "settlement_party" edge to the Partner entity.
 func (_c *OrderFeeCreate) SetSettlementParty(v *Partner) *OrderFeeCreate {
 	return _c.SetSettlementPartyID(v.ID)
+}
+
+// SetBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID.
+func (_c *OrderFeeCreate) SetBillingUnitRefID(id uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetBillingUnitRefID(id)
+	return _c
+}
+
+// SetNillableBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeCreate {
+	if id != nil {
+		_c = _c.SetBillingUnitRefID(*id)
+	}
+	return _c
+}
+
+// SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
+func (_c *OrderFeeCreate) SetBillingUnitRef(v *BillingUnit) *OrderFeeCreate {
+	return _c.SetBillingUnitRefID(v.ID)
 }
 
 // Mutation returns the OrderFeeMutation object of the builder.
@@ -271,6 +367,11 @@ func (_c *OrderFeeCreate) check() error {
 			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.FeeNameEn(); ok {
+		if err := orderfee.FeeNameEnValidator(v); err != nil {
+			return &ValidationError{Name: "fee_name_en", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name_en": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.SettlementPartyID(); !ok {
 		return &ValidationError{Name: "settlement_party_id", err: errors.New(`ent: missing required field "OrderFee.settlement_party_id"`)}
 	}
@@ -280,6 +381,11 @@ func (_c *OrderFeeCreate) check() error {
 	if v, ok := _c.mutation.BillingUnit(); ok {
 		if err := orderfee.BillingUnitValidator(v); err != nil {
 			return &ValidationError{Name: "billing_unit", err: fmt.Errorf(`ent: validator failed for field "OrderFee.billing_unit": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.TaxableServiceName(); ok {
+		if err := orderfee.TaxableServiceNameValidator(v); err != nil {
+			return &ValidationError{Name: "taxable_service_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.taxable_service_name": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Quantity(); !ok {
@@ -392,9 +498,21 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldFeeName, field.TypeString, value)
 		_node.FeeName = value
 	}
+	if value, ok := _c.mutation.FeeNameEn(); ok {
+		_spec.SetField(orderfee.FieldFeeNameEn, field.TypeString, value)
+		_node.FeeNameEn = &value
+	}
 	if value, ok := _c.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)
 		_node.BillingUnit = value
+	}
+	if value, ok := _c.mutation.TaxRate(); ok {
+		_spec.SetField(orderfee.FieldTaxRate, field.TypeString, value)
+		_node.TaxRate = &value
+	}
+	if value, ok := _c.mutation.TaxableServiceName(); ok {
+		_spec.SetField(orderfee.FieldTaxableServiceName, field.TypeString, value)
+		_node.TaxableServiceName = &value
 	}
 	if value, ok := _c.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)
@@ -453,6 +571,23 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_node.OrderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.FeeSettingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.FeeSettingTable,
+			Columns: []string{orderfee.FeeSettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.FeeSettingID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.SettlementPartyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -468,6 +603,23 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.SettlementPartyID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BillingUnitRefIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.BillingUnitRefTable,
+			Columns: []string{orderfee.BillingUnitRefColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.BillingUnitID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

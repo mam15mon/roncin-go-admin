@@ -1491,6 +1491,22 @@ func (c *BillingUnitClient) QueryFeeSettings(_m *BillingUnit) *FeeSettingQuery {
 	return query
 }
 
+// QueryOrderFees queries the order_fees edge of a BillingUnit.
+func (c *BillingUnitClient) QueryOrderFees(_m *BillingUnit) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(billingunit.Table, billingunit.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, billingunit.OrderFeesTable, billingunit.OrderFeesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *BillingUnitClient) Hooks() []Hook {
 	return c.hooks.BillingUnit
@@ -1963,6 +1979,22 @@ func (c *FeeSettingClient) QueryTaxableService(_m *FeeSetting) *TaxableServiceQu
 			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
 			sqlgraph.To(taxableservice.Table, taxableservice.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, feesetting.TaxableServiceTable, feesetting.TaxableServiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderFees queries the order_fees edge of a FeeSetting.
+func (c *FeeSettingClient) QueryOrderFees(_m *FeeSetting) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(feesetting.Table, feesetting.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, feesetting.OrderFeesTable, feesetting.OrderFeesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4243,6 +4275,22 @@ func (c *OrderFeeClient) QueryOrder(_m *OrderFee) *OrderQuery {
 	return query
 }
 
+// QueryFeeSetting queries the fee_setting edge of a OrderFee.
+func (c *OrderFeeClient) QueryFeeSetting(_m *OrderFee) *FeeSettingQuery {
+	query := (&FeeSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(feesetting.Table, feesetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.FeeSettingTable, orderfee.FeeSettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySettlementParty queries the settlement_party edge of a OrderFee.
 func (c *OrderFeeClient) QuerySettlementParty(_m *OrderFee) *PartnerQuery {
 	query := (&PartnerClient{config: c.config}).Query()
@@ -4252,6 +4300,22 @@ func (c *OrderFeeClient) QuerySettlementParty(_m *OrderFee) *PartnerQuery {
 			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SettlementPartyTable, orderfee.SettlementPartyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBillingUnitRef queries the billing_unit_ref edge of a OrderFee.
+func (c *OrderFeeClient) QueryBillingUnitRef(_m *OrderFee) *BillingUnitQuery {
+	query := (&BillingUnitClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(billingunit.Table, billingunit.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.BillingUnitRefTable, orderfee.BillingUnitRefColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

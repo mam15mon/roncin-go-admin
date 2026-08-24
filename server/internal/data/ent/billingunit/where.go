@@ -417,6 +417,29 @@ func HasFeeSettingsWith(preds ...predicate.FeeSetting) predicate.BillingUnit {
 	})
 }
 
+// HasOrderFees applies the HasEdge predicate on the "order_fees" edge.
+func HasOrderFees() predicate.BillingUnit {
+	return predicate.BillingUnit(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderFeesTable, OrderFeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderFeesWith applies the HasEdge predicate on the "order_fees" edge with a given conditions (other predicates).
+func HasOrderFeesWith(preds ...predicate.OrderFee) predicate.BillingUnit {
+	return predicate.BillingUnit(func(s *sql.Selector) {
+		step := newOrderFeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.BillingUnit) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.AndPredicates(predicates...))

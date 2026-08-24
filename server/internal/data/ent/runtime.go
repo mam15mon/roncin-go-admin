@@ -1758,7 +1758,7 @@ func init() {
 	// orderfee.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderfee.UpdateDefaultUpdatedAt = orderfeeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderfeeDescFeeCode is the schema descriptor for fee_code field.
-	orderfeeDescFeeCode := orderfeeFields[2].Descriptor()
+	orderfeeDescFeeCode := orderfeeFields[3].Descriptor()
 	// orderfee.FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
 	orderfee.FeeCodeValidator = func() func(string) error {
 		validators := orderfeeDescFeeCode.Validators
@@ -1776,7 +1776,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescFeeName is the schema descriptor for fee_name field.
-	orderfeeDescFeeName := orderfeeFields[3].Descriptor()
+	orderfeeDescFeeName := orderfeeFields[4].Descriptor()
 	// orderfee.FeeNameValidator is a validator for the "fee_name" field. It is called by the builders before save.
 	orderfee.FeeNameValidator = func() func(string) error {
 		validators := orderfeeDescFeeName.Validators
@@ -1793,8 +1793,12 @@ func init() {
 			return nil
 		}
 	}()
+	// orderfeeDescFeeNameEn is the schema descriptor for fee_name_en field.
+	orderfeeDescFeeNameEn := orderfeeFields[5].Descriptor()
+	// orderfee.FeeNameEnValidator is a validator for the "fee_name_en" field. It is called by the builders before save.
+	orderfee.FeeNameEnValidator = orderfeeDescFeeNameEn.Validators[0].(func(string) error)
 	// orderfeeDescBillingUnit is the schema descriptor for billing_unit field.
-	orderfeeDescBillingUnit := orderfeeFields[5].Descriptor()
+	orderfeeDescBillingUnit := orderfeeFields[8].Descriptor()
 	// orderfee.BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
 	orderfee.BillingUnitValidator = func() func(string) error {
 		validators := orderfeeDescBillingUnit.Validators
@@ -1811,8 +1815,12 @@ func init() {
 			return nil
 		}
 	}()
+	// orderfeeDescTaxableServiceName is the schema descriptor for taxable_service_name field.
+	orderfeeDescTaxableServiceName := orderfeeFields[10].Descriptor()
+	// orderfee.TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
+	orderfee.TaxableServiceNameValidator = orderfeeDescTaxableServiceName.Validators[0].(func(string) error)
 	// orderfeeDescCurrency is the schema descriptor for currency field.
-	orderfeeDescCurrency := orderfeeFields[9].Descriptor()
+	orderfeeDescCurrency := orderfeeFields[14].Descriptor()
 	// orderfee.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	orderfee.CurrencyValidator = func() func(string) error {
 		validators := orderfeeDescCurrency.Validators
@@ -1831,7 +1839,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	orderfeeDescExchangeRateDate := orderfeeFields[12].Descriptor()
+	orderfeeDescExchangeRateDate := orderfeeFields[17].Descriptor()
 	// orderfee.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	orderfee.ExchangeRateDateValidator = func() func(string) error {
 		validators := orderfeeDescExchangeRateDate.Validators
@@ -1850,7 +1858,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescExpenseDate is the schema descriptor for expense_date field.
-	orderfeeDescExpenseDate := orderfeeFields[14].Descriptor()
+	orderfeeDescExpenseDate := orderfeeFields[19].Descriptor()
 	// orderfee.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
 	orderfee.ExpenseDateValidator = func() func(string) error {
 		validators := orderfeeDescExpenseDate.Validators
@@ -1869,7 +1877,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescNote is the schema descriptor for note field.
-	orderfeeDescNote := orderfeeFields[15].Descriptor()
+	orderfeeDescNote := orderfeeFields[20].Descriptor()
 	// orderfee.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfee.NoteValidator = orderfeeDescNote.Validators[0].(func(string) error)
 	// orderfeeDescID is the schema descriptor for id field.

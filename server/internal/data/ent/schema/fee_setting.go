@@ -39,6 +39,7 @@ func (FeeSetting) Edges() []ent.Edge {
 		edge.From("billing_unit", BillingUnit.Type).Ref("fee_settings").Field("billing_unit_id").Unique().Required(),
 		edge.From("abnormal_case", MasterDataItem.Type).Ref("abnormal_case_fee_settings").Field("abnormal_case_id").Unique(),
 		edge.From("taxable_service", TaxableService.Type).Ref("fee_settings").Field("taxable_service_id").Unique().Required(),
+		edge.To("order_fees", OrderFee.Type),
 	}
 }
 

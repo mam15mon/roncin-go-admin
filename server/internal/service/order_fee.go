@@ -46,7 +46,19 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	for _, item := range options.Currencies {
 		currencies = append(currencies, &v1.OrderFeeCurrencyOption{Code: item.Code, Name: item.Name, MinorUnit: int32(item.MinorUnit)})
 	}
-	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency}, nil
+	feeSettings := make([]*v1.OrderFeeSettingOption, 0, len(options.FeeSettings))
+	for _, item := range options.FeeSettings {
+		feeSettings = append(feeSettings, &v1.OrderFeeSettingOption{
+			Id: item.ID.String(), FeeCode: item.FeeCode, NameZh: item.NameZH, NameEn: item.NameEN, AliasName: item.AliasName,
+			DefaultCurrency: item.DefaultCurrency, DefaultBillingUnitId: item.DefaultBillingUnitID.String(), DefaultBillingUnitName: item.DefaultBillingUnitName,
+			TaxRate: item.TaxRate.StringFixed(2), TaxableServiceName: item.TaxableServiceName,
+		})
+	}
+	billingUnits := make([]*v1.OrderFeeBillingUnitOption, 0, len(options.BillingUnits))
+	for _, item := range options.BillingUnits {
+		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
+	}
+	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency}, nil
 }
 
 func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequest) (*v1.ListFeesResponse, error) {
@@ -99,7 +111,7 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +131,7 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if err != nil {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeCode(), request.GetFeeName(), request.GetSettlementPartyId(), request.GetBillingUnit(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +183,20 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
+	if value.FeeSettingID != nil {
+		settingID := value.FeeSettingID.String()
+		result.FeeSettingId = &settingID
+	}
+	if value.BillingUnitID != nil {
+		billingUnitID := value.BillingUnitID.String()
+		result.BillingUnitId = &billingUnitID
+	}
+	result.FeeNameEn = value.FeeNameEN
+	if value.TaxRate != nil {
+		taxRate := value.TaxRate.StringFixed(2)
+		result.TaxRate = &taxRate
+	}
+	result.TaxableServiceName = value.TaxableServiceName
 	if value.ExchangeRateSettingID != nil {
 		settingID := value.ExchangeRateSettingID.String()
 		result.ExchangeRateSettingId = &settingID
@@ -178,12 +204,20 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 	return result
 }
 
-func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeCode, feeName, partyIDText, billingUnit, quantityText, unitPriceText, currency, expenseDate, note string, exchangeRateOverrideText *string) (uuid.UUID, *biz.OrderFee, error) {
+func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeSettingIDText, partyIDText, billingUnitIDText, quantityText, unitPriceText, currency, expenseDate, note string, exchangeRateOverrideText *string) (uuid.UUID, *biz.OrderFee, error) {
 	orderID, err := uuid.Parse(orderIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
 	}
 	partyID, err := uuid.Parse(partyIDText)
+	if err != nil {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	feeSettingID, err := uuid.Parse(feeSettingIDText)
+	if err != nil {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	billingUnitID, err := uuid.Parse(billingUnitIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
 	}
@@ -201,10 +235,9 @@ func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, fe
 	}
 	input := &biz.OrderFee{
 		Direction:         feeDirection,
-		FeeCode:           feeCode,
-		FeeName:           feeName,
+		FeeSettingID:      &feeSettingID,
 		SettlementPartyID: partyID,
-		BillingUnit:       billingUnit,
+		BillingUnitID:     &billingUnitID,
 		Quantity:          quantity,
 		UnitPrice:         unitPrice,
 		Currency:          currency,

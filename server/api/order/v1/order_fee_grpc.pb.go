@@ -34,7 +34,7 @@ const (
 // OrderFeeService 订单费用录入服务。
 // 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
 type OrderFeeServiceClient interface {
-	// ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, in *ListFeesRequest, opts ...grpc.CallOption) (*ListFeesResponse, error)
@@ -123,7 +123,7 @@ func (c *orderFeeServiceClient) RemoveFee(ctx context.Context, in *RemoveFeeRequ
 // OrderFeeService 订单费用录入服务。
 // 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
 type OrderFeeServiceServer interface {
-	// ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -129,6 +130,21 @@ func (_c *BillingUnitCreate) AddFeeSettings(v ...*FeeSetting) *BillingUnitCreate
 		ids[i] = v[i].ID
 	}
 	return _c.AddFeeSettingIDs(ids...)
+}
+
+// AddOrderFeeIDs adds the "order_fees" edge to the OrderFee entity by IDs.
+func (_c *BillingUnitCreate) AddOrderFeeIDs(ids ...uuid.UUID) *BillingUnitCreate {
+	_c.mutation.AddOrderFeeIDs(ids...)
+	return _c
+}
+
+// AddOrderFees adds the "order_fees" edges to the OrderFee entity.
+func (_c *BillingUnitCreate) AddOrderFees(v ...*OrderFee) *BillingUnitCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderFeeIDs(ids...)
 }
 
 // Mutation returns the BillingUnitMutation object of the builder.
@@ -309,6 +325,22 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   billingunit.OrderFeesTable,
+			Columns: []string{billingunit.OrderFeesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

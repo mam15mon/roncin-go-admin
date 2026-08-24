@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -65,6 +67,26 @@ func (_u *OrderFeeUpdate) SetNillableDirection(v *orderfee.Direction) *OrderFeeU
 	return _u
 }
 
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (_u *OrderFeeUpdate) SetFeeSettingID(v uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.SetFeeSettingID(v)
+	return _u
+}
+
+// SetNillableFeeSettingID sets the "fee_setting_id" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableFeeSettingID(v *uuid.UUID) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetFeeSettingID(*v)
+	}
+	return _u
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (_u *OrderFeeUpdate) ClearFeeSettingID() *OrderFeeUpdate {
+	_u.mutation.ClearFeeSettingID()
+	return _u
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (_u *OrderFeeUpdate) SetFeeCode(v string) *OrderFeeUpdate {
 	_u.mutation.SetFeeCode(v)
@@ -93,6 +115,26 @@ func (_u *OrderFeeUpdate) SetNillableFeeName(v *string) *OrderFeeUpdate {
 	return _u
 }
 
+// SetFeeNameEn sets the "fee_name_en" field.
+func (_u *OrderFeeUpdate) SetFeeNameEn(v string) *OrderFeeUpdate {
+	_u.mutation.SetFeeNameEn(v)
+	return _u
+}
+
+// SetNillableFeeNameEn sets the "fee_name_en" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableFeeNameEn(v *string) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetFeeNameEn(*v)
+	}
+	return _u
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (_u *OrderFeeUpdate) ClearFeeNameEn() *OrderFeeUpdate {
+	_u.mutation.ClearFeeNameEn()
+	return _u
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_u *OrderFeeUpdate) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpdate {
 	_u.mutation.SetSettlementPartyID(v)
@@ -107,6 +149,26 @@ func (_u *OrderFeeUpdate) SetNillableSettlementPartyID(v *uuid.UUID) *OrderFeeUp
 	return _u
 }
 
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (_u *OrderFeeUpdate) SetBillingUnitID(v uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.SetBillingUnitID(v)
+	return _u
+}
+
+// SetNillableBillingUnitID sets the "billing_unit_id" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableBillingUnitID(v *uuid.UUID) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetBillingUnitID(*v)
+	}
+	return _u
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (_u *OrderFeeUpdate) ClearBillingUnitID() *OrderFeeUpdate {
+	_u.mutation.ClearBillingUnitID()
+	return _u
+}
+
 // SetBillingUnit sets the "billing_unit" field.
 func (_u *OrderFeeUpdate) SetBillingUnit(v string) *OrderFeeUpdate {
 	_u.mutation.SetBillingUnit(v)
@@ -118,6 +180,46 @@ func (_u *OrderFeeUpdate) SetNillableBillingUnit(v *string) *OrderFeeUpdate {
 	if v != nil {
 		_u.SetBillingUnit(*v)
 	}
+	return _u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (_u *OrderFeeUpdate) SetTaxRate(v string) *OrderFeeUpdate {
+	_u.mutation.SetTaxRate(v)
+	return _u
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableTaxRate(v *string) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetTaxRate(*v)
+	}
+	return _u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (_u *OrderFeeUpdate) ClearTaxRate() *OrderFeeUpdate {
+	_u.mutation.ClearTaxRate()
+	return _u
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (_u *OrderFeeUpdate) SetTaxableServiceName(v string) *OrderFeeUpdate {
+	_u.mutation.SetTaxableServiceName(v)
+	return _u
+}
+
+// SetNillableTaxableServiceName sets the "taxable_service_name" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableTaxableServiceName(v *string) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetTaxableServiceName(*v)
+	}
+	return _u
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (_u *OrderFeeUpdate) ClearTaxableServiceName() *OrderFeeUpdate {
+	_u.mutation.ClearTaxableServiceName()
 	return _u
 }
 
@@ -278,9 +380,33 @@ func (_u *OrderFeeUpdate) SetOrder(v *Order) *OrderFeeUpdate {
 	return _u.SetOrderID(v.ID)
 }
 
+// SetFeeSetting sets the "fee_setting" edge to the FeeSetting entity.
+func (_u *OrderFeeUpdate) SetFeeSetting(v *FeeSetting) *OrderFeeUpdate {
+	return _u.SetFeeSettingID(v.ID)
+}
+
 // SetSettlementParty sets the "settlement_party" edge to the Partner entity.
 func (_u *OrderFeeUpdate) SetSettlementParty(v *Partner) *OrderFeeUpdate {
 	return _u.SetSettlementPartyID(v.ID)
+}
+
+// SetBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID.
+func (_u *OrderFeeUpdate) SetBillingUnitRefID(id uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.SetBillingUnitRefID(id)
+	return _u
+}
+
+// SetNillableBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeUpdate {
+	if id != nil {
+		_u = _u.SetBillingUnitRefID(*id)
+	}
+	return _u
+}
+
+// SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
+func (_u *OrderFeeUpdate) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdate {
+	return _u.SetBillingUnitRefID(v.ID)
 }
 
 // Mutation returns the OrderFeeMutation object of the builder.
@@ -294,9 +420,21 @@ func (_u *OrderFeeUpdate) ClearOrder() *OrderFeeUpdate {
 	return _u
 }
 
+// ClearFeeSetting clears the "fee_setting" edge to the FeeSetting entity.
+func (_u *OrderFeeUpdate) ClearFeeSetting() *OrderFeeUpdate {
+	_u.mutation.ClearFeeSetting()
+	return _u
+}
+
 // ClearSettlementParty clears the "settlement_party" edge to the Partner entity.
 func (_u *OrderFeeUpdate) ClearSettlementParty() *OrderFeeUpdate {
 	_u.mutation.ClearSettlementParty()
+	return _u
+}
+
+// ClearBillingUnitRef clears the "billing_unit_ref" edge to the BillingUnit entity.
+func (_u *OrderFeeUpdate) ClearBillingUnitRef() *OrderFeeUpdate {
+	_u.mutation.ClearBillingUnitRef()
 	return _u
 }
 
@@ -353,9 +491,19 @@ func (_u *OrderFeeUpdate) check() error {
 			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeNameEn(); ok {
+		if err := orderfee.FeeNameEnValidator(v); err != nil {
+			return &ValidationError{Name: "fee_name_en", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name_en": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BillingUnit(); ok {
 		if err := orderfee.BillingUnitValidator(v); err != nil {
 			return &ValidationError{Name: "billing_unit", err: fmt.Errorf(`ent: validator failed for field "OrderFee.billing_unit": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TaxableServiceName(); ok {
+		if err := orderfee.TaxableServiceNameValidator(v); err != nil {
+			return &ValidationError{Name: "taxable_service_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.taxable_service_name": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Currency(); ok {
@@ -416,8 +564,26 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.FeeName(); ok {
 		_spec.SetField(orderfee.FieldFeeName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.FeeNameEn(); ok {
+		_spec.SetField(orderfee.FieldFeeNameEn, field.TypeString, value)
+	}
+	if _u.mutation.FeeNameEnCleared() {
+		_spec.ClearField(orderfee.FieldFeeNameEn, field.TypeString)
+	}
 	if value, ok := _u.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxRate(); ok {
+		_spec.SetField(orderfee.FieldTaxRate, field.TypeString, value)
+	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(orderfee.FieldTaxRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.TaxableServiceName(); ok {
+		_spec.SetField(orderfee.FieldTaxableServiceName, field.TypeString, value)
+	}
+	if _u.mutation.TaxableServiceNameCleared() {
+		_spec.ClearField(orderfee.FieldTaxableServiceName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)
@@ -484,6 +650,35 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FeeSettingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.FeeSettingTable,
+			Columns: []string{orderfee.FeeSettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSettingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.FeeSettingTable,
+			Columns: []string{orderfee.FeeSettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.SettlementPartyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -506,6 +701,35 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BillingUnitRefCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.BillingUnitRefTable,
+			Columns: []string{orderfee.BillingUnitRefColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BillingUnitRefIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.BillingUnitRefTable,
+			Columns: []string{orderfee.BillingUnitRefColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -567,6 +791,26 @@ func (_u *OrderFeeUpdateOne) SetNillableDirection(v *orderfee.Direction) *OrderF
 	return _u
 }
 
+// SetFeeSettingID sets the "fee_setting_id" field.
+func (_u *OrderFeeUpdateOne) SetFeeSettingID(v uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.SetFeeSettingID(v)
+	return _u
+}
+
+// SetNillableFeeSettingID sets the "fee_setting_id" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableFeeSettingID(v *uuid.UUID) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetFeeSettingID(*v)
+	}
+	return _u
+}
+
+// ClearFeeSettingID clears the value of the "fee_setting_id" field.
+func (_u *OrderFeeUpdateOne) ClearFeeSettingID() *OrderFeeUpdateOne {
+	_u.mutation.ClearFeeSettingID()
+	return _u
+}
+
 // SetFeeCode sets the "fee_code" field.
 func (_u *OrderFeeUpdateOne) SetFeeCode(v string) *OrderFeeUpdateOne {
 	_u.mutation.SetFeeCode(v)
@@ -595,6 +839,26 @@ func (_u *OrderFeeUpdateOne) SetNillableFeeName(v *string) *OrderFeeUpdateOne {
 	return _u
 }
 
+// SetFeeNameEn sets the "fee_name_en" field.
+func (_u *OrderFeeUpdateOne) SetFeeNameEn(v string) *OrderFeeUpdateOne {
+	_u.mutation.SetFeeNameEn(v)
+	return _u
+}
+
+// SetNillableFeeNameEn sets the "fee_name_en" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableFeeNameEn(v *string) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetFeeNameEn(*v)
+	}
+	return _u
+}
+
+// ClearFeeNameEn clears the value of the "fee_name_en" field.
+func (_u *OrderFeeUpdateOne) ClearFeeNameEn() *OrderFeeUpdateOne {
+	_u.mutation.ClearFeeNameEn()
+	return _u
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_u *OrderFeeUpdateOne) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpdateOne {
 	_u.mutation.SetSettlementPartyID(v)
@@ -609,6 +873,26 @@ func (_u *OrderFeeUpdateOne) SetNillableSettlementPartyID(v *uuid.UUID) *OrderFe
 	return _u
 }
 
+// SetBillingUnitID sets the "billing_unit_id" field.
+func (_u *OrderFeeUpdateOne) SetBillingUnitID(v uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.SetBillingUnitID(v)
+	return _u
+}
+
+// SetNillableBillingUnitID sets the "billing_unit_id" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableBillingUnitID(v *uuid.UUID) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetBillingUnitID(*v)
+	}
+	return _u
+}
+
+// ClearBillingUnitID clears the value of the "billing_unit_id" field.
+func (_u *OrderFeeUpdateOne) ClearBillingUnitID() *OrderFeeUpdateOne {
+	_u.mutation.ClearBillingUnitID()
+	return _u
+}
+
 // SetBillingUnit sets the "billing_unit" field.
 func (_u *OrderFeeUpdateOne) SetBillingUnit(v string) *OrderFeeUpdateOne {
 	_u.mutation.SetBillingUnit(v)
@@ -620,6 +904,46 @@ func (_u *OrderFeeUpdateOne) SetNillableBillingUnit(v *string) *OrderFeeUpdateOn
 	if v != nil {
 		_u.SetBillingUnit(*v)
 	}
+	return _u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (_u *OrderFeeUpdateOne) SetTaxRate(v string) *OrderFeeUpdateOne {
+	_u.mutation.SetTaxRate(v)
+	return _u
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableTaxRate(v *string) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetTaxRate(*v)
+	}
+	return _u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (_u *OrderFeeUpdateOne) ClearTaxRate() *OrderFeeUpdateOne {
+	_u.mutation.ClearTaxRate()
+	return _u
+}
+
+// SetTaxableServiceName sets the "taxable_service_name" field.
+func (_u *OrderFeeUpdateOne) SetTaxableServiceName(v string) *OrderFeeUpdateOne {
+	_u.mutation.SetTaxableServiceName(v)
+	return _u
+}
+
+// SetNillableTaxableServiceName sets the "taxable_service_name" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableTaxableServiceName(v *string) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetTaxableServiceName(*v)
+	}
+	return _u
+}
+
+// ClearTaxableServiceName clears the value of the "taxable_service_name" field.
+func (_u *OrderFeeUpdateOne) ClearTaxableServiceName() *OrderFeeUpdateOne {
+	_u.mutation.ClearTaxableServiceName()
 	return _u
 }
 
@@ -780,9 +1104,33 @@ func (_u *OrderFeeUpdateOne) SetOrder(v *Order) *OrderFeeUpdateOne {
 	return _u.SetOrderID(v.ID)
 }
 
+// SetFeeSetting sets the "fee_setting" edge to the FeeSetting entity.
+func (_u *OrderFeeUpdateOne) SetFeeSetting(v *FeeSetting) *OrderFeeUpdateOne {
+	return _u.SetFeeSettingID(v.ID)
+}
+
 // SetSettlementParty sets the "settlement_party" edge to the Partner entity.
 func (_u *OrderFeeUpdateOne) SetSettlementParty(v *Partner) *OrderFeeUpdateOne {
 	return _u.SetSettlementPartyID(v.ID)
+}
+
+// SetBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID.
+func (_u *OrderFeeUpdateOne) SetBillingUnitRefID(id uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.SetBillingUnitRefID(id)
+	return _u
+}
+
+// SetNillableBillingUnitRefID sets the "billing_unit_ref" edge to the BillingUnit entity by ID if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeUpdateOne {
+	if id != nil {
+		_u = _u.SetBillingUnitRefID(*id)
+	}
+	return _u
+}
+
+// SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
+func (_u *OrderFeeUpdateOne) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdateOne {
+	return _u.SetBillingUnitRefID(v.ID)
 }
 
 // Mutation returns the OrderFeeMutation object of the builder.
@@ -796,9 +1144,21 @@ func (_u *OrderFeeUpdateOne) ClearOrder() *OrderFeeUpdateOne {
 	return _u
 }
 
+// ClearFeeSetting clears the "fee_setting" edge to the FeeSetting entity.
+func (_u *OrderFeeUpdateOne) ClearFeeSetting() *OrderFeeUpdateOne {
+	_u.mutation.ClearFeeSetting()
+	return _u
+}
+
 // ClearSettlementParty clears the "settlement_party" edge to the Partner entity.
 func (_u *OrderFeeUpdateOne) ClearSettlementParty() *OrderFeeUpdateOne {
 	_u.mutation.ClearSettlementParty()
+	return _u
+}
+
+// ClearBillingUnitRef clears the "billing_unit_ref" edge to the BillingUnit entity.
+func (_u *OrderFeeUpdateOne) ClearBillingUnitRef() *OrderFeeUpdateOne {
+	_u.mutation.ClearBillingUnitRef()
 	return _u
 }
 
@@ -868,9 +1228,19 @@ func (_u *OrderFeeUpdateOne) check() error {
 			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeNameEn(); ok {
+		if err := orderfee.FeeNameEnValidator(v); err != nil {
+			return &ValidationError{Name: "fee_name_en", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name_en": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BillingUnit(); ok {
 		if err := orderfee.BillingUnitValidator(v); err != nil {
 			return &ValidationError{Name: "billing_unit", err: fmt.Errorf(`ent: validator failed for field "OrderFee.billing_unit": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TaxableServiceName(); ok {
+		if err := orderfee.TaxableServiceNameValidator(v); err != nil {
+			return &ValidationError{Name: "taxable_service_name", err: fmt.Errorf(`ent: validator failed for field "OrderFee.taxable_service_name": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Currency(); ok {
@@ -948,8 +1318,26 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	if value, ok := _u.mutation.FeeName(); ok {
 		_spec.SetField(orderfee.FieldFeeName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.FeeNameEn(); ok {
+		_spec.SetField(orderfee.FieldFeeNameEn, field.TypeString, value)
+	}
+	if _u.mutation.FeeNameEnCleared() {
+		_spec.ClearField(orderfee.FieldFeeNameEn, field.TypeString)
+	}
 	if value, ok := _u.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxRate(); ok {
+		_spec.SetField(orderfee.FieldTaxRate, field.TypeString, value)
+	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(orderfee.FieldTaxRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.TaxableServiceName(); ok {
+		_spec.SetField(orderfee.FieldTaxableServiceName, field.TypeString, value)
+	}
+	if _u.mutation.TaxableServiceNameCleared() {
+		_spec.ClearField(orderfee.FieldTaxableServiceName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)
@@ -1016,6 +1404,35 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FeeSettingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.FeeSettingTable,
+			Columns: []string{orderfee.FeeSettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeSettingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.FeeSettingTable,
+			Columns: []string{orderfee.FeeSettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.SettlementPartyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1038,6 +1455,35 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BillingUnitRefCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.BillingUnitRefTable,
+			Columns: []string{orderfee.BillingUnitRefColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BillingUnitRefIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.BillingUnitRefTable,
+			Columns: []string{orderfee.BillingUnitRefColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

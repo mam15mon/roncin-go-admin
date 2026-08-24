@@ -71,6 +71,11 @@ func OrderID(v uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldOrderID, v))
 }
 
+// FeeSettingID applies equality check predicate on the "fee_setting_id" field. It's identical to FeeSettingIDEQ.
+func FeeSettingID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldFeeSettingID, v))
+}
+
 // FeeCode applies equality check predicate on the "fee_code" field. It's identical to FeeCodeEQ.
 func FeeCode(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldFeeCode, v))
@@ -81,14 +86,34 @@ func FeeName(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldFeeName, v))
 }
 
+// FeeNameEn applies equality check predicate on the "fee_name_en" field. It's identical to FeeNameEnEQ.
+func FeeNameEn(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldFeeNameEn, v))
+}
+
 // SettlementPartyID applies equality check predicate on the "settlement_party_id" field. It's identical to SettlementPartyIDEQ.
 func SettlementPartyID(v uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldSettlementPartyID, v))
 }
 
+// BillingUnitID applies equality check predicate on the "billing_unit_id" field. It's identical to BillingUnitIDEQ.
+func BillingUnitID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldBillingUnitID, v))
+}
+
 // BillingUnit applies equality check predicate on the "billing_unit" field. It's identical to BillingUnitEQ.
 func BillingUnit(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldBillingUnit, v))
+}
+
+// TaxRate applies equality check predicate on the "tax_rate" field. It's identical to TaxRateEQ.
+func TaxRate(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldTaxRate, v))
+}
+
+// TaxableServiceName applies equality check predicate on the "taxable_service_name" field. It's identical to TaxableServiceNameEQ.
+func TaxableServiceName(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldTaxableServiceName, v))
 }
 
 // Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
@@ -256,6 +281,36 @@ func DirectionNotIn(vs ...Direction) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldNotIn(FieldDirection, vs...))
 }
 
+// FeeSettingIDEQ applies the EQ predicate on the "fee_setting_id" field.
+func FeeSettingIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldFeeSettingID, v))
+}
+
+// FeeSettingIDNEQ applies the NEQ predicate on the "fee_setting_id" field.
+func FeeSettingIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldFeeSettingID, v))
+}
+
+// FeeSettingIDIn applies the In predicate on the "fee_setting_id" field.
+func FeeSettingIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldFeeSettingID, vs...))
+}
+
+// FeeSettingIDNotIn applies the NotIn predicate on the "fee_setting_id" field.
+func FeeSettingIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldFeeSettingID, vs...))
+}
+
+// FeeSettingIDIsNil applies the IsNil predicate on the "fee_setting_id" field.
+func FeeSettingIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldFeeSettingID))
+}
+
+// FeeSettingIDNotNil applies the NotNil predicate on the "fee_setting_id" field.
+func FeeSettingIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldFeeSettingID))
+}
+
 // FeeCodeEQ applies the EQ predicate on the "fee_code" field.
 func FeeCodeEQ(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldFeeCode, v))
@@ -386,6 +441,81 @@ func FeeNameContainsFold(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldContainsFold(FieldFeeName, v))
 }
 
+// FeeNameEnEQ applies the EQ predicate on the "fee_name_en" field.
+func FeeNameEnEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldFeeNameEn, v))
+}
+
+// FeeNameEnNEQ applies the NEQ predicate on the "fee_name_en" field.
+func FeeNameEnNEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldFeeNameEn, v))
+}
+
+// FeeNameEnIn applies the In predicate on the "fee_name_en" field.
+func FeeNameEnIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldFeeNameEn, vs...))
+}
+
+// FeeNameEnNotIn applies the NotIn predicate on the "fee_name_en" field.
+func FeeNameEnNotIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldFeeNameEn, vs...))
+}
+
+// FeeNameEnGT applies the GT predicate on the "fee_name_en" field.
+func FeeNameEnGT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGT(FieldFeeNameEn, v))
+}
+
+// FeeNameEnGTE applies the GTE predicate on the "fee_name_en" field.
+func FeeNameEnGTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGTE(FieldFeeNameEn, v))
+}
+
+// FeeNameEnLT applies the LT predicate on the "fee_name_en" field.
+func FeeNameEnLT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLT(FieldFeeNameEn, v))
+}
+
+// FeeNameEnLTE applies the LTE predicate on the "fee_name_en" field.
+func FeeNameEnLTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLTE(FieldFeeNameEn, v))
+}
+
+// FeeNameEnContains applies the Contains predicate on the "fee_name_en" field.
+func FeeNameEnContains(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContains(FieldFeeNameEn, v))
+}
+
+// FeeNameEnHasPrefix applies the HasPrefix predicate on the "fee_name_en" field.
+func FeeNameEnHasPrefix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasPrefix(FieldFeeNameEn, v))
+}
+
+// FeeNameEnHasSuffix applies the HasSuffix predicate on the "fee_name_en" field.
+func FeeNameEnHasSuffix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasSuffix(FieldFeeNameEn, v))
+}
+
+// FeeNameEnIsNil applies the IsNil predicate on the "fee_name_en" field.
+func FeeNameEnIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldFeeNameEn))
+}
+
+// FeeNameEnNotNil applies the NotNil predicate on the "fee_name_en" field.
+func FeeNameEnNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldFeeNameEn))
+}
+
+// FeeNameEnEqualFold applies the EqualFold predicate on the "fee_name_en" field.
+func FeeNameEnEqualFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEqualFold(FieldFeeNameEn, v))
+}
+
+// FeeNameEnContainsFold applies the ContainsFold predicate on the "fee_name_en" field.
+func FeeNameEnContainsFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContainsFold(FieldFeeNameEn, v))
+}
+
 // SettlementPartyIDEQ applies the EQ predicate on the "settlement_party_id" field.
 func SettlementPartyIDEQ(v uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldSettlementPartyID, v))
@@ -404,6 +534,36 @@ func SettlementPartyIDIn(vs ...uuid.UUID) predicate.OrderFee {
 // SettlementPartyIDNotIn applies the NotIn predicate on the "settlement_party_id" field.
 func SettlementPartyIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldNotIn(FieldSettlementPartyID, vs...))
+}
+
+// BillingUnitIDEQ applies the EQ predicate on the "billing_unit_id" field.
+func BillingUnitIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldBillingUnitID, v))
+}
+
+// BillingUnitIDNEQ applies the NEQ predicate on the "billing_unit_id" field.
+func BillingUnitIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldBillingUnitID, v))
+}
+
+// BillingUnitIDIn applies the In predicate on the "billing_unit_id" field.
+func BillingUnitIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldBillingUnitID, vs...))
+}
+
+// BillingUnitIDNotIn applies the NotIn predicate on the "billing_unit_id" field.
+func BillingUnitIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldBillingUnitID, vs...))
+}
+
+// BillingUnitIDIsNil applies the IsNil predicate on the "billing_unit_id" field.
+func BillingUnitIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldBillingUnitID))
+}
+
+// BillingUnitIDNotNil applies the NotNil predicate on the "billing_unit_id" field.
+func BillingUnitIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldBillingUnitID))
 }
 
 // BillingUnitEQ applies the EQ predicate on the "billing_unit" field.
@@ -469,6 +629,156 @@ func BillingUnitEqualFold(v string) predicate.OrderFee {
 // BillingUnitContainsFold applies the ContainsFold predicate on the "billing_unit" field.
 func BillingUnitContainsFold(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldContainsFold(FieldBillingUnit, v))
+}
+
+// TaxRateEQ applies the EQ predicate on the "tax_rate" field.
+func TaxRateEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldTaxRate, v))
+}
+
+// TaxRateNEQ applies the NEQ predicate on the "tax_rate" field.
+func TaxRateNEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldTaxRate, v))
+}
+
+// TaxRateIn applies the In predicate on the "tax_rate" field.
+func TaxRateIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldTaxRate, vs...))
+}
+
+// TaxRateNotIn applies the NotIn predicate on the "tax_rate" field.
+func TaxRateNotIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldTaxRate, vs...))
+}
+
+// TaxRateGT applies the GT predicate on the "tax_rate" field.
+func TaxRateGT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGT(FieldTaxRate, v))
+}
+
+// TaxRateGTE applies the GTE predicate on the "tax_rate" field.
+func TaxRateGTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGTE(FieldTaxRate, v))
+}
+
+// TaxRateLT applies the LT predicate on the "tax_rate" field.
+func TaxRateLT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLT(FieldTaxRate, v))
+}
+
+// TaxRateLTE applies the LTE predicate on the "tax_rate" field.
+func TaxRateLTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLTE(FieldTaxRate, v))
+}
+
+// TaxRateContains applies the Contains predicate on the "tax_rate" field.
+func TaxRateContains(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContains(FieldTaxRate, v))
+}
+
+// TaxRateHasPrefix applies the HasPrefix predicate on the "tax_rate" field.
+func TaxRateHasPrefix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasPrefix(FieldTaxRate, v))
+}
+
+// TaxRateHasSuffix applies the HasSuffix predicate on the "tax_rate" field.
+func TaxRateHasSuffix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasSuffix(FieldTaxRate, v))
+}
+
+// TaxRateIsNil applies the IsNil predicate on the "tax_rate" field.
+func TaxRateIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldTaxRate))
+}
+
+// TaxRateNotNil applies the NotNil predicate on the "tax_rate" field.
+func TaxRateNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldTaxRate))
+}
+
+// TaxRateEqualFold applies the EqualFold predicate on the "tax_rate" field.
+func TaxRateEqualFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEqualFold(FieldTaxRate, v))
+}
+
+// TaxRateContainsFold applies the ContainsFold predicate on the "tax_rate" field.
+func TaxRateContainsFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContainsFold(FieldTaxRate, v))
+}
+
+// TaxableServiceNameEQ applies the EQ predicate on the "taxable_service_name" field.
+func TaxableServiceNameEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameNEQ applies the NEQ predicate on the "taxable_service_name" field.
+func TaxableServiceNameNEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameIn applies the In predicate on the "taxable_service_name" field.
+func TaxableServiceNameIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldTaxableServiceName, vs...))
+}
+
+// TaxableServiceNameNotIn applies the NotIn predicate on the "taxable_service_name" field.
+func TaxableServiceNameNotIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldTaxableServiceName, vs...))
+}
+
+// TaxableServiceNameGT applies the GT predicate on the "taxable_service_name" field.
+func TaxableServiceNameGT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGT(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameGTE applies the GTE predicate on the "taxable_service_name" field.
+func TaxableServiceNameGTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGTE(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameLT applies the LT predicate on the "taxable_service_name" field.
+func TaxableServiceNameLT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLT(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameLTE applies the LTE predicate on the "taxable_service_name" field.
+func TaxableServiceNameLTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLTE(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameContains applies the Contains predicate on the "taxable_service_name" field.
+func TaxableServiceNameContains(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContains(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameHasPrefix applies the HasPrefix predicate on the "taxable_service_name" field.
+func TaxableServiceNameHasPrefix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasPrefix(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameHasSuffix applies the HasSuffix predicate on the "taxable_service_name" field.
+func TaxableServiceNameHasSuffix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasSuffix(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameIsNil applies the IsNil predicate on the "taxable_service_name" field.
+func TaxableServiceNameIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldTaxableServiceName))
+}
+
+// TaxableServiceNameNotNil applies the NotNil predicate on the "taxable_service_name" field.
+func TaxableServiceNameNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldTaxableServiceName))
+}
+
+// TaxableServiceNameEqualFold applies the EqualFold predicate on the "taxable_service_name" field.
+func TaxableServiceNameEqualFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEqualFold(FieldTaxableServiceName, v))
+}
+
+// TaxableServiceNameContainsFold applies the ContainsFold predicate on the "taxable_service_name" field.
+func TaxableServiceNameContainsFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContainsFold(FieldTaxableServiceName, v))
 }
 
 // QuantityEQ applies the EQ predicate on the "quantity" field.
@@ -1094,6 +1404,29 @@ func HasOrderWith(preds ...predicate.Order) predicate.OrderFee {
 	})
 }
 
+// HasFeeSetting applies the HasEdge predicate on the "fee_setting" edge.
+func HasFeeSetting() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FeeSettingTable, FeeSettingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeeSettingWith applies the HasEdge predicate on the "fee_setting" edge with a given conditions (other predicates).
+func HasFeeSettingWith(preds ...predicate.FeeSetting) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newFeeSettingStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasSettlementParty applies the HasEdge predicate on the "settlement_party" edge.
 func HasSettlementParty() predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
@@ -1109,6 +1442,29 @@ func HasSettlementParty() predicate.OrderFee {
 func HasSettlementPartyWith(preds ...predicate.Partner) predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
 		step := newSettlementPartyStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasBillingUnitRef applies the HasEdge predicate on the "billing_unit_ref" edge.
+func HasBillingUnitRef() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, BillingUnitRefTable, BillingUnitRefColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBillingUnitRefWith applies the HasEdge predicate on the "billing_unit_ref" edge with a given conditions (other predicates).
+func HasBillingUnitRefWith(preds ...predicate.BillingUnit) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newBillingUnitRefStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

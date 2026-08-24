@@ -3182,7 +3182,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ListFeeOptions 获取费用录入所需的结算单位和币种候选项。",
+        "description": "ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。",
         "operationId": "OrderFeeService_ListFeeOptions",
         "parameters": [
           {
@@ -8893,14 +8893,13 @@
         "required": [
           "orderId",
           "direction",
-          "feeCode",
-          "feeName",
           "settlementPartyId",
-          "billingUnit",
           "quantity",
           "unitPrice",
           "currency",
-          "expenseDate"
+          "expenseDate",
+          "feeSettingId",
+          "billingUnitId"
         ],
         "type": "object",
         "properties": {
@@ -8911,16 +8910,7 @@
             "type": "integer",
             "format": "enum"
           },
-          "feeCode": {
-            "type": "string"
-          },
-          "feeName": {
-            "type": "string"
-          },
           "settlementPartyId": {
-            "type": "string"
-          },
-          "billingUnit": {
             "type": "string"
           },
           "quantity": {
@@ -8939,6 +8929,12 @@
             "type": "string"
           },
           "exchangeRateOverride": {
+            "type": "string"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "billingUnitId": {
             "type": "string"
           }
         }
@@ -9459,6 +9455,18 @@
           },
           "baseCurrency": {
             "type": "string"
+          },
+          "feeSettings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeSettingOption"
+            }
+          },
+          "billingUnits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeBillingUnitOption"
+            }
           }
         }
       },
@@ -10063,9 +10071,38 @@
           },
           "exchangeRateSettingId": {
             "type": "string"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "feeNameEn": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "string"
+          },
+          "taxableServiceName": {
+            "type": "string"
           }
         },
         "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"
+      },
+      "order.v1.OrderFeeBillingUnitOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.OrderFeeCurrencyOption": {
         "type": "object",
@@ -10079,6 +10116,41 @@
           "minorUnit": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "order.v1.OrderFeeSettingOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "aliasName": {
+            "type": "string"
+          },
+          "defaultCurrency": {
+            "type": "string"
+          },
+          "defaultBillingUnitId": {
+            "type": "string"
+          },
+          "defaultBillingUnitName": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "string"
+          },
+          "taxableServiceName": {
+            "type": "string"
           }
         }
       },
@@ -10830,14 +10902,13 @@
           "orderId",
           "id",
           "direction",
-          "feeCode",
-          "feeName",
           "settlementPartyId",
-          "billingUnit",
           "quantity",
           "unitPrice",
           "currency",
-          "expenseDate"
+          "expenseDate",
+          "feeSettingId",
+          "billingUnitId"
         ],
         "type": "object",
         "properties": {
@@ -10851,16 +10922,7 @@
             "type": "integer",
             "format": "enum"
           },
-          "feeCode": {
-            "type": "string"
-          },
-          "feeName": {
-            "type": "string"
-          },
           "settlementPartyId": {
-            "type": "string"
-          },
-          "billingUnit": {
             "type": "string"
           },
           "quantity": {
@@ -10879,6 +10941,12 @@
             "type": "string"
           },
           "exchangeRateOverride": {
+            "type": "string"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "billingUnitId": {
             "type": "string"
           }
         }

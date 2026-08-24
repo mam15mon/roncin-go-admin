@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -29,6 +30,7 @@ type BillingUnitQuery struct {
 	predicates       []predicate.BillingUnit
 	withOrganization *OrganizationQuery
 	withFeeSettings  *FeeSettingQuery
+	withOrderFees    *OrderFeeQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -103,6 +105,28 @@ func (_q *BillingUnitQuery) QueryFeeSettings() *FeeSettingQuery {
 			sqlgraph.From(billingunit.Table, billingunit.FieldID, selector),
 			sqlgraph.To(feesetting.Table, feesetting.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, billingunit.FeeSettingsTable, billingunit.FeeSettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderFees chains the current query on the "order_fees" edge.
+func (_q *BillingUnitQuery) QueryOrderFees() *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(billingunit.Table, billingunit.FieldID, selector),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, billingunit.OrderFeesTable, billingunit.OrderFeesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -304,6 +328,7 @@ func (_q *BillingUnitQuery) Clone() *BillingUnitQuery {
 		predicates:       append([]predicate.BillingUnit{}, _q.predicates...),
 		withOrganization: _q.withOrganization.Clone(),
 		withFeeSettings:  _q.withFeeSettings.Clone(),
+		withOrderFees:    _q.withOrderFees.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *BillingUnitQuery) WithFeeSettings(opts ...func(*FeeSettingQuery)) *Bil
 		opt(query)
 	}
 	_q.withFeeSettings = query
+	return _q
+}
+
+// WithOrderFees tells the query-builder to eager-load the nodes that are connected to
+// the "order_fees" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *BillingUnitQuery) WithOrderFees(opts ...func(*OrderFeeQuery)) *BillingUnitQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderFees = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *BillingUnitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*BillingUnit{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withFeeSettings != nil,
+			_q.withOrderFees != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -446,6 +483,13 @@ func (_q *BillingUnitQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadFeeSettings(ctx, query, nodes,
 			func(n *BillingUnit) { n.Edges.FeeSettings = []*FeeSetting{} },
 			func(n *BillingUnit, e *FeeSetting) { n.Edges.FeeSettings = append(n.Edges.FeeSettings, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderFees; query != nil {
+		if err := _q.loadOrderFees(ctx, query, nodes,
+			func(n *BillingUnit) { n.Edges.OrderFees = []*OrderFee{} },
+			func(n *BillingUnit, e *OrderFee) { n.Edges.OrderFees = append(n.Edges.OrderFees, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +550,39 @@ func (_q *BillingUnitQuery) loadFeeSettings(ctx context.Context, query *FeeSetti
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "billing_unit_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *BillingUnitQuery) loadOrderFees(ctx context.Context, query *OrderFeeQuery, nodes []*BillingUnit, init func(*BillingUnit), assign func(*BillingUnit, *OrderFee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*BillingUnit)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfee.FieldBillingUnitID)
+	}
+	query.Where(predicate.OrderFee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(billingunit.OrderFeesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillingUnitID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "billing_unit_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "billing_unit_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

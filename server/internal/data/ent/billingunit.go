@@ -45,9 +45,11 @@ type BillingUnitEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// FeeSettings holds the value of the fee_settings edge.
 	FeeSettings []*FeeSetting `json:"fee_settings,omitempty"`
+	// OrderFees holds the value of the order_fees edge.
+	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -68,6 +70,15 @@ func (e BillingUnitEdges) FeeSettingsOrErr() ([]*FeeSetting, error) {
 		return e.FeeSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "fee_settings"}
+}
+
+// OrderFeesOrErr returns the OrderFees value or an error if the edge
+// was not loaded in eager-loading.
+func (e BillingUnitEdges) OrderFeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[2] {
+		return e.OrderFees, nil
+	}
+	return nil, &NotLoadedError{edge: "order_fees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -169,6 +180,11 @@ func (_m *BillingUnit) QueryOrganization() *OrganizationQuery {
 // QueryFeeSettings queries the "fee_settings" edge of the BillingUnit entity.
 func (_m *BillingUnit) QueryFeeSettings() *FeeSettingQuery {
 	return NewBillingUnitClient(_m.config).QueryFeeSettings(_m)
+}
+
+// QueryOrderFees queries the "order_fees" edge of the BillingUnit entity.
+func (_m *BillingUnit) QueryOrderFees() *OrderFeeQuery {
+	return NewBillingUnitClient(_m.config).QueryOrderFees(_m)
 }
 
 // Update returns a builder for updating this BillingUnit.

@@ -55,6 +55,8 @@ const (
 	EdgeAbnormalCase = "abnormal_case"
 	// EdgeTaxableService holds the string denoting the taxable_service edge name in mutations.
 	EdgeTaxableService = "taxable_service"
+	// EdgeOrderFees holds the string denoting the order_fees edge name in mutations.
+	EdgeOrderFees = "order_fees"
 	// Table holds the table name of the feesetting in the database.
 	Table = "fee_settings"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -92,6 +94,13 @@ const (
 	TaxableServiceInverseTable = "taxable_services"
 	// TaxableServiceColumn is the table column denoting the taxable_service relation/edge.
 	TaxableServiceColumn = "taxable_service_id"
+	// OrderFeesTable is the table that holds the order_fees relation/edge.
+	OrderFeesTable = "order_fees"
+	// OrderFeesInverseTable is the table name for the OrderFee entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfee" package.
+	OrderFeesInverseTable = "order_fees"
+	// OrderFeesColumn is the table column denoting the order_fees relation/edge.
+	OrderFeesColumn = "fee_setting_id"
 )
 
 // Columns holds all SQL columns for feesetting fields.
@@ -266,6 +275,20 @@ func ByTaxableServiceField(field string, opts ...sql.OrderTermOption) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newTaxableServiceStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByOrderFeesCount orders the results by order_fees count.
+func ByOrderFeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderFeesStep(), opts...)
+	}
+}
+
+// ByOrderFees orders the results by order_fees terms.
+func ByOrderFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -299,5 +322,12 @@ func newTaxableServiceStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TaxableServiceInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, TaxableServiceTable, TaxableServiceColumn),
+	)
+}
+func newOrderFeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderFeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeesTable, OrderFeesColumn),
 	)
 }

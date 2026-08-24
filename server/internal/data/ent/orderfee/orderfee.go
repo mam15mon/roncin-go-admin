@@ -24,14 +24,24 @@ const (
 	FieldOrderID = "order_id"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
+	// FieldFeeSettingID holds the string denoting the fee_setting_id field in the database.
+	FieldFeeSettingID = "fee_setting_id"
 	// FieldFeeCode holds the string denoting the fee_code field in the database.
 	FieldFeeCode = "fee_code"
 	// FieldFeeName holds the string denoting the fee_name field in the database.
 	FieldFeeName = "fee_name"
+	// FieldFeeNameEn holds the string denoting the fee_name_en field in the database.
+	FieldFeeNameEn = "fee_name_en"
 	// FieldSettlementPartyID holds the string denoting the settlement_party_id field in the database.
 	FieldSettlementPartyID = "settlement_party_id"
+	// FieldBillingUnitID holds the string denoting the billing_unit_id field in the database.
+	FieldBillingUnitID = "billing_unit_id"
 	// FieldBillingUnit holds the string denoting the billing_unit field in the database.
 	FieldBillingUnit = "billing_unit"
+	// FieldTaxRate holds the string denoting the tax_rate field in the database.
+	FieldTaxRate = "tax_rate"
+	// FieldTaxableServiceName holds the string denoting the taxable_service_name field in the database.
+	FieldTaxableServiceName = "taxable_service_name"
 	// FieldQuantity holds the string denoting the quantity field in the database.
 	FieldQuantity = "quantity"
 	// FieldUnitPrice holds the string denoting the unit_price field in the database.
@@ -54,8 +64,12 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeFeeSetting holds the string denoting the fee_setting edge name in mutations.
+	EdgeFeeSetting = "fee_setting"
 	// EdgeSettlementParty holds the string denoting the settlement_party edge name in mutations.
 	EdgeSettlementParty = "settlement_party"
+	// EdgeBillingUnitRef holds the string denoting the billing_unit_ref edge name in mutations.
+	EdgeBillingUnitRef = "billing_unit_ref"
 	// Table holds the table name of the orderfee in the database.
 	Table = "order_fees"
 	// OrderTable is the table that holds the order relation/edge.
@@ -65,6 +79,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// FeeSettingTable is the table that holds the fee_setting relation/edge.
+	FeeSettingTable = "order_fees"
+	// FeeSettingInverseTable is the table name for the FeeSetting entity.
+	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
+	FeeSettingInverseTable = "fee_settings"
+	// FeeSettingColumn is the table column denoting the fee_setting relation/edge.
+	FeeSettingColumn = "fee_setting_id"
 	// SettlementPartyTable is the table that holds the settlement_party relation/edge.
 	SettlementPartyTable = "order_fees"
 	// SettlementPartyInverseTable is the table name for the Partner entity.
@@ -72,6 +93,13 @@ const (
 	SettlementPartyInverseTable = "partners"
 	// SettlementPartyColumn is the table column denoting the settlement_party relation/edge.
 	SettlementPartyColumn = "settlement_party_id"
+	// BillingUnitRefTable is the table that holds the billing_unit_ref relation/edge.
+	BillingUnitRefTable = "order_fees"
+	// BillingUnitRefInverseTable is the table name for the BillingUnit entity.
+	// It exists in this package in order to avoid circular dependency with the "billingunit" package.
+	BillingUnitRefInverseTable = "billing_units"
+	// BillingUnitRefColumn is the table column denoting the billing_unit_ref relation/edge.
+	BillingUnitRefColumn = "billing_unit_id"
 )
 
 // Columns holds all SQL columns for orderfee fields.
@@ -81,10 +109,15 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrderID,
 	FieldDirection,
+	FieldFeeSettingID,
 	FieldFeeCode,
 	FieldFeeName,
+	FieldFeeNameEn,
 	FieldSettlementPartyID,
+	FieldBillingUnitID,
 	FieldBillingUnit,
+	FieldTaxRate,
+	FieldTaxableServiceName,
 	FieldQuantity,
 	FieldUnitPrice,
 	FieldTotalAmount,
@@ -118,8 +151,12 @@ var (
 	FeeCodeValidator func(string) error
 	// FeeNameValidator is a validator for the "fee_name" field. It is called by the builders before save.
 	FeeNameValidator func(string) error
+	// FeeNameEnValidator is a validator for the "fee_name_en" field. It is called by the builders before save.
+	FeeNameEnValidator func(string) error
 	// BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
 	BillingUnitValidator func(string) error
+	// TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
+	TaxableServiceNameValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
@@ -207,6 +244,11 @@ func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
 }
 
+// ByFeeSettingID orders the results by the fee_setting_id field.
+func ByFeeSettingID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeSettingID, opts...).ToFunc()
+}
+
 // ByFeeCode orders the results by the fee_code field.
 func ByFeeCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeeCode, opts...).ToFunc()
@@ -217,14 +259,34 @@ func ByFeeName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeeName, opts...).ToFunc()
 }
 
+// ByFeeNameEn orders the results by the fee_name_en field.
+func ByFeeNameEn(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeNameEn, opts...).ToFunc()
+}
+
 // BySettlementPartyID orders the results by the settlement_party_id field.
 func BySettlementPartyID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementPartyID, opts...).ToFunc()
 }
 
+// ByBillingUnitID orders the results by the billing_unit_id field.
+func ByBillingUnitID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillingUnitID, opts...).ToFunc()
+}
+
 // ByBillingUnit orders the results by the billing_unit field.
 func ByBillingUnit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBillingUnit, opts...).ToFunc()
+}
+
+// ByTaxRate orders the results by the tax_rate field.
+func ByTaxRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxRate, opts...).ToFunc()
+}
+
+// ByTaxableServiceName orders the results by the taxable_service_name field.
+func ByTaxableServiceName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxableServiceName, opts...).ToFunc()
 }
 
 // ByQuantity orders the results by the quantity field.
@@ -284,10 +346,24 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByFeeSettingField orders the results by fee_setting field.
+func ByFeeSettingField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeSettingStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // BySettlementPartyField orders the results by settlement_party field.
 func BySettlementPartyField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSettlementPartyStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByBillingUnitRefField orders the results by billing_unit_ref field.
+func ByBillingUnitRefField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBillingUnitRefStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newOrderStep() *sqlgraph.Step {
@@ -297,10 +373,24 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
 	)
 }
+func newFeeSettingStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeSettingInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, FeeSettingTable, FeeSettingColumn),
+	)
+}
 func newSettlementPartyStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SettlementPartyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SettlementPartyTable, SettlementPartyColumn),
+	)
+}
+func newBillingUnitRefStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BillingUnitRefInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, BillingUnitRefTable, BillingUnitRefColumn),
 	)
 }

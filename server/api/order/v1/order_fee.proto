@@ -11,7 +11,7 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // OrderFeeService 订单费用录入服务。
 // 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
 service OrderFeeService {
-  // ListFeeOptions 获取费用录入所需的结算单位和币种候选项。
+  // ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
   rpc ListFeeOptions(ListFeeOptionsRequest) returns (ListFeeOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-options"};
@@ -83,6 +83,11 @@ message OrderFee {
   string exchange_rate_source = 18;
   string exchange_rate_date = 19;
   optional string exchange_rate_setting_id = 20;
+  optional string fee_setting_id = 21;
+  optional string billing_unit_id = 22;
+  optional string fee_name_en = 23;
+  optional string tax_rate = 24;
+  optional string taxable_service_name = 25;
 }
 
 message ListFeesRequest {
@@ -105,6 +110,25 @@ message OrderFeeCurrencyOption {
   int32 minor_unit = 3;
 }
 
+message OrderFeeSettingOption {
+  string id = 1;
+  string fee_code = 2;
+  string name_zh = 3;
+  optional string name_en = 4;
+  optional string alias_name = 5;
+  string default_currency = 6;
+  string default_billing_unit_id = 7;
+  string default_billing_unit_name = 8;
+  string tax_rate = 9;
+  string taxable_service_name = 10;
+}
+
+message OrderFeeBillingUnitOption {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+}
+
 message ListFeeOptionsResponse {
   bool success = 1;
   int32 code = 2;
@@ -113,15 +137,16 @@ message ListFeeOptionsResponse {
   repeated OrderFeeCurrencyOption currencies = 5;
   string trace_id = 6;
   string base_currency = 7;
+  repeated OrderFeeSettingOption fee_settings = 8;
+  repeated OrderFeeBillingUnitOption billing_units = 9;
 }
 
 message AddFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   OrderFeeDirection direction = 2 [(google.api.field_behavior) = REQUIRED];
-  string fee_code = 3 [(google.api.field_behavior) = REQUIRED];
-  string fee_name = 4 [(google.api.field_behavior) = REQUIRED];
+  reserved 3, 4, 6;
+  reserved "fee_code", "fee_name", "billing_unit";
   string settlement_party_id = 5 [(google.api.field_behavior) = REQUIRED];
-  string billing_unit = 6 [(google.api.field_behavior) = REQUIRED];
   string quantity = 7 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 8 [(google.api.field_behavior) = REQUIRED];
   string currency = 9 [(google.api.field_behavior) = REQUIRED];
@@ -129,16 +154,17 @@ message AddFeeRequest {
   string expense_date = 11 [(google.api.field_behavior) = REQUIRED];
   optional string note = 12;
   optional string exchange_rate_override = 13;
+  string fee_setting_id = 14 [(google.api.field_behavior) = REQUIRED];
+  string billing_unit_id = 15 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   OrderFeeDirection direction = 3 [(google.api.field_behavior) = REQUIRED];
-  string fee_code = 4 [(google.api.field_behavior) = REQUIRED];
-  string fee_name = 5 [(google.api.field_behavior) = REQUIRED];
+  reserved 4, 5, 7;
+  reserved "fee_code", "fee_name", "billing_unit";
   string settlement_party_id = 6 [(google.api.field_behavior) = REQUIRED];
-  string billing_unit = 7 [(google.api.field_behavior) = REQUIRED];
   string quantity = 8 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 9 [(google.api.field_behavior) = REQUIRED];
   string currency = 10 [(google.api.field_behavior) = REQUIRED];
@@ -146,6 +172,8 @@ message UpdateFeeRequest {
   string expense_date = 12 [(google.api.field_behavior) = REQUIRED];
   optional string note = 13;
   optional string exchange_rate_override = 14;
+  string fee_setting_id = 15 [(google.api.field_behavior) = REQUIRED];
+  string billing_unit_id = 16 [(google.api.field_behavior) = REQUIRED];
 }
 
 message RemoveFeeRequest {
