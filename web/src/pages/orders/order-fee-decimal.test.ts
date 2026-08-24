@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { calculateExactFeeTotal, trimExactDecimal } from './order-fee-decimal';
+import {
+  calculateExactFeeTotal,
+  exchangeRatePattern,
+  isPositiveExactDecimal,
+  trimExactDecimal,
+} from './order-fee-decimal';
 
 describe('订单费用十进制计算', () => {
   it('不经过 Number 精确计算常见浮点陷阱', () => {
@@ -16,5 +21,14 @@ describe('订单费用十进制计算', () => {
 
   it('仅移除展示用的末尾零', () => {
     expect(trimExactDecimal('120.34000000')).toBe('120.34');
+  });
+
+  it('接受八位小数汇率且拒绝第九位', () => {
+    expect(isPositiveExactDecimal('0.12345678', exchangeRatePattern)).toBe(
+      true,
+    );
+    expect(isPositiveExactDecimal('0.123456789', exchangeRatePattern)).toBe(
+      false,
+    );
   });
 });

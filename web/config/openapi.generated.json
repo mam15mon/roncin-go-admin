@@ -7938,6 +7938,9 @@
           },
           "note": {
             "type": "string"
+          },
+          "exchangeRateOverride": {
+            "type": "string"
           }
         }
       },
@@ -9874,6 +9877,9 @@
             "type": "string"
           },
           "note": {
+            "type": "string"
+          },
+          "exchangeRateOverride": {
             "type": "string"
           }
         }

@@ -17,6 +17,7 @@ const permissions = {
   financeExchangeRateCreate: 'system.finance.exchange_rate.create',
   financeExchangeRateUpdate: 'system.finance.exchange_rate.update',
   financeExchangeRateDisable: 'system.finance.exchange_rate.disable',
+  financeExchangeRateOverride: 'system.finance.exchange_rate.override',
   partnerRead: 'business.partner.read',
   partnerCreate: 'business.partner.create',
   partnerUpdate: 'business.partner.update',
@@ -143,6 +144,8 @@ export default function access(
       has(permissions.financeExchangeRateUpdate) && inOrganization,
     canDisableExchangeRates:
       has(permissions.financeExchangeRateDisable) && inOrganization,
+    canOverrideFeeExchangeRate:
+      has(permissions.financeExchangeRateOverride) && inOrganization,
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canCreatePartners: has(permissions.partnerCreate) && inOrganization,
     canUpdatePartners: has(permissions.partnerUpdate) && inOrganization,

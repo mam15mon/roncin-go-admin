@@ -48,6 +48,7 @@ declare namespace API {
     currency: string;
     expenseDate: string;
     note?: string;
+    exchangeRateOverride?: string;
   };
 
   type AddFeeResponse = {
@@ -2573,6 +2574,7 @@ declare namespace API {
     currency: string;
     expenseDate: string;
     note?: string;
+    exchangeRateOverride?: string;
   };
 
   type UpdateFeeResponse = {

@@ -31,6 +31,7 @@ import {
 } from '@/services/roncin/orderFeeService';
 import {
   calculateExactFeeTotal,
+  exchangeRatePattern,
   isPositiveExactDecimal,
   quantityOrPricePattern,
   trimExactDecimal,
@@ -50,6 +51,14 @@ type FeeFormValues = {
   currency: string;
   expenseDate: string | Dayjs;
   note?: string;
+  exchangeRateOverride?: string;
+};
+
+type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
+
+type FeeRequestError = Error & {
+  data?: { message?: string; reason?: string };
+  response?: { data?: { message?: string; reason?: string } };
 };
 
 export type OrderFeePanelRef = {
@@ -88,6 +97,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [baseCurrency, setBaseCurrency] = useState('');
     const [totalPreview, setTotalPreview] = useState<string>();
     const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
+    const [exchangeRateStatus, setExchangeRateStatus] =
+      useState<ExchangeRateStatus>('idle');
+    const [manualExchangeRate, setManualExchangeRate] = useState(false);
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
@@ -105,19 +117,74 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       },
     }));
 
+    const resolveExchangeRate = (
+      orderId: string,
+      direction: number,
+      currency: string,
+      expenseDate: string,
+    ) => {
+      const requestSequence = ++exchangeRateRequestRef.current;
+      setExchangeRateStatus('loading');
+      setExchangeRatePreview(undefined);
+      setManualExchangeRate(false);
+      formRef.current?.setFieldValue('exchangeRateOverride', undefined);
+      void orderFeeServiceResolveFeeExchangeRate(
+        { orderId, direction, currency, expenseDate },
+        { skipErrorHandler: true },
+      )
+        .then((response) => {
+          if (requestSequence !== exchangeRateRequestRef.current) return;
+          if (!response.exchangeRate) {
+            setExchangeRateStatus('error');
+            message.error('汇率解析结果不完整');
+            return;
+          }
+          setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
+          setExchangeRateStatus('resolved');
+        })
+        .catch((rawError: unknown) => {
+          if (requestSequence !== exchangeRateRequestRef.current) return;
+          const error = rawError as FeeRequestError;
+          const envelope = error.data ?? error.response?.data;
+          if (envelope?.reason === 'FEE_EXCHANGE_RATE_MISSING') {
+            setExchangeRateStatus('missing');
+            setManualExchangeRate(access.canOverrideFeeExchangeRate);
+            return;
+          }
+          setExchangeRateStatus('error');
+          message.error(envelope?.message || error.message || '汇率解析失败');
+        });
+    };
+
     const openCreate = () => {
+      const expenseDate = dayjs().format('YYYY-MM-DD');
       setEditingFee(undefined);
       setTotalPreview(undefined);
-      setExchangeRatePreview('1');
+      setExchangeRatePreview(undefined);
+      setExchangeRateStatus('idle');
+      setManualExchangeRate(false);
       formRef.current?.resetFields();
       setModalOpen(true);
+      if (order?.id && baseCurrency) {
+        resolveExchangeRate(order.id, RECEIVABLE, baseCurrency, expenseDate);
+      }
     };
 
     const openEdit = (fee: API.OrderFee) => {
       setEditingFee(fee);
       setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
-      setExchangeRatePreview(trimExactDecimal(fee.exchangeRate));
+      setExchangeRatePreview(undefined);
+      setExchangeRateStatus('idle');
+      setManualExchangeRate(false);
       setModalOpen(true);
+      if (order?.id && fee.direction && fee.currency && fee.expenseDate) {
+        resolveExchangeRate(
+          order.id,
+          fee.direction,
+          fee.currency,
+          fee.expenseDate,
+        );
+      }
     };
 
     const businessType = order?.businessType;
@@ -191,9 +258,20 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       {
         title: '汇率',
         dataIndex: 'exchangeRate',
-        width: 110,
+        width: 160,
         align: 'right',
-        render: (_, record) => trimExactDecimal(record.exchangeRate),
+        render: (_, record) => (
+          <Space size={4}>
+            {trimExactDecimal(record.exchangeRate)}
+            {record.exchangeRateSource === 'MANUAL' && (
+              <Tag color="gold">手工</Tag>
+            )}
+            {record.exchangeRateSource === 'SYSTEM' && (
+              <Tag color="blue">系统</Tag>
+            )}
+            {record.exchangeRateSource === 'BASE_CURRENCY' && <Tag>本币</Tag>}
+          </Space>
+        ),
       },
       {
         title: '费用日期',
@@ -271,6 +349,20 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           expenseDate: dayjs(),
         };
 
+    const exchangeRateSubmissionBlocked =
+      exchangeRateStatus === 'idle' ||
+      exchangeRateStatus === 'loading' ||
+      exchangeRateStatus === 'error' ||
+      (exchangeRateStatus === 'missing' && !manualExchangeRate);
+    const exchangeRateDisplay =
+      exchangeRateStatus === 'loading'
+        ? '解析中'
+        : exchangeRateStatus === 'missing'
+          ? '未配置'
+          : exchangeRateStatus === 'error'
+            ? '解析失败'
+            : (exchangeRatePreview ?? '待解析');
+
     return (
       <>
         <Drawer
@@ -332,37 +424,37 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             onCancel: () => setModalOpen(false),
           }}
           onOpenChange={setModalOpen}
+          submitter={{
+            submitButtonProps: { disabled: exchangeRateSubmissionBlocked },
+          }}
           onValuesChange={(changed, values) => {
             if (
-              ('currency' in changed ||
-                'direction' in changed ||
-                'expenseDate' in changed) &&
-              order?.id &&
-              values.currency &&
-              values.direction &&
-              values.expenseDate
+              'currency' in changed ||
+              'direction' in changed ||
+              'expenseDate' in changed
             ) {
-              const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
-              const requestSequence = ++exchangeRateRequestRef.current;
-              setExchangeRatePreview(undefined);
-              void orderFeeServiceResolveFeeExchangeRate({
-                orderId: order.id,
-                direction: values.direction,
-                currency: values.currency,
-                expenseDate,
-              })
-                .then((response) => {
-                  if (requestSequence === exchangeRateRequestRef.current) {
-                    setExchangeRatePreview(
-                      trimExactDecimal(response.exchangeRate),
-                    );
-                  }
-                })
-                .catch((error: Error) => {
-                  if (requestSequence === exchangeRateRequestRef.current) {
-                    message.error(error.message || '汇率解析失败');
-                  }
-                });
+              if (
+                order?.id &&
+                values.currency &&
+                values.direction &&
+                values.expenseDate
+              ) {
+                resolveExchangeRate(
+                  order.id,
+                  values.direction,
+                  values.currency,
+                  dayjs(values.expenseDate).format('YYYY-MM-DD'),
+                );
+              } else {
+                exchangeRateRequestRef.current++;
+                setExchangeRateStatus('idle');
+                setExchangeRatePreview(undefined);
+                setManualExchangeRate(false);
+                formRef.current?.setFieldValue(
+                  'exchangeRateOverride',
+                  undefined,
+                );
+              }
             }
             setTotalPreview(
               calculateExactFeeTotal(values.quantity, values.unitPrice),
@@ -370,6 +462,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           }}
           onFinish={async (values) => {
             if (!order?.id) return false;
+            if (exchangeRateSubmissionBlocked) {
+              message.warning('请先确认当前费用的结算汇率');
+              return false;
+            }
             const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
             const payload = {
               orderId: order.id,
@@ -383,6 +479,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               currency: values.currency,
               expenseDate,
               note: values.note?.trim() || undefined,
+              exchangeRateOverride: manualExchangeRate
+                ? values.exchangeRateOverride
+                : undefined,
             };
             if (editingFee?.id) {
               await orderFeeServiceUpdateFee(
@@ -489,11 +588,72 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             fieldProps={{ inputMode: 'decimal' }}
             placeholder="最多 4 位小数"
           />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="结算汇率"
-            fieldProps={{ value: exchangeRatePreview ?? '待解析', disabled: true }}
-          />
+          {manualExchangeRate ? (
+            <ProFormText
+              key="manual-exchange-rate"
+              colProps={{ span: 12 }}
+              name="exchangeRateOverride"
+              label="手工结算汇率"
+              rules={[
+                { required: true, message: '请输入手工结算汇率' },
+                {
+                  validator: positiveDecimalRule(
+                    exchangeRatePattern,
+                    '汇率最多 10 位整数、8 位小数',
+                  ),
+                },
+              ]}
+              fieldProps={{ inputMode: 'decimal' }}
+              placeholder="最多 8 位小数"
+              extra={
+                <Space size="small">
+                  <span>仅覆盖当前这笔费用</span>
+                  {exchangeRateStatus !== 'missing' && (
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ padding: 0 }}
+                      onClick={() => {
+                        setManualExchangeRate(false);
+                        formRef.current?.setFieldValue(
+                          'exchangeRateOverride',
+                          undefined,
+                        );
+                      }}
+                    >
+                      取消覆盖
+                    </Button>
+                  )}
+                </Space>
+              }
+            />
+          ) : (
+            <ProFormText
+              key="system-exchange-rate"
+              colProps={{ span: 12 }}
+              label="结算汇率"
+              fieldProps={{ value: exchangeRateDisplay, disabled: true }}
+              extra={
+                access.canOverrideFeeExchangeRate &&
+                exchangeRateStatus === 'resolved' ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ padding: 0 }}
+                    onClick={() => {
+                      setManualExchangeRate(true);
+                      formRef.current?.setFieldValue(
+                        'exchangeRateOverride',
+                        exchangeRatePreview,
+                      );
+                    }}
+                  >
+                    手工覆盖
+                  </Button>
+                ) : null
+              }
+            />
+          )}
           <ProFormDatePicker
             colProps={{ span: 12 }}
             name="expenseDate"
@@ -507,6 +667,27 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             label="备注"
             fieldProps={{ maxLength: 500, showCount: true }}
           />
+          {exchangeRateStatus === 'missing' && (
+            <Alert
+              style={{ gridColumn: '1 / -1' }}
+              type="warning"
+              showIcon
+              message="当前费用日期所在期间未配置生效汇率"
+              description={
+                access.canOverrideFeeExchangeRate
+                  ? '你可以仅为当前这笔费用录入手工汇率，该值不会改动公司汇率主数据。'
+                  : '请联系拥有全公司汇率维护权限的人员配置该期间汇率。'
+              }
+            />
+          )}
+          {exchangeRateStatus === 'error' && (
+            <Alert
+              style={{ gridColumn: '1 / -1' }}
+              type="error"
+              showIcon
+              message="汇率解析失败，暂时不能提交费用"
+            />
+          )}
           <Alert
             style={{ gridColumn: '1 / -1' }}
             type="info"
@@ -514,8 +695,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             icon={<DollarOutlined />}
             message={
               totalPreview
-                ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}；结算汇率：${exchangeRatePreview ?? '待解析'}`
-                : '总金额和汇率均由服务端精确计算、解析，不接受客户端覆盖。'
+                ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}；结算汇率：${manualExchangeRate ? '手工录入' : exchangeRateDisplay}`
+                : '总金额由服务端使用精确十进制计算，汇率默认从公司汇率数据带入。'
             }
           />
         </ModalForm>

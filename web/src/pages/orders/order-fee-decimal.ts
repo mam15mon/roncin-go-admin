@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 
 export const quantityOrPricePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$/;
-export const exchangeRatePattern = /^(0|[1-9][0-9]{0,11})(\.[0-9]{1,6})?$/;
+export const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
 
 export function calculateExactFeeTotal(
   quantity?: string,
