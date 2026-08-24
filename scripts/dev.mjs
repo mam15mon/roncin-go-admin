@@ -73,13 +73,11 @@ async function waitForPostgres() {
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     if (postgresIsReady('ignore')) {
-      return;
+      return true;
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
-  throw new Error(
-    'PostgreSQL 进程已存在，但 127.0.0.1:5432 连续 10 秒无响应，疑似卡死，请重启 PostgreSQL',
-  );
+  return false;
 }
 
 function findExistingDevelopmentServerTrees() {
@@ -170,7 +168,19 @@ async function prepareDatabase() {
   }
 
   console.log('[dev] 等待 PostgreSQL 就绪');
-  await waitForPostgres();
+  if (!(await waitForPostgres())) {
+    console.log('[dev] PostgreSQL 连续 10 秒无响应，执行快速重启');
+    await runChecked('pg_ctl', [
+      'restart',
+      '-D',
+      postgresDataDir,
+      '-m',
+      'fast',
+      '-w',
+      '-t',
+      '60',
+    ]);
+  }
 
   console.log('[dev] 执行数据库迁移');
   await runPnpmScript('migrate:server');
