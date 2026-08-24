@@ -2,35 +2,39 @@
 
 ## 推荐运行方式
 
-本地开发直接运行 Go 服务、Ant Design Pro 和 Windows PostgreSQL，不要求 Docker。
+本地开发直接运行 Go 服务和 Ant Design Pro，PostgreSQL 由 Docker Desktop 提供。
 
 ```text
 Windows
 ├── Go Kratos 服务：8000（HTTP）、9000（gRPC）
 ├── Ant Design Pro：8001（开发服务器）
-└── PostgreSQL：5432（Windows 本机）
+└── PostgreSQL：5432（Docker Desktop）
 ```
 
-Dockerfile 仅用于以后需要单镜像部署时的构建，不是本地开发前置条件。
+Docker Desktop 使用 WSL 2 后端；Go 与前端仍直接在 Windows 运行。
 
-## Windows PostgreSQL
+## Docker PostgreSQL
 
-开发环境使用 Scoop 安装的 Windows PostgreSQL，数据目录为
-`C:\Users\admin\scoop\persist\postgresql\data`。可手工查看运行状态：
+安装 Docker Desktop 后，可手工查看数据库容器状态和日志：
 
 ```powershell
-pg_ctl status -D C:\Users\admin\scoop\persist\postgresql\data
-pg_isready -h 127.0.0.1 -p 5432
+docker compose --env-file .env.local ps postgres
+docker compose --env-file .env.local logs postgres
 ```
 
-`pnpm dev` 会自动检查并启动该实例，无需日常手工执行上述命令。
+`pnpm dev` 会自动启动 Docker Desktop 和数据库容器，并在容器无响应时重启一次，
+无需日常手工执行上述命令。数据库数据保存在 Docker named volume
+`roncin-go-admin_postgres-data` 中。
 
 ## 环境文件
 
 复制 `.env.example` 为仓库根目录的 `.env.local`，只在本机保存真实密码：
 
 ```env
-DATABASE_SOURCE=postgres://roncin:本机密码@127.0.0.1:5432/roncin?sslmode=disable
+POSTGRES_DB=roncin_go_admin
+POSTGRES_USER=roncin
+POSTGRES_PASSWORD=本机密码
+DATABASE_SOURCE=postgres://roncin:本机密码@127.0.0.1:5432/roncin_go_admin?sslmode=disable
 BOOTSTRAP_ADMIN_USERNAME=admin
 BOOTSTRAP_ADMIN_DISPLAY_NAME=系统管理员
 BOOTSTRAP_ADMIN_PASSWORD=请替换为至少12位密码
@@ -64,7 +68,7 @@ pnpm run bootstrap:admin
 pnpm dev
 ```
 
-该命令会依次启动 Windows PostgreSQL、执行数据库迁移，然后并行启动后端 Air
+该命令会依次启动 Docker PostgreSQL、执行数据库迁移，然后并行启动后端 Air
 热重载和前端开发服务。Air 会监听 Go、YAML 和 SQL 文件；每次后端重载前
 都会执行幂等迁移。修改 Ent Schema 时仍需要按项目约束生成对应迁移 SQL。
 
@@ -96,6 +100,19 @@ pnpm run sync:unlocode -- -source C:\data\loc251csv.zip -release 2025-1
 写事务；解析不完整或存在致命冲突时不会停用现有数据。机场、港口的网络同步
 只更新官方英文信息和来源元数据，不覆盖人工维护的中文名。
 
-## Docker 的边界
+## 数据库容器管理
 
-本地已经使用 Windows PostgreSQL，不要执行 `docker compose up -d postgres`，否则会额外启动一套 PostgreSQL。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。
+停止容器不会删除数据：
+
+```powershell
+docker compose --env-file .env.local stop postgres
+```
+
+重新启动数据库：
+
+```powershell
+docker compose --env-file .env.local up -d postgres
+```
+
+不要执行 `docker compose --env-file .env.local down -v`，该命令会删除本地数据库
+volume。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。

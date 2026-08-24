@@ -7,15 +7,46 @@ if (process.platform !== 'win32') {
   throw new Error('开发启动脚本仅支持 Windows 本机 PostgreSQL');
 }
 
-const userProfile = process.env.USERPROFILE;
-if (!userProfile) {
-  throw new Error('USERPROFILE 环境变量不存在');
+const programFiles = process.env.ProgramFiles;
+if (!programFiles) {
+  throw new Error('ProgramFiles 环境变量不存在');
 }
 
-const postgresDataDir = join(userProfile, 'scoop', 'persist', 'postgresql', 'data');
-if (!existsSync(postgresDataDir)) {
-  throw new Error(`PostgreSQL 数据目录不存在: ${postgresDataDir}`);
+const dockerExecutable = join(
+  programFiles,
+  'Docker',
+  'Docker',
+  'resources',
+  'bin',
+  'docker.exe',
+);
+if (!existsSync(dockerExecutable)) {
+  throw new Error(`Docker CLI 不存在: ${dockerExecutable}`);
 }
+
+const databaseSource = process.env.DATABASE_SOURCE;
+if (!databaseSource) {
+  throw new Error('.env.local 中缺少 DATABASE_SOURCE');
+}
+
+const databaseUrl = new URL(databaseSource);
+if (!['postgres:', 'postgresql:'].includes(databaseUrl.protocol)) {
+  throw new Error('DATABASE_SOURCE 必须是 PostgreSQL 连接地址');
+}
+
+const postgresDatabase = decodeURIComponent(databaseUrl.pathname.slice(1));
+const postgresUser = decodeURIComponent(databaseUrl.username);
+const postgresPassword = decodeURIComponent(databaseUrl.password);
+if (!postgresDatabase || !postgresUser || !postgresPassword) {
+  throw new Error('DATABASE_SOURCE 必须包含数据库名、用户名和密码');
+}
+
+const composeEnvironment = {
+  ...process.env,
+  POSTGRES_DB: postgresDatabase,
+  POSTGRES_USER: postgresUser,
+  POSTGRES_PASSWORD: postgresPassword,
+};
 
 const developmentServerExecutable = fileURLToPath(
   new URL('../server/tmp/roncin-server.exe', import.meta.url),
@@ -53,26 +84,33 @@ function runPnpmScript(script) {
   return runChecked(commandShell, ['/d', '/s', '/c', `pnpm run ${script}`]);
 }
 
-function postgresIsRunning() {
+function postgresIsReady() {
   return (
-    spawnSync('pg_ctl', ['status', '-D', postgresDataDir], {
-      stdio: 'ignore',
-    }).status === 0
+    spawnSync(
+      dockerExecutable,
+      [
+        'compose',
+        'exec',
+        '-T',
+        'postgres',
+        'pg_isready',
+        '-U',
+        postgresUser,
+        '-d',
+        postgresDatabase,
+      ],
+      {
+        env: composeEnvironment,
+        stdio: 'ignore',
+      },
+    ).status === 0
   );
 }
 
-function postgresIsReady(stdio = 'inherit') {
-  return (
-    spawnSync('pg_isready', ['-h', '127.0.0.1', '-p', '5432', '-t', '1'], {
-      stdio,
-    }).status === 0
-  );
-}
-
-async function waitForPostgres() {
-  const deadline = Date.now() + 10_000;
+async function waitForPostgres(timeout) {
+  const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
-    if (postgresIsReady('ignore')) {
+    if (postgresIsReady()) {
       return true;
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
@@ -155,31 +193,30 @@ function stopExistingDevelopmentServers() {
 }
 
 async function prepareDatabase() {
-  if (!postgresIsRunning()) {
-    console.log(`[dev] 启动 Windows PostgreSQL: ${postgresDataDir}`);
-    await runChecked('pg_ctl', [
-      'start',
-      '-D',
-      postgresDataDir,
-      '-w',
-      '-t',
-      '60',
-    ]);
+  console.log('[dev] 启动 Docker Desktop');
+  await runChecked(dockerExecutable, ['desktop', 'start', '--timeout', '60']);
+
+  console.log('[dev] 启动 Docker PostgreSQL');
+  await runChecked(
+    dockerExecutable,
+    ['compose', 'up', '-d', 'postgres'],
+    { env: composeEnvironment },
+  );
+
+  console.log('[dev] 等待 Docker PostgreSQL 就绪');
+  if (!(await waitForPostgres(10_000))) {
+    console.log('[dev] Docker PostgreSQL 连续 10 秒无响应，重启容器');
+    await runChecked(
+      dockerExecutable,
+      ['compose', 'restart', 'postgres'],
+      { env: composeEnvironment },
+    );
   }
 
-  console.log('[dev] 等待 PostgreSQL 就绪');
-  if (!(await waitForPostgres())) {
-    console.log('[dev] PostgreSQL 连续 10 秒无响应，执行立即重启');
-    await runChecked('pg_ctl', [
-      'restart',
-      '-D',
-      postgresDataDir,
-      '-m',
-      'immediate',
-      '-w',
-      '-t',
-      '60',
-    ]);
+  if (!(await waitForPostgres(60_000))) {
+    throw new Error(
+      'Docker PostgreSQL 重启后仍未在 60 秒内就绪，请检查 docker compose logs postgres',
+    );
   }
 
   console.log('[dev] 执行数据库迁移');
