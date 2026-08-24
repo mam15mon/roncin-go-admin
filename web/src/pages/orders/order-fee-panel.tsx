@@ -26,11 +26,11 @@ import {
   orderFeeServiceListFeeOptions,
   orderFeeServiceListFees,
   orderFeeServiceRemoveFee,
+  orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import {
   calculateExactFeeTotal,
-  exchangeRatePattern,
   isPositiveExactDecimal,
   quantityOrPricePattern,
   trimExactDecimal,
@@ -48,7 +48,6 @@ type FeeFormValues = {
   quantity: string;
   unitPrice: string;
   currency: string;
-  exchangeRate: string;
   expenseDate: string | Dayjs;
   note?: string;
 };
@@ -72,6 +71,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const access = useAccess();
     const { message } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
+    const exchangeRateRequestRef = useRef(0);
     const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(
       undefined,
     );
@@ -86,6 +86,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       API.OrderFeeSettlementPartyOption[]
     >([]);
     const [totalPreview, setTotalPreview] = useState<string>();
+    const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
@@ -105,6 +106,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const openCreate = () => {
       setEditingFee(undefined);
       setTotalPreview(undefined);
+      setExchangeRatePreview('1');
       formRef.current?.resetFields();
       setModalOpen(true);
     };
@@ -112,6 +114,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const openEdit = (fee: API.OrderFee) => {
       setEditingFee(fee);
       setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
+      setExchangeRatePreview(trimExactDecimal(fee.exchangeRate));
       setModalOpen(true);
     };
 
@@ -253,7 +256,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           quantity: trimExactDecimal(editingFee.quantity),
           unitPrice: trimExactDecimal(editingFee.unitPrice),
           currency: editingFee.currency,
-          exchangeRate: trimExactDecimal(editingFee.exchangeRate),
           expenseDate: editingFee.expenseDate
             ? dayjs(editingFee.expenseDate)
             : undefined,
@@ -264,7 +266,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           billingUnit: '票',
           quantity: '1',
           currency: 'CNY',
-          exchangeRate: '1',
           expenseDate: dayjs(),
         };
 
@@ -329,11 +330,36 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           }}
           onOpenChange={setModalOpen}
           onValuesChange={(changed, values) => {
-            if ('currency' in changed) {
-              formRef.current?.setFieldValue(
-                'exchangeRate',
-                changed.currency === 'CNY' ? '1' : undefined,
-              );
+            if (
+              ('currency' in changed ||
+                'direction' in changed ||
+                'expenseDate' in changed) &&
+              order?.id &&
+              values.currency &&
+              values.direction &&
+              values.expenseDate
+            ) {
+              const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
+              const requestSequence = ++exchangeRateRequestRef.current;
+              setExchangeRatePreview(undefined);
+              void orderFeeServiceResolveFeeExchangeRate({
+                orderId: order.id,
+                direction: values.direction,
+                currency: values.currency,
+                expenseDate,
+              })
+                .then((response) => {
+                  if (requestSequence === exchangeRateRequestRef.current) {
+                    setExchangeRatePreview(
+                      trimExactDecimal(response.exchangeRate),
+                    );
+                  }
+                })
+                .catch((error: Error) => {
+                  if (requestSequence === exchangeRateRequestRef.current) {
+                    message.error(error.message || '汇率解析失败');
+                  }
+                });
             }
             setTotalPreview(
               calculateExactFeeTotal(values.quantity, values.unitPrice),
@@ -352,7 +378,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               quantity: values.quantity,
               unitPrice: values.unitPrice,
               currency: values.currency,
-              exchangeRate: values.exchangeRate,
               expenseDate,
               note: values.note?.trim() || undefined,
             };
@@ -463,19 +488,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           />
           <ProFormText
             colProps={{ span: 12 }}
-            name="exchangeRate"
-            label="汇率"
-            rules={[
-              { required: true, message: '请输入汇率' },
-              {
-                validator: positiveDecimalRule(
-                  exchangeRatePattern,
-                  '汇率最多 12 位整数、6 位小数',
-                ),
-              },
-            ]}
-            fieldProps={{ inputMode: 'decimal' }}
-            placeholder="最多 6 位小数"
+            label="结算汇率"
+            fieldProps={{ value: exchangeRatePreview ?? '待解析', disabled: true }}
           />
           <ProFormDatePicker
             colProps={{ span: 12 }}
@@ -497,8 +511,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             icon={<DollarOutlined />}
             message={
               totalPreview
-                ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}`
-                : '总金额由服务端按“数量 × 单价”精确计算，不接受客户端金额覆盖。'
+                ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}；结算汇率：${exchangeRatePreview ?? '待解析'}`
+                : '总金额和汇率均由服务端精确计算、解析，不接受客户端覆盖。'
             }
           />
         </ModalForm>

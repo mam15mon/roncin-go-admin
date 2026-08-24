@@ -13,6 +13,10 @@ const permissions = {
   roleUpdate: 'system.role.update',
   permissionRead: 'system.permission.read',
   auditRead: 'system.audit.read',
+  financeExchangeRateRead: 'system.finance.exchange_rate.read',
+  financeExchangeRateCreate: 'system.finance.exchange_rate.create',
+  financeExchangeRateUpdate: 'system.finance.exchange_rate.update',
+  financeExchangeRateDisable: 'system.finance.exchange_rate.disable',
   partnerRead: 'business.partner.read',
   partnerCreate: 'business.partner.create',
   partnerUpdate: 'business.partner.update',
@@ -131,6 +135,14 @@ export default function access(
     canUpdateRoles: has(permissions.roleUpdate) && inOrganization,
     canReadPermissions: has(permissions.permissionRead) && inOrganization,
     canReadAudit: has(permissions.auditRead) && inOrganization,
+    canReadExchangeRates:
+      has(permissions.financeExchangeRateRead) && inOrganization,
+    canCreateExchangeRates:
+      has(permissions.financeExchangeRateCreate) && inOrganization,
+    canUpdateExchangeRates:
+      has(permissions.financeExchangeRateUpdate) && inOrganization,
+    canDisableExchangeRates:
+      has(permissions.financeExchangeRateDisable) && inOrganization,
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canCreatePartners: has(permissions.partnerCreate) && inOrganization,
     canUpdatePartners: has(permissions.partnerUpdate) && inOrganization,

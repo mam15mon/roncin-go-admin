@@ -143,6 +143,13 @@ export default [
     component: './master-data',
   },
   {
+    path: '/finance/exchange-rates',
+    name: '汇率设置',
+    icon: 'moneyCollect',
+    access: 'canReadExchangeRates',
+    component: './finance/exchange-rates',
+  },
+  {
     path: '/admin',
     name: '系统管理',
     icon: 'setting',
