@@ -357,7 +357,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "rate_type", Type: field.TypeEnum, Enums: []string{"SETTLEMENT"}},
+		{Name: "rate_type", Type: field.TypeEnum, Enums: []string{"BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"}},
 		{Name: "from_currency", Type: field.TypeString, Size: 3},
 		{Name: "to_currency", Type: field.TypeString, Size: 3},
 		{Name: "time_standard", Type: field.TypeEnum, Enums: []string{"EXPENSE_DATE"}},

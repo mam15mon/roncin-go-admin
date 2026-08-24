@@ -22,8 +22,12 @@ var (
 )
 
 const (
-	SettlementRateType  = "SETTLEMENT"
-	ExpenseDateStandard = "EXPENSE_DATE"
+	BaseCurrencyRateType = "BASE_CURRENCY"
+	InvoiceRateType      = "INVOICE"
+	SettlementRateType   = "SETTLEMENT"
+	WriteOffRateType     = "WRITE_OFF"
+	BillRateType         = "BILL"
+	ExpenseDateStandard  = "EXPENSE_DATE"
 )
 
 var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$`)
@@ -156,7 +160,7 @@ func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID 
 }
 
 func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSetting, error) {
-	if input == nil || input.RateType != SettlementRateType || input.TimeStandard != ExpenseDateStandard {
+	if input == nil || !validExchangeRateType(input.RateType) || input.TimeStandard != ExpenseDateStandard {
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	fromCurrency := strings.ToUpper(strings.TrimSpace(input.FromCurrency))
@@ -185,6 +189,15 @@ func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSett
 	output.EffectiveFrom = effectiveFrom
 	output.EffectiveTo = effectiveTo
 	return &output, nil
+}
+
+func validExchangeRateType(value string) bool {
+	switch value {
+	case BaseCurrencyRateType, InvoiceRateType, SettlementRateType, WriteOffRateType, BillRateType:
+		return true
+	default:
+		return false
+	}
 }
 
 func validExchangeRate(value decimal.Decimal) bool {

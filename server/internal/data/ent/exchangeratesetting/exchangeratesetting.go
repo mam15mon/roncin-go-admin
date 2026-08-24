@@ -96,7 +96,11 @@ type RateType string
 
 // RateType values.
 const (
-	RateTypeSETTLEMENT RateType = "SETTLEMENT"
+	RateTypeBASE_CURRENCY RateType = "BASE_CURRENCY"
+	RateTypeINVOICE       RateType = "INVOICE"
+	RateTypeSETTLEMENT    RateType = "SETTLEMENT"
+	RateTypeWRITE_OFF     RateType = "WRITE_OFF"
+	RateTypeBILL          RateType = "BILL"
 )
 
 func (rt RateType) String() string {
@@ -106,7 +110,7 @@ func (rt RateType) String() string {
 // RateTypeValidator is a validator for the "rate_type" field enum values. It is called by the builders before save.
 func RateTypeValidator(rt RateType) error {
 	switch rt {
-	case RateTypeSETTLEMENT:
+	case RateTypeBASE_CURRENCY, RateTypeINVOICE, RateTypeSETTLEMENT, RateTypeWRITE_OFF, RateTypeBILL:
 		return nil
 	default:
 		return fmt.Errorf("exchangeratesetting: invalid enum value for rate_type field: %q", rt)

@@ -21,8 +21,16 @@ import {
 import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
+const exchangeRateTypeOptions = [
+  { label: '汇率（折本币）', value: 'BASE_CURRENCY' },
+  { label: '开票汇率', value: 'INVOICE' },
+  { label: '结算汇率', value: 'SETTLEMENT' },
+  { label: '核销汇率', value: 'WRITE_OFF' },
+  { label: '账单汇率', value: 'BILL' },
+];
 
 type ExchangeRateFormValues = {
+  rateType: string;
   fromCurrency: string;
   toCurrency: string;
   effectiveFrom: string | Dayjs;
@@ -53,6 +61,13 @@ export default function ExchangeRatesPage() {
   };
 
   const columns: ProColumns<API.ExchangeRateSetting>[] = [
+    {
+      title: '汇率类型',
+      dataIndex: 'rateType',
+      width: 130,
+      render: (_, record) =>
+        exchangeRateTypeOptions.find((option) => option.value === record.rateType)!.label,
+    },
     { title: '原币', dataIndex: 'fromCurrency', width: 90 },
     { title: '目标币', dataIndex: 'toCurrency', width: 90 },
     {
@@ -126,6 +141,7 @@ export default function ExchangeRatesPage() {
 
   const initialValues: Partial<ExchangeRateFormValues> = editing
     ? {
+        rateType: editing.rateType,
         fromCurrency: editing.fromCurrency,
         toCurrency: editing.toCurrency,
         effectiveFrom: editing.effectiveFrom
@@ -142,7 +158,7 @@ export default function ExchangeRatesPage() {
   return (
     <PageContainer
       title="汇率设置"
-      subTitle="全公司共用一套结算汇率；授权人员可在所属分公司维护，当前按费用日期匹配"
+      subTitle="全公司共用一套汇率主数据；授权人员可在所属分公司维护，当前按费用日期匹配"
     >
       <ProTable<API.ExchangeRateSetting>
         actionRef={actionRef}
@@ -182,7 +198,7 @@ export default function ExchangeRatesPage() {
             return false;
           }
           const input = {
-            rateType: 'SETTLEMENT',
+            rateType: values.rateType,
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
             toCurrency: values.toCurrency.trim().toUpperCase(),
             timeStandard: 'EXPENSE_DATE',
@@ -206,6 +222,12 @@ export default function ExchangeRatesPage() {
           return true;
         }}
       >
+        <ProFormSelect
+          name="rateType"
+          label="汇率类型"
+          options={exchangeRateTypeOptions}
+          rules={[{ required: true, message: '请选择汇率类型' }]}
+        />
         <ProFormText
           name="fromCurrency"
           label="原币"

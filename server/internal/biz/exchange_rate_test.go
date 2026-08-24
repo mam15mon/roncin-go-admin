@@ -52,6 +52,31 @@ func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
 	}
 }
 
+func TestNormalizeExchangeRateSettingAcceptsSupportedRateTypes(t *testing.T) {
+	types := []string{BaseCurrencyRateType, InvoiceRateType, SettlementRateType, WriteOffRateType, BillRateType}
+	for _, rateType := range types {
+		t.Run(rateType, func(t *testing.T) {
+			input := &ExchangeRateSetting{
+				RateType: rateType, FromCurrency: "USD", ToCurrency: "CNY", TimeStandard: ExpenseDateStandard,
+				EffectiveFrom: "2026-08-01", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+			}
+			if _, err := normalizeExchangeRateSetting(input); err != nil {
+				t.Fatalf("合法汇率类型 %s 不应被拒绝: %v", rateType, err)
+			}
+		})
+	}
+}
+
+func TestNormalizeExchangeRateSettingRejectsUnknownRateType(t *testing.T) {
+	input := &ExchangeRateSetting{
+		RateType: "UNKNOWN", FromCurrency: "USD", ToCurrency: "CNY", TimeStandard: ExpenseDateStandard,
+		EffectiveFrom: "2026-08-01", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+	}
+	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
+		t.Fatalf("未知汇率类型应被拒绝，实际错误为 %v", err)
+	}
+}
+
 func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
 	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "USD"}})
 	resolved, err := usecase.Resolve(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", "2026-08-24")

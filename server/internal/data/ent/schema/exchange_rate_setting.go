@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// ExchangeRateSetting 是组织级结算汇率主数据。
+// ExchangeRateSetting 是组织级汇率主数据。
 // 汇率以十进制字符串持久化到 PostgreSQL numeric，避免浮点误差。
 type ExchangeRateSetting struct{ ent.Schema }
 
@@ -17,7 +17,7 @@ func (ExchangeRateSetting) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, T
 func (ExchangeRateSetting) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("rate_type").Values("SETTLEMENT"),
+		field.Enum("rate_type").Values("BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"),
 		field.String("from_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("to_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.Enum("time_standard").Values("EXPENSE_DATE"),
