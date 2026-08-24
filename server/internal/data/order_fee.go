@@ -135,7 +135,10 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 		SetUnitPrice(input.UnitPrice.StringFixed(4)).
 		SetTotalAmount(input.TotalAmount.StringFixed(8)).
 		SetCurrency(input.Currency).
-		SetExchangeRate(input.ExchangeRate.StringFixed(6)).
+		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
+		SetExchangeRateDate(input.ExchangeRateDate).
+		SetNillableExchangeRateSettingID(input.ExchangeRateSettingID).
 		SetExpenseDate(input.ExpenseDate).
 		SetNillableNote(input.Note).
 		Save(ctx)
@@ -190,8 +193,15 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		SetUnitPrice(input.UnitPrice.StringFixed(4)).
 		SetTotalAmount(input.TotalAmount.StringFixed(8)).
 		SetCurrency(input.Currency).
-		SetExchangeRate(input.ExchangeRate.StringFixed(6)).
+		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
+		SetExchangeRateDate(input.ExchangeRateDate).
 		SetExpenseDate(input.ExpenseDate)
+	if input.ExchangeRateSettingID != nil {
+		builder.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
+	} else {
+		builder.ClearExchangeRateSettingID()
+	}
 	if input.Note != nil {
 		builder.SetNote(*input.Note)
 	} else {
@@ -263,22 +273,25 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		return nil, err
 	}
 	result := &biz.OrderFee{
-		ID:                  item.ID,
-		OrderID:             item.OrderID,
-		Direction:           biz.OrderFeeDirection(item.Direction),
-		FeeCode:             item.FeeCode,
-		FeeName:             item.FeeName,
-		SettlementPartyID:   item.SettlementPartyID,
-		SettlementPartyName: party.LegalName,
-		BillingUnit:         item.BillingUnit,
-		Quantity:            quantity,
-		UnitPrice:           unitPrice,
-		TotalAmount:         totalAmount,
-		Currency:            item.Currency,
-		ExchangeRate:        exchangeRate,
-		ExpenseDate:         item.ExpenseDate,
-		CreatedAt:           item.CreatedAt,
-		UpdatedAt:           item.UpdatedAt,
+		ID:                    item.ID,
+		OrderID:               item.OrderID,
+		Direction:             biz.OrderFeeDirection(item.Direction),
+		FeeCode:               item.FeeCode,
+		FeeName:               item.FeeName,
+		SettlementPartyID:     item.SettlementPartyID,
+		SettlementPartyName:   party.LegalName,
+		BillingUnit:           item.BillingUnit,
+		Quantity:              quantity,
+		UnitPrice:             unitPrice,
+		TotalAmount:           totalAmount,
+		Currency:              item.Currency,
+		ExchangeRate:          exchangeRate,
+		ExchangeRateSource:    string(item.ExchangeRateSource),
+		ExchangeRateDate:      item.ExchangeRateDate,
+		ExchangeRateSettingID: item.ExchangeRateSettingID,
+		ExpenseDate:           item.ExpenseDate,
+		CreatedAt:             item.CreatedAt,
+		UpdatedAt:             item.UpdatedAt,
 	}
 	if item.Note != "" {
 		note := item.Note

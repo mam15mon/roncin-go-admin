@@ -1674,6 +1674,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.RemoveContainerResponse'
+    /api/v1/orders/{orderId}/fee-exchange-rate:
+        get:
+            tags:
+                - OrderFeeService
+            description: ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+            operationId: OrderFeeService_ResolveFeeExchangeRate
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+                - name: expenseDate
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ResolveFeeExchangeRateResponse'
     /api/v1/orders/{orderId}/fee-options:
         get:
             tags:
@@ -4990,7 +5022,6 @@ components:
                 - quantity
                 - unitPrice
                 - currency
-                - exchangeRate
                 - expenseDate
             type: object
             properties:
@@ -5012,8 +5043,6 @@ components:
                 unitPrice:
                     type: string
                 currency:
-                    type: string
-                exchangeRate:
                     type: string
                 expenseDate:
                     type: string
@@ -5777,6 +5806,12 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
+                    type: string
             description: |-
                 OrderFee 是一条订单应收或应付费用。
                  所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。
@@ -6060,6 +6095,26 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderAbnormalCase'
                 traceId:
                     type: string
+        order.v1.ResolveFeeExchangeRateResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                exchangeRate:
+                    type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
+                    type: string
+                traceId:
+                    type: string
         order.v1.SetMilestoneRequest:
             required:
                 - orderId
@@ -6293,7 +6348,6 @@ components:
                 - quantity
                 - unitPrice
                 - currency
-                - exchangeRate
                 - expenseDate
             type: object
             properties:
@@ -6317,8 +6371,6 @@ components:
                 unitPrice:
                     type: string
                 currency:
-                    type: string
-                exchangeRate:
                     type: string
                 expenseDate:
                     type: string

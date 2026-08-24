@@ -23,6 +23,12 @@ service OrderFeeService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fees"};
   }
 
+  // ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+  rpc ResolveFeeExchangeRate(ResolveFeeExchangeRateRequest) returns (ResolveFeeExchangeRateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-exchange-rate"};
+  }
+
   // AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
   rpc AddFee(AddFeeRequest) returns (AddFeeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.create" scope: DATA_SCOPE_ORGANIZATION};
@@ -74,6 +80,9 @@ message OrderFee {
   optional string note = 15;
   string created_at = 16;
   string updated_at = 17;
+  string exchange_rate_source = 18;
+  string exchange_rate_date = 19;
+  optional string exchange_rate_setting_id = 20;
 }
 
 message ListFeesRequest {
@@ -115,7 +124,7 @@ message AddFeeRequest {
   string quantity = 7 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 8 [(google.api.field_behavior) = REQUIRED];
   string currency = 9 [(google.api.field_behavior) = REQUIRED];
-  string exchange_rate = 10 [(google.api.field_behavior) = REQUIRED];
+  reserved 10;
   string expense_date = 11 [(google.api.field_behavior) = REQUIRED];
   optional string note = 12;
 }
@@ -131,7 +140,7 @@ message UpdateFeeRequest {
   string quantity = 8 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 9 [(google.api.field_behavior) = REQUIRED];
   string currency = 10 [(google.api.field_behavior) = REQUIRED];
-  string exchange_rate = 11 [(google.api.field_behavior) = REQUIRED];
+  reserved 11;
   string expense_date = 12 [(google.api.field_behavior) = REQUIRED];
   optional string note = 13;
 }
@@ -139,6 +148,24 @@ message UpdateFeeRequest {
 message RemoveFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ResolveFeeExchangeRateRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  OrderFeeDirection direction = 2 [(google.api.field_behavior) = REQUIRED];
+  string currency = 3 [(google.api.field_behavior) = REQUIRED];
+  string expense_date = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ResolveFeeExchangeRateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string exchange_rate = 4;
+  string exchange_rate_source = 5;
+  string exchange_rate_date = 6;
+  optional string exchange_rate_setting_id = 7;
+  string trace_id = 8;
 }
 
 message ListFeesResponse {

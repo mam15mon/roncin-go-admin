@@ -103,7 +103,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	exchangeRateUsecase := biz.NewExchangeRateUsecase(exchangeRateRepo)
 	exchangeRateService := service.NewExchangeRateService(exchangeRateUsecase)
 	orderFeeRepo := data.NewOrderFeeRepo(dataData)
-	orderFeeUsecase := biz.NewOrderFeeUsecase(orderFeeRepo)
+	orderFeeUsecase := biz.NewOrderFeeUsecase(orderFeeRepo, exchangeRateUsecase)
 	orderFeeService := service.NewOrderFeeService(orderFeeUsecase)
 	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, orderFeeService, authUsecase, orderUsecase, sessionPolicy, logger)
 	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, orderFeeService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)

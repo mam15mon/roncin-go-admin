@@ -117,6 +117,32 @@ func (_c *OrderFeeCreate) SetExchangeRate(v string) *OrderFeeCreate {
 	return _c
 }
 
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_c *OrderFeeCreate) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeCreate {
+	_c.mutation.SetExchangeRateSource(v)
+	return _c
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_c *OrderFeeCreate) SetExchangeRateDate(v string) *OrderFeeCreate {
+	_c.mutation.SetExchangeRateDate(v)
+	return _c
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_c *OrderFeeCreate) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetExchangeRateSettingID(v)
+	return _c
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableExchangeRateSettingID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetExchangeRateSettingID(*v)
+	}
+	return _c
+}
+
 // SetExpenseDate sets the "expense_date" field.
 func (_c *OrderFeeCreate) SetExpenseDate(v string) *OrderFeeCreate {
 	_c.mutation.SetExpenseDate(v)
@@ -276,6 +302,22 @@ func (_c *OrderFeeCreate) check() error {
 	if _, ok := _c.mutation.ExchangeRate(); !ok {
 		return &ValidationError{Name: "exchange_rate", err: errors.New(`ent: missing required field "OrderFee.exchange_rate"`)}
 	}
+	if _, ok := _c.mutation.ExchangeRateSource(); !ok {
+		return &ValidationError{Name: "exchange_rate_source", err: errors.New(`ent: missing required field "OrderFee.exchange_rate_source"`)}
+	}
+	if v, ok := _c.mutation.ExchangeRateSource(); ok {
+		if err := orderfee.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_source": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ExchangeRateDate(); !ok {
+		return &ValidationError{Name: "exchange_rate_date", err: errors.New(`ent: missing required field "OrderFee.exchange_rate_date"`)}
+	}
+	if v, ok := _c.mutation.ExchangeRateDate(); ok {
+		if err := orderfee.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_date": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.ExpenseDate(); !ok {
 		return &ValidationError{Name: "expense_date", err: errors.New(`ent: missing required field "OrderFee.expense_date"`)}
 	}
@@ -373,6 +415,18 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExchangeRate(); ok {
 		_spec.SetField(orderfee.FieldExchangeRate, field.TypeString, value)
 		_node.ExchangeRate = value
+	}
+	if value, ok := _c.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSource, field.TypeEnum, value)
+		_node.ExchangeRateSource = value
+	}
+	if value, ok := _c.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateDate, field.TypeString, value)
+		_node.ExchangeRateDate = value
+	}
+	if value, ok := _c.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSettingID, field.TypeUUID, value)
+		_node.ExchangeRateSettingID = &value
 	}
 	if value, ok := _c.mutation.ExpenseDate(); ok {
 		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)

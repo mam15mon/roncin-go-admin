@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderFeeService_ListFeeOptions_FullMethodName = "/order.v1.OrderFeeService/ListFeeOptions"
-	OrderFeeService_ListFees_FullMethodName       = "/order.v1.OrderFeeService/ListFees"
-	OrderFeeService_AddFee_FullMethodName         = "/order.v1.OrderFeeService/AddFee"
-	OrderFeeService_UpdateFee_FullMethodName      = "/order.v1.OrderFeeService/UpdateFee"
-	OrderFeeService_RemoveFee_FullMethodName      = "/order.v1.OrderFeeService/RemoveFee"
+	OrderFeeService_ListFeeOptions_FullMethodName         = "/order.v1.OrderFeeService/ListFeeOptions"
+	OrderFeeService_ListFees_FullMethodName               = "/order.v1.OrderFeeService/ListFees"
+	OrderFeeService_ResolveFeeExchangeRate_FullMethodName = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
+	OrderFeeService_AddFee_FullMethodName                 = "/order.v1.OrderFeeService/AddFee"
+	OrderFeeService_UpdateFee_FullMethodName              = "/order.v1.OrderFeeService/UpdateFee"
+	OrderFeeService_RemoveFee_FullMethodName              = "/order.v1.OrderFeeService/RemoveFee"
 )
 
 // OrderFeeServiceClient is the client API for OrderFeeService service.
@@ -37,6 +38,8 @@ type OrderFeeServiceClient interface {
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, in *ListFeesRequest, opts ...grpc.CallOption) (*ListFeesResponse, error)
+	// ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
 	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
@@ -67,6 +70,16 @@ func (c *orderFeeServiceClient) ListFees(ctx context.Context, in *ListFeesReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListFeesResponse)
 	err := c.cc.Invoke(ctx, OrderFeeService_ListFees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveFeeExchangeRateResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ResolveFeeExchangeRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +127,8 @@ type OrderFeeServiceServer interface {
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
+	// ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
 	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
@@ -135,6 +150,9 @@ func (UnimplementedOrderFeeServiceServer) ListFeeOptions(context.Context, *ListF
 }
 func (UnimplementedOrderFeeServiceServer) ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFees not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveFeeExchangeRate not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddFee not implemented")
@@ -198,6 +216,24 @@ func _OrderFeeService_ListFees_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderFeeServiceServer).ListFees(ctx, req.(*ListFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_ResolveFeeExchangeRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveFeeExchangeRateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ResolveFeeExchangeRate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ResolveFeeExchangeRate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ResolveFeeExchangeRate(ctx, req.(*ResolveFeeExchangeRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -270,6 +306,10 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFees",
 			Handler:    _OrderFeeService_ListFees_Handler,
+		},
+		{
+			MethodName: "ResolveFeeExchangeRate",
+			Handler:    _OrderFeeService_ResolveFeeExchangeRate_Handler,
 		},
 		{
 			MethodName: "AddFee",

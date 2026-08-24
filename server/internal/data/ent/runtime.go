@@ -1670,8 +1670,27 @@ func init() {
 			return nil
 		}
 	}()
+	// orderfeeDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
+	orderfeeDescExchangeRateDate := orderfeeFields[12].Descriptor()
+	// orderfee.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
+	orderfee.ExchangeRateDateValidator = func() func(string) error {
+		validators := orderfeeDescExchangeRateDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(exchange_rate_date string) error {
+			for _, fn := range fns {
+				if err := fn(exchange_rate_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// orderfeeDescExpenseDate is the schema descriptor for expense_date field.
-	orderfeeDescExpenseDate := orderfeeFields[11].Descriptor()
+	orderfeeDescExpenseDate := orderfeeFields[14].Descriptor()
 	// orderfee.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
 	orderfee.ExpenseDateValidator = func() func(string) error {
 		validators := orderfeeDescExpenseDate.Validators
@@ -1690,7 +1709,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescNote is the schema descriptor for note field.
-	orderfeeDescNote := orderfeeFields[12].Descriptor()
+	orderfeeDescNote := orderfeeFields[15].Descriptor()
 	// orderfee.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfee.NoteValidator = orderfeeDescNote.Validators[0].(func(string) error)
 	// orderfeeDescID is the schema descriptor for id field.

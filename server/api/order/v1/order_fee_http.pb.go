@@ -21,6 +21,7 @@ const OperationOrderFeeServiceAddFee = "/order.v1.OrderFeeService/AddFee"
 const OperationOrderFeeServiceListFeeOptions = "/order.v1.OrderFeeService/ListFeeOptions"
 const OperationOrderFeeServiceListFees = "/order.v1.OrderFeeService/ListFees"
 const OperationOrderFeeServiceRemoveFee = "/order.v1.OrderFeeService/RemoveFee"
+const OperationOrderFeeServiceResolveFeeExchangeRate = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 
 type OrderFeeServiceHTTPServer interface {
@@ -32,6 +33,8 @@ type OrderFeeServiceHTTPServer interface {
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
 	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
 }
@@ -40,6 +43,7 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-options", _OrderFeeService_ListFeeOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fees", _OrderFeeService_ListFees0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/{order_id}/fee-exchange-rate", _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees", _OrderFeeService_AddFee0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_UpdateFee0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_RemoveFee0_HTTP_Handler(srv))
@@ -85,6 +89,28 @@ func _OrderFeeService_ListFees0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func
 			return err
 		}
 		reply := out.(*ListFeesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResolveFeeExchangeRateRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFeeServiceResolveFeeExchangeRate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResolveFeeExchangeRate(ctx, req.(*ResolveFeeExchangeRateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResolveFeeExchangeRateResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -164,6 +190,8 @@ type OrderFeeServiceHTTPClient interface {
 	ListFees(ctx context.Context, req *ListFeesRequest, opts ...http.CallOption) (rsp *ListFeesResponse, err error)
 	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
+	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
 }
@@ -239,6 +267,23 @@ func (c *OrderFeeServiceHTTPClientImpl) RemoveFee(ctx context.Context, in *Remov
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。
+func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (*ResolveFeeExchangeRateResponse, error) {
+	var out ResolveFeeExchangeRateResponse
+	pattern := "/api/v1/orders/{order_id}/fee-exchange-rate"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderFeeServiceResolveFeeExchangeRate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

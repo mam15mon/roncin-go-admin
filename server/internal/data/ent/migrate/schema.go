@@ -978,7 +978,10 @@ var (
 		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
-		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,6)"}},
+		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL"}},
+		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
+		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "expense_date", Type: field.TypeString, Size: 10},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
@@ -992,13 +995,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[14]},
+				Columns:    []*schema.Column{OrderFeesColumns[17]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[15]},
+				Columns:    []*schema.Column{OrderFeesColumns[18]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1012,12 +1015,12 @@ var (
 			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[14], OrderFeesColumns[3], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[17], OrderFeesColumns[3], OrderFeesColumns[1]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[15], OrderFeesColumns[3], OrderFeesColumns[10]},
+				Columns: []*schema.Column{OrderFeesColumns[18], OrderFeesColumns[3], OrderFeesColumns[10]},
 			},
 		},
 	}

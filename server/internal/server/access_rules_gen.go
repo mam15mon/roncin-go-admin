@@ -80,6 +80,7 @@ var operationAccessRules = map[string]accessRule{
 	"/order.v1.OrderFeeService/ListFeeOptions":                                {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.read")},
 	"/order.v1.OrderFeeService/ListFees":                                      {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.read")},
 	"/order.v1.OrderFeeService/RemoveFee":                                     {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.delete")},
+	"/order.v1.OrderFeeService/ResolveFeeExchangeRate":                        {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.read")},
 	"/order.v1.OrderFeeService/UpdateFee":                                     {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.update")},
 	"/order.v1.OrderMilestoneService/ListMilestones":                          {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("milestone.read")},
 	"/order.v1.OrderMilestoneService/SetMilestone":                            {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("milestone.set")},

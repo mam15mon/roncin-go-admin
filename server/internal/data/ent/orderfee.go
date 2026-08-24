@@ -46,6 +46,12 @@ type OrderFee struct {
 	Currency string `json:"currency,omitempty"`
 	// ExchangeRate holds the value of the "exchange_rate" field.
 	ExchangeRate string `json:"exchange_rate,omitempty"`
+	// ExchangeRateSource holds the value of the "exchange_rate_source" field.
+	ExchangeRateSource orderfee.ExchangeRateSource `json:"exchange_rate_source,omitempty"`
+	// ExchangeRateDate holds the value of the "exchange_rate_date" field.
+	ExchangeRateDate string `json:"exchange_rate_date,omitempty"`
+	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
+	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
 	// ExpenseDate holds the value of the "expense_date" field.
 	ExpenseDate string `json:"expense_date,omitempty"`
 	// Note holds the value of the "note" field.
@@ -94,7 +100,9 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldBillingUnit, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExpenseDate, orderfee.FieldNote:
+		case orderfee.FieldExchangeRateSettingID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldBillingUnit, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldExpenseDate, orderfee.FieldNote:
 			values[i] = new(sql.NullString)
 		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -199,6 +207,25 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExchangeRate = value.String
 			}
+		case orderfee.FieldExchangeRateSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_source", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSource = orderfee.ExchangeRateSource(value.String)
+			}
+		case orderfee.FieldExchangeRateDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_date", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateDate = value.String
+			}
+		case orderfee.FieldExchangeRateSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_setting_id", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSettingID = new(uuid.UUID)
+				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
+			}
 		case orderfee.FieldExpenseDate:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field expense_date", values[i])
@@ -295,6 +322,17 @@ func (_m *OrderFee) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("exchange_rate=")
 	builder.WriteString(_m.ExchangeRate)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExchangeRateSource))
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_date=")
+	builder.WriteString(_m.ExchangeRateDate)
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateSettingID; v != nil {
+		builder.WriteString("exchange_rate_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("expense_date=")
 	builder.WriteString(_m.ExpenseDate)

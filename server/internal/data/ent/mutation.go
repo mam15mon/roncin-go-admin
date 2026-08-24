@@ -22056,30 +22056,33 @@ func (m *OrderContainerMutation) ResetEdge(name string) error {
 // OrderFeeMutation represents an operation that mutates the OrderFee nodes in the graph.
 type OrderFeeMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *uuid.UUID
-	created_at              *time.Time
-	updated_at              *time.Time
-	direction               *orderfee.Direction
-	fee_code                *string
-	fee_name                *string
-	billing_unit            *string
-	quantity                *string
-	unit_price              *string
-	total_amount            *string
-	currency                *string
-	exchange_rate           *string
-	expense_date            *string
-	note                    *string
-	clearedFields           map[string]struct{}
-	_order                  *uuid.UUID
-	cleared_order           bool
-	settlement_party        *uuid.UUID
-	clearedsettlement_party bool
-	done                    bool
-	oldValue                func(context.Context) (*OrderFee, error)
-	predicates              []predicate.OrderFee
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	direction                *orderfee.Direction
+	fee_code                 *string
+	fee_name                 *string
+	billing_unit             *string
+	quantity                 *string
+	unit_price               *string
+	total_amount             *string
+	currency                 *string
+	exchange_rate            *string
+	exchange_rate_source     *orderfee.ExchangeRateSource
+	exchange_rate_date       *string
+	exchange_rate_setting_id *uuid.UUID
+	expense_date             *string
+	note                     *string
+	clearedFields            map[string]struct{}
+	_order                   *uuid.UUID
+	cleared_order            bool
+	settlement_party         *uuid.UUID
+	clearedsettlement_party  bool
+	done                     bool
+	oldValue                 func(context.Context) (*OrderFee, error)
+	predicates               []predicate.OrderFee
 }
 
 var _ ent.Mutation = (*OrderFeeMutation)(nil)
@@ -22654,6 +22657,127 @@ func (m *OrderFeeMutation) ResetExchangeRate() {
 	m.exchange_rate = nil
 }
 
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *OrderFeeMutation) SetExchangeRateSource(ors orderfee.ExchangeRateSource) {
+	m.exchange_rate_source = &ors
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *OrderFeeMutation) ExchangeRateSource() (r orderfee.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldExchangeRateSource(ctx context.Context) (v orderfee.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *OrderFeeMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *OrderFeeMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *OrderFeeMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *OrderFeeMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *OrderFeeMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *OrderFeeMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *OrderFeeMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[orderfee.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *OrderFeeMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *OrderFeeMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, orderfee.FieldExchangeRateSettingID)
+}
+
 // SetExpenseDate sets the "expense_date" field.
 func (m *OrderFeeMutation) SetExpenseDate(s string) {
 	m.expense_date = &s
@@ -22827,7 +22951,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -22866,6 +22990,15 @@ func (m *OrderFeeMutation) Fields() []string {
 	}
 	if m.exchange_rate != nil {
 		fields = append(fields, orderfee.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, orderfee.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, orderfee.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, orderfee.FieldExchangeRateSettingID)
 	}
 	if m.expense_date != nil {
 		fields = append(fields, orderfee.FieldExpenseDate)
@@ -22907,6 +23040,12 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.Currency()
 	case orderfee.FieldExchangeRate:
 		return m.ExchangeRate()
+	case orderfee.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case orderfee.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case orderfee.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
 	case orderfee.FieldExpenseDate:
 		return m.ExpenseDate()
 	case orderfee.FieldNote:
@@ -22946,6 +23085,12 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldCurrency(ctx)
 	case orderfee.FieldExchangeRate:
 		return m.OldExchangeRate(ctx)
+	case orderfee.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case orderfee.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case orderfee.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
 	case orderfee.FieldExpenseDate:
 		return m.OldExpenseDate(ctx)
 	case orderfee.FieldNote:
@@ -23050,6 +23195,27 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExchangeRate(v)
 		return nil
+	case orderfee.FieldExchangeRateSource:
+		v, ok := value.(orderfee.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case orderfee.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case orderfee.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
+		return nil
 	case orderfee.FieldExpenseDate:
 		v, ok := value.(string)
 		if !ok {
@@ -23094,6 +23260,9 @@ func (m *OrderFeeMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrderFeeMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(orderfee.FieldExchangeRateSettingID) {
+		fields = append(fields, orderfee.FieldExchangeRateSettingID)
+	}
 	if m.FieldCleared(orderfee.FieldNote) {
 		fields = append(fields, orderfee.FieldNote)
 	}
@@ -23111,6 +23280,9 @@ func (m *OrderFeeMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderFeeMutation) ClearField(name string) error {
 	switch name {
+	case orderfee.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
+		return nil
 	case orderfee.FieldNote:
 		m.ClearNote()
 		return nil
@@ -23160,6 +23332,15 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 		return nil
 	case orderfee.FieldExchangeRate:
 		m.ResetExchangeRate()
+		return nil
+	case orderfee.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case orderfee.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case orderfee.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
 		return nil
 	case orderfee.FieldExpenseDate:
 		m.ResetExpenseDate()

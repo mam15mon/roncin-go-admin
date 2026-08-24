@@ -42,6 +42,12 @@ const (
 	FieldCurrency = "currency"
 	// FieldExchangeRate holds the string denoting the exchange_rate field in the database.
 	FieldExchangeRate = "exchange_rate"
+	// FieldExchangeRateSource holds the string denoting the exchange_rate_source field in the database.
+	FieldExchangeRateSource = "exchange_rate_source"
+	// FieldExchangeRateDate holds the string denoting the exchange_rate_date field in the database.
+	FieldExchangeRateDate = "exchange_rate_date"
+	// FieldExchangeRateSettingID holds the string denoting the exchange_rate_setting_id field in the database.
+	FieldExchangeRateSettingID = "exchange_rate_setting_id"
 	// FieldExpenseDate holds the string denoting the expense_date field in the database.
 	FieldExpenseDate = "expense_date"
 	// FieldNote holds the string denoting the note field in the database.
@@ -84,6 +90,9 @@ var Columns = []string{
 	FieldTotalAmount,
 	FieldCurrency,
 	FieldExchangeRate,
+	FieldExchangeRateSource,
+	FieldExchangeRateDate,
+	FieldExchangeRateSettingID,
 	FieldExpenseDate,
 	FieldNote,
 }
@@ -113,6 +122,8 @@ var (
 	BillingUnitValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
+	// ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
+	ExchangeRateDateValidator func(string) error
 	// ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
 	ExpenseDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -141,6 +152,30 @@ func DirectionValidator(d Direction) error {
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for direction field: %q", d)
+	}
+}
+
+// ExchangeRateSource defines the type for the "exchange_rate_source" enum field.
+type ExchangeRateSource string
+
+// ExchangeRateSource values.
+const (
+	ExchangeRateSourceSYSTEM        ExchangeRateSource = "SYSTEM"
+	ExchangeRateSourceBASE_CURRENCY ExchangeRateSource = "BASE_CURRENCY"
+	ExchangeRateSourceMANUAL        ExchangeRateSource = "MANUAL"
+)
+
+func (ers ExchangeRateSource) String() string {
+	return string(ers)
+}
+
+// ExchangeRateSourceValidator is a validator for the "exchange_rate_source" field enum values. It is called by the builders before save.
+func ExchangeRateSourceValidator(ers ExchangeRateSource) error {
+	switch ers {
+	case ExchangeRateSourceSYSTEM, ExchangeRateSourceBASE_CURRENCY, ExchangeRateSourceMANUAL:
+		return nil
+	default:
+		return fmt.Errorf("orderfee: invalid enum value for exchange_rate_source field: %q", ers)
 	}
 }
 
@@ -215,6 +250,21 @@ func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByExchangeRate orders the results by the exchange_rate field.
 func ByExchangeRate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExchangeRate, opts...).ToFunc()
+}
+
+// ByExchangeRateSource orders the results by the exchange_rate_source field.
+func ByExchangeRateSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeRateSource, opts...).ToFunc()
+}
+
+// ByExchangeRateDate orders the results by the exchange_rate_date field.
+func ByExchangeRateDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeRateDate, opts...).ToFunc()
+}
+
+// ByExchangeRateSettingID orders the results by the exchange_rate_setting_id field.
+func ByExchangeRateSettingID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeRateSettingID, opts...).ToFunc()
 }
 
 // ByExpenseDate orders the results by the expense_date field.

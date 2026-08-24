@@ -191,6 +191,54 @@ func (_u *OrderFeeUpdate) SetNillableExchangeRate(v *string) *OrderFeeUpdate {
 	return _u
 }
 
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_u *OrderFeeUpdate) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeUpdate {
+	_u.mutation.SetExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableExchangeRateSource sets the "exchange_rate_source" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableExchangeRateSource(v *orderfee.ExchangeRateSource) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_u *OrderFeeUpdate) SetExchangeRateDate(v string) *OrderFeeUpdate {
+	_u.mutation.SetExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableExchangeRateDate sets the "exchange_rate_date" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableExchangeRateDate(v *string) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_u *OrderFeeUpdate) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.SetExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableExchangeRateSettingID(v *uuid.UUID) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (_u *OrderFeeUpdate) ClearExchangeRateSettingID() *OrderFeeUpdate {
+	_u.mutation.ClearExchangeRateSettingID()
+	return _u
+}
+
 // SetExpenseDate sets the "expense_date" field.
 func (_u *OrderFeeUpdate) SetExpenseDate(v string) *OrderFeeUpdate {
 	_u.mutation.SetExpenseDate(v)
@@ -315,6 +363,16 @@ func (_u *OrderFeeUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "OrderFee.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExchangeRateSource(); ok {
+		if err := orderfee.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ExchangeRateDate(); ok {
+		if err := orderfee.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_date": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExpenseDate(); ok {
 		if err := orderfee.ExpenseDateValidator(v); err != nil {
 			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.expense_date": %w`, err)}
@@ -375,6 +433,18 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ExchangeRate(); ok {
 		_spec.SetField(orderfee.FieldExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSource, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSettingID, field.TypeUUID, value)
+	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(orderfee.FieldExchangeRateSettingID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.ExpenseDate(); ok {
 		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)
@@ -623,6 +693,54 @@ func (_u *OrderFeeUpdateOne) SetNillableExchangeRate(v *string) *OrderFeeUpdateO
 	return _u
 }
 
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_u *OrderFeeUpdateOne) SetExchangeRateSource(v orderfee.ExchangeRateSource) *OrderFeeUpdateOne {
+	_u.mutation.SetExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableExchangeRateSource sets the "exchange_rate_source" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableExchangeRateSource(v *orderfee.ExchangeRateSource) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_u *OrderFeeUpdateOne) SetExchangeRateDate(v string) *OrderFeeUpdateOne {
+	_u.mutation.SetExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableExchangeRateDate sets the "exchange_rate_date" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableExchangeRateDate(v *string) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_u *OrderFeeUpdateOne) SetExchangeRateSettingID(v uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.SetExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableExchangeRateSettingID(v *uuid.UUID) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (_u *OrderFeeUpdateOne) ClearExchangeRateSettingID() *OrderFeeUpdateOne {
+	_u.mutation.ClearExchangeRateSettingID()
+	return _u
+}
+
 // SetExpenseDate sets the "expense_date" field.
 func (_u *OrderFeeUpdateOne) SetExpenseDate(v string) *OrderFeeUpdateOne {
 	_u.mutation.SetExpenseDate(v)
@@ -760,6 +878,16 @@ func (_u *OrderFeeUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "OrderFee.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExchangeRateSource(); ok {
+		if err := orderfee.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ExchangeRateDate(); ok {
+		if err := orderfee.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_date": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExpenseDate(); ok {
 		if err := orderfee.ExpenseDateValidator(v); err != nil {
 			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.expense_date": %w`, err)}
@@ -837,6 +965,18 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if value, ok := _u.mutation.ExchangeRate(); ok {
 		_spec.SetField(orderfee.FieldExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSource, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(orderfee.FieldExchangeRateSettingID, field.TypeUUID, value)
+	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(orderfee.FieldExchangeRateSettingID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.ExpenseDate(); ok {
 		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)

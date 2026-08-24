@@ -1,8 +1,10 @@
 package biz
 
 import (
+	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -19,6 +21,17 @@ func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
 	}
 	if value.FromCurrency != "USD" || value.ToCurrency != "CNY" || value.ReceivableRate.StringFixed(8) != "7.12345678" {
 		t.Fatalf("汇率规范化结果不正确: %#v", value)
+	}
+}
+
+func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
+	usecase := NewExchangeRateUsecase(nil)
+	resolved, err := usecase.Resolve(context.Background(), uuid.Must(uuid.NewV7()), OrderFeeReceivable, "CNY", "2026-08-24")
+	if err != nil {
+		t.Fatalf("解析本币汇率失败: %v", err)
+	}
+	if resolved.Rate.StringFixed(8) != "1.00000000" || resolved.Source != "BASE_CURRENCY" || resolved.SettingID != nil {
+		t.Fatalf("本币汇率解析结果不正确: %#v", resolved)
 	}
 }
 

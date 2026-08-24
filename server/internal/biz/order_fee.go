@@ -21,7 +21,6 @@ var (
 
 var (
 	quantityOrPricePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$`)
-	exchangeRatePattern    = regexp.MustCompile(`^(0|[1-9][0-9]{0,11})(\.[0-9]{1,6})?$`)
 	totalAmountPattern     = regexp.MustCompile(`^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$`)
 	currencyPattern        = regexp.MustCompile(`^[A-Za-z]{3}$`)
 )
@@ -34,23 +33,26 @@ const (
 )
 
 type OrderFee struct {
-	ID                  uuid.UUID
-	OrderID             uuid.UUID
-	Direction           OrderFeeDirection
-	FeeCode             string
-	FeeName             string
-	SettlementPartyID   uuid.UUID
-	SettlementPartyName string
-	BillingUnit         string
-	Quantity            decimal.Decimal
-	UnitPrice           decimal.Decimal
-	TotalAmount         decimal.Decimal
-	Currency            string
-	ExchangeRate        decimal.Decimal
-	ExpenseDate         string
-	Note                *string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	ID                    uuid.UUID
+	OrderID               uuid.UUID
+	Direction             OrderFeeDirection
+	FeeCode               string
+	FeeName               string
+	SettlementPartyID     uuid.UUID
+	SettlementPartyName   string
+	BillingUnit           string
+	Quantity              decimal.Decimal
+	UnitPrice             decimal.Decimal
+	TotalAmount           decimal.Decimal
+	Currency              string
+	ExchangeRate          decimal.Decimal
+	ExchangeRateSource    string
+	ExchangeRateDate      string
+	ExchangeRateSettingID *uuid.UUID
+	ExpenseDate           string
+	Note                  *string
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type OrderFeeSettlementPartyOption struct {
@@ -79,11 +81,12 @@ type OrderFeeRepo interface {
 }
 
 type OrderFeeUsecase struct {
-	repo OrderFeeRepo
+	repo         OrderFeeRepo
+	exchangeRate *ExchangeRateUsecase
 }
 
-func NewOrderFeeUsecase(repo OrderFeeRepo) *OrderFeeUsecase {
-	return &OrderFeeUsecase{repo: repo}
+func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase) *OrderFeeUsecase {
+	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate}
 }
 
 func (uc *OrderFeeUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error) {
@@ -109,6 +112,9 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
+	if err := uc.resolveExchangeRate(ctx, organizationID, normalized); err != nil {
+		return nil, err
+	}
 	return uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
 }
 
@@ -120,7 +126,29 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err != nil {
 		return nil, err
 	}
+	if err := uc.resolveExchangeRate(ctx, organizationID, normalized); err != nil {
+		return nil, err
+	}
 	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", normalized))
+}
+
+func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (*ResolvedExchangeRate, error) {
+	if organizationID == uuid.Nil || orderID == uuid.Nil {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	return uc.exchangeRate.Resolve(ctx, organizationID, direction, currency, expenseDate)
+}
+
+func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID uuid.UUID, fee *OrderFee) error {
+	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, fee.Direction, fee.Currency, fee.ExpenseDate)
+	if err != nil {
+		return err
+	}
+	fee.ExchangeRate = resolved.Rate
+	fee.ExchangeRateSource = resolved.Source
+	fee.ExchangeRateDate = resolved.RateDate
+	fee.ExchangeRateSettingID = resolved.SettingID
+	return nil
 }
 
 func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
@@ -177,9 +205,6 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 	}
 	totalAmount := input.Quantity.Mul(input.UnitPrice)
 	if !totalAmountPattern.MatchString(totalAmount.String()) || !totalAmount.IsPositive() {
-		return nil, ErrOrderFeeInvalidArgument
-	}
-	if !exchangeRatePattern.MatchString(input.ExchangeRate.String()) || !input.ExchangeRate.IsPositive() {
 		return nil, ErrOrderFeeInvalidArgument
 	}
 	currency := strings.ToUpper(strings.TrimSpace(input.Currency))
