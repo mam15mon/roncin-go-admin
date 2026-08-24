@@ -142,7 +142,7 @@ export default function ExchangeRatesPage() {
   return (
     <PageContainer
       title="汇率设置"
-      subTitle="维护订单费用结算汇率；当前按费用日期匹配，生效结束日期不包含当天"
+      subTitle="全公司共用一套结算汇率；授权人员可在所属分公司维护，当前按费用日期匹配"
     >
       <ProTable<API.ExchangeRateSetting>
         actionRef={actionRef}

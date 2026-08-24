@@ -17,8 +17,9 @@ type exchangeRateRepo struct{ data *Data }
 
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
 
-func (r *exchangeRateRepo) AccountingOrganization(ctx context.Context, organizationID uuid.UUID) (*biz.AccountingOrganization, error) {
+func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
 	currentID := organizationID
+	baseCurrency := ""
 	for {
 		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
 		if err != nil {
@@ -27,14 +28,14 @@ func (r *exchangeRateRepo) AccountingOrganization(ctx context.Context, organizat
 			}
 			return nil, err
 		}
-		if item.Kind == organizationent.KindHeadquarters || item.Kind == organizationent.KindCompany {
-			if item.BaseCurrency == nil {
-				return nil, biz.ErrExchangeRateOrganizationInvalid
-			}
-			return &biz.AccountingOrganization{ID: item.ID, BaseCurrency: *item.BaseCurrency}, nil
+		if baseCurrency == "" && item.BaseCurrency != nil {
+			baseCurrency = *item.BaseCurrency
 		}
 		if item.ParentID == nil {
-			return nil, biz.ErrExchangeRateOrganizationInvalid
+			if item.Kind != organizationent.KindHeadquarters || baseCurrency == "" {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: baseCurrency}, nil
 		}
 		currentID = *item.ParentID
 	}
