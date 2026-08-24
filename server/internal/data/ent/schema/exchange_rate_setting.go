@@ -31,8 +31,8 @@ func (ExchangeRateSetting) Fields() []ent.Field {
 
 func (ExchangeRateSetting) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "effective_from").Unique(),
-		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "is_active"),
-		index.Fields("organization_id", "effective_from", "effective_to"),
+		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "effective_from").Unique().StorageKey("exchange_rate_setting_unique_effective_from"),
+		index.Fields("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "is_active").StorageKey("exchange_rate_setting_active_lookup"),
+		index.Fields("organization_id", "effective_from", "effective_to").StorageKey("exchange_rate_setting_effective_range"),
 	}
 }

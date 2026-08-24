@@ -337,17 +337,17 @@ var (
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[2]},
 			},
 			{
-				Name:    "exchangeratesetting_organization_id_rate_type_from_currency_to_currency_time_standard_effective_from",
+				Name:    "exchange_rate_setting_unique_effective_from",
 				Unique:  true,
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7], ExchangeRateSettingsColumns[8]},
 			},
 			{
-				Name:    "exchangeratesetting_organization_id_rate_type_from_currency_to_currency_time_standard_is_active",
+				Name:    "exchange_rate_setting_active_lookup",
 				Unique:  false,
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[4], ExchangeRateSettingsColumns[5], ExchangeRateSettingsColumns[6], ExchangeRateSettingsColumns[7], ExchangeRateSettingsColumns[12]},
 			},
 			{
-				Name:    "exchangeratesetting_organization_id_effective_from_effective_to",
+				Name:    "exchange_rate_setting_effective_range",
 				Unique:  false,
 				Columns: []*schema.Column{ExchangeRateSettingsColumns[3], ExchangeRateSettingsColumns[8], ExchangeRateSettingsColumns[9]},
 			},

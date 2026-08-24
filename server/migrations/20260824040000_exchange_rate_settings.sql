@@ -22,11 +22,11 @@ CREATE TABLE "exchange_rate_settings" (
     FOREIGN KEY ("organization_id") REFERENCES "organizations" ("id") ON DELETE NO ACTION
 );
 
-CREATE UNIQUE INDEX "exchange_rate_setting_organization_id_rate_type_from_currency_to_currency_time_standard_effective_from"
+CREATE UNIQUE INDEX "exchange_rate_setting_unique_effective_from"
   ON "exchange_rate_settings" ("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "effective_from");
-CREATE INDEX "exchange_rate_setting_organization_id_rate_type_from_currency_to_currency_time_standard_is_active"
+CREATE INDEX "exchange_rate_setting_active_lookup"
   ON "exchange_rate_settings" ("organization_id", "rate_type", "from_currency", "to_currency", "time_standard", "is_active");
-CREATE INDEX "exchange_rate_setting_organization_id_effective_from_effective_to"
+CREATE INDEX "exchange_rate_setting_effective_range"
   ON "exchange_rate_settings" ("organization_id", "effective_from", "effective_to");
 CREATE INDEX "exchange_rate_setting_updated_at" ON "exchange_rate_settings" ("updated_at");
 
