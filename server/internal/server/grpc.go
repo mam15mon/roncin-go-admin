@@ -6,6 +6,7 @@ import (
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
@@ -20,7 +21,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, orderFee *service.OrderFeeService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, orderFee *service.OrderFeeService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, logger *slog.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -54,6 +55,7 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderShippingDocumentServiceServer(srv, shippingDocument)
 	orderv1.RegisterOrderAbnormalCaseServiceServer(srv, abnormalCase)
 	orderv1.RegisterOrderReleasePodServiceServer(srv, releasePod)
+	financev1.RegisterExchangeRateServiceServer(srv, exchangeRate)
 	orderv1.RegisterOrderFeeServiceServer(srv, orderFee)
 	return srv
 }

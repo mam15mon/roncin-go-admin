@@ -9,6 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
@@ -24,7 +25,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, orderFee *service.OrderFeeService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, orderFee *service.OrderFeeService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
@@ -68,6 +69,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderShippingDocumentServiceHTTPServer(srv, shippingDocument)
 	orderv1.RegisterOrderAbnormalCaseServiceHTTPServer(srv, abnormalCase)
 	orderv1.RegisterOrderReleasePodServiceHTTPServer(srv, releasePod)
+	financev1.RegisterExchangeRateServiceHTTPServer(srv, exchangeRate)
 	orderv1.RegisterOrderFeeServiceHTTPServer(srv, orderFee)
 	registerHealthHandlers(srv, readiness)
 	srv.HandlePrefix("/", webassets.Handler())

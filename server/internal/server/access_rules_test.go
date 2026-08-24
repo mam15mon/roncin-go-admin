@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	accessv1 "github.com/roncin/roncin-go-admin/server/api/access/v1"
+	_ "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 
@@ -15,7 +16,7 @@ import (
 
 func TestGeneratedAccessRulesMatchProto(t *testing.T) {
 	packages := map[protoreflect.FullName]struct{}{
-		"admin.v1": {}, "auth.v1": {}, "masterdata.v1": {}, "order.v1": {}, "partner.v1": {}, "task.v1": {},
+		"admin.v1": {}, "auth.v1": {}, "finance.v1": {}, "masterdata.v1": {}, "order.v1": {}, "partner.v1": {}, "task.v1": {},
 	}
 	seen := make(map[string]struct{})
 
