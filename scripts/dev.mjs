@@ -169,13 +169,13 @@ async function prepareDatabase() {
 
   console.log('[dev] 等待 PostgreSQL 就绪');
   if (!(await waitForPostgres())) {
-    console.log('[dev] PostgreSQL 连续 10 秒无响应，执行快速重启');
+    console.log('[dev] PostgreSQL 连续 10 秒无响应，执行立即重启');
     await runChecked('pg_ctl', [
       'restart',
       '-D',
       postgresDataDir,
       '-m',
-      'fast',
+      'immediate',
       '-w',
       '-t',
       '60',
