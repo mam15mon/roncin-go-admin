@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -11,14 +12,18 @@ import (
 	airportent "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
+	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	statustemplateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	statustemplateitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 type orderRepo struct{ data *Data }
@@ -103,6 +108,48 @@ func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID u
 	return &biz.OrderReferenceMatch{OrderID: item.ID, OrderNo: item.OrderNo}, nil
 }
 
+func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.OrderPersonnelOption, error) {
+	organizations, err := r.data.db.Organization.Query().
+		Select(organizationent.FieldID, organizationent.FieldParentID).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+	organizationIDs := make([]uuid.UUID, 0, len(organizations))
+	for _, organization := range organizations {
+		parentByID[organization.ID] = organization.ParentID
+	}
+	for _, organization := range organizations {
+		if organizationWithinRoot(parentByID, organizationID, organization.ID) {
+			organizationIDs = append(organizationIDs, organization.ID)
+		}
+	}
+	memberships, err := r.data.db.Membership.Query().Where(
+		membershipent.OrganizationIDIn(organizationIDs...),
+		membershipent.EnabledEQ(true),
+		membershipent.HasUserWith(userent.EnabledEQ(true)),
+		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
+	).WithUser().WithOrganization().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.OrderPersonnelOption, 0, len(memberships))
+	for _, membership := range memberships {
+		result = append(result, &biz.OrderPersonnelOption{
+			UserID: membership.UserID, DisplayName: membership.Edges.User.DisplayName,
+			OrganizationID: membership.OrganizationID, OrganizationName: membership.Edges.Organization.Name,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].DisplayName == result[j].DisplayName {
+			return result[i].OrganizationName < result[j].OrganizationName
+		}
+		return result[i].DisplayName < result[j].DisplayName
+	})
+	return result, nil
+}
+
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
@@ -158,7 +205,10 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetTotalPackageUnit(input.TotalPackageUnit).
 		SetSpecialRequirements(input.SpecialRequirements).
 		SetOrderDate(input.OrderDate).
-		SetNotes(input.Notes)
+		SetNotes(input.Notes).
+		SetBookingNotes(input.BookingNotes).
+		SetAllocationNotes(input.AllocationNotes).
+		SetOperationNotes(input.OperationNotes)
 	created, err := create.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -169,6 +219,13 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		return nil, err
 	}
 	if _, err := tx.OrderStatusLog.Create().SetOrderID(created.ID).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)
+	personnel = append(personnel, &biz.OrderPersonnel{UserID: actorID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCreator})
+	personnel = append(personnel, input.PersonnelAssignments...)
+	if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, personnel); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -235,7 +292,10 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetTotalPackageUnit(input.TotalPackageUnit).
 		SetSpecialRequirements(input.SpecialRequirements).
 		SetOrderDate(input.OrderDate).
-		SetNotes(input.Notes)
+		SetNotes(input.Notes).
+		SetBookingNotes(input.BookingNotes).
+		SetAllocationNotes(input.AllocationNotes).
+		SetOperationNotes(input.OperationNotes)
 	setOrderOptionalReferences(update, input)
 	if input.TotalPackages == nil {
 		update.ClearTotalPackages()
@@ -456,6 +516,43 @@ func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, 
 	return nil
 }
 
+func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, orderID uuid.UUID, assignments []*biz.OrderPersonnel) error {
+	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	if err != nil {
+		return err
+	}
+	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+	for _, organization := range organizations {
+		parentByID[organization.ID] = organization.ParentID
+	}
+	for _, assignment := range assignments {
+		if !organizationWithinRoot(parentByID, rootOrganizationID, assignment.OrganizationID) {
+			return biz.ErrOrderPersonnelUserInvalid
+		}
+		validMembership, err := tx.Membership.Query().Where(
+			membershipent.UserIDEQ(assignment.UserID),
+			membershipent.OrganizationIDEQ(assignment.OrganizationID),
+			membershipent.EnabledEQ(true),
+			membershipent.HasUserWith(userent.EnabledEQ(true)),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !validMembership {
+			return biz.ErrOrderPersonnelUserInvalid
+		}
+		if _, err := tx.OrderPersonnel.Create().
+			SetOrderID(orderID).
+			SetUserID(assignment.UserID).
+			SetOrganizationID(assignment.OrganizationID).
+			SetRole(orderpersonnelent.Role(assignment.Role)).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
 		WithOrganization().
@@ -475,7 +572,9 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,
 		SICutoff: item.SiCutoff, DocCutoff: item.DocCutoff, CustomsCutoff: item.CustomsCutoff, VGMCutoff: item.VgmCutoff,
 		GoodsDescription: item.GoodsDescription, TotalPackages: item.TotalPackages, TotalPackageUnit: item.TotalPackageUnit,
-		SpecialRequirements: item.SpecialRequirements, OrderDate: item.OrderDate, Notes: item.Notes, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
+		SpecialRequirements: item.SpecialRequirements, OrderDate: item.OrderDate, Notes: item.Notes,
+		BookingNotes: item.BookingNotes, AllocationNotes: item.AllocationNotes, OperationNotes: item.OperationNotes,
+		CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
 	}
 	if item.ShipmentType != nil {
 		value := biz.OrderShipmentType(*item.ShipmentType)

@@ -261,6 +261,21 @@ func Notes(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNotes, v))
 }
 
+// BookingNotes applies equality check predicate on the "booking_notes" field. It's identical to BookingNotesEQ.
+func BookingNotes(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNotes, v))
+}
+
+// AllocationNotes applies equality check predicate on the "allocation_notes" field. It's identical to AllocationNotesEQ.
+func AllocationNotes(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAllocationNotes, v))
+}
+
+// OperationNotes applies equality check predicate on the "operation_notes" field. It's identical to OperationNotesEQ.
+func OperationNotes(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOperationNotes, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCreatedAt, v))
@@ -3024,6 +3039,231 @@ func NotesEqualFold(v string) predicate.Order {
 // NotesContainsFold applies the ContainsFold predicate on the "notes" field.
 func NotesContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldNotes, v))
+}
+
+// BookingNotesEQ applies the EQ predicate on the "booking_notes" field.
+func BookingNotesEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBookingNotes, v))
+}
+
+// BookingNotesNEQ applies the NEQ predicate on the "booking_notes" field.
+func BookingNotesNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldBookingNotes, v))
+}
+
+// BookingNotesIn applies the In predicate on the "booking_notes" field.
+func BookingNotesIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldBookingNotes, vs...))
+}
+
+// BookingNotesNotIn applies the NotIn predicate on the "booking_notes" field.
+func BookingNotesNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldBookingNotes, vs...))
+}
+
+// BookingNotesGT applies the GT predicate on the "booking_notes" field.
+func BookingNotesGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldBookingNotes, v))
+}
+
+// BookingNotesGTE applies the GTE predicate on the "booking_notes" field.
+func BookingNotesGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldBookingNotes, v))
+}
+
+// BookingNotesLT applies the LT predicate on the "booking_notes" field.
+func BookingNotesLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldBookingNotes, v))
+}
+
+// BookingNotesLTE applies the LTE predicate on the "booking_notes" field.
+func BookingNotesLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldBookingNotes, v))
+}
+
+// BookingNotesContains applies the Contains predicate on the "booking_notes" field.
+func BookingNotesContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldBookingNotes, v))
+}
+
+// BookingNotesHasPrefix applies the HasPrefix predicate on the "booking_notes" field.
+func BookingNotesHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldBookingNotes, v))
+}
+
+// BookingNotesHasSuffix applies the HasSuffix predicate on the "booking_notes" field.
+func BookingNotesHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldBookingNotes, v))
+}
+
+// BookingNotesIsNil applies the IsNil predicate on the "booking_notes" field.
+func BookingNotesIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldBookingNotes))
+}
+
+// BookingNotesNotNil applies the NotNil predicate on the "booking_notes" field.
+func BookingNotesNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldBookingNotes))
+}
+
+// BookingNotesEqualFold applies the EqualFold predicate on the "booking_notes" field.
+func BookingNotesEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldBookingNotes, v))
+}
+
+// BookingNotesContainsFold applies the ContainsFold predicate on the "booking_notes" field.
+func BookingNotesContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldBookingNotes, v))
+}
+
+// AllocationNotesEQ applies the EQ predicate on the "allocation_notes" field.
+func AllocationNotesEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldAllocationNotes, v))
+}
+
+// AllocationNotesNEQ applies the NEQ predicate on the "allocation_notes" field.
+func AllocationNotesNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldAllocationNotes, v))
+}
+
+// AllocationNotesIn applies the In predicate on the "allocation_notes" field.
+func AllocationNotesIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldAllocationNotes, vs...))
+}
+
+// AllocationNotesNotIn applies the NotIn predicate on the "allocation_notes" field.
+func AllocationNotesNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldAllocationNotes, vs...))
+}
+
+// AllocationNotesGT applies the GT predicate on the "allocation_notes" field.
+func AllocationNotesGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldAllocationNotes, v))
+}
+
+// AllocationNotesGTE applies the GTE predicate on the "allocation_notes" field.
+func AllocationNotesGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldAllocationNotes, v))
+}
+
+// AllocationNotesLT applies the LT predicate on the "allocation_notes" field.
+func AllocationNotesLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldAllocationNotes, v))
+}
+
+// AllocationNotesLTE applies the LTE predicate on the "allocation_notes" field.
+func AllocationNotesLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldAllocationNotes, v))
+}
+
+// AllocationNotesContains applies the Contains predicate on the "allocation_notes" field.
+func AllocationNotesContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldAllocationNotes, v))
+}
+
+// AllocationNotesHasPrefix applies the HasPrefix predicate on the "allocation_notes" field.
+func AllocationNotesHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldAllocationNotes, v))
+}
+
+// AllocationNotesHasSuffix applies the HasSuffix predicate on the "allocation_notes" field.
+func AllocationNotesHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldAllocationNotes, v))
+}
+
+// AllocationNotesIsNil applies the IsNil predicate on the "allocation_notes" field.
+func AllocationNotesIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldAllocationNotes))
+}
+
+// AllocationNotesNotNil applies the NotNil predicate on the "allocation_notes" field.
+func AllocationNotesNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldAllocationNotes))
+}
+
+// AllocationNotesEqualFold applies the EqualFold predicate on the "allocation_notes" field.
+func AllocationNotesEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldAllocationNotes, v))
+}
+
+// AllocationNotesContainsFold applies the ContainsFold predicate on the "allocation_notes" field.
+func AllocationNotesContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldAllocationNotes, v))
+}
+
+// OperationNotesEQ applies the EQ predicate on the "operation_notes" field.
+func OperationNotesEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOperationNotes, v))
+}
+
+// OperationNotesNEQ applies the NEQ predicate on the "operation_notes" field.
+func OperationNotesNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldOperationNotes, v))
+}
+
+// OperationNotesIn applies the In predicate on the "operation_notes" field.
+func OperationNotesIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldOperationNotes, vs...))
+}
+
+// OperationNotesNotIn applies the NotIn predicate on the "operation_notes" field.
+func OperationNotesNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldOperationNotes, vs...))
+}
+
+// OperationNotesGT applies the GT predicate on the "operation_notes" field.
+func OperationNotesGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldOperationNotes, v))
+}
+
+// OperationNotesGTE applies the GTE predicate on the "operation_notes" field.
+func OperationNotesGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldOperationNotes, v))
+}
+
+// OperationNotesLT applies the LT predicate on the "operation_notes" field.
+func OperationNotesLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldOperationNotes, v))
+}
+
+// OperationNotesLTE applies the LTE predicate on the "operation_notes" field.
+func OperationNotesLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldOperationNotes, v))
+}
+
+// OperationNotesContains applies the Contains predicate on the "operation_notes" field.
+func OperationNotesContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldOperationNotes, v))
+}
+
+// OperationNotesHasPrefix applies the HasPrefix predicate on the "operation_notes" field.
+func OperationNotesHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldOperationNotes, v))
+}
+
+// OperationNotesHasSuffix applies the HasSuffix predicate on the "operation_notes" field.
+func OperationNotesHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldOperationNotes, v))
+}
+
+// OperationNotesIsNil applies the IsNil predicate on the "operation_notes" field.
+func OperationNotesIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldOperationNotes))
+}
+
+// OperationNotesNotNil applies the NotNil predicate on the "operation_notes" field.
+func OperationNotesNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldOperationNotes))
+}
+
+// OperationNotesEqualFold applies the EqualFold predicate on the "operation_notes" field.
+func OperationNotesEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldOperationNotes, v))
+}
+
+// OperationNotesContainsFold applies the ContainsFold predicate on the "operation_notes" field.
+func OperationNotesContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldOperationNotes, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

@@ -4780,6 +4780,22 @@ func (c *OrderPersonnelClient) QueryUser(_m *OrderPersonnel) *UserQuery {
 	return query
 }
 
+// QueryOrganization queries the organization edge of a OrderPersonnel.
+func (c *OrderPersonnelClient) QueryOrganization(_m *OrderPersonnel) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderpersonnel.Table, orderpersonnel.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderpersonnel.OrganizationTable, orderpersonnel.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderPersonnelClient) Hooks() []Hook {
 	return c.hooks.OrderPersonnel
@@ -5870,6 +5886,22 @@ func (c *OrganizationClient) QueryOrders(_m *Organization) *OrderQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrdersTable, organization.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderPersonnel queries the order_personnel edge of a Organization.
+func (c *OrganizationClient) QueryOrderPersonnel(_m *Organization) *OrderPersonnelQuery {
+	query := (&OrderPersonnelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderpersonnel.Table, orderpersonnel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderPersonnelTable, organization.OrderPersonnelColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

@@ -13,7 +13,7 @@ var (
 	ErrOrderPersonnelNotFound        = errors.NotFound("ORDER_PERSONNEL_NOT_FOUND", "订单协作人员不存在")
 	ErrOrderPersonnelExists          = errors.Conflict("ORDER_PERSONNEL_EXISTS", "订单协作人员已存在")
 	ErrOrderPersonnelInvalidArgument = errors.BadRequest("ORDER_PERSONNEL_INVALID_ARGUMENT", "订单协作人员字段不合法")
-	ErrOrderPersonnelUserInvalid     = errors.BadRequest("ORDER_PERSONNEL_USER_INVALID", "协作人员必须是当前组织启用的用户")
+	ErrOrderPersonnelUserInvalid     = errors.BadRequest("ORDER_PERSONNEL_USER_INVALID", "协作人员必须是订单组织范围内启用的组织成员")
 )
 
 type OrderPersonnelRole string
@@ -46,18 +46,19 @@ func (r OrderPersonnelRole) Valid() bool {
 }
 
 type OrderPersonnel struct {
-	ID         uuid.UUID
-	OrderID    uuid.UUID
-	UserID     uuid.UUID
-	Role       OrderPersonnelRole
-	AssignedAt time.Time
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID             uuid.UUID
+	OrderID        uuid.UUID
+	UserID         uuid.UUID
+	OrganizationID uuid.UUID
+	Role           OrderPersonnelRole
+	AssignedAt     time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type OrderPersonnelRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error)
-	Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error)
+	Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error)
 	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
 }
 
@@ -77,14 +78,14 @@ func (uc *OrderPersonnelUsecase) List(ctx context.Context, organizationID, order
 	return uc.repo.List(ctx, organizationID, orderID)
 }
 
-func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, actorID, orderID, userID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || userID == uuid.Nil {
+func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, actorID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || userID == uuid.Nil || memberOrganizationID == uuid.Nil {
 		return nil, ErrOrderPersonnelInvalidArgument
 	}
 	if !role.Valid() {
 		return nil, ErrOrderPersonnelInvalidArgument
 	}
-	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, role)
+	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, memberOrganizationID, role)
 	if err != nil {
 		return nil, err
 	}
@@ -94,10 +95,11 @@ func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, act
 		Action:         "order.personnel.assign",
 		Result:         "success",
 		Details: map[string]string{
-			"personnel.id": created.ID.String(),
-			"order.id":     orderID.String(),
-			"user.id":      userID.String(),
-			"role":         string(role),
+			"personnel.id":    created.ID.String(),
+			"order.id":        orderID.String(),
+			"user.id":         userID.String(),
+			"organization.id": memberOrganizationID.String(),
+			"role":            string(role),
 		},
 	}); err != nil {
 		return nil, fmt.Errorf("write order personnel assign audit: %w", err)

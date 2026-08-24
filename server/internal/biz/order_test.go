@@ -36,6 +36,10 @@ func (s *orderRepoStub) FindReferenceDuplicate(_ context.Context, _ uuid.UUID, c
 	return s.referenceMatch, nil
 }
 
+func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID) ([]*OrderPersonnelOption, error) {
+	return nil, nil
+}
+
 func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order) (*Order, error) {
 	s.created = input
 	s.createdNumber = number

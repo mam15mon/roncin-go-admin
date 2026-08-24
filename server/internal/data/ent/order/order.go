@@ -112,6 +112,12 @@ const (
 	FieldOrderDate = "order_date"
 	// FieldNotes holds the string denoting the notes field in the database.
 	FieldNotes = "notes"
+	// FieldBookingNotes holds the string denoting the booking_notes field in the database.
+	FieldBookingNotes = "booking_notes"
+	// FieldAllocationNotes holds the string denoting the allocation_notes field in the database.
+	FieldAllocationNotes = "allocation_notes"
+	// FieldOperationNotes holds the string denoting the operation_notes field in the database.
+	FieldOperationNotes = "operation_notes"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeCustomer holds the string denoting the customer edge name in mutations.
@@ -302,6 +308,9 @@ var Columns = []string{
 	FieldSpecialRequirements,
 	FieldOrderDate,
 	FieldNotes,
+	FieldBookingNotes,
+	FieldAllocationNotes,
+	FieldOperationNotes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -377,6 +386,12 @@ var (
 	OrderDateValidator func(string) error
 	// NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	NotesValidator func(string) error
+	// BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
+	BookingNotesValidator func(string) error
+	// AllocationNotesValidator is a validator for the "allocation_notes" field. It is called by the builders before save.
+	AllocationNotesValidator func(string) error
+	// OperationNotesValidator is a validator for the "operation_notes" field. It is called by the builders before save.
+	OperationNotesValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -803,6 +818,21 @@ func ByOrderDate(opts ...sql.OrderTermOption) OrderOption {
 // ByNotes orders the results by the notes field.
 func ByNotes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNotes, opts...).ToFunc()
+}
+
+// ByBookingNotes orders the results by the booking_notes field.
+func ByBookingNotes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBookingNotes, opts...).ToFunc()
+}
+
+// ByAllocationNotes orders the results by the allocation_notes field.
+func ByAllocationNotes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAllocationNotes, opts...).ToFunc()
+}
+
+// ByOperationNotes orders the results by the operation_notes field.
+func ByOperationNotes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOperationNotes, opts...).ToFunc()
 }
 
 // ByOrganizationField orders the results by organization field.

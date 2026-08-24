@@ -93,16 +93,17 @@ func (OrderPersonnelRole) EnumDescriptor() ([]byte, []int) {
 
 // OrderPersonnel 订单协作人员信息。
 type OrderPersonnel struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId       string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          OrderPersonnelRole     `protobuf:"varint,4,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
-	AssignedAt    string                 `protobuf:"bytes,5,opt,name=assigned_at,json=assignedAt,proto3" json:"assigned_at,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId        string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UserId         string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role           OrderPersonnelRole     `protobuf:"varint,4,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
+	AssignedAt     string                 `protobuf:"bytes,5,opt,name=assigned_at,json=assignedAt,proto3" json:"assigned_at,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,8,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *OrderPersonnel) Reset() {
@@ -184,6 +185,13 @@ func (x *OrderPersonnel) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *OrderPersonnel) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
 // ListPersonnelRequest 获取订单协作人员列表请求。
 type ListPersonnelRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -231,12 +239,13 @@ func (x *ListPersonnelRequest) GetOrderId() string {
 
 // AssignPersonnelRequest 分配订单协作人员请求。
 type AssignPersonnelRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          OrderPersonnelRole     `protobuf:"varint,3,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	OrderId        string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UserId         string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role           OrderPersonnelRole     `protobuf:"varint,3,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AssignPersonnelRequest) Reset() {
@@ -288,6 +297,13 @@ func (x *AssignPersonnelRequest) GetRole() OrderPersonnelRole {
 		return x.Role
 	}
 	return OrderPersonnelRole_ORDER_PERSONNEL_ROLE_UNSPECIFIED
+}
+
+func (x *AssignPersonnelRequest) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
 }
 
 // RemovePersonnelRequest 移除订单协作人员请求。
@@ -570,7 +586,7 @@ var File_order_v1_order_personnel_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\n" +
-	"\x1eorder/v1/order_personnel.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xe5\x01\n" +
+	"\x1eorder/v1/order_personnel.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x8e\x02\n" +
 	"\x0eOrderPersonnel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x17\n" +
@@ -581,13 +597,15 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"6\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\x12'\n" +
+	"\x0forganization_id\x18\b \x01(\tR\x0eorganizationId\"6\n" +
 	"\x14ListPersonnelRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\x8d\x01\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xbb\x01\n" +
 	"\x16AssignPersonnelRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1c\n" +
 	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"M\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\x12,\n" +
+	"\x0forganization_id\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"M\n" +
 	"\x16RemovePersonnelRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xaa\x01\n" +

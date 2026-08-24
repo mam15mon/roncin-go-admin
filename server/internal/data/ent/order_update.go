@@ -909,6 +909,66 @@ func (_u *OrderUpdate) ClearNotes() *OrderUpdate {
 	return _u
 }
 
+// SetBookingNotes sets the "booking_notes" field.
+func (_u *OrderUpdate) SetBookingNotes(v string) *OrderUpdate {
+	_u.mutation.SetBookingNotes(v)
+	return _u
+}
+
+// SetNillableBookingNotes sets the "booking_notes" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableBookingNotes(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetBookingNotes(*v)
+	}
+	return _u
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (_u *OrderUpdate) ClearBookingNotes() *OrderUpdate {
+	_u.mutation.ClearBookingNotes()
+	return _u
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (_u *OrderUpdate) SetAllocationNotes(v string) *OrderUpdate {
+	_u.mutation.SetAllocationNotes(v)
+	return _u
+}
+
+// SetNillableAllocationNotes sets the "allocation_notes" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableAllocationNotes(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetAllocationNotes(*v)
+	}
+	return _u
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (_u *OrderUpdate) ClearAllocationNotes() *OrderUpdate {
+	_u.mutation.ClearAllocationNotes()
+	return _u
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (_u *OrderUpdate) SetOperationNotes(v string) *OrderUpdate {
+	_u.mutation.SetOperationNotes(v)
+	return _u
+}
+
+// SetNillableOperationNotes sets the "operation_notes" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableOperationNotes(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetOperationNotes(*v)
+	}
+	return _u
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (_u *OrderUpdate) ClearOperationNotes() *OrderUpdate {
+	_u.mutation.ClearOperationNotes()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *OrderUpdate) SetOrganization(v *Organization) *OrderUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -1582,6 +1642,21 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "notes", err: fmt.Errorf(`ent: validator failed for field "Order.notes": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BookingNotes(); ok {
+		if err := order.BookingNotesValidator(v); err != nil {
+			return &ValidationError{Name: "booking_notes", err: fmt.Errorf(`ent: validator failed for field "Order.booking_notes": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AllocationNotes(); ok {
+		if err := order.AllocationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "allocation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.allocation_notes": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.OperationNotes(); ok {
+		if err := order.OperationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "operation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.operation_notes": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Order.organization"`)
 	}
@@ -1848,6 +1923,24 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.NotesCleared() {
 		_spec.ClearField(order.FieldNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.BookingNotes(); ok {
+		_spec.SetField(order.FieldBookingNotes, field.TypeString, value)
+	}
+	if _u.mutation.BookingNotesCleared() {
+		_spec.ClearField(order.FieldBookingNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.AllocationNotes(); ok {
+		_spec.SetField(order.FieldAllocationNotes, field.TypeString, value)
+	}
+	if _u.mutation.AllocationNotesCleared() {
+		_spec.ClearField(order.FieldAllocationNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.OperationNotes(); ok {
+		_spec.SetField(order.FieldOperationNotes, field.TypeString, value)
+	}
+	if _u.mutation.OperationNotesCleared() {
+		_spec.ClearField(order.FieldOperationNotes, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -3361,6 +3454,66 @@ func (_u *OrderUpdateOne) ClearNotes() *OrderUpdateOne {
 	return _u
 }
 
+// SetBookingNotes sets the "booking_notes" field.
+func (_u *OrderUpdateOne) SetBookingNotes(v string) *OrderUpdateOne {
+	_u.mutation.SetBookingNotes(v)
+	return _u
+}
+
+// SetNillableBookingNotes sets the "booking_notes" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableBookingNotes(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetBookingNotes(*v)
+	}
+	return _u
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (_u *OrderUpdateOne) ClearBookingNotes() *OrderUpdateOne {
+	_u.mutation.ClearBookingNotes()
+	return _u
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (_u *OrderUpdateOne) SetAllocationNotes(v string) *OrderUpdateOne {
+	_u.mutation.SetAllocationNotes(v)
+	return _u
+}
+
+// SetNillableAllocationNotes sets the "allocation_notes" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableAllocationNotes(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetAllocationNotes(*v)
+	}
+	return _u
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (_u *OrderUpdateOne) ClearAllocationNotes() *OrderUpdateOne {
+	_u.mutation.ClearAllocationNotes()
+	return _u
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (_u *OrderUpdateOne) SetOperationNotes(v string) *OrderUpdateOne {
+	_u.mutation.SetOperationNotes(v)
+	return _u
+}
+
+// SetNillableOperationNotes sets the "operation_notes" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableOperationNotes(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetOperationNotes(*v)
+	}
+	return _u
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (_u *OrderUpdateOne) ClearOperationNotes() *OrderUpdateOne {
+	_u.mutation.ClearOperationNotes()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *OrderUpdateOne) SetOrganization(v *Organization) *OrderUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -4047,6 +4200,21 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "notes", err: fmt.Errorf(`ent: validator failed for field "Order.notes": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BookingNotes(); ok {
+		if err := order.BookingNotesValidator(v); err != nil {
+			return &ValidationError{Name: "booking_notes", err: fmt.Errorf(`ent: validator failed for field "Order.booking_notes": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AllocationNotes(); ok {
+		if err := order.AllocationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "allocation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.allocation_notes": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.OperationNotes(); ok {
+		if err := order.OperationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "operation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.operation_notes": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Order.organization"`)
 	}
@@ -4330,6 +4498,24 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.NotesCleared() {
 		_spec.ClearField(order.FieldNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.BookingNotes(); ok {
+		_spec.SetField(order.FieldBookingNotes, field.TypeString, value)
+	}
+	if _u.mutation.BookingNotesCleared() {
+		_spec.ClearField(order.FieldBookingNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.AllocationNotes(); ok {
+		_spec.SetField(order.FieldAllocationNotes, field.TypeString, value)
+	}
+	if _u.mutation.AllocationNotesCleared() {
+		_spec.ClearField(order.FieldAllocationNotes, field.TypeString)
+	}
+	if value, ok := _u.mutation.OperationNotes(); ok {
+		_spec.SetField(order.FieldOperationNotes, field.TypeString, value)
+	}
+	if _u.mutation.OperationNotesCleared() {
+		_spec.ClearField(order.FieldOperationNotes, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

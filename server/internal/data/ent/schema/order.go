@@ -61,6 +61,9 @@ func (Order) Fields() []ent.Field {
 		field.String("special_requirements").Optional().MaxLen(1000),
 		field.String("order_date").Optional().MaxLen(32),
 		field.String("notes").Optional().MaxLen(1000),
+		field.String("booking_notes").Optional().MaxLen(1000),
+		field.String("allocation_notes").Optional().MaxLen(1000),
+		field.String("operation_notes").Optional().MaxLen(1000),
 	}
 }
 

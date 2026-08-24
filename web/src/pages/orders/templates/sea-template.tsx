@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Row, Select } from 'antd';
+import { Button, Col, Form, Row, Select, Space } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { TooltipInput } from '@/components/ui/tooltip-input';
@@ -20,6 +20,141 @@ import {
   tradeTermOptions,
 } from '../common';
 import type { SelectOption, TemplateProps, TemplateSection } from './types';
+
+type PersonnelAssignmentFieldsProps = {
+  label: string;
+  userField: string;
+  organizationField: string;
+  options: API.OrderPersonnelOption[];
+  disabled?: boolean;
+};
+
+function PersonnelAssignmentFields({
+  label,
+  userField,
+  organizationField,
+  options,
+  disabled = false,
+}: PersonnelAssignmentFieldsProps) {
+  const form = Form.useFormInstance();
+  const selectedUserID = Form.useWatch(userField);
+  const selectedOrganizationID = Form.useWatch(organizationField);
+  const organizationOptions = Array.from(
+    new Map(
+      options
+        .filter((option) => option.organizationId)
+        .map((option) => [
+          option.organizationId as string,
+          {
+            label: option.organizationName || option.organizationId,
+            value: option.organizationId as string,
+          },
+        ]),
+    ).values(),
+  );
+  const userOptions = Array.from(
+    new Map(
+      options
+        .filter(
+          (option) =>
+            option.userId &&
+            (!selectedOrganizationID ||
+              option.organizationId === selectedOrganizationID),
+        )
+        .map((option) => [
+          option.userId as string,
+          {
+            label: option.displayName || option.userId,
+            value: option.userId as string,
+          },
+        ]),
+    ).values(),
+  );
+
+  return (
+    <Col xs={24} md={12} xl={8}>
+      <Form.Item label={label} style={{ marginInline: 8 }}>
+        <Space.Compact style={{ width: '100%' }}>
+          <Form.Item
+            noStyle
+            name={userField}
+            dependencies={[organizationField]}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator: async (_, value) => {
+                  if (!getFieldValue(organizationField) || value) return;
+                  throw new Error(`请选择${label}`);
+                },
+              }),
+            ]}
+          >
+            <Select
+              allowClear
+              disabled={disabled}
+              showSearch
+              optionFilterProp="label"
+              options={userOptions}
+              placeholder="请选择人员"
+              style={{ width: '50%' }}
+              onChange={(userID) => {
+                if (!userID) return;
+                const memberships = options.filter(
+                  (option) => option.userId === userID,
+                );
+                if (
+                  !memberships.some(
+                    (option) =>
+                      option.organizationId === selectedOrganizationID,
+                  )
+                ) {
+                  form.setFieldValue(
+                    organizationField,
+                    memberships[0]?.organizationId,
+                  );
+                }
+              }}
+            />
+          </Form.Item>
+          <Form.Item
+            noStyle
+            name={organizationField}
+            dependencies={[userField]}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator: async (_, value) => {
+                  if (!getFieldValue(userField) || value) return;
+                  throw new Error(`请选择${label}所属公司`);
+                },
+              }),
+            ]}
+          >
+            <Select
+              allowClear
+              disabled={disabled}
+              showSearch
+              optionFilterProp="label"
+              options={organizationOptions}
+              placeholder="所属公司"
+              style={{ width: '50%' }}
+              onChange={(organizationID) => {
+                if (
+                  selectedUserID &&
+                  !options.some(
+                    (option) =>
+                      option.userId === selectedUserID &&
+                      option.organizationId === organizationID,
+                  )
+                ) {
+                  form.setFieldValue(userField, undefined);
+                }
+              }}
+            />
+          </Form.Item>
+        </Space.Compact>
+      </Form.Item>
+    </Col>
+  );
+}
 
 function SeaScheduleDateFields() {
   const etd = Form.useWatch('etd');
@@ -86,6 +221,8 @@ export function getSeaTemplateSections(
     setCustomerCode,
     checkCustomerReferenceNo,
     checkInternalReferenceNo,
+    personnelOptions,
+    creator,
   } = props;
 
   return [
@@ -533,7 +670,7 @@ export function getSeaTemplateSections(
     },
     {
       key: 'cargoInfo',
-      title: '提单与货物',
+      title: '提单信息',
       content: (
         <>
           {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}
@@ -578,16 +715,65 @@ export function getSeaTemplateSections(
       ),
     },
     {
-      key: 'internalInfo',
-      title: '订单备注',
+      key: 'remarks',
+      title: '备注',
       content: (
-        <ProFormTextArea
-          colProps={{ span: 24 }}
-          name="notes"
-          label="内部操作备注"
-          placeholder="请输入订舱、配舱或操作过程中需要内部协作的信息"
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
-        />
+        <>
+          <ProFormTextArea
+            colProps={{ xs: 24, lg: 8 }}
+            name="bookingNotes"
+            label="订舱备注"
+            placeholder="请输入订舱备注"
+            fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          />
+          <ProFormTextArea
+            colProps={{ xs: 24, lg: 8 }}
+            name="allocationNotes"
+            label="配舱备注"
+            placeholder="请输入配舱备注"
+            fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          />
+          <ProFormTextArea
+            colProps={{ xs: 24, lg: 8 }}
+            name="operationNotes"
+            label="操作备注"
+            placeholder="请输入操作备注"
+            fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          />
+        </>
+      ),
+    },
+    {
+      key: 'internalInfo',
+      title: '内部信息',
+      content: (
+        <>
+          <PersonnelAssignmentFields
+            label="创建人员"
+            userField="creatorUserId"
+            organizationField="creatorOrganizationId"
+            options={
+              creator
+                ? [
+                    {
+                      userId: creator.userId,
+                      displayName: creator.displayName,
+                      organizationId: creator.organizationId,
+                      organizationName: creator.organizationName,
+                    },
+                  ]
+                : []
+            }
+            disabled
+          />
+          <PersonnelAssignmentFields label="操作人员" userField="operatorUserId" organizationField="operatorOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="业务人员" userField="salesUserId" organizationField="salesOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="客服人员" userField="customerServiceUserId" organizationField="customerServiceOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="关联人员" userField="associateUserId" organizationField="associateOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="单证人员" userField="documentUserId" organizationField="documentOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="商务人员" userField="commercialUserId" organizationField="commercialOrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields label="关联人员 2" userField="associate2UserId" organizationField="associate2OrganizationId" options={personnelOptions} />
+        </>
       ),
     },
   ];

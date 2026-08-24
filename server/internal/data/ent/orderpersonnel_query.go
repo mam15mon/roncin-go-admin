@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -22,13 +23,14 @@ import (
 // OrderPersonnelQuery is the builder for querying OrderPersonnel entities.
 type OrderPersonnelQuery struct {
 	config
-	ctx        *QueryContext
-	order      []orderpersonnel.OrderOption
-	inters     []Interceptor
-	predicates []predicate.OrderPersonnel
-	withOrder  *OrderQuery
-	withUser   *UserQuery
-	modifiers  []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []orderpersonnel.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.OrderPersonnel
+	withOrder        *OrderQuery
+	withUser         *UserQuery
+	withOrganization *OrganizationQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -102,6 +104,28 @@ func (_q *OrderPersonnelQuery) QueryUser() *UserQuery {
 			sqlgraph.From(orderpersonnel.Table, orderpersonnel.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderpersonnel.UserTable, orderpersonnel.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrganization chains the current query on the "organization" edge.
+func (_q *OrderPersonnelQuery) QueryOrganization() *OrganizationQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderpersonnel.Table, orderpersonnel.FieldID, selector),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderpersonnel.OrganizationTable, orderpersonnel.OrganizationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -296,13 +320,14 @@ func (_q *OrderPersonnelQuery) Clone() *OrderPersonnelQuery {
 		return nil
 	}
 	return &OrderPersonnelQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]orderpersonnel.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.OrderPersonnel{}, _q.predicates...),
-		withOrder:  _q.withOrder.Clone(),
-		withUser:   _q.withUser.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]orderpersonnel.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.OrderPersonnel{}, _q.predicates...),
+		withOrder:        _q.withOrder.Clone(),
+		withUser:         _q.withUser.Clone(),
+		withOrganization: _q.withOrganization.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -328,6 +353,17 @@ func (_q *OrderPersonnelQuery) WithUser(opts ...func(*UserQuery)) *OrderPersonne
 		opt(query)
 	}
 	_q.withUser = query
+	return _q
+}
+
+// WithOrganization tells the query-builder to eager-load the nodes that are connected to
+// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderPersonnelQuery) WithOrganization(opts ...func(*OrganizationQuery)) *OrderPersonnelQuery {
+	query := (&OrganizationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrganization = query
 	return _q
 }
 
@@ -409,9 +445,10 @@ func (_q *OrderPersonnelQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*OrderPersonnel{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrder != nil,
 			_q.withUser != nil,
+			_q.withOrganization != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -444,6 +481,12 @@ func (_q *OrderPersonnelQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := _q.withUser; query != nil {
 		if err := _q.loadUser(ctx, query, nodes, nil,
 			func(n *OrderPersonnel, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrganization; query != nil {
+		if err := _q.loadOrganization(ctx, query, nodes, nil,
+			func(n *OrderPersonnel, e *Organization) { n.Edges.Organization = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -508,6 +551,35 @@ func (_q *OrderPersonnelQuery) loadUser(ctx context.Context, query *UserQuery, n
 	}
 	return nil
 }
+func (_q *OrderPersonnelQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*OrderPersonnel, init func(*OrderPersonnel), assign func(*OrderPersonnel, *Organization)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderPersonnel)
+	for i := range nodes {
+		fk := nodes[i].OrganizationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(organization.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *OrderPersonnelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -542,6 +614,9 @@ func (_q *OrderPersonnelQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withUser != nil {
 			_spec.Node.AddColumnOnce(orderpersonnel.FieldUserID)
+		}
+		if _q.withOrganization != nil {
+			_spec.Node.AddColumnOnce(orderpersonnel.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

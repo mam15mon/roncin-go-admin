@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -65,6 +66,20 @@ func (_u *OrderPersonnelUpdate) SetNillableUserID(v *uuid.UUID) *OrderPersonnelU
 	return _u
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (_u *OrderPersonnelUpdate) SetOrganizationID(v uuid.UUID) *OrderPersonnelUpdate {
+	_u.mutation.SetOrganizationID(v)
+	return _u
+}
+
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_u *OrderPersonnelUpdate) SetNillableOrganizationID(v *uuid.UUID) *OrderPersonnelUpdate {
+	if v != nil {
+		_u.SetOrganizationID(*v)
+	}
+	return _u
+}
+
 // SetRole sets the "role" field.
 func (_u *OrderPersonnelUpdate) SetRole(v orderpersonnel.Role) *OrderPersonnelUpdate {
 	_u.mutation.SetRole(v)
@@ -103,6 +118,11 @@ func (_u *OrderPersonnelUpdate) SetUser(v *User) *OrderPersonnelUpdate {
 	return _u.SetUserID(v.ID)
 }
 
+// SetOrganization sets the "organization" edge to the Organization entity.
+func (_u *OrderPersonnelUpdate) SetOrganization(v *Organization) *OrderPersonnelUpdate {
+	return _u.SetOrganizationID(v.ID)
+}
+
 // Mutation returns the OrderPersonnelMutation object of the builder.
 func (_u *OrderPersonnelUpdate) Mutation() *OrderPersonnelMutation {
 	return _u.mutation
@@ -117,6 +137,12 @@ func (_u *OrderPersonnelUpdate) ClearOrder() *OrderPersonnelUpdate {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *OrderPersonnelUpdate) ClearUser() *OrderPersonnelUpdate {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (_u *OrderPersonnelUpdate) ClearOrganization() *OrderPersonnelUpdate {
+	_u.mutation.ClearOrganization()
 	return _u
 }
 
@@ -168,6 +194,9 @@ func (_u *OrderPersonnelUpdate) check() error {
 	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderPersonnel.user"`)
+	}
+	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderPersonnel.organization"`)
 	}
 	return nil
 }
@@ -251,6 +280,35 @@ func (_u *OrderPersonnelUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrganizationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderpersonnel.OrganizationTable,
+			Columns: []string{orderpersonnel.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderpersonnel.OrganizationTable,
+			Columns: []string{orderpersonnel.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderpersonnel.Label}
@@ -305,6 +363,20 @@ func (_u *OrderPersonnelUpdateOne) SetNillableUserID(v *uuid.UUID) *OrderPersonn
 	return _u
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (_u *OrderPersonnelUpdateOne) SetOrganizationID(v uuid.UUID) *OrderPersonnelUpdateOne {
+	_u.mutation.SetOrganizationID(v)
+	return _u
+}
+
+// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
+func (_u *OrderPersonnelUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *OrderPersonnelUpdateOne {
+	if v != nil {
+		_u.SetOrganizationID(*v)
+	}
+	return _u
+}
+
 // SetRole sets the "role" field.
 func (_u *OrderPersonnelUpdateOne) SetRole(v orderpersonnel.Role) *OrderPersonnelUpdateOne {
 	_u.mutation.SetRole(v)
@@ -343,6 +415,11 @@ func (_u *OrderPersonnelUpdateOne) SetUser(v *User) *OrderPersonnelUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
+// SetOrganization sets the "organization" edge to the Organization entity.
+func (_u *OrderPersonnelUpdateOne) SetOrganization(v *Organization) *OrderPersonnelUpdateOne {
+	return _u.SetOrganizationID(v.ID)
+}
+
 // Mutation returns the OrderPersonnelMutation object of the builder.
 func (_u *OrderPersonnelUpdateOne) Mutation() *OrderPersonnelMutation {
 	return _u.mutation
@@ -357,6 +434,12 @@ func (_u *OrderPersonnelUpdateOne) ClearOrder() *OrderPersonnelUpdateOne {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *OrderPersonnelUpdateOne) ClearUser() *OrderPersonnelUpdateOne {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (_u *OrderPersonnelUpdateOne) ClearOrganization() *OrderPersonnelUpdateOne {
+	_u.mutation.ClearOrganization()
 	return _u
 }
 
@@ -421,6 +504,9 @@ func (_u *OrderPersonnelUpdateOne) check() error {
 	}
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderPersonnel.user"`)
+	}
+	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderPersonnel.organization"`)
 	}
 	return nil
 }
@@ -514,6 +600,35 @@ func (_u *OrderPersonnelUpdateOne) sqlSave(ctx context.Context) (_node *OrderPer
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrganizationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderpersonnel.OrganizationTable,
+			Columns: []string{orderpersonnel.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderpersonnel.OrganizationTable,
+			Columns: []string{orderpersonnel.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

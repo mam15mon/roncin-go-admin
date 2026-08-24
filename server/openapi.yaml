@@ -1450,6 +1450,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.SetDefaultStatusTemplateResponse'
+    /api/v1/order-personnel-options:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_ListPersonnelOptions
+            parameters:
+                - name: businessType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ListPersonnelOptionsResponse'
     /api/v1/order-reference-check:
         get:
             tags:
@@ -5899,6 +5917,7 @@ components:
                 - orderId
                 - userId
                 - role
+                - organizationId
             type: object
             properties:
                 orderId:
@@ -5908,6 +5927,8 @@ components:
                 role:
                     type: integer
                     format: enum
+                organizationId:
+                    type: string
             description: AssignPersonnelRequest 分配订单协作人员请求。
         order.v1.AssignPersonnelResponse:
             type: object
@@ -6051,6 +6072,16 @@ components:
                     type: string
                 receivedAt:
                     type: string
+                bookingNotes:
+                    type: string
+                allocationNotes:
+                    type: string
+                operationNotes:
+                    type: string
+                personnelAssignments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderPersonnelAssignmentInput'
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -6238,6 +6269,22 @@ components:
                 traceId:
                     type: string
             description: ListOrdersResponse 订单列表响应。
+        order.v1.ListPersonnelOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderPersonnelOption'
+                traceId:
+                    type: string
         order.v1.ListPersonnelResponse:
             type: object
             properties:
@@ -6436,6 +6483,12 @@ components:
                     type: string
                 canModify:
                     type: boolean
+                bookingNotes:
+                    type: string
+                allocationNotes:
+                    type: string
+                operationNotes:
+                    type: string
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
             type: object
@@ -6696,7 +6749,36 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                organizationId:
+                    type: string
             description: OrderPersonnel 订单协作人员信息。
+        order.v1.OrderPersonnelAssignmentInput:
+            required:
+                - userId
+                - organizationId
+                - role
+            type: object
+            properties:
+                userId:
+                    type: string
+                organizationId:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+            description: OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
+        order.v1.OrderPersonnelOption:
+            type: object
+            properties:
+                userId:
+                    type: string
+                displayName:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+            description: OrderPersonnelOption 订单人员及其所属公司候选项。
         order.v1.OrderReferenceCheck:
             type: object
             properties:
@@ -7318,6 +7400,12 @@ components:
                 loadingTerms:
                     type: string
                 receivedAt:
+                    type: string
+                bookingNotes:
+                    type: string
+                allocationNotes:
+                    type: string
+                operationNotes:
                     type: string
             description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
         order.v1.UpdateOrderResponse:

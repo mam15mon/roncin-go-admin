@@ -255,6 +255,7 @@ declare namespace API {
     orderId: string;
     userId: string;
     role: number;
+    organizationId: string;
   };
 
   type AssignPersonnelResponse = {
@@ -540,6 +541,10 @@ declare namespace API {
     cargoReadyAt?: string;
     loadingTerms?: string;
     receivedAt?: string;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
+    personnelAssignments?: OrderPersonnelAssignmentInput[];
   };
 
   type CreateOrderResponse = {
@@ -1245,6 +1250,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListPersonnelOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderPersonnelOption[];
+    traceId?: string;
+  };
+
   type ListPersonnelResponse = {
     success?: boolean;
     code?: number;
@@ -1600,6 +1613,9 @@ declare namespace API {
     receivedAt?: string;
     organizationName?: string;
     canModify?: boolean;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
   };
 
   type OrderAbnormalCase = {
@@ -1842,6 +1858,20 @@ declare namespace API {
     assignedAt?: string;
     createdAt?: string;
     updatedAt?: string;
+    organizationId?: string;
+  };
+
+  type OrderPersonnelAssignmentInput = {
+    userId: string;
+    organizationId: string;
+    role: number;
+  };
+
+  type OrderPersonnelOption = {
+    userId?: string;
+    displayName?: string;
+    organizationId?: string;
+    organizationName?: string;
   };
 
   type OrderPersonnelServiceAssignPersonnelParams = {
@@ -1918,6 +1948,10 @@ declare namespace API {
     status?: string;
     businessType?: number;
     customerId?: string;
+  };
+
+  type OrderServiceListPersonnelOptionsParams = {
+    businessType?: number;
   };
 
   type OrderServiceTransitionOrderStatusParams = {
@@ -2953,6 +2987,9 @@ declare namespace API {
     cargoReadyAt?: string;
     loadingTerms?: string;
     receivedAt?: string;
+    bookingNotes?: string;
+    allocationNotes?: string;
+    operationNotes?: string;
   };
 
   type UpdateOrderResponse = {

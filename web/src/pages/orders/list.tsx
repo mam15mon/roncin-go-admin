@@ -157,6 +157,7 @@ type AttachmentFormValues = {
 
 type PersonnelFormValues = {
   userId: string;
+  organizationId: string;
   role: number;
 };
 
@@ -1931,6 +1932,7 @@ export default function OrderListPage() {
             {
               orderId: personnelOrder.id,
               userId: values.userId.trim(),
+              organizationId: values.organizationId.trim(),
               role: Number(values.role),
             },
           );
@@ -1945,6 +1947,12 @@ export default function OrderListPage() {
           label="用户 UUID"
           placeholder="请输入组织内用户 UUID"
           rules={[{ required: true, message: '请输入用户 UUID' }]}
+        />
+        <ProFormText
+          name="organizationId"
+          label="所属公司 UUID"
+          placeholder="请输入人员所属公司 UUID"
+          rules={[{ required: true, message: '请输入人员所属公司 UUID' }]}
         />
         <ProFormSelect
           name="role"

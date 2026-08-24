@@ -21,6 +21,7 @@ const OperationOrderServiceCheckOrderReference = "/order.v1.OrderService/CheckOr
 const OperationOrderServiceCreateOrder = "/order.v1.OrderService/CreateOrder"
 const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
+const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
 const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/TransitionOrderStatus"
 const OperationOrderServiceUpdateOrder = "/order.v1.OrderService/UpdateOrder"
 
@@ -29,6 +30,7 @@ type OrderServiceHTTPServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
+	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
 }
@@ -38,6 +40,7 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/orders/{id}", _OrderService_GetOrder0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders", _OrderService_ListOrders0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/order-reference-check", _OrderService_CheckOrderReference0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/order-personnel-options", _OrderService_ListPersonnelOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders", _OrderService_CreateOrder0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{id}", _OrderService_UpdateOrder0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
@@ -99,6 +102,25 @@ func _OrderService_CheckOrderReference0_HTTP_Handler(srv OrderServiceHTTPServer)
 			return err
 		}
 		reply := out.(*CheckOrderReferenceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderService_ListPersonnelOptions0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListPersonnelOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceListPersonnelOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListPersonnelOptions(ctx, req.(*ListPersonnelOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPersonnelOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -171,6 +193,7 @@ type OrderServiceHTTPClient interface {
 	CreateOrder(ctx context.Context, req *CreateOrderRequest, opts ...http.CallOption) (rsp *CreateOrderResponse, err error)
 	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *GetOrderResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
+	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
 	TransitionOrderStatus(ctx context.Context, req *TransitionOrderStatusRequest, opts ...http.CallOption) (rsp *TransitionOrderStatusResponse, err error)
 	UpdateOrder(ctx context.Context, req *UpdateOrderRequest, opts ...http.CallOption) (rsp *UpdateOrderResponse, err error)
 }
@@ -239,6 +262,22 @@ func (c *OrderServiceHTTPClientImpl) ListOrders(ctx context.Context, in *ListOrd
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderServiceListOrders),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) ListPersonnelOptions(ctx context.Context, in *ListPersonnelOptionsRequest, opts ...http.CallOption) (*ListPersonnelOptionsResponse, error) {
+	var out ListPersonnelOptionsResponse
+	pattern := "/api/v1/order-personnel-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceListPersonnelOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

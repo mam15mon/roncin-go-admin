@@ -54,6 +54,7 @@ message OrderPersonnel {
   string assigned_at = 5;
   string created_at = 6;
   string updated_at = 7;
+  string organization_id = 8;
 }
 
 // ListPersonnelRequest 获取订单协作人员列表请求。
@@ -66,6 +67,7 @@ message AssignPersonnelRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string user_id = 2 [(google.api.field_behavior) = REQUIRED];
   OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RemovePersonnelRequest 移除订单协作人员请求。

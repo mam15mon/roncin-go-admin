@@ -71,7 +71,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase) (*biz.Order, bool) {
 	var orderID string
 	switch value := request.(type) {
-	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest:
+	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest:
 		return nil, false
 	case interface{ GetOrderId() string }:
 		orderID = value.GetOrderId()
@@ -128,6 +128,8 @@ func requestOrderBusinessType(ctx context.Context, request any, organizationID u
 	case *orderv1.ListOrdersRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.CreateOrderRequest:
+		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.ListPersonnelOptionsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	}
 

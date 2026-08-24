@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -430,6 +431,21 @@ func (_c *OrganizationCreate) AddOrders(v ...*Order) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderIDs(ids...)
+}
+
+// AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
+func (_c *OrganizationCreate) AddOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddOrderPersonnelIDs(ids...)
+	return _c
+}
+
+// AddOrderPersonnel adds the "order_personnel" edges to the OrderPersonnel entity.
+func (_c *OrganizationCreate) AddOrderPersonnel(v ...*OrderPersonnel) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderPersonnelIDs(ids...)
 }
 
 // AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by IDs.
@@ -917,6 +933,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderPersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

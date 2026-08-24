@@ -1,6 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useAccess, useParams } from '@umijs/max';
+import { history, useAccess, useModel, useParams } from '@umijs/max';
 import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -14,6 +14,7 @@ import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTempl
 import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
+  orderServiceListPersonnelOptions,
 } from '@/services/roncin/orderService';
 import {
   fetchOrderMasterData,
@@ -73,6 +74,25 @@ type CreateOrderFormValues = {
   specialRequirements?: string;
   orderDate?: string | dayjs.Dayjs;
   notes?: string;
+  bookingNotes?: string;
+  allocationNotes?: string;
+  operationNotes?: string;
+  operatorUserId?: string;
+  operatorOrganizationId?: string;
+  salesUserId?: string;
+  salesOrganizationId?: string;
+  customerServiceUserId?: string;
+  customerServiceOrganizationId?: string;
+  associateUserId?: string;
+  associateOrganizationId?: string;
+  documentUserId?: string;
+  documentOrganizationId?: string;
+  commercialUserId?: string;
+  commercialOrganizationId?: string;
+  associate2UserId?: string;
+  associate2OrganizationId?: string;
+  creatorUserId?: string;
+  creatorOrganizationId?: string;
 };
 
 export default function NewOrderPage() {
@@ -80,6 +100,7 @@ export default function NewOrderPage() {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
+  const { initialState } = useModel('@@initialState');
 
   const config = parseOrderKind(params.kind);
 
@@ -95,6 +116,9 @@ export default function NewOrderPage() {
   >([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
+  const [personnelOptions, setPersonnelOptions] = useState<
+    API.OrderPersonnelOption[]
+  >([]);
 
   useEffect(() => {
     if (!config) {
@@ -106,8 +130,13 @@ export default function NewOrderPage() {
     Promise.all([
       fetchOrderMasterData(),
       loadStatusTemplatesByBusinessType(config.businessType),
+      config.category === 'sea'
+        ? orderServiceListPersonnelOptions({
+            businessType: config.businessType,
+          })
+        : Promise.resolve({ data: [] }),
     ])
-      .then(([masterData, templates]) => {
+      .then(([masterData, templates, personnelResponse]) => {
         const nextServiceTypeOptions =
           config.category === 'sea'
             ? seaServiceTypeNames.map((name) => {
@@ -130,6 +159,7 @@ export default function NewOrderPage() {
         );
         setCurrencyOptions(masterData.currencyOptions);
         setStatusTemplateOptions(templates);
+        setPersonnelOptions(personnelResponse.data ?? []);
       })
       .catch((error: Error) => {
         message.error(error.message || '加载主数据或状态模板失败');
@@ -203,6 +233,23 @@ export default function NewOrderPage() {
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: () => checkOrderReference(1),
       checkInternalReferenceNo: () => checkOrderReference(2),
+      personnelOptions,
+      creator:
+        initialState?.currentUser?.id &&
+        initialState.currentUser.currentOrganization?.id
+          ? {
+              userId: initialState.currentUser.id,
+              displayName:
+                initialState.currentUser.displayName ||
+                initialState.currentUser.username ||
+                initialState.currentUser.id,
+              organizationId:
+                initialState.currentUser.currentOrganization.id,
+              organizationName:
+                initialState.currentUser.currentOrganization.name ||
+                initialState.currentUser.currentOrganization.id,
+            }
+          : undefined,
     }),
     [
       serviceTypeOptions,
@@ -210,6 +257,8 @@ export default function NewOrderPage() {
       locationOptions,
       currencyOptions,
       checkOrderReference,
+      personnelOptions,
+      initialState,
     ],
   );
 
@@ -252,6 +301,28 @@ export default function NewOrderPage() {
     }
 
     try {
+      const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
+      const addPersonnel = (
+        role: number,
+        userId?: string,
+        organizationId?: string,
+      ) => {
+        if (userId && organizationId) {
+          personnelAssignments.push({ role, userId, organizationId });
+        }
+      };
+      addPersonnel(2, values.operatorUserId, values.operatorOrganizationId);
+      addPersonnel(3, values.salesUserId, values.salesOrganizationId);
+      addPersonnel(
+        4,
+        values.customerServiceUserId,
+        values.customerServiceOrganizationId,
+      );
+      addPersonnel(7, values.associateUserId, values.associateOrganizationId);
+      addPersonnel(5, values.documentUserId, values.documentOrganizationId);
+      addPersonnel(6, values.commercialUserId, values.commercialOrganizationId);
+      addPersonnel(8, values.associate2UserId, values.associate2OrganizationId);
+
       const payload: API.CreateOrderRequest = {
         customerId: values.customerId,
         customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
@@ -325,6 +396,10 @@ export default function NewOrderPage() {
           ? dayjs(values.orderDate).format('YYYY-MM-DD')
           : undefined,
         notes: values.notes?.trim() || undefined,
+        bookingNotes: values.bookingNotes?.trim() || undefined,
+        allocationNotes: values.allocationNotes?.trim() || undefined,
+        operationNotes: values.operationNotes?.trim() || undefined,
+        personnelAssignments,
       };
 
       await orderServiceCreateOrder(payload);
@@ -362,6 +437,9 @@ export default function NewOrderPage() {
                 typeof defaultCargoCategoryId === 'string'
                   ? [defaultCargoCategoryId]
                   : undefined,
+              creatorUserId: initialState?.currentUser?.id,
+              creatorOrganizationId:
+                initialState?.currentUser?.currentOrganization?.id,
             }
           : {}),
       }}

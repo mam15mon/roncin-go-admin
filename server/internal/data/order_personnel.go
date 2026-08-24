@@ -10,6 +10,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 type orderPersonnelRepo struct {
@@ -48,13 +49,24 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role biz.OrderPersonnelRole) (*biz.OrderPersonnel, error) {
+func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole) (*biz.OrderPersonnel, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
+	organizations, err := r.data.db.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+	for _, organization := range organizations {
+		parentByID[organization.ID] = organization.ParentID
+	}
+	if !organizationWithinRoot(parentByID, organizationID, memberOrganizationID) {
+		return nil, biz.ErrOrderPersonnelUserInvalid
+	}
 	m, err := r.data.db.Membership.Query().
 		Where(
-			membership.OrganizationIDEQ(organizationID),
+			membership.OrganizationIDEQ(memberOrganizationID),
 			membership.UserIDEQ(userID),
 			membership.EnabledEQ(true),
 		).
@@ -73,10 +85,11 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 	created, err := r.data.db.OrderPersonnel.Create().
 		SetOrderID(orderID).
 		SetUserID(userID).
+		SetOrganizationID(memberOrganizationID).
 		SetRole(orderpersonnelent.Role(role)).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_personnel_order_id_user_id_role") {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_personnel_order_id_role") {
 			return nil, biz.ErrOrderPersonnelExists
 		}
 		return nil, err
@@ -105,13 +118,14 @@ func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID
 
 func orderPersonnelToBiz(item *ent.OrderPersonnel) *biz.OrderPersonnel {
 	return &biz.OrderPersonnel{
-		ID:         item.ID,
-		OrderID:    item.OrderID,
-		UserID:     item.UserID,
-		Role:       biz.OrderPersonnelRole(item.Role),
-		AssignedAt: item.AssignedAt,
-		CreatedAt:  item.CreatedAt,
-		UpdatedAt:  item.UpdatedAt,
+		ID:             item.ID,
+		OrderID:        item.OrderID,
+		UserID:         item.UserID,
+		OrganizationID: item.OrganizationID,
+		Role:           biz.OrderPersonnelRole(item.Role),
+		AssignedAt:     item.AssignedAt,
+		CreatedAt:      item.CreatedAt,
+		UpdatedAt:      item.UpdatedAt,
 	}
 }
 

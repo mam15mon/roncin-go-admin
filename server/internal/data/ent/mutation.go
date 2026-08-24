@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
@@ -61,6 +60,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -16150,6 +16150,9 @@ type OrderMutation struct {
 	special_requirements      *string
 	order_date                *string
 	notes                     *string
+	booking_notes             *string
+	allocation_notes          *string
+	operation_notes           *string
 	clearedFields             map[string]struct{}
 	organization              *uuid.UUID
 	clearedorganization       bool
@@ -18532,6 +18535,153 @@ func (m *OrderMutation) ResetNotes() {
 	delete(m.clearedFields, order.FieldNotes)
 }
 
+// SetBookingNotes sets the "booking_notes" field.
+func (m *OrderMutation) SetBookingNotes(s string) {
+	m.booking_notes = &s
+}
+
+// BookingNotes returns the value of the "booking_notes" field in the mutation.
+func (m *OrderMutation) BookingNotes() (r string, exists bool) {
+	v := m.booking_notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBookingNotes returns the old "booking_notes" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldBookingNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBookingNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBookingNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBookingNotes: %w", err)
+	}
+	return oldValue.BookingNotes, nil
+}
+
+// ClearBookingNotes clears the value of the "booking_notes" field.
+func (m *OrderMutation) ClearBookingNotes() {
+	m.booking_notes = nil
+	m.clearedFields[order.FieldBookingNotes] = struct{}{}
+}
+
+// BookingNotesCleared returns if the "booking_notes" field was cleared in this mutation.
+func (m *OrderMutation) BookingNotesCleared() bool {
+	_, ok := m.clearedFields[order.FieldBookingNotes]
+	return ok
+}
+
+// ResetBookingNotes resets all changes to the "booking_notes" field.
+func (m *OrderMutation) ResetBookingNotes() {
+	m.booking_notes = nil
+	delete(m.clearedFields, order.FieldBookingNotes)
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (m *OrderMutation) SetAllocationNotes(s string) {
+	m.allocation_notes = &s
+}
+
+// AllocationNotes returns the value of the "allocation_notes" field in the mutation.
+func (m *OrderMutation) AllocationNotes() (r string, exists bool) {
+	v := m.allocation_notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAllocationNotes returns the old "allocation_notes" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldAllocationNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAllocationNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAllocationNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAllocationNotes: %w", err)
+	}
+	return oldValue.AllocationNotes, nil
+}
+
+// ClearAllocationNotes clears the value of the "allocation_notes" field.
+func (m *OrderMutation) ClearAllocationNotes() {
+	m.allocation_notes = nil
+	m.clearedFields[order.FieldAllocationNotes] = struct{}{}
+}
+
+// AllocationNotesCleared returns if the "allocation_notes" field was cleared in this mutation.
+func (m *OrderMutation) AllocationNotesCleared() bool {
+	_, ok := m.clearedFields[order.FieldAllocationNotes]
+	return ok
+}
+
+// ResetAllocationNotes resets all changes to the "allocation_notes" field.
+func (m *OrderMutation) ResetAllocationNotes() {
+	m.allocation_notes = nil
+	delete(m.clearedFields, order.FieldAllocationNotes)
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (m *OrderMutation) SetOperationNotes(s string) {
+	m.operation_notes = &s
+}
+
+// OperationNotes returns the value of the "operation_notes" field in the mutation.
+func (m *OrderMutation) OperationNotes() (r string, exists bool) {
+	v := m.operation_notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperationNotes returns the old "operation_notes" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldOperationNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperationNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperationNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperationNotes: %w", err)
+	}
+	return oldValue.OperationNotes, nil
+}
+
+// ClearOperationNotes clears the value of the "operation_notes" field.
+func (m *OrderMutation) ClearOperationNotes() {
+	m.operation_notes = nil
+	m.clearedFields[order.FieldOperationNotes] = struct{}{}
+}
+
+// OperationNotesCleared returns if the "operation_notes" field was cleared in this mutation.
+func (m *OrderMutation) OperationNotesCleared() bool {
+	_, ok := m.clearedFields[order.FieldOperationNotes]
+	return ok
+}
+
+// ResetOperationNotes resets all changes to the "operation_notes" field.
+func (m *OrderMutation) ResetOperationNotes() {
+	m.operation_notes = nil
+	delete(m.clearedFields, order.FieldOperationNotes)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *OrderMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -19295,7 +19445,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 48)
+	fields := make([]string, 0, 51)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -19440,6 +19590,15 @@ func (m *OrderMutation) Fields() []string {
 	if m.notes != nil {
 		fields = append(fields, order.FieldNotes)
 	}
+	if m.booking_notes != nil {
+		fields = append(fields, order.FieldBookingNotes)
+	}
+	if m.allocation_notes != nil {
+		fields = append(fields, order.FieldAllocationNotes)
+	}
+	if m.operation_notes != nil {
+		fields = append(fields, order.FieldOperationNotes)
+	}
 	return fields
 }
 
@@ -19544,6 +19703,12 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderDate()
 	case order.FieldNotes:
 		return m.Notes()
+	case order.FieldBookingNotes:
+		return m.BookingNotes()
+	case order.FieldAllocationNotes:
+		return m.AllocationNotes()
+	case order.FieldOperationNotes:
+		return m.OperationNotes()
 	}
 	return nil, false
 }
@@ -19649,6 +19814,12 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOrderDate(ctx)
 	case order.FieldNotes:
 		return m.OldNotes(ctx)
+	case order.FieldBookingNotes:
+		return m.OldBookingNotes(ctx)
+	case order.FieldAllocationNotes:
+		return m.OldAllocationNotes(ctx)
+	case order.FieldOperationNotes:
+		return m.OldOperationNotes(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -19994,6 +20165,27 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNotes(v)
 		return nil
+	case order.FieldBookingNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBookingNotes(v)
+		return nil
+	case order.FieldAllocationNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAllocationNotes(v)
+		return nil
+	case order.FieldOperationNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperationNotes(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
 }
@@ -20150,6 +20342,15 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldNotes) {
 		fields = append(fields, order.FieldNotes)
 	}
+	if m.FieldCleared(order.FieldBookingNotes) {
+		fields = append(fields, order.FieldBookingNotes)
+	}
+	if m.FieldCleared(order.FieldAllocationNotes) {
+		fields = append(fields, order.FieldAllocationNotes)
+	}
+	if m.FieldCleared(order.FieldOperationNotes) {
+		fields = append(fields, order.FieldOperationNotes)
+	}
 	return fields
 }
 
@@ -20274,6 +20475,15 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldNotes:
 		m.ClearNotes()
+		return nil
+	case order.FieldBookingNotes:
+		m.ClearBookingNotes()
+		return nil
+	case order.FieldAllocationNotes:
+		m.ClearAllocationNotes()
+		return nil
+	case order.FieldOperationNotes:
+		m.ClearOperationNotes()
 		return nil
 	}
 	return fmt.Errorf("unknown Order nullable field %s", name)
@@ -20426,6 +20636,15 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldNotes:
 		m.ResetNotes()
+		return nil
+	case order.FieldBookingNotes:
+		m.ResetBookingNotes()
+		return nil
+	case order.FieldAllocationNotes:
+		m.ResetAllocationNotes()
+		return nil
+	case order.FieldOperationNotes:
+		m.ResetOperationNotes()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
@@ -28087,21 +28306,23 @@ func (m *OrderMilestoneMutation) ResetEdge(name string) error {
 // OrderPersonnelMutation represents an operation that mutates the OrderPersonnel nodes in the graph.
 type OrderPersonnelMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	role          *orderpersonnel.Role
-	assigned_at   *time.Time
-	clearedFields map[string]struct{}
-	_order        *uuid.UUID
-	cleared_order bool
-	user          *uuid.UUID
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*OrderPersonnel, error)
-	predicates    []predicate.OrderPersonnel
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	role                *orderpersonnel.Role
+	assigned_at         *time.Time
+	clearedFields       map[string]struct{}
+	_order              *uuid.UUID
+	cleared_order       bool
+	user                *uuid.UUID
+	cleareduser         bool
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*OrderPersonnel, error)
+	predicates          []predicate.OrderPersonnel
 }
 
 var _ ent.Mutation = (*OrderPersonnelMutation)(nil)
@@ -28352,6 +28573,42 @@ func (m *OrderPersonnelMutation) ResetUserID() {
 	m.user = nil
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderPersonnelMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderPersonnelMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderPersonnel entity.
+// If the OrderPersonnel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderPersonnelMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderPersonnelMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
 // SetRole sets the "role" field.
 func (m *OrderPersonnelMutation) SetRole(o orderpersonnel.Role) {
 	m.role = &o
@@ -28478,6 +28735,33 @@ func (m *OrderPersonnelMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderPersonnelMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderpersonnel.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderPersonnelMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderPersonnelMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderPersonnelMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
 // Where appends a list predicates to the OrderPersonnelMutation builder.
 func (m *OrderPersonnelMutation) Where(ps ...predicate.OrderPersonnel) {
 	m.predicates = append(m.predicates, ps...)
@@ -28512,7 +28796,7 @@ func (m *OrderPersonnelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderPersonnelMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, orderpersonnel.FieldCreatedAt)
 	}
@@ -28524,6 +28808,9 @@ func (m *OrderPersonnelMutation) Fields() []string {
 	}
 	if m.user != nil {
 		fields = append(fields, orderpersonnel.FieldUserID)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderpersonnel.FieldOrganizationID)
 	}
 	if m.role != nil {
 		fields = append(fields, orderpersonnel.FieldRole)
@@ -28547,6 +28834,8 @@ func (m *OrderPersonnelMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case orderpersonnel.FieldUserID:
 		return m.UserID()
+	case orderpersonnel.FieldOrganizationID:
+		return m.OrganizationID()
 	case orderpersonnel.FieldRole:
 		return m.Role()
 	case orderpersonnel.FieldAssignedAt:
@@ -28568,6 +28857,8 @@ func (m *OrderPersonnelMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldOrderID(ctx)
 	case orderpersonnel.FieldUserID:
 		return m.OldUserID(ctx)
+	case orderpersonnel.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
 	case orderpersonnel.FieldRole:
 		return m.OldRole(ctx)
 	case orderpersonnel.FieldAssignedAt:
@@ -28608,6 +28899,13 @@ func (m *OrderPersonnelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserID(v)
+		return nil
+	case orderpersonnel.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
 		return nil
 	case orderpersonnel.FieldRole:
 		v, ok := value.(orderpersonnel.Role)
@@ -28684,6 +28982,9 @@ func (m *OrderPersonnelMutation) ResetField(name string) error {
 	case orderpersonnel.FieldUserID:
 		m.ResetUserID()
 		return nil
+	case orderpersonnel.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
 	case orderpersonnel.FieldRole:
 		m.ResetRole()
 		return nil
@@ -28696,12 +28997,15 @@ func (m *OrderPersonnelMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderPersonnelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m._order != nil {
 		edges = append(edges, orderpersonnel.EdgeOrder)
 	}
 	if m.user != nil {
 		edges = append(edges, orderpersonnel.EdgeUser)
+	}
+	if m.organization != nil {
+		edges = append(edges, orderpersonnel.EdgeOrganization)
 	}
 	return edges
 }
@@ -28718,13 +29022,17 @@ func (m *OrderPersonnelMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case orderpersonnel.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderPersonnelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -28736,12 +29044,15 @@ func (m *OrderPersonnelMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderPersonnelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleared_order {
 		edges = append(edges, orderpersonnel.EdgeOrder)
 	}
 	if m.cleareduser {
 		edges = append(edges, orderpersonnel.EdgeUser)
+	}
+	if m.clearedorganization {
+		edges = append(edges, orderpersonnel.EdgeOrganization)
 	}
 	return edges
 }
@@ -28754,6 +29065,8 @@ func (m *OrderPersonnelMutation) EdgeCleared(name string) bool {
 		return m.cleared_order
 	case orderpersonnel.EdgeUser:
 		return m.cleareduser
+	case orderpersonnel.EdgeOrganization:
+		return m.clearedorganization
 	}
 	return false
 }
@@ -28768,6 +29081,9 @@ func (m *OrderPersonnelMutation) ClearEdge(name string) error {
 	case orderpersonnel.EdgeUser:
 		m.ClearUser()
 		return nil
+	case orderpersonnel.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderPersonnel unique edge %s", name)
 }
@@ -28781,6 +29097,9 @@ func (m *OrderPersonnelMutation) ResetEdge(name string) error {
 		return nil
 	case orderpersonnel.EdgeUser:
 		m.ResetUser()
+		return nil
+	case orderpersonnel.EdgeOrganization:
+		m.ResetOrganization()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderPersonnel edge %s", name)
@@ -32204,6 +32523,9 @@ type OrganizationMutation struct {
 	orders                                  map[uuid.UUID]struct{}
 	removedorders                           map[uuid.UUID]struct{}
 	clearedorders                           bool
+	order_personnel                         map[uuid.UUID]struct{}
+	removedorder_personnel                  map[uuid.UUID]struct{}
+	clearedorder_personnel                  bool
 	background_tasks                        map[uuid.UUID]struct{}
 	removedbackground_tasks                 map[uuid.UUID]struct{}
 	clearedbackground_tasks                 bool
@@ -33683,6 +34005,60 @@ func (m *OrganizationMutation) ResetOrders() {
 	m.removedorders = nil
 }
 
+// AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by ids.
+func (m *OrganizationMutation) AddOrderPersonnelIDs(ids ...uuid.UUID) {
+	if m.order_personnel == nil {
+		m.order_personnel = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_personnel[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderPersonnel clears the "order_personnel" edge to the OrderPersonnel entity.
+func (m *OrganizationMutation) ClearOrderPersonnel() {
+	m.clearedorder_personnel = true
+}
+
+// OrderPersonnelCleared reports if the "order_personnel" edge to the OrderPersonnel entity was cleared.
+func (m *OrganizationMutation) OrderPersonnelCleared() bool {
+	return m.clearedorder_personnel
+}
+
+// RemoveOrderPersonnelIDs removes the "order_personnel" edge to the OrderPersonnel entity by IDs.
+func (m *OrganizationMutation) RemoveOrderPersonnelIDs(ids ...uuid.UUID) {
+	if m.removedorder_personnel == nil {
+		m.removedorder_personnel = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_personnel, ids[i])
+		m.removedorder_personnel[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderPersonnel returns the removed IDs of the "order_personnel" edge to the OrderPersonnel entity.
+func (m *OrganizationMutation) RemovedOrderPersonnelIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_personnel {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderPersonnelIDs returns the "order_personnel" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderPersonnelIDs() (ids []uuid.UUID) {
+	for id := range m.order_personnel {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderPersonnel resets all changes to the "order_personnel" edge.
+func (m *OrganizationMutation) ResetOrderPersonnel() {
+	m.order_personnel = nil
+	m.clearedorder_personnel = false
+	m.removedorder_personnel = nil
+}
+
 // AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by ids.
 func (m *OrganizationMutation) AddBackgroundTaskIDs(ids ...uuid.UUID) {
 	if m.background_tasks == nil {
@@ -34004,7 +34380,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -34064,6 +34440,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.orders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.order_personnel != nil {
+		edges = append(edges, organization.EdgeOrderPersonnel)
 	}
 	if m.background_tasks != nil {
 		edges = append(edges, organization.EdgeBackgroundTasks)
@@ -34193,6 +34572,12 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderPersonnel:
+		ids := make([]ent.Value, 0, len(m.order_personnel))
+		for id := range m.order_personnel {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeBackgroundTasks:
 		ids := make([]ent.Value, 0, len(m.background_tasks))
 		for id := range m.background_tasks {
@@ -34205,7 +34590,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -34262,6 +34647,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedorders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.removedorder_personnel != nil {
+		edges = append(edges, organization.EdgeOrderPersonnel)
 	}
 	if m.removedbackground_tasks != nil {
 		edges = append(edges, organization.EdgeBackgroundTasks)
@@ -34387,6 +34775,12 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderPersonnel:
+		ids := make([]ent.Value, 0, len(m.removedorder_personnel))
+		for id := range m.removedorder_personnel {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeBackgroundTasks:
 		ids := make([]ent.Value, 0, len(m.removedbackground_tasks))
 		for id := range m.removedbackground_tasks {
@@ -34399,7 +34793,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -34460,6 +34854,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedorders {
 		edges = append(edges, organization.EdgeOrders)
 	}
+	if m.clearedorder_personnel {
+		edges = append(edges, organization.EdgeOrderPersonnel)
+	}
 	if m.clearedbackground_tasks {
 		edges = append(edges, organization.EdgeBackgroundTasks)
 	}
@@ -34510,6 +34907,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedmilestone_templates
 	case organization.EdgeOrders:
 		return m.clearedorders
+	case organization.EdgeOrderPersonnel:
+		return m.clearedorder_personnel
 	case organization.EdgeBackgroundTasks:
 		return m.clearedbackground_tasks
 	}
@@ -34590,6 +34989,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeOrders:
 		m.ResetOrders()
+		return nil
+	case organization.EdgeOrderPersonnel:
+		m.ResetOrderPersonnel()
 		return nil
 	case organization.EdgeBackgroundTasks:
 		m.ResetBackgroundTasks()

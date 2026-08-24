@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -410,6 +411,21 @@ func (_u *OrganizationUpdate) AddOrders(v ...*Order) *OrganizationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderIDs(ids...)
+}
+
+// AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
+func (_u *OrganizationUpdate) AddOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderPersonnelIDs(ids...)
+	return _u
+}
+
+// AddOrderPersonnel adds the "order_personnel" edges to the OrderPersonnel entity.
+func (_u *OrganizationUpdate) AddOrderPersonnel(v ...*OrderPersonnel) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderPersonnelIDs(ids...)
 }
 
 // AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by IDs.
@@ -835,6 +851,27 @@ func (_u *OrganizationUpdate) RemoveOrders(v ...*Order) *OrganizationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
+func (_u *OrganizationUpdate) ClearOrderPersonnel() *OrganizationUpdate {
+	_u.mutation.ClearOrderPersonnel()
+	return _u
+}
+
+// RemoveOrderPersonnelIDs removes the "order_personnel" edge to OrderPersonnel entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderPersonnelIDs(ids...)
+	return _u
+}
+
+// RemoveOrderPersonnel removes "order_personnel" edges to OrderPersonnel entities.
+func (_u *OrganizationUpdate) RemoveOrderPersonnel(v ...*OrderPersonnel) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderPersonnelIDs(ids...)
 }
 
 // ClearBackgroundTasks clears all "background_tasks" edges to the BackgroundTask entity.
@@ -1820,6 +1857,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderPersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderPersonnelIDs(); len(nodes) > 0 && !_u.mutation.OrderPersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderPersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.BackgroundTasksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2249,6 +2331,21 @@ func (_u *OrganizationUpdateOne) AddOrders(v ...*Order) *OrganizationUpdateOne {
 	return _u.AddOrderIDs(ids...)
 }
 
+// AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderPersonnelIDs(ids...)
+	return _u
+}
+
+// AddOrderPersonnel adds the "order_personnel" edges to the OrderPersonnel entity.
+func (_u *OrganizationUpdateOne) AddOrderPersonnel(v ...*OrderPersonnel) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderPersonnelIDs(ids...)
+}
+
 // AddBackgroundTaskIDs adds the "background_tasks" edge to the BackgroundTask entity by IDs.
 func (_u *OrganizationUpdateOne) AddBackgroundTaskIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddBackgroundTaskIDs(ids...)
@@ -2672,6 +2769,27 @@ func (_u *OrganizationUpdateOne) RemoveOrders(v ...*Order) *OrganizationUpdateOn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
+func (_u *OrganizationUpdateOne) ClearOrderPersonnel() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderPersonnel()
+	return _u
+}
+
+// RemoveOrderPersonnelIDs removes the "order_personnel" edge to OrderPersonnel entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderPersonnelIDs(ids...)
+	return _u
+}
+
+// RemoveOrderPersonnel removes "order_personnel" edges to OrderPersonnel entities.
+func (_u *OrganizationUpdateOne) RemoveOrderPersonnel(v ...*OrderPersonnel) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderPersonnelIDs(ids...)
 }
 
 // ClearBackgroundTasks clears all "background_tasks" edges to the BackgroundTask entity.
@@ -3680,6 +3798,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderPersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderPersonnelIDs(); len(nodes) > 0 && !_u.mutation.OrderPersonnelCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderPersonnelIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderPersonnelTable,
+			Columns: []string{organization.OrderPersonnelColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -82,11 +82,13 @@ type OrganizationEdges struct {
 	MilestoneTemplates []*MilestoneTemplate `json:"milestone_templates,omitempty"`
 	// Orders holds the value of the orders edge.
 	Orders []*Order `json:"orders,omitempty"`
+	// OrderPersonnel holds the value of the order_personnel edge.
+	OrderPersonnel []*OrderPersonnel `json:"order_personnel,omitempty"`
 	// BackgroundTasks holds the value of the background_tasks edge.
 	BackgroundTasks []*BackgroundTask `json:"background_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [21]bool
+	loadedTypes [22]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -271,10 +273,19 @@ func (e OrganizationEdges) OrdersOrErr() ([]*Order, error) {
 	return nil, &NotLoadedError{edge: "orders"}
 }
 
+// OrderPersonnelOrErr returns the OrderPersonnel value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderPersonnelOrErr() ([]*OrderPersonnel, error) {
+	if e.loadedTypes[20] {
+		return e.OrderPersonnel, nil
+	}
+	return nil, &NotLoadedError{edge: "order_personnel"}
+}
+
 // BackgroundTasksOrErr returns the BackgroundTasks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
@@ -477,6 +488,11 @@ func (_m *Organization) QueryMilestoneTemplates() *MilestoneTemplateQuery {
 // QueryOrders queries the "orders" edge of the Organization entity.
 func (_m *Organization) QueryOrders() *OrderQuery {
 	return NewOrganizationClient(_m.config).QueryOrders(_m)
+}
+
+// QueryOrderPersonnel queries the "order_personnel" edge of the Organization entity.
+func (_m *Organization) QueryOrderPersonnel() *OrderPersonnelQuery {
+	return NewOrganizationClient(_m.config).QueryOrderPersonnel(_m)
 }
 
 // QueryBackgroundTasks queries the "background_tasks" edge of the Organization entity.

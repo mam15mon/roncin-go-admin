@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -28,6 +29,8 @@ type OrderPersonnel struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID uuid.UUID `json:"user_id,omitempty"`
+	// OrganizationID holds the value of the "organization_id" field.
+	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Role holds the value of the "role" field.
 	Role orderpersonnel.Role `json:"role,omitempty"`
 	// AssignedAt holds the value of the "assigned_at" field.
@@ -44,9 +47,11 @@ type OrderPersonnelEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// Organization holds the value of the organization edge.
+	Organization *Organization `json:"organization,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -71,6 +76,17 @@ func (e OrderPersonnelEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// OrganizationOrErr returns the Organization value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderPersonnelEdges) OrganizationOrErr() (*Organization, error) {
+	if e.Organization != nil {
+		return e.Organization, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: organization.Label}
+	}
+	return nil, &NotLoadedError{edge: "organization"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OrderPersonnel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -80,7 +96,7 @@ func (*OrderPersonnel) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case orderpersonnel.FieldCreatedAt, orderpersonnel.FieldUpdatedAt, orderpersonnel.FieldAssignedAt:
 			values[i] = new(sql.NullTime)
-		case orderpersonnel.FieldID, orderpersonnel.FieldOrderID, orderpersonnel.FieldUserID:
+		case orderpersonnel.FieldID, orderpersonnel.FieldOrderID, orderpersonnel.FieldUserID, orderpersonnel.FieldOrganizationID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -127,6 +143,12 @@ func (_m *OrderPersonnel) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.UserID = *value
 			}
+		case orderpersonnel.FieldOrganizationID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
+			} else if value != nil {
+				_m.OrganizationID = *value
+			}
 		case orderpersonnel.FieldRole:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
@@ -160,6 +182,11 @@ func (_m *OrderPersonnel) QueryOrder() *OrderQuery {
 // QueryUser queries the "user" edge of the OrderPersonnel entity.
 func (_m *OrderPersonnel) QueryUser() *UserQuery {
 	return NewOrderPersonnelClient(_m.config).QueryUser(_m)
+}
+
+// QueryOrganization queries the "organization" edge of the OrderPersonnel entity.
+func (_m *OrderPersonnel) QueryOrganization() *OrganizationQuery {
+	return NewOrderPersonnelClient(_m.config).QueryOrganization(_m)
 }
 
 // Update returns a builder for updating this OrderPersonnel.
@@ -196,6 +223,9 @@ func (_m *OrderPersonnel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
+	builder.WriteString(", ")
+	builder.WriteString("organization_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))

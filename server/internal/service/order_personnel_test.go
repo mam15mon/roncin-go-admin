@@ -54,20 +54,22 @@ func TestOrderPersonnelToAPI(t *testing.T) {
 	id := uuid.New()
 	orderID := uuid.New()
 	userID := uuid.New()
+	organizationID := uuid.New()
 	now := time.Now().UTC().Truncate(time.Second)
 
 	item := &biz.OrderPersonnel{
-		ID:         id,
-		OrderID:    orderID,
-		UserID:     userID,
-		Role:       biz.OrderPersonnelRoleOperator,
-		AssignedAt: now,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:             id,
+		OrderID:        orderID,
+		UserID:         userID,
+		OrganizationID: organizationID,
+		Role:           biz.OrderPersonnelRoleOperator,
+		AssignedAt:     now,
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	api := orderPersonnelToAPI(item)
-	if api.Id != id.String() || api.OrderId != orderID.String() || api.UserId != userID.String() {
+	if api.Id != id.String() || api.OrderId != orderID.String() || api.UserId != userID.String() || api.OrganizationId != organizationID.String() {
 		t.Fatalf("unexpected IDs in api struct: %#v", api)
 	}
 	if api.Role != v1.OrderPersonnelRole_ORDER_PERSONNEL_ROLE_OPERATOR {

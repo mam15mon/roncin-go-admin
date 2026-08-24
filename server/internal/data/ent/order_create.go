@@ -644,6 +644,48 @@ func (_c *OrderCreate) SetNillableNotes(v *string) *OrderCreate {
 	return _c
 }
 
+// SetBookingNotes sets the "booking_notes" field.
+func (_c *OrderCreate) SetBookingNotes(v string) *OrderCreate {
+	_c.mutation.SetBookingNotes(v)
+	return _c
+}
+
+// SetNillableBookingNotes sets the "booking_notes" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableBookingNotes(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetBookingNotes(*v)
+	}
+	return _c
+}
+
+// SetAllocationNotes sets the "allocation_notes" field.
+func (_c *OrderCreate) SetAllocationNotes(v string) *OrderCreate {
+	_c.mutation.SetAllocationNotes(v)
+	return _c
+}
+
+// SetNillableAllocationNotes sets the "allocation_notes" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableAllocationNotes(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetAllocationNotes(*v)
+	}
+	return _c
+}
+
+// SetOperationNotes sets the "operation_notes" field.
+func (_c *OrderCreate) SetOperationNotes(v string) *OrderCreate {
+	_c.mutation.SetOperationNotes(v)
+	return _c
+}
+
+// SetNillableOperationNotes sets the "operation_notes" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableOperationNotes(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetOperationNotes(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -1111,6 +1153,21 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "notes", err: fmt.Errorf(`ent: validator failed for field "Order.notes": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.BookingNotes(); ok {
+		if err := order.BookingNotesValidator(v); err != nil {
+			return &ValidationError{Name: "booking_notes", err: fmt.Errorf(`ent: validator failed for field "Order.booking_notes": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.AllocationNotes(); ok {
+		if err := order.AllocationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "allocation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.allocation_notes": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.OperationNotes(); ok {
+		if err := order.OperationNotesValidator(v); err != nil {
+			return &ValidationError{Name: "operation_notes", err: fmt.Errorf(`ent: validator failed for field "Order.operation_notes": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Order.organization"`)}
 	}
@@ -1334,6 +1391,18 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Notes(); ok {
 		_spec.SetField(order.FieldNotes, field.TypeString, value)
 		_node.Notes = value
+	}
+	if value, ok := _c.mutation.BookingNotes(); ok {
+		_spec.SetField(order.FieldBookingNotes, field.TypeString, value)
+		_node.BookingNotes = value
+	}
+	if value, ok := _c.mutation.AllocationNotes(); ok {
+		_spec.SetField(order.FieldAllocationNotes, field.TypeString, value)
+		_node.AllocationNotes = value
+	}
+	if value, ok := _c.mutation.OperationNotes(); ok {
+		_spec.SetField(order.FieldOperationNotes, field.TypeString, value)
+		_node.OperationNotes = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -22,4 +22,11 @@ export interface TemplateProps {
   setCustomerCode: (code?: string) => void;
   checkCustomerReferenceNo: () => Promise<void>;
   checkInternalReferenceNo: () => Promise<void>;
+  personnelOptions: API.OrderPersonnelOption[];
+  creator?: {
+    userId: string;
+    displayName: string;
+    organizationId: string;
+    organizationName: string;
+  };
 }

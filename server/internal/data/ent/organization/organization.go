@@ -72,6 +72,8 @@ const (
 	EdgeMilestoneTemplates = "milestone_templates"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
+	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
+	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
 	EdgeBackgroundTasks = "background_tasks"
 	// Table holds the table name of the organization in the database.
@@ -210,6 +212,13 @@ const (
 	OrdersInverseTable = "orders"
 	// OrdersColumn is the table column denoting the orders relation/edge.
 	OrdersColumn = "organization_id"
+	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
+	OrderPersonnelTable = "order_personnels"
+	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
+	// It exists in this package in order to avoid circular dependency with the "orderpersonnel" package.
+	OrderPersonnelInverseTable = "order_personnels"
+	// OrderPersonnelColumn is the table column denoting the order_personnel relation/edge.
+	OrderPersonnelColumn = "organization_id"
 	// BackgroundTasksTable is the table that holds the background_tasks relation/edge.
 	BackgroundTasksTable = "background_tasks"
 	// BackgroundTasksInverseTable is the table name for the BackgroundTask entity.
@@ -607,6 +616,20 @@ func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByOrderPersonnelCount orders the results by order_personnel count.
+func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderPersonnelStep(), opts...)
+	}
+}
+
+// ByOrderPersonnel orders the results by order_personnel terms.
+func ByOrderPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByBackgroundTasksCount orders the results by background_tasks count.
 func ByBackgroundTasksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -758,6 +781,13 @@ func newOrdersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrdersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+	)
+}
+func newOrderPersonnelStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderPersonnelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderPersonnelTable, OrderPersonnelColumn),
 	)
 }
 func newBackgroundTasksStep() *sqlgraph.Step {

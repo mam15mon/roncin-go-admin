@@ -177,6 +177,10 @@ type Order struct {
 	SpecialRequirements   string
 	OrderDate             string
 	Notes                 string
+	BookingNotes          string
+	AllocationNotes       string
+	OperationNotes        string
+	PersonnelAssignments  []*OrderPersonnel
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }
@@ -209,11 +213,19 @@ type OrderReferenceMatch struct {
 	OrderNo string
 }
 
+type OrderPersonnelOption struct {
+	UserID           uuid.UUID
+	DisplayName      string
+	OrganizationID   uuid.UUID
+	OrganizationName string
+}
+
 type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
 	Find(context.Context, uuid.UUID) (*Order, error)
 	List(context.Context, []uuid.UUID, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
+	ListPersonnelOptions(context.Context, uuid.UUID) ([]*OrderPersonnelOption, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
@@ -269,6 +281,13 @@ func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.
 		return nil, ErrOrderInvalidArgument
 	}
 	return uc.repo.FindReferenceDuplicate(ctx, organizationID, check)
+}
+
+func (uc *OrderUsecase) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*OrderPersonnelOption, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrOrderInvalidArgument
+	}
+	return uc.repo.ListPersonnelOptions(ctx, organizationID)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
@@ -338,11 +357,24 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.SpecialRequirements = strings.TrimSpace(output.SpecialRequirements)
 	output.OrderDate = strings.TrimSpace(output.OrderDate)
 	output.Notes = strings.TrimSpace(output.Notes)
+	output.BookingNotes = strings.TrimSpace(output.BookingNotes)
+	output.AllocationNotes = strings.TrimSpace(output.AllocationNotes)
+	output.OperationNotes = strings.TrimSpace(output.OperationNotes)
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
 		return nil, ErrOrderInvalidArgument
+	}
+	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
+	for _, assignment := range output.PersonnelAssignments {
+		if assignment == nil || !assignment.Role.Valid() || assignment.Role == OrderPersonnelRoleCreator || assignment.UserID == uuid.Nil || assignment.OrganizationID == uuid.Nil {
+			return nil, ErrOrderInvalidArgument
+		}
+		roleCounts[assignment.Role]++
+		if roleCounts[assignment.Role] > 1 {
+			return nil, ErrOrderInvalidArgument
+		}
 	}
 	if (output.CargoValue == "") != (output.CargoCurrency == "") || output.CargoValue != "" && (!cargoValuePattern.MatchString(output.CargoValue) || len(output.CargoCurrency) != 3) {
 		return nil, ErrOrderInvalidArgument

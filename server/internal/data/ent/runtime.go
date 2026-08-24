@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
@@ -53,6 +52,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
@@ -1487,6 +1487,18 @@ func init() {
 	orderDescNotes := orderFields[45].Descriptor()
 	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	order.NotesValidator = orderDescNotes.Validators[0].(func(string) error)
+	// orderDescBookingNotes is the schema descriptor for booking_notes field.
+	orderDescBookingNotes := orderFields[46].Descriptor()
+	// order.BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
+	order.BookingNotesValidator = orderDescBookingNotes.Validators[0].(func(string) error)
+	// orderDescAllocationNotes is the schema descriptor for allocation_notes field.
+	orderDescAllocationNotes := orderFields[47].Descriptor()
+	// order.AllocationNotesValidator is a validator for the "allocation_notes" field. It is called by the builders before save.
+	order.AllocationNotesValidator = orderDescAllocationNotes.Validators[0].(func(string) error)
+	// orderDescOperationNotes is the schema descriptor for operation_notes field.
+	orderDescOperationNotes := orderFields[48].Descriptor()
+	// order.OperationNotesValidator is a validator for the "operation_notes" field. It is called by the builders before save.
+	order.OperationNotesValidator = orderDescOperationNotes.Validators[0].(func(string) error)
 	// orderDescID is the schema descriptor for id field.
 	orderDescID := orderMixinFields0[0].Descriptor()
 	// order.DefaultID holds the default value on creation for the id field.
@@ -1983,7 +1995,7 @@ func init() {
 	// orderpersonnel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderpersonnel.UpdateDefaultUpdatedAt = orderpersonnelDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderpersonnelDescAssignedAt is the schema descriptor for assigned_at field.
-	orderpersonnelDescAssignedAt := orderpersonnelFields[3].Descriptor()
+	orderpersonnelDescAssignedAt := orderpersonnelFields[4].Descriptor()
 	// orderpersonnel.DefaultAssignedAt holds the default value on creation for the assigned_at field.
 	orderpersonnel.DefaultAssignedAt = orderpersonnelDescAssignedAt.Default.(func() time.Time)
 	// orderpersonnelDescID is the schema descriptor for id field.

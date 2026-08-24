@@ -833,6 +833,9 @@ var (
 		{Name: "special_requirements", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "order_date", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "booking_notes", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "allocation_notes", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "operation_notes", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "customer_id", Type: field.TypeUUID},
 		{Name: "status_template_id", Type: field.TypeUUID},
@@ -845,19 +848,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[46]},
+				Columns:    []*schema.Column{OrdersColumns[49]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[47]},
+				Columns:    []*schema.Column{OrdersColumns[50]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_status_templates_orders",
-				Columns:    []*schema.Column{OrdersColumns[48]},
+				Columns:    []*schema.Column{OrdersColumns[51]},
 				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -871,22 +874,22 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[28]},
+				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[28]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[21]},
+				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[21]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[46], OrdersColumns[47]},
+				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[50]},
 			},
 		},
 	}
@@ -1257,6 +1260,7 @@ var (
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "ASSOCIATE", "ASSOCIATE2"}},
 		{Name: "assigned_at", Type: field.TypeTime},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// OrderPersonnelsTable holds the schema information for the "order_personnels" table.
@@ -1272,8 +1276,14 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_personnels_users_order_personnel",
+				Symbol:     "order_personnels_organizations_order_personnel",
 				Columns:    []*schema.Column{OrderPersonnelsColumns[6]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_personnels_users_order_personnel",
+				Columns:    []*schema.Column{OrderPersonnelsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1285,9 +1295,9 @@ var (
 				Columns: []*schema.Column{OrderPersonnelsColumns[2]},
 			},
 			{
-				Name:    "orderpersonnel_order_id_user_id_role",
+				Name:    "orderpersonnel_order_id_role",
 				Unique:  true,
-				Columns: []*schema.Column{OrderPersonnelsColumns[5], OrderPersonnelsColumns[6], OrderPersonnelsColumns[3]},
+				Columns: []*schema.Column{OrderPersonnelsColumns[5], OrderPersonnelsColumns[3]},
 			},
 			{
 				Name:    "orderpersonnel_order_id",
@@ -1296,6 +1306,11 @@ var (
 			},
 			{
 				Name:    "orderpersonnel_user_id_role",
+				Unique:  false,
+				Columns: []*schema.Column{OrderPersonnelsColumns[7], OrderPersonnelsColumns[3]},
+			},
+			{
+				Name:    "orderpersonnel_organization_id_role",
 				Unique:  false,
 				Columns: []*schema.Column{OrderPersonnelsColumns[6], OrderPersonnelsColumns[3]},
 			},
@@ -2709,7 +2724,8 @@ func init() {
 	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderPersonnelsTable.ForeignKeys[1].RefTable = UsersTable
+	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	OrderPersonnelsTable.ForeignKeys[2].RefTable = UsersTable
 	OrderReleasePodsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderReleasePodsTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable

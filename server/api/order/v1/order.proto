@@ -5,6 +5,7 @@ package order.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "order/v1/order_personnel.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -23,6 +24,11 @@ service OrderService {
   rpc CheckOrderReference(CheckOrderReferenceRequest) returns (CheckOrderReferenceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/order-reference-check"};
+  }
+
+  rpc ListPersonnelOptions(ListPersonnelOptionsRequest) returns (ListPersonnelOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/order-personnel-options"};
   }
 
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
@@ -176,6 +182,24 @@ message Order {
   optional string received_at = 51;
   string organization_name = 52;
   bool can_modify = 53;
+  optional string booking_notes = 54;
+  optional string allocation_notes = 55;
+  optional string operation_notes = 56;
+}
+
+// OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
+message OrderPersonnelAssignmentInput {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderPersonnelOption 订单人员及其所属公司候选项。
+message OrderPersonnelOption {
+  string user_id = 1;
+  string display_name = 2;
+  string organization_id = 3;
+  string organization_name = 4;
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -227,6 +251,10 @@ message CheckOrderReferenceRequest {
   string reference_no = 2 [(google.api.field_behavior) = REQUIRED];
   optional string customer_id = 3;
   optional string exclude_order_id = 4;
+}
+
+message ListPersonnelOptionsRequest {
+  BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // OrderReferenceCheck 订单业务编号查重结果。
@@ -283,6 +311,10 @@ message CreateOrderRequest {
   optional string cargo_ready_at = 43;
   optional string loading_terms = 44;
   optional string received_at = 45;
+  optional string booking_notes = 46;
+  optional string allocation_notes = 47;
+  optional string operation_notes = 48;
+  repeated OrderPersonnelAssignmentInput personnel_assignments = 49;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -333,6 +365,9 @@ message UpdateOrderRequest {
   optional string cargo_ready_at = 44;
   optional string loading_terms = 45;
   optional string received_at = 46;
+  optional string booking_notes = 47;
+  optional string allocation_notes = 48;
+  optional string operation_notes = 49;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。
@@ -394,5 +429,13 @@ message CheckOrderReferenceResponse {
   int32 code = 2;
   string message = 3;
   OrderReferenceCheck data = 4;
+  string trace_id = 5;
+}
+
+message ListPersonnelOptionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderPersonnelOption data = 4;
   string trace_id = 5;
 }

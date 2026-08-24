@@ -58,11 +58,15 @@ func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1
 	if err != nil {
 		return nil, biz.ErrOrderPersonnelInvalidArgument
 	}
+	memberOrganizationID, err := uuid.Parse(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrOrderPersonnelInvalidArgument
+	}
 	role, err := protoRoleToBiz(request.GetRole())
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Assign(ctx, principal.Organization.ID, principal.UserID, orderID, userID, role)
+	created, err := s.usecase.Assign(ctx, principal.Organization.ID, principal.UserID, orderID, userID, memberOrganizationID, role)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +109,14 @@ func orderPersonnelResponse(ctx context.Context, value *biz.OrderPersonnel) *v1.
 
 func orderPersonnelToAPI(value *biz.OrderPersonnel) *v1.OrderPersonnel {
 	return &v1.OrderPersonnel{
-		Id:         value.ID.String(),
-		OrderId:    value.OrderID.String(),
-		UserId:     value.UserID.String(),
-		Role:       bizRoleToProto(value.Role),
-		AssignedAt: value.AssignedAt.UTC().Format(time.RFC3339),
-		CreatedAt:  value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:  value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:             value.ID.String(),
+		OrderId:        value.OrderID.String(),
+		UserId:         value.UserID.String(),
+		OrganizationId: value.OrganizationID.String(),
+		Role:           bizRoleToProto(value.Role),
+		AssignedAt:     value.AssignedAt.UTC().Format(time.RFC3339),
+		CreatedAt:      value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:      value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

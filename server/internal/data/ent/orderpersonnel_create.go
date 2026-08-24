@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -63,6 +64,12 @@ func (_c *OrderPersonnelCreate) SetUserID(v uuid.UUID) *OrderPersonnelCreate {
 	return _c
 }
 
+// SetOrganizationID sets the "organization_id" field.
+func (_c *OrderPersonnelCreate) SetOrganizationID(v uuid.UUID) *OrderPersonnelCreate {
+	_c.mutation.SetOrganizationID(v)
+	return _c
+}
+
 // SetRole sets the "role" field.
 func (_c *OrderPersonnelCreate) SetRole(v orderpersonnel.Role) *OrderPersonnelCreate {
 	_c.mutation.SetRole(v)
@@ -105,6 +112,11 @@ func (_c *OrderPersonnelCreate) SetOrder(v *Order) *OrderPersonnelCreate {
 // SetUser sets the "user" edge to the User entity.
 func (_c *OrderPersonnelCreate) SetUser(v *User) *OrderPersonnelCreate {
 	return _c.SetUserID(v.ID)
+}
+
+// SetOrganization sets the "organization" edge to the Organization entity.
+func (_c *OrderPersonnelCreate) SetOrganization(v *Organization) *OrderPersonnelCreate {
+	return _c.SetOrganizationID(v.ID)
 }
 
 // Mutation returns the OrderPersonnelMutation object of the builder.
@@ -174,6 +186,9 @@ func (_c *OrderPersonnelCreate) check() error {
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "OrderPersonnel.user_id"`)}
 	}
+	if _, ok := _c.mutation.OrganizationID(); !ok {
+		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "OrderPersonnel.organization_id"`)}
+	}
 	if _, ok := _c.mutation.Role(); !ok {
 		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "OrderPersonnel.role"`)}
 	}
@@ -190,6 +205,9 @@ func (_c *OrderPersonnelCreate) check() error {
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "OrderPersonnel.user"`)}
+	}
+	if len(_c.mutation.OrganizationIDs()) == 0 {
+		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "OrderPersonnel.organization"`)}
 	}
 	return nil
 }
@@ -274,6 +292,23 @@ func (_c *OrderPersonnelCreate) createSpec() (*OrderPersonnel, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderpersonnel.OrganizationTable,
+			Columns: []string{orderpersonnel.OrganizationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.OrganizationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

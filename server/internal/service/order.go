@@ -105,6 +105,25 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 	return &v1.CheckOrderReferenceResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *OrderService) ListPersonnelOptions(ctx context.Context, _ *v1.ListPersonnelOptionsRequest) (*v1.ListPersonnelOptionsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	items, err := s.usecase.ListPersonnelOptions(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.OrderPersonnelOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.OrderPersonnelOption{
+			UserId: item.UserID.String(), DisplayName: item.DisplayName,
+			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
+		})
+	}
+	return &v1.ListPersonnelOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.CreateOrderResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -210,6 +229,10 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	personnelAssignments, err := personnelAssignmentsFromAPI(request.GetPersonnelAssignments())
+	if err != nil {
+		return nil, err
+	}
 	return &biz.Order{
 		CustomerID: customerID, StatusTemplateID: statusTemplateID,
 		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
@@ -227,6 +250,8 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		CustomsCutoff: request.GetCustomsCutoff(), VGMCutoff: request.GetVgmCutoff(), GoodsDescription: request.GetGoodsDescription(),
 		TotalPackages: optionalInt32ToInt(request.TotalPackages), TotalPackageUnit: request.GetTotalPackageUnit(), SpecialRequirements: request.GetSpecialRequirements(),
 		OrderDate: request.GetOrderDate(), Notes: request.GetNotes(),
+		BookingNotes: request.GetBookingNotes(), AllocationNotes: request.GetAllocationNotes(), OperationNotes: request.GetOperationNotes(),
+		PersonnelAssignments: personnelAssignments,
 	}, nil
 }
 
@@ -394,6 +419,15 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.Notes != nil {
 		output.Notes = request.GetNotes()
 	}
+	if request.BookingNotes != nil {
+		output.BookingNotes = request.GetBookingNotes()
+	}
+	if request.AllocationNotes != nil {
+		output.AllocationNotes = request.GetAllocationNotes()
+	}
+	if request.OperationNotes != nil {
+		output.OperationNotes = request.GetOperationNotes()
+	}
 	return &output, nil
 }
 
@@ -409,9 +443,33 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
+		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
 	return result
+}
+
+func personnelAssignmentsFromAPI(values []*v1.OrderPersonnelAssignmentInput) ([]*biz.OrderPersonnel, error) {
+	result := make([]*biz.OrderPersonnel, 0, len(values))
+	for _, value := range values {
+		if value == nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		userID, err := uuid.Parse(value.GetUserId())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		organizationID, err := uuid.Parse(value.GetOrganizationId())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		role, err := protoRoleToBiz(value.GetRole())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		result = append(result, &biz.OrderPersonnel{UserID: userID, OrganizationID: organizationID, Role: role})
+	}
+	return result, nil
 }
 
 const timeFormatRFC3339 = "2006-01-02T15:04:05Z07:00"
