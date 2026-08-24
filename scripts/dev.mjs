@@ -63,7 +63,7 @@ function postgresIsRunning() {
 
 function postgresIsReady(stdio = 'inherit') {
   return (
-    spawnSync('pg_isready', ['-h', '127.0.0.1', '-p', '5432', '-t', '5'], {
+    spawnSync('pg_isready', ['-h', '127.0.0.1', '-p', '5432', '-t', '1'], {
       stdio,
     }).status === 0
   );
@@ -77,7 +77,6 @@ async function waitForPostgres() {
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
-  postgresIsReady();
   throw new Error(
     'PostgreSQL 进程已存在，但 127.0.0.1:5432 连续 10 秒无响应，疑似卡死，请重启 PostgreSQL',
   );
