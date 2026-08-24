@@ -1,7 +1,4 @@
 import {
-  ArrowLeftOutlined,
-  CaretDownOutlined,
-  CaretRightOutlined,
   CheckCircleOutlined,
   QuestionCircleOutlined,
   SafetyCertificateOutlined,
@@ -21,7 +18,6 @@ import {
   Button,
   Cascader,
   Col,
-  Collapse,
   Divider,
   Form,
   Input,
@@ -47,6 +43,7 @@ import {
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 import { pcaCascaderOptions } from '@/utils/chinaDivision';
+import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
 import ContactCardList, { type ContactItem } from './components/ContactCardList';
@@ -551,97 +548,46 @@ export default function PartnerDetailPage() {
     ? `新建${roleLabel}`
     : `${roleLabel}详情`;
 
-  // Render collapsible header with blue vertical bar
-  const renderSectionHeader = (title: string, subtitle?: string) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div
-        style={{
-          width: 3,
-          height: 14,
-          backgroundColor: '#1677ff',
-          borderRadius: 2,
-        }}
-      />
-      <span style={{ fontWeight: 600, fontSize: 14, color: 'rgba(0, 0, 0, 0.88)' }}>
-        {title}
-      </span>
-      {subtitle && (
-        <Text type="secondary" style={{ fontSize: 12, marginLeft: 6 }}>
-          {subtitle}
-        </Text>
-      )}
-    </div>
-  );
+  const toggleSection = (key: string, collapsed: boolean) => {
+    setActiveCollapseKeys((prev) =>
+      collapsed ? prev.filter((k) => k !== key) : prev.includes(key) ? prev : [...prev, key],
+    );
+  };
 
   return (
-    <div style={{ minHeight: '100%', paddingBottom: 60, backgroundColor: '#f5f7fa' }}>
-      {/* Sticky Top Header Navigation & Action Bar */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 99,
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #f0f0f0',
-          padding: '10px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        {/* Left: Breadcrumb */}
-        <Space size={8} align="center">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => history.push(listUrl)}
-            style={{ padding: '4px 8px' }}
-          >
-            返回列表
-          </Button>
-          <Divider type="vertical" style={{ margin: '0 4px' }} />
-          <Button
-            type="link"
-            style={{ padding: 0, color: 'rgba(0, 0, 0, 0.45)', height: 'auto' }}
-            onClick={() => history.push(listUrl)}
-          >
-            {roleLabel}管理
-          </Button>
-          <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>/</span>
-          <Text strong style={{ fontSize: 14, color: 'rgba(0, 0, 0, 0.88)' }}>
-            {displayTitle}
-          </Text>
-          {partner?.code && (
-            <Tag bordered={false} style={{ fontFamily: 'monospace', marginLeft: 4 }}>
+    <div style={{ minHeight: '100%', paddingBottom: 24 }}>
+      {/* 1. Page Header Shell */}
+      <PageHeaderShell
+        title={displayTitle}
+        onBack={() => history.push(listUrl)}
+        breadcrumbs={[{ label: `${roleLabel}管理`, onClick: () => history.push(listUrl) }]}
+        tags={
+          partner?.code ? (
+            <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
               {partner.code}
             </Tag>
-          )}
-        </Space>
+          ) : undefined
+        }
+        extra={
+          <Space size={8}>
+            <Button onClick={() => history.push(listUrl)} disabled={saving}>
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleSubmit}
+              loading={saving}
+              icon={<CheckCircleOutlined />}
+            >
+              {saving ? '保存中...' : `保存${roleLabel}档案`}
+            </Button>
+          </Space>
+        }
+      />
 
-        {/* Right: Actions */}
-        <Space size={12}>
-          <Button onClick={() => history.push(listUrl)} disabled={saving}>
-            取消
-          </Button>
-          <Button
-            type="primary"
-            onClick={handleSubmit}
-            loading={saving}
-            icon={<CheckCircleOutlined />}
-            style={{ padding: '0 24px', height: 36, fontWeight: 500 }}
-          >
-            {saving ? '保存中...' : `保存${roleLabel}档案`}
-          </Button>
-        </Space>
-      </div>
-
-      {/* Main Container */}
+      {/* 2. Main Container */}
       <Spin spinning={loading}>
-        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ maxWidth: 1440, margin: '0 auto' }}>
           <ProForm
             formRef={formRef}
             submitter={false}
@@ -650,28 +596,15 @@ export default function PartnerDetailPage() {
             rowProps={{ gutter: [16, 12] }}
           >
             <Col span={24}>
-              <Collapse
-                activeKey={activeCollapseKeys}
-                onChange={(keys) => setActiveCollapseKeys(keys as string[])}
-                expandIcon={({ isActive }) => (
-                  isActive ? <CaretDownOutlined /> : <CaretRightOutlined />
-                )}
-                bordered={false}
-                style={{ backgroundColor: 'transparent' }}
-                items={[
-                  // Section 1: 基础信息
-                  {
-                    key: 'basic',
-                    label: renderSectionHeader('基础信息'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <div>
+              {/* Section 1: 基础信息 */}
+              <SectionCard
+                key="basic"
+                title="基础信息"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('basic')}
+                onCollapseChange={(collapsed) => toggleSection('basic', collapsed)}
+              >
+                <div>
                         {/* Row 1: Legal Name, USCC, Code */}
                         <Row gutter={[16, 12]} align="middle">
                           <Col xs={24} lg={10}>
@@ -1091,278 +1024,266 @@ export default function PartnerDetailPage() {
                             </Form.Item>
                           </Col>
                         </Row>
-                      </div>
-                    ),
-                  },
+                </div>
+              </SectionCard>
 
-                  // Section 2: 结算信息
-                  {
-                    key: 'settlement',
-                    label: renderSectionHeader('结算信息'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <div>
-                        <Row gutter={[16, 12]} align="middle">
-                          {/* 对账方式 */}
-                          <Col xs={24} sm={12} md={4}>
-                            <ProFormSelect
-                              name="statementMode"
-                              label="对账方式"
-                              options={STATEMENT_MODE_OPTIONS}
-                              rules={[{ required: true, message: '请选择对账方式' }]}
-                            />
-                          </Col>
-
-                          {/* 结算方式 */}
-                          <Col xs={24} sm={12} md={4}>
-                            <ProFormSelect
-                              name="settlementMethod"
-                              label="结算方式"
-                              options={SETTLEMENT_METHOD_OPTIONS}
-                              rules={[{ required: true, message: '请选择结算方式' }]}
-                            />
-                          </Col>
-
-                          {/* 结算日期 */}
-                          <Col xs={24} sm={12} md={5}>
-                            <Form.Item
-                              label={
-                                <Space size={4}>
-                                  <span>结算日期</span>
-                                  <Tooltip title="每月固定结算与对账截止日">
-                                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                                  </Tooltip>
-                                </Space>
-                              }
-                              style={{ marginBottom: 0 }}
-                            >
-                              <Space.Compact style={{ width: '100%' }}>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '0 8px',
-                                    backgroundColor: '#fafafa',
-                                    border: '1px solid #d9d9d9',
-                                    borderRight: 0,
-                                    borderRadius: '6px 0 0 6px',
-                                    color: '#595959',
-                                  }}
-                                >
-                                  每月
-                                </div>
-                                <Form.Item name="settlementDay" noStyle>
-                                  <Select
-                                    options={SETTLEMENT_DAY_OPTIONS}
-                                    placeholder="请选择"
-                                    style={{ width: '100%' }}
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* 账期 */}
-                          <Col xs={24} sm={12} md={5}>
-                            <Form.Item
-                              label={
-                                <Space size={4}>
-                                  <span>账期</span>
-                                  <Tooltip title="账期基准与有效信用天数">
-                                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                                  </Tooltip>
-                                </Space>
-                              }
-                              style={{ marginBottom: 0 }}
-                            >
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="settlementBase" noStyle>
-                                  <Select
-                                    options={SETTLEMENT_BASE_OPTIONS}
-                                    placeholder="请选择"
-                                    style={{ width: '55%' }}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="creditDays" noStyle>
-                                  <Input
-                                    placeholder="天数"
-                                    style={{ width: '45%', textAlign: 'center' }}
-                                    suffix="天"
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* 信用额度(本币) */}
-                          <Col xs={24} sm={12} md={6}>
-                            <ProFormDigit
-                              name="creditLimit"
-                              label={
-                                <Space size={4}>
-                                  <span>信用额度(本币)</span>
-                                  <Tooltip title="本币最大允许未核销应收账款额度">
-                                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                                  </Tooltip>
-                                </Space>
-                              }
-                              placeholder="输入信用额度"
-                              min={0}
-                              fieldProps={{
-                                precision: 2,
-                                addonAfter: '元',
-                              }}
-                            />
-                          </Col>
-                        </Row>
-
-                        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
-                          {/* 结算币种 */}
-                          <Col xs={24} sm={12} md={4}>
-                            <ProFormSelect
-                              name="settlementCurrency"
-                              label="结算币种"
-                              options={currencyOptions}
-                              rules={[{ required: true, message: '请选择结算币种' }]}
-                            />
-                          </Col>
-
-                          {/* 利息规则 */}
-                          <Col xs={24} sm={12} md={6}>
-                            <Form.Item label="利息规则" style={{ marginBottom: 0 }}>
-                              <Button
-                                type="link"
-                                onClick={() => setInterestModalOpen(true)}
-                                style={{ padding: 0, fontWeight: 500 }}
-                              >
-                                {interestRule.enabled
-                                  ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
-                                  : '编辑规则'}
-                              </Button>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      </div>
-                    ),
-                  },
-
-                  // Section 3: 账户信息
-                  {
-                    key: 'accounts',
-                    label: renderSectionHeader('账户信息'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <AccountCardList
-                        partnerId={partnerId}
-                        currencyOptions={currencyOptions}
+              {/* Section 2: 财务结算规则 */}
+              <SectionCard
+                key="settlement"
+                title="财务结算规则"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('settlement')}
+                onCollapseChange={(collapsed) => toggleSection('settlement', collapsed)}
+              >
+                <div>
+                  <Row gutter={[16, 12]} align="middle">
+                    {/* 对账方式 */}
+                    <Col xs={24} sm={12} md={4}>
+                      <ProFormSelect
+                        name="statementMode"
+                        label="对账方式"
+                        options={STATEMENT_MODE_OPTIONS}
+                        rules={[{ required: true, message: '请选择对账方式' }]}
                       />
-                    ),
-                  },
+                    </Col>
 
-                  // Section 4: 联系方式
-                  {
-                    key: 'contacts',
-                    label: renderSectionHeader('联系方式'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <ContactCardList
-                        contacts={contacts}
-                        onChange={setContacts}
+                    {/* 结算方式 */}
+                    <Col xs={24} sm={12} md={4}>
+                      <ProFormSelect
+                        name="settlementMethod"
+                        label="结算方式"
+                        options={SETTLEMENT_METHOD_OPTIONS}
+                        rules={[{ required: true, message: '请选择结算方式' }]}
                       />
-                    ),
-                  },
+                    </Col>
 
-                  // Section 5: 常用信息 (Shipping Presets)
-                  {
-                    key: 'presets',
-                    label: renderSectionHeader('常用信息'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <ShippingPresetSection partnerId={partnerId} />
-                    ),
-                  },
+                    {/* 结算日期 */}
+                    <Col xs={24} sm={12} md={5}>
+                      <Form.Item
+                        label={
+                          <Space size={4}>
+                            <span>结算日期</span>
+                            <Tooltip title="每月固定结算与对账截止日">
+                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                            </Tooltip>
+                          </Space>
+                        }
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Space.Compact style={{ width: '100%' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '0 8px',
+                              backgroundColor: '#fafafa',
+                              border: '1px solid #d9d9d9',
+                              borderRight: 0,
+                              borderRadius: '6px 0 0 6px',
+                              color: '#595959',
+                            }}
+                          >
+                            每月
+                          </div>
+                          <Form.Item name="settlementDay" noStyle>
+                            <Select
+                              options={SETTLEMENT_DAY_OPTIONS}
+                              placeholder="请选择"
+                              style={{ width: '100%' }}
+                            />
+                          </Form.Item>
+                        </Space.Compact>
+                      </Form.Item>
+                    </Col>
 
-                  // Section 6: 合同管理
-                  {
-                    key: 'contracts',
-                    label: renderSectionHeader('合同管理'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <ContractCardList partnerId={partnerId} />
-                    ),
-                  },
+                    {/* 账期 */}
+                    <Col xs={24} sm={12} md={5}>
+                      <Form.Item
+                        label={
+                          <Space size={4}>
+                            <span>账期</span>
+                            <Tooltip title="账期基准与有效信用天数">
+                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                            </Tooltip>
+                          </Space>
+                        }
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Space.Compact style={{ width: '100%' }}>
+                          <Form.Item name="settlementBase" noStyle>
+                            <Select
+                              options={SETTLEMENT_BASE_OPTIONS}
+                              placeholder="请选择"
+                              style={{ width: '55%' }}
+                            />
+                          </Form.Item>
+                          <Form.Item name="creditDays" noStyle>
+                            <Input
+                              placeholder="天数"
+                              style={{ width: '45%', textAlign: 'center' }}
+                              suffix="天"
+                            />
+                          </Form.Item>
+                        </Space.Compact>
+                      </Form.Item>
+                    </Col>
 
-                  // Section 7: 客户备注
-                  {
-                    key: 'remark',
-                    label: renderSectionHeader('客户备注'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <ProFormTextArea
-                        name="remark"
-                        placeholder="可以添加客户信息录入时的备注信息"
-                        fieldProps={{ rows: 3 }}
+                    {/* 信用额度(本币) */}
+                    <Col xs={24} sm={12} md={6}>
+                      <ProFormDigit
+                        name="creditLimit"
+                        label={
+                          <Space size={4}>
+                            <span>信用额度(本币)</span>
+                            <Tooltip title="本币最大允许未核销应收账款额度">
+                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+                            </Tooltip>
+                          </Space>
+                        }
+                        placeholder="输入信用额度"
+                        min={0}
+                        fieldProps={{
+                          precision: 2,
+                          addonAfter: '元',
+                        }}
                       />
-                    ),
-                  },
+                    </Col>
+                  </Row>
 
-                  // Section 8: 操作记录
-                  {
-                    key: 'logs',
-                    label: renderSectionHeader('操作记录'),
-                    style: {
-                      marginBottom: 16,
-                      backgroundColor: '#ffffff',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-                    },
-                    children: (
-                      <AuditLogSection partnerId={partnerId} />
-                    ),
-                  },
-                ]}
-              />
+                  <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
+                    {/* 结算币种 */}
+                    <Col xs={24} sm={12} md={4}>
+                      <ProFormSelect
+                        name="settlementCurrency"
+                        label="结算币种"
+                        options={currencyOptions}
+                        rules={[{ required: true, message: '请选择结算币种' }]}
+                      />
+                    </Col>
+
+                    {/* 利息规则 */}
+                    <Col xs={24} sm={12} md={6}>
+                      <Form.Item label="利息规则" style={{ marginBottom: 0 }}>
+                        <Button
+                          type="link"
+                          onClick={() => setInterestModalOpen(true)}
+                          style={{ padding: 0, fontWeight: 500 }}
+                        >
+                          {interestRule.enabled
+                            ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
+                            : '编辑规则'}
+                        </Button>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </div>
+              </SectionCard>
+
+              {/* Section 3: 账户信息 */}
+              <SectionCard
+                key="accounts"
+                title="账户信息"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('accounts')}
+                onCollapseChange={(collapsed) => toggleSection('accounts', collapsed)}
+              >
+                <AccountCardList
+                  partnerId={partnerId}
+                  currencyOptions={currencyOptions}
+                />
+              </SectionCard>
+
+              {/* Section 4: 联系方式 */}
+              <SectionCard
+                key="contacts"
+                title="联系方式"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('contacts')}
+                onCollapseChange={(collapsed) => toggleSection('contacts', collapsed)}
+              >
+                <ContactCardList
+                  contacts={contacts}
+                  onChange={setContacts}
+                />
+              </SectionCard>
+
+              {/* Section 5: 常用信息 (Shipping Presets) */}
+              <SectionCard
+                key="presets"
+                title="常用信息"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('presets')}
+                onCollapseChange={(collapsed) => toggleSection('presets', collapsed)}
+              >
+                <ShippingPresetSection partnerId={partnerId} />
+              </SectionCard>
+
+              {/* Section 6: 合同管理 */}
+              <SectionCard
+                key="contracts"
+                title="合同管理"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('contracts')}
+                onCollapseChange={(collapsed) => toggleSection('contracts', collapsed)}
+              >
+                <ContractCardList partnerId={partnerId} />
+              </SectionCard>
+
+              {/* Section 7: 客户备注 */}
+              <SectionCard
+                key="remark"
+                title="客户备注"
+                collapsible
+                collapsed={!activeCollapseKeys.includes('remark')}
+                onCollapseChange={(collapsed) => toggleSection('remark', collapsed)}
+              >
+                <ProFormTextArea
+                  name="remark"
+                  placeholder="可以添加客户信息录入时的备注信息"
+                  fieldProps={{ rows: 3 }}
+                />
+              </SectionCard>
+
+              {/* Section 8: 操作记录 */}
+              {partnerId && (
+                <SectionCard
+                  key="logs"
+                  title="操作记录"
+                  collapsible
+                  collapsed={!activeCollapseKeys.includes('logs')}
+                  onCollapseChange={(collapsed) => toggleSection('logs', collapsed)}
+                >
+                  <AuditLogSection partnerId={partnerId} />
+                </SectionCard>
+              )}
             </Col>
           </ProForm>
         </div>
       </Spin>
+
+      {/* 3. Sticky Footer Action Bar */}
+      <StickyFooterBar
+        info={
+          partner?.legalName ? (
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              当前档案：<Text strong style={{ color: 'rgba(0, 0, 0, 0.88)' }}>{partner.legalName}</Text>
+            </Text>
+          ) : undefined
+        }
+      >
+        <Button onClick={() => history.push(listUrl)} disabled={saving}>
+          取消
+        </Button>
+        <Button
+          type="primary"
+          onClick={handleSubmit}
+          loading={saving}
+          icon={<CheckCircleOutlined />}
+          style={{ minWidth: 120 }}
+        >
+          {saving ? '保存中...' : `保存${roleLabel}档案`}
+        </Button>
+      </StickyFooterBar>
 
       {/* Interest Rule Modal */}
       <InterestRuleModal

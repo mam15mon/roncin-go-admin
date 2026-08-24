@@ -2,6 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { Card, Row, Space, Spin, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { SectionCard } from '../page-shell/SectionCard';
 import './OrderFormTemplate.less';
 import type { OrderFormTemplateProps } from './types';
 
@@ -87,28 +88,9 @@ export function OrderFormTemplate<T>({
           }}
         >
           {sections.map((section) => (
-            <Card
-              key={section.key}
-              size="small"
-              title={
-                <Space size={8}>
-                  <span
-                    style={{
-                      width: 3,
-                      height: 16,
-                      borderRadius: 2,
-                      background: '#1677ff',
-                    }}
-                  />
-                  <Text strong>{section.title}</Text>
-                </Space>
-              }
-              bordered={false}
-              styles={{ body: { padding: 16 } }}
-              style={{ width: '100%', marginBottom: 12 }}
-            >
+            <SectionCard key={section.key} title={section.title}>
               <Row gutter={16}>{section.content}</Row>
-            </Card>
+            </SectionCard>
           ))}
         </ProForm>
       )}
