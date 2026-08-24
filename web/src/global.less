@@ -122,7 +122,8 @@ body,
       padding: 4px 6px 50px 6px !important;
       border-inline-end: none !important;
 
-      .ant-menu-item {
+      .ant-menu-item,
+      .ant-menu-submenu-title {
         height: 34px;
         line-height: 34px;
         margin: 2px 0;
@@ -156,6 +157,15 @@ body,
           .anticon {
             color: #1677ff !important;
           }
+        }
+      }
+
+      .ant-menu-submenu-selected > .ant-menu-submenu-title {
+        color: #1677ff !important;
+        font-weight: 600;
+
+        .anticon {
+          color: #1677ff !important;
         }
       }
     }
@@ -404,6 +414,42 @@ body,
         .anticon {
           color: #1677ff !important;
         }
+      }
+    }
+  }
+}
+
+// ----------------------------------------
+// 侧边栏收起时的子菜单悬浮浮层 (Popup Submenu)
+// ----------------------------------------
+.ant-menu-submenu-popup {
+  .ant-menu-sub,
+  .ant-menu-vertical {
+    padding: 4px !important;
+    border-radius: 8px !important;
+    border: 1px solid #f0f0f0 !important;
+    background: #ffffff !important;
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12) !important;
+
+    .ant-menu-item {
+      height: 34px;
+      line-height: 34px;
+      margin: 2px 0;
+      padding: 0 12px !important;
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      color: rgba(0, 0, 0, 0.88) !important;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #f0f7ff !important;
+        color: #1677ff !important;
+      }
+
+      &.ant-menu-item-selected {
+        background: #e6f4ff !important;
+        color: #1677ff !important;
+        font-weight: 600;
       }
     }
   }
