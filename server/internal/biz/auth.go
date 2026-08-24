@@ -81,9 +81,10 @@ type WeComIdentityProvider interface {
 }
 
 type DingTalkIdentity struct {
-	UnionID string
-	Name    string
-	Email   *string
+	UnionID   string
+	Name      string
+	Email     *string
+	AvatarURL *string
 }
 
 type DingTalkIdentityProvider interface {
@@ -98,6 +99,7 @@ type Principal struct {
 	Username                  string
 	DisplayName               string
 	Email                     *string
+	AvatarURL                 *string
 	Organization              Organization
 	Organizations             []Organization
 	Permissions               []string

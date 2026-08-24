@@ -38,6 +38,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
     initialState.currentUser.username ||
     '用户';
   const username = initialState.currentUser.username || '';
+  const avatarUrl = initialState.currentUser.avatarUrl;
   const roleScopes = initialState.currentUser.roleScopes || [];
   const firstRoleCode = roleScopes[0]?.roleCode;
   const primaryRole =
@@ -69,6 +70,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
       >
         <Avatar
           size={36}
+          src={avatarUrl}
           style={{
             backgroundColor: '#1677ff',
             color: '#fff',
@@ -167,6 +169,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
       >
         <Avatar
           size={24}
+          src={avatarUrl}
           style={{
             backgroundColor: '#1677ff',
             color: '#ffffff',

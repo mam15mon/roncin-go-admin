@@ -3718,24 +3718,28 @@ func init() {
 	userDescEmail := userFields[2].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescAvatarURL is the schema descriptor for avatar_url field.
+	userDescAvatarURL := userFields[3].Descriptor()
+	// user.AvatarURLValidator is a validator for the "avatar_url" field. It is called by the builders before save.
+	user.AvatarURLValidator = userDescAvatarURL.Validators[0].(func(string) error)
 	// userDescWecomUserid is the schema descriptor for wecom_userid field.
-	userDescWecomUserid := userFields[4].Descriptor()
+	userDescWecomUserid := userFields[5].Descriptor()
 	// user.WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
 	user.WecomUseridValidator = userDescWecomUserid.Validators[0].(func(string) error)
 	// userDescWecomName is the schema descriptor for wecom_name field.
-	userDescWecomName := userFields[5].Descriptor()
+	userDescWecomName := userFields[6].Descriptor()
 	// user.WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
 	user.WecomNameValidator = userDescWecomName.Validators[0].(func(string) error)
 	// userDescDingtalkUnionid is the schema descriptor for dingtalk_unionid field.
-	userDescDingtalkUnionid := userFields[6].Descriptor()
+	userDescDingtalkUnionid := userFields[7].Descriptor()
 	// user.DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
 	user.DingtalkUnionidValidator = userDescDingtalkUnionid.Validators[0].(func(string) error)
 	// userDescDingtalkName is the schema descriptor for dingtalk_name field.
-	userDescDingtalkName := userFields[7].Descriptor()
+	userDescDingtalkName := userFields[8].Descriptor()
 	// user.DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
 	user.DingtalkNameValidator = userDescDingtalkName.Validators[0].(func(string) error)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[8].Descriptor()
+	userDescEnabled := userFields[9].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescID is the schema descriptor for id field.

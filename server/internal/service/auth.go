@@ -172,5 +172,5 @@ func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	for _, roleScope := range principal.RoleScopes {
 		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope)})
 	}
-	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, CurrentOrganization: &v1.Organization{Id: principal.Organization.ID.String(), Code: principal.Organization.Code, Name: principal.Organization.Name, BaseCurrency: principal.Organization.BaseCurrency}, Organizations: organizations, Permissions: principal.Permissions, RoleScopes: roleScopes}
+	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: &v1.Organization{Id: principal.Organization.ID.String(), Code: principal.Organization.Code, Name: principal.Organization.Name, BaseCurrency: principal.Organization.BaseCurrency}, Organizations: organizations, Permissions: principal.Permissions, RoleScopes: roleScopes}
 }

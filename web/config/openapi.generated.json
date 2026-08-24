@@ -5161,6 +5161,9 @@
           },
           "dingtalkName": {
             "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
           }
         }
       },
@@ -5828,6 +5831,9 @@
             "items": {
               "$ref": "#/components/schemas/auth.v1.RoleScope"
             }
+          },
+          "avatarUrl": {
+            "type": "string"
           }
         }
       },

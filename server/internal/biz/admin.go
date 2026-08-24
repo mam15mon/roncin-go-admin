@@ -55,6 +55,7 @@ type AdminUser struct {
 	Username        string
 	DisplayName     string
 	Email           *string
+	AvatarURL       *string
 	WeComUserID     *string
 	WeComName       *string
 	DingTalkUnionID *string

@@ -81,6 +81,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
     <OrganizationSwitcher key="organization" />,
   ],
   avatarProps: {
+    src: initialState?.currentUser?.avatarUrl,
     title:
       initialState?.currentUser?.displayName ??
       initialState?.currentUser?.username,

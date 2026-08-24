@@ -101,6 +101,7 @@ export default function UsersPanel() {
           <Space size={10} align="center">
             <Avatar
               size={32}
+              src={record.avatarUrl}
               style={{
                 backgroundColor: record.enabled ? '#1677ff' : '#94a3b8',
                 fontSize: 14,

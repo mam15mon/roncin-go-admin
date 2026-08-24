@@ -99,8 +99,21 @@ func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity 
 	dingtalkName := strings.TrimSpace(identity.Name)
 	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
 	if err == nil {
+		update := account.Update()
+		changed := false
 		if account.DingtalkName == nil || *account.DingtalkName != dingtalkName {
-			account, err = account.Update().SetDingtalkName(dingtalkName).Save(ctx)
+			update.SetDingtalkName(dingtalkName)
+			changed = true
+		}
+		if identity.AvatarURL != nil {
+			avatarURL := strings.TrimSpace(*identity.AvatarURL)
+			if avatarURL != "" && (account.AvatarURL == nil || *account.AvatarURL != avatarURL) {
+				update.SetAvatarURL(avatarURL)
+				changed = true
+			}
+		}
+		if changed {
+			account, err = update.Save(ctx)
 			if err != nil {
 				return nil, false, err
 			}
@@ -126,6 +139,9 @@ func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity 
 	create := tx.User.Create().SetUsername(username).SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkName(dingtalkName).SetEnabled(false)
 	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
 		create.SetEmail(strings.TrimSpace(*identity.Email))
+	}
+	if identity.AvatarURL != nil && strings.TrimSpace(*identity.AvatarURL) != "" {
+		create.SetAvatarURL(strings.TrimSpace(*identity.AvatarURL))
 	}
 	account, err = create.Save(ctx)
 	if err != nil {
@@ -236,7 +252,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		accesses = append(accesses, biz.OrderOrganizationAccess{OrganizationID: organizationID, Writable: writable})
 	}
 	sort.Slice(accesses, func(i, j int) bool { return accesses[i].OrganizationID.String() < accesses[j].OrganizationID.String() })
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
+	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session) error {

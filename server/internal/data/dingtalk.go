@@ -26,9 +26,10 @@ type dingTalkTokenResponse struct {
 }
 
 type dingTalkProfileResponse struct {
-	UnionID string  `json:"unionId"`
-	Nick    string  `json:"nick"`
-	Email   *string `json:"email"`
+	UnionID   string  `json:"unionId"`
+	Nick      string  `json:"nick"`
+	Email     *string `json:"email"`
+	AvatarURL *string `json:"avatarUrl"`
 }
 
 type dingTalkIdentityProvider struct {
@@ -104,7 +105,7 @@ func (p *dingTalkIdentityProvider) ResolveIdentity(ctx context.Context, authCode
 	if unionID == "" || name == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	return &biz.DingTalkIdentity{UnionID: unionID, Name: name, Email: profile.Email}, nil
+	return &biz.DingTalkIdentity{UnionID: unionID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
 }
 
 func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endpoint string, payload any, bearerToken string, target any) (int, error) {

@@ -57,6 +57,7 @@ export default function Welcome() {
         <Space size={12} align="center">
           <Avatar
             size={44}
+            src={user?.avatarUrl}
             style={{
               backgroundColor: '#1677ff',
               fontSize: 18,

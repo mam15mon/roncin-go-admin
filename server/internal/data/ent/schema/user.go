@@ -17,6 +17,7 @@ func (User) Fields() []ent.Field {
 		field.String("username").NotEmpty().MaxLen(100).Immutable(),
 		field.String("display_name").NotEmpty().MaxLen(100),
 		field.String("email").MaxLen(254).Optional().Nillable(),
+		field.String("avatar_url").MaxLen(2048).Optional().Nillable(),
 		field.String("password_hash").Optional().Nillable().Sensitive(),
 		field.String("wecom_userid").MaxLen(64).Optional().Nillable(),
 		field.String("wecom_name").MaxLen(100).Optional().Nillable(),

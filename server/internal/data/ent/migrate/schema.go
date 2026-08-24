@@ -2519,6 +2519,7 @@ var (
 		{Name: "username", Type: field.TypeString, Size: 100},
 		{Name: "display_name", Type: field.TypeString, Size: 100},
 		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
+		{Name: "avatar_url", Type: field.TypeString, Nullable: true, Size: 2048},
 		{Name: "password_hash", Type: field.TypeString, Nullable: true},
 		{Name: "wecom_userid", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "wecom_name", Type: field.TypeString, Nullable: true, Size: 100},
@@ -2550,12 +2551,12 @@ var (
 			{
 				Name:    "user_wecom_userid",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[7]},
+				Columns: []*schema.Column{UsersColumns[8]},
 			},
 			{
 				Name:    "user_dingtalk_unionid",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[9]},
+				Columns: []*schema.Column{UsersColumns[10]},
 			},
 		},
 	}

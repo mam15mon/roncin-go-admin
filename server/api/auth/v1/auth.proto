@@ -167,6 +167,7 @@ message CurrentUser {
   repeated Organization organizations = 6;
   repeated string permissions = 7;
   repeated RoleScope role_scopes = 8;
+  optional string avatar_url = 9;
 }
 
 message Organization {

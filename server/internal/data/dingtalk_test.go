@@ -45,7 +45,7 @@ func TestDingTalkResolveIdentity(t *testing.T) {
 				if request.Header.Get("x-acs-dingtalk-access-token") != "access-token" {
 					t.Fatal("成员接口缺少钉钉访问令牌")
 				}
-				return jsonResponse(http.StatusOK, `{"unionId":"union-id","nick":"张三","email":"zhangsan@example.com"}`), nil
+				return jsonResponse(http.StatusOK, `{"unionId":"union-id","nick":"张三","email":"zhangsan@example.com","avatarUrl":"https://example.com/avatar.png"}`), nil
 			default:
 				t.Fatalf("非预期钉钉请求: %s", request.URL)
 				return nil, nil
@@ -57,7 +57,7 @@ func TestDingTalkResolveIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ResolveIdentity() error = %v", err)
 	}
-	if identity.UnionID != "union-id" || identity.Name != "张三" || identity.Email == nil || *identity.Email != "zhangsan@example.com" {
+	if identity.UnionID != "union-id" || identity.Name != "张三" || identity.Email == nil || *identity.Email != "zhangsan@example.com" || identity.AvatarURL == nil || *identity.AvatarURL != "https://example.com/avatar.png" {
 		t.Fatalf("钉钉身份解析错误: %#v", identity)
 	}
 }

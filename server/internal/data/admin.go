@@ -645,7 +645,7 @@ func validateOrganizationCurrency(ctx context.Context, client currencyQuery, cod
 
 func membershipToUser(item *ent.Membership) *biz.AdminUser {
 	account := item.Edges.User
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
 	for _, assignment := range item.Edges.RoleAssignments {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)

@@ -257,6 +257,7 @@ message AdminUser {
   optional string wecom_name = 11;
   optional string dingtalk_unionid = 12;
   optional string dingtalk_name = 13;
+  optional string avatar_url = 14;
 }
 
 message ListUsersResponse {

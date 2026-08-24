@@ -3140,6 +3140,8 @@ components:
                     type: string
                 dingtalkName:
                     type: string
+                avatarUrl:
+                    type: string
         admin.v1.AuthorizeDingTalkUserRequest:
             required:
                 - id
@@ -3590,6 +3592,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/auth.v1.RoleScope'
+                avatarUrl:
+                    type: string
         auth.v1.DingTalkLoginConfig:
             type: object
             properties:

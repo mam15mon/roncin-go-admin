@@ -212,6 +212,7 @@ declare namespace API {
     wecomName?: string;
     dingtalkUnionid?: string;
     dingtalkName?: string;
+    avatarUrl?: string;
   };
 
   type Airline = {
@@ -768,6 +769,7 @@ declare namespace API {
     organizations?: Organization[];
     permissions?: string[];
     roleScopes?: RoleScope[];
+    avatarUrl?: string;
   };
 
   type DeleteUserResponse = {

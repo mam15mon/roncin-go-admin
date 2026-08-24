@@ -1220,6 +1220,7 @@ type AdminUser struct {
 	WecomName       *string                `protobuf:"bytes,11,opt,name=wecom_name,json=wecomName,proto3,oneof" json:"wecom_name,omitempty"`
 	DingtalkUnionid *string                `protobuf:"bytes,12,opt,name=dingtalk_unionid,json=dingtalkUnionid,proto3,oneof" json:"dingtalk_unionid,omitempty"`
 	DingtalkName    *string                `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
+	AvatarUrl       *string                `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1341,6 +1342,13 @@ func (x *AdminUser) GetDingtalkUnionid() string {
 func (x *AdminUser) GetDingtalkName() string {
 	if x != nil && x.DingtalkName != nil {
 		return *x.DingtalkName
+	}
+	return ""
+}
+
+func (x *AdminUser) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
 	}
 	return ""
 }
@@ -3087,7 +3095,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xfe\x03\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xb1\x04\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -3106,12 +3114,15 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"wecom_name\x18\v \x01(\tH\x02R\twecomName\x88\x01\x01\x12.\n" +
 	"\x10dingtalk_unionid\x18\f \x01(\tH\x03R\x0fdingtalkUnionid\x88\x01\x01\x12(\n" +
-	"\rdingtalk_name\x18\r \x01(\tH\x04R\fdingtalkName\x88\x01\x01B\b\n" +
+	"\rdingtalk_name\x18\r \x01(\tH\x04R\fdingtalkName\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +
 	"\x11_dingtalk_unionidB\x10\n" +
-	"\x0e_dingtalk_name\"\xe6\x01\n" +
+	"\x0e_dingtalk_nameB\r\n" +
+	"\v_avatar_url\"\xe6\x01\n" +
 	"\x11ListUsersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

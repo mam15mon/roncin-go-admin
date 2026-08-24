@@ -25,6 +25,8 @@ const (
 	FieldDisplayName = "display_name"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldAvatarURL holds the string denoting the avatar_url field in the database.
+	FieldAvatarURL = "avatar_url"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
 	// FieldWecomUserid holds the string denoting the wecom_userid field in the database.
@@ -85,6 +87,7 @@ var Columns = []string{
 	FieldUsername,
 	FieldDisplayName,
 	FieldEmail,
+	FieldAvatarURL,
 	FieldPasswordHash,
 	FieldWecomUserid,
 	FieldWecomName,
@@ -116,6 +119,8 @@ var (
 	DisplayNameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// AvatarURLValidator is a validator for the "avatar_url" field. It is called by the builders before save.
+	AvatarURLValidator func(string) error
 	// WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
 	WecomUseridValidator func(string) error
 	// WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
@@ -161,6 +166,11 @@ func ByDisplayName(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByAvatarURL orders the results by the avatar_url field.
+func ByAvatarURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAvatarURL, opts...).ToFunc()
 }
 
 // ByPasswordHash orders the results by the password_hash field.

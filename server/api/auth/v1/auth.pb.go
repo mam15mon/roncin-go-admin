@@ -937,6 +937,7 @@ type CurrentUser struct {
 	Organizations       []*Organization        `protobuf:"bytes,6,rep,name=organizations,proto3" json:"organizations,omitempty"`
 	Permissions         []string               `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	RoleScopes          []*RoleScope           `protobuf:"bytes,8,rep,name=role_scopes,json=roleScopes,proto3" json:"role_scopes,omitempty"`
+	AvatarUrl           *string                `protobuf:"bytes,9,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -1025,6 +1026,13 @@ func (x *CurrentUser) GetRoleScopes() []*RoleScope {
 		return x.RoleScopes
 	}
 	return nil
+}
+
+func (x *CurrentUser) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
+	}
+	return ""
 }
 
 type Organization struct {
@@ -1362,7 +1370,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xdf\x02\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\x92\x03\n" +
 	"\vCurrentUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -1372,8 +1380,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\rorganizations\x18\x06 \x03(\v2\x15.auth.v1.OrganizationR\rorganizations\x12 \n" +
 	"\vpermissions\x18\a \x03(\tR\vpermissions\x123\n" +
 	"\vrole_scopes\x18\b \x03(\v2\x12.auth.v1.RoleScopeR\n" +
-	"roleScopesB\b\n" +
-	"\x06_email\"k\n" +
+	"roleScopes\x12\"\n" +
+	"\n" +
+	"avatar_url\x18\t \x01(\tH\x01R\tavatarUrl\x88\x01\x01B\b\n" +
+	"\x06_emailB\r\n" +
+	"\v_avatar_url\"k\n" +
 	"\fOrganization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
