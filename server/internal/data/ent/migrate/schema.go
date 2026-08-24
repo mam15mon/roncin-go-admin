@@ -2331,6 +2331,8 @@ var (
 		{Name: "password_hash", Type: field.TypeString, Nullable: true},
 		{Name: "wecom_userid", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "wecom_name", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "dingtalk_unionid", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "dingtalk_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -2358,6 +2360,11 @@ var (
 				Name:    "user_wecom_userid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[7]},
+			},
+			{
+				Name:    "user_dingtalk_unionid",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[9]},
 			},
 		},
 	}

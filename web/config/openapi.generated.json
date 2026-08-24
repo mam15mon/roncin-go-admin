@@ -424,6 +424,46 @@
         }
       }
     },
+    "/api/v1/admin/users/{id}/dingtalk-authorization": {
+      "post": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_AuthorizeDingTalkUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.AuthorizeDingTalkUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.AuthorizeDingTalkUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/users/{id}/password": {
       "put": {
         "tags": [
@@ -497,6 +537,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/admin.v1.AuthorizeWeComUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/dingtalk/login": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_DingTalkLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.DingTalkLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.DingTalkLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/dingtalk/login-config": {
+      "get": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_GetDingTalkLoginConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.GetDingTalkLoginConfigResponse"
                 }
               }
             }
@@ -4772,6 +4862,62 @@
           },
           "wecomName": {
             "type": "string"
+          },
+          "dingtalkUnionid": {
+            "type": "string"
+          },
+          "dingtalkName": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.AuthorizeDingTalkUserRequest": {
+        "required": [
+          "id",
+          "organizationId",
+          "displayName",
+          "roleIds"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "admin.v1.AuthorizeDingTalkUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -5371,6 +5517,74 @@
             "items": {
               "$ref": "#/components/schemas/auth.v1.RoleScope"
             }
+          }
+        }
+      },
+      "auth.v1.DingTalkLoginConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "authorizeUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.DingTalkLoginRequest": {
+        "required": [
+          "authCode",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "authCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.DingTalkLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.GetDingTalkLoginConfigResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkLoginConfig"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

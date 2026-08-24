@@ -151,6 +151,30 @@ func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.Autho
 	return &v1.AuthorizeWeComUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(authorized), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.AuthorizeDingTalkUserRequest) (*v1.AuthorizeDingTalkUserResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	targetOrganizationID, err := uuid.Parse(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	roles, err := parseUUIDs(request.GetRoleIds())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AuthorizeDingTalkUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(authorized), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetUserPasswordRequest) (*v1.ResetUserPasswordResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -406,7 +430,7 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 }
 
 func userToAPI(value *biz.AdminUser) *v1.AdminUser {
-	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, WecomUserid: value.WeComUserID, WecomName: value.WeComName, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func roleToAPI(value *biz.AdminRole) *v1.AdminRole {

@@ -1,5 +1,6 @@
 import {
   ArrowRightOutlined,
+  DingdingOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   LoadingOutlined,
@@ -11,6 +12,7 @@ import { Helmet, useModel } from '@umijs/max';
 import { App, Button, Checkbox, Divider, Form, Input, Modal, Spin } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import {
+  authServiceGetDingTalkLoginConfig,
   authServiceGetWeComLoginConfig,
   authServiceLogin,
 } from '@/services/roncin/authService';
@@ -36,6 +38,8 @@ export default function Login() {
   const [passwordValue, setPasswordValue] = useState('');
   const [wecomEnabled, setWecomEnabled] = useState(false);
   const [wecomLoading, setWecomLoading] = useState(false);
+  const [dingtalkEnabled, setDingtalkEnabled] = useState(false);
+  const [dingtalkLoading, setDingtalkLoading] = useState(false);
   const [wecomModalOpen, setWecomModalOpen] = useState(false);
   const [wecomAuthUrl, setWecomAuthUrl] = useState('');
   const [iframeLoading, setIframeLoading] = useState(true);
@@ -44,6 +48,9 @@ export default function Login() {
     authServiceGetWeComLoginConfig({ skipErrorHandler: true })
       .then((response) => setWecomEnabled(response.data?.enabled ?? false))
       .catch(() => setWecomEnabled(false));
+    authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
+      .then((response) => setDingtalkEnabled(response.data?.enabled ?? false))
+      .catch(() => setDingtalkEnabled(false));
   }, []);
 
   const handleSubmit = async (values: API.LoginRequest) => {
@@ -83,6 +90,30 @@ export default function Login() {
       message.error(error instanceof Error ? error.message : '企业微信登录启动失败');
     } finally {
       setWecomLoading(false);
+    }
+  };
+
+  const handleDingTalkLogin = async () => {
+    setDingtalkLoading(true);
+    try {
+      const response = await authServiceGetDingTalkLoginConfig({
+        skipErrorHandler: true,
+      });
+      if (!response.data?.enabled || !response.data.authorizeUrl) {
+        message.warning('钉钉登录暂未启用');
+        return;
+      }
+      const redirect = new URL(window.location.href).searchParams.get(
+        'redirect',
+      );
+      sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
+      window.location.assign(response.data.authorizeUrl);
+    } catch (error) {
+      message.error(
+        error instanceof Error ? error.message : '钉钉登录启动失败',
+      );
+    } finally {
+      setDingtalkLoading(false);
     }
   };
 
@@ -236,22 +267,40 @@ export default function Login() {
             </Form.Item>
           </Form>
 
-          {wecomEnabled && (
+          {(wecomEnabled || dingtalkEnabled) && (
             <>
               <Divider plain className={styles.loginDivider}>
                 或
               </Divider>
-              <Button
-                block
-                size="large"
-                icon={<WechatWorkOutlined />}
-                loading={wecomLoading}
-                disabled={loading || wecomLoading}
-                className={styles.wecomButton}
-                onClick={handleWeComLogin}
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
               >
-                企业微信登录
-              </Button>
+                {wecomEnabled && (
+                  <Button
+                    block
+                    size="large"
+                    icon={<WechatWorkOutlined />}
+                    loading={wecomLoading}
+                    disabled={loading || wecomLoading || dingtalkLoading}
+                    className={styles.wecomButton}
+                    onClick={handleWeComLogin}
+                  >
+                    企业微信登录
+                  </Button>
+                )}
+                {dingtalkEnabled && (
+                  <Button
+                    block
+                    size="large"
+                    icon={<DingdingOutlined />}
+                    loading={dingtalkLoading}
+                    disabled={loading || wecomLoading || dingtalkLoading}
+                    onClick={handleDingTalkLogin}
+                  >
+                    钉钉登录
+                  </Button>
+                )}
+              </div>
             </>
           )}
         </div>

@@ -19,6 +19,7 @@ import { Alert, App, Avatar, Button, Space, Tag, Typography } from 'antd';
 import { useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  adminServiceAuthorizeDingTalkUser,
   adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
   adminServiceListOrganizationRoles,
@@ -41,6 +42,19 @@ type UserFormValues = {
   organizationId?: string;
 };
 
+function pendingExternalProvider(
+  user?: API.AdminUser,
+): 'wecom' | 'dingtalk' | undefined {
+  if (!user || user.enabled) return undefined;
+  if (user.wecomUserid) return 'wecom';
+  if (user.dingtalkUnionid) return 'dingtalk';
+  return undefined;
+}
+
+function hasExternalIdentity(user: API.AdminUser): boolean {
+  return Boolean(user.wecomUserid || user.dingtalkUnionid);
+}
+
 export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
@@ -52,6 +66,7 @@ export default function UsersPanel() {
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
   const [approvalRoles, setApprovalRoles] = useState<API.AdminRole[]>([]);
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
+  const pendingProvider = pendingExternalProvider(editing);
 
   useEffect(() => {
     adminServiceListRoles().then((response) => setRoles(response.data ?? []));
@@ -66,7 +81,7 @@ export default function UsersPanel() {
 
   const openEdit = (user: API.AdminUser) => {
     setEditing(user);
-    if (user.wecomUserid && !user.enabled) {
+    if (pendingExternalProvider(user)) {
       setApprovalRoles(roles);
     }
     setModalOpen(true);
@@ -153,6 +168,30 @@ export default function UsersPanel() {
         ),
     },
     {
+      title: '钉钉',
+      dataIndex: 'dingtalkName',
+      width: 210,
+      search: false,
+      render: (_, record) =>
+        record.dingtalkUnionid ? (
+          <div style={{ lineHeight: 1.4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>
+              {record.dingtalkName || '-'}
+            </div>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, fontFamily: 'monospace' }}
+            >
+              {record.dingtalkUnionid}
+            </Text>
+          </div>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            未绑定
+          </Text>
+        ),
+    },
+    {
       title: '已分配角色',
       dataIndex: 'roleCodes',
       width: 240,
@@ -205,7 +244,7 @@ export default function UsersPanel() {
       render: (_, record) =>
         record.enabled ? (
           <Tag color="success">启用</Tag>
-        ) : record.wecomUserid ? (
+        ) : hasExternalIdentity(record) ? (
           <Tag color="warning">待授权</Tag>
         ) : (
           <Tag color="default">停用</Tag>
@@ -311,10 +350,7 @@ export default function UsersPanel() {
           editing
             ? {
                 ...editing,
-                organizationId:
-                  editing.wecomUserid && !editing.enabled
-                    ? initialState?.currentUser?.currentOrganization?.id
-                    : undefined,
+                organizationId: pendingProvider ? initialState?.currentUser?.currentOrganization?.id : undefined,
               }
             : undefined
         }
@@ -325,9 +361,12 @@ export default function UsersPanel() {
         }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          const pendingWeComUser = Boolean(editing?.wecomUserid && !editing.enabled);
-          if (editing?.id && pendingWeComUser) {
-            await adminServiceAuthorizeWeComUser(
+          if (editing?.id && pendingProvider) {
+            const authorize =
+              pendingProvider === 'wecom'
+                ? adminServiceAuthorizeWeComUser
+                : adminServiceAuthorizeDingTalkUser;
+            await authorize(
               { id: editing.id },
               {
                 id: editing.id,
@@ -337,7 +376,9 @@ export default function UsersPanel() {
                 roleIds: values.roleIds ?? [],
               },
             );
-            message.success('企业微信成员已完成组织授权并启用');
+            message.success(
+              `${pendingProvider === 'wecom' ? '企业微信' : '钉钉'}成员已完成组织授权并启用`,
+            );
           } else if (editing?.id) {
             await adminServiceUpdateUser(
               { id: editing.id },
@@ -365,16 +406,16 @@ export default function UsersPanel() {
           return true;
         }}
       >
-        {editing?.wecomUserid && !editing.enabled && (
+        {pendingProvider && (
           <Alert
             showIcon
             type="info"
-            message={`企业微信成员 ${editing.wecomName || editing.displayName} 已完成身份登记`}
+            message={`${pendingProvider === 'wecom' ? '企业微信' : '钉钉'}成员 ${pendingProvider === 'wecom' ? editing?.wecomName || editing?.displayName : editing?.dingtalkName || editing?.displayName} 已完成身份登记`}
             description="请分配至少一个角色并启用账号。启用后，该成员再次扫码即可登录。"
             style={{ marginBottom: 16 }}
           />
         )}
-        {editing?.wecomUserid && !editing.enabled && (
+        {pendingProvider && (
           <ProFormSelect
             name="organizationId"
             label="所属组织"
@@ -430,17 +471,17 @@ export default function UsersPanel() {
           label="分配角色"
           mode="multiple"
           placeholder="请选择角色"
-          options={(editing?.wecomUserid && !editing.enabled ? approvalRoles : roles).map((role) => ({
+          options={(pendingProvider ? approvalRoles : roles).map((role) => ({
             label: `${role.name} (${role.code})`,
             value: role.id,
           }))}
           rules={
-            editing?.wecomUserid && !editing.enabled
+            pendingProvider
               ? [{ required: true, message: '请至少分配一个角色' }]
               : undefined
           }
         />
-        {editing && !(editing.wecomUserid && !editing.enabled) && (
+        {editing && !pendingProvider && (
           <ProFormSwitch
             name="enabled"
             label="账号状态"

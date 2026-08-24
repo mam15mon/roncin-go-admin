@@ -270,6 +270,7 @@ type Security struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Session       *Security_Session      `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	Wecom         *Security_WeCom        `protobuf:"bytes,2,opt,name=wecom,proto3" json:"wecom,omitempty"`
+	Dingtalk      *Security_DingTalk     `protobuf:"bytes,3,opt,name=dingtalk,proto3" json:"dingtalk,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -314,6 +315,13 @@ func (x *Security) GetSession() *Security_Session {
 func (x *Security) GetWecom() *Security_WeCom {
 	if x != nil {
 		return x.Wecom
+	}
+	return nil
+}
+
+func (x *Security) GetDingtalk() *Security_DingTalk {
+	if x != nil {
+		return x.Dingtalk
 	}
 	return nil
 }
@@ -747,6 +755,74 @@ func (x *Security_WeCom) GetRedirectUri() string {
 	return ""
 }
 
+type Security_DingTalk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ClientSecret  string                 `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	RedirectUri   string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Security_DingTalk) Reset() {
+	*x = Security_DingTalk{}
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security_DingTalk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security_DingTalk) ProtoMessage() {}
+
+func (x *Security_DingTalk) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Security_DingTalk.ProtoReflect.Descriptor instead.
+func (*Security_DingTalk) Descriptor() ([]byte, []int) {
+	return file_conf_v1_conf_proto_rawDescGZIP(), []int{4, 2}
+}
+
+func (x *Security_DingTalk) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Security_DingTalk) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *Security_DingTalk) GetClientSecret() string {
+	if x != nil {
+		return x.ClientSecret
+	}
+	return ""
+}
+
+func (x *Security_DingTalk) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
 var File_conf_v1_conf_proto protoreflect.FileDescriptor
 
 const file_conf_v1_conf_proto_rawDesc = "" +
@@ -788,10 +864,11 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x90\x03\n" +
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xd4\x04\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x12-\n" +
-	"\x05wecom\x18\x02 \x01(\v2\x17.conf.v1.Security.WeComR\x05wecom\x1a\x8c\x01\n" +
+	"\x05wecom\x18\x02 \x01(\v2\x17.conf.v1.Security.WeComR\x05wecom\x126\n" +
+	"\bdingtalk\x18\x03 \x01(\v2\x1a.conf.v1.Security.DingTalkR\bdingtalk\x1a\x8c\x01\n" +
 	"\aSession\x12\x1f\n" +
 	"\vcookie_name\x18\x01 \x01(\tR\n" +
 	"cookieName\x12+\n" +
@@ -803,7 +880,12 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\acorp_id\x18\x02 \x01(\tR\x06corpId\x12\x19\n" +
 	"\bagent_id\x18\x03 \x01(\x03R\aagentId\x12\x16\n" +
 	"\x06secret\x18\x04 \x01(\tR\x06secret\x12!\n" +
-	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUriB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUri\x1a\x89\x01\n" +
+	"\bDingTalk\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12#\n" +
+	"\rclient_secret\x18\x03 \x01(\tR\fclientSecret\x12!\n" +
+	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUriB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_v1_conf_proto_rawDescOnce sync.Once
@@ -817,7 +899,7 @@ func file_conf_v1_conf_proto_rawDescGZIP() []byte {
 	return file_conf_v1_conf_proto_rawDescData
 }
 
-var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_conf_v1_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: conf.v1.Bootstrap
 	(*Telemetry)(nil),           // 1: conf.v1.Telemetry
@@ -830,7 +912,8 @@ var file_conf_v1_conf_proto_goTypes = []any{
 	(*Data_Redis)(nil),          // 8: conf.v1.Data.Redis
 	(*Security_Session)(nil),    // 9: conf.v1.Security.Session
 	(*Security_WeCom)(nil),      // 10: conf.v1.Security.WeCom
-	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
+	(*Security_DingTalk)(nil),   // 11: conf.v1.Security.DingTalk
+	(*durationpb.Duration)(nil), // 12: google.protobuf.Duration
 }
 var file_conf_v1_conf_proto_depIdxs = []int32{
 	2,  // 0: conf.v1.Bootstrap.server:type_name -> conf.v1.Server
@@ -843,17 +926,18 @@ var file_conf_v1_conf_proto_depIdxs = []int32{
 	8,  // 7: conf.v1.Data.redis:type_name -> conf.v1.Data.Redis
 	9,  // 8: conf.v1.Security.session:type_name -> conf.v1.Security.Session
 	10, // 9: conf.v1.Security.wecom:type_name -> conf.v1.Security.WeCom
-	11, // 10: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	11, // 11: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	11, // 12: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
-	11, // 13: conf.v1.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
-	11, // 14: conf.v1.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
-	11, // 15: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	11, // 10: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
+	12, // 11: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	12, // 12: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	12, // 13: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	12, // 14: conf.v1.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
+	12, // 15: conf.v1.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
+	12, // 16: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_conf_v1_conf_proto_init() }
@@ -867,7 +951,7 @@ func file_conf_v1_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_v1_conf_proto_rawDesc), len(file_conf_v1_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

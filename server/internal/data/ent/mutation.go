@@ -51785,6 +51785,8 @@ type UserMutation struct {
 	password_hash              *string
 	wecom_userid               *string
 	wecom_name                 *string
+	dingtalk_unionid           *string
+	dingtalk_name              *string
 	enabled                    *bool
 	clearedFields              map[string]struct{}
 	memberships                map[uuid.UUID]struct{}
@@ -52248,6 +52250,104 @@ func (m *UserMutation) ResetWecomName() {
 	delete(m.clearedFields, user.FieldWecomName)
 }
 
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (m *UserMutation) SetDingtalkUnionid(s string) {
+	m.dingtalk_unionid = &s
+}
+
+// DingtalkUnionid returns the value of the "dingtalk_unionid" field in the mutation.
+func (m *UserMutation) DingtalkUnionid() (r string, exists bool) {
+	v := m.dingtalk_unionid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkUnionid returns the old "dingtalk_unionid" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkUnionid(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkUnionid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkUnionid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkUnionid: %w", err)
+	}
+	return oldValue.DingtalkUnionid, nil
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (m *UserMutation) ClearDingtalkUnionid() {
+	m.dingtalk_unionid = nil
+	m.clearedFields[user.FieldDingtalkUnionid] = struct{}{}
+}
+
+// DingtalkUnionidCleared returns if the "dingtalk_unionid" field was cleared in this mutation.
+func (m *UserMutation) DingtalkUnionidCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkUnionid]
+	return ok
+}
+
+// ResetDingtalkUnionid resets all changes to the "dingtalk_unionid" field.
+func (m *UserMutation) ResetDingtalkUnionid() {
+	m.dingtalk_unionid = nil
+	delete(m.clearedFields, user.FieldDingtalkUnionid)
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (m *UserMutation) SetDingtalkName(s string) {
+	m.dingtalk_name = &s
+}
+
+// DingtalkName returns the value of the "dingtalk_name" field in the mutation.
+func (m *UserMutation) DingtalkName() (r string, exists bool) {
+	v := m.dingtalk_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkName returns the old "dingtalk_name" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkName: %w", err)
+	}
+	return oldValue.DingtalkName, nil
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (m *UserMutation) ClearDingtalkName() {
+	m.dingtalk_name = nil
+	m.clearedFields[user.FieldDingtalkName] = struct{}{}
+}
+
+// DingtalkNameCleared returns if the "dingtalk_name" field was cleared in this mutation.
+func (m *UserMutation) DingtalkNameCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkName]
+	return ok
+}
+
+// ResetDingtalkName resets all changes to the "dingtalk_name" field.
+func (m *UserMutation) ResetDingtalkName() {
+	m.dingtalk_name = nil
+	delete(m.clearedFields, user.FieldDingtalkName)
+}
+
 // SetEnabled sets the "enabled" field.
 func (m *UserMutation) SetEnabled(b bool) {
 	m.enabled = &b
@@ -52534,7 +52634,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -52558,6 +52658,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.wecom_name != nil {
 		fields = append(fields, user.FieldWecomName)
+	}
+	if m.dingtalk_unionid != nil {
+		fields = append(fields, user.FieldDingtalkUnionid)
+	}
+	if m.dingtalk_name != nil {
+		fields = append(fields, user.FieldDingtalkName)
 	}
 	if m.enabled != nil {
 		fields = append(fields, user.FieldEnabled)
@@ -52586,6 +52692,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.WecomUserid()
 	case user.FieldWecomName:
 		return m.WecomName()
+	case user.FieldDingtalkUnionid:
+		return m.DingtalkUnionid()
+	case user.FieldDingtalkName:
+		return m.DingtalkName()
 	case user.FieldEnabled:
 		return m.Enabled()
 	}
@@ -52613,6 +52723,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldWecomUserid(ctx)
 	case user.FieldWecomName:
 		return m.OldWecomName(ctx)
+	case user.FieldDingtalkUnionid:
+		return m.OldDingtalkUnionid(ctx)
+	case user.FieldDingtalkName:
+		return m.OldDingtalkName(ctx)
 	case user.FieldEnabled:
 		return m.OldEnabled(ctx)
 	}
@@ -52680,6 +52794,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWecomName(v)
 		return nil
+	case user.FieldDingtalkUnionid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkUnionid(v)
+		return nil
+	case user.FieldDingtalkName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkName(v)
+		return nil
 	case user.FieldEnabled:
 		v, ok := value.(bool)
 		if !ok {
@@ -52729,6 +52857,12 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldWecomName) {
 		fields = append(fields, user.FieldWecomName)
 	}
+	if m.FieldCleared(user.FieldDingtalkUnionid) {
+		fields = append(fields, user.FieldDingtalkUnionid)
+	}
+	if m.FieldCleared(user.FieldDingtalkName) {
+		fields = append(fields, user.FieldDingtalkName)
+	}
 	return fields
 }
 
@@ -52754,6 +52888,12 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldWecomName:
 		m.ClearWecomName()
+		return nil
+	case user.FieldDingtalkUnionid:
+		m.ClearDingtalkUnionid()
+		return nil
+	case user.FieldDingtalkName:
+		m.ClearDingtalkName()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -52786,6 +52926,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldWecomName:
 		m.ResetWecomName()
+		return nil
+	case user.FieldDingtalkUnionid:
+		m.ResetDingtalkUnionid()
+		return nil
+	case user.FieldDingtalkName:
+		m.ResetDingtalkName()
 		return nil
 	case user.FieldEnabled:
 		m.ResetEnabled()

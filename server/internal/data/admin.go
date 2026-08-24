@@ -236,6 +236,18 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 }
 
 func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
+		return account.WecomUserid != nil
+	})
+}
+
+func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
+		return account.DingtalkUnionid != nil
+	})
+}
+
+func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -253,7 +265,7 @@ func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID
 		_ = tx.Rollback()
 		return nil, err
 	}
-	if account.WecomUserid == nil || account.Enabled {
+	if !hasExternalIdentity(account) || account.Enabled {
 		_ = tx.Rollback()
 		return nil, biz.ErrAdminInvalidArgument
 	}
@@ -605,7 +617,7 @@ func validateOrganizationCurrency(ctx context.Context, client currencyQuery, cod
 
 func membershipToUser(item *ent.Membership) *biz.AdminUser {
 	account := item.Edges.User
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, WeComUserID: account.WecomUserid, WeComName: account.WecomName, Enabled: account.Enabled, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
 	for _, assignment := range item.Edges.RoleAssignments {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)

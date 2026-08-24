@@ -20,6 +20,8 @@ func (User) Fields() []ent.Field {
 		field.String("password_hash").Optional().Nillable().Sensitive(),
 		field.String("wecom_userid").MaxLen(64).Optional().Nillable(),
 		field.String("wecom_name").MaxLen(100).Optional().Nillable(),
+		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
+		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 	}
 }
@@ -34,5 +36,5 @@ func (User) Edges() []ent.Edge {
 }
 
 func (User) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("username").Unique(), index.Fields("email"), index.Fields("wecom_userid").Unique()}
+	return []ent.Index{index.Fields("username").Unique(), index.Fields("email"), index.Fields("wecom_userid").Unique(), index.Fields("dingtalk_unionid").Unique()}
 }

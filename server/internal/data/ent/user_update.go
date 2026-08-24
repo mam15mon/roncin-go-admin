@@ -133,6 +133,46 @@ func (_u *UserUpdate) ClearWecomName() *UserUpdate {
 	return _u
 }
 
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (_u *UserUpdate) SetDingtalkUnionid(v string) *UserUpdate {
+	_u.mutation.SetDingtalkUnionid(v)
+	return _u
+}
+
+// SetNillableDingtalkUnionid sets the "dingtalk_unionid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkUnionid(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkUnionid(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (_u *UserUpdate) ClearDingtalkUnionid() *UserUpdate {
+	_u.mutation.ClearDingtalkUnionid()
+	return _u
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (_u *UserUpdate) SetDingtalkName(v string) *UserUpdate {
+	_u.mutation.SetDingtalkName(v)
+	return _u
+}
+
+// SetNillableDingtalkName sets the "dingtalk_name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkName(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (_u *UserUpdate) ClearDingtalkName() *UserUpdate {
+	_u.mutation.ClearDingtalkName()
+	return _u
+}
+
 // SetEnabled sets the "enabled" field.
 func (_u *UserUpdate) SetEnabled(v bool) *UserUpdate {
 	_u.mutation.SetEnabled(v)
@@ -354,6 +394,16 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkUnionid(); ok {
+		if err := user.DingtalkUnionidValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.DingtalkName(); ok {
+		if err := user.DingtalkNameValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -398,6 +448,18 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.WecomNameCleared() {
 		_spec.ClearField(user.FieldWecomName, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkUnionid(); ok {
+		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkUnionidCleared() {
+		_spec.ClearField(user.FieldDingtalkUnionid, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkName(); ok {
+		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkNameCleared() {
+		_spec.ClearField(user.FieldDingtalkName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
@@ -702,6 +764,46 @@ func (_u *UserUpdateOne) ClearWecomName() *UserUpdateOne {
 	return _u
 }
 
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (_u *UserUpdateOne) SetDingtalkUnionid(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkUnionid(v)
+	return _u
+}
+
+// SetNillableDingtalkUnionid sets the "dingtalk_unionid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkUnionid(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkUnionid(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkUnionid clears the value of the "dingtalk_unionid" field.
+func (_u *UserUpdateOne) ClearDingtalkUnionid() *UserUpdateOne {
+	_u.mutation.ClearDingtalkUnionid()
+	return _u
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (_u *UserUpdateOne) SetDingtalkName(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkName(v)
+	return _u
+}
+
+// SetNillableDingtalkName sets the "dingtalk_name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkName(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkName clears the value of the "dingtalk_name" field.
+func (_u *UserUpdateOne) ClearDingtalkName() *UserUpdateOne {
+	_u.mutation.ClearDingtalkName()
+	return _u
+}
+
 // SetEnabled sets the "enabled" field.
 func (_u *UserUpdateOne) SetEnabled(v bool) *UserUpdateOne {
 	_u.mutation.SetEnabled(v)
@@ -936,6 +1038,16 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkUnionid(); ok {
+		if err := user.DingtalkUnionidValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.DingtalkName(); ok {
+		if err := user.DingtalkNameValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -997,6 +1109,18 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.WecomNameCleared() {
 		_spec.ClearField(user.FieldWecomName, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkUnionid(); ok {
+		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkUnionidCleared() {
+		_spec.ClearField(user.FieldDingtalkUnionid, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkName(); ok {
+		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkNameCleared() {
+		_spec.ClearField(user.FieldDingtalkName, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)

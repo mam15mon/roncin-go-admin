@@ -31,6 +31,19 @@ service AuthService {
     };
   }
 
+  rpc GetDingTalkLoginConfig(GetDingTalkLoginConfigRequest) returns (GetDingTalkLoginConfigResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {get: "/api/v1/auth/dingtalk/login-config"};
+  }
+
+  rpc DingTalkLogin(DingTalkLoginRequest) returns (DingTalkLoginResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {
+      post: "/api/v1/auth/dingtalk/login"
+      body: "*"
+    };
+  }
+
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -63,6 +76,11 @@ message WeComLoginRequest {
   string state = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
+message DingTalkLoginRequest {
+  string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
+  string state = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
 message GetWeComLoginConfigResponse {
   bool success = 1;
   int32 code = 2;
@@ -72,6 +90,19 @@ message GetWeComLoginConfigResponse {
 }
 
 message WeComLoginConfig {
+  bool enabled = 1;
+  optional string authorize_url = 2;
+}
+
+message GetDingTalkLoginConfigResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkLoginConfig data = 4;
+  string trace_id = 5;
+}
+
+message DingTalkLoginConfig {
   bool enabled = 1;
   optional string authorize_url = 2;
 }
@@ -89,6 +120,14 @@ message LoginResponse {
 }
 
 message WeComLoginResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  CurrentUser data = 4;
+  string trace_id = 5;
+}
+
+message DingTalkLoginResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -143,6 +182,8 @@ message RoleScope {
 }
 
 message GetWeComLoginConfigRequest {}
+
+message GetDingTalkLoginConfigRequest {}
 
 message LogoutRequest {}
 

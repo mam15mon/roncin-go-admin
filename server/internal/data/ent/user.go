@@ -34,6 +34,10 @@ type User struct {
 	WecomUserid *string `json:"wecom_userid,omitempty"`
 	// WecomName holds the value of the "wecom_name" field.
 	WecomName *string `json:"wecom_name,omitempty"`
+	// DingtalkUnionid holds the value of the "dingtalk_unionid" field.
+	DingtalkUnionid *string `json:"dingtalk_unionid,omitempty"`
+	// DingtalkName holds the value of the "dingtalk_name" field.
+	DingtalkName *string `json:"dingtalk_name,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -100,7 +104,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkName:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -178,6 +182,20 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.WecomName = new(string)
 				*_m.WecomName = value.String
+			}
+		case user.FieldDingtalkUnionid:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_unionid", values[i])
+			} else if value.Valid {
+				_m.DingtalkUnionid = new(string)
+				*_m.DingtalkUnionid = value.String
+			}
+		case user.FieldDingtalkName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_name", values[i])
+			} else if value.Valid {
+				_m.DingtalkName = new(string)
+				*_m.DingtalkName = value.String
 			}
 		case user.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -267,6 +285,16 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	if v := _m.WecomName; v != nil {
 		builder.WriteString("wecom_name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.DingtalkUnionid; v != nil {
+		builder.WriteString("dingtalk_unionid=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.DingtalkName; v != nil {
+		builder.WriteString("dingtalk_name=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

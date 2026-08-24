@@ -59,6 +59,14 @@ service AdminService {
     };
   }
 
+  rpc AuthorizeDingTalkUser(AuthorizeDingTalkUserRequest) returns (AuthorizeDingTalkUserResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_dingtalk" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {
+      post: "/api/v1/admin/users/{id}/dingtalk-authorization"
+      body: "*"
+    };
+  }
+
   rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.reset_password" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -208,6 +216,14 @@ message AuthorizeWeComUserRequest {
   repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
 }
 
+message AuthorizeDingTalkUserRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string display_name = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string email = 4;
+  repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
 message ResetUserPasswordRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
@@ -229,6 +245,8 @@ message AdminUser {
   string updated_at = 9;
   optional string wecom_userid = 10;
   optional string wecom_name = 11;
+  optional string dingtalk_unionid = 12;
+  optional string dingtalk_name = 13;
 }
 
 message ListUsersResponse {
@@ -259,6 +277,14 @@ message UpdateUserResponse {
 }
 
 message AuthorizeWeComUserResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminUser data = 4;
+  string trace_id = 5;
+}
+
+message AuthorizeDingTalkUserResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

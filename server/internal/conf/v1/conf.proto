@@ -78,6 +78,13 @@ message Security {
     string secret = 4;
     string redirect_uri = 5;
   }
+  message DingTalk {
+    bool enabled = 1;
+    string client_id = 2;
+    string client_secret = 3;
+    string redirect_uri = 4;
+  }
   Session session = 1;
   WeCom wecom = 2;
+  DingTalk dingtalk = 3;
 }

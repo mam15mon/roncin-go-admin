@@ -2,6 +2,34 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/login */
+export async function authServiceDingTalkLogin(
+  body: API.DingTalkLoginRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.DingTalkLoginResponse>("/api/v1/auth/dingtalk/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 GET /api/v1/auth/dingtalk/login-config */
+export async function authServiceGetDingTalkLoginConfig(options?: {
+  [key: string]: any;
+}) {
+  return request<API.GetDingTalkLoginConfigResponse>(
+    "/api/v1/auth/dingtalk/login-config",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/auth/login */
 export async function authServiceLogin(
   body: API.LoginRequest,

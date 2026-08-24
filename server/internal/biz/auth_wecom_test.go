@@ -38,6 +38,10 @@ func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(context.Context, *WeComI
 	return s.credential, s.created, nil
 }
 
+func (s *wecomAuthRepoStub) FindOrCreateDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error) {
+	return s.credential, s.created, nil
+}
+
 func (s *wecomAuthRepoStub) ResolvePrincipal(_ context.Context, userID, organizationID uuid.UUID) (*Principal, error) {
 	return &Principal{UserID: userID, Organization: Organization{ID: organizationID}}, nil
 }
@@ -63,7 +67,7 @@ func (s *wecomAuthRepoStub) WriteAudit(_ context.Context, event *AuditEvent) err
 }
 
 func TestAuthUsecaseStartWeComLogin(t *testing.T) {
-	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{enabled: true})
+	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{enabled: true}, &dingTalkProviderStub{})
 	enabled, authorizeURL, state, expiresAt, err := usecase.StartWeComLogin()
 	if err != nil {
 		t.Fatalf("StartWeComLogin() error = %v", err)
@@ -81,7 +85,7 @@ func TestAuthUsecaseWeComFirstLoginWaitsForAuthorization(t *testing.T) {
 		created:    true,
 	}
 	provider := &wecomProviderStub{enabled: true, identity: &WeComIdentity{UserID: "zhangsan", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider)
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{})
 
 	_, _, _, err := usecase.LoginWeCom(context.Background(), "code", "state", "state", "test")
 	if err != ErrWeComAuthorizationPending {
@@ -102,7 +106,7 @@ func TestAuthUsecaseWeComAuthorizedLoginCreatesSession(t *testing.T) {
 		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
 	}
 	provider := &wecomProviderStub{enabled: true, identity: &WeComIdentity{UserID: "zhangsan", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider)
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{})
 
 	_, _, _, err := usecase.LoginWeCom(context.Background(), "code", "state", "state", "test")
 	if err != nil {

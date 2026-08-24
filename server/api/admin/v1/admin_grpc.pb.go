@@ -26,6 +26,7 @@ const (
 	AdminService_CreateUser_FullMethodName            = "/admin.v1.AdminService/CreateUser"
 	AdminService_UpdateUser_FullMethodName            = "/admin.v1.AdminService/UpdateUser"
 	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
+	AdminService_AuthorizeDingTalkUser_FullMethodName = "/admin.v1.AdminService/AuthorizeDingTalkUser"
 	AdminService_ResetUserPassword_FullMethodName     = "/admin.v1.AdminService/ResetUserPassword"
 	AdminService_ListRoles_FullMethodName             = "/admin.v1.AdminService/ListRoles"
 	AdminService_ListOrganizationRoles_FullMethodName = "/admin.v1.AdminService/ListOrganizationRoles"
@@ -46,6 +47,7 @@ type AdminServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
+	AuthorizeDingTalkUser(ctx context.Context, in *AuthorizeDingTalkUserRequest, opts ...grpc.CallOption) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error)
@@ -133,6 +135,16 @@ func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *Authori
 	return out, nil
 }
 
+func (c *adminServiceClient) AuthorizeDingTalkUser(ctx context.Context, in *AuthorizeDingTalkUserRequest, opts ...grpc.CallOption) (*AuthorizeDingTalkUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthorizeDingTalkUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_AuthorizeDingTalkUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ResetUserPasswordResponse)
@@ -214,6 +226,7 @@ type AdminServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
+	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
@@ -251,6 +264,9 @@ func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRe
 }
 func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
+}
+func (UnimplementedAdminServiceServer) AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthorizeDingTalkUser not implemented")
 }
 func (UnimplementedAdminServiceServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetUserPassword not implemented")
@@ -420,6 +436,24 @@ func _AdminService_AuthorizeWeComUser_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_AuthorizeDingTalkUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeDingTalkUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AuthorizeDingTalkUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AuthorizeDingTalkUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AuthorizeDingTalkUser(ctx, req.(*AuthorizeDingTalkUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ResetUserPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResetUserPasswordRequest)
 	if err := dec(in); err != nil {
@@ -580,6 +614,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthorizeWeComUser",
 			Handler:    _AdminService_AuthorizeWeComUser_Handler,
+		},
+		{
+			MethodName: "AuthorizeDingTalkUser",
+			Handler:    _AdminService_AuthorizeDingTalkUser_Handler,
 		},
 		{
 			MethodName: "ResetUserPassword",

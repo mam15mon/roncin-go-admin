@@ -150,6 +150,10 @@ declare namespace API {
     orderOrganizationAccesses?: OrderOrganizationAccess[];
   };
 
+  type AdminServiceAuthorizeDingTalkUserParams = {
+    id: string;
+  };
+
   type AdminServiceAuthorizeWeComUserParams = {
     id: string;
   };
@@ -203,6 +207,8 @@ declare namespace API {
     updatedAt?: string;
     wecomUserid?: string;
     wecomName?: string;
+    dingtalkUnionid?: string;
+    dingtalkName?: string;
   };
 
   type Airline = {
@@ -252,6 +258,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderPersonnel;
+    traceId?: string;
+  };
+
+  type AuthorizeDingTalkUserRequest = {
+    id: string;
+    organizationId: string;
+    displayName: string;
+    email?: string;
+    roleIds: string[];
+  };
+
+  type AuthorizeDingTalkUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUser;
     traceId?: string;
   };
 
@@ -683,6 +705,24 @@ declare namespace API {
     roleScopes?: RoleScope[];
   };
 
+  type DingTalkLoginConfig = {
+    enabled?: boolean;
+    authorizeUrl?: string;
+  };
+
+  type DingTalkLoginRequest = {
+    authCode: string;
+    state: string;
+  };
+
+  type DingTalkLoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CurrentUser;
+    traceId?: string;
+  };
+
   type DisableExchangeRateSettingRequest = {
     id: string;
   };
@@ -731,6 +771,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BackgroundTask;
+    traceId?: string;
+  };
+
+  type GetDingTalkLoginConfigResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkLoginConfig;
     traceId?: string;
   };
 

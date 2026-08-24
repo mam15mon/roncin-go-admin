@@ -17,6 +17,14 @@ const wecomConfig = `security:
     redirect_uri: ${WECOM_REDIRECT_URI:}
 `
 
+const dingtalkConfig = `security:
+  dingtalk:
+    enabled: ${DINGTALK_ENABLED:false}
+    client_id: ${DINGTALK_CLIENT_ID:}
+    client_secret: ${DINGTALK_CLIENT_SECRET:}
+    redirect_uri: ${DINGTALK_REDIRECT_URI:}
+`
+
 func TestNewRuntimeConfigResolvesWeComEnvironment(t *testing.T) {
 	t.Setenv("WECOM_ENABLED", "true")
 	t.Setenv("WECOM_CORP_ID", "test-corp")
@@ -42,6 +50,21 @@ func TestNewRuntimeConfigUsesDisabledDefault(t *testing.T) {
 	}
 }
 
+func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
+	t.Setenv("DINGTALK_ENABLED", "true")
+	t.Setenv("DINGTALK_CLIENT_ID", "test-client")
+	t.Setenv("DINGTALK_CLIENT_SECRET", "test-secret")
+	t.Setenv("DINGTALK_REDIRECT_URI", "http://127.0.0.1:8001/user/login/dingtalk/callback")
+
+	dingtalk := loadDingTalkConfig(t)
+	if !dingtalk.Enabled {
+		t.Fatal("DINGTALK_ENABLED=true 未解析为启用状态")
+	}
+	if dingtalk.ClientId != "test-client" || dingtalk.ClientSecret != "test-secret" {
+		t.Fatal("钉钉环境变量未完整注入")
+	}
+}
+
 func loadWeComConfig(t *testing.T) *conf.Security_WeCom {
 	t.Helper()
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
@@ -60,6 +83,26 @@ func loadWeComConfig(t *testing.T) *conf.Security_WeCom {
 		t.Fatalf("解析测试配置失败: %v", err)
 	}
 	return bootstrap.Security.Wecom
+}
+
+func loadDingTalkConfig(t *testing.T) *conf.Security_DingTalk {
+	t.Helper()
+	configPath := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(configPath, []byte(dingtalkConfig), 0o600); err != nil {
+		t.Fatalf("写入测试配置失败: %v", err)
+	}
+
+	c := newRuntimeConfig(configPath)
+	t.Cleanup(func() { _ = c.Close() })
+	if err := c.Load(); err != nil {
+		t.Fatalf("加载测试配置失败: %v", err)
+	}
+
+	var bootstrap conf.Bootstrap
+	if err := c.Scan(&bootstrap); err != nil {
+		t.Fatalf("解析测试配置失败: %v", err)
+	}
+	return bootstrap.Security.Dingtalk
 }
 
 func unsetEnv(t *testing.T, key string) {

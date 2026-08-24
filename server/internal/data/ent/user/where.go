@@ -96,6 +96,16 @@ func WecomName(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldWecomName, v))
 }
 
+// DingtalkUnionid applies equality check predicate on the "dingtalk_unionid" field. It's identical to DingtalkUnionidEQ.
+func DingtalkUnionid(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkUnionid, v))
+}
+
+// DingtalkName applies equality check predicate on the "dingtalk_name" field. It's identical to DingtalkNameEQ.
+func DingtalkName(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
+}
+
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
 func Enabled(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEnabled, v))
@@ -609,6 +619,156 @@ func WecomNameEqualFold(v string) predicate.User {
 // WecomNameContainsFold applies the ContainsFold predicate on the "wecom_name" field.
 func WecomNameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldWecomName, v))
+}
+
+// DingtalkUnionidEQ applies the EQ predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidNEQ applies the NEQ predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidIn applies the In predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDingtalkUnionid, vs...))
+}
+
+// DingtalkUnionidNotIn applies the NotIn predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDingtalkUnionid, vs...))
+}
+
+// DingtalkUnionidGT applies the GT predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidGTE applies the GTE predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidLT applies the LT predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidLTE applies the LTE predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidContains applies the Contains predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidHasPrefix applies the HasPrefix predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidHasSuffix applies the HasSuffix predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidIsNil applies the IsNil predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDingtalkUnionid))
+}
+
+// DingtalkUnionidNotNil applies the NotNil predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDingtalkUnionid))
+}
+
+// DingtalkUnionidEqualFold applies the EqualFold predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldDingtalkUnionid, v))
+}
+
+// DingtalkUnionidContainsFold applies the ContainsFold predicate on the "dingtalk_unionid" field.
+func DingtalkUnionidContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldDingtalkUnionid, v))
+}
+
+// DingtalkNameEQ applies the EQ predicate on the "dingtalk_name" field.
+func DingtalkNameEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
+}
+
+// DingtalkNameNEQ applies the NEQ predicate on the "dingtalk_name" field.
+func DingtalkNameNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDingtalkName, v))
+}
+
+// DingtalkNameIn applies the In predicate on the "dingtalk_name" field.
+func DingtalkNameIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDingtalkName, vs...))
+}
+
+// DingtalkNameNotIn applies the NotIn predicate on the "dingtalk_name" field.
+func DingtalkNameNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDingtalkName, vs...))
+}
+
+// DingtalkNameGT applies the GT predicate on the "dingtalk_name" field.
+func DingtalkNameGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDingtalkName, v))
+}
+
+// DingtalkNameGTE applies the GTE predicate on the "dingtalk_name" field.
+func DingtalkNameGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDingtalkName, v))
+}
+
+// DingtalkNameLT applies the LT predicate on the "dingtalk_name" field.
+func DingtalkNameLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDingtalkName, v))
+}
+
+// DingtalkNameLTE applies the LTE predicate on the "dingtalk_name" field.
+func DingtalkNameLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDingtalkName, v))
+}
+
+// DingtalkNameContains applies the Contains predicate on the "dingtalk_name" field.
+func DingtalkNameContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldDingtalkName, v))
+}
+
+// DingtalkNameHasPrefix applies the HasPrefix predicate on the "dingtalk_name" field.
+func DingtalkNameHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldDingtalkName, v))
+}
+
+// DingtalkNameHasSuffix applies the HasSuffix predicate on the "dingtalk_name" field.
+func DingtalkNameHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldDingtalkName, v))
+}
+
+// DingtalkNameIsNil applies the IsNil predicate on the "dingtalk_name" field.
+func DingtalkNameIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDingtalkName))
+}
+
+// DingtalkNameNotNil applies the NotNil predicate on the "dingtalk_name" field.
+func DingtalkNameNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDingtalkName))
+}
+
+// DingtalkNameEqualFold applies the EqualFold predicate on the "dingtalk_name" field.
+func DingtalkNameEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldDingtalkName, v))
+}
+
+// DingtalkNameContainsFold applies the ContainsFold predicate on the "dingtalk_name" field.
+func DingtalkNameContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldDingtalkName, v))
 }
 
 // EnabledEQ applies the EQ predicate on the "enabled" field.

@@ -121,6 +121,34 @@ func (_c *UserCreate) SetNillableWecomName(v *string) *UserCreate {
 	return _c
 }
 
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (_c *UserCreate) SetDingtalkUnionid(v string) *UserCreate {
+	_c.mutation.SetDingtalkUnionid(v)
+	return _c
+}
+
+// SetNillableDingtalkUnionid sets the "dingtalk_unionid" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkUnionid(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkUnionid(*v)
+	}
+	return _c
+}
+
+// SetDingtalkName sets the "dingtalk_name" field.
+func (_c *UserCreate) SetDingtalkName(v string) *UserCreate {
+	_c.mutation.SetDingtalkName(v)
+	return _c
+}
+
+// SetNillableDingtalkName sets the "dingtalk_name" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkName(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkName(*v)
+	}
+	return _c
+}
+
 // SetEnabled sets the "enabled" field.
 func (_c *UserCreate) SetEnabled(v bool) *UserCreate {
 	_c.mutation.SetEnabled(v)
@@ -301,6 +329,16 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.DingtalkUnionid(); ok {
+		if err := user.DingtalkUnionidValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.DingtalkName(); ok {
+		if err := user.DingtalkNameValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "User.enabled"`)}
 	}
@@ -370,6 +408,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.WecomName(); ok {
 		_spec.SetField(user.FieldWecomName, field.TypeString, value)
 		_node.WecomName = &value
+	}
+	if value, ok := _c.mutation.DingtalkUnionid(); ok {
+		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
+		_node.DingtalkUnionid = &value
+	}
+	if value, ok := _c.mutation.DingtalkName(); ok {
+		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
+		_node.DingtalkName = &value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)

@@ -8,6 +8,7 @@ import (
 )
 
 var operationAccessRules = map[string]accessRule{
+	"/admin.v1.AdminService/AuthorizeDingTalkUser":                            {mode: accessModePermission, permission: "system.user.authorize_dingtalk", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/AuthorizeWeComUser":                               {mode: accessModePermission, permission: "system.user.authorize_wecom", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/CreateOrganization":                               {mode: accessModePermission, permission: "system.organization.create", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/CreateRole":                                       {mode: accessModePermission, permission: "system.role.create", scope: biz.DataScopeOrganization},
@@ -22,6 +23,8 @@ var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/UpdateOrganization":                               {mode: accessModePermission, permission: "system.organization.update", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/UpdateRole":                                       {mode: accessModePermission, permission: "system.role.update", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/UpdateUser":                                       {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeOrganization},
+	"/auth.v1.AuthService/DingTalkLogin":                                      {mode: accessModePublic},
+	"/auth.v1.AuthService/GetDingTalkLoginConfig":                             {mode: accessModePublic},
 	"/auth.v1.AuthService/GetWeComLoginConfig":                                {mode: accessModePublic},
 	"/auth.v1.AuthService/Login":                                              {mode: accessModePublic},
 	"/auth.v1.AuthService/Logout":                                             {mode: accessModeAuthenticated},

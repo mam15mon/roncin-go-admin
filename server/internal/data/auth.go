@@ -91,6 +91,62 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 	return credential, true, err
 }
 
+func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, bool, error) {
+	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.Name) == "" {
+		return nil, false, biz.ErrDingTalkLoginFailed
+	}
+	unionID := strings.TrimSpace(identity.UnionID)
+	dingtalkName := strings.TrimSpace(identity.Name)
+	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
+	if err == nil {
+		if account.DingtalkName == nil || *account.DingtalkName != dingtalkName {
+			account, err = account.Update().SetDingtalkName(dingtalkName).Save(ctx)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+		credential, credentialErr := r.credentialForAccount(ctx, account)
+		return credential, false, credentialErr
+	}
+	if !ent.IsNotFound(err) {
+		return nil, false, err
+	}
+
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	headquarters, err := tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, false, err
+	}
+	digest := sha256.Sum256([]byte(unionID))
+	username := "dingtalk_" + hex.EncodeToString(digest[:12])
+	create := tx.User.Create().SetUsername(username).SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkName(dingtalkName).SetEnabled(false)
+	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
+		create.SetEmail(strings.TrimSpace(*identity.Email))
+	}
+	account, err = create.Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, false, err
+	}
+	if _, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, false, err
+	}
+	account, err = r.data.db.User.Get(ctx, account.ID)
+	if err != nil {
+		return nil, false, err
+	}
+	credential, err := r.credentialForAccount(ctx, account)
+	return credential, true, err
+}
+
 func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) (*biz.Credential, error) {
 	memberships, err := r.data.db.Membership.Query().Where(membership.UserIDEQ(account.ID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).WithOrganization().All(ctx)
 	if err != nil {

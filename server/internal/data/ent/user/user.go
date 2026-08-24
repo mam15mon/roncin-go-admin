@@ -31,6 +31,10 @@ const (
 	FieldWecomUserid = "wecom_userid"
 	// FieldWecomName holds the string denoting the wecom_name field in the database.
 	FieldWecomName = "wecom_name"
+	// FieldDingtalkUnionid holds the string denoting the dingtalk_unionid field in the database.
+	FieldDingtalkUnionid = "dingtalk_unionid"
+	// FieldDingtalkName holds the string denoting the dingtalk_name field in the database.
+	FieldDingtalkName = "dingtalk_name"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
@@ -84,6 +88,8 @@ var Columns = []string{
 	FieldPasswordHash,
 	FieldWecomUserid,
 	FieldWecomName,
+	FieldDingtalkUnionid,
+	FieldDingtalkName,
 	FieldEnabled,
 }
 
@@ -114,6 +120,10 @@ var (
 	WecomUseridValidator func(string) error
 	// WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
 	WecomNameValidator func(string) error
+	// DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
+	DingtalkUnionidValidator func(string) error
+	// DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
+	DingtalkNameValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -166,6 +176,16 @@ func ByWecomUserid(opts ...sql.OrderTermOption) OrderOption {
 // ByWecomName orders the results by the wecom_name field.
 func ByWecomName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWecomName, opts...).ToFunc()
+}
+
+// ByDingtalkUnionid orders the results by the dingtalk_unionid field.
+func ByDingtalkUnionid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkUnionid, opts...).ToFunc()
+}
+
+// ByDingtalkName orders the results by the dingtalk_name field.
+func ByDingtalkName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkName, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

@@ -13,6 +13,11 @@ export default [
         path: '/user/login/wecom/callback',
         component: './user/login/wecom-callback',
       },
+      {
+        name: '钉钉登录',
+        path: '/user/login/dingtalk/callback',
+        component: './user/login/dingtalk-callback',
+      },
     ],
   },
   {

@@ -17,18 +17,24 @@ import (
 )
 
 var (
-	ErrInvalidCredentials        = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
-	ErrSessionRequired           = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
-	ErrSessionExpired            = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
-	ErrPermissionDenied          = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
-	ErrOrganizationForbidden     = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
-	ErrWeComDisabled             = errors.ServiceUnavailable("AUTH_WECOM_DISABLED", "企业微信登录未启用")
-	ErrWeComLoginFailed          = errors.Unauthorized("AUTH_WECOM_LOGIN_FAILED", "企业微信登录失败")
-	ErrWeComCodeInvalid          = errors.Unauthorized("AUTH_WECOM_CODE_INVALID", "企业微信登录凭证已失效，请重新扫码")
-	ErrWeComTrustedIPRequired    = errors.Unauthorized("AUTH_WECOM_TRUSTED_IP_REQUIRED", "企业微信拒绝当前服务器 IP，请在应用管理中配置企业可信 IP")
-	ErrWeComPermissionDenied     = errors.Unauthorized("AUTH_WECOM_PERMISSION_DENIED", "企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限")
-	ErrWeComStateInvalid         = errors.Unauthorized("AUTH_WECOM_STATE_INVALID", "企业微信登录状态已失效，请重新扫码")
-	ErrWeComAuthorizationPending = errors.Forbidden("AUTH_WECOM_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
+	ErrInvalidCredentials           = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
+	ErrSessionRequired              = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
+	ErrSessionExpired               = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
+	ErrPermissionDenied             = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
+	ErrOrganizationForbidden        = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
+	ErrWeComDisabled                = errors.ServiceUnavailable("AUTH_WECOM_DISABLED", "企业微信登录未启用")
+	ErrWeComLoginFailed             = errors.Unauthorized("AUTH_WECOM_LOGIN_FAILED", "企业微信登录失败")
+	ErrWeComCodeInvalid             = errors.Unauthorized("AUTH_WECOM_CODE_INVALID", "企业微信登录凭证已失效，请重新扫码")
+	ErrWeComTrustedIPRequired       = errors.Unauthorized("AUTH_WECOM_TRUSTED_IP_REQUIRED", "企业微信拒绝当前服务器 IP，请在应用管理中配置企业可信 IP")
+	ErrWeComPermissionDenied        = errors.Unauthorized("AUTH_WECOM_PERMISSION_DENIED", "企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限")
+	ErrWeComStateInvalid            = errors.Unauthorized("AUTH_WECOM_STATE_INVALID", "企业微信登录状态已失效，请重新扫码")
+	ErrWeComAuthorizationPending    = errors.Forbidden("AUTH_WECOM_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
+	ErrDingTalkDisabled             = errors.ServiceUnavailable("AUTH_DINGTALK_DISABLED", "钉钉登录未启用")
+	ErrDingTalkLoginFailed          = errors.Unauthorized("AUTH_DINGTALK_LOGIN_FAILED", "钉钉登录失败")
+	ErrDingTalkCodeInvalid          = errors.Unauthorized("AUTH_DINGTALK_CODE_INVALID", "钉钉登录凭证已失效，请重新扫码")
+	ErrDingTalkPermissionDenied     = errors.Unauthorized("AUTH_DINGTALK_PERMISSION_DENIED", "钉钉应用无权读取成员信息，请检查应用权限")
+	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉登录状态已失效，请重新扫码")
+	ErrDingTalkAuthorizationPending = errors.Forbidden("AUTH_DINGTALK_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 )
 
 type DataScope string
@@ -72,6 +78,18 @@ type WeComIdentityProvider interface {
 	Enabled() bool
 	AuthorizeURL(string) (string, error)
 	ResolveIdentity(context.Context, string) (*WeComIdentity, error)
+}
+
+type DingTalkIdentity struct {
+	UnionID string
+	Name    string
+	Email   *string
+}
+
+type DingTalkIdentityProvider interface {
+	Enabled() bool
+	AuthorizeURL(string) (string, error)
+	ResolveIdentity(context.Context, string) (*DingTalkIdentity, error)
 }
 
 type Principal struct {
@@ -195,6 +213,7 @@ type AuditLog struct {
 type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error)
+	FindOrCreateDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
@@ -226,13 +245,14 @@ func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
 }
 
 type AuthUsecase struct {
-	repo   AuthRepo
-	policy *SessionPolicy
-	wecom  WeComIdentityProvider
+	repo     AuthRepo
+	policy   *SessionPolicy
+	wecom    WeComIdentityProvider
+	dingtalk DingTalkIdentityProvider
 }
 
-func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider) *AuthUsecase {
-	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom}
+func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider, dingtalk DingTalkIdentityProvider) *AuthUsecase {
+	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom, dingtalk: dingtalk}
 }
 
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent string) (string, *Principal, time.Time, error) {
@@ -304,6 +324,50 @@ func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedStat
 		return "", nil, time.Time{}, ErrWeComAuthorizationPending
 	}
 	return uc.createSession(ctx, credential, userAgent, "auth.wecom.login")
+}
+
+func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, error) {
+	if !uc.dingtalk.Enabled() {
+		return false, "", "", time.Time{}, nil
+	}
+	state, _, err := newSessionToken()
+	if err != nil {
+		return false, "", "", time.Time{}, err
+	}
+	authorizeURL, err := uc.dingtalk.AuthorizeURL(state)
+	if err != nil {
+		return false, "", "", time.Time{}, err
+	}
+	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
+}
+
+func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expectedState, userAgent string) (string, *Principal, time.Time, error) {
+	if !uc.dingtalk.Enabled() {
+		return "", nil, time.Time{}, ErrDingTalkDisabled
+	}
+	authCode = strings.TrimSpace(authCode)
+	state = strings.TrimSpace(state)
+	expectedState = strings.TrimSpace(expectedState)
+	if authCode == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
+		return "", nil, time.Time{}, ErrDingTalkStateInvalid
+	}
+	identity, err := uc.dingtalk.ResolveIdentity(ctx, authCode)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	credential, created, err := uc.repo.FindOrCreateDingTalkCredential(ctx, identity)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	if created {
+		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.dingtalk.register", Result: "success"}); err != nil {
+			return "", nil, time.Time{}, err
+		}
+	}
+	if !credential.Enabled {
+		return "", nil, time.Time{}, ErrDingTalkAuthorizationPending
+	}
+	return uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login")
 }
 
 func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction string) (string, *Principal, time.Time, error) {

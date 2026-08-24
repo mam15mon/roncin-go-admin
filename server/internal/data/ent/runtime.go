@@ -3507,8 +3507,16 @@ func init() {
 	userDescWecomName := userFields[5].Descriptor()
 	// user.WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
 	user.WecomNameValidator = userDescWecomName.Validators[0].(func(string) error)
+	// userDescDingtalkUnionid is the schema descriptor for dingtalk_unionid field.
+	userDescDingtalkUnionid := userFields[6].Descriptor()
+	// user.DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
+	user.DingtalkUnionidValidator = userDescDingtalkUnionid.Validators[0].(func(string) error)
+	// userDescDingtalkName is the schema descriptor for dingtalk_name field.
+	userDescDingtalkName := userFields[7].Descriptor()
+	// user.DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
+	user.DingtalkNameValidator = userDescDingtalkName.Validators[0].(func(string) error)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[6].Descriptor()
+	userDescEnabled := userFields[8].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescID is the schema descriptor for id field.

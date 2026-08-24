@@ -31,6 +31,11 @@ security:
     agent_id: ${WECOM_AGENT_ID:0}
     secret: ${WECOM_SECRET:}
     redirect_uri: ${WECOM_REDIRECT_URI:}
+  dingtalk:
+    enabled: ${DINGTALK_ENABLED:false}
+    client_id: ${DINGTALK_CLIENT_ID:}
+    client_secret: ${DINGTALK_CLIENT_SECRET:}
+    redirect_uri: ${DINGTALK_REDIRECT_URI:}
 telemetry:
   enabled: ${OTEL_ENABLED:false}
   endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:127.0.0.1:4317}

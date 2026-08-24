@@ -50,17 +50,19 @@ type AdminOrganization struct {
 }
 
 type AdminUser struct {
-	ID          uuid.UUID
-	Username    string
-	DisplayName string
-	Email       *string
-	WeComUserID *string
-	WeComName   *string
-	Enabled     bool
-	RoleIDs     []uuid.UUID
-	RoleCodes   []string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID              uuid.UUID
+	Username        string
+	DisplayName     string
+	Email           *string
+	WeComUserID     *string
+	WeComName       *string
+	DingTalkUnionID *string
+	DingTalkName    *string
+	Enabled         bool
+	RoleIDs         []uuid.UUID
+	RoleCodes       []string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type AdminRole struct {
@@ -128,6 +130,7 @@ type AdminRepo interface {
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
@@ -266,6 +269,21 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 		return nil, err
 	}
 	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.wecom.authorize", authorized.Username)
+}
+
+func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || len(roleIDs) == 0 {
+		return nil, ErrAdminInvalidArgument
+	}
+	normalized, err := normalizeUser(input)
+	if err != nil {
+		return nil, err
+	}
+	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.dingtalk.authorize", authorized.Username)
 }
 
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string) error {
