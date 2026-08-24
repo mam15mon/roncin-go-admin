@@ -37,8 +37,8 @@ func (s *adminRepoStub) CreateOrganization(_ context.Context, input *AdminOrgani
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, _ uuid.UUID, _ string, _ bool) (*AdminOrganization, error) {
-	return &AdminOrganization{}, nil
+func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, input *AdminOrganization) (*AdminOrganization, error) {
+	return input, nil
 }
 
 func (s *adminRepoStub) ListUsers(_ context.Context, _ uuid.UUID, options AdminUserListOptions) (*AdminUserList, error) {
@@ -139,10 +139,10 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 
 func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	parentID := uuid.New()
-	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindHeadquarters}}
+	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindHeadquarters, BaseCurrency: "CNY"}}
 	usecase := NewAdminUsecase(repo, &auditRepoStub{})
 
-	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, ParentID: &parentID})
+	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, ParentID: &parentID, BaseCurrency: "usd"})
 	if err != nil {
 		t.Fatalf("CreateOrganization() error = %v", err)
 	}
@@ -170,7 +170,7 @@ func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 
 func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 	parentID := uuid.New()
-	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindCompany}}
+	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindCompany, BaseCurrency: "CNY"}}
 	usecase := NewAdminUsecase(repo, &auditRepoStub{})
 
 	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{

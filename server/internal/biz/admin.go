@@ -17,6 +17,7 @@ var (
 	ErrAdminOrganizationCodeExists     = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
 	ErrAdminOrganizationParentRequired = errors.BadRequest("ADMIN_ORGANIZATION_PARENT_REQUIRED", "新建组织必须指定上级组织")
 	ErrAdminOrganizationHierarchy      = errors.BadRequest("ADMIN_ORGANIZATION_HIERARCHY_INVALID", "组织层级不合法")
+	ErrAdminOrganizationCurrency       = errors.BadRequest("ADMIN_ORGANIZATION_CURRENCY_INVALID", "组织本币必须是启用的 ISO 币种")
 	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
 	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
@@ -39,12 +40,13 @@ func (kind OrganizationKind) Valid() bool {
 }
 
 type AdminOrganization struct {
-	ID       uuid.UUID
-	Code     string
-	Name     string
-	Kind     OrganizationKind
-	ParentID *uuid.UUID
-	Enabled  bool
+	ID           uuid.UUID
+	Code         string
+	Name         string
+	Kind         OrganizationKind
+	ParentID     *uuid.UUID
+	Enabled      bool
+	BaseCurrency string
 }
 
 type AdminUser struct {
@@ -121,7 +123,7 @@ type AdminRepo interface {
 	ListOrganizations(context.Context) ([]*AdminOrganization, error)
 	GetOrganization(context.Context, uuid.UUID) (*AdminOrganization, error)
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
-	UpdateOrganization(context.Context, uuid.UUID, uuid.UUID, string, bool) (*AdminOrganization, error)
+	UpdateOrganization(context.Context, uuid.UUID, *AdminOrganization) (*AdminOrganization, error)
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
@@ -171,6 +173,16 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 		parent.Kind == OrganizationKindTeam {
 		return nil, ErrAdminOrganizationHierarchy
 	}
+	if normalized.Kind == OrganizationKindCompany {
+		if !validOrganizationCurrency(normalized.BaseCurrency) {
+			return nil, ErrAdminOrganizationCurrency
+		}
+	} else {
+		if normalized.BaseCurrency != "" {
+			return nil, ErrAdminOrganizationCurrency
+		}
+		normalized.BaseCurrency = parent.BaseCurrency
+	}
 	created, err := uc.repo.CreateOrganization(ctx, normalized)
 	if err != nil {
 		return nil, err
@@ -178,12 +190,24 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 	return created, uc.writeAudit(ctx, userID, nil, "admin.organization.create", created.ID.String())
 }
 
-func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool) (*AdminOrganization, error) {
+func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool, baseCurrency string) (*AdminOrganization, error) {
 	name = strings.TrimSpace(name)
 	if organizationID == uuid.Nil || id == uuid.Nil || name == "" {
 		return nil, ErrAdminInvalidArgument
 	}
-	updated, err := uc.repo.UpdateOrganization(ctx, organizationID, id, name, enabled)
+	current, err := uc.repo.GetOrganization(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	baseCurrency = strings.ToUpper(strings.TrimSpace(baseCurrency))
+	if current.Kind == OrganizationKindHeadquarters || current.Kind == OrganizationKindCompany {
+		if !validOrganizationCurrency(baseCurrency) {
+			return nil, ErrAdminOrganizationCurrency
+		}
+	} else if baseCurrency != "" {
+		return nil, ErrAdminOrganizationCurrency
+	}
+	updated, err := uc.repo.UpdateOrganization(ctx, organizationID, &AdminOrganization{ID: id, Name: name, Enabled: enabled, Kind: current.Kind, BaseCurrency: baseCurrency})
 	if err != nil {
 		return nil, err
 	}
@@ -341,10 +365,15 @@ func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error)
 	output := *input
 	output.Code = strings.ToUpper(strings.TrimSpace(output.Code))
 	output.Name = strings.TrimSpace(output.Name)
+	output.BaseCurrency = strings.ToUpper(strings.TrimSpace(output.BaseCurrency))
 	if output.Code == "" || output.Name == "" || !output.Kind.Valid() || output.Kind == OrganizationKindHeadquarters {
 		return nil, ErrAdminInvalidArgument
 	}
 	return &output, nil
+}
+
+func validOrganizationCurrency(value string) bool {
+	return currencyPattern.MatchString(value)
 }
 
 func normalizeUser(input *AdminUser) (*AdminUser, error) {
