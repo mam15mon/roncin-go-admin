@@ -100,7 +100,7 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 	if err != nil {
 		return fmt.Errorf("begin bootstrap transaction: %w", err)
 	}
-	organization, err := tx.Organization.Create().SetCode(config.organizationCode).SetName(config.organizationName).SetKind("headquarters").Save(ctx)
+	organization, err := tx.Organization.Create().SetCode(config.organizationCode).SetName(config.organizationName).SetKind("headquarters").SetBaseCurrency("CNY").Save(ctx)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("create organization: %w", err)

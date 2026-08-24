@@ -30,6 +30,8 @@ const (
 	FieldParentID = "parent_id"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
+	FieldBaseCurrency = "base_currency"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -200,6 +202,7 @@ var Columns = []string{
 	FieldKind,
 	FieldParentID,
 	FieldEnabled,
+	FieldBaseCurrency,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -225,6 +228,8 @@ var (
 	NameValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	BaseCurrencyValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -295,6 +300,11 @@ func ByParentID(opts ...sql.OrderTermOption) OrderOption {
 // ByEnabled orders the results by the enabled field.
 func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
+// ByBaseCurrency orders the results by the base_currency field.
+func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
 }
 
 // ByParentField orders the results by parent field.

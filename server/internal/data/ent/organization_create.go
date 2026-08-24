@@ -111,6 +111,20 @@ func (_c *OrganizationCreate) SetNillableEnabled(v *bool) *OrganizationCreate {
 	return _c
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_c *OrganizationCreate) SetBaseCurrency(v string) *OrganizationCreate {
+	_c.mutation.SetBaseCurrency(v)
+	return _c
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_c *OrganizationCreate) SetNillableBaseCurrency(v *string) *OrganizationCreate {
+	if v != nil {
+		_c.SetBaseCurrency(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrganizationCreate) SetID(v uuid.UUID) *OrganizationCreate {
 	_c.mutation.SetID(v)
@@ -473,6 +487,11 @@ func (_c *OrganizationCreate) check() error {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Organization.enabled"`)}
 	}
+	if v, ok := _c.mutation.BaseCurrency(); ok {
+		if err := organization.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -531,6 +550,10 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.BaseCurrency(); ok {
+		_spec.SetField(organization.FieldBaseCurrency, field.TypeString, value)
+		_node.BaseCurrency = &value
 	}
 	if nodes := _c.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

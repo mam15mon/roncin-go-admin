@@ -28419,6 +28419,7 @@ type OrganizationMutation struct {
 	name                                    *string
 	kind                                    *organization.Kind
 	enabled                                 *bool
+	base_currency                           *string
 	clearedFields                           map[string]struct{}
 	parent                                  *uuid.UUID
 	clearedparent                           bool
@@ -28845,6 +28846,55 @@ func (m *OrganizationMutation) OldEnabled(ctx context.Context) (v bool, err erro
 // ResetEnabled resets all changes to the "enabled" field.
 func (m *OrganizationMutation) ResetEnabled() {
 	m.enabled = nil
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (m *OrganizationMutation) SetBaseCurrency(s string) {
+	m.base_currency = &s
+}
+
+// BaseCurrency returns the value of the "base_currency" field in the mutation.
+func (m *OrganizationMutation) BaseCurrency() (r string, exists bool) {
+	v := m.base_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrency returns the old "base_currency" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldBaseCurrency(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrency: %w", err)
+	}
+	return oldValue.BaseCurrency, nil
+}
+
+// ClearBaseCurrency clears the value of the "base_currency" field.
+func (m *OrganizationMutation) ClearBaseCurrency() {
+	m.base_currency = nil
+	m.clearedFields[organization.FieldBaseCurrency] = struct{}{}
+}
+
+// BaseCurrencyCleared returns if the "base_currency" field was cleared in this mutation.
+func (m *OrganizationMutation) BaseCurrencyCleared() bool {
+	_, ok := m.clearedFields[organization.FieldBaseCurrency]
+	return ok
+}
+
+// ResetBaseCurrency resets all changes to the "base_currency" field.
+func (m *OrganizationMutation) ResetBaseCurrency() {
+	m.base_currency = nil
+	delete(m.clearedFields, organization.FieldBaseCurrency)
 }
 
 // ClearParent clears the "parent" edge to the Organization entity.
@@ -29826,7 +29876,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, organization.FieldCreatedAt)
 	}
@@ -29847,6 +29897,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, organization.FieldEnabled)
+	}
+	if m.base_currency != nil {
+		fields = append(fields, organization.FieldBaseCurrency)
 	}
 	return fields
 }
@@ -29870,6 +29923,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.ParentID()
 	case organization.FieldEnabled:
 		return m.Enabled()
+	case organization.FieldBaseCurrency:
+		return m.BaseCurrency()
 	}
 	return nil, false
 }
@@ -29893,6 +29948,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldParentID(ctx)
 	case organization.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case organization.FieldBaseCurrency:
+		return m.OldBaseCurrency(ctx)
 	}
 	return nil, fmt.Errorf("unknown Organization field %s", name)
 }
@@ -29951,6 +30008,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnabled(v)
 		return nil
+	case organization.FieldBaseCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrency(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Organization field %s", name)
 }
@@ -29984,6 +30048,9 @@ func (m *OrganizationMutation) ClearedFields() []string {
 	if m.FieldCleared(organization.FieldParentID) {
 		fields = append(fields, organization.FieldParentID)
 	}
+	if m.FieldCleared(organization.FieldBaseCurrency) {
+		fields = append(fields, organization.FieldBaseCurrency)
+	}
 	return fields
 }
 
@@ -30000,6 +30067,9 @@ func (m *OrganizationMutation) ClearField(name string) error {
 	switch name {
 	case organization.FieldParentID:
 		m.ClearParentID()
+		return nil
+	case organization.FieldBaseCurrency:
+		m.ClearBaseCurrency()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization nullable field %s", name)
@@ -30029,6 +30099,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case organization.FieldBaseCurrency:
+		m.ResetBaseCurrency()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization field %s", name)

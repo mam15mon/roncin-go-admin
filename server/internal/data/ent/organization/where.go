@@ -86,6 +86,11 @@ func Enabled(v bool) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldEnabled, v))
 }
 
+// BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
+func BaseCurrency(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEQ(FieldBaseCurrency, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldCreatedAt, v))
@@ -354,6 +359,81 @@ func EnabledEQ(v bool) predicate.Organization {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.Organization {
 	return predicate.Organization(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// BaseCurrencyEQ applies the EQ predicate on the "base_currency" field.
+func BaseCurrencyEQ(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEQ(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyNEQ applies the NEQ predicate on the "base_currency" field.
+func BaseCurrencyNEQ(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldNEQ(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyIn applies the In predicate on the "base_currency" field.
+func BaseCurrencyIn(vs ...string) predicate.Organization {
+	return predicate.Organization(sql.FieldIn(FieldBaseCurrency, vs...))
+}
+
+// BaseCurrencyNotIn applies the NotIn predicate on the "base_currency" field.
+func BaseCurrencyNotIn(vs ...string) predicate.Organization {
+	return predicate.Organization(sql.FieldNotIn(FieldBaseCurrency, vs...))
+}
+
+// BaseCurrencyGT applies the GT predicate on the "base_currency" field.
+func BaseCurrencyGT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGT(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyGTE applies the GTE predicate on the "base_currency" field.
+func BaseCurrencyGTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGTE(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyLT applies the LT predicate on the "base_currency" field.
+func BaseCurrencyLT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLT(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyLTE applies the LTE predicate on the "base_currency" field.
+func BaseCurrencyLTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLTE(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyContains applies the Contains predicate on the "base_currency" field.
+func BaseCurrencyContains(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContains(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyHasPrefix applies the HasPrefix predicate on the "base_currency" field.
+func BaseCurrencyHasPrefix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasPrefix(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyHasSuffix applies the HasSuffix predicate on the "base_currency" field.
+func BaseCurrencyHasSuffix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasSuffix(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyIsNil applies the IsNil predicate on the "base_currency" field.
+func BaseCurrencyIsNil() predicate.Organization {
+	return predicate.Organization(sql.FieldIsNull(FieldBaseCurrency))
+}
+
+// BaseCurrencyNotNil applies the NotNil predicate on the "base_currency" field.
+func BaseCurrencyNotNil() predicate.Organization {
+	return predicate.Organization(sql.FieldNotNull(FieldBaseCurrency))
+}
+
+// BaseCurrencyEqualFold applies the EqualFold predicate on the "base_currency" field.
+func BaseCurrencyEqualFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEqualFold(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyContainsFold applies the ContainsFold predicate on the "base_currency" field.
+func BaseCurrencyContainsFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContainsFold(FieldBaseCurrency, v))
 }
 
 // HasParent applies the HasEdge predicate on the "parent" edge.

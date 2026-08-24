@@ -206,6 +206,7 @@ type ListExchangeRateSettingsResponse struct {
 	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data          []*ExchangeRateSetting `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	BaseCurrency  string                 `protobuf:"bytes,6,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -271,6 +272,13 @@ func (x *ListExchangeRateSettingsResponse) GetData() []*ExchangeRateSetting {
 func (x *ListExchangeRateSettingsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListExchangeRateSettingsResponse) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
 	}
 	return ""
 }
@@ -772,13 +780,14 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAtB\x0f\n" +
 	"\r_effective_to\"!\n" +
-	"\x1fListExchangeRateSettingsRequest\"\xba\x01\n" +
+	"\x1fListExchangeRateSettingsRequest\"\xdf\x01\n" +
 	" ListExchangeRateSettingsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x03(\v2\x1f.finance.v1.ExchangeRateSettingR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf9\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12#\n" +
+	"\rbase_currency\x18\x06 \x01(\tR\fbaseCurrency\"\xf9\x02\n" +
 	" CreateExchangeRateSettingRequest\x12 \n" +
 	"\trate_type\x18\x01 \x01(\tB\x03\xe0A\x02R\brateType\x12(\n" +
 	"\rfrom_currency\x18\x02 \x01(\tB\x03\xe0A\x02R\ffromCurrency\x12$\n" +

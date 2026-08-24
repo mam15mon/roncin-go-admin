@@ -55,6 +55,7 @@ message ListExchangeRateSettingsResponse {
   string message = 3;
   repeated ExchangeRateSetting data = 4;
   string trace_id = 5;
+  string base_currency = 6;
 }
 
 message CreateExchangeRateSettingRequest {

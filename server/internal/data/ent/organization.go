@@ -32,6 +32,8 @@ type Organization struct {
 	ParentID *uuid.UUID `json:"parent_id,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// BaseCurrency holds the value of the "base_currency" field.
+	BaseCurrency *string `json:"base_currency,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrganizationQuery when eager-loading is set.
 	Edges        OrganizationEdges `json:"edges"`
@@ -254,7 +256,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case organization.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case organization.FieldCode, organization.FieldName, organization.FieldKind:
+		case organization.FieldCode, organization.FieldName, organization.FieldKind, organization.FieldBaseCurrency:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreatedAt, organization.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -323,6 +325,13 @@ func (_m *Organization) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enabled", values[i])
 			} else if value.Valid {
 				_m.Enabled = value.Bool
+			}
+		case organization.FieldBaseCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
+			} else if value.Valid {
+				_m.BaseCurrency = new(string)
+				*_m.BaseCurrency = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -472,6 +481,11 @@ func (_m *Organization) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	if v := _m.BaseCurrency; v != nil {
+		builder.WriteString("base_currency=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

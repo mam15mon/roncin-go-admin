@@ -112,6 +112,7 @@ message ListFeeOptionsResponse {
   repeated OrderFeeSettlementPartyOption settlement_parties = 4;
   repeated OrderFeeCurrencyOption currencies = 5;
   string trace_id = 6;
+  string base_currency = 7;
 }
 
 message AddFeeRequest {

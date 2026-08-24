@@ -1289,6 +1289,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 200},
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"headquarters", "company", "department", "team"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "base_currency", Type: field.TypeString, Nullable: true, Size: 3},
 		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrganizationsTable holds the schema information for the "organizations" table.
@@ -1299,7 +1300,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "organizations_organizations_children",
-				Columns:    []*schema.Column{OrganizationsColumns[7]},
+				Columns:    []*schema.Column{OrganizationsColumns[8]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1318,7 +1319,7 @@ var (
 			{
 				Name:    "organization_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrganizationsColumns[7]},
+				Columns: []*schema.Column{OrganizationsColumns[8]},
 			},
 		},
 	}

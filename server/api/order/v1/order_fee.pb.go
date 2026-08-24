@@ -486,6 +486,7 @@ type ListFeeOptionsResponse struct {
 	SettlementParties []*OrderFeeSettlementPartyOption `protobuf:"bytes,4,rep,name=settlement_parties,json=settlementParties,proto3" json:"settlement_parties,omitempty"`
 	Currencies        []*OrderFeeCurrencyOption        `protobuf:"bytes,5,rep,name=currencies,proto3" json:"currencies,omitempty"`
 	TraceId           string                           `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	BaseCurrency      string                           `protobuf:"bytes,7,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -558,6 +559,13 @@ func (x *ListFeeOptionsResponse) GetCurrencies() []*OrderFeeCurrencyOption {
 func (x *ListFeeOptionsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListFeeOptionsResponse) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
 	}
 	return ""
 }
@@ -1378,7 +1386,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
-	"minor_unit\x18\x03 \x01(\x05R\tminorUnit\"\x95\x02\n" +
+	"minor_unit\x18\x03 \x01(\x05R\tminorUnit\"\xba\x02\n" +
 	"\x16ListFeeOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -1387,7 +1395,8 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\n" +
 	"currencies\x18\x05 \x03(\v2 .order.v1.OrderFeeCurrencyOptionR\n" +
 	"currencies\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xc2\x03\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12#\n" +
+	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\"\xc2\x03\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12\x1e\n" +

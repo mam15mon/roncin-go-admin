@@ -2835,6 +2835,8 @@ components:
                 kind:
                     type: integer
                     format: enum
+                baseCurrency:
+                    type: string
         admin.v1.AdminPermission:
             type: object
             properties:
@@ -2954,6 +2956,8 @@ components:
                 kind:
                     type: integer
                     format: enum
+                baseCurrency:
+                    type: string
         admin.v1.CreateOrganizationResponse:
             type: object
             properties:
@@ -3194,6 +3198,8 @@ components:
                     type: string
                 enabled:
                     type: boolean
+                baseCurrency:
+                    type: string
         admin.v1.UpdateOrganizationResponse:
             type: object
             properties:
@@ -3542,6 +3548,8 @@ components:
                     items:
                         $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
                 traceId:
+                    type: string
+                baseCurrency:
                     type: string
         finance.v1.UpdateExchangeRateSettingRequest:
             required:
@@ -5400,6 +5408,8 @@ components:
                     items:
                         $ref: '#/components/schemas/order.v1.OrderFeeCurrencyOption'
                 traceId:
+                    type: string
+                baseCurrency:
                     type: string
         order.v1.ListFeesResponse:
             type: object

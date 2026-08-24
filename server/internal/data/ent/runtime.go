@@ -2011,6 +2011,24 @@ func init() {
 	organizationDescEnabled := organizationFields[4].Descriptor()
 	// organization.DefaultEnabled holds the default value on creation for the enabled field.
 	organization.DefaultEnabled = organizationDescEnabled.Default.(bool)
+	// organizationDescBaseCurrency is the schema descriptor for base_currency field.
+	organizationDescBaseCurrency := organizationFields[5].Descriptor()
+	// organization.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	organization.BaseCurrencyValidator = func() func(string) error {
+		validators := organizationDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// organizationDescID is the schema descriptor for id field.
 	organizationDescID := organizationMixinFields0[0].Descriptor()
 	// organization.DefaultID holds the default value on creation for the id field.

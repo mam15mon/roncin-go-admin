@@ -99,6 +99,26 @@ func (_u *OrganizationUpdate) SetNillableEnabled(v *bool) *OrganizationUpdate {
 	return _u
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_u *OrganizationUpdate) SetBaseCurrency(v string) *OrganizationUpdate {
+	_u.mutation.SetBaseCurrency(v)
+	return _u
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_u *OrganizationUpdate) SetNillableBaseCurrency(v *string) *OrganizationUpdate {
+	if v != nil {
+		_u.SetBaseCurrency(*v)
+	}
+	return _u
+}
+
+// ClearBaseCurrency clears the value of the "base_currency" field.
+func (_u *OrganizationUpdate) ClearBaseCurrency() *OrganizationUpdate {
+	_u.mutation.ClearBaseCurrency()
+	return _u
+}
+
 // SetParent sets the "parent" edge to the Organization entity.
 func (_u *OrganizationUpdate) SetParent(v *Organization) *OrganizationUpdate {
 	return _u.SetParentID(v.ID)
@@ -770,6 +790,11 @@ func (_u *OrganizationUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BaseCurrency(); ok {
+		if err := organization.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -793,6 +818,12 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.BaseCurrency(); ok {
+		_spec.SetField(organization.FieldBaseCurrency, field.TypeString, value)
+	}
+	if _u.mutation.BaseCurrencyCleared() {
+		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
 	}
 	if _u.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1662,6 +1693,26 @@ func (_u *OrganizationUpdateOne) SetNillableEnabled(v *bool) *OrganizationUpdate
 	return _u
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_u *OrganizationUpdateOne) SetBaseCurrency(v string) *OrganizationUpdateOne {
+	_u.mutation.SetBaseCurrency(v)
+	return _u
+}
+
+// SetNillableBaseCurrency sets the "base_currency" field if the given value is not nil.
+func (_u *OrganizationUpdateOne) SetNillableBaseCurrency(v *string) *OrganizationUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrency(*v)
+	}
+	return _u
+}
+
+// ClearBaseCurrency clears the value of the "base_currency" field.
+func (_u *OrganizationUpdateOne) ClearBaseCurrency() *OrganizationUpdateOne {
+	_u.mutation.ClearBaseCurrency()
+	return _u
+}
+
 // SetParent sets the "parent" edge to the Organization entity.
 func (_u *OrganizationUpdateOne) SetParent(v *Organization) *OrganizationUpdateOne {
 	return _u.SetParentID(v.ID)
@@ -2346,6 +2397,11 @@ func (_u *OrganizationUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.BaseCurrency(); ok {
+		if err := organization.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2386,6 +2442,12 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.BaseCurrency(); ok {
+		_spec.SetField(organization.FieldBaseCurrency, field.TypeString, value)
+	}
+	if _u.mutation.BaseCurrencyCleared() {
+		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
 	}
 	if _u.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

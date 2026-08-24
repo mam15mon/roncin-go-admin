@@ -20,6 +20,7 @@ func (Organization) Fields() []ent.Field {
 		field.Enum("kind").Values("headquarters", "company", "department", "team").Immutable(),
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
+		field.String("base_currency").Optional().Nillable().MinLen(3).MaxLen(3),
 	}
 }
 
