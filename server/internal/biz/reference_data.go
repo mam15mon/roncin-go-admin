@@ -64,10 +64,10 @@ func (uc *ReferenceDataUsecase) ListCurrencies(ctx context.Context) ([]*Currency
 
 func (uc *ReferenceDataUsecase) ListAdministrativeRegions(ctx context.Context, query AdministrativeRegionQuery) ([]*AdministrativeRegion, error) {
 	query.Keyword = strings.TrimSpace(query.Keyword)
-	if query.Level < 1 || query.Level > 3 {
+	if query.Level < 0 || query.Level > 3 {
 		return nil, ErrReferenceDataInvalidArgument
 	}
-	if query.Level == 1 {
+	if query.Level <= 1 {
 		if query.ParentCode != nil {
 			return nil, ErrReferenceDataInvalidArgument
 		}

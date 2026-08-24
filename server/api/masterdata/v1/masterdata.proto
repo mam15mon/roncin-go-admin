@@ -698,7 +698,7 @@ message ListCurrenciesResponse {
 }
 
 message ListAdministrativeRegionsRequest {
-  int32 level = 1 [(google.api.field_behavior) = REQUIRED];
+  optional int32 level = 1;
   optional string parent_code = 2;
   string keyword = 3;
 }

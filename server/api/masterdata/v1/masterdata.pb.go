@@ -4441,7 +4441,7 @@ func (x *ListCurrenciesResponse) GetTraceId() string {
 
 type ListAdministrativeRegionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Level         int32                  `protobuf:"varint,1,opt,name=level,proto3" json:"level,omitempty"`
+	Level         *int32                 `protobuf:"varint,1,opt,name=level,proto3,oneof" json:"level,omitempty"`
 	ParentCode    *string                `protobuf:"bytes,2,opt,name=parent_code,json=parentCode,proto3,oneof" json:"parent_code,omitempty"`
 	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -4479,8 +4479,8 @@ func (*ListAdministrativeRegionsRequest) Descriptor() ([]byte, []int) {
 }
 
 func (x *ListAdministrativeRegionsRequest) GetLevel() int32 {
-	if x != nil {
-		return x.Level
+	if x != nil && x.Level != nil {
+		return *x.Level
 	}
 	return 0
 }
@@ -7440,12 +7440,13 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
 	"\x04data\x18\x04 \x03(\v2\x17.masterdata.v1.CurrencyR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x8d\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x97\x01\n" +
 	" ListAdministrativeRegionsRequest\x12\x19\n" +
-	"\x05level\x18\x01 \x01(\x05B\x03\xe0A\x02R\x05level\x12$\n" +
-	"\vparent_code\x18\x02 \x01(\tH\x00R\n" +
+	"\x05level\x18\x01 \x01(\x05H\x00R\x05level\x88\x01\x01\x12$\n" +
+	"\vparent_code\x18\x02 \x01(\tH\x01R\n" +
 	"parentCode\x88\x01\x01\x12\x18\n" +
-	"\akeyword\x18\x03 \x01(\tR\akeywordB\x0e\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeywordB\b\n" +
+	"\x06_levelB\x0e\n" +
 	"\f_parent_code\"\xff\x02\n" +
 	"\x14AdministrativeRegion\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +

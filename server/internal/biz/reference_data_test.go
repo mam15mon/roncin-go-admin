@@ -32,14 +32,27 @@ func TestReferenceDataAdministrativeRegionQuery(t *testing.T) {
 	}
 }
 
+func TestReferenceDataAdministrativeRegionQueryWithoutLevel(t *testing.T) {
+	repo := &referenceDataRepoStub{}
+	usecase := NewReferenceDataUsecase(repo)
+	if _, err := usecase.ListAdministrativeRegions(context.Background(), AdministrativeRegionQuery{}); err != nil {
+		t.Fatalf("ListAdministrativeRegions() error = %v", err)
+	}
+	if repo.query.Level != 0 || repo.query.ParentCode != nil {
+		t.Fatalf("query = %#v", repo.query)
+	}
+}
+
 func TestReferenceDataRejectsInvalidAdministrativeRegionQuery(t *testing.T) {
 	usecase := NewReferenceDataUsecase(&referenceDataRepoStub{})
 	parentCode := "310000000000"
 	invalidQueries := []AdministrativeRegionQuery{
-		{Level: 0},
+		{Level: -1},
+		{Level: 0, ParentCode: &parentCode},
 		{Level: 1, ParentCode: &parentCode},
 		{Level: 2},
 		{Level: 3, ParentCode: stringPointer("310000")},
+		{Level: 4},
 	}
 	for index, query := range invalidQueries {
 		if _, err := usecase.ListAdministrativeRegions(context.Background(), query); err != ErrReferenceDataInvalidArgument {

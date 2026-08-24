@@ -36,10 +36,10 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context) ([]*biz.Currency
 }
 
 func (r *referenceDataRepo) ListAdministrativeRegions(ctx context.Context, query biz.AdministrativeRegionQuery) ([]*biz.AdministrativeRegion, error) {
-	builder := r.data.db.AdministrativeRegion.Query().Where(
-		administrativeregion.EnabledEQ(true),
-		administrativeregion.LevelEQ(query.Level),
-	)
+	builder := r.data.db.AdministrativeRegion.Query().Where(administrativeregion.EnabledEQ(true))
+	if query.Level != 0 {
+		builder.Where(administrativeregion.LevelEQ(query.Level))
+	}
 	if query.ParentCode != nil {
 		builder.Where(administrativeregion.ParentCodeEQ(*query.ParentCode))
 	}
@@ -49,7 +49,7 @@ func (r *referenceDataRepo) ListAdministrativeRegions(ctx context.Context, query
 			administrativeregion.CodeContains(query.Keyword),
 		))
 	}
-	items, err := builder.Order(ent.Asc(administrativeregion.FieldCode)).Limit(100).All(ctx)
+	items, err := builder.Order(ent.Asc(administrativeregion.FieldCode)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
