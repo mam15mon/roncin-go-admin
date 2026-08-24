@@ -139,40 +139,52 @@ func (MasterDataKind) EnumDescriptor() ([]byte, []int) {
 type DocumentType int32
 
 const (
-	DocumentType_DOCUMENT_TYPE_UNSPECIFIED DocumentType = 0
-	DocumentType_DOCUMENT_TYPE_ORDER       DocumentType = 1
-	DocumentType_DOCUMENT_TYPE_BOOKING     DocumentType = 2
-	DocumentType_DOCUMENT_TYPE_HBL         DocumentType = 3
-	DocumentType_DOCUMENT_TYPE_MBL         DocumentType = 4
-	DocumentType_DOCUMENT_TYPE_BILL        DocumentType = 5
-	DocumentType_DOCUMENT_TYPE_STATEMENT   DocumentType = 6
-	DocumentType_DOCUMENT_TYPE_PAYMENT     DocumentType = 7
-	DocumentType_DOCUMENT_TYPE_INVOICE     DocumentType = 8
+	DocumentType_DOCUMENT_TYPE_UNSPECIFIED        DocumentType = 0
+	DocumentType_DOCUMENT_TYPE_ORDER              DocumentType = 1
+	DocumentType_DOCUMENT_TYPE_BILL               DocumentType = 2
+	DocumentType_DOCUMENT_TYPE_QUOTATION          DocumentType = 3
+	DocumentType_DOCUMENT_TYPE_WRITE_OFF          DocumentType = 4
+	DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT    DocumentType = 5
+	DocumentType_DOCUMENT_TYPE_CONTRACT           DocumentType = 6
+	DocumentType_DOCUMENT_TYPE_INTERNAL_REFERENCE DocumentType = 7
+	DocumentType_DOCUMENT_TYPE_CUSTOMER_REFERENCE DocumentType = 8
+	DocumentType_DOCUMENT_TYPE_HOUSE_BILL         DocumentType = 9
+	DocumentType_DOCUMENT_TYPE_COLOAD_HOUSE_BILL  DocumentType = 10
+	DocumentType_DOCUMENT_TYPE_INVOICE            DocumentType = 11
+	DocumentType_DOCUMENT_TYPE_FREIGHT_RATE       DocumentType = 12
 )
 
 // Enum value maps for DocumentType.
 var (
 	DocumentType_name = map[int32]string{
-		0: "DOCUMENT_TYPE_UNSPECIFIED",
-		1: "DOCUMENT_TYPE_ORDER",
-		2: "DOCUMENT_TYPE_BOOKING",
-		3: "DOCUMENT_TYPE_HBL",
-		4: "DOCUMENT_TYPE_MBL",
-		5: "DOCUMENT_TYPE_BILL",
-		6: "DOCUMENT_TYPE_STATEMENT",
-		7: "DOCUMENT_TYPE_PAYMENT",
-		8: "DOCUMENT_TYPE_INVOICE",
+		0:  "DOCUMENT_TYPE_UNSPECIFIED",
+		1:  "DOCUMENT_TYPE_ORDER",
+		2:  "DOCUMENT_TYPE_BILL",
+		3:  "DOCUMENT_TYPE_QUOTATION",
+		4:  "DOCUMENT_TYPE_WRITE_OFF",
+		5:  "DOCUMENT_TYPE_RECEIPT_PAYMENT",
+		6:  "DOCUMENT_TYPE_CONTRACT",
+		7:  "DOCUMENT_TYPE_INTERNAL_REFERENCE",
+		8:  "DOCUMENT_TYPE_CUSTOMER_REFERENCE",
+		9:  "DOCUMENT_TYPE_HOUSE_BILL",
+		10: "DOCUMENT_TYPE_COLOAD_HOUSE_BILL",
+		11: "DOCUMENT_TYPE_INVOICE",
+		12: "DOCUMENT_TYPE_FREIGHT_RATE",
 	}
 	DocumentType_value = map[string]int32{
-		"DOCUMENT_TYPE_UNSPECIFIED": 0,
-		"DOCUMENT_TYPE_ORDER":       1,
-		"DOCUMENT_TYPE_BOOKING":     2,
-		"DOCUMENT_TYPE_HBL":         3,
-		"DOCUMENT_TYPE_MBL":         4,
-		"DOCUMENT_TYPE_BILL":        5,
-		"DOCUMENT_TYPE_STATEMENT":   6,
-		"DOCUMENT_TYPE_PAYMENT":     7,
-		"DOCUMENT_TYPE_INVOICE":     8,
+		"DOCUMENT_TYPE_UNSPECIFIED":        0,
+		"DOCUMENT_TYPE_ORDER":              1,
+		"DOCUMENT_TYPE_BILL":               2,
+		"DOCUMENT_TYPE_QUOTATION":          3,
+		"DOCUMENT_TYPE_WRITE_OFF":          4,
+		"DOCUMENT_TYPE_RECEIPT_PAYMENT":    5,
+		"DOCUMENT_TYPE_CONTRACT":           6,
+		"DOCUMENT_TYPE_INTERNAL_REFERENCE": 7,
+		"DOCUMENT_TYPE_CUSTOMER_REFERENCE": 8,
+		"DOCUMENT_TYPE_HOUSE_BILL":         9,
+		"DOCUMENT_TYPE_COLOAD_HOUSE_BILL":  10,
+		"DOCUMENT_TYPE_INVOICE":            11,
+		"DOCUMENT_TYPE_FREIGHT_RATE":       12,
 	}
 )
 
@@ -7712,17 +7724,22 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x1dMASTER_DATA_KIND_SERVICE_TYPE\x10\b\x12#\n" +
 	"\x1fMASTER_DATA_KIND_CARGO_CATEGORY\x10\t\x12\"\n" +
 	"\x1eMASTER_DATA_KIND_ABNORMAL_CASE\x10\n" +
-	"*\xfa\x01\n" +
+	"*\xa1\x03\n" +
 	"\fDocumentType\x12\x1d\n" +
 	"\x19DOCUMENT_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
-	"\x13DOCUMENT_TYPE_ORDER\x10\x01\x12\x19\n" +
-	"\x15DOCUMENT_TYPE_BOOKING\x10\x02\x12\x15\n" +
-	"\x11DOCUMENT_TYPE_HBL\x10\x03\x12\x15\n" +
-	"\x11DOCUMENT_TYPE_MBL\x10\x04\x12\x16\n" +
-	"\x12DOCUMENT_TYPE_BILL\x10\x05\x12\x1b\n" +
-	"\x17DOCUMENT_TYPE_STATEMENT\x10\x06\x12\x19\n" +
-	"\x15DOCUMENT_TYPE_PAYMENT\x10\a\x12\x19\n" +
-	"\x15DOCUMENT_TYPE_INVOICE\x10\b*\x87\x01\n" +
+	"\x13DOCUMENT_TYPE_ORDER\x10\x01\x12\x16\n" +
+	"\x12DOCUMENT_TYPE_BILL\x10\x02\x12\x1b\n" +
+	"\x17DOCUMENT_TYPE_QUOTATION\x10\x03\x12\x1b\n" +
+	"\x17DOCUMENT_TYPE_WRITE_OFF\x10\x04\x12!\n" +
+	"\x1dDOCUMENT_TYPE_RECEIPT_PAYMENT\x10\x05\x12\x1a\n" +
+	"\x16DOCUMENT_TYPE_CONTRACT\x10\x06\x12$\n" +
+	" DOCUMENT_TYPE_INTERNAL_REFERENCE\x10\a\x12$\n" +
+	" DOCUMENT_TYPE_CUSTOMER_REFERENCE\x10\b\x12\x1c\n" +
+	"\x18DOCUMENT_TYPE_HOUSE_BILL\x10\t\x12#\n" +
+	"\x1fDOCUMENT_TYPE_COLOAD_HOUSE_BILL\x10\n" +
+	"\x12\x19\n" +
+	"\x15DOCUMENT_TYPE_INVOICE\x10\v\x12\x1e\n" +
+	"\x1aDOCUMENT_TYPE_FREIGHT_RATE\x10\f*\x87\x01\n" +
 	"\n" +
 	"DateFormat\x12\x1b\n" +
 	"\x17DATE_FORMAT_UNSPECIFIED\x10\x00\x12\x18\n" +

@@ -26,19 +26,26 @@ var (
 type DocumentType string
 
 const (
-	DocumentTypeOrder     DocumentType = "order"
-	DocumentTypeBooking   DocumentType = "booking"
-	DocumentTypeHBL       DocumentType = "hbl"
-	DocumentTypeMBL       DocumentType = "mbl"
-	DocumentTypeBill      DocumentType = "bill"
-	DocumentTypeStatement DocumentType = "statement"
-	DocumentTypePayment   DocumentType = "payment"
-	DocumentTypeInvoice   DocumentType = "invoice"
+	DocumentTypeOrder             DocumentType = "order"
+	DocumentTypeBill              DocumentType = "bill"
+	DocumentTypeQuotation         DocumentType = "quotation"
+	DocumentTypeWriteOff          DocumentType = "write_off"
+	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
+	DocumentTypeContract          DocumentType = "contract"
+	DocumentTypeInternalReference DocumentType = "internal_reference"
+	DocumentTypeCustomerReference DocumentType = "customer_reference"
+	DocumentTypeHouseBill         DocumentType = "house_bill"
+	DocumentTypeColoadHouseBill   DocumentType = "coload_house_bill"
+	DocumentTypeInvoice           DocumentType = "invoice"
+	DocumentTypeFreightRate       DocumentType = "freight_rate"
 )
 
 func (value DocumentType) Valid() bool {
 	switch value {
-	case DocumentTypeOrder, DocumentTypeBooking, DocumentTypeHBL, DocumentTypeMBL, DocumentTypeBill, DocumentTypeStatement, DocumentTypePayment, DocumentTypeInvoice:
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeQuotation, DocumentTypeWriteOff,
+		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference,
+		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill,
+		DocumentTypeInvoice, DocumentTypeFreightRate:
 		return true
 	default:
 		return false
@@ -106,14 +113,18 @@ type NumberRule struct {
 
 func DefaultNumberRules() []NumberRule {
 	return []NumberRule{
-		{DocumentType: DocumentTypeOrder, Prefix: "OR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeBooking, Prefix: "BK", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeHBL, Prefix: "HBL", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeMBL, Prefix: "MBL", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeStatement, Prefix: "ST", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypePayment, Prefix: "PY", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeInvoice, Prefix: "IV", DateFormat: DateFormatYYYYMMDD, SequenceLength: 4, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeOrder, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeQuotation, Prefix: "QO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeWriteOff, Prefix: "WO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeReceiptPayment, Prefix: "PR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeContract, Prefix: "CT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeInternalReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
+		{DocumentType: DocumentTypeCustomerReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
+		{DocumentType: DocumentTypeHouseBill, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
+		{DocumentType: DocumentTypeColoadHouseBill, DateFormat: DateFormatNone, SequenceLength: 1, ResetPolicy: ResetPolicyNever, Enabled: false},
+		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
+		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 	}
 }
 
@@ -266,6 +277,10 @@ func (uc *OrderConfigUsecase) UpdateNumberRule(ctx context.Context, organization
 }
 
 func (uc *OrderConfigUsecase) NextNumber(ctx context.Context, organizationID uuid.UUID, documentType DocumentType) (string, error) {
+	return uc.nextNumber(ctx, organizationID, documentType, "")
+}
+
+func (uc *OrderConfigUsecase) nextNumber(ctx context.Context, organizationID uuid.UUID, documentType DocumentType, businessCode string) (string, error) {
 	if organizationID == uuid.Nil || !documentType.Valid() {
 		return "", ErrMasterDataInvalidArgument
 	}
@@ -278,7 +293,14 @@ func (uc *OrderConfigUsecase) NextNumber(ctx context.Context, organizationID uui
 	if len(sequenceText) > rule.SequenceLength {
 		return "", ErrNumberSequenceExhausted
 	}
-	return rule.Prefix + formatNumberDate(now, rule.DateFormat) + fmt.Sprintf("%0*d", rule.SequenceLength, sequence), nil
+	return rule.Prefix + businessCode + formatNumberDate(now, rule.DateFormat) + fmt.Sprintf("%0*d", rule.SequenceLength, sequence), nil
+}
+
+func (uc *OrderConfigUsecase) NextOrderNumber(ctx context.Context, organizationID uuid.UUID, businessType OrderBusinessType) (string, error) {
+	if businessType != OrderBusinessSE && businessType != OrderBusinessSI && businessType != OrderBusinessAE && businessType != OrderBusinessAI {
+		return "", ErrMasterDataInvalidArgument
+	}
+	return uc.nextNumber(ctx, organizationID, DocumentTypeOrder, string(businessType))
 }
 
 func (uc *OrderConfigUsecase) ListStatusTemplates(ctx context.Context, organizationID uuid.UUID, businessType BusinessType, published *bool) ([]*StatusTemplate, error) {

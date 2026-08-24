@@ -16,7 +16,7 @@ func (NumberRule) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{
 func (NumberRule) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("document_type").Values("order", "booking", "hbl", "mbl", "bill", "statement", "payment", "invoice"),
+		field.Enum("document_type").Values("order", "bill", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate"),
 		field.String("prefix").MaxLen(32),
 		field.Enum("date_format").Values("yyyyMMdd", "yyyyMM", "yyyy", "none").Default("yyyyMMdd"),
 		field.Int("sequence_length").Default(4).Min(1).Max(12),

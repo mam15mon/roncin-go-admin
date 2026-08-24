@@ -104,14 +104,18 @@ type DocumentType string
 
 // DocumentType values.
 const (
-	DocumentTypeOrder     DocumentType = "order"
-	DocumentTypeBooking   DocumentType = "booking"
-	DocumentTypeHbl       DocumentType = "hbl"
-	DocumentTypeMbl       DocumentType = "mbl"
-	DocumentTypeBill      DocumentType = "bill"
-	DocumentTypeStatement DocumentType = "statement"
-	DocumentTypePayment   DocumentType = "payment"
-	DocumentTypeInvoice   DocumentType = "invoice"
+	DocumentTypeOrder             DocumentType = "order"
+	DocumentTypeBill              DocumentType = "bill"
+	DocumentTypeQuotation         DocumentType = "quotation"
+	DocumentTypeWriteOff          DocumentType = "write_off"
+	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
+	DocumentTypeContract          DocumentType = "contract"
+	DocumentTypeInternalReference DocumentType = "internal_reference"
+	DocumentTypeCustomerReference DocumentType = "customer_reference"
+	DocumentTypeHouseBill         DocumentType = "house_bill"
+	DocumentTypeColoadHouseBill   DocumentType = "coload_house_bill"
+	DocumentTypeInvoice           DocumentType = "invoice"
+	DocumentTypeFreightRate       DocumentType = "freight_rate"
 )
 
 func (dt DocumentType) String() string {
@@ -121,7 +125,7 @@ func (dt DocumentType) String() string {
 // DocumentTypeValidator is a validator for the "document_type" field enum values. It is called by the builders before save.
 func DocumentTypeValidator(dt DocumentType) error {
 	switch dt {
-	case DocumentTypeOrder, DocumentTypeBooking, DocumentTypeHbl, DocumentTypeMbl, DocumentTypeBill, DocumentTypeStatement, DocumentTypePayment, DocumentTypeInvoice:
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeQuotation, DocumentTypeWriteOff, DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference, DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill, DocumentTypeInvoice, DocumentTypeFreightRate:
 		return nil
 	default:
 		return fmt.Errorf("numberrule: invalid enum value for document_type field: %q", dt)

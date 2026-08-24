@@ -276,7 +276,7 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	if err != nil {
 		return nil, err
 	}
-	number, err := uc.config.NextNumber(ctx, organizationID, DocumentTypeOrder)
+	number, err := uc.config.NextOrderNumber(ctx, organizationID, normalized.BusinessType)
 	if err != nil {
 		return nil, err
 	}

@@ -51,17 +51,22 @@ export interface DocTypeMeta {
   shortLabel: string;
   color: string;
   defaultPrefix: string;
+  businessCodes?: string[];
 }
 
 const DOC_TYPES: DocTypeMeta[] = [
-  { key: 'DOCUMENT_TYPE_ORDER', numValue: 1, label: '订单编号 (Order)', shortLabel: '订单', color: 'blue', defaultPrefix: 'OR' },
-  { key: 'DOCUMENT_TYPE_BOOKING', numValue: 2, label: '海运订舱单 (Booking)', shortLabel: '订舱', color: 'cyan', defaultPrefix: 'BK' },
-  { key: 'DOCUMENT_TYPE_HBL', numValue: 3, label: '分提单号 (HBL)', shortLabel: '分单 HBL', color: 'purple', defaultPrefix: 'HBL' },
-  { key: 'DOCUMENT_TYPE_MBL', numValue: 4, label: '主提单号 (MBL)', shortLabel: '主单 MBL', color: 'geekblue', defaultPrefix: 'MBL' },
-  { key: 'DOCUMENT_TYPE_BILL', numValue: 5, label: '费用账单 (Bill)', shortLabel: '账单', color: 'orange', defaultPrefix: 'BI' },
-  { key: 'DOCUMENT_TYPE_STATEMENT', numValue: 6, label: '客户对账单 (Statement)', shortLabel: '对账单', color: 'gold', defaultPrefix: 'ST' },
-  { key: 'DOCUMENT_TYPE_PAYMENT', numValue: 7, label: '收付款申请 (Payment)', shortLabel: '收付款', color: 'green', defaultPrefix: 'PY' },
-  { key: 'DOCUMENT_TYPE_INVOICE', numValue: 8, label: '税务发票 (Invoice)', shortLabel: '发票', color: 'volcano', defaultPrefix: 'IV' },
+  { key: 'DOCUMENT_TYPE_ORDER', numValue: 1, label: '订单编号设置', shortLabel: '订单', color: 'blue', defaultPrefix: '', businessCodes: ['SE', 'SI', 'AE', 'AI'] },
+  { key: 'DOCUMENT_TYPE_BILL', numValue: 2, label: '账单编号设置', shortLabel: '账单', color: 'orange', defaultPrefix: 'BI' },
+  { key: 'DOCUMENT_TYPE_QUOTATION', numValue: 3, label: '报价编号设置', shortLabel: '报价', color: 'cyan', defaultPrefix: 'QO' },
+  { key: 'DOCUMENT_TYPE_WRITE_OFF', numValue: 4, label: '核销编号设置', shortLabel: '核销', color: 'purple', defaultPrefix: 'WO' },
+  { key: 'DOCUMENT_TYPE_RECEIPT_PAYMENT', numValue: 5, label: '收付编号设置', shortLabel: '收付', color: 'green', defaultPrefix: 'PR' },
+  { key: 'DOCUMENT_TYPE_CONTRACT', numValue: 6, label: '合同号设置', shortLabel: '合同', color: 'gold', defaultPrefix: 'CT' },
+  { key: 'DOCUMENT_TYPE_INTERNAL_REFERENCE', numValue: 7, label: '企业内部编号设置', shortLabel: '企业内部', color: 'geekblue', defaultPrefix: '' },
+  { key: 'DOCUMENT_TYPE_CUSTOMER_REFERENCE', numValue: 8, label: '客户业务编号设置', shortLabel: '客户业务', color: 'lime', defaultPrefix: '' },
+  { key: 'DOCUMENT_TYPE_HOUSE_BILL', numValue: 9, label: '分单号设置', shortLabel: '分单', color: 'magenta', defaultPrefix: '' },
+  { key: 'DOCUMENT_TYPE_COLOAD_HOUSE_BILL', numValue: 10, label: '加拼分单号设置', shortLabel: '加拼分单', color: 'volcano', defaultPrefix: '' },
+  { key: 'DOCUMENT_TYPE_INVOICE', numValue: 11, label: '发票号设置', shortLabel: '发票', color: 'red', defaultPrefix: '' },
+  { key: 'DOCUMENT_TYPE_FREIGHT_RATE', numValue: 12, label: '运价编号设置', shortLabel: '运价', color: 'gold', defaultPrefix: 'FR' },
 ];
 
 const docTypeMap = new Map<string | number, DocTypeMeta>();
@@ -102,7 +107,8 @@ const RESET_POLICIES: Record<string | number, { label: string; numValue: number 
 
 // 工具函数：解析生成规则示例预览
 function generatePreviewNumber(rule: API.NumberRule): string {
-  const prefix = rule.prefix || '';
+  const meta = docTypeMap.get(rule.documentType as any);
+  const prefix = `${rule.prefix || ''}${meta?.businessCodes?.[0] || ''}`;
   const now = dayjs();
   const dateMeta = DATE_FORMATS[rule.dateFormat as any] || DATE_FORMATS[4];
   const dateStr = dateMeta.formatStr ? now.format(dateMeta.formatStr) : '';
@@ -127,7 +133,13 @@ export default function NumberRulesPanel() {
     setLoading(true);
     try {
       const res = await masterDataServiceListNumberRules({});
-      setData(res.data || []);
+      setData(
+        [...(res.data || [])].sort((left, right) => {
+          const leftOrder = docTypeMap.get(left.documentType as any)?.numValue ?? Number.MAX_SAFE_INTEGER;
+          const rightOrder = docTypeMap.get(right.documentType as any)?.numValue ?? Number.MAX_SAFE_INTEGER;
+          return leftOrder - rightOrder;
+        }),
+      );
     } catch {
       message.error('单号规则加载失败');
     } finally {
@@ -382,7 +394,7 @@ export default function NumberRulesPanel() {
                 业务单据编号规则设置
               </div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                配置订单、订舱单、提单、账单、收付款凭证的自动前缀、日期格式与流水号位数
+                12 类业务编号独立配置；订单按 SE、SI、AE、AI 自动选择业务编号
               </Text>
             </div>
           </Space>
@@ -442,7 +454,9 @@ export default function NumberRulesPanel() {
           /* Card Grid View */
           <Row gutter={[16, 16]}>
             {data.map((rule) => {
-              const meta = docTypeMap.get(rule.documentType as any) || {
+              const meta: DocTypeMeta = docTypeMap.get(rule.documentType as any) || {
+                key: String(rule.documentType),
+                numValue: Number(rule.documentType) || 0,
                 label: `单据类型 ${rule.documentType}`,
                 shortLabel: '单据',
                 color: 'blue',
@@ -531,6 +545,14 @@ export default function NumberRulesPanel() {
                             {rule.prefix || '无'}
                           </span>
                         </div>
+                        {meta.businessCodes && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#8c8c8c' }}>业务编号：</span>
+                            <span style={{ fontFamily: 'monospace', color: '#262626' }}>
+                              {meta.businessCodes.join(' / ')}
+                            </span>
+                          </div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: '#8c8c8c' }}>日期格式：</span>
                           <span style={{ color: '#262626' }}>{dateMeta.label}</span>
@@ -653,10 +675,9 @@ export default function NumberRulesPanel() {
           <ProFormText
             name="prefix"
             label="前缀代码"
-            placeholder="例如：OR、BK、HBL、INV"
+            placeholder="可选，例如：BI、QO、WO"
             rules={[
-              { required: true, message: '请输入前缀代码' },
-              { pattern: /^[A-Za-z0-9_-]+$/, message: '仅支持字母、数字与下划线' },
+              { pattern: /^[A-Za-z0-9_-]*$/, message: '仅支持字母、数字与下划线' },
             ]}
           />
         </Col>
@@ -677,10 +698,10 @@ export default function NumberRulesPanel() {
           <ProFormDigit
             name="sequenceLength"
             label="流水号位数"
-            min={2}
-            max={8}
+            min={1}
+            max={12}
             placeholder="例如：4 (生成 0001)"
-            rules={[{ required: true, message: '请输入流水号位数 (2-8)' }]}
+            rules={[{ required: true, message: '请输入流水号位数 (1-12)' }]}
           />
         </Col>
         <Col span={24}>

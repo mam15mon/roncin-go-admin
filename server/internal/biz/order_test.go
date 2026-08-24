@@ -63,7 +63,7 @@ func (s *orderRepoStub) TransitionStatus(_ context.Context, organizationID, id u
 
 func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	repo := &orderRepoStub{}
-	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{Prefix: "ORD", DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 7}
+	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 7}
 	audit := &auditRepoStub{}
 	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(configRepo, audit), audit)
 	organizationID := uuid.New()
@@ -79,10 +79,10 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
-	if created.OrderNo != "ORD0007" || repo.createdNumber != "ORD0007" || configRepo.lastAllocDocType != DocumentTypeOrder {
+	if created.OrderNo != "SE0007" || repo.createdNumber != "SE0007" || configRepo.lastAllocDocType != DocumentTypeOrder {
 		t.Fatalf("created order = %#v, allocated document type = %s", created, configRepo.lastAllocDocType)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.create" || audit.events[0].Details["order.no"] != "ORD0007" {
+	if len(audit.events) != 1 || audit.events[0].Action != "order.create" || audit.events[0].Details["order.no"] != "SE0007" {
 		t.Fatalf("audit events = %#v", audit.events)
 	}
 }

@@ -814,20 +814,28 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 	switch value {
 	case v1.DocumentType_DOCUMENT_TYPE_ORDER:
 		return biz.DocumentTypeOrder
-	case v1.DocumentType_DOCUMENT_TYPE_BOOKING:
-		return biz.DocumentTypeBooking
-	case v1.DocumentType_DOCUMENT_TYPE_HBL:
-		return biz.DocumentTypeHBL
-	case v1.DocumentType_DOCUMENT_TYPE_MBL:
-		return biz.DocumentTypeMBL
 	case v1.DocumentType_DOCUMENT_TYPE_BILL:
 		return biz.DocumentTypeBill
-	case v1.DocumentType_DOCUMENT_TYPE_STATEMENT:
-		return biz.DocumentTypeStatement
-	case v1.DocumentType_DOCUMENT_TYPE_PAYMENT:
-		return biz.DocumentTypePayment
+	case v1.DocumentType_DOCUMENT_TYPE_QUOTATION:
+		return biz.DocumentTypeQuotation
+	case v1.DocumentType_DOCUMENT_TYPE_WRITE_OFF:
+		return biz.DocumentTypeWriteOff
+	case v1.DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT:
+		return biz.DocumentTypeReceiptPayment
+	case v1.DocumentType_DOCUMENT_TYPE_CONTRACT:
+		return biz.DocumentTypeContract
+	case v1.DocumentType_DOCUMENT_TYPE_INTERNAL_REFERENCE:
+		return biz.DocumentTypeInternalReference
+	case v1.DocumentType_DOCUMENT_TYPE_CUSTOMER_REFERENCE:
+		return biz.DocumentTypeCustomerReference
+	case v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL:
+		return biz.DocumentTypeHouseBill
+	case v1.DocumentType_DOCUMENT_TYPE_COLOAD_HOUSE_BILL:
+		return biz.DocumentTypeColoadHouseBill
 	case v1.DocumentType_DOCUMENT_TYPE_INVOICE:
 		return biz.DocumentTypeInvoice
+	case v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE:
+		return biz.DocumentTypeFreightRate
 	default:
 		return ""
 	}
@@ -837,20 +845,28 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 	switch value {
 	case biz.DocumentTypeOrder:
 		return v1.DocumentType_DOCUMENT_TYPE_ORDER
-	case biz.DocumentTypeBooking:
-		return v1.DocumentType_DOCUMENT_TYPE_BOOKING
-	case biz.DocumentTypeHBL:
-		return v1.DocumentType_DOCUMENT_TYPE_HBL
-	case biz.DocumentTypeMBL:
-		return v1.DocumentType_DOCUMENT_TYPE_MBL
 	case biz.DocumentTypeBill:
 		return v1.DocumentType_DOCUMENT_TYPE_BILL
-	case biz.DocumentTypeStatement:
-		return v1.DocumentType_DOCUMENT_TYPE_STATEMENT
-	case biz.DocumentTypePayment:
-		return v1.DocumentType_DOCUMENT_TYPE_PAYMENT
+	case biz.DocumentTypeQuotation:
+		return v1.DocumentType_DOCUMENT_TYPE_QUOTATION
+	case biz.DocumentTypeWriteOff:
+		return v1.DocumentType_DOCUMENT_TYPE_WRITE_OFF
+	case biz.DocumentTypeReceiptPayment:
+		return v1.DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT
+	case biz.DocumentTypeContract:
+		return v1.DocumentType_DOCUMENT_TYPE_CONTRACT
+	case biz.DocumentTypeInternalReference:
+		return v1.DocumentType_DOCUMENT_TYPE_INTERNAL_REFERENCE
+	case biz.DocumentTypeCustomerReference:
+		return v1.DocumentType_DOCUMENT_TYPE_CUSTOMER_REFERENCE
+	case biz.DocumentTypeHouseBill:
+		return v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL
+	case biz.DocumentTypeColoadHouseBill:
+		return v1.DocumentType_DOCUMENT_TYPE_COLOAD_HOUSE_BILL
 	case biz.DocumentTypeInvoice:
 		return v1.DocumentType_DOCUMENT_TYPE_INVOICE
+	case biz.DocumentTypeFreightRate:
+		return v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE
 	default:
 		return v1.DocumentType_DOCUMENT_TYPE_UNSPECIFIED
 	}
