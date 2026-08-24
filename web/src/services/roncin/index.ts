@@ -5,6 +5,7 @@
 import * as adminService from "./adminService";
 import * as authService from "./authService";
 import * as backgroundTaskService from "./backgroundTaskService";
+import * as exchangeRateService from "./exchangeRateService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as orderAbnormalCaseService from "./orderAbnormalCaseService";
@@ -21,6 +22,7 @@ export default {
   adminService,
   authService,
   backgroundTaskService,
+  exchangeRateService,
   masterDataService,
   orderService,
   orderAbnormalCaseService,

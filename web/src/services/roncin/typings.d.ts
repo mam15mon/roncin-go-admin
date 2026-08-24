@@ -46,7 +46,6 @@ declare namespace API {
     quantity: string;
     unitPrice: string;
     currency: string;
-    exchangeRate: string;
     expenseDate: string;
     note?: string;
   };
@@ -344,6 +343,25 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Airport;
+    traceId?: string;
+  };
+
+  type CreateExchangeRateSettingRequest = {
+    rateType: string;
+    fromCurrency: string;
+    toCurrency: string;
+    timeStandard: string;
+    effectiveFrom: string;
+    effectiveTo?: string;
+    receivableRate: string;
+    payableRate: string;
+  };
+
+  type CreateExchangeRateSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateSetting;
     traceId?: string;
   };
 
@@ -662,6 +680,41 @@ declare namespace API {
     roleScopes?: RoleScope[];
   };
 
+  type DisableExchangeRateSettingRequest = {
+    id: string;
+  };
+
+  type DisableExchangeRateSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type ExchangeRateServiceDisableExchangeRateSettingParams = {
+    id: string;
+  };
+
+  type ExchangeRateServiceUpdateExchangeRateSettingParams = {
+    id: string;
+  };
+
+  type ExchangeRateSetting = {
+    id?: string;
+    organizationId?: string;
+    rateType?: string;
+    fromCurrency?: string;
+    toCurrency?: string;
+    timeStandard?: string;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    receivableRate?: string;
+    payableRate?: string;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
   type ExportPartnersResponse = {
     success?: boolean;
     code?: number;
@@ -823,6 +876,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Currency[];
+    traceId?: string;
+  };
+
+  type ListExchangeRateSettingsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateSetting[];
     traceId?: string;
   };
 
@@ -1475,6 +1536,9 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
   };
 
   type OrderFeeCurrencyOption = {
@@ -1498,6 +1562,13 @@ declare namespace API {
   type OrderFeeServiceRemoveFeeParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderFeeServiceResolveFeeExchangeRateParams = {
+    orderId: string;
+    direction?: number;
+    currency?: string;
+    expenseDate?: string;
   };
 
   type OrderFeeServiceUpdateFeeParams = {
@@ -2205,6 +2276,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ResolveFeeExchangeRateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    exchangeRate?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
+    traceId?: string;
+  };
+
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
@@ -2453,6 +2535,26 @@ declare namespace API {
     traceId?: string;
   };
 
+  type UpdateExchangeRateSettingRequest = {
+    id: string;
+    rateType: string;
+    fromCurrency: string;
+    toCurrency: string;
+    timeStandard: string;
+    effectiveFrom: string;
+    effectiveTo?: string;
+    receivableRate: string;
+    payableRate: string;
+  };
+
+  type UpdateExchangeRateSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateSetting;
+    traceId?: string;
+  };
+
   type UpdateFeeRequest = {
     orderId: string;
     id: string;
@@ -2464,7 +2566,6 @@ declare namespace API {
     quantity: string;
     unitPrice: string;
     currency: string;
-    exchangeRate: string;
     expenseDate: string;
     note?: string;
   };

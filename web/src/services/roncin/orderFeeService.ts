@@ -2,6 +2,25 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** ResolveFeeExchangeRate 按费用日期、币种和收付方向预览结算汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
+export async function orderFeeServiceResolveFeeExchangeRate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceResolveFeeExchangeRateParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ResolveFeeExchangeRateResponse>(
+    `/api/v1/orders/${param0}/fee-exchange-rate`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFeeOptions 获取费用录入所需的结算单位和币种候选项。 GET /api/v1/orders/${param0}/fee-options */
 export async function orderFeeServiceListFeeOptions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
