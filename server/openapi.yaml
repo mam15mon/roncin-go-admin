@@ -487,6 +487,83 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/task.v1.RequeueBackgroundTaskResponse'
+    /api/v1/finance/exchange-rates:
+        get:
+            tags:
+                - ExchangeRateService
+            operationId: ExchangeRateService_ListExchangeRateSettings
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListExchangeRateSettingsResponse'
+        post:
+            tags:
+                - ExchangeRateService
+            operationId: ExchangeRateService_CreateExchangeRateSetting
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateExchangeRateSettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateExchangeRateSettingResponse'
+    /api/v1/finance/exchange-rates/{id}:
+        put:
+            tags:
+                - ExchangeRateService
+            operationId: ExchangeRateService_UpdateExchangeRateSetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateExchangeRateSettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateExchangeRateSettingResponse'
+    /api/v1/finance/exchange-rates/{id}/disable:
+        post:
+            tags:
+                - ExchangeRateService
+            operationId: ExchangeRateService_DisableExchangeRateSetting
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.DisableExchangeRateSettingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.DisableExchangeRateSettingResponse'
     /api/v1/master-data/airlines:
         get:
             tags:
@@ -3327,6 +3404,155 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
+                traceId:
+                    type: string
+        finance.v1.CreateExchangeRateSettingRequest:
+            required:
+                - rateType
+                - fromCurrency
+                - toCurrency
+                - timeStandard
+                - effectiveFrom
+                - receivableRate
+                - payableRate
+            type: object
+            properties:
+                rateType:
+                    type: string
+                fromCurrency:
+                    type: string
+                toCurrency:
+                    type: string
+                timeStandard:
+                    type: string
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                receivableRate:
+                    type: string
+                payableRate:
+                    type: string
+        finance.v1.CreateExchangeRateSettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
+                traceId:
+                    type: string
+        finance.v1.DisableExchangeRateSettingRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        finance.v1.DisableExchangeRateSettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ExchangeRateSetting:
+            type: object
+            properties:
+                id:
+                    type: string
+                organizationId:
+                    type: string
+                rateType:
+                    type: string
+                fromCurrency:
+                    type: string
+                toCurrency:
+                    type: string
+                timeStandard:
+                    type: string
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                receivableRate:
+                    type: string
+                payableRate:
+                    type: string
+                isActive:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        finance.v1.ListExchangeRateSettingsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
+                traceId:
+                    type: string
+        finance.v1.UpdateExchangeRateSettingRequest:
+            required:
+                - id
+                - rateType
+                - fromCurrency
+                - toCurrency
+                - timeStandard
+                - effectiveFrom
+                - receivableRate
+                - payableRate
+            type: object
+            properties:
+                id:
+                    type: string
+                rateType:
+                    type: string
+                fromCurrency:
+                    type: string
+                toCurrency:
+                    type: string
+                timeStandard:
+                    type: string
+                effectiveFrom:
+                    type: string
+                effectiveTo:
+                    type: string
+                receivableRate:
+                    type: string
+                payableRate:
+                    type: string
+        finance.v1.UpdateExchangeRateSettingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
                 traceId:
                     type: string
         masterdata.v1.AdministrativeRegion:
@@ -7564,6 +7790,8 @@ tags:
       description: |-
         BackgroundTaskService 后台任务追踪服务，只暴露查询与回放，
          不暴露租约凭据，也不提供直接入队接口（入队由业务用例触发）。
+    - name: ExchangeRateService
+      description: ExchangeRateService 维护订单费用结算汇率主数据。
     - name: MasterDataService
     - name: OrderAbnormalCaseService
       description: |-
