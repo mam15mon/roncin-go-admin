@@ -1,4 +1,5 @@
 import {
+  AccountBookOutlined,
   ApartmentOutlined,
   ClockCircleOutlined,
   ContactsOutlined,
@@ -70,6 +71,14 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
       });
     }
 
+    if (access?.canReadFeeSettings) {
+      items.push({
+        key: '/finance/fee-settings',
+        icon: <AccountBookOutlined />,
+        label: '费用设置',
+      });
+    }
+
     if (access?.canReadAudit) {
       items.push({
         key: '/admin?tab=audit',
@@ -92,6 +101,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     access?.canManageUsers,
     access?.canManageRoles,
     access?.canReadMasterData,
+    access?.canReadFeeSettings,
     access?.canReadAudit,
     access?.canReadTasks,
     access?.canAccessPlatform,
@@ -134,6 +144,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
   const isSettingsActive =
     location.pathname === '/master-data' ||
     location.pathname.startsWith('/master-data/') ||
+    location.pathname === '/finance/fee-settings' ||
     location.pathname === '/admin' ||
     location.pathname.startsWith('/admin/');
 

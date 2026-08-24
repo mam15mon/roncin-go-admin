@@ -148,6 +148,13 @@ export default [
     component: './master-data',
   },
   {
+    path: '/finance/fee-settings',
+    name: '费用设置',
+    icon: 'accountBook',
+    access: 'canReadFeeSettings',
+    component: './finance/fee-settings',
+  },
+  {
     path: '/finance/exchange-rates',
     name: '汇率设置',
     icon: 'moneyCollect',

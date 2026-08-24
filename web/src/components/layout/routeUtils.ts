@@ -20,6 +20,8 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/orders/air-import/new': '新建空运进口订单',
   '/orders': '订单管理',
   '/master-data': '主数据',
+  '/finance/fee-settings': '费用设置',
+  '/finance/exchange-rates': '汇率设置',
   '/admin': '系统管理',
 };
 

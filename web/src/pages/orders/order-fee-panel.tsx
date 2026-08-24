@@ -93,9 +93,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [settlementParties, setSettlementParties] = useState<
       API.OrderFeeSettlementPartyOption[]
     >([]);
-    const [feeSettings, setFeeSettings] = useState<
-      API.OrderFeeSettingOption[]
-    >([]);
+    const [feeSettings, setFeeSettings] = useState<API.OrderFeeSettingOption[]>(
+      [],
+    );
     const [billingUnits, setBillingUnits] = useState<
       API.OrderFeeBillingUnitOption[]
     >([]);
