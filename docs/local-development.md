@@ -127,4 +127,4 @@ sudo service postgresql stop
 sudo service postgresql start
 ```
 
-生产环境是否使用根目录 `Dockerfile` 或 `compose.yaml`，与本地开发方式互不影响。
+生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。
