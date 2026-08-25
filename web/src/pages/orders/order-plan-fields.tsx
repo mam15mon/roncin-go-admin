@@ -185,6 +185,24 @@ function getShippingDocumentsValidationMessage(
   return undefined;
 }
 
+function getDuplicateMasterNo(groups: MasterDocGroup[]): string | undefined {
+  const masterNos = new Set<string>();
+
+  for (const group of groups) {
+    const masterNo = group.masterNo.trim();
+    if (!masterNo) {
+      continue;
+    }
+    const normalizedMasterNo = masterNo.toLowerCase();
+    if (masterNos.has(normalizedMasterNo)) {
+      return masterNo;
+    }
+    masterNos.add(normalizedMasterNo);
+  }
+
+  return undefined;
+}
+
 function ShippingDocumentsFormControl(_props: {
   value?: ShippingDocumentFormValue[];
   onChange?: (value: ShippingDocumentFormValue[]) => void;
@@ -354,8 +372,16 @@ export function OrderShippingDocumentFields({
       : { master: 'MBL', house: 'HBL' };
   const releaseTypeOptions =
     transportMode === 'sea' ? RELEASE_TYPE_OPTIONS : [];
+  const masterNoCounts = new Map<string, number>();
   const houseNoCounts = new Map<string, number>();
   for (const group of groups) {
+    const normalizedMasterNo = group.masterNo.trim().toLowerCase();
+    if (normalizedMasterNo) {
+      masterNoCounts.set(
+        normalizedMasterNo,
+        (masterNoCounts.get(normalizedMasterNo) || 0) + 1,
+      );
+    }
     for (const house of group.houses) {
       const normalizedHouseNo = house.houseNo.trim().toLowerCase();
       if (normalizedHouseNo) {
@@ -378,6 +404,10 @@ export function OrderShippingDocumentFields({
               _,
               value: ShippingDocumentFormValue[] | undefined,
             ) => {
+              const duplicateMasterNo = getDuplicateMasterNo(groups);
+              if (duplicateMasterNo) {
+                throw new Error(`主单号 ${duplicateMasterNo} 已在当前操作票中`);
+              }
               const message = getShippingDocumentsValidationMessage(value);
               if (message) {
                 throw new Error(message);
@@ -408,6 +438,10 @@ export function OrderShippingDocumentFields({
               house.note?.trim(),
           );
           const masterMissing = !masterTrimmed && Boolean(groupHasContent);
+          const normalizedMasterNo = masterTrimmed.toLowerCase();
+          const masterDuplicate =
+            Boolean(normalizedMasterNo) &&
+            (masterNoCounts.get(normalizedMasterNo) || 0) > 1;
           const removeGroupButton = (
             <Button
               type="text"
@@ -477,19 +511,23 @@ export function OrderShippingDocumentFields({
                     placeholder={`请输入主单号 (如 ${documentLabels.master}-001)`}
                     maxLength={64}
                     disabled={disabled || groupHasReleased}
-                    status={masterMissing ? 'error' : undefined}
+                    status={
+                      masterMissing || masterDuplicate ? 'error' : undefined
+                    }
                     allowClear
                   />
-                  {masterMissing && (
+                  {(masterMissing || masterDuplicate) && (
                     <div
                       style={{ color: '#ff4d4f', fontSize: 12, marginTop: 2 }}
                     >
-                      请填写主单号
+                      {masterDuplicate
+                        ? '该主单已在当前操作票中，请在原主单组下添加分单'
+                        : '请填写主单号'}
                     </div>
                   )}
                 </div>
 
-                <Tooltip title="相同组织与业务类型下，输入相同主单号将自动关联同一拼载批次（忽略大小写与首尾空格）">
+                <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（忽略大小写与首尾空格）。">
                   <div
                     style={{
                       display: 'inline-flex',
@@ -501,7 +539,7 @@ export function OrderShippingDocumentFields({
                     }}
                   >
                     <InfoCircleOutlined style={{ color: '#1677ff' }} />
-                    <span>自动归集拼载批次</span>
+                    <span>一主多分</span>
                   </div>
                 </Tooltip>
 
@@ -817,7 +855,7 @@ export function OrderShippingDocumentFields({
           );
         })}
 
-        {/* 添加更多主单分组按钮 */}
+        {/* 加拼更多不同主单 */}
         {!disabled && (
           <Button
             type="dashed"
@@ -832,7 +870,7 @@ export function OrderShippingDocumentFields({
               background: '#f9fcff',
             }}
           >
-            添加主单分组 ({documentLabels.master})
+            加拼主单 ({documentLabels.master})
           </Button>
         )}
       </div>
@@ -849,12 +887,15 @@ export function OrderContainerRequestFields({
     <Col span={24}>
       <ProFormList
         name="containerRequests"
-        label="箱型箱量"
-        creatorButtonProps={{ creatorButtonText: '新增箱型箱量' }}
+        label="计划箱型箱量"
+        tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
+        creatorButtonProps={{ creatorButtonText: '新增计划箱型箱量' }}
         creatorRecord={{ containerSpecId: '', quantity: 1 }}
         copyIconProps={false}
-        deleteIconProps={{ tooltipText: '删除该箱型箱量' }}
-        itemContainerRender={(doms) => <div style={{ width: '100%' }}>{doms}</div>}
+        deleteIconProps={{ tooltipText: '删除该计划箱型箱量' }}
+        itemContainerRender={(doms) => (
+          <div style={{ width: '100%' }}>{doms}</div>
+        )}
       >
         <ProFormText name="id" hidden />
         <ProFormSelect

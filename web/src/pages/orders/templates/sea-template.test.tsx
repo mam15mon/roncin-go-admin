@@ -42,12 +42,14 @@ describe('海运订单新增模板', () => {
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('主单 (MBL)');
     expect(transportSection).toHaveTextContent('分单号 (HBL)');
-    expect(transportSection).toHaveTextContent('自动归集拼载批次');
-    expect(transportSection).toHaveTextContent('箱型箱量');
+    expect(transportSection).toHaveTextContent('一主多分');
+    expect(transportSection).toHaveTextContent('计划箱型箱量');
     expect(
-      screen.getByRole('button', { name: /添加主单分组 \(MBL\)/ }),
+      screen.getByRole('button', { name: /加拼主单 \(MBL\)/ }),
     ).toBeTruthy();
-    expect(screen.getByRole('button', { name: /新增箱型箱量/ })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: /新增计划箱型箱量/ }),
+    ).toBeTruthy();
 
     const cargoSection = screen.getByTestId('section-cargoInfo');
     expect(cargoSection).not.toHaveTextContent('主单号');
@@ -87,7 +89,7 @@ describe('海运订单新增模板', () => {
     ).toHaveLength(1);
 
     const addMasterBtn = screen.getByRole('button', {
-      name: /添加主单分组 \(MBL\)/,
+      name: /加拼主单 \(MBL\)/,
     });
     fireEvent.click(addMasterBtn);
 

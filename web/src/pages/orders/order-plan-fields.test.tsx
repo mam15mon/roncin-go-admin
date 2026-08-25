@@ -43,9 +43,7 @@ describe('主分单分组编辑', () => {
       },
     });
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /添加分单 \(HBL\)/ }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: /添加分单 \(HBL\)/ }));
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
@@ -80,9 +78,7 @@ describe('主分单分组编辑', () => {
     fireEvent.change(screen.getByPlaceholderText('请输入分单号 (如 HBL-001)'), {
       target: { value: 'HBL-001' },
     });
-    fireEvent.click(
-      screen.getByRole('button', { name: /添加主单分组 \(MBL\)/ }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: /加拼主单 \(MBL\)/ }));
 
     const masterInputs = screen.getAllByPlaceholderText(
       '请输入主单号 (如 MBL-001)',
@@ -97,6 +93,33 @@ describe('主分单分组编辑', () => {
     await waitFor(() => expect(onFinishFailed).toHaveBeenCalledTimes(1));
     expect(onFinish).not.toHaveBeenCalled();
     expect(screen.getAllByText('分单号重复')).toHaveLength(2);
+  });
+
+  it('当前操作票内不允许重复添加同一主单组', async () => {
+    const { onFinish, onFinishFailed } = renderFields();
+    fireEvent.change(screen.getByPlaceholderText('请输入主单号 (如 MBL-001)'), {
+      target: { value: 'MBL-001' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('请输入分单号 (如 HBL-001)'), {
+      target: { value: 'HBL-001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /加拼主单 \(MBL\)/ }));
+
+    const masterInputs = screen.getAllByPlaceholderText(
+      '请输入主单号 (如 MBL-001)',
+    );
+    const houseInputs = screen.getAllByPlaceholderText(
+      '请输入分单号 (如 HBL-001)',
+    );
+    fireEvent.change(masterInputs[1], { target: { value: '  mbl-001  ' } });
+    fireEvent.change(houseInputs[1], { target: { value: 'HBL-002' } });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(onFinishFailed).toHaveBeenCalledTimes(1));
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(
+      screen.getAllByText('该主单已在当前操作票中，请在原主单组下添加分单'),
+    ).toHaveLength(2);
   });
 
   it('已放货分单及所属主单不可编辑或删除', () => {
