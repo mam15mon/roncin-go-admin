@@ -19,9 +19,9 @@ pnpm run check
 pnpm run build
 ```
 
-其中 `pnpm dev` 会启动本机 PostgreSQL、执行数据库迁移，并并行启动前后端；`dev:web` 与 `dev:server` 用于只启动其中一端。
+其中 `pnpm dev` 会检查 WSL 中运行的本机 PostgreSQL、执行数据库迁移，并并行启动前后端；`dev:web` 与 `dev:server` 用于只启动其中一端。
 
-运行所需环境变量见 `.env.example`。本地开发可通过 Docker Compose 启动 PostgreSQL（或连接已有数据库），按[本地开发说明](docs/local-development.md)配置 `.env.local` 即可。
+运行所需环境变量见 `.env.example`。按[本地开发说明](docs/local-development.md)在 WSL 中安装、启动并配置 PostgreSQL 后，配置 `.env.local` 即可。
 
 ## 行政区划数据
 

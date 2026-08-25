@@ -6,11 +6,6 @@ if (process.platform !== 'linux') {
   throw new Error('开发启动脚本仅支持 Linux');
 }
 
-const dockerExecutable = 'docker';
-if (spawnSync(dockerExecutable, ['--version'], { stdio: 'ignore' }).status !== 0) {
-  throw new Error('未找到可用的 docker CLI，请先安装并启动 Docker');
-}
-
 const databaseSource = process.env.DATABASE_SOURCE;
 if (!databaseSource) {
   throw new Error('.env.local 中缺少 DATABASE_SOURCE');
@@ -24,16 +19,12 @@ if (!['postgres:', 'postgresql:'].includes(databaseUrl.protocol)) {
 const postgresDatabase = decodeURIComponent(databaseUrl.pathname.slice(1));
 const postgresUser = decodeURIComponent(databaseUrl.username);
 const postgresPassword = decodeURIComponent(databaseUrl.password);
+const postgresHost = databaseUrl.hostname || '127.0.0.1';
+const postgresPort = databaseUrl.port || '5432';
+
 if (!postgresDatabase || !postgresUser || !postgresPassword) {
   throw new Error('DATABASE_SOURCE 必须包含数据库名、用户名和密码');
 }
-
-const composeEnvironment = {
-  ...process.env,
-  POSTGRES_DB: postgresDatabase,
-  POSTGRES_USER: postgresUser,
-  POSTGRES_PASSWORD: postgresPassword,
-};
 
 const developmentServerExecutable = fileURLToPath(
   new URL('../server/tmp/roncin-server', import.meta.url),
@@ -66,38 +57,18 @@ function runPnpmScript(script) {
   return runChecked('pnpm', ['run', script]);
 }
 
-function postgresIsReady() {
+function nativePostgresIsReady() {
   return (
     spawnSync(
-      dockerExecutable,
-      [
-        'compose',
-        'exec',
-        '-T',
-        'postgres',
-        'pg_isready',
-        '-U',
-        postgresUser,
-        '-d',
-        postgresDatabase,
-      ],
-      {
-        env: composeEnvironment,
-        stdio: 'ignore',
-      },
+      'pg_isready',
+      ['-h', postgresHost, '-p', postgresPort, '-U', postgresUser, '-d', postgresDatabase],
+      { stdio: 'ignore' },
     ).status === 0
   );
 }
 
-async function waitForPostgres(timeout) {
-  const deadline = Date.now() + timeout;
-  while (Date.now() < deadline) {
-    if (postgresIsReady()) {
-      return true;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  }
-  return false;
+function pgIsReadyIsAvailable() {
+  return spawnSync('pg_isready', ['--version'], { stdio: 'ignore' }).status === 0;
 }
 
 function findExistingDevelopmentServerTrees() {
@@ -154,29 +125,19 @@ function stopExistingDevelopmentServers() {
 }
 
 async function prepareDatabase() {
-  console.log('[dev] 启动 Docker PostgreSQL');
-  await runChecked(
-    dockerExecutable,
-    ['compose', 'up', '-d', 'postgres'],
-    { env: composeEnvironment },
-  );
-
-  console.log('[dev] 等待 Docker PostgreSQL 就绪');
-  if (!(await waitForPostgres(10_000))) {
-    console.log('[dev] Docker PostgreSQL 连续 10 秒无响应，重启容器');
-    await runChecked(
-      dockerExecutable,
-      ['compose', 'restart', 'postgres'],
-      { env: composeEnvironment },
-    );
-  }
-
-  if (!(await waitForPostgres(60_000))) {
+  if (!pgIsReadyIsAvailable()) {
     throw new Error(
-      'Docker PostgreSQL 重启后仍未在 60 秒内就绪，请检查 docker compose logs postgres',
+      '未找到 pg_isready。请在 WSL 中安装 PostgreSQL 客户端后重试。',
     );
   }
 
+  if (!nativePostgresIsReady()) {
+    throw new Error(
+      `本机 PostgreSQL (${postgresHost}:${postgresPort}) 未就绪。请先在 WSL 中启动 PostgreSQL，并确认 DATABASE_SOURCE 对应的数据库和用户可用。`,
+    );
+  }
+
+  console.log(`[dev] 本机 PostgreSQL (${postgresHost}:${postgresPort}) 已就绪`);
   console.log('[dev] 执行数据库迁移');
   await runPnpmScript('migrate:server');
 }

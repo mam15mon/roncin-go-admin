@@ -2,29 +2,42 @@
 
 ## 推荐运行方式
 
-本地开发直接在 Linux / WSL 环境下运行 Go 服务和 Ant Design Pro，PostgreSQL 由 Docker Compose 容器提供。
+本地开发直接在 Linux / WSL 环境下运行 Go 服务、Ant Design Pro 和 PostgreSQL，不依赖 Docker。
 
 ```text
 WSL / Linux
 ├── Go Kratos 服务：8000（HTTP）、9000（gRPC）
 ├── Ant Design Pro：8001（开发服务器）
-└── PostgreSQL：5432（Docker Compose 容器）
+└── PostgreSQL：5432（WSL 本机服务）
 ```
 
-Go 服务与前端均在 Linux / WSL 环境下直接运行，PostgreSQL 容器由 `pnpm dev` 自动拉起与管理。
+所有开发进程均在 Linux / WSL 环境下直接运行。`pnpm dev` 会检查 PostgreSQL 是否就绪，但不会启动或管理数据库服务。
 
-## Docker PostgreSQL
+## PostgreSQL 准备
 
-安装 Docker 后，可手工查看数据库容器状态和日志：
+在 WSL 中安装 PostgreSQL 服务端和客户端，并启动服务：
 
 ```bash
-docker compose --env-file .env.local ps postgres
-docker compose --env-file .env.local logs postgres
+sudo apt update
+sudo apt install postgresql postgresql-client
+sudo service postgresql start
 ```
 
-`pnpm dev` 会自动启动数据库容器，并在容器无响应时重启一次，
-无需日常手工执行上述命令。数据库数据保存在 Docker named volume
-`roncin-go-admin_postgres-data` 中。
+确认服务状态：
+
+```bash
+sudo service postgresql status
+pg_isready -h 127.0.0.1 -p 5432
+```
+
+首次使用时，根据 `.env.local` 中的 `POSTGRES_USER` 和 `POSTGRES_DB` 创建角色与数据库：
+
+```bash
+sudo -u postgres createuser --pwprompt roncin
+sudo -u postgres createdb --owner=roncin roncin_go_admin
+```
+
+命令中的 `roncin` 和 `roncin_go_admin` 应替换为实际配置值。数据库服务的启停和数据目录由 WSL 的 PostgreSQL 服务管理。
 
 ## 环境文件
 
@@ -68,8 +81,8 @@ pnpm run bootstrap:admin
 pnpm dev
 ```
 
-该命令会依次启动 Docker PostgreSQL、执行数据库迁移，然后并行启动后端 Air
-热重载和前端开发服务。Air 会监听 Go、YAML 和 SQL 文件；每次后端重载前
+该命令会先检查本机 PostgreSQL 是否可连接，执行数据库迁移，然后并行启动后端
+Air 热重载和前端开发服务。Air 会监听 Go、YAML 和 SQL 文件；每次后端重载前
 都会执行幂等迁移。修改 Ent Schema 时仍需要按项目约束生成对应迁移 SQL。
 
 打开 `http://localhost:8001/user/login`。前端开发服务器会把 `/api/*` 请求代理到 Go 的 `http://127.0.0.1:8000`。
@@ -100,19 +113,18 @@ pnpm run sync:unlocode -- -source /path/to/loc251csv.zip -release 2025-1
 写事务；解析不完整或存在致命冲突时不会停用现有数据。机场、港口的网络同步
 只更新官方英文信息和来源元数据，不覆盖人工维护的中文名。
 
-## 数据库容器管理
+## 数据库服务管理
 
-停止容器不会删除数据：
-
-```bash
-docker compose --env-file .env.local stop postgres
-```
-
-重新启动数据库：
+停止服务不会删除数据：
 
 ```bash
-docker compose --env-file .env.local up -d postgres
+sudo service postgresql stop
 ```
 
-不要执行 `docker compose --env-file .env.local down -v`，该命令会删除本地数据库
-volume。生产环境是否使用根目录 `Dockerfile`，与本地开发方式互不影响。
+重新启动 PostgreSQL：
+
+```bash
+sudo service postgresql start
+```
+
+生产环境是否使用根目录 `Dockerfile` 或 `compose.yaml`，与本地开发方式互不影响。

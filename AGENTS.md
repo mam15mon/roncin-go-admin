@@ -148,9 +148,9 @@ pnpm --dir web biome:lint
 
 ## 配置、数据与部署
 
-- 当前本地开发环境使用 Docker Compose 运行 PostgreSQL（监听 `127.0.0.1:5432`），
-  `pnpm dev` 会自动拉起容器并等待就绪；若使用本地宿主机 PostgreSQL，确保其在
-  `127.0.0.1:5432` 正常监听并具备对应数据库和用户凭据。
+- 当前本地开发环境在 WSL 中直接运行 PostgreSQL（监听 `127.0.0.1:5432`）。
+  `pnpm dev` 仅检查数据库是否就绪并执行迁移，不会启动或管理数据库服务；运行前
+  确保 PostgreSQL 已启动，且具备 `DATABASE_SOURCE` 对应的数据库和用户凭据。
 - 私密配置只通过环境变量注入；仓库只提交 `.env.example` 和不含凭据的示例
   配置。不要把真实密码、令牌、Cookie、连接串或生产数据写入 Git。
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
