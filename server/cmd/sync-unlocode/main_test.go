@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -92,9 +93,9 @@ func TestReadCodeListFilesRequiresAllParts(t *testing.T) {
 }
 
 func TestResolveSourcePathUsesPnpmInitialDirectory(t *testing.T) {
-	t.Setenv("INIT_CWD", `C:\workspace\roncin-go-admin`)
-	got := resolveSourcePath(`..\roncin\data\UNLOCODE\loc251csv.zip`)
-	want := `C:\workspace\roncin\data\UNLOCODE\loc251csv.zip`
+	t.Setenv("INIT_CWD", filepath.Join(string(filepath.Separator), "workspace", "roncin-go-admin"))
+	got := resolveSourcePath(filepath.Join("..", "roncin", "data", "UNLOCODE", "loc251csv.zip"))
+	want := filepath.Join(string(filepath.Separator), "workspace", "roncin", "data", "UNLOCODE", "loc251csv.zip")
 	if got != want {
 		t.Fatalf("resolveSourcePath() = %q, want %q", got, want)
 	}
