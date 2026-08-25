@@ -7,7 +7,7 @@
 迁移链包含冷启动基础结构和后续增量变更，可从空 PostgreSQL 数据库顺序执行。在
 仓库根目录配置 `.env.local` 的 `DATABASE_SOURCE` 后执行：
 
-```powershell
+```bash
 pnpm run migrate:server
 ```
 

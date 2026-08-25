@@ -2,27 +2,27 @@
 
 ## 推荐运行方式
 
-本地开发直接运行 Go 服务和 Ant Design Pro，PostgreSQL 由 Docker Desktop 提供。
+本地开发直接在 Linux / WSL 环境下运行 Go 服务和 Ant Design Pro，PostgreSQL 由 Docker Compose 容器提供。
 
 ```text
-Windows
+WSL / Linux
 ├── Go Kratos 服务：8000（HTTP）、9000（gRPC）
 ├── Ant Design Pro：8001（开发服务器）
-└── PostgreSQL：5432（Docker Desktop）
+└── PostgreSQL：5432（Docker Compose 容器）
 ```
 
-Docker Desktop 使用 WSL 2 后端；Go 与前端仍直接在 Windows 运行。
+Go 服务与前端均在 Linux / WSL 环境下直接运行，PostgreSQL 容器由 `pnpm dev` 自动拉起与管理。
 
 ## Docker PostgreSQL
 
-安装 Docker Desktop 后，可手工查看数据库容器状态和日志：
+安装 Docker 后，可手工查看数据库容器状态和日志：
 
-```powershell
+```bash
 docker compose --env-file .env.local ps postgres
 docker compose --env-file .env.local logs postgres
 ```
 
-`pnpm dev` 会自动启动 Docker Desktop 和数据库容器，并在容器无响应时重启一次，
+`pnpm dev` 会自动启动数据库容器，并在容器无响应时重启一次，
 无需日常手工执行上述命令。数据库数据保存在 Docker named volume
 `roncin-go-admin_postgres-data` 中。
 
@@ -49,11 +49,11 @@ OTEL_ENABLED=false
 
 先显式执行版本化数据库迁移，再初始化管理员：
 
-```powershell
+```bash
 pnpm run migrate:server
 ```
 
-```powershell
+```bash
 pnpm run bootstrap:admin
 ```
 
@@ -64,7 +64,7 @@ pnpm run bootstrap:admin
 
 在仓库根目录执行一条命令：
 
-```powershell
+```bash
 pnpm dev
 ```
 
@@ -76,9 +76,9 @@ pnpm dev
 
 健康检查：
 
-```powershell
-Invoke-WebRequest http://127.0.0.1:8000/health/live
-Invoke-WebRequest http://127.0.0.1:8000/health/ready
+```bash
+curl http://127.0.0.1:8000/health/live
+curl http://127.0.0.1:8000/health/ready
 ```
 
 ## 行业主数据同步
@@ -86,14 +86,14 @@ Invoke-WebRequest http://127.0.0.1:8000/health/ready
 机场使用 OurAirports 每日数据，可在仓库根目录直接联网同步到
 `BOOTSTRAP_ORGANIZATION_CODE` 指定的组织：
 
-```powershell
+```bash
 pnpm run sync:airports
 ```
 
 港口使用 UNECE UN/LOCODE 官方发布包。下载 ZIP 后必须显式提供文件和版本：
 
-```powershell
-pnpm run sync:unlocode -- -source C:\data\loc251csv.zip -release 2025-1
+```bash
+pnpm run sync:unlocode -- -source /path/to/loc251csv.zip -release 2025-1
 ```
 
 两个命令均会先完成全量解析、标准码冲突检查和组织内异来源冲突检查，再开启
@@ -104,13 +104,13 @@ pnpm run sync:unlocode -- -source C:\data\loc251csv.zip -release 2025-1
 
 停止容器不会删除数据：
 
-```powershell
+```bash
 docker compose --env-file .env.local stop postgres
 ```
 
 重新启动数据库：
 
-```powershell
+```bash
 docker compose --env-file .env.local up -d postgres
 ```
 

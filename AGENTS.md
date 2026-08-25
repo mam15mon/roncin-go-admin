@@ -110,7 +110,7 @@ scripts/                  根目录开发与构建辅助脚本
 
 在仓库根目录执行：
 
-```powershell
+```bash
 pnpm install
 pnpm dev
 pnpm run dev:web
@@ -125,7 +125,7 @@ pnpm run build
 
 服务端生成与局部校验：
 
-```powershell
+```bash
 go -C server test ./...
 go -C server vet ./...
 go -C server generate
@@ -136,7 +136,7 @@ make -C server all
 
 前端局部命令：
 
-```powershell
+```bash
 pnpm --dir web lint
 pnpm --dir web test
 pnpm --dir web tsc
@@ -148,10 +148,9 @@ pnpm --dir web biome:lint
 
 ## 配置、数据与部署
 
-- 当前 Windows 开发环境使用 Scoop 安装的 PostgreSQL，数据目录为
-  `C:\Users\admin\scoop\persist\postgresql\data`，监听 `127.0.0.1:5432`。
-  启动后端前执行 `pg_ctl start` 并等待 PostgreSQL 就绪；若连接被拒绝，先用
-  `pg_ctl status` 检查本机数据库进程。
+- 当前本地开发环境使用 Docker Compose 运行 PostgreSQL（监听 `127.0.0.1:5432`），
+  `pnpm dev` 会自动拉起容器并等待就绪；若使用本地宿主机 PostgreSQL，确保其在
+  `127.0.0.1:5432` 正常监听并具备对应数据库和用户凭据。
 - 私密配置只通过环境变量注入；仓库只提交 `.env.example` 和不含凭据的示例
   配置。不要把真实密码、令牌、Cookie、连接串或生产数据写入 Git。
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
