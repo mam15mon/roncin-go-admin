@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ProForm } from '@ant-design/pro-components';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { getSeaTemplateSections } from './sea-template';
 
 describe('海运订单新增模板', () => {
@@ -40,12 +40,62 @@ describe('海运订单新增模板', () => {
       </ProForm>,
     );
     const transportSection = screen.getByTestId('section-transportInfo');
-    expect(transportSection).toHaveTextContent('主单号 / 分单号');
+    expect(transportSection).toHaveTextContent('主单号');
+    expect(transportSection).toHaveTextContent('分单号');
     expect(transportSection).toHaveTextContent('箱型箱量');
-    expect(screen.getByRole('button', { name: /新增主分单/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /加拼主单号/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /加拼分单号/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /新增箱型箱量/ })).toBeTruthy();
 
     const cargoSection = screen.getByTestId('section-cargoInfo');
-    expect(cargoSection).not.toHaveTextContent('主单号 / 分单号');
+    expect(cargoSection).not.toHaveTextContent('主单号');
+    expect(cargoSection).not.toHaveTextContent('分单号');
+  });
+
+  it('支持加拼主单号与加拼分单号的展开和删除', async () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      currencyOptions: [],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+    });
+
+    render(
+      <ProForm submitter={false}>
+        {sections.map((section) => (
+          <div key={section.key} data-testid={`section-${section.key}`}>
+            {section.content}
+          </div>
+        ))}
+      </ProForm>,
+    );
+
+    // Initial state: no appended lists
+    expect(screen.queryByText('加拼主单号')).toBeNull();
+    expect(screen.queryByText('加拼分单号')).toBeNull();
+
+    // Click append button for master bill
+    const addMasterBtn = screen.getByRole('button', { name: /加拼主单号/ });
+    fireEvent.click(addMasterBtn);
+
+    // Both master and house appended boxes should show row 1
+    expect(screen.getByText('加拼主单号')).toBeTruthy();
+    expect(screen.getByText('加拼分单号')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '删除加拼主单号1' })).toBeTruthy();
+
+    // Click delete button
+    fireEvent.click(screen.getByRole('button', { name: '删除加拼主单号1' }));
+    expect(screen.queryByText('加拼主单号')).toBeNull();
+    expect(screen.queryByText('加拼分单号')).toBeNull();
   });
 });

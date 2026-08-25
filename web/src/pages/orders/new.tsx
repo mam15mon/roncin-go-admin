@@ -426,7 +426,13 @@ export default function NewOrderPage() {
         allocationNotes: values.allocationNotes?.trim() || undefined,
         operationNotes: values.operationNotes?.trim() || undefined,
         personnelAssignments,
-        shippingDocuments: values.shippingDocuments,
+        shippingDocuments: values.shippingDocuments
+          ?.map((doc) => ({
+            ...doc,
+            masterNo: doc.masterNo?.trim() || '',
+            houseNo: doc.houseNo?.trim() || '',
+          }))
+          .filter((doc) => doc.masterNo || doc.houseNo),
         containerRequests: values.containerRequests,
       };
 
