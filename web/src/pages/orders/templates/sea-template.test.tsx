@@ -33,13 +33,19 @@ describe('海运订单新增模板', () => {
     render(
       <ProForm submitter={false}>
         {sections.map((section) => (
-          <div key={section.key}>{section.content}</div>
+          <div key={section.key} data-testid={`section-${section.key}`}>
+            {section.content}
+          </div>
         ))}
       </ProForm>,
     );
-    expect(screen.getByText('主单号 / 分单号')).toBeTruthy();
+    const transportSection = screen.getByTestId('section-transportInfo');
+    expect(transportSection).toHaveTextContent('主单号 / 分单号');
+    expect(transportSection).toHaveTextContent('箱型箱量');
     expect(screen.getByRole('button', { name: /新增主分单/ })).toBeTruthy();
-    expect(screen.getByText('箱型箱量')).toBeTruthy();
     expect(screen.getByRole('button', { name: /新增箱型箱量/ })).toBeTruthy();
+
+    const cargoSection = screen.getByTestId('section-cargoInfo');
+    expect(cargoSection).not.toHaveTextContent('主单号 / 分单号');
   });
 });

@@ -595,6 +595,8 @@ export function getSeaTemplateSections(
       title: '配舱信息',
       content: (
         <>
+          <OrderShippingDocumentFields />
+
           {/* 第 1 行：航线 4 港口（一行 4 个，各占 6 栅格） */}
           <ProFormSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
@@ -680,8 +682,6 @@ export function getSeaTemplateSections(
       title: '提单信息',
       content: (
         <>
-          <OrderShippingDocumentFields />
-
           {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}
           <ProFormTextArea
             colProps={{ xs: 24, lg: 12 }}
