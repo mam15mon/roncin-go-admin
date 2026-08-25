@@ -453,29 +453,32 @@ export function getSeaTemplateSections(
                   placeholder="金额"
                   maxLength={23}
                   suffix={
-                    <Form.Item
-                      noStyle
-                      name="cargoCurrency"
-                      dependencies={['cargoValue']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('cargoValue') || value) return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <Select
-                        showSearch
-                        optionFilterProp="label"
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
+                    <span onMouseDown={(e) => e.stopPropagation()}>
+                      <Form.Item
+                        noStyle
+                        name="cargoCurrency"
+                        dependencies={['cargoValue']}
+                        rules={[
+                          ({ getFieldValue }) => ({
+                            validator: async (_, value) => {
+                              if (!getFieldValue('cargoValue') || value) return;
+                              throw new Error('请选择币种');
+                            },
+                          }),
+                        ]}
+                      >
+                        <Select
+                          showSearch
+                          optionFilterProp="label"
+                          popupMatchSelectWidth={false}
+                          options={currencyOptions}
+                          placeholder="币种"
+                          size="small"
+                          variant="borderless"
+                          style={{ width: 72, height: 21 }}
+                        />
+                      </Form.Item>
+                    </span>
                   }
                 />
               </Form.Item>
@@ -503,30 +506,33 @@ export function getSeaTemplateSections(
                   placeholder="金额"
                   maxLength={23}
                   suffix={
-                    <Form.Item
-                      noStyle
-                      name="insuranceCurrency"
-                      dependencies={['insurancePremium']}
-                      rules={[
-                        ({ getFieldValue }) => ({
-                          validator: async (_, value) => {
-                            if (!getFieldValue('insurancePremium') || value)
-                              return;
-                            throw new Error('请选择币种');
-                          },
-                        }),
-                      ]}
-                    >
-                      <Select
-                        showSearch
-                        optionFilterProp="label"
-                        options={currencyOptions}
-                        placeholder="币种"
-                        size="small"
-                        variant="borderless"
-                        style={{ width: 72, height: 21 }}
-                      />
-                    </Form.Item>
+                    <span onMouseDown={(e) => e.stopPropagation()}>
+                      <Form.Item
+                        noStyle
+                        name="insuranceCurrency"
+                        dependencies={['insurancePremium']}
+                        rules={[
+                          ({ getFieldValue }) => ({
+                            validator: async (_, value) => {
+                              if (!getFieldValue('insurancePremium') || value)
+                                return;
+                              throw new Error('请选择币种');
+                            },
+                          }),
+                        ]}
+                      >
+                        <Select
+                          showSearch
+                          optionFilterProp="label"
+                          popupMatchSelectWidth={false}
+                          options={currencyOptions}
+                          placeholder="币种"
+                          size="small"
+                          variant="borderless"
+                          style={{ width: 72, height: 21 }}
+                        />
+                      </Form.Item>
+                    </span>
                   }
                 />
               </Form.Item>

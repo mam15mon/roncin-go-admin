@@ -98,4 +98,42 @@ describe('海运订单新增模板', () => {
     expect(screen.queryByText('加拼主单号')).toBeNull();
     expect(screen.queryByText('加拼分单号')).toBeNull();
   });
+
+  it('渲染货值与保费的金额及币种选择框', () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      currencyOptions: [
+        { label: 'CNY - 人民币', value: 'CNY' },
+        { label: 'USD - 美元', value: 'USD' },
+      ],
+      containerSpecOptions: [],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+    });
+
+    render(
+      <ProForm submitter={false}>
+        {sections.map((section) => (
+          <div key={section.key} data-testid={`section-${section.key}`}>
+            {section.content}
+          </div>
+        ))}
+      </ProForm>,
+    );
+
+    const cargoInputs = screen.getAllByPlaceholderText('金额');
+    expect(cargoInputs.length).toBe(2);
+
+    const currencySelects = screen.getAllByRole('combobox');
+    expect(currencySelects.length).toBeGreaterThanOrEqual(2);
+  });
 });
