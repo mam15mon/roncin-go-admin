@@ -195,8 +195,12 @@ message OrderShippingDocumentInput {
   optional string id = 1;
   string master_no = 2 [(google.api.field_behavior) = REQUIRED];
   string house_no = 3 [(google.api.field_behavior) = REQUIRED];
+  // release_type 是分单（HBL）签放方式。
   optional string release_type = 4;
   optional string note = 5;
+  // 主单属性存储在共享的主单批次，同一主单组内必须一致。
+  optional string master_document_type = 6;
+  optional string master_release_method = 7;
 }
 
 // OrderContainerRequestInput 订单订舱阶段的箱型箱量输入。

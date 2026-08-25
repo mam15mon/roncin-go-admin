@@ -72,6 +72,8 @@ message OrderShippingDocument {
   string created_at = 8;
   string updated_at = 9;
   string consolidation_id = 10;
+  optional string master_document_type = 11;
+  optional string master_release_method = 12;
 }
 
 // ListShippingDocumentsRequest 获取提单列表请求。
@@ -86,6 +88,8 @@ message AddShippingDocumentRequest {
   string house_no = 3 [(google.api.field_behavior) = REQUIRED];
   optional string release_type = 4;
   optional string note = 5;
+  optional string master_document_type = 6;
+  optional string master_release_method = 7;
 }
 
 // UpdateShippingDocumentRequest 更新提单字段请求。
@@ -96,6 +100,8 @@ message UpdateShippingDocumentRequest {
   string house_no = 4 [(google.api.field_behavior) = REQUIRED];
   optional string release_type = 5;
   optional string note = 6;
+  optional string master_document_type = 7;
+  optional string master_release_method = 8;
 }
 
 // TransitionShippingDocumentStatusRequest 流转提单状态请求。

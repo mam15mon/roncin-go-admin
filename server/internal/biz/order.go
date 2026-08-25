@@ -389,6 +389,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		}
 	}
 	houseNumbers := make(map[string]struct{}, len(output.ShippingDocuments))
+	masterAttributes := make(map[string][2]string, len(output.ShippingDocuments))
 	for index, document := range output.ShippingDocuments {
 		normalized, err := normalizeOrderShippingDocument(document)
 		if err != nil {
@@ -398,6 +399,12 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 			return nil, ErrOrderShippingDocumentExists
 		}
 		houseNumbers[strings.ToLower(normalized.HouseNo)] = struct{}{}
+		masterKey := strings.ToLower(normalized.MasterNo)
+		attributes := [2]string{stringPointerValue(normalized.MasterDocumentType), stringPointerValue(normalized.MasterReleaseMethod)}
+		if existing, exists := masterAttributes[masterKey]; exists && existing != attributes {
+			return nil, ErrOrderInvalidArgument
+		}
+		masterAttributes[masterKey] = attributes
 		output.ShippingDocuments[index] = normalized
 	}
 	containerSpecs := make(map[uuid.UUID]struct{}, len(output.ContainerRequests))
@@ -433,6 +440,13 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, err
 	}
 	return &output, nil
+}
+
+func stringPointerValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 var cargoValuePattern = regexp.MustCompile(`^(0|[1-9]\d{0,17})(\.\d{1,4})?$`)

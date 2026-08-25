@@ -51,7 +51,7 @@ func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, 
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	orderID, input, err := orderShippingDocumentInputFromAPI(request.GetOrderId(), request.GetMasterNo(), request.GetHouseNo(), request.GetReleaseType(), request.GetNote())
+	orderID, input, err := orderShippingDocumentInputFromAPI(request.GetOrderId(), request.GetMasterNo(), request.GetHouseNo(), request.ReleaseType, request.Note, request.MasterDocumentType, request.MasterReleaseMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Contex
 	if err != nil {
 		return nil, biz.ErrOrderShippingDocumentInvalidArgument
 	}
-	orderID, input, err := orderShippingDocumentInputFromAPI(request.GetOrderId(), request.GetMasterNo(), request.GetHouseNo(), request.GetReleaseType(), request.GetNote())
+	orderID, input, err := orderShippingDocumentInputFromAPI(request.GetOrderId(), request.GetMasterNo(), request.GetHouseNo(), request.ReleaseType, request.Note, request.MasterDocumentType, request.MasterReleaseMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -136,33 +136,33 @@ func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Contex
 
 func orderShippingDocumentToAPI(value *biz.OrderShippingDocument) *v1.OrderShippingDocument {
 	return &v1.OrderShippingDocument{
-		Id:              value.ID.String(),
-		OrderId:         value.OrderID.String(),
-		MasterNo:        value.MasterNo,
-		ConsolidationId: value.ConsolidationID.String(),
-		HouseNo:         value.HouseNo,
-		ReleaseType:     value.ReleaseType,
-		Status:          orderShippingDocumentStatusToAPI(value.Status),
-		Note:            value.Note,
-		CreatedAt:       value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:       value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:                  value.ID.String(),
+		OrderId:             value.OrderID.String(),
+		MasterNo:            value.MasterNo,
+		MasterDocumentType:  value.MasterDocumentType,
+		MasterReleaseMethod: value.MasterReleaseMethod,
+		ConsolidationId:     value.ConsolidationID.String(),
+		HouseNo:             value.HouseNo,
+		ReleaseType:         value.ReleaseType,
+		Status:              orderShippingDocumentStatusToAPI(value.Status),
+		Note:                value.Note,
+		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 
-func orderShippingDocumentInputFromAPI(orderIDText, masterNo, houseNo, releaseType, note string) (uuid.UUID, *biz.OrderShippingDocument, error) {
+func orderShippingDocumentInputFromAPI(orderIDText, masterNo, houseNo string, releaseType, note, masterDocumentType, masterReleaseMethod *string) (uuid.UUID, *biz.OrderShippingDocument, error) {
 	orderID, err := uuid.Parse(orderIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderShippingDocumentInvalidArgument
 	}
 	input := &biz.OrderShippingDocument{
-		MasterNo: masterNo,
-		HouseNo:  houseNo,
-	}
-	if releaseType != "" {
-		input.ReleaseType = &releaseType
-	}
-	if note != "" {
-		input.Note = &note
+		MasterNo:            masterNo,
+		MasterDocumentType:  optionalStringPointer(masterDocumentType),
+		MasterReleaseMethod: optionalStringPointer(masterReleaseMethod),
+		HouseNo:             houseNo,
+		ReleaseType:         optionalStringPointer(releaseType),
+		Note:                optionalStringPointer(note),
 	}
 	return orderID, input, nil
 }

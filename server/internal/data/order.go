@@ -582,7 +582,7 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 		remaining[item.ID] = item
 	}
 	for _, input := range inputs {
-		consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, businessType, input.MasterNo)
+		consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, businessType, input)
 		if err != nil {
 			return err
 		}
@@ -619,26 +619,45 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 	return nil
 }
 
-func resolveOrderConsolidation(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType biz.OrderBusinessType, masterNo string) (*ent.OrderConsolidation, error) {
-	normalizedMasterNo := strings.ToLower(masterNo)
+func resolveOrderConsolidation(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType biz.OrderBusinessType, input *biz.OrderShippingDocument) (*ent.OrderConsolidation, error) {
+	normalizedMasterNo := strings.ToLower(input.MasterNo)
 	consolidation, err := tx.OrderConsolidation.Query().Where(
 		orderconsolidationent.OrganizationIDEQ(organizationID),
 		orderconsolidationent.BusinessTypeEQ(orderconsolidationent.BusinessType(businessType)),
 		orderconsolidationent.NormalizedMasterNoEQ(normalizedMasterNo),
 	).Only(ctx)
 	if err == nil {
+		builder := consolidation.Update()
+		changed := false
+		if input.MasterDocumentType != nil {
+			builder.SetDocumentType(*input.MasterDocumentType)
+			changed = true
+		}
+		if input.MasterReleaseMethod != nil {
+			builder.SetReleaseMethod(*input.MasterReleaseMethod)
+			changed = true
+		}
+		if changed {
+			return builder.Save(ctx)
+		}
 		return consolidation, nil
 	}
 	if !ent.IsNotFound(err) {
 		return nil, err
 	}
-	return tx.OrderConsolidation.Create().
+	builder := tx.OrderConsolidation.Create().
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetBusinessType(orderconsolidationent.BusinessType(businessType)).
-		SetMasterNo(masterNo).
-		SetNormalizedMasterNo(normalizedMasterNo).
-		Save(ctx)
+		SetMasterNo(input.MasterNo).
+		SetNormalizedMasterNo(normalizedMasterNo)
+	if input.MasterDocumentType != nil {
+		builder.SetDocumentType(*input.MasterDocumentType)
+	}
+	if input.MasterReleaseMethod != nil {
+		builder.SetReleaseMethod(*input.MasterReleaseMethod)
+	}
+	return builder.Save(ctx)
 }
 
 func setShippingDocumentOptionalFieldsOnCreate(builder *ent.OrderShippingDocumentCreate, input *biz.OrderShippingDocument) {

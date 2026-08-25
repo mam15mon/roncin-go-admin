@@ -141,7 +141,7 @@ func TestResolveOrderConsolidationReusesSharedBatch(t *testing.T) {
 		mock.ExpectQuery(`SELECT "order_consolidations"\."id"`).
 			WithArgs(organizationID, "SE", "mbl-001").
 			WillReturnRows(consolidationRows(consolidationID, organizationID, "MBL-001"))
-		batch, resolveErr := resolveOrderConsolidation(context.Background(), tx, organizationID, biz.OrderBusinessSE, "MBL-001")
+		batch, resolveErr := resolveOrderConsolidation(context.Background(), tx, organizationID, biz.OrderBusinessSE, &biz.OrderShippingDocument{MasterNo: "MBL-001"})
 		if resolveErr != nil {
 			t.Fatalf("解析拼载批次失败: %v", resolveErr)
 		}

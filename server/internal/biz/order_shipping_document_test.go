@@ -139,11 +139,15 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 	orgID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 
 	baseValidInput := func() *OrderShippingDocument {
+		masterDocumentType := "ORIGINAL_BL"
+		masterReleaseMethod := "TELEX_RELEASE"
 		return &OrderShippingDocument{
-			MasterNo:    "MBL123456",
-			HouseNo:     "HBL123456",
-			ReleaseType: stringPtr("ORIGINAL"),
-			Note:        stringPtr("test note"),
+			MasterNo:            "MBL123456",
+			MasterDocumentType:  &masterDocumentType,
+			MasterReleaseMethod: &masterReleaseMethod,
+			HouseNo:             "HBL123456",
+			ReleaseType:         stringPtr("ORIGINAL"),
+			Note:                stringPtr("test note"),
 		}
 	}
 
@@ -189,6 +193,19 @@ func TestOrderShippingDocumentAddValidatesAndAudits(t *testing.T) {
 		in.ReleaseType = stringPtr(strings.Repeat("R", 65))
 		if _, err := usecase.Add(context.Background(), orgID, actorID, orderID, in); err != ErrOrderShippingDocumentInvalidArgument {
 			t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for long releaseType, got %v", err)
+		}
+	}
+
+	for _, field := range []string{"document_type", "release_method"} {
+		in := baseValidInput()
+		value := strings.Repeat("M", 65)
+		if field == "document_type" {
+			in.MasterDocumentType = &value
+		} else {
+			in.MasterReleaseMethod = &value
+		}
+		if _, err := usecase.Add(context.Background(), orgID, actorID, orderID, in); err != ErrOrderShippingDocumentInvalidArgument {
+			t.Fatalf("expected ErrOrderShippingDocumentInvalidArgument for long master %s, got %v", field, err)
 		}
 	}
 

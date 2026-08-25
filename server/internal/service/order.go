@@ -489,6 +489,7 @@ func shippingDocumentsFromAPI(values []*v1.OrderShippingDocumentInput) ([]*biz.O
 		}
 		result = append(result, &biz.OrderShippingDocument{
 			ID: id, MasterNo: value.GetMasterNo(), HouseNo: value.GetHouseNo(),
+			MasterDocumentType: optionalStringPointer(value.MasterDocumentType), MasterReleaseMethod: optionalStringPointer(value.MasterReleaseMethod),
 			ReleaseType: optionalStringPointer(value.ReleaseType), Note: optionalStringPointer(value.Note),
 		})
 	}

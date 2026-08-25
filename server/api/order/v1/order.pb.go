@@ -971,14 +971,18 @@ func (x *Order) GetContainerRequests() []*OrderContainerRequest {
 
 // OrderShippingDocumentInput 订单表单中的主分单输入。
 type OrderShippingDocumentInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
-	MasterNo      string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	HouseNo       string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	ReleaseType   *string                `protobuf:"bytes,4,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
-	Note          *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	MasterNo string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	HouseNo  string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	// release_type 是分单（HBL）签放方式。
+	ReleaseType *string `protobuf:"bytes,4,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Note        *string `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	// 主单属性存储在共享的主单批次，同一主单组内必须一致。
+	MasterDocumentType  *string `protobuf:"bytes,6,opt,name=master_document_type,json=masterDocumentType,proto3,oneof" json:"master_document_type,omitempty"`
+	MasterReleaseMethod *string `protobuf:"bytes,7,opt,name=master_release_method,json=masterReleaseMethod,proto3,oneof" json:"master_release_method,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *OrderShippingDocumentInput) Reset() {
@@ -1042,6 +1046,20 @@ func (x *OrderShippingDocumentInput) GetReleaseType() string {
 func (x *OrderShippingDocumentInput) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetMasterDocumentType() string {
+	if x != nil && x.MasterDocumentType != nil {
+		return *x.MasterDocumentType
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetMasterReleaseMethod() string {
+	if x != nil && x.MasterReleaseMethod != nil {
+		return *x.MasterReleaseMethod
 	}
 	return ""
 }
@@ -3502,16 +3520,20 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xd5\x01\n" +
+	"\x10_operation_notes\"\xf8\x02\n" +
 	"\x1aOrderShippingDocumentInput\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12 \n" +
 	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\x1e\n" +
 	"\bhouse_no\x18\x03 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12&\n" +
 	"\frelease_type\x18\x04 \x01(\tH\x01R\vreleaseType\x88\x01\x01\x12\x17\n" +
-	"\x04note\x18\x05 \x01(\tH\x02R\x04note\x88\x01\x01B\x05\n" +
+	"\x04note\x18\x05 \x01(\tH\x02R\x04note\x88\x01\x01\x125\n" +
+	"\x14master_document_type\x18\x06 \x01(\tH\x03R\x12masterDocumentType\x88\x01\x01\x127\n" +
+	"\x15master_release_method\x18\a \x01(\tH\x04R\x13masterReleaseMethod\x88\x01\x01B\x05\n" +
 	"\x03_idB\x0f\n" +
 	"\r_release_typeB\a\n" +
-	"\x05_note\"\x8a\x01\n" +
+	"\x05_noteB\x17\n" +
+	"\x15_master_document_typeB\x18\n" +
+	"\x16_master_release_method\"\x8a\x01\n" +
 	"\x1aOrderContainerRequestInput\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12/\n" +
 	"\x11container_spec_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x12\x1f\n" +

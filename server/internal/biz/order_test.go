@@ -163,12 +163,14 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testing.T) {
 	container20GP := uuid.New()
 	container40HQ := uuid.New()
+	masterDocumentType := "ORIGINAL_BL"
+	masterReleaseMethod := "TELEX_RELEASE"
 	input := &Order{
 		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ShippingDocuments: []*OrderShippingDocument{
-			{MasterNo: " MBL-001 ", HouseNo: " HBL-001 "},
-			{MasterNo: " MBL-001 ", HouseNo: " HBL-002 "},
+			{MasterNo: " MBL-001 ", MasterDocumentType: &masterDocumentType, MasterReleaseMethod: &masterReleaseMethod, HouseNo: " HBL-001 "},
+			{MasterNo: " MBL-001 ", MasterDocumentType: &masterDocumentType, MasterReleaseMethod: &masterReleaseMethod, HouseNo: " HBL-002 "},
 		},
 		ContainerRequests: []*OrderContainerRequest{
 			{ContainerSpecID: container20GP, Quantity: 2},
@@ -182,6 +184,19 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 	}
 	if normalized.ShippingDocuments[0].MasterNo != "MBL-001" || normalized.ShippingDocuments[1].HouseNo != "HBL-002" {
 		t.Fatalf("normalized shipping documents = %#v", normalized.ShippingDocuments)
+	}
+	if stringPointerValue(normalized.ShippingDocuments[0].MasterDocumentType) != masterDocumentType || stringPointerValue(normalized.ShippingDocuments[1].MasterReleaseMethod) != masterReleaseMethod {
+		t.Fatalf("normalized master attributes = %#v", normalized.ShippingDocuments)
+	}
+
+	inconsistentMaster := *input
+	differentReleaseMethod := "ORIGINAL"
+	inconsistentMaster.ShippingDocuments = []*OrderShippingDocument{
+		{MasterNo: "MBL-001", MasterDocumentType: &masterDocumentType, MasterReleaseMethod: &masterReleaseMethod, HouseNo: "HBL-001"},
+		{MasterNo: "mbl-001", MasterDocumentType: &masterDocumentType, MasterReleaseMethod: &differentReleaseMethod, HouseNo: "HBL-002"},
+	}
+	if _, err := normalizeOrder(&inconsistentMaster, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("inconsistent master attributes error = %v, want ErrOrderInvalidArgument", err)
 	}
 
 	duplicateHouse := *input

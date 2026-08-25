@@ -5896,6 +5896,10 @@ components:
                     type: string
                 note:
                     type: string
+                masterDocumentType:
+                    type: string
+                masterReleaseMethod:
+                    type: string
             description: AddShippingDocumentRequest 添加提单请求。
         order.v1.AddShippingDocumentResponse:
             type: object
@@ -6887,6 +6891,10 @@ components:
                     type: string
                 consolidationId:
                     type: string
+                masterDocumentType:
+                    type: string
+                masterReleaseMethod:
+                    type: string
             description: OrderShippingDocument 提单信息。
         order.v1.OrderShippingDocumentInput:
             required:
@@ -6902,7 +6910,13 @@ components:
                     type: string
                 releaseType:
                     type: string
+                    description: release_type 是分单（HBL）签放方式。
                 note:
+                    type: string
+                masterDocumentType:
+                    type: string
+                    description: 主单属性存储在共享的主单批次，同一主单组内必须一致。
+                masterReleaseMethod:
                     type: string
             description: OrderShippingDocumentInput 订单表单中的主分单输入。
         order.v1.RegisterAttachmentRequest:
@@ -7548,6 +7562,10 @@ components:
                 releaseType:
                     type: string
                 note:
+                    type: string
+                masterDocumentType:
+                    type: string
+                masterReleaseMethod:
                     type: string
             description: UpdateShippingDocumentRequest 更新提单字段请求。
         order.v1.UpdateShippingDocumentResponse:

@@ -49,16 +49,18 @@ func validShippingDocumentTransition(from, to OrderShippingDocumentStatus) bool 
 }
 
 type OrderShippingDocument struct {
-	ID              uuid.UUID
-	OrderID         uuid.UUID
-	ConsolidationID uuid.UUID
-	MasterNo        string
-	HouseNo         string
-	ReleaseType     *string
-	Status          OrderShippingDocumentStatus
-	Note            *string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                  uuid.UUID
+	OrderID             uuid.UUID
+	ConsolidationID     uuid.UUID
+	MasterNo            string
+	MasterDocumentType  *string
+	MasterReleaseMethod *string
+	HouseNo             string
+	ReleaseType         *string
+	Status              OrderShippingDocumentStatus
+	Note                *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 type OrderShippingDocumentRepo interface {
@@ -187,6 +189,26 @@ func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippin
 			releaseType = &v
 		}
 	}
+	var masterDocumentType *string
+	if input.MasterDocumentType != nil {
+		v := strings.TrimSpace(*input.MasterDocumentType)
+		if v != "" {
+			if utf8.RuneCountInString(v) > 64 {
+				return nil, ErrOrderShippingDocumentInvalidArgument
+			}
+			masterDocumentType = &v
+		}
+	}
+	var masterReleaseMethod *string
+	if input.MasterReleaseMethod != nil {
+		v := strings.TrimSpace(*input.MasterReleaseMethod)
+		if v != "" {
+			if utf8.RuneCountInString(v) > 64 {
+				return nil, ErrOrderShippingDocumentInvalidArgument
+			}
+			masterReleaseMethod = &v
+		}
+	}
 	var note *string
 	if input.Note != nil {
 		v := strings.TrimSpace(*input.Note)
@@ -199,6 +221,8 @@ func normalizeOrderShippingDocument(input *OrderShippingDocument) (*OrderShippin
 	}
 	output := *input
 	output.MasterNo = masterNo
+	output.MasterDocumentType = masterDocumentType
+	output.MasterReleaseMethod = masterReleaseMethod
 	output.HouseNo = houseNo
 	output.ReleaseType = releaseType
 	output.Note = note

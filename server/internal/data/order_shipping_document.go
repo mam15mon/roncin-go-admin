@@ -58,7 +58,7 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 	if err != nil {
 		return nil, err
 	}
-	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input.MasterNo)
+	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -121,7 +121,7 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderShippingDocumentInvalidStatus
 	}
-	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input.MasterNo)
+	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -265,14 +265,16 @@ func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShipp
 		return nil
 	}
 	result := &biz.OrderShippingDocument{
-		ID:              item.ID,
-		OrderID:         item.OrderID,
-		ConsolidationID: item.ConsolidationID,
-		MasterNo:        item.Edges.Consolidation.MasterNo,
-		HouseNo:         item.HouseNo,
-		Status:          biz.OrderShippingDocumentStatus(item.Status),
-		CreatedAt:       item.CreatedAt,
-		UpdatedAt:       item.UpdatedAt,
+		ID:                  item.ID,
+		OrderID:             item.OrderID,
+		ConsolidationID:     item.ConsolidationID,
+		MasterNo:            item.Edges.Consolidation.MasterNo,
+		MasterDocumentType:  optionalEntString(item.Edges.Consolidation.DocumentType),
+		MasterReleaseMethod: optionalEntString(item.Edges.Consolidation.ReleaseMethod),
+		HouseNo:             item.HouseNo,
+		Status:              biz.OrderShippingDocumentStatus(item.Status),
+		CreatedAt:           item.CreatedAt,
+		UpdatedAt:           item.UpdatedAt,
 	}
 	if item.ReleaseType != "" {
 		v := item.ReleaseType
@@ -283,6 +285,14 @@ func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShipp
 		result.Note = &v
 	}
 	return result
+}
+
+func optionalEntString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	copy := value
+	return &copy
 }
 
 var _ biz.OrderShippingDocumentRepo = (*orderShippingDocumentRepo)(nil)
