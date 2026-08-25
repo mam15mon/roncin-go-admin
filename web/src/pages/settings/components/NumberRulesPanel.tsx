@@ -56,16 +56,6 @@ export interface DocTypeMeta {
 
 export const DOC_TYPES: DocTypeMeta[] = [
   { key: 'DOCUMENT_TYPE_ORDER', numValue: 1, label: '订单编号设置', shortLabel: '订单', color: 'blue', defaultPrefix: '', businessCodes: ['SE', 'SI', 'AE', 'AI'] },
-  { key: 'DOCUMENT_TYPE_BILL', numValue: 2, label: '账单编号设置', shortLabel: '账单', color: 'orange', defaultPrefix: 'BI' },
-  { key: 'DOCUMENT_TYPE_QUOTATION', numValue: 3, label: '报价编号设置', shortLabel: '报价', color: 'cyan', defaultPrefix: 'QO' },
-  { key: 'DOCUMENT_TYPE_WRITE_OFF', numValue: 4, label: '核销编号设置', shortLabel: '核销', color: 'purple', defaultPrefix: 'WO' },
-  { key: 'DOCUMENT_TYPE_RECEIPT_PAYMENT', numValue: 5, label: '收付编号设置', shortLabel: '收付', color: 'green', defaultPrefix: 'PR' },
-  { key: 'DOCUMENT_TYPE_CONTRACT', numValue: 6, label: '合同号设置', shortLabel: '合同', color: 'gold', defaultPrefix: 'CT' },
-  { key: 'DOCUMENT_TYPE_INTERNAL_REFERENCE', numValue: 7, label: '企业内部编号设置', shortLabel: '企业内部', color: 'geekblue', defaultPrefix: '' },
-  { key: 'DOCUMENT_TYPE_CUSTOMER_REFERENCE', numValue: 8, label: '客户业务编号设置', shortLabel: '客户业务', color: 'lime', defaultPrefix: '' },
-  { key: 'DOCUMENT_TYPE_HOUSE_BILL', numValue: 9, label: '分单号设置', shortLabel: '分单', color: 'magenta', defaultPrefix: '' },
-  { key: 'DOCUMENT_TYPE_INVOICE', numValue: 11, label: '发票号设置', shortLabel: '发票', color: 'red', defaultPrefix: '' },
-  { key: 'DOCUMENT_TYPE_FREIGHT_RATE', numValue: 12, label: '运价编号设置', shortLabel: '运价', color: 'gold', defaultPrefix: 'FR' },
 ];
 
 const docTypeMap = new Map<string | number, DocTypeMeta>();
@@ -75,6 +65,10 @@ DOC_TYPES.forEach((t) => {
   docTypeMap.set(String(t.numValue), t);
   docTypeMap.set(t.key.replace('DOCUMENT_TYPE_', ''), t);
 });
+
+export function filterVisibleNumberRules(rules: API.NumberRule[]): API.NumberRule[] {
+  return rules.filter((rule) => docTypeMap.has(rule.documentType as any));
+}
 
 // 2. 日期格式枚举映射 (支持字符串与数字双向兼容)
 const DATE_FORMATS: Record<string | number, { label: string; formatStr: string; numValue: number }> = {
@@ -133,7 +127,7 @@ export function NumberRulesPanel() {
     try {
       const res = await masterDataServiceListNumberRules({});
       setData(
-        [...(res.data || [])].sort((left, right) => {
+        filterVisibleNumberRules(res.data || []).sort((left, right) => {
           const leftOrder = docTypeMap.get(left.documentType as any)?.numValue ?? Number.MAX_SAFE_INTEGER;
           const rightOrder = docTypeMap.get(right.documentType as any)?.numValue ?? Number.MAX_SAFE_INTEGER;
           return leftOrder - rightOrder;
@@ -390,10 +384,10 @@ export function NumberRulesPanel() {
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0, 0, 0, 0.88)' }}>
-                业务单据编号规则设置
+                订单编号规则设置
               </div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                12 类业务编号独立配置；订单按 SE、SI、AE、AI 自动选择业务编号
+                当前仅订单编号已接入业务流程，按 SE、SI、AE、AI 自动拼接业务代码
               </Text>
             </div>
           </Space>
@@ -420,25 +414,27 @@ export function NumberRulesPanel() {
             <Button icon={<ReloadOutlined />} onClick={fetchRules}>
               刷新
             </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingItem(null);
-                form.resetFields();
-                form.setFieldsValue({
-                  documentType: 1,
-                  prefix: 'OR',
-                  dateFormat: 1,
-                  sequenceLength: 4,
-                  resetPolicy: 1,
-                  enabled: true,
-                });
-                setModalOpen(true);
-              }}
-            >
-              新增规则
-            </Button>
+            {data.length === 0 && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setEditingItem(null);
+                  form.resetFields();
+                  form.setFieldsValue({
+                    documentType: 1,
+                    prefix: '',
+                    dateFormat: 1,
+                    sequenceLength: 5,
+                    resetPolicy: 1,
+                    enabled: true,
+                  });
+                  setModalOpen(true);
+                }}
+              >
+                新建订单编号规则
+              </Button>
+            )}
           </Space>
         </div>
       </Card>
@@ -647,7 +643,7 @@ export function NumberRulesPanel() {
 
       {/* 3. Create / Edit Modal Form */}
       <ModalForm
-        title={editingItem ? `编辑单号规则 - ${docTypeMap.get(editingItem.documentType as any)?.shortLabel || ''}` : '新建单号生成规则'}
+        title={editingItem ? '编辑订单编号规则' : '新建订单编号规则'}
         open={modalOpen}
         form={form}
         onOpenChange={setModalOpen}
@@ -665,7 +661,7 @@ export function NumberRulesPanel() {
             name="documentType"
             label="单据类型"
             options={DOC_TYPES.map((t) => ({ label: t.label, value: t.numValue }))}
-            placeholder="请选择要编号的业务单据"
+            placeholder="请选择单据类型"
             rules={[{ required: true, message: '请选择单据类型' }]}
             disabled={Boolean(editingItem)}
           />
@@ -674,7 +670,7 @@ export function NumberRulesPanel() {
           <ProFormText
             name="prefix"
             label="前缀代码"
-            placeholder="可选，例如：BI、QO、WO"
+            placeholder="可选，例如：OR"
             rules={[
               { pattern: /^[A-Za-z0-9_-]*$/, message: '仅支持字母、数字与下划线' },
             ]}
