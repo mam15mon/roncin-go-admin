@@ -38,6 +38,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -122,6 +123,8 @@ type Client struct {
 	OrderCargoCategory *OrderCargoCategoryClient
 	// OrderCargoItem is the client for interacting with the OrderCargoItem builders.
 	OrderCargoItem *OrderCargoItemClient
+	// OrderConsolidation is the client for interacting with the OrderConsolidation builders.
+	OrderConsolidation *OrderConsolidationClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
@@ -221,6 +224,7 @@ func (c *Client) init() {
 	c.OrderAttachment = NewOrderAttachmentClient(c.config)
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
 	c.OrderCargoItem = NewOrderCargoItemClient(c.config)
+	c.OrderConsolidation = NewOrderConsolidationClient(c.config)
 	c.OrderContainer = NewOrderContainerClient(c.config)
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
 	c.OrderFee = NewOrderFeeClient(c.config)
@@ -368,6 +372,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderAttachment:             NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:              NewOrderCargoItemClient(cfg),
+		OrderConsolidation:          NewOrderConsolidationClient(cfg),
 		OrderContainer:              NewOrderContainerClient(cfg),
 		OrderContainerRequest:       NewOrderContainerRequestClient(cfg),
 		OrderFee:                    NewOrderFeeClient(cfg),
@@ -442,6 +447,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderAttachment:             NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:          NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:              NewOrderCargoItemClient(cfg),
+		OrderConsolidation:          NewOrderConsolidationClient(cfg),
 		OrderContainer:              NewOrderContainerClient(cfg),
 		OrderContainerRequest:       NewOrderContainerRequestClient(cfg),
 		OrderFee:                    NewOrderFeeClient(cfg),
@@ -509,13 +515,14 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FeeSetting, c.LoginRateLimitBucket, c.MasterDataItem, c.Membership,
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
 		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
 		c.TaxableService, c.User,
 	} {
@@ -532,13 +539,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FeeSetting, c.LoginRateLimitBucket, c.MasterDataItem, c.Membership,
 		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
 		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
+		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
 		c.TaxableService, c.User,
 	} {
@@ -593,6 +601,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderCargoCategory.mutate(ctx, m)
 	case *OrderCargoItemMutation:
 		return c.OrderCargoItem.mutate(ctx, m)
+	case *OrderConsolidationMutation:
+		return c.OrderConsolidation.mutate(ctx, m)
 	case *OrderContainerMutation:
 		return c.OrderContainer.mutate(ctx, m)
 	case *OrderContainerRequestMutation:
@@ -4294,6 +4304,171 @@ func (c *OrderCargoItemClient) mutate(ctx context.Context, m *OrderCargoItemMuta
 	}
 }
 
+// OrderConsolidationClient is a client for the OrderConsolidation schema.
+type OrderConsolidationClient struct {
+	config
+}
+
+// NewOrderConsolidationClient returns a client for the OrderConsolidation from the given config.
+func NewOrderConsolidationClient(c config) *OrderConsolidationClient {
+	return &OrderConsolidationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderconsolidation.Hooks(f(g(h())))`.
+func (c *OrderConsolidationClient) Use(hooks ...Hook) {
+	c.hooks.OrderConsolidation = append(c.hooks.OrderConsolidation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderconsolidation.Intercept(f(g(h())))`.
+func (c *OrderConsolidationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderConsolidation = append(c.inters.OrderConsolidation, interceptors...)
+}
+
+// Create returns a builder for creating a OrderConsolidation entity.
+func (c *OrderConsolidationClient) Create() *OrderConsolidationCreate {
+	mutation := newOrderConsolidationMutation(c.config, OpCreate)
+	return &OrderConsolidationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderConsolidation entities.
+func (c *OrderConsolidationClient) CreateBulk(builders ...*OrderConsolidationCreate) *OrderConsolidationCreateBulk {
+	return &OrderConsolidationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderConsolidationClient) MapCreateBulk(slice any, setFunc func(*OrderConsolidationCreate, int)) *OrderConsolidationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderConsolidationCreateBulk{err: fmt.Errorf("calling to OrderConsolidationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderConsolidationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderConsolidationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderConsolidation.
+func (c *OrderConsolidationClient) Update() *OrderConsolidationUpdate {
+	mutation := newOrderConsolidationMutation(c.config, OpUpdate)
+	return &OrderConsolidationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderConsolidationClient) UpdateOne(_m *OrderConsolidation) *OrderConsolidationUpdateOne {
+	mutation := newOrderConsolidationMutation(c.config, OpUpdateOne, withOrderConsolidation(_m))
+	return &OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderConsolidationClient) UpdateOneID(id uuid.UUID) *OrderConsolidationUpdateOne {
+	mutation := newOrderConsolidationMutation(c.config, OpUpdateOne, withOrderConsolidationID(id))
+	return &OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderConsolidation.
+func (c *OrderConsolidationClient) Delete() *OrderConsolidationDelete {
+	mutation := newOrderConsolidationMutation(c.config, OpDelete)
+	return &OrderConsolidationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderConsolidationClient) DeleteOne(_m *OrderConsolidation) *OrderConsolidationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderConsolidationClient) DeleteOneID(id uuid.UUID) *OrderConsolidationDeleteOne {
+	builder := c.Delete().Where(orderconsolidation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderConsolidationDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderConsolidation.
+func (c *OrderConsolidationClient) Query() *OrderConsolidationQuery {
+	return &OrderConsolidationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderConsolidation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderConsolidation entity by its id.
+func (c *OrderConsolidationClient) Get(ctx context.Context, id uuid.UUID) (*OrderConsolidation, error) {
+	return c.Query().Where(orderconsolidation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderConsolidationClient) GetX(ctx context.Context, id uuid.UUID) *OrderConsolidation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderConsolidation.
+func (c *OrderConsolidationClient) QueryOrganization(_m *OrderConsolidation) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderconsolidation.OrganizationTable, orderconsolidation.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShippingDocuments queries the shipping_documents edge of a OrderConsolidation.
+func (c *OrderConsolidationClient) QueryShippingDocuments(_m *OrderConsolidation) *OrderShippingDocumentQuery {
+	query := (&OrderShippingDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderconsolidation.Table, orderconsolidation.FieldID, id),
+			sqlgraph.To(ordershippingdocument.Table, ordershippingdocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderconsolidation.ShippingDocumentsTable, orderconsolidation.ShippingDocumentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderConsolidationClient) Hooks() []Hook {
+	return c.hooks.OrderConsolidation
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderConsolidationClient) Interceptors() []Interceptor {
+	return c.inters.OrderConsolidation
+}
+
+func (c *OrderConsolidationClient) mutate(ctx context.Context, m *OrderConsolidationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderConsolidationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderConsolidationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderConsolidationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderConsolidationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderConsolidation mutation op: %q", m.Op())
+	}
+}
+
 // OrderContainerClient is a client for the OrderContainer schema.
 type OrderContainerClient struct {
 	config
@@ -5573,6 +5748,22 @@ func (c *OrderShippingDocumentClient) QueryOrder(_m *OrderShippingDocument) *Ord
 	return query
 }
 
+// QueryConsolidation queries the consolidation edge of a OrderShippingDocument.
+func (c *OrderShippingDocumentClient) QueryConsolidation(_m *OrderShippingDocument) *OrderConsolidationQuery {
+	query := (&OrderConsolidationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordershippingdocument.Table, ordershippingdocument.FieldID, id),
+			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordershippingdocument.ConsolidationTable, ordershippingdocument.ConsolidationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryContainers queries the containers edge of a OrderShippingDocument.
 func (c *OrderShippingDocumentClient) QueryContainers(_m *OrderShippingDocument) *OrderContainerQuery {
 	query := (&OrderContainerClient{config: c.config}).Query()
@@ -6200,6 +6391,22 @@ func (c *OrganizationClient) QueryOrders(_m *Organization) *OrderQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrdersTable, organization.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderConsolidations queries the order_consolidations edge of a Organization.
+func (c *OrganizationClient) QueryOrderConsolidations(_m *Organization) *OrderConsolidationQuery {
+	query := (&OrderConsolidationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderConsolidationsTable, organization.OrderConsolidationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -10130,14 +10337,14 @@ type (
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
 		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Port,
-		Role, RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -10145,14 +10352,14 @@ type (
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
 		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
-		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Port,
-		Role, RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Interceptor
 	}
 )

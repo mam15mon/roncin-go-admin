@@ -6885,6 +6885,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                consolidationId:
+                    type: string
             description: OrderShippingDocument 提单信息。
         order.v1.OrderShippingDocumentInput:
             required:

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
@@ -32,7 +34,7 @@ func setupTestOrderShippingDocumentRepo(t *testing.T) (biz.OrderShippingDocument
 	return repo, mock, cleanup
 }
 
-func shippingDocRows(id, orderID uuid.UUID, masterNo, houseNo, status string) *sqlmock.Rows {
+func shippingDocRows(id, orderID, consolidationID uuid.UUID, houseNo, status string) *sqlmock.Rows {
 	now := time.Now()
 	rows := sqlmock.NewRows(ordershippingdocumentent.Columns)
 	values := make([]driver.Value, len(ordershippingdocumentent.Columns))
@@ -42,8 +44,8 @@ func shippingDocRows(id, orderID uuid.UUID, masterNo, houseNo, status string) *s
 			values[i] = id
 		case ordershippingdocumentent.FieldOrderID:
 			values[i] = orderID
-		case ordershippingdocumentent.FieldMasterNo:
-			values[i] = masterNo
+		case ordershippingdocumentent.FieldConsolidationID:
+			values[i] = consolidationID
 		case ordershippingdocumentent.FieldHouseNo:
 			values[i] = houseNo
 		case ordershippingdocumentent.FieldStatus:
@@ -58,12 +60,37 @@ func shippingDocRows(id, orderID uuid.UUID, masterNo, houseNo, status string) *s
 	return rows
 }
 
+func consolidationRows(id, organizationID uuid.UUID, masterNo string) *sqlmock.Rows {
+	now := time.Now()
+	rows := sqlmock.NewRows(orderconsolidationent.Columns)
+	values := make([]driver.Value, len(orderconsolidationent.Columns))
+	for i, col := range orderconsolidationent.Columns {
+		switch col {
+		case orderconsolidationent.FieldID:
+			values[i] = id
+		case orderconsolidationent.FieldOrganizationID:
+			values[i] = organizationID
+		case orderconsolidationent.FieldBusinessType:
+			values[i] = "SE"
+		case orderconsolidationent.FieldMasterNo:
+			values[i] = masterNo
+		case orderconsolidationent.FieldNormalizedMasterNo:
+			values[i] = strings.ToLower(masterNo)
+		case orderconsolidationent.FieldCreatedAt, orderconsolidationent.FieldUpdatedAt:
+			values[i] = now
+		}
+	}
+	rows.AddRow(values...)
+	return rows
+}
+
 func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 	repo, mock, cleanup := setupTestOrderShippingDocumentRepo(t)
 	defer cleanup()
 
 	orgID := uuid.New()
 	orderID := uuid.New()
+	consolidationID := uuid.New()
 	input := &biz.OrderShippingDocument{
 		ID:       uuid.New(),
 		MasterNo: "MBL999999",
@@ -75,6 +102,9 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		WillReturnRows(orderRows(orderID, orgID))
 
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "order_consolidations"\."id"`).
+		WithArgs(orgID, "SE", "mbl999999").
+		WillReturnRows(consolidationRows(consolidationID, orgID, "MBL999999"))
 
 	// Unique constraint error with Postgres constraint name
 	mock.ExpectExec(`INSERT INTO "order_shipping_documents"`).
@@ -92,6 +122,42 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 	}
 }
 
+func TestResolveOrderConsolidationReusesSharedBatch(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("创建 sqlmock 失败: %v", err)
+	}
+	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
+	defer client.Close()
+
+	organizationID := uuid.New()
+	consolidationID := uuid.New()
+	mock.ExpectBegin()
+	tx, err := client.Tx(context.Background())
+	if err != nil {
+		t.Fatalf("开启事务失败: %v", err)
+	}
+	for range 2 {
+		mock.ExpectQuery(`SELECT "order_consolidations"\."id"`).
+			WithArgs(organizationID, "SE", "mbl-001").
+			WillReturnRows(consolidationRows(consolidationID, organizationID, "MBL-001"))
+		batch, resolveErr := resolveOrderConsolidation(context.Background(), tx, organizationID, biz.OrderBusinessSE, "MBL-001")
+		if resolveErr != nil {
+			t.Fatalf("解析拼载批次失败: %v", resolveErr)
+		}
+		if batch.ID != consolidationID {
+			t.Fatalf("拼载批次 ID = %s，期望 %s", batch.ID, consolidationID)
+		}
+	}
+	mock.ExpectRollback()
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("回滚事务失败: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("未满足 sqlmock 期望: %v", err)
+	}
+}
+
 func TestOrderShippingDocumentRepo_Remove_ReleasedStatusPrevented(t *testing.T) {
 	repo, mock, cleanup := setupTestOrderShippingDocumentRepo(t)
 	defer cleanup()
@@ -99,6 +165,7 @@ func TestOrderShippingDocumentRepo_Remove_ReleasedStatusPrevented(t *testing.T) 
 	orgID := uuid.New()
 	orderID := uuid.New()
 	docID := uuid.New()
+	consolidationID := uuid.New()
 
 	mock.ExpectQuery(`SELECT "orders"\."id"`).
 		WithArgs(orderID, orgID).
@@ -109,7 +176,7 @@ func TestOrderShippingDocumentRepo_Remove_ReleasedStatusPrevented(t *testing.T) 
 	// ForUpdate returns document with RELEASED status
 	mock.ExpectQuery(`SELECT "order_shipping_documents"\."id".*FOR UPDATE`).
 		WithArgs(docID, orderID).
-		WillReturnRows(shippingDocRows(docID, orderID, "MBL999", "HBL999", "RELEASED"))
+		WillReturnRows(shippingDocRows(docID, orderID, consolidationID, "HBL999", "RELEASED"))
 
 	mock.ExpectRollback()
 
@@ -131,6 +198,7 @@ func TestOrderShippingDocumentRepo_Remove_AuditErrorRollsBack(t *testing.T) {
 	actorID := uuid.New()
 	orderID := uuid.New()
 	docID := uuid.New()
+	consolidationID := uuid.New()
 	audit := &biz.AuditEvent{
 		OrganizationID: &orgID,
 		UserID:         &actorID,
@@ -142,7 +210,7 @@ func TestOrderShippingDocumentRepo_Remove_AuditErrorRollsBack(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT "order_shipping_documents"\."id".*FOR UPDATE`).
 		WithArgs(docID, orderID).
-		WillReturnRows(shippingDocRows(docID, orderID, "MBL001", "HBL001", "DRAFT"))
+		WillReturnRows(shippingDocRows(docID, orderID, consolidationID, "HBL001", "DRAFT"))
 	mock.ExpectExec(`DELETE FROM "order_shipping_documents"`).
 		WithArgs(docID, orderID).
 		WillReturnResult(sqlmock.NewResult(0, 1))

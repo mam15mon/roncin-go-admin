@@ -10685,6 +10685,9 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "consolidationId": {
+            "type": "string"
           }
         },
         "description": "OrderShippingDocument 提单信息。"

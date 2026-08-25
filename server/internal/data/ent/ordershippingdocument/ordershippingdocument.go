@@ -22,8 +22,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
-	// FieldMasterNo holds the string denoting the master_no field in the database.
-	FieldMasterNo = "master_no"
+	// FieldConsolidationID holds the string denoting the consolidation_id field in the database.
+	FieldConsolidationID = "consolidation_id"
 	// FieldHouseNo holds the string denoting the house_no field in the database.
 	FieldHouseNo = "house_no"
 	// FieldReleaseType holds the string denoting the release_type field in the database.
@@ -34,6 +34,8 @@ const (
 	FieldNote = "note"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
+	// EdgeConsolidation holds the string denoting the consolidation edge name in mutations.
+	EdgeConsolidation = "consolidation"
 	// EdgeContainers holds the string denoting the containers edge name in mutations.
 	EdgeContainers = "containers"
 	// EdgeReleasePods holds the string denoting the release_pods edge name in mutations.
@@ -47,6 +49,13 @@ const (
 	OrderInverseTable = "orders"
 	// OrderColumn is the table column denoting the order relation/edge.
 	OrderColumn = "order_id"
+	// ConsolidationTable is the table that holds the consolidation relation/edge.
+	ConsolidationTable = "order_shipping_documents"
+	// ConsolidationInverseTable is the table name for the OrderConsolidation entity.
+	// It exists in this package in order to avoid circular dependency with the "orderconsolidation" package.
+	ConsolidationInverseTable = "order_consolidations"
+	// ConsolidationColumn is the table column denoting the consolidation relation/edge.
+	ConsolidationColumn = "consolidation_id"
 	// ContainersTable is the table that holds the containers relation/edge.
 	ContainersTable = "order_containers"
 	// ContainersInverseTable is the table name for the OrderContainer entity.
@@ -69,7 +78,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrderID,
-	FieldMasterNo,
+	FieldConsolidationID,
 	FieldHouseNo,
 	FieldReleaseType,
 	FieldStatus,
@@ -93,8 +102,6 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
-	MasterNoValidator func(string) error
 	// HouseNoValidator is a validator for the "house_no" field. It is called by the builders before save.
 	HouseNoValidator func(string) error
 	// ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
@@ -155,9 +162,9 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
 }
 
-// ByMasterNo orders the results by the master_no field.
-func ByMasterNo(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMasterNo, opts...).ToFunc()
+// ByConsolidationID orders the results by the consolidation_id field.
+func ByConsolidationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConsolidationID, opts...).ToFunc()
 }
 
 // ByHouseNo orders the results by the house_no field.
@@ -184,6 +191,13 @@ func ByNote(opts ...sql.OrderTermOption) OrderOption {
 func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByConsolidationField orders the results by consolidation field.
+func ByConsolidationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConsolidationStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -219,6 +233,13 @@ func newOrderStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrderTable, OrderColumn),
+	)
+}
+func newConsolidationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConsolidationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConsolidationTable, ConsolidationColumn),
 	)
 }
 func newContainersStep() *sqlgraph.Step {

@@ -78,18 +78,19 @@ func (OrderShippingDocumentStatus) EnumDescriptor() ([]byte, []int) {
 
 // OrderShippingDocument 提单信息。
 type OrderShippingDocument struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Id            string                      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId       string                      `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	MasterNo      string                      `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	HouseNo       string                      `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	ReleaseType   *string                     `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
-	Status        OrderShippingDocumentStatus `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderShippingDocumentStatus" json:"status,omitempty"`
-	Note          *string                     `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	CreatedAt     string                      `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                      `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState      `protogen:"open.v1"`
+	Id              string                      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId         string                      `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	MasterNo        string                      `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	HouseNo         string                      `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	ReleaseType     *string                     `protobuf:"bytes,5,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Status          OrderShippingDocumentStatus `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderShippingDocumentStatus" json:"status,omitempty"`
+	Note            *string                     `protobuf:"bytes,7,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	CreatedAt       string                      `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       string                      `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ConsolidationId string                      `protobuf:"bytes,10,opt,name=consolidation_id,json=consolidationId,proto3" json:"consolidation_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *OrderShippingDocument) Reset() {
@@ -181,6 +182,13 @@ func (x *OrderShippingDocument) GetCreatedAt() string {
 func (x *OrderShippingDocument) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *OrderShippingDocument) GetConsolidationId() string {
+	if x != nil {
+		return x.ConsolidationId
 	}
 	return ""
 }
@@ -893,7 +901,7 @@ var File_order_v1_order_shipping_document_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"\n" +
-	"&order/v1/order_shipping_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xd2\x02\n" +
+	"&order/v1/order_shipping_document.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xfd\x02\n" +
 	"\x15OrderShippingDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1b\n" +
@@ -905,7 +913,9 @@ const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAtB\x0f\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\x12)\n" +
+	"\x10consolidation_id\x18\n" +
+	" \x01(\tR\x0fconsolidationIdB\x0f\n" +
 	"\r_release_typeB\a\n" +
 	"\x05_note\">\n" +
 	"\x1cListShippingDocumentsRequest\x12\x1e\n" +

@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -65,6 +66,7 @@ type OrganizationQuery struct {
 	withStatusTemplates               *StatusTemplateQuery
 	withMilestoneTemplates            *MilestoneTemplateQuery
 	withOrders                        *OrderQuery
+	withOrderConsolidations           *OrderConsolidationQuery
 	withOrderPersonnel                *OrderPersonnelQuery
 	withBackgroundTasks               *BackgroundTaskQuery
 	modifiers                         []func(*sql.Selector)
@@ -544,6 +546,28 @@ func (_q *OrganizationQuery) QueryOrders() *OrderQuery {
 	return query
 }
 
+// QueryOrderConsolidations chains the current query on the "order_consolidations" edge.
+func (_q *OrganizationQuery) QueryOrderConsolidations() *OrderConsolidationQuery {
+	query := (&OrderConsolidationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderconsolidation.Table, orderconsolidation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderConsolidationsTable, organization.OrderConsolidationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryOrderPersonnel chains the current query on the "order_personnel" edge.
 func (_q *OrganizationQuery) QueryOrderPersonnel() *OrderPersonnelQuery {
 	query := (&OrderPersonnelClient{config: _q.config}).Query()
@@ -800,6 +824,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withStatusTemplates:               _q.withStatusTemplates.Clone(),
 		withMilestoneTemplates:            _q.withMilestoneTemplates.Clone(),
 		withOrders:                        _q.withOrders.Clone(),
+		withOrderConsolidations:           _q.withOrderConsolidations.Clone(),
 		withOrderPersonnel:                _q.withOrderPersonnel.Clone(),
 		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		// clone intermediate query.
@@ -1028,6 +1053,17 @@ func (_q *OrganizationQuery) WithOrders(opts ...func(*OrderQuery)) *Organization
 	return _q
 }
 
+// WithOrderConsolidations tells the query-builder to eager-load the nodes that are connected to
+// the "order_consolidations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderConsolidations(opts ...func(*OrderConsolidationQuery)) *OrganizationQuery {
+	query := (&OrderConsolidationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderConsolidations = query
+	return _q
+}
+
 // WithOrderPersonnel tells the query-builder to eager-load the nodes that are connected to
 // the "order_personnel" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithOrderPersonnel(opts ...func(*OrderPersonnelQuery)) *OrganizationQuery {
@@ -1128,7 +1164,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [22]bool{
+		loadedTypes = [23]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1149,6 +1185,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withStatusTemplates != nil,
 			_q.withMilestoneTemplates != nil,
 			_q.withOrders != nil,
+			_q.withOrderConsolidations != nil,
 			_q.withOrderPersonnel != nil,
 			_q.withBackgroundTasks != nil,
 		}
@@ -1316,6 +1353,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadOrders(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Orders = []*Order{} },
 			func(n *Organization, e *Order) { n.Edges.Orders = append(n.Edges.Orders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderConsolidations; query != nil {
+		if err := _q.loadOrderConsolidations(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderConsolidations = []*OrderConsolidation{} },
+			func(n *Organization, e *OrderConsolidation) {
+				n.Edges.OrderConsolidations = append(n.Edges.OrderConsolidations, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1926,6 +1972,36 @@ func (_q *OrganizationQuery) loadOrders(ctx context.Context, query *OrderQuery, 
 	}
 	query.Where(predicate.Order(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.OrdersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderConsolidations(ctx context.Context, query *OrderConsolidationQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderConsolidation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderconsolidation.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderConsolidation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderConsolidationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

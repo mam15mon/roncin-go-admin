@@ -71,9 +71,9 @@ func OrderID(v uuid.UUID) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.FieldEQ(FieldOrderID, v))
 }
 
-// MasterNo applies equality check predicate on the "master_no" field. It's identical to MasterNoEQ.
-func MasterNo(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldEQ(FieldMasterNo, v))
+// ConsolidationID applies equality check predicate on the "consolidation_id" field. It's identical to ConsolidationIDEQ.
+func ConsolidationID(v uuid.UUID) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(sql.FieldEQ(FieldConsolidationID, v))
 }
 
 // HouseNo applies equality check predicate on the "house_no" field. It's identical to HouseNoEQ.
@@ -191,69 +191,24 @@ func OrderIDNotIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(sql.FieldNotIn(FieldOrderID, vs...))
 }
 
-// MasterNoEQ applies the EQ predicate on the "master_no" field.
-func MasterNoEQ(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldEQ(FieldMasterNo, v))
+// ConsolidationIDEQ applies the EQ predicate on the "consolidation_id" field.
+func ConsolidationIDEQ(v uuid.UUID) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(sql.FieldEQ(FieldConsolidationID, v))
 }
 
-// MasterNoNEQ applies the NEQ predicate on the "master_no" field.
-func MasterNoNEQ(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldNEQ(FieldMasterNo, v))
+// ConsolidationIDNEQ applies the NEQ predicate on the "consolidation_id" field.
+func ConsolidationIDNEQ(v uuid.UUID) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(sql.FieldNEQ(FieldConsolidationID, v))
 }
 
-// MasterNoIn applies the In predicate on the "master_no" field.
-func MasterNoIn(vs ...string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldIn(FieldMasterNo, vs...))
+// ConsolidationIDIn applies the In predicate on the "consolidation_id" field.
+func ConsolidationIDIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(sql.FieldIn(FieldConsolidationID, vs...))
 }
 
-// MasterNoNotIn applies the NotIn predicate on the "master_no" field.
-func MasterNoNotIn(vs ...string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldNotIn(FieldMasterNo, vs...))
-}
-
-// MasterNoGT applies the GT predicate on the "master_no" field.
-func MasterNoGT(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldGT(FieldMasterNo, v))
-}
-
-// MasterNoGTE applies the GTE predicate on the "master_no" field.
-func MasterNoGTE(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldGTE(FieldMasterNo, v))
-}
-
-// MasterNoLT applies the LT predicate on the "master_no" field.
-func MasterNoLT(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldLT(FieldMasterNo, v))
-}
-
-// MasterNoLTE applies the LTE predicate on the "master_no" field.
-func MasterNoLTE(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldLTE(FieldMasterNo, v))
-}
-
-// MasterNoContains applies the Contains predicate on the "master_no" field.
-func MasterNoContains(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldContains(FieldMasterNo, v))
-}
-
-// MasterNoHasPrefix applies the HasPrefix predicate on the "master_no" field.
-func MasterNoHasPrefix(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldHasPrefix(FieldMasterNo, v))
-}
-
-// MasterNoHasSuffix applies the HasSuffix predicate on the "master_no" field.
-func MasterNoHasSuffix(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldHasSuffix(FieldMasterNo, v))
-}
-
-// MasterNoEqualFold applies the EqualFold predicate on the "master_no" field.
-func MasterNoEqualFold(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldEqualFold(FieldMasterNo, v))
-}
-
-// MasterNoContainsFold applies the ContainsFold predicate on the "master_no" field.
-func MasterNoContainsFold(v string) predicate.OrderShippingDocument {
-	return predicate.OrderShippingDocument(sql.FieldContainsFold(FieldMasterNo, v))
+// ConsolidationIDNotIn applies the NotIn predicate on the "consolidation_id" field.
+func ConsolidationIDNotIn(vs ...uuid.UUID) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(sql.FieldNotIn(FieldConsolidationID, vs...))
 }
 
 // HouseNoEQ applies the EQ predicate on the "house_no" field.
@@ -506,6 +461,29 @@ func HasOrder() predicate.OrderShippingDocument {
 func HasOrderWith(preds ...predicate.Order) predicate.OrderShippingDocument {
 	return predicate.OrderShippingDocument(func(s *sql.Selector) {
 		step := newOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConsolidation applies the HasEdge predicate on the "consolidation" edge.
+func HasConsolidation() predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConsolidationTable, ConsolidationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConsolidationWith applies the HasEdge predicate on the "consolidation" edge with a given conditions (other predicates).
+func HasConsolidationWith(preds ...predicate.OrderConsolidation) predicate.OrderShippingDocument {
+	return predicate.OrderShippingDocument(func(s *sql.Selector) {
+		step := newConsolidationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

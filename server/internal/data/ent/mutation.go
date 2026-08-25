@@ -35,6 +35,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -103,6 +104,7 @@ const (
 	TypeOrderAttachment             = "OrderAttachment"
 	TypeOrderCargoCategory          = "OrderCargoCategory"
 	TypeOrderCargoItem              = "OrderCargoItem"
+	TypeOrderConsolidation          = "OrderConsolidation"
 	TypeOrderContainer              = "OrderContainer"
 	TypeOrderContainerRequest       = "OrderContainerRequest"
 	TypeOrderFee                    = "OrderFee"
@@ -25150,6 +25152,747 @@ func (m *OrderCargoItemMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderCargoItem edge %s", name)
 }
 
+// OrderConsolidationMutation represents an operation that mutates the OrderConsolidation nodes in the graph.
+type OrderConsolidationMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	business_type             *orderconsolidation.BusinessType
+	master_no                 *string
+	normalized_master_no      *string
+	clearedFields             map[string]struct{}
+	organization              *uuid.UUID
+	clearedorganization       bool
+	shipping_documents        map[uuid.UUID]struct{}
+	removedshipping_documents map[uuid.UUID]struct{}
+	clearedshipping_documents bool
+	done                      bool
+	oldValue                  func(context.Context) (*OrderConsolidation, error)
+	predicates                []predicate.OrderConsolidation
+}
+
+var _ ent.Mutation = (*OrderConsolidationMutation)(nil)
+
+// orderconsolidationOption allows management of the mutation configuration using functional options.
+type orderconsolidationOption func(*OrderConsolidationMutation)
+
+// newOrderConsolidationMutation creates new mutation for the OrderConsolidation entity.
+func newOrderConsolidationMutation(c config, op Op, opts ...orderconsolidationOption) *OrderConsolidationMutation {
+	m := &OrderConsolidationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderConsolidation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderConsolidationID sets the ID field of the mutation.
+func withOrderConsolidationID(id uuid.UUID) orderconsolidationOption {
+	return func(m *OrderConsolidationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderConsolidation
+		)
+		m.oldValue = func(ctx context.Context) (*OrderConsolidation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderConsolidation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderConsolidation sets the old OrderConsolidation of the mutation.
+func withOrderConsolidation(node *OrderConsolidation) orderconsolidationOption {
+	return func(m *OrderConsolidationMutation) {
+		m.oldValue = func(context.Context) (*OrderConsolidation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderConsolidationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderConsolidationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderConsolidation entities.
+func (m *OrderConsolidationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderConsolidationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderConsolidationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderConsolidation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderConsolidationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderConsolidationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderConsolidationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderConsolidationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderConsolidationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderConsolidationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderConsolidationMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderConsolidationMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderConsolidationMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *OrderConsolidationMutation) SetBusinessType(ot orderconsolidation.BusinessType) {
+	m.business_type = &ot
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *OrderConsolidationMutation) BusinessType() (r orderconsolidation.BusinessType, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldBusinessType(ctx context.Context) (v orderconsolidation.BusinessType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *OrderConsolidationMutation) ResetBusinessType() {
+	m.business_type = nil
+}
+
+// SetMasterNo sets the "master_no" field.
+func (m *OrderConsolidationMutation) SetMasterNo(s string) {
+	m.master_no = &s
+}
+
+// MasterNo returns the value of the "master_no" field in the mutation.
+func (m *OrderConsolidationMutation) MasterNo() (r string, exists bool) {
+	v := m.master_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterNo returns the old "master_no" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldMasterNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterNo: %w", err)
+	}
+	return oldValue.MasterNo, nil
+}
+
+// ResetMasterNo resets all changes to the "master_no" field.
+func (m *OrderConsolidationMutation) ResetMasterNo() {
+	m.master_no = nil
+}
+
+// SetNormalizedMasterNo sets the "normalized_master_no" field.
+func (m *OrderConsolidationMutation) SetNormalizedMasterNo(s string) {
+	m.normalized_master_no = &s
+}
+
+// NormalizedMasterNo returns the value of the "normalized_master_no" field in the mutation.
+func (m *OrderConsolidationMutation) NormalizedMasterNo() (r string, exists bool) {
+	v := m.normalized_master_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNormalizedMasterNo returns the old "normalized_master_no" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldNormalizedMasterNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNormalizedMasterNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNormalizedMasterNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNormalizedMasterNo: %w", err)
+	}
+	return oldValue.NormalizedMasterNo, nil
+}
+
+// ResetNormalizedMasterNo resets all changes to the "normalized_master_no" field.
+func (m *OrderConsolidationMutation) ResetNormalizedMasterNo() {
+	m.normalized_master_no = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderConsolidationMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderconsolidation.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderConsolidationMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderConsolidationMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderConsolidationMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// AddShippingDocumentIDs adds the "shipping_documents" edge to the OrderShippingDocument entity by ids.
+func (m *OrderConsolidationMutation) AddShippingDocumentIDs(ids ...uuid.UUID) {
+	if m.shipping_documents == nil {
+		m.shipping_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.shipping_documents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShippingDocuments clears the "shipping_documents" edge to the OrderShippingDocument entity.
+func (m *OrderConsolidationMutation) ClearShippingDocuments() {
+	m.clearedshipping_documents = true
+}
+
+// ShippingDocumentsCleared reports if the "shipping_documents" edge to the OrderShippingDocument entity was cleared.
+func (m *OrderConsolidationMutation) ShippingDocumentsCleared() bool {
+	return m.clearedshipping_documents
+}
+
+// RemoveShippingDocumentIDs removes the "shipping_documents" edge to the OrderShippingDocument entity by IDs.
+func (m *OrderConsolidationMutation) RemoveShippingDocumentIDs(ids ...uuid.UUID) {
+	if m.removedshipping_documents == nil {
+		m.removedshipping_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.shipping_documents, ids[i])
+		m.removedshipping_documents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShippingDocuments returns the removed IDs of the "shipping_documents" edge to the OrderShippingDocument entity.
+func (m *OrderConsolidationMutation) RemovedShippingDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedshipping_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShippingDocumentsIDs returns the "shipping_documents" edge IDs in the mutation.
+func (m *OrderConsolidationMutation) ShippingDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.shipping_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShippingDocuments resets all changes to the "shipping_documents" edge.
+func (m *OrderConsolidationMutation) ResetShippingDocuments() {
+	m.shipping_documents = nil
+	m.clearedshipping_documents = false
+	m.removedshipping_documents = nil
+}
+
+// Where appends a list predicates to the OrderConsolidationMutation builder.
+func (m *OrderConsolidationMutation) Where(ps ...predicate.OrderConsolidation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderConsolidationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderConsolidationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderConsolidation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderConsolidationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderConsolidationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderConsolidation).
+func (m *OrderConsolidationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderConsolidationMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, orderconsolidation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderconsolidation.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderconsolidation.FieldOrganizationID)
+	}
+	if m.business_type != nil {
+		fields = append(fields, orderconsolidation.FieldBusinessType)
+	}
+	if m.master_no != nil {
+		fields = append(fields, orderconsolidation.FieldMasterNo)
+	}
+	if m.normalized_master_no != nil {
+		fields = append(fields, orderconsolidation.FieldNormalizedMasterNo)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderConsolidationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderconsolidation.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderconsolidation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderconsolidation.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderconsolidation.FieldBusinessType:
+		return m.BusinessType()
+	case orderconsolidation.FieldMasterNo:
+		return m.MasterNo()
+	case orderconsolidation.FieldNormalizedMasterNo:
+		return m.NormalizedMasterNo()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderConsolidationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderconsolidation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderconsolidation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderconsolidation.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderconsolidation.FieldBusinessType:
+		return m.OldBusinessType(ctx)
+	case orderconsolidation.FieldMasterNo:
+		return m.OldMasterNo(ctx)
+	case orderconsolidation.FieldNormalizedMasterNo:
+		return m.OldNormalizedMasterNo(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderConsolidation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderConsolidationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderconsolidation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderconsolidation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderconsolidation.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderconsolidation.FieldBusinessType:
+		v, ok := value.(orderconsolidation.BusinessType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
+		return nil
+	case orderconsolidation.FieldMasterNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterNo(v)
+		return nil
+	case orderconsolidation.FieldNormalizedMasterNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNormalizedMasterNo(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderConsolidation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderConsolidationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderConsolidationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderConsolidationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderConsolidation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderConsolidationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderConsolidationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderConsolidationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OrderConsolidation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderConsolidationMutation) ResetField(name string) error {
+	switch name {
+	case orderconsolidation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderconsolidation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderconsolidation.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderconsolidation.FieldBusinessType:
+		m.ResetBusinessType()
+		return nil
+	case orderconsolidation.FieldMasterNo:
+		m.ResetMasterNo()
+		return nil
+	case orderconsolidation.FieldNormalizedMasterNo:
+		m.ResetNormalizedMasterNo()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderConsolidation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderConsolidationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, orderconsolidation.EdgeOrganization)
+	}
+	if m.shipping_documents != nil {
+		edges = append(edges, orderconsolidation.EdgeShippingDocuments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderConsolidationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderconsolidation.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderconsolidation.EdgeShippingDocuments:
+		ids := make([]ent.Value, 0, len(m.shipping_documents))
+		for id := range m.shipping_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderConsolidationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedshipping_documents != nil {
+		edges = append(edges, orderconsolidation.EdgeShippingDocuments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderConsolidationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case orderconsolidation.EdgeShippingDocuments:
+		ids := make([]ent.Value, 0, len(m.removedshipping_documents))
+		for id := range m.removedshipping_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderConsolidationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, orderconsolidation.EdgeOrganization)
+	}
+	if m.clearedshipping_documents {
+		edges = append(edges, orderconsolidation.EdgeShippingDocuments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderConsolidationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderconsolidation.EdgeOrganization:
+		return m.clearedorganization
+	case orderconsolidation.EdgeShippingDocuments:
+		return m.clearedshipping_documents
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderConsolidationMutation) ClearEdge(name string) error {
+	switch name {
+	case orderconsolidation.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderConsolidation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderConsolidationMutation) ResetEdge(name string) error {
+	switch name {
+	case orderconsolidation.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case orderconsolidation.EdgeShippingDocuments:
+		m.ResetShippingDocuments()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderConsolidation edge %s", name)
+}
+
 // OrderContainerMutation represents an operation that mutates the OrderContainer nodes in the graph.
 type OrderContainerMutation struct {
 	config
@@ -32000,28 +32743,29 @@ func (m *OrderServiceTypeMutation) ResetEdge(name string) error {
 // OrderShippingDocumentMutation represents an operation that mutates the OrderShippingDocument nodes in the graph.
 type OrderShippingDocumentMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	master_no           *string
-	house_no            *string
-	release_type        *string
-	status              *ordershippingdocument.Status
-	note                *string
-	clearedFields       map[string]struct{}
-	_order              *uuid.UUID
-	cleared_order       bool
-	containers          map[uuid.UUID]struct{}
-	removedcontainers   map[uuid.UUID]struct{}
-	clearedcontainers   bool
-	release_pods        map[uuid.UUID]struct{}
-	removedrelease_pods map[uuid.UUID]struct{}
-	clearedrelease_pods bool
-	done                bool
-	oldValue            func(context.Context) (*OrderShippingDocument, error)
-	predicates          []predicate.OrderShippingDocument
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	house_no             *string
+	release_type         *string
+	status               *ordershippingdocument.Status
+	note                 *string
+	clearedFields        map[string]struct{}
+	_order               *uuid.UUID
+	cleared_order        bool
+	consolidation        *uuid.UUID
+	clearedconsolidation bool
+	containers           map[uuid.UUID]struct{}
+	removedcontainers    map[uuid.UUID]struct{}
+	clearedcontainers    bool
+	release_pods         map[uuid.UUID]struct{}
+	removedrelease_pods  map[uuid.UUID]struct{}
+	clearedrelease_pods  bool
+	done                 bool
+	oldValue             func(context.Context) (*OrderShippingDocument, error)
+	predicates           []predicate.OrderShippingDocument
 }
 
 var _ ent.Mutation = (*OrderShippingDocumentMutation)(nil)
@@ -32236,40 +32980,40 @@ func (m *OrderShippingDocumentMutation) ResetOrderID() {
 	m._order = nil
 }
 
-// SetMasterNo sets the "master_no" field.
-func (m *OrderShippingDocumentMutation) SetMasterNo(s string) {
-	m.master_no = &s
+// SetConsolidationID sets the "consolidation_id" field.
+func (m *OrderShippingDocumentMutation) SetConsolidationID(u uuid.UUID) {
+	m.consolidation = &u
 }
 
-// MasterNo returns the value of the "master_no" field in the mutation.
-func (m *OrderShippingDocumentMutation) MasterNo() (r string, exists bool) {
-	v := m.master_no
+// ConsolidationID returns the value of the "consolidation_id" field in the mutation.
+func (m *OrderShippingDocumentMutation) ConsolidationID() (r uuid.UUID, exists bool) {
+	v := m.consolidation
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldMasterNo returns the old "master_no" field's value of the OrderShippingDocument entity.
+// OldConsolidationID returns the old "consolidation_id" field's value of the OrderShippingDocument entity.
 // If the OrderShippingDocument object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderShippingDocumentMutation) OldMasterNo(ctx context.Context) (v string, err error) {
+func (m *OrderShippingDocumentMutation) OldConsolidationID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMasterNo is only allowed on UpdateOne operations")
+		return v, errors.New("OldConsolidationID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMasterNo requires an ID field in the mutation")
+		return v, errors.New("OldConsolidationID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMasterNo: %w", err)
+		return v, fmt.Errorf("querying old value for OldConsolidationID: %w", err)
 	}
-	return oldValue.MasterNo, nil
+	return oldValue.ConsolidationID, nil
 }
 
-// ResetMasterNo resets all changes to the "master_no" field.
-func (m *OrderShippingDocumentMutation) ResetMasterNo() {
-	m.master_no = nil
+// ResetConsolidationID resets all changes to the "consolidation_id" field.
+func (m *OrderShippingDocumentMutation) ResetConsolidationID() {
+	m.consolidation = nil
 }
 
 // SetHouseNo sets the "house_no" field.
@@ -32469,6 +33213,33 @@ func (m *OrderShippingDocumentMutation) ResetOrder() {
 	m.cleared_order = false
 }
 
+// ClearConsolidation clears the "consolidation" edge to the OrderConsolidation entity.
+func (m *OrderShippingDocumentMutation) ClearConsolidation() {
+	m.clearedconsolidation = true
+	m.clearedFields[ordershippingdocument.FieldConsolidationID] = struct{}{}
+}
+
+// ConsolidationCleared reports if the "consolidation" edge to the OrderConsolidation entity was cleared.
+func (m *OrderShippingDocumentMutation) ConsolidationCleared() bool {
+	return m.clearedconsolidation
+}
+
+// ConsolidationIDs returns the "consolidation" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ConsolidationID instead. It exists only for internal usage by the builders.
+func (m *OrderShippingDocumentMutation) ConsolidationIDs() (ids []uuid.UUID) {
+	if id := m.consolidation; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetConsolidation resets all changes to the "consolidation" edge.
+func (m *OrderShippingDocumentMutation) ResetConsolidation() {
+	m.consolidation = nil
+	m.clearedconsolidation = false
+}
+
 // AddContainerIDs adds the "containers" edge to the OrderContainer entity by ids.
 func (m *OrderShippingDocumentMutation) AddContainerIDs(ids ...uuid.UUID) {
 	if m.containers == nil {
@@ -32621,8 +33392,8 @@ func (m *OrderShippingDocumentMutation) Fields() []string {
 	if m._order != nil {
 		fields = append(fields, ordershippingdocument.FieldOrderID)
 	}
-	if m.master_no != nil {
-		fields = append(fields, ordershippingdocument.FieldMasterNo)
+	if m.consolidation != nil {
+		fields = append(fields, ordershippingdocument.FieldConsolidationID)
 	}
 	if m.house_no != nil {
 		fields = append(fields, ordershippingdocument.FieldHouseNo)
@@ -32650,8 +33421,8 @@ func (m *OrderShippingDocumentMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case ordershippingdocument.FieldOrderID:
 		return m.OrderID()
-	case ordershippingdocument.FieldMasterNo:
-		return m.MasterNo()
+	case ordershippingdocument.FieldConsolidationID:
+		return m.ConsolidationID()
 	case ordershippingdocument.FieldHouseNo:
 		return m.HouseNo()
 	case ordershippingdocument.FieldReleaseType:
@@ -32675,8 +33446,8 @@ func (m *OrderShippingDocumentMutation) OldField(ctx context.Context, name strin
 		return m.OldUpdatedAt(ctx)
 	case ordershippingdocument.FieldOrderID:
 		return m.OldOrderID(ctx)
-	case ordershippingdocument.FieldMasterNo:
-		return m.OldMasterNo(ctx)
+	case ordershippingdocument.FieldConsolidationID:
+		return m.OldConsolidationID(ctx)
 	case ordershippingdocument.FieldHouseNo:
 		return m.OldHouseNo(ctx)
 	case ordershippingdocument.FieldReleaseType:
@@ -32715,12 +33486,12 @@ func (m *OrderShippingDocumentMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetOrderID(v)
 		return nil
-	case ordershippingdocument.FieldMasterNo:
-		v, ok := value.(string)
+	case ordershippingdocument.FieldConsolidationID:
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetMasterNo(v)
+		m.SetConsolidationID(v)
 		return nil
 	case ordershippingdocument.FieldHouseNo:
 		v, ok := value.(string)
@@ -32823,8 +33594,8 @@ func (m *OrderShippingDocumentMutation) ResetField(name string) error {
 	case ordershippingdocument.FieldOrderID:
 		m.ResetOrderID()
 		return nil
-	case ordershippingdocument.FieldMasterNo:
-		m.ResetMasterNo()
+	case ordershippingdocument.FieldConsolidationID:
+		m.ResetConsolidationID()
 		return nil
 	case ordershippingdocument.FieldHouseNo:
 		m.ResetHouseNo()
@@ -32844,9 +33615,12 @@ func (m *OrderShippingDocumentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderShippingDocumentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m._order != nil {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
+	}
+	if m.consolidation != nil {
+		edges = append(edges, ordershippingdocument.EdgeConsolidation)
 	}
 	if m.containers != nil {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
@@ -32863,6 +33637,10 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case ordershippingdocument.EdgeConsolidation:
+		if id := m.consolidation; id != nil {
 			return []ent.Value{*id}
 		}
 	case ordershippingdocument.EdgeContainers:
@@ -32883,7 +33661,7 @@ func (m *OrderShippingDocumentMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderShippingDocumentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcontainers != nil {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
 	}
@@ -32915,9 +33693,12 @@ func (m *OrderShippingDocumentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderShippingDocumentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cleared_order {
 		edges = append(edges, ordershippingdocument.EdgeOrder)
+	}
+	if m.clearedconsolidation {
+		edges = append(edges, ordershippingdocument.EdgeConsolidation)
 	}
 	if m.clearedcontainers {
 		edges = append(edges, ordershippingdocument.EdgeContainers)
@@ -32934,6 +33715,8 @@ func (m *OrderShippingDocumentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		return m.cleared_order
+	case ordershippingdocument.EdgeConsolidation:
+		return m.clearedconsolidation
 	case ordershippingdocument.EdgeContainers:
 		return m.clearedcontainers
 	case ordershippingdocument.EdgeReleasePods:
@@ -32949,6 +33732,9 @@ func (m *OrderShippingDocumentMutation) ClearEdge(name string) error {
 	case ordershippingdocument.EdgeOrder:
 		m.ClearOrder()
 		return nil
+	case ordershippingdocument.EdgeConsolidation:
+		m.ClearConsolidation()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderShippingDocument unique edge %s", name)
 }
@@ -32959,6 +33745,9 @@ func (m *OrderShippingDocumentMutation) ResetEdge(name string) error {
 	switch name {
 	case ordershippingdocument.EdgeOrder:
 		m.ResetOrder()
+		return nil
+	case ordershippingdocument.EdgeConsolidation:
+		m.ResetConsolidation()
 		return nil
 	case ordershippingdocument.EdgeContainers:
 		m.ResetContainers()
@@ -33832,6 +34621,9 @@ type OrganizationMutation struct {
 	orders                                  map[uuid.UUID]struct{}
 	removedorders                           map[uuid.UUID]struct{}
 	clearedorders                           bool
+	order_consolidations                    map[uuid.UUID]struct{}
+	removedorder_consolidations             map[uuid.UUID]struct{}
+	clearedorder_consolidations             bool
 	order_personnel                         map[uuid.UUID]struct{}
 	removedorder_personnel                  map[uuid.UUID]struct{}
 	clearedorder_personnel                  bool
@@ -35314,6 +36106,60 @@ func (m *OrganizationMutation) ResetOrders() {
 	m.removedorders = nil
 }
 
+// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by ids.
+func (m *OrganizationMutation) AddOrderConsolidationIDs(ids ...uuid.UUID) {
+	if m.order_consolidations == nil {
+		m.order_consolidations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_consolidations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderConsolidations clears the "order_consolidations" edge to the OrderConsolidation entity.
+func (m *OrganizationMutation) ClearOrderConsolidations() {
+	m.clearedorder_consolidations = true
+}
+
+// OrderConsolidationsCleared reports if the "order_consolidations" edge to the OrderConsolidation entity was cleared.
+func (m *OrganizationMutation) OrderConsolidationsCleared() bool {
+	return m.clearedorder_consolidations
+}
+
+// RemoveOrderConsolidationIDs removes the "order_consolidations" edge to the OrderConsolidation entity by IDs.
+func (m *OrganizationMutation) RemoveOrderConsolidationIDs(ids ...uuid.UUID) {
+	if m.removedorder_consolidations == nil {
+		m.removedorder_consolidations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_consolidations, ids[i])
+		m.removedorder_consolidations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderConsolidations returns the removed IDs of the "order_consolidations" edge to the OrderConsolidation entity.
+func (m *OrganizationMutation) RemovedOrderConsolidationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_consolidations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderConsolidationsIDs returns the "order_consolidations" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderConsolidationsIDs() (ids []uuid.UUID) {
+	for id := range m.order_consolidations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderConsolidations resets all changes to the "order_consolidations" edge.
+func (m *OrganizationMutation) ResetOrderConsolidations() {
+	m.order_consolidations = nil
+	m.clearedorder_consolidations = false
+	m.removedorder_consolidations = nil
+}
+
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by ids.
 func (m *OrganizationMutation) AddOrderPersonnelIDs(ids ...uuid.UUID) {
 	if m.order_personnel == nil {
@@ -35689,7 +36535,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -35749,6 +36595,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.orders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.order_consolidations != nil {
+		edges = append(edges, organization.EdgeOrderConsolidations)
 	}
 	if m.order_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -35881,6 +36730,12 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderConsolidations:
+		ids := make([]ent.Value, 0, len(m.order_consolidations))
+		for id := range m.order_consolidations {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.order_personnel))
 		for id := range m.order_personnel {
@@ -35899,7 +36754,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -35956,6 +36811,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedorders != nil {
 		edges = append(edges, organization.EdgeOrders)
+	}
+	if m.removedorder_consolidations != nil {
+		edges = append(edges, organization.EdgeOrderConsolidations)
 	}
 	if m.removedorder_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -36084,6 +36942,12 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderConsolidations:
+		ids := make([]ent.Value, 0, len(m.removedorder_consolidations))
+		for id := range m.removedorder_consolidations {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.removedorder_personnel))
 		for id := range m.removedorder_personnel {
@@ -36102,7 +36966,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 22)
+	edges := make([]string, 0, 23)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -36163,6 +37027,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedorders {
 		edges = append(edges, organization.EdgeOrders)
 	}
+	if m.clearedorder_consolidations {
+		edges = append(edges, organization.EdgeOrderConsolidations)
+	}
 	if m.clearedorder_personnel {
 		edges = append(edges, organization.EdgeOrderPersonnel)
 	}
@@ -36216,6 +37083,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedmilestone_templates
 	case organization.EdgeOrders:
 		return m.clearedorders
+	case organization.EdgeOrderConsolidations:
+		return m.clearedorder_consolidations
 	case organization.EdgeOrderPersonnel:
 		return m.clearedorder_personnel
 	case organization.EdgeBackgroundTasks:
@@ -36298,6 +37167,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeOrders:
 		m.ResetOrders()
+		return nil
+	case organization.EdgeOrderConsolidations:
+		m.ResetOrderConsolidations()
 		return nil
 	case organization.EdgeOrderPersonnel:
 		m.ResetOrderPersonnel()

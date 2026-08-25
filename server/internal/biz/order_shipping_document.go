@@ -49,15 +49,16 @@ func validShippingDocumentTransition(from, to OrderShippingDocumentStatus) bool 
 }
 
 type OrderShippingDocument struct {
-	ID          uuid.UUID
-	OrderID     uuid.UUID
-	MasterNo    string
-	HouseNo     string
-	ReleaseType *string
-	Status      OrderShippingDocumentStatus
-	Note        *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID              uuid.UUID
+	OrderID         uuid.UUID
+	ConsolidationID uuid.UUID
+	MasterNo        string
+	HouseNo         string
+	ReleaseType     *string
+	Status          OrderShippingDocumentStatus
+	Note            *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type OrderShippingDocumentRepo interface {

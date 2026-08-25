@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -52,16 +53,16 @@ func (_u *OrderShippingDocumentUpdate) SetNillableOrderID(v *uuid.UUID) *OrderSh
 	return _u
 }
 
-// SetMasterNo sets the "master_no" field.
-func (_u *OrderShippingDocumentUpdate) SetMasterNo(v string) *OrderShippingDocumentUpdate {
-	_u.mutation.SetMasterNo(v)
+// SetConsolidationID sets the "consolidation_id" field.
+func (_u *OrderShippingDocumentUpdate) SetConsolidationID(v uuid.UUID) *OrderShippingDocumentUpdate {
+	_u.mutation.SetConsolidationID(v)
 	return _u
 }
 
-// SetNillableMasterNo sets the "master_no" field if the given value is not nil.
-func (_u *OrderShippingDocumentUpdate) SetNillableMasterNo(v *string) *OrderShippingDocumentUpdate {
+// SetNillableConsolidationID sets the "consolidation_id" field if the given value is not nil.
+func (_u *OrderShippingDocumentUpdate) SetNillableConsolidationID(v *uuid.UUID) *OrderShippingDocumentUpdate {
 	if v != nil {
-		_u.SetMasterNo(*v)
+		_u.SetConsolidationID(*v)
 	}
 	return _u
 }
@@ -139,6 +140,11 @@ func (_u *OrderShippingDocumentUpdate) SetOrder(v *Order) *OrderShippingDocument
 	return _u.SetOrderID(v.ID)
 }
 
+// SetConsolidation sets the "consolidation" edge to the OrderConsolidation entity.
+func (_u *OrderShippingDocumentUpdate) SetConsolidation(v *OrderConsolidation) *OrderShippingDocumentUpdate {
+	return _u.SetConsolidationID(v.ID)
+}
+
 // AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
 func (_u *OrderShippingDocumentUpdate) AddContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdate {
 	_u.mutation.AddContainerIDs(ids...)
@@ -177,6 +183,12 @@ func (_u *OrderShippingDocumentUpdate) Mutation() *OrderShippingDocumentMutation
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderShippingDocumentUpdate) ClearOrder() *OrderShippingDocumentUpdate {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearConsolidation clears the "consolidation" edge to the OrderConsolidation entity.
+func (_u *OrderShippingDocumentUpdate) ClearConsolidation() *OrderShippingDocumentUpdate {
+	_u.mutation.ClearConsolidation()
 	return _u
 }
 
@@ -260,11 +272,6 @@ func (_u *OrderShippingDocumentUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderShippingDocumentUpdate) check() error {
-	if v, ok := _u.mutation.MasterNo(); ok {
-		if err := ordershippingdocument.MasterNoValidator(v); err != nil {
-			return &ValidationError{Name: "master_no", err: fmt.Errorf(`ent: validator failed for field "OrderShippingDocument.master_no": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.HouseNo(); ok {
 		if err := ordershippingdocument.HouseNoValidator(v); err != nil {
 			return &ValidationError{Name: "house_no", err: fmt.Errorf(`ent: validator failed for field "OrderShippingDocument.house_no": %w`, err)}
@@ -288,6 +295,9 @@ func (_u *OrderShippingDocumentUpdate) check() error {
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderShippingDocument.order"`)
 	}
+	if _u.mutation.ConsolidationCleared() && len(_u.mutation.ConsolidationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderShippingDocument.consolidation"`)
+	}
 	return nil
 }
 
@@ -305,9 +315,6 @@ func (_u *OrderShippingDocumentUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(ordershippingdocument.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.MasterNo(); ok {
-		_spec.SetField(ordershippingdocument.FieldMasterNo, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.HouseNo(); ok {
 		_spec.SetField(ordershippingdocument.FieldHouseNo, field.TypeString, value)
@@ -349,6 +356,35 @@ func (_u *OrderShippingDocumentUpdate) sqlSave(ctx context.Context) (_node int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConsolidationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordershippingdocument.ConsolidationTable,
+			Columns: []string{ordershippingdocument.ConsolidationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsolidationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordershippingdocument.ConsolidationTable,
+			Columns: []string{ordershippingdocument.ConsolidationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -486,16 +522,16 @@ func (_u *OrderShippingDocumentUpdateOne) SetNillableOrderID(v *uuid.UUID) *Orde
 	return _u
 }
 
-// SetMasterNo sets the "master_no" field.
-func (_u *OrderShippingDocumentUpdateOne) SetMasterNo(v string) *OrderShippingDocumentUpdateOne {
-	_u.mutation.SetMasterNo(v)
+// SetConsolidationID sets the "consolidation_id" field.
+func (_u *OrderShippingDocumentUpdateOne) SetConsolidationID(v uuid.UUID) *OrderShippingDocumentUpdateOne {
+	_u.mutation.SetConsolidationID(v)
 	return _u
 }
 
-// SetNillableMasterNo sets the "master_no" field if the given value is not nil.
-func (_u *OrderShippingDocumentUpdateOne) SetNillableMasterNo(v *string) *OrderShippingDocumentUpdateOne {
+// SetNillableConsolidationID sets the "consolidation_id" field if the given value is not nil.
+func (_u *OrderShippingDocumentUpdateOne) SetNillableConsolidationID(v *uuid.UUID) *OrderShippingDocumentUpdateOne {
 	if v != nil {
-		_u.SetMasterNo(*v)
+		_u.SetConsolidationID(*v)
 	}
 	return _u
 }
@@ -573,6 +609,11 @@ func (_u *OrderShippingDocumentUpdateOne) SetOrder(v *Order) *OrderShippingDocum
 	return _u.SetOrderID(v.ID)
 }
 
+// SetConsolidation sets the "consolidation" edge to the OrderConsolidation entity.
+func (_u *OrderShippingDocumentUpdateOne) SetConsolidation(v *OrderConsolidation) *OrderShippingDocumentUpdateOne {
+	return _u.SetConsolidationID(v.ID)
+}
+
 // AddContainerIDs adds the "containers" edge to the OrderContainer entity by IDs.
 func (_u *OrderShippingDocumentUpdateOne) AddContainerIDs(ids ...uuid.UUID) *OrderShippingDocumentUpdateOne {
 	_u.mutation.AddContainerIDs(ids...)
@@ -611,6 +652,12 @@ func (_u *OrderShippingDocumentUpdateOne) Mutation() *OrderShippingDocumentMutat
 // ClearOrder clears the "order" edge to the Order entity.
 func (_u *OrderShippingDocumentUpdateOne) ClearOrder() *OrderShippingDocumentUpdateOne {
 	_u.mutation.ClearOrder()
+	return _u
+}
+
+// ClearConsolidation clears the "consolidation" edge to the OrderConsolidation entity.
+func (_u *OrderShippingDocumentUpdateOne) ClearConsolidation() *OrderShippingDocumentUpdateOne {
+	_u.mutation.ClearConsolidation()
 	return _u
 }
 
@@ -707,11 +754,6 @@ func (_u *OrderShippingDocumentUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *OrderShippingDocumentUpdateOne) check() error {
-	if v, ok := _u.mutation.MasterNo(); ok {
-		if err := ordershippingdocument.MasterNoValidator(v); err != nil {
-			return &ValidationError{Name: "master_no", err: fmt.Errorf(`ent: validator failed for field "OrderShippingDocument.master_no": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.HouseNo(); ok {
 		if err := ordershippingdocument.HouseNoValidator(v); err != nil {
 			return &ValidationError{Name: "house_no", err: fmt.Errorf(`ent: validator failed for field "OrderShippingDocument.house_no": %w`, err)}
@@ -734,6 +776,9 @@ func (_u *OrderShippingDocumentUpdateOne) check() error {
 	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderShippingDocument.order"`)
+	}
+	if _u.mutation.ConsolidationCleared() && len(_u.mutation.ConsolidationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "OrderShippingDocument.consolidation"`)
 	}
 	return nil
 }
@@ -769,9 +814,6 @@ func (_u *OrderShippingDocumentUpdateOne) sqlSave(ctx context.Context) (_node *O
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(ordershippingdocument.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.MasterNo(); ok {
-		_spec.SetField(ordershippingdocument.FieldMasterNo, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.HouseNo(); ok {
 		_spec.SetField(ordershippingdocument.FieldHouseNo, field.TypeString, value)
@@ -813,6 +855,35 @@ func (_u *OrderShippingDocumentUpdateOne) sqlSave(ctx context.Context) (_node *O
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConsolidationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordershippingdocument.ConsolidationTable,
+			Columns: []string{ordershippingdocument.ConsolidationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsolidationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordershippingdocument.ConsolidationTable,
+			Columns: []string{ordershippingdocument.ConsolidationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

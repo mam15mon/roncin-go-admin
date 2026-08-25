@@ -101,6 +101,7 @@ export function OrderShippingDocumentFields({
         <Col className="col-5">
           <Form.Item
             label="主单号"
+            extra="复用其他订单的主单号，即加入同一拼载批次"
             style={{ marginInline: 8, marginBottom: 16 }}
           >
             <Input
@@ -111,11 +112,11 @@ export function OrderShippingDocumentFields({
               disabled={disabled}
               suffix={
                 !disabled ? (
-                  <Tooltip title="加拼主单号">
+                  <Tooltip title="新增一组主分单">
                     <Button
                       type="text"
                       size="small"
-                      aria-label="加拼主单号"
+                      aria-label="新增一组主分单"
                       icon={<PlusOutlined style={{ fontSize: 12, color: '#1677ff' }} />}
                       onClick={handleAppend}
                       style={{
@@ -149,7 +150,7 @@ export function OrderShippingDocumentFields({
                     marginBottom: 6,
                   }}
                 >
-                  加拼主单号
+                  其他主单号
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {appendedDocs.map((doc, idx) => (
@@ -187,7 +188,7 @@ export function OrderShippingDocumentFields({
                           type="text"
                           size="small"
                           danger
-                          aria-label={`删除加拼主单号${idx + 1}`}
+                          aria-label={`删除主分单组合${idx + 1}`}
                           icon={<DeleteOutlined style={{ fontSize: 12 }} />}
                           onClick={() => handleRemoveAppended(idx)}
                           style={{
@@ -223,11 +224,11 @@ export function OrderShippingDocumentFields({
               disabled={disabled}
               suffix={
                 !disabled ? (
-                  <Tooltip title="加拼分单号">
+                  <Tooltip title="新增一组主分单">
                     <Button
                       type="text"
                       size="small"
-                      aria-label="加拼分单号"
+                      aria-label="新增一组主分单"
                       icon={<PlusOutlined style={{ fontSize: 12, color: '#1677ff' }} />}
                       onClick={handleAppend}
                       style={{
@@ -261,7 +262,7 @@ export function OrderShippingDocumentFields({
                     marginBottom: 6,
                   }}
                 >
-                  加拼分单号
+                  其他分单号
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {appendedDocs.map((doc, idx) => (
@@ -299,7 +300,7 @@ export function OrderShippingDocumentFields({
                           type="text"
                           size="small"
                           danger
-                          aria-label={`删除加拼分单号${idx + 1}`}
+                          aria-label={`删除主分单组合${idx + 1}`}
                           icon={<DeleteOutlined style={{ fontSize: 12 }} />}
                           onClick={() => handleRemoveAppended(idx)}
                           style={{

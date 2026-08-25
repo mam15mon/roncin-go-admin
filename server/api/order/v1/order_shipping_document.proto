@@ -71,6 +71,7 @@ message OrderShippingDocument {
   optional string note = 7;
   string created_at = 8;
   string updated_at = 9;
+  string consolidation_id = 10;
 }
 
 // ListShippingDocumentsRequest 获取提单列表请求。

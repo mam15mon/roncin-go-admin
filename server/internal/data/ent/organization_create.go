@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -431,6 +432,21 @@ func (_c *OrganizationCreate) AddOrders(v ...*Order) *OrganizationCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderIDs(ids...)
+}
+
+// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
+func (_c *OrganizationCreate) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddOrderConsolidationIDs(ids...)
+	return _c
+}
+
+// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
+func (_c *OrganizationCreate) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderConsolidationIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -933,6 +949,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -72,6 +72,8 @@ const (
 	EdgeMilestoneTemplates = "milestone_templates"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
+	// EdgeOrderConsolidations holds the string denoting the order_consolidations edge name in mutations.
+	EdgeOrderConsolidations = "order_consolidations"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -212,6 +214,13 @@ const (
 	OrdersInverseTable = "orders"
 	// OrdersColumn is the table column denoting the orders relation/edge.
 	OrdersColumn = "organization_id"
+	// OrderConsolidationsTable is the table that holds the order_consolidations relation/edge.
+	OrderConsolidationsTable = "order_consolidations"
+	// OrderConsolidationsInverseTable is the table name for the OrderConsolidation entity.
+	// It exists in this package in order to avoid circular dependency with the "orderconsolidation" package.
+	OrderConsolidationsInverseTable = "order_consolidations"
+	// OrderConsolidationsColumn is the table column denoting the order_consolidations relation/edge.
+	OrderConsolidationsColumn = "organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -616,6 +625,20 @@ func ByOrders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByOrderConsolidationsCount orders the results by order_consolidations count.
+func ByOrderConsolidationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderConsolidationsStep(), opts...)
+	}
+}
+
+// ByOrderConsolidations orders the results by order_consolidations terms.
+func ByOrderConsolidations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderConsolidationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderPersonnelCount orders the results by order_personnel count.
 func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -781,6 +804,13 @@ func newOrdersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrdersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrdersTable, OrdersColumn),
+	)
+}
+func newOrderConsolidationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderConsolidationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderConsolidationsTable, OrderConsolidationsColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {

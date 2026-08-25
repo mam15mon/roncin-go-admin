@@ -136,15 +136,16 @@ func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Contex
 
 func orderShippingDocumentToAPI(value *biz.OrderShippingDocument) *v1.OrderShippingDocument {
 	return &v1.OrderShippingDocument{
-		Id:          value.ID.String(),
-		OrderId:     value.OrderID.String(),
-		MasterNo:    value.MasterNo,
-		HouseNo:     value.HouseNo,
-		ReleaseType: value.ReleaseType,
-		Status:      orderShippingDocumentStatusToAPI(value.Status),
-		Note:        value.Note,
-		CreatedAt:   value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:              value.ID.String(),
+		OrderId:         value.OrderID.String(),
+		MasterNo:        value.MasterNo,
+		ConsolidationId: value.ConsolidationID.String(),
+		HouseNo:         value.HouseNo,
+		ReleaseType:     value.ReleaseType,
+		Status:          orderShippingDocumentStatusToAPI(value.Status),
+		Note:            value.Note,
+		CreatedAt:       value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:       value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

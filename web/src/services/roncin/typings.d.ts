@@ -1991,6 +1991,7 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+    consolidationId?: string;
   };
 
   type OrderShippingDocumentInput = {

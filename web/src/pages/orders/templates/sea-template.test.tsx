@@ -42,9 +42,13 @@ describe('海运订单新增模板', () => {
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('主单号');
     expect(transportSection).toHaveTextContent('分单号');
+    expect(transportSection).toHaveTextContent(
+      '复用其他订单的主单号，即加入同一拼载批次',
+    );
     expect(transportSection).toHaveTextContent('箱型箱量');
-    expect(screen.getByRole('button', { name: /加拼主单号/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /加拼分单号/ })).toBeTruthy();
+    expect(
+      screen.getAllByRole('button', { name: '新增一组主分单' }),
+    ).toHaveLength(2);
     expect(screen.getByRole('button', { name: /新增箱型箱量/ })).toBeTruthy();
 
     const cargoSection = screen.getByTestId('section-cargoInfo');
@@ -52,7 +56,7 @@ describe('海运订单新增模板', () => {
     expect(cargoSection).not.toHaveTextContent('分单号');
   });
 
-  it('支持加拼主单号与加拼分单号的展开和删除', async () => {
+  it('支持多组主分单的展开和删除', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -81,22 +85,28 @@ describe('海运订单新增模板', () => {
     );
 
     // Initial state: no appended lists
-    expect(screen.queryByText('加拼主单号')).toBeNull();
-    expect(screen.queryByText('加拼分单号')).toBeNull();
+    expect(screen.queryByText('其他主单号')).toBeNull();
+    expect(screen.queryByText('其他分单号')).toBeNull();
 
     // Click append button for master bill
-    const addMasterBtn = screen.getByRole('button', { name: /加拼主单号/ });
+    const addMasterBtn = screen.getAllByRole('button', {
+      name: '新增一组主分单',
+    })[0];
     fireEvent.click(addMasterBtn);
 
     // Both master and house appended boxes should show row 1
-    expect(screen.getByText('加拼主单号')).toBeTruthy();
-    expect(screen.getByText('加拼分单号')).toBeTruthy();
-    expect(screen.getByRole('button', { name: '删除加拼主单号1' })).toBeTruthy();
+    expect(screen.getByText('其他主单号')).toBeTruthy();
+    expect(screen.getByText('其他分单号')).toBeTruthy();
+    expect(
+      screen.getAllByRole('button', { name: '删除主分单组合1' }),
+    ).toHaveLength(2);
 
     // Click delete button
-    fireEvent.click(screen.getByRole('button', { name: '删除加拼主单号1' }));
-    expect(screen.queryByText('加拼主单号')).toBeNull();
-    expect(screen.queryByText('加拼分单号')).toBeNull();
+    fireEvent.click(
+      screen.getAllByRole('button', { name: '删除主分单组合1' })[0],
+    );
+    expect(screen.queryByText('其他主单号')).toBeNull();
+    expect(screen.queryByText('其他分单号')).toBeNull();
   });
 
   it('渲染货值与保费的金额及币种选择框', () => {

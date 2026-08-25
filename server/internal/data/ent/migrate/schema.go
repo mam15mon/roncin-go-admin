@@ -1088,6 +1088,47 @@ var (
 			},
 		},
 	}
+	// OrderConsolidationsColumns holds the columns for the "order_consolidations" table.
+	OrderConsolidationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
+		{Name: "master_no", Type: field.TypeString, Size: 64},
+		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// OrderConsolidationsTable holds the schema information for the "order_consolidations" table.
+	OrderConsolidationsTable = &schema.Table{
+		Name:       "order_consolidations",
+		Columns:    OrderConsolidationsColumns,
+		PrimaryKey: []*schema.Column{OrderConsolidationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_consolidations_organizations_order_consolidations",
+				Columns:    []*schema.Column{OrderConsolidationsColumns[6]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderconsolidation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderConsolidationsColumns[2]},
+			},
+			{
+				Name:    "orderconsolidation_organization_id_business_type_normalized_master_no",
+				Unique:  true,
+				Columns: []*schema.Column{OrderConsolidationsColumns[6], OrderConsolidationsColumns[3], OrderConsolidationsColumns[5]},
+			},
+			{
+				Name:    "orderconsolidation_organization_id_business_type_master_no",
+				Unique:  false,
+				Columns: []*schema.Column{OrderConsolidationsColumns[6], OrderConsolidationsColumns[3], OrderConsolidationsColumns[4]},
+			},
+		},
+	}
 	// OrderContainersColumns holds the columns for the "order_containers" table.
 	OrderContainersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1473,12 +1514,12 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "master_no", Type: field.TypeString, Size: 64},
 		{Name: "house_no", Type: field.TypeString, Size: 64},
 		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "consolidation_id", Type: field.TypeUUID},
 	}
 	// OrderShippingDocumentsTable holds the schema information for the "order_shipping_documents" table.
 	OrderShippingDocumentsTable = &schema.Table{
@@ -1488,8 +1529,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_shipping_documents_orders_shipping_documents",
-				Columns:    []*schema.Column{OrderShippingDocumentsColumns[8]},
+				Columns:    []*schema.Column{OrderShippingDocumentsColumns[7]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_shipping_documents_order_consolidations_shipping_documents",
+				Columns:    []*schema.Column{OrderShippingDocumentsColumns[8]},
+				RefColumns: []*schema.Column{OrderConsolidationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -1502,17 +1549,17 @@ var (
 			{
 				Name:    "ordershippingdocument_order_id_house_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[4]},
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[3]},
 			},
 			{
-				Name:    "ordershippingdocument_order_id_master_no",
+				Name:    "ordershippingdocument_order_id_consolidation_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[3]},
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[8]},
 			},
 			{
 				Name:    "ordershippingdocument_order_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[6]},
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[5]},
 			},
 		},
 	}
@@ -2729,6 +2776,7 @@ var (
 		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
+		OrderConsolidationsTable,
 		OrderContainersTable,
 		OrderContainerRequestsTable,
 		OrderFeesTable,
@@ -2790,6 +2838,7 @@ func init() {
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderConsolidationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderContainerRequestsTable.ForeignKeys[0].RefTable = OrdersTable
@@ -2805,6 +2854,7 @@ func init() {
 	OrderReleasePodsTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderShippingDocumentsTable.ForeignKeys[1].RefTable = OrderConsolidationsTable
 	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable

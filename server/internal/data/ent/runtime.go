@@ -28,6 +28,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -1772,6 +1773,63 @@ func init() {
 	ordercargoitemDescID := ordercargoitemMixinFields0[0].Descriptor()
 	// ordercargoitem.DefaultID holds the default value on creation for the id field.
 	ordercargoitem.DefaultID = ordercargoitemDescID.Default.(func() uuid.UUID)
+	orderconsolidationMixin := schema.OrderConsolidation{}.Mixin()
+	orderconsolidationMixinFields0 := orderconsolidationMixin[0].Fields()
+	_ = orderconsolidationMixinFields0
+	orderconsolidationMixinFields1 := orderconsolidationMixin[1].Fields()
+	_ = orderconsolidationMixinFields1
+	orderconsolidationFields := schema.OrderConsolidation{}.Fields()
+	_ = orderconsolidationFields
+	// orderconsolidationDescCreatedAt is the schema descriptor for created_at field.
+	orderconsolidationDescCreatedAt := orderconsolidationMixinFields1[0].Descriptor()
+	// orderconsolidation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderconsolidation.DefaultCreatedAt = orderconsolidationDescCreatedAt.Default.(func() time.Time)
+	// orderconsolidationDescUpdatedAt is the schema descriptor for updated_at field.
+	orderconsolidationDescUpdatedAt := orderconsolidationMixinFields1[1].Descriptor()
+	// orderconsolidation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderconsolidation.DefaultUpdatedAt = orderconsolidationDescUpdatedAt.Default.(func() time.Time)
+	// orderconsolidation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderconsolidation.UpdateDefaultUpdatedAt = orderconsolidationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderconsolidationDescMasterNo is the schema descriptor for master_no field.
+	orderconsolidationDescMasterNo := orderconsolidationFields[2].Descriptor()
+	// orderconsolidation.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
+	orderconsolidation.MasterNoValidator = func() func(string) error {
+		validators := orderconsolidationDescMasterNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(master_no string) error {
+			for _, fn := range fns {
+				if err := fn(master_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderconsolidationDescNormalizedMasterNo is the schema descriptor for normalized_master_no field.
+	orderconsolidationDescNormalizedMasterNo := orderconsolidationFields[3].Descriptor()
+	// orderconsolidation.NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
+	orderconsolidation.NormalizedMasterNoValidator = func() func(string) error {
+		validators := orderconsolidationDescNormalizedMasterNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(normalized_master_no string) error {
+			for _, fn := range fns {
+				if err := fn(normalized_master_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderconsolidationDescID is the schema descriptor for id field.
+	orderconsolidationDescID := orderconsolidationMixinFields0[0].Descriptor()
+	// orderconsolidation.DefaultID holds the default value on creation for the id field.
+	orderconsolidation.DefaultID = orderconsolidationDescID.Default.(func() uuid.UUID)
 	ordercontainerMixin := schema.OrderContainer{}.Mixin()
 	ordercontainerMixinFields0 := ordercontainerMixin[0].Fields()
 	_ = ordercontainerMixinFields0
@@ -2143,24 +2201,6 @@ func init() {
 	ordershippingdocument.DefaultUpdatedAt = ordershippingdocumentDescUpdatedAt.Default.(func() time.Time)
 	// ordershippingdocument.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ordershippingdocument.UpdateDefaultUpdatedAt = ordershippingdocumentDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// ordershippingdocumentDescMasterNo is the schema descriptor for master_no field.
-	ordershippingdocumentDescMasterNo := ordershippingdocumentFields[1].Descriptor()
-	// ordershippingdocument.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
-	ordershippingdocument.MasterNoValidator = func() func(string) error {
-		validators := ordershippingdocumentDescMasterNo.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(master_no string) error {
-			for _, fn := range fns {
-				if err := fn(master_no); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// ordershippingdocumentDescHouseNo is the schema descriptor for house_no field.
 	ordershippingdocumentDescHouseNo := ordershippingdocumentFields[2].Descriptor()
 	// ordershippingdocument.HouseNoValidator is a validator for the "house_no" field. It is called by the builders before save.

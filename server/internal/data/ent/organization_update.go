@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -411,6 +412,21 @@ func (_u *OrganizationUpdate) AddOrders(v ...*Order) *OrganizationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderIDs(ids...)
+}
+
+// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
+func (_u *OrganizationUpdate) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderConsolidationIDs(ids...)
+	return _u
+}
+
+// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
+func (_u *OrganizationUpdate) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderConsolidationIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -851,6 +867,27 @@ func (_u *OrganizationUpdate) RemoveOrders(v ...*Order) *OrganizationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderConsolidations clears all "order_consolidations" edges to the OrderConsolidation entity.
+func (_u *OrganizationUpdate) ClearOrderConsolidations() *OrganizationUpdate {
+	_u.mutation.ClearOrderConsolidations()
+	return _u
+}
+
+// RemoveOrderConsolidationIDs removes the "order_consolidations" edge to OrderConsolidation entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderConsolidationIDs(ids...)
+	return _u
+}
+
+// RemoveOrderConsolidations removes "order_consolidations" edges to OrderConsolidation entities.
+func (_u *OrganizationUpdate) RemoveOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderConsolidationIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -1857,6 +1894,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderConsolidationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderConsolidationsIDs(); len(nodes) > 0 && !_u.mutation.OrderConsolidationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderPersonnelCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2331,6 +2413,21 @@ func (_u *OrganizationUpdateOne) AddOrders(v ...*Order) *OrganizationUpdateOne {
 	return _u.AddOrderIDs(ids...)
 }
 
+// AddOrderConsolidationIDs adds the "order_consolidations" edge to the OrderConsolidation entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderConsolidationIDs(ids...)
+	return _u
+}
+
+// AddOrderConsolidations adds the "order_consolidations" edges to the OrderConsolidation entity.
+func (_u *OrganizationUpdateOne) AddOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderConsolidationIDs(ids...)
+}
+
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
 func (_u *OrganizationUpdateOne) AddOrderPersonnelIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddOrderPersonnelIDs(ids...)
@@ -2769,6 +2866,27 @@ func (_u *OrganizationUpdateOne) RemoveOrders(v ...*Order) *OrganizationUpdateOn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderIDs(ids...)
+}
+
+// ClearOrderConsolidations clears all "order_consolidations" edges to the OrderConsolidation entity.
+func (_u *OrganizationUpdateOne) ClearOrderConsolidations() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderConsolidations()
+	return _u
+}
+
+// RemoveOrderConsolidationIDs removes the "order_consolidations" edge to OrderConsolidation entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderConsolidationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderConsolidationIDs(ids...)
+	return _u
+}
+
+// RemoveOrderConsolidations removes "order_consolidations" edges to OrderConsolidation entities.
+func (_u *OrganizationUpdateOne) RemoveOrderConsolidations(v ...*OrderConsolidation) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderConsolidationIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -3798,6 +3916,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderConsolidationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderConsolidationsIDs(); len(nodes) > 0 && !_u.mutation.OrderConsolidationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderConsolidationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderConsolidationsTable,
+			Columns: []string{organization.OrderConsolidationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderconsolidation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
