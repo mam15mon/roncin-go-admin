@@ -65,6 +65,12 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	}
 	if options.BusinessType != "" {
 		query.Where(orderent.BusinessTypeEQ(orderent.BusinessType(options.BusinessType)))
+	} else {
+		businessTypes := make([]orderent.BusinessType, 0, len(options.BusinessTypes))
+		for _, businessType := range options.BusinessTypes {
+			businessTypes = append(businessTypes, orderent.BusinessType(businessType))
+		}
+		query.Where(orderent.BusinessTypeIn(businessTypes...))
 	}
 	if options.CustomerID != nil {
 		query.Where(orderent.CustomerIDEQ(*options.CustomerID))
@@ -174,9 +180,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetNillableShippingAgentID(input.ShippingAgentID).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
-		SetCargoCurrency(input.CargoCurrency).
 		SetInsurancePremium(input.InsurancePremium).
-		SetInsuranceCurrency(input.InsuranceCurrency).
 		SetUnNumber(input.UNNumber).
 		SetHazardClass(input.HazardClass).
 		SetFactoryName(input.FactoryName).
@@ -212,6 +216,8 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetBookingNotes(input.BookingNotes).
 		SetAllocationNotes(input.AllocationNotes).
 		SetOperationNotes(input.OperationNotes)
+	create.SetNillableCargoCurrency(nonEmptyStringPointer(input.CargoCurrency))
+	create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
 	created, err := create.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -280,9 +286,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetInternalReferenceNo(input.InternalReferenceNo).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
-		SetCargoCurrency(input.CargoCurrency).
 		SetInsurancePremium(input.InsurancePremium).
-		SetInsuranceCurrency(input.InsuranceCurrency).
 		SetUnNumber(input.UNNumber).
 		SetHazardClass(input.HazardClass).
 		SetFactoryName(input.FactoryName).
@@ -308,6 +312,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetAllocationNotes(input.AllocationNotes).
 		SetOperationNotes(input.OperationNotes)
 	setOrderOptionalReferences(update, input)
+	setOrderOptionalAmounts(update, input)
 	if input.TotalPackages == nil {
 		update.ClearTotalPackages()
 	} else {
@@ -853,6 +858,26 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 	} else {
 		update.SetTransitLocationID(*input.TransitLocationID)
 	}
+}
+
+func setOrderOptionalAmounts(update *ent.OrderUpdateOne, input *biz.Order) {
+	if input.CargoCurrency == "" {
+		update.ClearCargoCurrency()
+	} else {
+		update.SetCargoCurrency(input.CargoCurrency)
+	}
+	if input.InsuranceCurrency == "" {
+		update.ClearInsuranceCurrency()
+	} else {
+		update.SetInsuranceCurrency(input.InsuranceCurrency)
+	}
+}
+
+func nonEmptyStringPointer(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 
 func orderShipmentTypeToEnt(value *biz.OrderShipmentType) *orderent.ShipmentType {

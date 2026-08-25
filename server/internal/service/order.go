@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
@@ -46,6 +47,8 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), Status: request.GetStatus()}
 	if request.BusinessType != nil {
 		options.BusinessType = orderBusinessTypeFromAPI(request.GetBusinessType())
+	} else {
+		options.BusinessTypes = readableOrderBusinessTypes(principal)
 	}
 	if request.GetCustomerId() != "" {
 		value, parseErr := uuid.Parse(request.GetCustomerId())
@@ -65,6 +68,25 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		data = append(data, output)
 	}
 	return &v1.ListOrdersResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func readableOrderBusinessTypes(principal *biz.Principal) []biz.OrderBusinessType {
+	types := []struct {
+		access access.OrderBusinessType
+		biz    biz.OrderBusinessType
+	}{
+		{access: access.OrderBusinessSE, biz: biz.OrderBusinessSE},
+		{access: access.OrderBusinessSI, biz: biz.OrderBusinessSI},
+		{access: access.OrderBusinessAE, biz: biz.OrderBusinessAE},
+		{access: access.OrderBusinessAI, biz: biz.OrderBusinessAI},
+	}
+	result := make([]biz.OrderBusinessType, 0, len(types))
+	for _, businessType := range types {
+		if principal.HasPermissionInScope(access.OrderPermission(businessType.access, access.OrderRead), biz.DataScopeOrganization) {
+			result = append(result, businessType.biz)
+		}
+	}
+	return result
 }
 
 func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.CheckOrderReferenceResponse, error) {

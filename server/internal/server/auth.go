@@ -107,6 +107,9 @@ func hasPermission(ctx context.Context, request any, principal *biz.Principal, r
 	if _, ok := request.(*orderv1.CheckOrderReferenceRequest); ok {
 		return hasAnyOrderPermission(principal, rule.orderOperation, rule.scope)
 	}
+	if list, ok := request.(*orderv1.ListOrdersRequest); ok && list.BusinessType == nil {
+		return hasAnyOrderPermission(principal, rule.orderOperation, rule.scope)
+	}
 	businessType, ok := requestOrderBusinessType(ctx, request, principal.Organization.ID, orderUsecase)
 	if !ok {
 		return false

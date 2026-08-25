@@ -198,12 +198,13 @@ type OrderContainerRequest struct {
 }
 
 type OrderListOptions struct {
-	Page         int
-	PageSize     int
-	Keyword      string
-	Status       string
-	BusinessType OrderBusinessType
-	CustomerID   *uuid.UUID
+	Page          int
+	PageSize      int
+	Keyword       string
+	Status        string
+	BusinessType  OrderBusinessType
+	BusinessTypes []OrderBusinessType
+	CustomerID    *uuid.UUID
 }
 
 type OrderList struct {
@@ -268,11 +269,16 @@ func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) 
 }
 
 func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
-	if len(organizationIDs) == 0 || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 || options.BusinessType != "" && !options.BusinessType.Valid() {
+	if len(organizationIDs) == 0 || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	for _, organizationID := range organizationIDs {
 		if organizationID == uuid.Nil {
+			return nil, ErrOrderInvalidArgument
+		}
+	}
+	for _, businessType := range options.BusinessTypes {
+		if !businessType.Valid() {
 			return nil, ErrOrderInvalidArgument
 		}
 	}

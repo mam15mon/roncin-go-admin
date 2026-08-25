@@ -1,13 +1,38 @@
 package service
 
 import (
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
+
+func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
+	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
+	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
+	siCreate := access.OrderPermission(access.OrderBusinessSI, access.OrderCreate)
+	principal := &biz.Principal{
+		Permissions: []string{seRead, aiRead, siCreate},
+		RoleScopes: []biz.RoleScope{
+			{RoleCode: "operator", DataScope: biz.DataScopeOrganization},
+			{RoleCode: "self", DataScope: biz.DataScopeSelf},
+		},
+		RolePermissions: map[string]map[string]struct{}{
+			"operator": {seRead: {}, siCreate: {}},
+			"self":     {aiRead: {}},
+		},
+	}
+
+	got := readableOrderBusinessTypes(principal)
+	want := []biz.OrderBusinessType{biz.OrderBusinessSE}
+	if !slices.Equal(got, want) {
+		t.Fatalf("readableOrderBusinessTypes() = %v, want %v", got, want)
+	}
+}
 
 func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	customerID := uuid.New()

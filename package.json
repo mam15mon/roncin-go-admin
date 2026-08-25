@@ -17,6 +17,7 @@
     "sync:regions": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-regions -apply",
     "sync:airports": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-airports -apply",
     "sync:unlocode": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-unlocode -apply",
+    "acceptance:se-order": "node --env-file-if-exists=.env.local scripts/acceptance-se-order.mjs",
     "check:web": "pnpm --dir web lint && pnpm --dir web test",
     "check:server": "go -C server test ./... && go -C server vet ./...",
     "check": "pnpm run check:web && pnpm run check:server",
