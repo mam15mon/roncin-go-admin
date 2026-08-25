@@ -9233,6 +9233,12 @@
           },
           "note": {
             "type": "string"
+          },
+          "masterDocumentType": {
+            "type": "string"
+          },
+          "masterReleaseMethod": {
+            "type": "string"
           }
         },
         "description": "AddShippingDocumentRequest 添加提单请求。"
@@ -10688,6 +10694,12 @@
           },
           "consolidationId": {
             "type": "string"
+          },
+          "masterDocumentType": {
+            "type": "string"
+          },
+          "masterReleaseMethod": {
+            "type": "string"
           }
         },
         "description": "OrderShippingDocument 提单信息。"
@@ -10709,9 +10721,17 @@
             "type": "string"
           },
           "releaseType": {
-            "type": "string"
+            "type": "string",
+            "description": "release_type 是分单（HBL）签放方式。"
           },
           "note": {
+            "type": "string"
+          },
+          "masterDocumentType": {
+            "type": "string",
+            "description": "主单属性存储在共享的主单批次，同一主单组内必须一致。"
+          },
+          "masterReleaseMethod": {
             "type": "string"
           }
         },
@@ -11646,6 +11666,12 @@
             "type": "string"
           },
           "note": {
+            "type": "string"
+          },
+          "masterDocumentType": {
+            "type": "string"
+          },
+          "masterReleaseMethod": {
             "type": "string"
           }
         },

@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   OrderShippingDocumentFields,
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
+  SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
+  SEA_MASTER_RELEASE_METHOD_OPTIONS,
 } from './order-plan-fields';
 
 function renderFields({
@@ -38,6 +40,8 @@ describe('主分单分组编辑', () => {
           {
             id: 'doc-1',
             masterNo: 'MBL-001',
+            masterDocumentType: 'ORIGINAL_BL',
+            masterReleaseMethod: 'TELEX_RELEASE',
             houseNo: 'HBL-001',
             releaseType: 'TELEX_RELEASE',
             status: 1,
@@ -54,6 +58,8 @@ describe('主分单分组编辑', () => {
       {
         id: 'doc-1',
         masterNo: 'MBL-001',
+        masterDocumentType: 'ORIGINAL_BL',
+        masterReleaseMethod: 'TELEX_RELEASE',
         houseNo: 'HBL-001',
         releaseType: 'TELEX_RELEASE',
         note: undefined,
@@ -71,6 +77,43 @@ describe('主分单分组编辑', () => {
     await waitFor(() => expect(onFinishFailed).toHaveBeenCalledTimes(1));
     expect(onFinish).not.toHaveBeenCalled();
     expect(screen.getAllByText('请填写分单号').length).toBeGreaterThan(0);
+  });
+
+  it('提交时将共享主单属性复制到同组每条分单', async () => {
+    const { onFinish } = renderFields({
+      initialValues: {
+        shippingDocuments: [
+          {
+            id: 'doc-1',
+            masterNo: 'MBL-001',
+            masterDocumentType: 'SEA_WAYBILL',
+            masterReleaseMethod: 'EXPRESS_RELEASE',
+            houseNo: 'HBL-001',
+          },
+        ],
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /添加分单 \(HBL\)/ }));
+    const houseInputs = screen.getAllByPlaceholderText(
+      '请输入分单号 (如 HBL-001)',
+    );
+    fireEvent.change(houseInputs[1], { target: { value: 'HBL-002' } });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
+    expect(onFinish.mock.calls[0][0].shippingDocuments).toEqual([
+      expect.objectContaining({
+        id: 'doc-1',
+        masterDocumentType: 'SEA_WAYBILL',
+        masterReleaseMethod: 'EXPRESS_RELEASE',
+      }),
+      expect.objectContaining({
+        houseNo: 'HBL-002',
+        masterDocumentType: 'SEA_WAYBILL',
+        masterReleaseMethod: 'EXPRESS_RELEASE',
+      }),
+    ]);
   });
 
   it('跨主单组按忽略大小写与首尾空格校验分单号重复', async () => {
@@ -132,6 +175,8 @@ describe('主分单分组编辑', () => {
           {
             id: 'released-doc',
             masterNo: 'MBL-001',
+            masterDocumentType: 'ORIGINAL_BL',
+            masterReleaseMethod: 'TELEX_RELEASE',
             houseNo: 'HBL-001',
             status: 3,
           },
@@ -141,6 +186,8 @@ describe('主分单分组编辑', () => {
 
     expect(screen.getByDisplayValue('MBL-001')).toBeDisabled();
     expect(screen.getByDisplayValue('HBL-001')).toBeDisabled();
+    expect(screen.getAllByRole('combobox')[0]).toBeDisabled();
+    expect(screen.getAllByRole('combobox')[1]).toBeDisabled();
     expect(
       screen.getByRole('button', { name: '删除分单 HBL-001' }),
     ).toBeDisabled();
@@ -157,11 +204,34 @@ describe('主分单分组编辑', () => {
     expect(
       screen.getByPlaceholderText('请输入分单号 (如 HAWB-001)'),
     ).toBeTruthy();
+    expect(screen.queryByText('主单单证类型')).toBeNull();
+    expect(screen.queryByText('主单签放方式')).toBeNull();
+  });
+
+  it('海运展示共享主单属性并说明跨操作票影响', () => {
+    renderFields();
+
+    expect(screen.getByText('主单单证类型')).toBeTruthy();
+    expect(screen.getByText('主单签放方式')).toBeTruthy();
+    expect(
+      screen.getByText(
+        '主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。',
+      ),
+    ).toBeTruthy();
   });
 
   it('海运分单签放选项不混入放行和寄单状态', () => {
     expect(
       SEA_HOUSE_RELEASE_TYPE_OPTIONS.map((option) => option.value),
     ).toEqual(['TELEX_RELEASE', 'ORIGINAL', 'SEA_WAYBILL']);
+  });
+
+  it('海运主单单证与签放选项分别建模', () => {
+    expect(
+      SEA_MASTER_DOCUMENT_TYPE_OPTIONS.map((option) => option.value),
+    ).toEqual(['ORIGINAL_BL', 'SEA_WAYBILL']);
+    expect(
+      SEA_MASTER_RELEASE_METHOD_OPTIONS.map((option) => option.value),
+    ).toEqual(['ORIGINAL', 'TELEX_RELEASE', 'EXPRESS_RELEASE']);
   });
 });

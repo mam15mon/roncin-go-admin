@@ -12,11 +12,13 @@ import {
 } from '@ant-design/pro-components';
 import {
   AutoComplete,
+  Alert,
   Button,
   Col,
   Form,
   Input,
   Popconfirm,
+  Select,
   Tag,
   Tooltip,
 } from 'antd';
@@ -37,8 +39,21 @@ export interface HouseDocItem {
 export interface MasterDocGroup {
   key: string;
   masterNo: string;
+  masterDocumentType?: string;
+  masterReleaseMethod?: string;
   houses: HouseDocItem[];
 }
+
+export const SEA_MASTER_DOCUMENT_TYPE_OPTIONS = [
+  { label: '正本提单 (ORIGINAL B/L)', value: 'ORIGINAL_BL' },
+  { label: '海运单 (SEA WAYBILL)', value: 'SEA_WAYBILL' },
+];
+
+export const SEA_MASTER_RELEASE_METHOD_OPTIONS = [
+  { label: '凭正本放货 (ORIGINAL)', value: 'ORIGINAL' },
+  { label: '电放 (TELEX RELEASE)', value: 'TELEX_RELEASE' },
+  { label: '快速放货 (EXPRESS RELEASE)', value: 'EXPRESS_RELEASE' },
+];
 
 export const SEA_HOUSE_RELEASE_TYPE_OPTIONS = [
   { label: '电放 (TELEX RELEASE)', value: 'TELEX_RELEASE' },
@@ -49,6 +64,28 @@ export const SEA_HOUSE_RELEASE_TYPE_OPTIONS = [
 const seaHouseReleaseTypeLabelMap = Object.fromEntries(
   SEA_HOUSE_RELEASE_TYPE_OPTIONS.map((option) => [option.value, option.label]),
 );
+
+const seaMasterDocumentTypeLabelMap = Object.fromEntries(
+  SEA_MASTER_DOCUMENT_TYPE_OPTIONS.map((option) => [
+    option.value,
+    option.label,
+  ]),
+);
+
+const seaMasterReleaseMethodLabelMap = Object.fromEntries(
+  SEA_MASTER_RELEASE_METHOD_OPTIONS.map((option) => [
+    option.value,
+    option.label,
+  ]),
+);
+
+export function formatMasterDocumentType(value?: string) {
+  return value ? seaMasterDocumentTypeLabelMap[value] || value : '-';
+}
+
+export function formatMasterReleaseMethod(value?: string) {
+  return value ? seaMasterReleaseMethodLabelMap[value] || value : '-';
+}
 
 export function formatHouseReleaseType(value?: string) {
   return value ? seaHouseReleaseTypeLabelMap[value] || value : '-';
@@ -93,6 +130,8 @@ function rawDocsToGroups(
       group = {
         key: nextKey('mg'),
         masterNo: rawMaster,
+        masterDocumentType: doc.masterDocumentType,
+        masterReleaseMethod: doc.masterReleaseMethod,
         houses: [],
       };
       groupMap.set(masterKey, group);
@@ -151,13 +190,18 @@ function groupsToRawDocs(
         !h.houseNo.trim() &&
         !h.releaseType?.trim() &&
         !h.note?.trim() &&
-        (!masterNo.trim() || h.omitWhenEmpty);
+        (h.omitWhenEmpty ||
+          (!masterNo.trim() &&
+            !g.masterDocumentType?.trim() &&
+            !g.masterReleaseMethod?.trim()));
       if (isEmptyPlaceholder) {
         continue;
       }
       result.push({
         id: h.id,
         masterNo,
+        masterDocumentType: g.masterDocumentType,
+        masterReleaseMethod: g.masterReleaseMethod,
         houseNo: h.houseNo,
         releaseType: h.releaseType,
         note: h.note,
@@ -242,6 +286,10 @@ export function OrderShippingDocumentFields({
           (doc, idx) =>
             doc.id === currentFlat[idx]?.id &&
             (doc.masterNo || '') === (currentFlat[idx]?.masterNo || '') &&
+            (doc.masterDocumentType || '') ===
+              (currentFlat[idx]?.masterDocumentType || '') &&
+            (doc.masterReleaseMethod || '') ===
+              (currentFlat[idx]?.masterReleaseMethod || '') &&
             (doc.houseNo || '') === (currentFlat[idx]?.houseNo || '') &&
             (doc.releaseType || '') === (currentFlat[idx]?.releaseType || '') &&
             (doc.note || '') === (currentFlat[idx]?.note || ''),
@@ -265,6 +313,17 @@ export function OrderShippingDocumentFields({
       }
       return g;
     });
+    updateGroups(next);
+  };
+
+  const handleMasterAttributeChange = (
+    groupIndex: number,
+    field: 'masterDocumentType' | 'masterReleaseMethod',
+    val: string,
+  ) => {
+    const next = groups.map((group, index) =>
+      index === groupIndex ? { ...group, [field]: val } : group,
+    );
     updateGroups(next);
   };
 
@@ -442,6 +501,9 @@ export function OrderShippingDocumentFields({
               house.houseNo.trim() ||
               house.releaseType?.trim() ||
               house.note?.trim(),
+          ) || Boolean(
+            group.masterDocumentType?.trim() ||
+              group.masterReleaseMethod?.trim(),
           );
           const masterMissing = !masterTrimmed && Boolean(groupHasContent);
           const normalizedMasterNo = masterTrimmed.toLowerCase();
@@ -590,6 +652,76 @@ export function OrderShippingDocumentFields({
                   </Tooltip>
                 )}
               </div>
+
+              {transportMode === 'sea' && (
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns:
+                        'repeat(auto-fit, minmax(220px, 320px))',
+                      gap: 12,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          color: '#595959',
+                          fontSize: 12,
+                          marginBottom: 4,
+                        }}
+                      >
+                        主单单证类型
+                      </div>
+                      <Select
+                        value={group.masterDocumentType}
+                        options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
+                        placeholder="请选择主单单证类型"
+                        disabled={disabled || groupHasReleased}
+                        onChange={(value) =>
+                          handleMasterAttributeChange(
+                            groupIdx,
+                            'masterDocumentType',
+                            value,
+                          )
+                        }
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          color: '#595959',
+                          fontSize: 12,
+                          marginBottom: 4,
+                        }}
+                      >
+                        主单签放方式
+                      </div>
+                      <Select
+                        value={group.masterReleaseMethod}
+                        options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
+                        placeholder="请选择主单签放方式"
+                        disabled={disabled || groupHasReleased}
+                        onChange={(value) =>
+                          handleMasterAttributeChange(
+                            groupIdx,
+                            'masterReleaseMethod',
+                            value,
+                          )
+                        }
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                  <Alert
+                    type="warning"
+                    showIcon
+                    title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
+                  />
+                </div>
+              )}
 
               {/* 分单列表 Sub-Table */}
               <div

@@ -112,10 +112,14 @@ import {
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import {
+  formatMasterDocumentType,
+  formatMasterReleaseMethod,
   formatHouseReleaseType,
   OrderContainerRequestFields,
   OrderShippingDocumentFields,
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
+  SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
+  SEA_MASTER_RELEASE_METHOD_OPTIONS,
 } from './order-plan-fields';
 
 const { Text } = Typography;
@@ -190,6 +194,8 @@ type CargoItemFormValues = {
 
 type ShippingDocumentFormValues = {
   masterNo: string;
+  masterDocumentType?: string;
+  masterReleaseMethod?: string;
   houseNo: string;
   releaseType?: string;
   note?: string;
@@ -570,6 +576,8 @@ export default function OrderListPage() {
     setEditingShippingDocument(record);
     shippingDocumentFormRef.current?.setFieldsValue({
       masterNo: record.masterNo,
+      masterDocumentType: record.masterDocumentType,
+      masterReleaseMethod: record.masterReleaseMethod,
       houseNo: record.houseNo,
       releaseType: record.releaseType,
       note: record.note,
@@ -611,6 +619,20 @@ export default function OrderListPage() {
       copyable: true,
       ellipsis: true,
       render: (_, record) => record.houseNo || '-',
+    },
+    {
+      title: '主单单证类型',
+      dataIndex: 'masterDocumentType',
+      width: 170,
+      hideInTable: config.category !== 'sea',
+      render: (_, record) => formatMasterDocumentType(record.masterDocumentType),
+    },
+    {
+      title: '主单签放方式',
+      dataIndex: 'masterReleaseMethod',
+      width: 170,
+      hideInTable: config.category !== 'sea',
+      render: (_, record) => formatMasterReleaseMethod(record.masterReleaseMethod),
     },
     {
       title: '分单签放方式',
@@ -2362,6 +2384,10 @@ export default function OrderListPage() {
           editingShippingDocument
             ? {
                 masterNo: editingShippingDocument.masterNo,
+                masterDocumentType:
+                  editingShippingDocument.masterDocumentType,
+                masterReleaseMethod:
+                  editingShippingDocument.masterReleaseMethod,
                 houseNo: editingShippingDocument.houseNo,
                 releaseType: editingShippingDocument.releaseType,
                 note: editingShippingDocument.note,
@@ -2386,6 +2412,8 @@ export default function OrderListPage() {
                 orderId: shippingDocumentOrder.id,
                 id: editingShippingDocument.id,
                 masterNo: values.masterNo.trim(),
+                masterDocumentType: values.masterDocumentType,
+                masterReleaseMethod: values.masterReleaseMethod,
                 houseNo: values.houseNo.trim(),
                 releaseType: values.releaseType?.trim() || undefined,
                 note: values.note?.trim() || undefined,
@@ -2400,6 +2428,8 @@ export default function OrderListPage() {
               {
                 orderId: shippingDocumentOrder.id,
                 masterNo: values.masterNo.trim(),
+                masterDocumentType: values.masterDocumentType,
+                masterReleaseMethod: values.masterReleaseMethod,
                 houseNo: values.houseNo.trim(),
                 releaseType: values.releaseType?.trim() || undefined,
                 note: values.note?.trim() || undefined,
@@ -2418,6 +2448,30 @@ export default function OrderListPage() {
           placeholder="请输入主单号"
           rules={[{ required: true, message: '请输入主单号' }]}
         />
+        {config.category === 'sea' && (
+          <>
+            <ProFormSelect
+              name="masterDocumentType"
+              label="主单单证类型"
+              options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
+              placeholder="请选择主单单证类型"
+              allowClear={false}
+            />
+            <ProFormSelect
+              name="masterReleaseMethod"
+              label="主单签放方式"
+              options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
+              placeholder="请选择主单签放方式"
+              allowClear={false}
+            />
+            <Alert
+              type="warning"
+              showIcon
+              title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
+              style={{ marginBottom: 16 }}
+            />
+          </>
+        )}
         <ProFormText
           name="houseNo"
           label="分单号 (HBL)"

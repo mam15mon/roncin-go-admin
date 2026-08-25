@@ -80,6 +80,8 @@ declare namespace API {
     houseNo: string;
     releaseType?: string;
     note?: string;
+    masterDocumentType?: string;
+    masterReleaseMethod?: string;
   };
 
   type AddShippingDocumentResponse = {
@@ -1992,14 +1994,20 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     consolidationId?: string;
+    masterDocumentType?: string;
+    masterReleaseMethod?: string;
   };
 
   type OrderShippingDocumentInput = {
     id?: string;
     masterNo: string;
     houseNo: string;
+    /** release_type 是分单（HBL）签放方式。 */
     releaseType?: string;
     note?: string;
+    /** 主单属性存储在共享的主单批次，同一主单组内必须一致。 */
+    masterDocumentType?: string;
+    masterReleaseMethod?: string;
   };
 
   type OrderShippingDocumentServiceAddShippingDocumentParams = {
@@ -3192,6 +3200,8 @@ declare namespace API {
     houseNo: string;
     releaseType?: string;
     note?: string;
+    masterDocumentType?: string;
+    masterReleaseMethod?: string;
   };
 
   type UpdateShippingDocumentResponse = {
