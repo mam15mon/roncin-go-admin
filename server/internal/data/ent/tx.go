@@ -32,6 +32,8 @@ type Tx struct {
 	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
+	// LoginRateLimitBucket is the client for interacting with the LoginRateLimitBucket builders.
+	LoginRateLimitBucket *LoginRateLimitBucketClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -259,6 +261,7 @@ func (tx *Tx) init() {
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
 	tx.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
+	tx.LoginRateLimitBucket = NewLoginRateLimitBucketClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)

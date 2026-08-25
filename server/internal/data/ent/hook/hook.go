@@ -129,6 +129,18 @@ func (f FeeSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeeSettingMutation", m)
 }
 
+// The LoginRateLimitBucketFunc type is an adapter to allow the use of ordinary
+// function as LoginRateLimitBucket mutator.
+type LoginRateLimitBucketFunc func(context.Context, *ent.LoginRateLimitBucketMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LoginRateLimitBucketFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LoginRateLimitBucketMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LoginRateLimitBucketMutation", m)
+}
+
 // The MasterDataItemFunc type is an adapter to allow the use of ordinary
 // function as MasterDataItem mutator.
 type MasterDataItemFunc func(context.Context, *ent.MasterDataItemMutation) (ent.Value, error)

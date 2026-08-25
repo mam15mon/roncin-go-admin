@@ -10,6 +10,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
@@ -33,6 +34,57 @@ func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Cr
 		return nil, err
 	}
 	return r.credentialForAccount(ctx, account)
+}
+
+func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
+	return r.data.db.LoginRateLimitBucket.Query().Where(
+		loginratelimitbucket.KeyHashIn(keyHashes...),
+		loginratelimitbucket.WindowStartedAtGT(now.Add(-window)),
+		loginratelimitbucket.AttemptsGTE(maxAttempts),
+	).Exist(ctx)
+}
+
+func (r *authRepo) RecordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
+	tx, err := r.data.sqlDB.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	exceeded := false
+	for _, keyHash := range keyHashes {
+		var attempts int
+		// PostgreSQL upsert 保证同一限流桶的并发失败计数不会丢失。
+		err = tx.QueryRowContext(ctx, `
+INSERT INTO "login_rate_limit_buckets" ("id", "created_at", "updated_at", "key_hash", "window_started_at", "attempts")
+VALUES ($1, $2, $2, $3, $2, 1)
+ON CONFLICT ("key_hash") DO UPDATE SET
+  "updated_at" = EXCLUDED."updated_at",
+  "window_started_at" = CASE
+    WHEN "login_rate_limit_buckets"."window_started_at" <= $4 THEN EXCLUDED."window_started_at"
+    ELSE "login_rate_limit_buckets"."window_started_at"
+  END,
+  "attempts" = CASE
+    WHEN "login_rate_limit_buckets"."window_started_at" <= $4 THEN 1
+    ELSE "login_rate_limit_buckets"."attempts" + 1
+  END
+RETURNING "attempts"`, uuid.Must(uuid.NewV7()), now, keyHash, now.Add(-window)).Scan(&attempts)
+		if err != nil {
+			return false, err
+		}
+		if attempts > maxAttempts {
+			exceeded = true
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return exceeded, nil
+}
+
+func (r *authRepo) ClearLoginFailures(ctx context.Context, keyHash string) error {
+	_, err := r.data.db.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(keyHash)).Exec(ctx)
+	return err
 }
 
 func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *biz.WeComIdentity) (*biz.Credential, bool, error) {

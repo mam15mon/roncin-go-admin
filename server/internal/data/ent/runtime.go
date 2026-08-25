@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -946,6 +947,49 @@ func init() {
 	feesettingDescID := feesettingMixinFields0[0].Descriptor()
 	// feesetting.DefaultID holds the default value on creation for the id field.
 	feesetting.DefaultID = feesettingDescID.Default.(func() uuid.UUID)
+	loginratelimitbucketMixin := schema.LoginRateLimitBucket{}.Mixin()
+	loginratelimitbucketMixinFields0 := loginratelimitbucketMixin[0].Fields()
+	_ = loginratelimitbucketMixinFields0
+	loginratelimitbucketMixinFields1 := loginratelimitbucketMixin[1].Fields()
+	_ = loginratelimitbucketMixinFields1
+	loginratelimitbucketFields := schema.LoginRateLimitBucket{}.Fields()
+	_ = loginratelimitbucketFields
+	// loginratelimitbucketDescCreatedAt is the schema descriptor for created_at field.
+	loginratelimitbucketDescCreatedAt := loginratelimitbucketMixinFields1[0].Descriptor()
+	// loginratelimitbucket.DefaultCreatedAt holds the default value on creation for the created_at field.
+	loginratelimitbucket.DefaultCreatedAt = loginratelimitbucketDescCreatedAt.Default.(func() time.Time)
+	// loginratelimitbucketDescUpdatedAt is the schema descriptor for updated_at field.
+	loginratelimitbucketDescUpdatedAt := loginratelimitbucketMixinFields1[1].Descriptor()
+	// loginratelimitbucket.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	loginratelimitbucket.DefaultUpdatedAt = loginratelimitbucketDescUpdatedAt.Default.(func() time.Time)
+	// loginratelimitbucket.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	loginratelimitbucket.UpdateDefaultUpdatedAt = loginratelimitbucketDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// loginratelimitbucketDescKeyHash is the schema descriptor for key_hash field.
+	loginratelimitbucketDescKeyHash := loginratelimitbucketFields[0].Descriptor()
+	// loginratelimitbucket.KeyHashValidator is a validator for the "key_hash" field. It is called by the builders before save.
+	loginratelimitbucket.KeyHashValidator = func() func(string) error {
+		validators := loginratelimitbucketDescKeyHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(key_hash string) error {
+			for _, fn := range fns {
+				if err := fn(key_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// loginratelimitbucketDescAttempts is the schema descriptor for attempts field.
+	loginratelimitbucketDescAttempts := loginratelimitbucketFields[2].Descriptor()
+	// loginratelimitbucket.AttemptsValidator is a validator for the "attempts" field. It is called by the builders before save.
+	loginratelimitbucket.AttemptsValidator = loginratelimitbucketDescAttempts.Validators[0].(func(int) error)
+	// loginratelimitbucketDescID is the schema descriptor for id field.
+	loginratelimitbucketDescID := loginratelimitbucketMixinFields0[0].Descriptor()
+	// loginratelimitbucket.DefaultID holds the default value on creation for the id field.
+	loginratelimitbucket.DefaultID = loginratelimitbucketDescID.Default.(func() uuid.UUID)
 	masterdataitemMixin := schema.MasterDataItem{}.Mixin()
 	masterdataitemMixinFields0 := masterdataitemMixin[0].Fields()
 	_ = masterdataitemMixinFields0

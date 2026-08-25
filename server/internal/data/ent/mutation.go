@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -89,6 +90,7 @@ const (
 	TypeExchangeRateSetting         = "ExchangeRateSetting"
 	TypeExchangeRateTimeStandard    = "ExchangeRateTimeStandard"
 	TypeFeeSetting                  = "FeeSetting"
+	TypeLoginRateLimitBucket        = "LoginRateLimitBucket"
 	TypeMasterDataItem              = "MasterDataItem"
 	TypeMembership                  = "Membership"
 	TypeMilestoneTemplate           = "MilestoneTemplate"
@@ -10380,6 +10382,590 @@ func (m *FeeSettingMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FeeSetting edge %s", name)
+}
+
+// LoginRateLimitBucketMutation represents an operation that mutates the LoginRateLimitBucket nodes in the graph.
+type LoginRateLimitBucketMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	created_at        *time.Time
+	updated_at        *time.Time
+	key_hash          *string
+	window_started_at *time.Time
+	attempts          *int
+	addattempts       *int
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*LoginRateLimitBucket, error)
+	predicates        []predicate.LoginRateLimitBucket
+}
+
+var _ ent.Mutation = (*LoginRateLimitBucketMutation)(nil)
+
+// loginratelimitbucketOption allows management of the mutation configuration using functional options.
+type loginratelimitbucketOption func(*LoginRateLimitBucketMutation)
+
+// newLoginRateLimitBucketMutation creates new mutation for the LoginRateLimitBucket entity.
+func newLoginRateLimitBucketMutation(c config, op Op, opts ...loginratelimitbucketOption) *LoginRateLimitBucketMutation {
+	m := &LoginRateLimitBucketMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLoginRateLimitBucket,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLoginRateLimitBucketID sets the ID field of the mutation.
+func withLoginRateLimitBucketID(id uuid.UUID) loginratelimitbucketOption {
+	return func(m *LoginRateLimitBucketMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LoginRateLimitBucket
+		)
+		m.oldValue = func(ctx context.Context) (*LoginRateLimitBucket, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LoginRateLimitBucket.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLoginRateLimitBucket sets the old LoginRateLimitBucket of the mutation.
+func withLoginRateLimitBucket(node *LoginRateLimitBucket) loginratelimitbucketOption {
+	return func(m *LoginRateLimitBucketMutation) {
+		m.oldValue = func(context.Context) (*LoginRateLimitBucket, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LoginRateLimitBucketMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LoginRateLimitBucketMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LoginRateLimitBucket entities.
+func (m *LoginRateLimitBucketMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LoginRateLimitBucketMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LoginRateLimitBucketMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LoginRateLimitBucket.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LoginRateLimitBucketMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LoginRateLimitBucketMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LoginRateLimitBucket entity.
+// If the LoginRateLimitBucket object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginRateLimitBucketMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LoginRateLimitBucketMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LoginRateLimitBucketMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LoginRateLimitBucketMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LoginRateLimitBucket entity.
+// If the LoginRateLimitBucket object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginRateLimitBucketMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LoginRateLimitBucketMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetKeyHash sets the "key_hash" field.
+func (m *LoginRateLimitBucketMutation) SetKeyHash(s string) {
+	m.key_hash = &s
+}
+
+// KeyHash returns the value of the "key_hash" field in the mutation.
+func (m *LoginRateLimitBucketMutation) KeyHash() (r string, exists bool) {
+	v := m.key_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeyHash returns the old "key_hash" field's value of the LoginRateLimitBucket entity.
+// If the LoginRateLimitBucket object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginRateLimitBucketMutation) OldKeyHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeyHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeyHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeyHash: %w", err)
+	}
+	return oldValue.KeyHash, nil
+}
+
+// ResetKeyHash resets all changes to the "key_hash" field.
+func (m *LoginRateLimitBucketMutation) ResetKeyHash() {
+	m.key_hash = nil
+}
+
+// SetWindowStartedAt sets the "window_started_at" field.
+func (m *LoginRateLimitBucketMutation) SetWindowStartedAt(t time.Time) {
+	m.window_started_at = &t
+}
+
+// WindowStartedAt returns the value of the "window_started_at" field in the mutation.
+func (m *LoginRateLimitBucketMutation) WindowStartedAt() (r time.Time, exists bool) {
+	v := m.window_started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWindowStartedAt returns the old "window_started_at" field's value of the LoginRateLimitBucket entity.
+// If the LoginRateLimitBucket object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginRateLimitBucketMutation) OldWindowStartedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWindowStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWindowStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWindowStartedAt: %w", err)
+	}
+	return oldValue.WindowStartedAt, nil
+}
+
+// ResetWindowStartedAt resets all changes to the "window_started_at" field.
+func (m *LoginRateLimitBucketMutation) ResetWindowStartedAt() {
+	m.window_started_at = nil
+}
+
+// SetAttempts sets the "attempts" field.
+func (m *LoginRateLimitBucketMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *LoginRateLimitBucketMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the LoginRateLimitBucket entity.
+// If the LoginRateLimitBucket object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginRateLimitBucketMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *LoginRateLimitBucketMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *LoginRateLimitBucketMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *LoginRateLimitBucketMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
+// Where appends a list predicates to the LoginRateLimitBucketMutation builder.
+func (m *LoginRateLimitBucketMutation) Where(ps ...predicate.LoginRateLimitBucket) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LoginRateLimitBucketMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LoginRateLimitBucketMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LoginRateLimitBucket, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LoginRateLimitBucketMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LoginRateLimitBucketMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LoginRateLimitBucket).
+func (m *LoginRateLimitBucketMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LoginRateLimitBucketMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, loginratelimitbucket.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, loginratelimitbucket.FieldUpdatedAt)
+	}
+	if m.key_hash != nil {
+		fields = append(fields, loginratelimitbucket.FieldKeyHash)
+	}
+	if m.window_started_at != nil {
+		fields = append(fields, loginratelimitbucket.FieldWindowStartedAt)
+	}
+	if m.attempts != nil {
+		fields = append(fields, loginratelimitbucket.FieldAttempts)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LoginRateLimitBucketMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case loginratelimitbucket.FieldCreatedAt:
+		return m.CreatedAt()
+	case loginratelimitbucket.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case loginratelimitbucket.FieldKeyHash:
+		return m.KeyHash()
+	case loginratelimitbucket.FieldWindowStartedAt:
+		return m.WindowStartedAt()
+	case loginratelimitbucket.FieldAttempts:
+		return m.Attempts()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LoginRateLimitBucketMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case loginratelimitbucket.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case loginratelimitbucket.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case loginratelimitbucket.FieldKeyHash:
+		return m.OldKeyHash(ctx)
+	case loginratelimitbucket.FieldWindowStartedAt:
+		return m.OldWindowStartedAt(ctx)
+	case loginratelimitbucket.FieldAttempts:
+		return m.OldAttempts(ctx)
+	}
+	return nil, fmt.Errorf("unknown LoginRateLimitBucket field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginRateLimitBucketMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case loginratelimitbucket.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case loginratelimitbucket.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case loginratelimitbucket.FieldKeyHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeyHash(v)
+		return nil
+	case loginratelimitbucket.FieldWindowStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWindowStartedAt(v)
+		return nil
+	case loginratelimitbucket.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LoginRateLimitBucket field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LoginRateLimitBucketMutation) AddedFields() []string {
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, loginratelimitbucket.FieldAttempts)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LoginRateLimitBucketMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case loginratelimitbucket.FieldAttempts:
+		return m.AddedAttempts()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginRateLimitBucketMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case loginratelimitbucket.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LoginRateLimitBucket numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LoginRateLimitBucketMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LoginRateLimitBucketMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LoginRateLimitBucketMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LoginRateLimitBucket nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LoginRateLimitBucketMutation) ResetField(name string) error {
+	switch name {
+	case loginratelimitbucket.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case loginratelimitbucket.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case loginratelimitbucket.FieldKeyHash:
+		m.ResetKeyHash()
+		return nil
+	case loginratelimitbucket.FieldWindowStartedAt:
+		m.ResetWindowStartedAt()
+		return nil
+	case loginratelimitbucket.FieldAttempts:
+		m.ResetAttempts()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginRateLimitBucket field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LoginRateLimitBucketMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LoginRateLimitBucketMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LoginRateLimitBucketMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LoginRateLimitBucketMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LoginRateLimitBucketMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LoginRateLimitBucketMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LoginRateLimitBucketMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LoginRateLimitBucket unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LoginRateLimitBucketMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LoginRateLimitBucket edge %s", name)
 }
 
 // MasterDataItemMutation represents an operation that mutates the MasterDataItem nodes in the graph.

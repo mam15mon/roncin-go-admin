@@ -507,6 +507,33 @@ var (
 			},
 		},
 	}
+	// LoginRateLimitBucketsColumns holds the columns for the "login_rate_limit_buckets" table.
+	LoginRateLimitBucketsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "key_hash", Type: field.TypeString, Size: 64},
+		{Name: "window_started_at", Type: field.TypeTime},
+		{Name: "attempts", Type: field.TypeInt},
+	}
+	// LoginRateLimitBucketsTable holds the schema information for the "login_rate_limit_buckets" table.
+	LoginRateLimitBucketsTable = &schema.Table{
+		Name:       "login_rate_limit_buckets",
+		Columns:    LoginRateLimitBucketsColumns,
+		PrimaryKey: []*schema.Column{LoginRateLimitBucketsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "loginratelimitbucket_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{LoginRateLimitBucketsColumns[2]},
+			},
+			{
+				Name:    "loginratelimitbucket_key_hash",
+				Unique:  true,
+				Columns: []*schema.Column{LoginRateLimitBucketsColumns[3]},
+			},
+		},
+	}
 	// MasterDataItemsColumns holds the columns for the "master_data_items" table.
 	MasterDataItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2645,6 +2672,7 @@ var (
 		ExchangeRateSettingsTable,
 		ExchangeRateTimeStandardsTable,
 		FeeSettingsTable,
+		LoginRateLimitBucketsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
 		MilestoneTemplatesTable,

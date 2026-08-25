@@ -18,6 +18,7 @@ import (
 
 var (
 	ErrInvalidCredentials           = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
+	ErrLoginRateLimited             = errors.New(429, "AUTH_LOGIN_RATE_LIMITED", "登录尝试过于频繁，请稍后再试")
 	ErrSessionRequired              = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
 	ErrSessionExpired               = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
 	ErrPermissionDenied             = errors.Forbidden("AUTH_PERMISSION_DENIED", "无权执行此操作")
@@ -214,6 +215,9 @@ type AuditLog struct {
 
 type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
+	LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error)
+	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error)
+	ClearLoginFailures(context.Context, string) error
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error)
 	FindOrCreateDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
@@ -257,31 +261,71 @@ func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityPro
 	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom, dingtalk: dingtalk}
 }
 
-func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent string) (string, *Principal, time.Time, error) {
+const (
+	loginRateLimitWindow      = time.Minute
+	loginRateLimitMaxFailures = 5
+)
+
+func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent, ipAddress string) (string, *Principal, time.Time, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
+	now := time.Now().UTC()
+	accountKeyHash, keyHashes := loginRateLimitKeys(normalizedUsername, ipAddress)
+	exceeded, err := uc.repo.LoginRateLimitExceeded(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
+	if err != nil {
+		return "", nil, time.Time{}, err
+	}
+	if exceeded {
+		return "", nil, time.Time{}, ErrLoginRateLimited
+	}
 	credential, err := uc.repo.FindCredential(ctx, normalizedUsername)
 	if err != nil {
 		if stderrors.Is(err, ErrInvalidCredentials) {
-			if auditErr := uc.repo.WriteAudit(ctx, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}}); auditErr != nil {
-				return "", nil, time.Time{}, auditErr
-			}
+			return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 		}
 		return "", nil, time.Time{}, err
 	}
 	if credential.PasswordHash == nil {
-		return "", nil, time.Time{}, ErrInvalidCredentials
+		return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
 	matched, err := password.Verify(plainPassword, *credential.PasswordHash)
 	if err != nil {
 		return "", nil, time.Time{}, fmt.Errorf("verify password hash: %w", err)
 	}
 	if !matched {
-		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}}); err != nil {
-			return "", nil, time.Time{}, err
-		}
-		return "", nil, time.Time{}, ErrInvalidCredentials
+		return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+	}
+	if err := uc.repo.ClearLoginFailures(ctx, accountKeyHash); err != nil {
+		return "", nil, time.Time{}, err
 	}
 	return uc.createSession(ctx, credential, userAgent, "auth.login")
+}
+
+func (uc *AuthUsecase) recordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, event *AuditEvent) error {
+	exceeded, err := uc.repo.RecordLoginFailure(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.WriteAudit(ctx, event); err != nil {
+		return err
+	}
+	if exceeded {
+		return ErrLoginRateLimited
+	}
+	return ErrInvalidCredentials
+}
+
+func loginRateLimitKeys(username, ipAddress string) (string, []string) {
+	accountKeyHash := hashLoginRateLimitKey("account", username)
+	keyHashes := []string{accountKeyHash}
+	if normalizedIP := strings.TrimSpace(ipAddress); normalizedIP != "" {
+		keyHashes = append(keyHashes, hashLoginRateLimitKey("ip", normalizedIP))
+	}
+	return accountKeyHash, keyHashes
+}
+
+func hashLoginRateLimitKey(kind, value string) string {
+	digest := sha256.Sum256([]byte(kind + ":" + value))
+	return hex.EncodeToString(digest[:])
 }
 
 func (uc *AuthUsecase) StartWeComLogin() (bool, string, string, time.Time, error) {

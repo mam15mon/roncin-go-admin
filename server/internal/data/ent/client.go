@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -96,6 +97,8 @@ type Client struct {
 	ExchangeRateTimeStandard *ExchangeRateTimeStandardClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
+	// LoginRateLimitBucket is the client for interacting with the LoginRateLimitBucket builders.
+	LoginRateLimitBucket *LoginRateLimitBucketClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
@@ -203,6 +206,7 @@ func (c *Client) init() {
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
 	c.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(c.config)
 	c.FeeSetting = NewFeeSettingClient(c.config)
+	c.LoginRateLimitBucket = NewLoginRateLimitBucketClient(c.config)
 	c.MasterDataItem = NewMasterDataItemClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
@@ -348,6 +352,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:    NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                  NewFeeSettingClient(cfg),
+		LoginRateLimitBucket:        NewLoginRateLimitBucketClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
 		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
@@ -420,6 +425,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ExchangeRateSetting:         NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:    NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                  NewFeeSettingClient(cfg),
+		LoginRateLimitBucket:        NewLoginRateLimitBucketClient(cfg),
 		MasterDataItem:              NewMasterDataItemClient(cfg),
 		Membership:                  NewMembershipClient(cfg),
 		MilestoneTemplate:           NewMilestoneTemplateClient(cfg),
@@ -494,16 +500,16 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
-		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.FeeSetting, c.LoginRateLimitBucket, c.MasterDataItem, c.Membership,
+		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
+		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderContainer, c.OrderFee, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
 		c.TaxableService, c.User,
 	} {
@@ -517,16 +523,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderContainer, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
-		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.FeeSetting, c.LoginRateLimitBucket, c.MasterDataItem, c.Membership,
+		c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence,
+		c.Order, c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderContainer, c.OrderFee, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
 		c.TaxableService, c.User,
 	} {
@@ -557,6 +563,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ExchangeRateTimeStandard.mutate(ctx, m)
 	case *FeeSettingMutation:
 		return c.FeeSetting.mutate(ctx, m)
+	case *LoginRateLimitBucketMutation:
+		return c.LoginRateLimitBucket.mutate(ctx, m)
 	case *MasterDataItemMutation:
 		return c.MasterDataItem.mutate(ctx, m)
 	case *MembershipMutation:
@@ -2167,6 +2175,139 @@ func (c *FeeSettingClient) mutate(ctx context.Context, m *FeeSettingMutation) (V
 		return (&FeeSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FeeSetting mutation op: %q", m.Op())
+	}
+}
+
+// LoginRateLimitBucketClient is a client for the LoginRateLimitBucket schema.
+type LoginRateLimitBucketClient struct {
+	config
+}
+
+// NewLoginRateLimitBucketClient returns a client for the LoginRateLimitBucket from the given config.
+func NewLoginRateLimitBucketClient(c config) *LoginRateLimitBucketClient {
+	return &LoginRateLimitBucketClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `loginratelimitbucket.Hooks(f(g(h())))`.
+func (c *LoginRateLimitBucketClient) Use(hooks ...Hook) {
+	c.hooks.LoginRateLimitBucket = append(c.hooks.LoginRateLimitBucket, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `loginratelimitbucket.Intercept(f(g(h())))`.
+func (c *LoginRateLimitBucketClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LoginRateLimitBucket = append(c.inters.LoginRateLimitBucket, interceptors...)
+}
+
+// Create returns a builder for creating a LoginRateLimitBucket entity.
+func (c *LoginRateLimitBucketClient) Create() *LoginRateLimitBucketCreate {
+	mutation := newLoginRateLimitBucketMutation(c.config, OpCreate)
+	return &LoginRateLimitBucketCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LoginRateLimitBucket entities.
+func (c *LoginRateLimitBucketClient) CreateBulk(builders ...*LoginRateLimitBucketCreate) *LoginRateLimitBucketCreateBulk {
+	return &LoginRateLimitBucketCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LoginRateLimitBucketClient) MapCreateBulk(slice any, setFunc func(*LoginRateLimitBucketCreate, int)) *LoginRateLimitBucketCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LoginRateLimitBucketCreateBulk{err: fmt.Errorf("calling to LoginRateLimitBucketClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LoginRateLimitBucketCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LoginRateLimitBucketCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LoginRateLimitBucket.
+func (c *LoginRateLimitBucketClient) Update() *LoginRateLimitBucketUpdate {
+	mutation := newLoginRateLimitBucketMutation(c.config, OpUpdate)
+	return &LoginRateLimitBucketUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LoginRateLimitBucketClient) UpdateOne(_m *LoginRateLimitBucket) *LoginRateLimitBucketUpdateOne {
+	mutation := newLoginRateLimitBucketMutation(c.config, OpUpdateOne, withLoginRateLimitBucket(_m))
+	return &LoginRateLimitBucketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LoginRateLimitBucketClient) UpdateOneID(id uuid.UUID) *LoginRateLimitBucketUpdateOne {
+	mutation := newLoginRateLimitBucketMutation(c.config, OpUpdateOne, withLoginRateLimitBucketID(id))
+	return &LoginRateLimitBucketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LoginRateLimitBucket.
+func (c *LoginRateLimitBucketClient) Delete() *LoginRateLimitBucketDelete {
+	mutation := newLoginRateLimitBucketMutation(c.config, OpDelete)
+	return &LoginRateLimitBucketDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LoginRateLimitBucketClient) DeleteOne(_m *LoginRateLimitBucket) *LoginRateLimitBucketDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LoginRateLimitBucketClient) DeleteOneID(id uuid.UUID) *LoginRateLimitBucketDeleteOne {
+	builder := c.Delete().Where(loginratelimitbucket.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LoginRateLimitBucketDeleteOne{builder}
+}
+
+// Query returns a query builder for LoginRateLimitBucket.
+func (c *LoginRateLimitBucketClient) Query() *LoginRateLimitBucketQuery {
+	return &LoginRateLimitBucketQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLoginRateLimitBucket},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LoginRateLimitBucket entity by its id.
+func (c *LoginRateLimitBucketClient) Get(ctx context.Context, id uuid.UUID) (*LoginRateLimitBucket, error) {
+	return c.Query().Where(loginratelimitbucket.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LoginRateLimitBucketClient) GetX(ctx context.Context, id uuid.UUID) *LoginRateLimitBucket {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LoginRateLimitBucketClient) Hooks() []Hook {
+	return c.hooks.LoginRateLimitBucket
+}
+
+// Interceptors returns the client interceptors.
+func (c *LoginRateLimitBucketClient) Interceptors() []Interceptor {
+	return c.inters.LoginRateLimitBucket
+}
+
+func (c *LoginRateLimitBucketClient) mutate(ctx context.Context, m *LoginRateLimitBucketMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LoginRateLimitBucketCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LoginRateLimitBucketUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LoginRateLimitBucketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LoginRateLimitBucketDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LoginRateLimitBucket mutation op: %q", m.Op())
 	}
 }
 
@@ -9814,29 +9955,31 @@ type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
-		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
-		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee,
+		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
+		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
+		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
-		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
-		ShippingLine, ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderContainer, OrderFee,
+		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
+		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
+		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Interceptor
 	}
 )

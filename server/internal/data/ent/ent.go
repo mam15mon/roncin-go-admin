@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -135,6 +136,7 @@ func checkColumn(t, c string) error {
 			exchangeratesetting.Table:         exchangeratesetting.ValidColumn,
 			exchangeratetimestandard.Table:    exchangeratetimestandard.ValidColumn,
 			feesetting.Table:                  feesetting.ValidColumn,
+			loginratelimitbucket.Table:        loginratelimitbucket.ValidColumn,
 			masterdataitem.Table:              masterdataitem.ValidColumn,
 			membership.Table:                  membership.ValidColumn,
 			milestonetemplate.Table:           milestonetemplate.ValidColumn,

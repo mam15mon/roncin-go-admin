@@ -34,6 +34,16 @@ func (s *wecomAuthRepoStub) FindCredential(context.Context, string) (*Credential
 	return nil, ErrInvalidCredentials
 }
 
+func (s *wecomAuthRepoStub) LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error) {
+	return false, nil
+}
+
+func (s *wecomAuthRepoStub) RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error) {
+	return false, nil
+}
+
+func (s *wecomAuthRepoStub) ClearLoginFailures(context.Context, string) error { return nil }
+
 func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error) {
 	return s.credential, s.created, nil
 }

@@ -28,7 +28,7 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 	if tr, ok := transport.FromServerContext(ctx); ok {
 		userAgent = tr.RequestHeader().Get("User-Agent")
 	}
-	token, principal, expiresAt, err := s.usecase.Login(ctx, request.GetUsername(), request.GetPassword(), userAgent)
+	token, principal, expiresAt, err := s.usecase.Login(ctx, request.GetUsername(), request.GetPassword(), userAgent, requestmeta.IPAddress(ctx))
 	if err != nil {
 		return nil, err
 	}
