@@ -71,7 +71,10 @@ func CreateDefaultStatusTemplates(ctx context.Context, tx *ent.Tx, organizationI
 }
 
 func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uuid.UUID) ([]*biz.NumberRule, error) {
-	items, err := r.data.db.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID)).Order(numberrule.ByDocumentType()).All(ctx)
+	items, err := r.data.db.NumberRule.Query().Where(
+		numberrule.OrganizationIDEQ(organizationID),
+		numberrule.DocumentTypeNEQ(numberrule.DocumentTypeColoadHouseBill),
+	).Order(numberrule.ByDocumentType()).All(ctx)
 	if err != nil {
 		return nil, err
 	}

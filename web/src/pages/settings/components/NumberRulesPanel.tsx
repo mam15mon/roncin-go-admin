@@ -64,7 +64,6 @@ export const DOC_TYPES: DocTypeMeta[] = [
   { key: 'DOCUMENT_TYPE_INTERNAL_REFERENCE', numValue: 7, label: '企业内部编号设置', shortLabel: '企业内部', color: 'geekblue', defaultPrefix: '' },
   { key: 'DOCUMENT_TYPE_CUSTOMER_REFERENCE', numValue: 8, label: '客户业务编号设置', shortLabel: '客户业务', color: 'lime', defaultPrefix: '' },
   { key: 'DOCUMENT_TYPE_HOUSE_BILL', numValue: 9, label: '分单号设置', shortLabel: '分单', color: 'magenta', defaultPrefix: '' },
-  { key: 'DOCUMENT_TYPE_COLOAD_HOUSE_BILL', numValue: 10, label: '加拼分单号设置', shortLabel: '加拼分单', color: 'volcano', defaultPrefix: '' },
   { key: 'DOCUMENT_TYPE_INVOICE', numValue: 11, label: '发票号设置', shortLabel: '发票', color: 'red', defaultPrefix: '' },
   { key: 'DOCUMENT_TYPE_FREIGHT_RATE', numValue: 12, label: '运价编号设置', shortLabel: '运价', color: 'gold', defaultPrefix: 'FR' },
 ];

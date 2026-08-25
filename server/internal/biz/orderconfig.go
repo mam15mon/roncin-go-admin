@@ -35,7 +35,6 @@ const (
 	DocumentTypeInternalReference DocumentType = "internal_reference"
 	DocumentTypeCustomerReference DocumentType = "customer_reference"
 	DocumentTypeHouseBill         DocumentType = "house_bill"
-	DocumentTypeColoadHouseBill   DocumentType = "coload_house_bill"
 	DocumentTypeInvoice           DocumentType = "invoice"
 	DocumentTypeFreightRate       DocumentType = "freight_rate"
 )
@@ -44,8 +43,8 @@ func (value DocumentType) Valid() bool {
 	switch value {
 	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeQuotation, DocumentTypeWriteOff,
 		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference,
-		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill,
-		DocumentTypeInvoice, DocumentTypeFreightRate:
+		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeInvoice,
+		DocumentTypeFreightRate:
 		return true
 	default:
 		return false
@@ -122,7 +121,6 @@ func DefaultNumberRules() []NumberRule {
 		{DocumentType: DocumentTypeInternalReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeCustomerReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeHouseBill, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
-		{DocumentType: DocumentTypeColoadHouseBill, DateFormat: DateFormatNone, SequenceLength: 1, ResetPolicy: ResetPolicyNever, Enabled: false},
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 	}

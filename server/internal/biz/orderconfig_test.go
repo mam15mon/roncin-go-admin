@@ -120,7 +120,6 @@ func TestDefaultNumberRules(t *testing.T) {
 		{DocumentType: DocumentTypeInternalReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeCustomerReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeHouseBill, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
-		{DocumentType: DocumentTypeColoadHouseBill, DateFormat: DateFormatNone, SequenceLength: 1, ResetPolicy: ResetPolicyNever, Enabled: false},
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 	}
@@ -614,6 +613,13 @@ func TestOrderConfigNumberRuleValidationBoundaries(t *testing.T) {
 			name: "invalid document type on create",
 			mutate: func(r *NumberRule) {
 				r.DocumentType = DocumentType("unsupported_doc_type")
+			},
+			wantError: ErrMasterDataInvalidArgument,
+		},
+		{
+			name: "removed coload house bill type on create",
+			mutate: func(r *NumberRule) {
+				r.DocumentType = DocumentType("coload_house_bill")
 			},
 			wantError: ErrMasterDataInvalidArgument,
 		},
