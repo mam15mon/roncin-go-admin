@@ -9,6 +9,7 @@ web/dist/
 web/.umi/
 web/.umi-production/
 server/bin/
+server/tmp/
 server/var/
 server/internal/webassets/dist/*
 !server/internal/webassets/dist/.gitkeep
