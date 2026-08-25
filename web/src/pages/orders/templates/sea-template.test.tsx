@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { ProForm } from '@ant-design/pro-components';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { getSeaTemplateSections } from './sea-template';
 
 describe('海运订单新增模板', () => {
@@ -40,15 +40,13 @@ describe('海运订单新增模板', () => {
       </ProForm>,
     );
     const transportSection = screen.getByTestId('section-transportInfo');
-    expect(transportSection).toHaveTextContent('主单号');
-    expect(transportSection).toHaveTextContent('分单号');
-    expect(transportSection).toHaveTextContent(
-      '复用其他订单的主单号，即加入同一拼载批次',
-    );
+    expect(transportSection).toHaveTextContent('主单 (MBL)');
+    expect(transportSection).toHaveTextContent('分单号 (HBL)');
+    expect(transportSection).toHaveTextContent('自动归集拼载批次');
     expect(transportSection).toHaveTextContent('箱型箱量');
     expect(
-      screen.getAllByRole('button', { name: '新增一组主分单' }),
-    ).toHaveLength(2);
+      screen.getByRole('button', { name: /添加主单分组 \(MBL\)/ }),
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: /新增箱型箱量/ })).toBeTruthy();
 
     const cargoSection = screen.getByTestId('section-cargoInfo');
@@ -84,29 +82,26 @@ describe('海运订单新增模板', () => {
       </ProForm>,
     );
 
-    // Initial state: no appended lists
-    expect(screen.queryByText('其他主单号')).toBeNull();
-    expect(screen.queryByText('其他分单号')).toBeNull();
+    expect(
+      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
+    ).toHaveLength(1);
 
-    // Click append button for master bill
-    const addMasterBtn = screen.getAllByRole('button', {
-      name: '新增一组主分单',
-    })[0];
+    const addMasterBtn = screen.getByRole('button', {
+      name: /添加主单分组 \(MBL\)/,
+    });
     fireEvent.click(addMasterBtn);
 
-    // Both master and house appended boxes should show row 1
-    expect(screen.getByText('其他主单号')).toBeTruthy();
-    expect(screen.getByText('其他分单号')).toBeTruthy();
     expect(
-      screen.getAllByRole('button', { name: '删除主分单组合1' }),
+      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByRole('button', { name: /删除该主单组/ }),
     ).toHaveLength(2);
 
-    // Click delete button
-    fireEvent.click(
-      screen.getAllByRole('button', { name: '删除主分单组合1' })[0],
-    );
-    expect(screen.queryByText('其他主单号')).toBeNull();
-    expect(screen.queryByText('其他分单号')).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: /删除该主单组/ })[1]);
+    expect(
+      screen.getAllByPlaceholderText('请输入主单号 (如 MBL-001)'),
+    ).toHaveLength(1);
   });
 
   it('渲染货值与保费的金额及币种选择框', () => {

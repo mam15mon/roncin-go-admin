@@ -1508,7 +1508,9 @@ export default function OrderListPage() {
           options={shipmentTypeOptions}
           placeholder="请选择装载类型"
         />
-        <OrderShippingDocumentFields />
+        <OrderShippingDocumentFields
+          transportMode={config.category === 'air' ? 'air' : 'sea'}
+        />
         {config.category === 'sea' && (
           <OrderContainerRequestFields options={containerSpecOptions} />
         )}

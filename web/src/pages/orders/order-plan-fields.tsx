@@ -10,7 +10,16 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
-import { AutoComplete, Button, Col, Form, Input, Tag, Tooltip } from 'antd';
+import {
+  AutoComplete,
+  Button,
+  Col,
+  Form,
+  Input,
+  Popconfirm,
+  Tag,
+  Tooltip,
+} from 'antd';
 import React from 'react';
 
 type SelectOption = { label: string; value: string | number };
@@ -21,6 +30,8 @@ export interface HouseDocItem {
   houseNo: string;
   releaseType?: string;
   note?: string;
+  status?: number;
+  omitWhenEmpty?: boolean;
 }
 
 export interface MasterDocGroup {
@@ -37,16 +48,29 @@ const RELEASE_TYPE_OPTIONS = [
   { label: '正本寄单 (MAILED)', value: 'MAILED' },
 ];
 
+type ShippingDocumentFormValue = API.OrderShippingDocumentInput & {
+  status?: number;
+};
+
+type OrderShippingDocumentFieldsProps = {
+  disabled?: boolean;
+  transportMode?: 'sea' | 'air';
+};
+
 let docKeySeq = 0;
 const nextKey = (prefix: string) => `${prefix}_${Date.now()}_${++docKeySeq}`;
 
-function rawDocsToGroups(rawDocs?: API.OrderShippingDocumentInput[]): MasterDocGroup[] {
+function rawDocsToGroups(
+  rawDocs?: ShippingDocumentFormValue[],
+): MasterDocGroup[] {
   if (!rawDocs || rawDocs.length === 0) {
     return [
       {
         key: nextKey('mg'),
         masterNo: '',
-        houses: [{ key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' }],
+        houses: [
+          { key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' },
+        ],
       },
     ];
   }
@@ -75,6 +99,8 @@ function rawDocsToGroups(rawDocs?: API.OrderShippingDocumentInput[]): MasterDocG
       houseNo: doc.houseNo || '',
       releaseType: doc.releaseType,
       note: doc.note,
+      status: doc.status,
+      omitWhenEmpty: false,
     });
   }
 
@@ -95,16 +121,34 @@ function rawDocsToGroups(rawDocs?: API.OrderShippingDocumentInput[]): MasterDocG
         {
           key: nextKey('mg'),
           masterNo: '',
-          houses: [{ key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' }],
+          houses: [
+            {
+              key: nextKey('h'),
+              houseNo: '',
+              releaseType: undefined,
+              note: '',
+            },
+          ],
         },
       ];
 }
 
-function groupsToRawDocs(groups: MasterDocGroup[]): API.OrderShippingDocumentInput[] {
+function groupsToRawDocs(
+  groups: MasterDocGroup[],
+): API.OrderShippingDocumentInput[] {
   const result: API.OrderShippingDocumentInput[] = [];
   for (const g of groups) {
     const masterNo = g.masterNo;
     for (const h of g.houses) {
+      const isEmptyPlaceholder =
+        !h.id &&
+        !h.houseNo.trim() &&
+        !h.releaseType?.trim() &&
+        !h.note?.trim() &&
+        (!masterNo.trim() || h.omitWhenEmpty);
+      if (isEmptyPlaceholder) {
+        continue;
+      }
       result.push({
         id: h.id,
         masterNo,
@@ -117,20 +161,55 @@ function groupsToRawDocs(groups: MasterDocGroup[]): API.OrderShippingDocumentInp
   return result;
 }
 
+function getShippingDocumentsValidationMessage(
+  docs?: ShippingDocumentFormValue[],
+): string | undefined {
+  const houseNos = new Set<string>();
+
+  for (const doc of docs || []) {
+    if (!doc.masterNo?.trim()) {
+      return '请填写主单号';
+    }
+    const houseNo = doc.houseNo?.trim();
+    if (!houseNo) {
+      return '请填写分单号';
+    }
+
+    const normalizedHouseNo = houseNo.toLowerCase();
+    if (houseNos.has(normalizedHouseNo)) {
+      return `分单号 ${houseNo} 重复`;
+    }
+    houseNos.add(normalizedHouseNo);
+  }
+
+  return undefined;
+}
+
+function ShippingDocumentsFormControl(_props: {
+  value?: ShippingDocumentFormValue[];
+  onChange?: (value: ShippingDocumentFormValue[]) => void;
+}) {
+  return null;
+}
+
 export function OrderShippingDocumentFields({
   disabled = false,
-}: {
-  disabled?: boolean;
-} = {}) {
+  transportMode = 'sea',
+}: OrderShippingDocumentFieldsProps = {}) {
   const form = Form.useFormInstance();
   const [groups, setGroups] = React.useState<MasterDocGroup[]>(() => {
     const initial = form?.getFieldValue('shippingDocuments');
     return rawDocsToGroups(initial);
   });
 
-  // Keep external changes in sync (e.g. form reset or initialValues load)
+  const watchedDocuments = Form.useWatch('shippingDocuments', {
+    form,
+    preserve: true,
+  }) as ShippingDocumentFormValue[] | undefined;
+
+  // 同步表单回显、重置与切换编辑记录带来的外部变化。
   React.useEffect(() => {
-    const current = form?.getFieldValue('shippingDocuments');
+    const current = watchedDocuments;
     if (Array.isArray(current)) {
       const currentFlat = groupsToRawDocs(groups);
       const isSame =
@@ -147,7 +226,7 @@ export function OrderShippingDocumentFields({
         setGroups(rawDocsToGroups(current));
       }
     }
-  }, [form]);
+  }, [groups, watchedDocuments]);
 
   const updateGroups = (nextGroups: MasterDocGroup[]) => {
     setGroups(nextGroups);
@@ -171,7 +250,9 @@ export function OrderShippingDocumentFields({
       {
         key: nextKey('mg'),
         masterNo: '',
-        houses: [{ key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' }],
+        houses: [
+          { key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' },
+        ],
       },
     ];
     updateGroups(next);
@@ -186,7 +267,14 @@ export function OrderShippingDocumentFields({
             {
               key: nextKey('mg'),
               masterNo: '',
-              houses: [{ key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' }],
+              houses: [
+                {
+                  key: nextKey('h'),
+                  houseNo: '',
+                  releaseType: undefined,
+                  note: '',
+                },
+              ],
             },
           ],
     );
@@ -199,7 +287,13 @@ export function OrderShippingDocumentFields({
           ...g,
           houses: [
             ...g.houses,
-            { key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' },
+            {
+              key: nextKey('h'),
+              houseNo: '',
+              releaseType: undefined,
+              note: '',
+              omitWhenEmpty: true,
+            },
           ],
         };
       }
@@ -217,7 +311,15 @@ export function OrderShippingDocumentFields({
           houses:
             filtered.length > 0
               ? filtered
-              : [{ key: nextKey('h'), houseNo: '', releaseType: undefined, note: '' }],
+              : [
+                  {
+                    key: nextKey('h'),
+                    houseNo: '',
+                    releaseType: undefined,
+                    note: '',
+                    omitWhenEmpty: true,
+                  },
+                ],
         };
       }
       return g;
@@ -246,8 +348,46 @@ export function OrderShippingDocumentFields({
     updateGroups(next);
   };
 
+  const documentLabels =
+    transportMode === 'air'
+      ? { master: 'MAWB', house: 'HAWB' }
+      : { master: 'MBL', house: 'HBL' };
+  const releaseTypeOptions =
+    transportMode === 'sea' ? RELEASE_TYPE_OPTIONS : [];
+  const houseNoCounts = new Map<string, number>();
+  for (const group of groups) {
+    for (const house of group.houses) {
+      const normalizedHouseNo = house.houseNo.trim().toLowerCase();
+      if (normalizedHouseNo) {
+        houseNoCounts.set(
+          normalizedHouseNo,
+          (houseNoCounts.get(normalizedHouseNo) || 0) + 1,
+        );
+      }
+    }
+  }
+
   return (
     <Col span={24} style={{ marginBottom: 16 }}>
+      <Form.Item
+        name="shippingDocuments"
+        hidden
+        rules={[
+          {
+            validator: async (
+              _,
+              value: ShippingDocumentFormValue[] | undefined,
+            ) => {
+              const message = getShippingDocumentsValidationMessage(value);
+              if (message) {
+                throw new Error(message);
+              }
+            },
+          },
+        ]}
+      >
+        <ShippingDocumentsFormControl />
+      </Form.Item>
       <div
         style={{
           display: 'flex',
@@ -257,6 +397,30 @@ export function OrderShippingDocumentFields({
       >
         {groups.map((group, groupIdx) => {
           const masterTrimmed = group.masterNo?.trim();
+          const groupHasReleased = group.houses.some(
+            (house) => house.status === 3,
+          );
+          const groupHasContent = group.houses.some(
+            (house) =>
+              house.id ||
+              house.houseNo.trim() ||
+              house.releaseType?.trim() ||
+              house.note?.trim(),
+          );
+          const masterMissing = !masterTrimmed && Boolean(groupHasContent);
+          const removeGroupButton = (
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              disabled={groupHasReleased}
+              onClick={() => handleRemoveGroup(groupIdx)}
+              style={{ fontSize: 12 }}
+            >
+              删除该主单组
+            </Button>
+          );
           return (
             <div
               key={group.key}
@@ -289,10 +453,16 @@ export function OrderShippingDocumentFields({
                     minWidth: 100,
                   }}
                 >
-                  <FileTextOutlined style={{ color: '#1677ff', fontSize: 14 }} />
-                  <span>主单 (MBL)</span>
+                  <FileTextOutlined
+                    style={{ color: '#1677ff', fontSize: 14 }}
+                  />
+                  <span>主单 ({documentLabels.master})</span>
                   {groups.length > 1 && (
-                    <Tag bordered={false} color="default" style={{ marginInlineStart: 2, fontSize: 11 }}>
+                    <Tag
+                      bordered={false}
+                      color="default"
+                      style={{ marginInlineStart: 2, fontSize: 11 }}
+                    >
                       #{groupIdx + 1}
                     </Tag>
                   )}
@@ -301,12 +471,22 @@ export function OrderShippingDocumentFields({
                 <div style={{ flex: '1 1 260px', maxWidth: 420 }}>
                   <Input
                     value={group.masterNo}
-                    onChange={(e) => handleMasterChange(groupIdx, e.target.value)}
-                    placeholder="请输入主单号 (如 MBL-001)"
+                    onChange={(e) =>
+                      handleMasterChange(groupIdx, e.target.value)
+                    }
+                    placeholder={`请输入主单号 (如 ${documentLabels.master}-001)`}
                     maxLength={64}
-                    disabled={disabled}
+                    disabled={disabled || groupHasReleased}
+                    status={masterMissing ? 'error' : undefined}
                     allowClear
                   />
+                  {masterMissing && (
+                    <div
+                      style={{ color: '#ff4d4f', fontSize: 12, marginTop: 2 }}
+                    >
+                      请填写主单号
+                    </div>
+                  )}
                 </div>
 
                 <Tooltip title="相同组织与业务类型下，输入相同主单号将自动关联同一拼载批次（忽略大小写与首尾空格）">
@@ -326,7 +506,11 @@ export function OrderShippingDocumentFields({
                 </Tooltip>
 
                 {masterTrimmed && (
-                  <Tag color="blue" bordered={false} style={{ margin: 0, fontSize: 11 }}>
+                  <Tag
+                    color="blue"
+                    bordered={false}
+                    style={{ margin: 0, fontSize: 11 }}
+                  >
                     批次标识: {masterTrimmed.toUpperCase()}
                   </Tag>
                 )}
@@ -334,16 +518,32 @@ export function OrderShippingDocumentFields({
                 <div style={{ flex: 1 }} />
 
                 {groups.length > 1 && !disabled && (
-                  <Button
-                    type="text"
-                    danger
-                    size="small"
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleRemoveGroup(groupIdx)}
-                    style={{ fontSize: 12 }}
+                  <Tooltip
+                    title={
+                      groupHasReleased
+                        ? '组内存在已放货分单，不能删除该主单组'
+                        : undefined
+                    }
                   >
-                    删除该主单组
-                  </Button>
+                    <span>
+                      {group.houses.some((house) => house.id) &&
+                      !groupHasReleased ? (
+                        <Popconfirm
+                          title="确认删除该主单组？"
+                          description="保存订单后，组内已有分单会被删除。"
+                          onConfirm={() => handleRemoveGroup(groupIdx)}
+                          okText="删除"
+                          cancelText="取消"
+                        >
+                          {React.cloneElement(removeGroupButton, {
+                            onClick: undefined,
+                          })}
+                        </Popconfirm>
+                      ) : (
+                        removeGroupButton
+                      )}
+                    </span>
+                  </Tooltip>
                 )}
               </div>
 
@@ -369,15 +569,37 @@ export function OrderShippingDocumentFields({
                     color: '#595959',
                   }}
                 >
-                  <div style={{ width: 28, textAlign: 'center', color: '#8c8c8c' }}>#</div>
-                  <div style={{ flex: '1 1 180px', minWidth: 140, paddingInline: 6 }}>
-                    <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
-                    分单号 (HBL)
+                  <div
+                    style={{ width: 28, textAlign: 'center', color: '#8c8c8c' }}
+                  >
+                    #
                   </div>
-                  <div style={{ flex: '0 1 180px', minWidth: 140, paddingInline: 6 }}>
+                  <div
+                    style={{
+                      flex: '1 1 180px',
+                      minWidth: 140,
+                      paddingInline: 6,
+                    }}
+                  >
+                    <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
+                    分单号 ({documentLabels.house})
+                  </div>
+                  <div
+                    style={{
+                      flex: '0 1 180px',
+                      minWidth: 140,
+                      paddingInline: 6,
+                    }}
+                  >
                     放货类型
                   </div>
-                  <div style={{ flex: '2 1 240px', minWidth: 160, paddingInline: 6 }}>
+                  <div
+                    style={{
+                      flex: '2 1 240px',
+                      minWidth: 160,
+                      paddingInline: 6,
+                    }}
+                  >
                     分单备注
                   </div>
                   <div style={{ width: 44, textAlign: 'center' }}>操作</div>
@@ -386,7 +608,43 @@ export function OrderShippingDocumentFields({
                 {/* 列表内容 */}
                 <div style={{ background: '#ffffff', padding: '6px 12px' }}>
                   {group.houses.map((house, houseIdx) => {
-                    const isOnlyOne = group.houses.length === 1 && groups.length === 1;
+                    const isOnlyOne =
+                      group.houses.length === 1 && groups.length === 1;
+                    const isReleased = house.status === 3;
+                    const normalizedHouseNo = house.houseNo
+                      .trim()
+                      .toLowerCase();
+                    const isDuplicate =
+                      Boolean(normalizedHouseNo) &&
+                      (houseNoCounts.get(normalizedHouseNo) || 0) > 1;
+                    const houseHasContent = Boolean(
+                      house.id ||
+                        (!house.omitWhenEmpty && group.masterNo.trim()) ||
+                        house.houseNo.trim() ||
+                        house.releaseType?.trim() ||
+                        house.note?.trim(),
+                    );
+                    const houseMissing =
+                      houseHasContent && !house.houseNo.trim();
+                    const removeHouseButton = (
+                      <Button
+                        type="text"
+                        size="small"
+                        danger
+                        aria-label={`删除分单 ${house.houseNo || houseIdx + 1}`}
+                        disabled={isReleased}
+                        icon={<DeleteOutlined style={{ fontSize: 12 }} />}
+                        onClick={() => handleRemoveHouse(groupIdx, houseIdx)}
+                        style={{
+                          height: 24,
+                          width: 24,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                        }}
+                      />
+                    );
                     return (
                       <div
                         key={house.key}
@@ -414,25 +672,52 @@ export function OrderShippingDocumentFields({
                             size="small"
                             value={house.houseNo}
                             onChange={(e) =>
-                              handleHouseFieldChange(groupIdx, houseIdx, 'houseNo', e.target.value)
+                              handleHouseFieldChange(
+                                groupIdx,
+                                houseIdx,
+                                'houseNo',
+                                e.target.value,
+                              )
                             }
-                            placeholder="请输入分单号 (如 HBL-001)"
+                            placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
                             maxLength={64}
-                            disabled={disabled}
-                            status={!house.houseNo?.trim() && group.masterNo?.trim() ? 'warning' : undefined}
+                            disabled={disabled || isReleased}
+                            status={
+                              houseMissing || isDuplicate ? 'error' : undefined
+                            }
                           />
+                          {(houseMissing || isDuplicate) && (
+                            <div
+                              style={{
+                                color: '#ff4d4f',
+                                fontSize: 12,
+                                marginTop: 2,
+                              }}
+                            >
+                              {isDuplicate ? '分单号重复' : '请填写分单号'}
+                            </div>
+                          )}
                         </div>
 
                         <div style={{ flex: '0 1 180px', minWidth: 140 }}>
                           <AutoComplete
                             size="small"
                             value={house.releaseType}
-                            options={RELEASE_TYPE_OPTIONS}
+                            options={releaseTypeOptions}
                             onChange={(val) =>
-                              handleHouseFieldChange(groupIdx, houseIdx, 'releaseType', val)
+                              handleHouseFieldChange(
+                                groupIdx,
+                                houseIdx,
+                                'releaseType',
+                                val,
+                              )
                             }
-                            placeholder="如 电放 / 正本"
-                            disabled={disabled}
+                            placeholder={
+                              transportMode === 'sea'
+                                ? '如 电放 / 正本'
+                                : '请输入放货类型'
+                            }
+                            disabled={disabled || isReleased}
                             filterOption={(inputValue, option) =>
                               Boolean(
                                 option?.value
@@ -455,33 +740,50 @@ export function OrderShippingDocumentFields({
                             size="small"
                             value={house.note}
                             onChange={(e) =>
-                              handleHouseFieldChange(groupIdx, houseIdx, 'note', e.target.value)
+                              handleHouseFieldChange(
+                                groupIdx,
+                                houseIdx,
+                                'note',
+                                e.target.value,
+                              )
                             }
                             placeholder="分单备注说明 (选填)"
-                            maxLength={200}
-                            disabled={disabled}
+                            maxLength={500}
+                            disabled={disabled || isReleased}
                             allowClear
                           />
                         </div>
 
                         <div style={{ width: 44, textAlign: 'center' }}>
                           {!disabled && (
-                            <Tooltip title={isOnlyOne ? '清空该行' : '删除该分单'}>
-                              <Button
-                                type="text"
-                                size="small"
-                                danger
-                                icon={<DeleteOutlined style={{ fontSize: 12 }} />}
-                                onClick={() => handleRemoveHouse(groupIdx, houseIdx)}
-                                style={{
-                                  height: 24,
-                                  width: 24,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  padding: 0,
-                                }}
-                              />
+                            <Tooltip
+                              title={
+                                isReleased
+                                  ? '已放货分单不能修改或删除'
+                                  : isOnlyOne
+                                    ? '清空该行'
+                                    : '删除该分单'
+                              }
+                            >
+                              <span>
+                                {house.id && !isReleased ? (
+                                  <Popconfirm
+                                    title="确认删除该分单？"
+                                    description="保存订单后，该分单会被删除。"
+                                    onConfirm={() =>
+                                      handleRemoveHouse(groupIdx, houseIdx)
+                                    }
+                                    okText="删除"
+                                    cancelText="取消"
+                                  >
+                                    {React.cloneElement(removeHouseButton, {
+                                      onClick: undefined,
+                                    })}
+                                  </Popconfirm>
+                                ) : (
+                                  removeHouseButton
+                                )}
+                              </span>
                             </Tooltip>
                           )}
                         </div>
@@ -506,7 +808,7 @@ export function OrderShippingDocumentFields({
                       onClick={() => handleAddHouse(groupIdx)}
                       style={{ fontSize: 12 }}
                     >
-                      添加分单 (HBL)
+                      添加分单 ({documentLabels.house})
                     </Button>
                   </div>
                 )}
@@ -530,7 +832,7 @@ export function OrderShippingDocumentFields({
               background: '#f9fcff',
             }}
           >
-            添加主单分组 (MBL) · 跨主单拼载
+            添加主单分组 ({documentLabels.master})
           </Button>
         )}
       </div>

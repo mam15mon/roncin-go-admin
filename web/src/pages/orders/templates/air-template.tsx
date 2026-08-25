@@ -27,7 +27,7 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
       title: '基本信息',
       content: (
         <>
-          <OrderShippingDocumentFields />
+          <OrderShippingDocumentFields transportMode="air" />
 
           {/* 第 1 行：核心商务信息（一行 5 个） */}
           <ProFormSelect

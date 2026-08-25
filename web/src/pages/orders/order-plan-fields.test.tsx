@@ -1,0 +1,135 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Button, Form } from 'antd';
+import { describe, expect, it, vi } from 'vitest';
+import { OrderShippingDocumentFields } from './order-plan-fields';
+
+function renderFields({
+  initialValues,
+  transportMode = 'sea',
+}: {
+  initialValues?: Record<string, unknown>;
+  transportMode?: 'sea' | 'air';
+} = {}) {
+  const onFinish = vi.fn();
+  const onFinishFailed = vi.fn();
+
+  render(
+    <Form
+      initialValues={initialValues}
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
+    >
+      <OrderShippingDocumentFields transportMode={transportMode} />
+      <Button htmlType="submit">保存</Button>
+    </Form>,
+  );
+
+  return { onFinish, onFinishFailed };
+}
+
+describe('主分单分组编辑', () => {
+  it('提交时忽略纯空占位行并保留已有记录 ID', async () => {
+    const { onFinish } = renderFields({
+      initialValues: {
+        shippingDocuments: [
+          {
+            id: 'doc-1',
+            masterNo: 'MBL-001',
+            houseNo: 'HBL-001',
+            releaseType: 'TELEX',
+            status: 1,
+          },
+        ],
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /添加分单 \(HBL\)/ }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
+    expect(onFinish.mock.calls[0][0].shippingDocuments).toEqual([
+      {
+        id: 'doc-1',
+        masterNo: 'MBL-001',
+        houseNo: 'HBL-001',
+        releaseType: 'TELEX',
+        note: undefined,
+      },
+    ]);
+  });
+
+  it('只填写主单号时阻止提交', async () => {
+    const { onFinish, onFinishFailed } = renderFields();
+    fireEvent.change(screen.getByPlaceholderText('请输入主单号 (如 MBL-001)'), {
+      target: { value: 'MBL-001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(onFinishFailed).toHaveBeenCalledTimes(1));
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(screen.getAllByText('请填写分单号').length).toBeGreaterThan(0);
+  });
+
+  it('跨主单组按忽略大小写与首尾空格校验分单号重复', async () => {
+    const { onFinish, onFinishFailed } = renderFields();
+    fireEvent.change(screen.getByPlaceholderText('请输入主单号 (如 MBL-001)'), {
+      target: { value: 'MBL-001' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('请输入分单号 (如 HBL-001)'), {
+      target: { value: 'HBL-001' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: /添加主单分组 \(MBL\)/ }),
+    );
+
+    const masterInputs = screen.getAllByPlaceholderText(
+      '请输入主单号 (如 MBL-001)',
+    );
+    const houseInputs = screen.getAllByPlaceholderText(
+      '请输入分单号 (如 HBL-001)',
+    );
+    fireEvent.change(masterInputs[1], { target: { value: 'MBL-002' } });
+    fireEvent.change(houseInputs[1], { target: { value: '  hbl-001  ' } });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(onFinishFailed).toHaveBeenCalledTimes(1));
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(screen.getAllByText('分单号重复')).toHaveLength(2);
+  });
+
+  it('已放货分单及所属主单不可编辑或删除', () => {
+    renderFields({
+      initialValues: {
+        shippingDocuments: [
+          {
+            id: 'released-doc',
+            masterNo: 'MBL-001',
+            houseNo: 'HBL-001',
+            status: 3,
+          },
+        ],
+      },
+    });
+
+    expect(screen.getByDisplayValue('MBL-001')).toBeDisabled();
+    expect(screen.getByDisplayValue('HBL-001')).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: '删除分单 HBL-001' }),
+    ).toBeDisabled();
+  });
+
+  it('空运使用 MAWB 和 HAWB 文案', () => {
+    renderFields({ transportMode: 'air' });
+
+    expect(screen.getByText('主单 (MAWB)')).toBeTruthy();
+    expect(screen.getByText('分单号 (HAWB)')).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText('请输入主单号 (如 MAWB-001)'),
+    ).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText('请输入分单号 (如 HAWB-001)'),
+    ).toBeTruthy();
+  });
+});

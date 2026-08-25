@@ -601,7 +601,7 @@ export function getSeaTemplateSections(
       title: '配舱信息',
       content: (
         <>
-          <OrderShippingDocumentFields />
+          <OrderShippingDocumentFields transportMode="sea" />
 
           {/* 第 1 行：航线 4 港口（一行 4 个，各占 6 栅格） */}
           <ProFormSelect
