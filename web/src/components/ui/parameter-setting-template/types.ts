@@ -1,4 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type { TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 
 export interface ParameterSettingTabItem {
@@ -85,6 +86,8 @@ export interface SettingTableTemplateProps<
   search?: boolean;
   /** 是否开启分页，默认 false */
   pagination?: boolean | { pageSize?: number };
+  /** 表格多选行配置 */
+  rowSelection?: TableRowSelection<TRecord> | false;
   /** 横向/纵向滚动条配置 */
   scroll?: { x?: number | string; y?: number | string };
   /** 顶部工具栏额外按钮 */

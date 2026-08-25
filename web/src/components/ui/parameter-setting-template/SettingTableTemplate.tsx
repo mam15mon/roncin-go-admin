@@ -24,6 +24,7 @@ export function SettingTableTemplate<
   grid = false,
   search = false,
   pagination = false,
+  rowSelection,
   scroll,
   extraToolBarButtons = [],
   cardStyle,
@@ -123,6 +124,7 @@ export function SettingTableTemplate<
             ? pagination
             : undefined
         }
+        rowSelection={rowSelection || undefined}
         scroll={scroll}
         request={async (params) => {
           const res = await query(params);

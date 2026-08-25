@@ -6,7 +6,6 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Tag } from 'antd';
 import React, { useState } from 'react';
 import { SettingTableTemplate } from '@/components/ui';
 import {
@@ -50,43 +49,64 @@ export function FeeItemsPanel() {
   const [serviceTypes, setServiceTypes] = useState<API.MasterDataItem[]>([]);
   const [abnormalCases, setAbnormalCases] = useState<API.MasterDataItem[]>([]);
 
+  // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、币种、计费单位、税率、货物或应税劳务名称、对应服务类型、对应异常情况、操作
   const columns: ProColumns<API.FeeSetting>[] = [
-    { title: '费用代码', dataIndex: 'feeCode', width: 150, copyable: true },
-    { title: '费用名称', dataIndex: 'nameZh', width: 150 },
-    { title: '英文名称', dataIndex: 'nameEn', width: 180, ellipsis: true },
     {
-      title: '服务类型',
-      dataIndex: 'serviceTypeName',
-      width: 120,
-      renderText: (value) => value || '通用',
+      title: '序号',
+      valueType: 'index',
+      width: 60,
     },
-    { title: '币种', dataIndex: 'defaultCurrency', width: 80 },
-    { title: '计费单位', dataIndex: 'billingUnitName', width: 100 },
     {
-      title: '异常情况',
-      dataIndex: 'abnormalCaseName',
+      title: '费用名称',
+      dataIndex: 'nameZh',
+      width: 150,
+    },
+    {
+      title: '费用名称(英文)',
+      dataIndex: 'nameEn',
+      width: 180,
+      ellipsis: true,
+      renderText: (value) => value || '-',
+    },
+    {
+      title: '费用代码',
+      dataIndex: 'feeCode',
       width: 130,
-      renderText: (value) => value || '不限',
+      copyable: true,
+    },
+    {
+      title: '币种',
+      dataIndex: 'defaultCurrency',
+      width: 80,
+    },
+    {
+      title: '计费单位',
+      dataIndex: 'billingUnitName',
+      width: 100,
     },
     {
       title: '税率',
       dataIndex: 'taxRate',
-      width: 80,
+      width: 90,
       renderText: (value) => `${value ?? '0.00'}%`,
     },
     {
-      title: '货物或应税劳务',
+      title: '货物或应税劳务名称',
       dataIndex: 'taxableServiceName',
       width: 180,
       ellipsis: true,
     },
-    { title: '排序', dataIndex: 'sortOrder', width: 70 },
     {
-      title: '状态',
-      dataIndex: 'enabled',
-      width: 80,
-      render: (_, record) =>
-        record.enabled ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>,
+      title: '对应服务类型',
+      dataIndex: 'serviceTypeName',
+      width: 120,
+      renderText: (value) => value || '通用',
+    },
+    {
+      title: '对应异常情况',
+      dataIndex: 'abnormalCaseName',
+      width: 130,
+      renderText: (value) => value || '不限',
     },
   ];
 
@@ -145,7 +165,7 @@ export function FeeItemsPanel() {
           abnormalCaseId: values.abnormalCaseId || undefined,
           taxRate: values.taxRate,
           taxableServiceId: values.taxableServiceId,
-          sortOrder: values.sortOrder,
+          sortOrder: values.sortOrder ?? 100,
         })
       }
       updateItem={(record, values) => {
@@ -164,7 +184,7 @@ export function FeeItemsPanel() {
             abnormalCaseId: values.abnormalCaseId || undefined,
             taxRate: values.taxRate,
             taxableServiceId: values.taxableServiceId,
-            sortOrder: values.sortOrder,
+            sortOrder: values.sortOrder ?? 100,
             enabled: values.enabled,
           },
         );
@@ -289,7 +309,7 @@ export function FeeItemsPanel() {
           <ProFormDigit
             colProps={{ span: 12 }}
             name="sortOrder"
-            label="排序"
+            label="排序权重"
             min={0}
             fieldProps={{ precision: 0 }}
           />

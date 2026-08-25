@@ -28,9 +28,27 @@ export function TaxableServicesPanel() {
   const access = useAccess();
 
   const columns: ProColumns<API.TaxableService>[] = [
-    { title: '货物或应税劳务名称', dataIndex: 'name' },
-    { title: '简称', dataIndex: 'shortName', width: 160 },
-    { title: '商品编码', dataIndex: 'goodsCode', width: 160 },
+    {
+      title: '序号',
+      valueType: 'index',
+      width: 60,
+    },
+    {
+      title: '货物或应税劳务名称',
+      dataIndex: 'name',
+    },
+    {
+      title: '简称',
+      dataIndex: 'shortName',
+      width: 160,
+      renderText: (value) => value || '-',
+    },
+    {
+      title: '商品编码',
+      dataIndex: 'goodsCode',
+      width: 160,
+      renderText: (value) => value || '-',
+    },
     {
       title: '默认税率',
       dataIndex: 'defaultTaxRate',

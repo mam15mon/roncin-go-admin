@@ -5,8 +5,7 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Tag } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingTableTemplate } from '@/components/ui';
 import {
   masterDataServiceCreateItem,
@@ -26,18 +25,20 @@ type AbnormalCaseFormValues = {
 
 export function AbnormalCasesPanel() {
   const access = useAccess();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
+  // 表头汇总：多选框（当前）、序号、异常情况、操作
   const columns: ProColumns<API.MasterDataItem>[] = [
-    { title: '异常代码', dataIndex: 'code', width: 180, copyable: true },
-    { title: '异常名称', dataIndex: 'name' },
-    { title: '英文名称', dataIndex: 'nameEn' },
-    { title: '排序', dataIndex: 'sortOrder', width: 90 },
     {
-      title: '状态',
-      dataIndex: 'enabled',
-      width: 80,
+      title: '序号',
+      valueType: 'index',
+      width: 60,
+    },
+    {
+      title: '异常情况',
+      dataIndex: 'name',
       render: (_, record) =>
-        record.enabled ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>,
+        record.nameEn ? `${record.name} (${record.nameEn})` : record.name,
     },
   ];
 
@@ -45,6 +46,10 @@ export function AbnormalCasesPanel() {
     <SettingTableTemplate<API.MasterDataItem, AbnormalCaseFormValues>
       entityName="异常情况"
       columns={columns}
+      rowSelection={{
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      }}
       query={async () => {
         const res = await masterDataServiceListItems({
           kind: ABNORMAL_CASE_KIND,
@@ -65,7 +70,7 @@ export function AbnormalCasesPanel() {
           name: values.name.trim(),
           nameEn: values.nameEn?.trim() || undefined,
           source: 'manual',
-          sortOrder: values.sortOrder,
+          sortOrder: values.sortOrder ?? 100,
         })
       }
       updateItem={(record, values) => {
@@ -78,7 +83,7 @@ export function AbnormalCasesPanel() {
             name: values.name.trim(),
             nameEn: values.nameEn?.trim() || undefined,
             source: record.source || 'manual',
-            sortOrder: values.sortOrder,
+            sortOrder: values.sortOrder ?? 100,
             enabled: values.enabled,
           },
         );
@@ -116,7 +121,7 @@ export function AbnormalCasesPanel() {
           />
           <ProFormDigit
             name="sortOrder"
-            label="排序"
+            label="排序权重"
             min={0}
             fieldProps={{ precision: 0 }}
           />

@@ -6,7 +6,7 @@ import {
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { Tag } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingTableTemplate } from '@/components/ui';
 import {
   feeCatalogServiceCreateBillingUnit,
@@ -26,27 +26,29 @@ type BillingUnitFormValues = {
 
 export function BillingUnitsPanel() {
   const access = useAccess();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
+  // 表头汇总：多选框、序号、计费单位、是否为箱型单位、操作
   const columns: ProColumns<API.BillingUnit>[] = [
-    { title: '单位代码', dataIndex: 'code', width: 160, copyable: true },
-    { title: '单位名称', dataIndex: 'name' },
+    {
+      title: '序号',
+      valueType: 'index',
+      width: 60,
+    },
+    {
+      title: '计费单位',
+      dataIndex: 'name',
+      render: (_, record) => `${record.name} (${record.code})`,
+    },
     {
       title: '是否为箱型单位',
       dataIndex: 'isContainerUnit',
-      width: 140,
+      width: 150,
       render: (_, record) => (
         <Tag color={record.isContainerUnit ? 'blue' : 'default'}>
           {record.isContainerUnit ? '箱型计量单位' : '常规计量单位'}
         </Tag>
       ),
-    },
-    { title: '排序', dataIndex: 'sortOrder', width: 90 },
-    {
-      title: '状态',
-      dataIndex: 'enabled',
-      width: 80,
-      render: (_, record) =>
-        record.enabled ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>,
     },
   ];
 
@@ -57,12 +59,16 @@ export function BillingUnitsPanel() {
       query={feeCatalogServiceListBillingUnits}
       canCreate={access.canCreateFeeSettings}
       canUpdate={access.canUpdateFeeSettings}
+      rowSelection={{
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      }}
       createItem={(values) =>
         feeCatalogServiceCreateBillingUnit({
           code: values.code.trim().toUpperCase(),
           name: values.name.trim(),
           isContainerUnit: values.isContainerUnit,
-          sortOrder: values.sortOrder,
+          sortOrder: values.sortOrder ?? 100,
         })
       }
       updateItem={(record, values) => {
@@ -74,7 +80,7 @@ export function BillingUnitsPanel() {
             code: values.code.trim().toUpperCase(),
             name: values.name.trim(),
             isContainerUnit: values.isContainerUnit,
-            sortOrder: values.sortOrder,
+            sortOrder: values.sortOrder ?? 100,
             enabled: values.enabled,
           },
         );
@@ -112,7 +118,7 @@ export function BillingUnitsPanel() {
           />
           <ProFormDigit
             name="sortOrder"
-            label="排序"
+            label="排序权重"
             min={0}
             fieldProps={{ precision: 0 }}
           />
