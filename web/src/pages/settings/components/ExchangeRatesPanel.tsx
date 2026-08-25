@@ -31,11 +31,12 @@ import React, { useRef, useState } from 'react';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
-  exchangeRateServiceListExchangeRateTimeStandards,
   exchangeRateServiceListExchangeRateSettings,
-  exchangeRateServiceUpdateExchangeRateTimeStandards,
+  exchangeRateServiceListExchangeRateTimeStandards,
   exchangeRateServiceUpdateExchangeRateSetting,
+  exchangeRateServiceUpdateExchangeRateTimeStandards,
 } from '@/services/roncin/exchangeRateService';
+import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
@@ -99,12 +100,13 @@ function SortableTimeStandards({ values, onChange }: SortableTimeStandardsProps)
     const newIndex = values.indexOf(String(over.id));
     onChange(arrayMove(values, oldIndex, newIndex));
   };
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext items={values} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
           {values.map((value) => (
-            <SortableTimeStandard key={value} value={value} />
+            <SortableItem key={value} value={value} />
           ))}
         </div>
       </SortableContext>
@@ -112,8 +114,10 @@ function SortableTimeStandards({ values, onChange }: SortableTimeStandardsProps)
   );
 }
 
-function SortableTimeStandard({ value }: { value: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: value });
+function SortableItem({ value }: { value: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: value,
+  });
   return (
     <div
       ref={setNodeRef}
@@ -157,6 +161,7 @@ export function ExchangeRatesPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
+  const [currencies, setCurrencies] = useState<API.Currency[]>([]);
   const [timeStandardsOpen, setTimeStandardsOpen] = useState(false);
   const [timeStandardsSaving, setTimeStandardsSaving] = useState(false);
   const [timeStandards, setTimeStandards] = useState<Record<string, string[]>>({});
@@ -201,13 +206,34 @@ export function ExchangeRatesPanel() {
 
   const columns: ProColumns<API.ExchangeRateSetting>[] = [
     {
+      title: '序号',
+      valueType: 'index',
+      width: 60,
+    },
+    {
       title: '汇率类型',
       dataIndex: 'rateType',
       width: 130,
       render: (_, record) => record.rateType && exchangeRateTypeLabels[record.rateType],
     },
-    { title: '原币', dataIndex: 'fromCurrency', width: 90 },
-    { title: '目标币', dataIndex: 'toCurrency', width: 90 },
+    {
+      title: '原币',
+      dataIndex: 'fromCurrency',
+      width: 100,
+      render: (_, record) => {
+        const cur = currencies.find((c) => c.code === record.fromCurrency);
+        return cur?.name ? `${record.fromCurrency} (${cur.name})` : record.fromCurrency;
+      },
+    },
+    {
+      title: '目标币',
+      dataIndex: 'toCurrency',
+      width: 100,
+      render: (_, record) => {
+        const cur = currencies.find((c) => c.code === record.toCurrency);
+        return cur?.name ? `${record.toCurrency} (${cur.name})` : record.toCurrency;
+      },
+    },
     {
       title: '应收汇率',
       dataIndex: 'receivableRate',
@@ -255,8 +281,7 @@ export function ExchangeRatesPanel() {
           )}
           {record.isActive && access.canDisableExchangeRates && (
             <Popconfirm
-              title="确定停用该汇率？"
-              description="停用后新费用不能再匹配它，历史费用快照不受影响。"
+              title="确定停用该汇率设置？"
               onConfirm={async () => {
                 if (!record.id) return;
                 await exchangeRateServiceDisableExchangeRateSetting(
@@ -276,6 +301,13 @@ export function ExchangeRatesPanel() {
       ),
     },
   ];
+
+  const currencyOptions = currencies
+    .filter((c) => c.enabled !== false)
+    .map((c) => ({
+      label: `${c.code} - ${c.name || ''} ${c.symbol ? `(${c.symbol})` : ''}`.trim(),
+      value: c.code ?? '',
+    }));
 
   const initialValues: Partial<ExchangeRateFormValues> = editing
     ? {
@@ -310,9 +342,13 @@ export function ExchangeRatesPanel() {
         search={false}
         pagination={false}
         request={async () => {
-          const response = await exchangeRateServiceListExchangeRateSettings();
-          setBaseCurrency(response.baseCurrency ?? '');
-          return { data: response.data ?? [], success: response.success ?? true };
+          const [rateResponse, currencyResponse] = await Promise.all([
+            exchangeRateServiceListExchangeRateSettings(),
+            masterDataServiceListCurrencies(),
+          ]);
+          setBaseCurrency(rateResponse.baseCurrency ?? '');
+          setCurrencies(currencyResponse.data ?? []);
+          return { data: rateResponse.data ?? [], success: rateResponse.success ?? true };
         }}
         toolBarRender={() => [
           ...(access.canUpdateExchangeRates
@@ -381,17 +417,33 @@ export function ExchangeRatesPanel() {
           options={exchangeRateTypeOptions}
           rules={[{ required: true, message: '请选择汇率类型' }]}
         />
-        <ProFormText
+        <ProFormSelect
           name="fromCurrency"
           label="原币"
-          placeholder="例如 USD"
-          rules={[{ required: true, pattern: /^[A-Za-z]{3}$/, message: '请输入 3 位币种代码' }]}
-          fieldProps={{ maxLength: 3 }}
+          showSearch
+          options={currencyOptions}
+          placeholder="请选择原币币种（支持代码/名称搜索）"
+          rules={[
+            { required: true, message: '请选择原币币种' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (value && value === getFieldValue('toCurrency')) {
+                  return Promise.reject(new Error('原币不能与目标本币相同'));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
         />
-        <ProFormText
+        <ProFormSelect
           name="toCurrency"
-          label="目标币"
+          label="目标币（机构本币）"
           disabled
+          options={
+            currencyOptions.length > 0
+              ? currencyOptions
+              : [{ label: baseCurrency, value: baseCurrency }]
+          }
           rules={[{ required: true, message: '请输入目标币' }]}
         />
         <ProFormText name="receivableRate" label="应收汇率" rules={[{ validator: rateRule }]} />
