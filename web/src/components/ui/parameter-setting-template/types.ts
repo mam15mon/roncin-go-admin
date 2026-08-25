@@ -1,3 +1,4 @@
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import type { ReactNode } from 'react';
 
 export interface ParameterSettingTabItem {
@@ -44,4 +45,52 @@ export interface ParameterSettingTemplateProps {
   className?: string;
   /** Tab 栏类型，默认 'card' */
   tabType?: 'line' | 'card';
+}
+
+export interface SettingTableTemplateProps<
+  TRecord extends Record<string, any> = Record<string, any>,
+  TFormValues extends Record<string, any> = Record<string, any>,
+> {
+  /** 实体业务名称，如 '计费单位'、'异常情况'、'货物或应税劳务' */
+  entityName: string;
+  /** 行主键，默认 'id' */
+  rowKey?: string;
+  /** ProTable 列定义 */
+  columns: ProColumns<TRecord>[];
+  /** 渲染弹窗表单项 */
+  renderFormItems: (editingRecord?: TRecord) => ReactNode;
+  /** 异步获取数据 */
+  query: (params?: any) => Promise<{
+    data?: TRecord[];
+    success?: boolean;
+    total?: number;
+  }>;
+  /** 异步创建数据 */
+  createItem?: (values: TFormValues) => Promise<any>;
+  /** 异步更新数据 */
+  updateItem?: (record: TRecord, values: TFormValues) => Promise<any>;
+  /** 是否具备创建权限，默认 true */
+  canCreate?: boolean;
+  /** 是否具备编辑权限，默认 true */
+  canUpdate?: boolean;
+  /** 初始表单值生成函数或对象 */
+  initialValues?: (editingRecord?: TRecord) => Partial<TFormValues>;
+  /** 提交前数据转换钩子 */
+  beforeSubmit?: (values: TFormValues, editingRecord?: TRecord) => any;
+  /** 弹窗宽度，默认 520 */
+  modalWidth?: number;
+  /** 是否开启 ModalForm Grid 栅格布局，默认 false */
+  grid?: boolean;
+  /** 是否开启搜索表单，默认 false */
+  search?: boolean;
+  /** 是否开启分页，默认 false */
+  pagination?: boolean | { pageSize?: number };
+  /** 横向/纵向滚动条配置 */
+  scroll?: { x?: number | string; y?: number | string };
+  /** 顶部工具栏额外按钮 */
+  extraToolBarButtons?: ReactNode[];
+  /** 卡片外层自定义样式 */
+  cardStyle?: React.CSSProperties;
+  /** 自定义 ActionRef 暴露 */
+  actionRef?: React.MutableRefObject<ActionType | undefined>;
 }
