@@ -140,6 +140,14 @@ export default [
     ],
   },
   {
+    path: '/settings',
+    name: '参数设置',
+    icon: 'setting',
+    access: 'canReadParameterSettings',
+    hideInMenu: true,
+    component: './settings',
+  },
+  {
     path: '/master-data',
     name: '主数据',
     icon: 'database',
@@ -152,6 +160,7 @@ export default [
     name: '费用设置',
     icon: 'accountBook',
     access: 'canReadFeeSettings',
+    hideInMenu: true,
     component: './finance/fee-settings',
   },
   {
@@ -159,6 +168,7 @@ export default [
     name: '汇率设置',
     icon: 'moneyCollect',
     access: 'canReadExchangeRates',
+    hideInMenu: true,
     component: './finance/exchange-rates',
   },
   {

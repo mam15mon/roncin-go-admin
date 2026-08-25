@@ -30,15 +30,21 @@ const quickLinks = [
     path: '/partners/customers',
   },
   {
-    title: '主数据管理',
-    desc: '配置港口、机场、箱型字典，定制单据自动编号序列与业务状态履约流程',
+    title: '参数设置',
+    desc: '定制业务单据编号规则、费用科目字典、财务汇率基准与订单履约里程碑',
+    icon: <SettingOutlined style={{ fontSize: 24, color: '#1677ff' }} />,
+    path: '/settings',
+  },
+  {
+    title: '主数据中心',
+    desc: '配置全球港口五字码、机场三字码、航司二字码、船司 SCAC 与国家城市',
     icon: <DatabaseOutlined style={{ fontSize: 24, color: '#fa8c16' }} />,
     path: '/master-data',
   },
   {
     title: '系统与安全',
     desc: '维护多级组织架构、分配人员角色权限、审计追踪操作日志与后台异步任务',
-    icon: <SettingOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
+    icon: <SafetyCertificateOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
     path: '/admin',
   },
 ];

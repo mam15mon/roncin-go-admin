@@ -1,8 +1,6 @@
 import {
   CompassOutlined,
   GlobalOutlined,
-  NodeIndexOutlined,
-  NumberOutlined,
   RocketOutlined,
   SendOutlined,
 } from '@ant-design/icons';
@@ -14,10 +12,8 @@ import AirlinesPanel from './components/AirlinesPanel';
 import AirportsPanel from './components/AirportsPanel';
 import CitiesPanel from './components/CitiesPanel';
 import CountriesPanel from './components/CountriesPanel';
-import NumberRulesPanel from './components/NumberRulesPanel';
 import PortsPanel from './components/PortsPanel';
 import ShippingLinesPanel from './components/ShippingLinesPanel';
-import MilestoneTemplatesPanel from './milestone-templates-panel';
 
 export default function MasterDataPage() {
   const access = useAccess();
@@ -90,28 +86,6 @@ export default function MasterDataPage() {
       ),
       children: <CitiesPanel />,
     },
-    {
-      key: 'number-rules',
-      visible: access.canReadMasterDataNumberRules,
-      label: (
-        <span>
-          <NumberOutlined style={{ marginRight: 6 }} />
-          单号规则 (Number Rules)
-        </span>
-      ),
-      children: <NumberRulesPanel />,
-    },
-    {
-      key: 'milestones',
-      visible: access.canReadMasterDataMilestoneTemplates,
-      label: (
-        <span>
-          <NodeIndexOutlined style={{ marginRight: 6 }} />
-          业务里程碑 (Milestones)
-        </span>
-      ),
-      children: <MilestoneTemplatesPanel />,
-    },
   ]
     .filter((item) => item.visible)
     .map(({ visible: _visible, ...item }) => item);
@@ -125,7 +99,7 @@ export default function MasterDataPage() {
       header={{
         title: '货代主数据管理中心',
         subTitle:
-          '统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、国家城市及单号流水规则',
+          '统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC 与国家城市基础资料',
       }}
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >

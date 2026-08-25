@@ -302,5 +302,10 @@ export default function access(
     canReadAEOrders: canOrder(3, 'read'),
     canReadAIOrders: canOrder(4, 'read'),
     canManageTasks: result.canRequeueTasks,
+    canReadParameterSettings:
+      result.canReadMasterDataNumberRules ||
+      result.canReadFeeSettings ||
+      result.canReadExchangeRates ||
+      result.canReadMasterDataMilestoneTemplates,
   };
 }

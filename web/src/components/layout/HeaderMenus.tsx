@@ -63,19 +63,19 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
       });
     }
 
+    if (access?.canReadParameterSettings) {
+      items.push({
+        key: '/settings',
+        icon: <AccountBookOutlined />,
+        label: '参数设置',
+      });
+    }
+
     if (access?.canReadMasterData) {
       items.push({
         key: '/master-data',
         icon: <DatabaseOutlined />,
         label: '主数据',
-      });
-    }
-
-    if (access?.canReadFeeSettings) {
-      items.push({
-        key: '/finance/fee-settings',
-        icon: <AccountBookOutlined />,
-        label: '费用设置',
       });
     }
 
@@ -100,8 +100,8 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     access?.canManageOrganizations,
     access?.canManageUsers,
     access?.canManageRoles,
+    access?.canReadParameterSettings,
     access?.canReadMasterData,
-    access?.canReadFeeSettings,
     access?.canReadAudit,
     access?.canReadTasks,
     access?.canAccessPlatform,
@@ -142,9 +142,12 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
   }
 
   const isSettingsActive =
+    location.pathname === '/settings' ||
+    location.pathname.startsWith('/settings/') ||
     location.pathname === '/master-data' ||
     location.pathname.startsWith('/master-data/') ||
     location.pathname === '/finance/fee-settings' ||
+    location.pathname === '/finance/exchange-rates' ||
     location.pathname === '/admin' ||
     location.pathname.startsWith('/admin/');
 
