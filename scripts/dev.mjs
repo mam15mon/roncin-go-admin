@@ -1,27 +1,14 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readlinkSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-if (process.platform !== 'win32') {
-  throw new Error('开发启动脚本仅支持 Windows 本机 PostgreSQL');
+if (process.platform !== 'linux') {
+  throw new Error('开发启动脚本仅支持 Linux');
 }
 
-const programFiles = process.env.ProgramFiles;
-if (!programFiles) {
-  throw new Error('ProgramFiles 环境变量不存在');
-}
-
-const dockerExecutable = join(
-  programFiles,
-  'Docker',
-  'Docker',
-  'resources',
-  'bin',
-  'docker.exe',
-);
-if (!existsSync(dockerExecutable)) {
-  throw new Error(`Docker CLI 不存在: ${dockerExecutable}`);
+const dockerExecutable = 'docker';
+if (spawnSync(dockerExecutable, ['--version'], { stdio: 'ignore' }).status !== 0) {
+  throw new Error('未找到可用的 docker CLI，请先安装并启动 Docker');
 }
 
 const databaseSource = process.env.DATABASE_SOURCE;
@@ -49,13 +36,8 @@ const composeEnvironment = {
 };
 
 const developmentServerExecutable = fileURLToPath(
-  new URL('../server/tmp/roncin-server.exe', import.meta.url),
+  new URL('../server/tmp/roncin-server', import.meta.url),
 );
-
-const commandShell = process.env.ComSpec;
-if (!commandShell) {
-  throw new Error('ComSpec 环境变量不存在');
-}
 
 function runChecked(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -81,7 +63,7 @@ function runChecked(command, args, options = {}) {
 }
 
 function runPnpmScript(script) {
-  return runChecked(commandShell, ['/d', '/s', '/c', `pnpm run ${script}`]);
+  return runChecked('pnpm', ['run', script]);
 }
 
 function postgresIsReady() {
@@ -119,70 +101,49 @@ async function waitForPostgres(timeout) {
 }
 
 function findExistingDevelopmentServerTrees() {
-  const script = `
-$targetPath = [System.IO.Path]::GetFullPath($env:RONCIN_DEV_SERVER_EXECUTABLE)
-$targetProcessIds = @()
-
-foreach ($serverProcess in @(Get-CimInstance Win32_Process -Filter "Name = 'roncin-server.exe'")) {
-  if ([string]::IsNullOrWhiteSpace($serverProcess.ExecutablePath)) {
-    continue
-  }
-
-  $serverPath = [System.IO.Path]::GetFullPath($serverProcess.ExecutablePath)
-  if (-not [System.StringComparer]::OrdinalIgnoreCase.Equals($serverPath, $targetPath)) {
-    continue
-  }
-
-  $targetProcess = $serverProcess
-  $parentProcessId = [uint32]$serverProcess.ParentProcessId
-  while ($parentProcessId -ne 0) {
-    $parentProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $parentProcessId"
-    if ($null -eq $parentProcess) {
-      break
+  const processes = new Map();
+  for (const entry of readdirSync('/proc')) {
+    if (!/^\d+$/.test(entry)) continue;
+    const processId = Number.parseInt(entry, 10);
+    try {
+      const [stat] = readlinkSync(`/proc/${entry}/exe`).split('\n');
+      const status = spawnSync('ps', ['-o', 'ppid=', '-p', entry], {
+        encoding: 'utf8',
+      });
+      if (status.status !== 0) continue;
+      processes.set(processId, {
+        executable: stat,
+        parentProcessId: Number.parseInt(status.stdout.trim(), 10),
+      });
+    } catch {
+      // 进程可能已在枚举期间退出，忽略即可。
     }
-    if ($parentProcess.Name -ieq 'air.exe') {
-      $targetProcess = $parentProcess
-      break
+  }
+
+  const targetProcessIds = new Set();
+  for (const [processId, process] of processes) {
+    if (process.executable !== developmentServerExecutable) continue;
+    let targetProcessId = processId;
+    let parentProcessId = process.parentProcessId;
+    while (parentProcessId && processes.has(parentProcessId)) {
+      const parent = processes.get(parentProcessId);
+      if (parent.executable.endsWith('/air')) {
+        targetProcessId = parentProcessId;
+        break;
+      }
+      parentProcessId = parent.parentProcessId;
     }
-    $parentProcessId = [uint32]$parentProcess.ParentProcessId
+    targetProcessIds.add(targetProcessId);
   }
-
-  $targetProcessIds += [int]$targetProcess.ProcessId
-}
-
-$targetProcessIds | Sort-Object -Unique
-`;
-  const result = spawnSync(
-    'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-Command', script],
-    {
-      encoding: 'utf8',
-      env: {
-        ...process.env,
-        RONCIN_DEV_SERVER_EXECUTABLE: developmentServerExecutable,
-      },
-    },
-  );
-  if (result.error) {
-    throw result.error;
-  }
-  if (result.status !== 0) {
-    throw new Error(`查询已有后端开发进程失败: ${result.stderr.trim()}`);
-  }
-  return result.stdout
-    .split(/\r?\n/)
-    .map((value) => Number.parseInt(value.trim(), 10))
-    .filter(Number.isInteger);
+  return [...targetProcessIds];
 }
 
 function stopExistingDevelopmentServers() {
   for (const processId of findExistingDevelopmentServerTrees()) {
     console.log(`[dev] 关闭本仓库已有后端开发进程树: PID ${processId}`);
-    const result = spawnSync(
-      'taskkill.exe',
-      ['/pid', String(processId), '/t', '/f'],
-      { stdio: 'ignore' },
-    );
+    const result = spawnSync('kill', ['-TERM', String(processId)], {
+      stdio: 'ignore',
+    });
     if (result.error) {
       throw result.error;
     }
@@ -193,9 +154,6 @@ function stopExistingDevelopmentServers() {
 }
 
 async function prepareDatabase() {
-  console.log('[dev] 启动 Docker Desktop');
-  await runChecked(dockerExecutable, ['desktop', 'start', '--timeout', '60']);
-
   console.log('[dev] 启动 Docker PostgreSQL');
   await runChecked(
     dockerExecutable,
@@ -229,7 +187,7 @@ let exitCode = 0;
 
 function terminateProcessTree(child) {
   if (!child.pid || child.exitCode !== null) return;
-  spawnSync('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], {
+  spawnSync('kill', ['-TERM', String(child.pid)], {
     stdio: 'ignore',
   });
 }
@@ -248,8 +206,8 @@ function stopAll(code) {
 
 function startService(name, script) {
   const child = spawn(
-    commandShell,
-    ['/d', '/s', '/c', `pnpm run ${script}`],
+    'pnpm',
+    ['run', script],
     { stdio: 'inherit' },
   );
   children.set(name, child);
