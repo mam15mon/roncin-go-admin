@@ -1826,6 +1826,14 @@ func init() {
 			return nil
 		}
 	}()
+	// orderconsolidationDescDocumentType is the schema descriptor for document_type field.
+	orderconsolidationDescDocumentType := orderconsolidationFields[4].Descriptor()
+	// orderconsolidation.DocumentTypeValidator is a validator for the "document_type" field. It is called by the builders before save.
+	orderconsolidation.DocumentTypeValidator = orderconsolidationDescDocumentType.Validators[0].(func(string) error)
+	// orderconsolidationDescReleaseMethod is the schema descriptor for release_method field.
+	orderconsolidationDescReleaseMethod := orderconsolidationFields[5].Descriptor()
+	// orderconsolidation.ReleaseMethodValidator is a validator for the "release_method" field. It is called by the builders before save.
+	orderconsolidation.ReleaseMethodValidator = orderconsolidationDescReleaseMethod.Validators[0].(func(string) error)
 	// orderconsolidationDescID is the schema descriptor for id field.
 	orderconsolidationDescID := orderconsolidationMixinFields0[0].Descriptor()
 	// orderconsolidation.DefaultID holds the default value on creation for the id field.

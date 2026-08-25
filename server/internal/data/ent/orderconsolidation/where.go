@@ -81,6 +81,16 @@ func NormalizedMasterNo(v string) predicate.OrderConsolidation {
 	return predicate.OrderConsolidation(sql.FieldEQ(FieldNormalizedMasterNo, v))
 }
 
+// DocumentType applies equality check predicate on the "document_type" field. It's identical to DocumentTypeEQ.
+func DocumentType(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEQ(FieldDocumentType, v))
+}
+
+// ReleaseMethod applies equality check predicate on the "release_method" field. It's identical to ReleaseMethodEQ.
+func ReleaseMethod(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEQ(FieldReleaseMethod, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.OrderConsolidation {
 	return predicate.OrderConsolidation(sql.FieldEQ(FieldCreatedAt, v))
@@ -329,6 +339,156 @@ func NormalizedMasterNoEqualFold(v string) predicate.OrderConsolidation {
 // NormalizedMasterNoContainsFold applies the ContainsFold predicate on the "normalized_master_no" field.
 func NormalizedMasterNoContainsFold(v string) predicate.OrderConsolidation {
 	return predicate.OrderConsolidation(sql.FieldContainsFold(FieldNormalizedMasterNo, v))
+}
+
+// DocumentTypeEQ applies the EQ predicate on the "document_type" field.
+func DocumentTypeEQ(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEQ(FieldDocumentType, v))
+}
+
+// DocumentTypeNEQ applies the NEQ predicate on the "document_type" field.
+func DocumentTypeNEQ(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNEQ(FieldDocumentType, v))
+}
+
+// DocumentTypeIn applies the In predicate on the "document_type" field.
+func DocumentTypeIn(vs ...string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldIn(FieldDocumentType, vs...))
+}
+
+// DocumentTypeNotIn applies the NotIn predicate on the "document_type" field.
+func DocumentTypeNotIn(vs ...string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNotIn(FieldDocumentType, vs...))
+}
+
+// DocumentTypeGT applies the GT predicate on the "document_type" field.
+func DocumentTypeGT(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldGT(FieldDocumentType, v))
+}
+
+// DocumentTypeGTE applies the GTE predicate on the "document_type" field.
+func DocumentTypeGTE(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldGTE(FieldDocumentType, v))
+}
+
+// DocumentTypeLT applies the LT predicate on the "document_type" field.
+func DocumentTypeLT(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldLT(FieldDocumentType, v))
+}
+
+// DocumentTypeLTE applies the LTE predicate on the "document_type" field.
+func DocumentTypeLTE(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldLTE(FieldDocumentType, v))
+}
+
+// DocumentTypeContains applies the Contains predicate on the "document_type" field.
+func DocumentTypeContains(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldContains(FieldDocumentType, v))
+}
+
+// DocumentTypeHasPrefix applies the HasPrefix predicate on the "document_type" field.
+func DocumentTypeHasPrefix(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldHasPrefix(FieldDocumentType, v))
+}
+
+// DocumentTypeHasSuffix applies the HasSuffix predicate on the "document_type" field.
+func DocumentTypeHasSuffix(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldHasSuffix(FieldDocumentType, v))
+}
+
+// DocumentTypeIsNil applies the IsNil predicate on the "document_type" field.
+func DocumentTypeIsNil() predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldIsNull(FieldDocumentType))
+}
+
+// DocumentTypeNotNil applies the NotNil predicate on the "document_type" field.
+func DocumentTypeNotNil() predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNotNull(FieldDocumentType))
+}
+
+// DocumentTypeEqualFold applies the EqualFold predicate on the "document_type" field.
+func DocumentTypeEqualFold(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEqualFold(FieldDocumentType, v))
+}
+
+// DocumentTypeContainsFold applies the ContainsFold predicate on the "document_type" field.
+func DocumentTypeContainsFold(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldContainsFold(FieldDocumentType, v))
+}
+
+// ReleaseMethodEQ applies the EQ predicate on the "release_method" field.
+func ReleaseMethodEQ(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEQ(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodNEQ applies the NEQ predicate on the "release_method" field.
+func ReleaseMethodNEQ(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNEQ(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodIn applies the In predicate on the "release_method" field.
+func ReleaseMethodIn(vs ...string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldIn(FieldReleaseMethod, vs...))
+}
+
+// ReleaseMethodNotIn applies the NotIn predicate on the "release_method" field.
+func ReleaseMethodNotIn(vs ...string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNotIn(FieldReleaseMethod, vs...))
+}
+
+// ReleaseMethodGT applies the GT predicate on the "release_method" field.
+func ReleaseMethodGT(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldGT(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodGTE applies the GTE predicate on the "release_method" field.
+func ReleaseMethodGTE(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldGTE(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodLT applies the LT predicate on the "release_method" field.
+func ReleaseMethodLT(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldLT(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodLTE applies the LTE predicate on the "release_method" field.
+func ReleaseMethodLTE(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldLTE(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodContains applies the Contains predicate on the "release_method" field.
+func ReleaseMethodContains(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldContains(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodHasPrefix applies the HasPrefix predicate on the "release_method" field.
+func ReleaseMethodHasPrefix(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldHasPrefix(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodHasSuffix applies the HasSuffix predicate on the "release_method" field.
+func ReleaseMethodHasSuffix(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldHasSuffix(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodIsNil applies the IsNil predicate on the "release_method" field.
+func ReleaseMethodIsNil() predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldIsNull(FieldReleaseMethod))
+}
+
+// ReleaseMethodNotNil applies the NotNil predicate on the "release_method" field.
+func ReleaseMethodNotNil() predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldNotNull(FieldReleaseMethod))
+}
+
+// ReleaseMethodEqualFold applies the EqualFold predicate on the "release_method" field.
+func ReleaseMethodEqualFold(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldEqualFold(FieldReleaseMethod, v))
+}
+
+// ReleaseMethodContainsFold applies the ContainsFold predicate on the "release_method" field.
+func ReleaseMethodContainsFold(v string) predicate.OrderConsolidation {
+	return predicate.OrderConsolidation(sql.FieldContainsFold(FieldReleaseMethod, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

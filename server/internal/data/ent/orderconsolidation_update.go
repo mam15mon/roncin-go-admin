@@ -93,6 +93,46 @@ func (_u *OrderConsolidationUpdate) SetNillableNormalizedMasterNo(v *string) *Or
 	return _u
 }
 
+// SetDocumentType sets the "document_type" field.
+func (_u *OrderConsolidationUpdate) SetDocumentType(v string) *OrderConsolidationUpdate {
+	_u.mutation.SetDocumentType(v)
+	return _u
+}
+
+// SetNillableDocumentType sets the "document_type" field if the given value is not nil.
+func (_u *OrderConsolidationUpdate) SetNillableDocumentType(v *string) *OrderConsolidationUpdate {
+	if v != nil {
+		_u.SetDocumentType(*v)
+	}
+	return _u
+}
+
+// ClearDocumentType clears the value of the "document_type" field.
+func (_u *OrderConsolidationUpdate) ClearDocumentType() *OrderConsolidationUpdate {
+	_u.mutation.ClearDocumentType()
+	return _u
+}
+
+// SetReleaseMethod sets the "release_method" field.
+func (_u *OrderConsolidationUpdate) SetReleaseMethod(v string) *OrderConsolidationUpdate {
+	_u.mutation.SetReleaseMethod(v)
+	return _u
+}
+
+// SetNillableReleaseMethod sets the "release_method" field if the given value is not nil.
+func (_u *OrderConsolidationUpdate) SetNillableReleaseMethod(v *string) *OrderConsolidationUpdate {
+	if v != nil {
+		_u.SetReleaseMethod(*v)
+	}
+	return _u
+}
+
+// ClearReleaseMethod clears the value of the "release_method" field.
+func (_u *OrderConsolidationUpdate) ClearReleaseMethod() *OrderConsolidationUpdate {
+	_u.mutation.ClearReleaseMethod()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *OrderConsolidationUpdate) SetOrganization(v *Organization) *OrderConsolidationUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -198,6 +238,16 @@ func (_u *OrderConsolidationUpdate) check() error {
 			return &ValidationError{Name: "normalized_master_no", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.normalized_master_no": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DocumentType(); ok {
+		if err := orderconsolidation.DocumentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "document_type", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.document_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReleaseMethod(); ok {
+		if err := orderconsolidation.ReleaseMethodValidator(v); err != nil {
+			return &ValidationError{Name: "release_method", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.release_method": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderConsolidation.organization"`)
 	}
@@ -227,6 +277,18 @@ func (_u *OrderConsolidationUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.NormalizedMasterNo(); ok {
 		_spec.SetField(orderconsolidation.FieldNormalizedMasterNo, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DocumentType(); ok {
+		_spec.SetField(orderconsolidation.FieldDocumentType, field.TypeString, value)
+	}
+	if _u.mutation.DocumentTypeCleared() {
+		_spec.ClearField(orderconsolidation.FieldDocumentType, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReleaseMethod(); ok {
+		_spec.SetField(orderconsolidation.FieldReleaseMethod, field.TypeString, value)
+	}
+	if _u.mutation.ReleaseMethodCleared() {
+		_spec.ClearField(orderconsolidation.FieldReleaseMethod, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -384,6 +446,46 @@ func (_u *OrderConsolidationUpdateOne) SetNillableNormalizedMasterNo(v *string) 
 	return _u
 }
 
+// SetDocumentType sets the "document_type" field.
+func (_u *OrderConsolidationUpdateOne) SetDocumentType(v string) *OrderConsolidationUpdateOne {
+	_u.mutation.SetDocumentType(v)
+	return _u
+}
+
+// SetNillableDocumentType sets the "document_type" field if the given value is not nil.
+func (_u *OrderConsolidationUpdateOne) SetNillableDocumentType(v *string) *OrderConsolidationUpdateOne {
+	if v != nil {
+		_u.SetDocumentType(*v)
+	}
+	return _u
+}
+
+// ClearDocumentType clears the value of the "document_type" field.
+func (_u *OrderConsolidationUpdateOne) ClearDocumentType() *OrderConsolidationUpdateOne {
+	_u.mutation.ClearDocumentType()
+	return _u
+}
+
+// SetReleaseMethod sets the "release_method" field.
+func (_u *OrderConsolidationUpdateOne) SetReleaseMethod(v string) *OrderConsolidationUpdateOne {
+	_u.mutation.SetReleaseMethod(v)
+	return _u
+}
+
+// SetNillableReleaseMethod sets the "release_method" field if the given value is not nil.
+func (_u *OrderConsolidationUpdateOne) SetNillableReleaseMethod(v *string) *OrderConsolidationUpdateOne {
+	if v != nil {
+		_u.SetReleaseMethod(*v)
+	}
+	return _u
+}
+
+// ClearReleaseMethod clears the value of the "release_method" field.
+func (_u *OrderConsolidationUpdateOne) ClearReleaseMethod() *OrderConsolidationUpdateOne {
+	_u.mutation.ClearReleaseMethod()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *OrderConsolidationUpdateOne) SetOrganization(v *Organization) *OrderConsolidationUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -502,6 +604,16 @@ func (_u *OrderConsolidationUpdateOne) check() error {
 			return &ValidationError{Name: "normalized_master_no", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.normalized_master_no": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DocumentType(); ok {
+		if err := orderconsolidation.DocumentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "document_type", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.document_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReleaseMethod(); ok {
+		if err := orderconsolidation.ReleaseMethodValidator(v); err != nil {
+			return &ValidationError{Name: "release_method", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.release_method": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderConsolidation.organization"`)
 	}
@@ -548,6 +660,18 @@ func (_u *OrderConsolidationUpdateOne) sqlSave(ctx context.Context) (_node *Orde
 	}
 	if value, ok := _u.mutation.NormalizedMasterNo(); ok {
 		_spec.SetField(orderconsolidation.FieldNormalizedMasterNo, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DocumentType(); ok {
+		_spec.SetField(orderconsolidation.FieldDocumentType, field.TypeString, value)
+	}
+	if _u.mutation.DocumentTypeCleared() {
+		_spec.ClearField(orderconsolidation.FieldDocumentType, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReleaseMethod(); ok {
+		_spec.SetField(orderconsolidation.FieldReleaseMethod, field.TypeString, value)
+	}
+	if _u.mutation.ReleaseMethodCleared() {
+		_spec.ClearField(orderconsolidation.FieldReleaseMethod, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

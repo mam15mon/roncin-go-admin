@@ -75,6 +75,34 @@ func (_c *OrderConsolidationCreate) SetNormalizedMasterNo(v string) *OrderConsol
 	return _c
 }
 
+// SetDocumentType sets the "document_type" field.
+func (_c *OrderConsolidationCreate) SetDocumentType(v string) *OrderConsolidationCreate {
+	_c.mutation.SetDocumentType(v)
+	return _c
+}
+
+// SetNillableDocumentType sets the "document_type" field if the given value is not nil.
+func (_c *OrderConsolidationCreate) SetNillableDocumentType(v *string) *OrderConsolidationCreate {
+	if v != nil {
+		_c.SetDocumentType(*v)
+	}
+	return _c
+}
+
+// SetReleaseMethod sets the "release_method" field.
+func (_c *OrderConsolidationCreate) SetReleaseMethod(v string) *OrderConsolidationCreate {
+	_c.mutation.SetReleaseMethod(v)
+	return _c
+}
+
+// SetNillableReleaseMethod sets the "release_method" field if the given value is not nil.
+func (_c *OrderConsolidationCreate) SetNillableReleaseMethod(v *string) *OrderConsolidationCreate {
+	if v != nil {
+		_c.SetReleaseMethod(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderConsolidationCreate) SetID(v uuid.UUID) *OrderConsolidationCreate {
 	_c.mutation.SetID(v)
@@ -193,6 +221,16 @@ func (_c *OrderConsolidationCreate) check() error {
 			return &ValidationError{Name: "normalized_master_no", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.normalized_master_no": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.DocumentType(); ok {
+		if err := orderconsolidation.DocumentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "document_type", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.document_type": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ReleaseMethod(); ok {
+		if err := orderconsolidation.ReleaseMethodValidator(v); err != nil {
+			return &ValidationError{Name: "release_method", err: fmt.Errorf(`ent: validator failed for field "OrderConsolidation.release_method": %w`, err)}
+		}
+	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "OrderConsolidation.organization"`)}
 	}
@@ -250,6 +288,14 @@ func (_c *OrderConsolidationCreate) createSpec() (*OrderConsolidation, *sqlgraph
 	if value, ok := _c.mutation.NormalizedMasterNo(); ok {
 		_spec.SetField(orderconsolidation.FieldNormalizedMasterNo, field.TypeString, value)
 		_node.NormalizedMasterNo = value
+	}
+	if value, ok := _c.mutation.DocumentType(); ok {
+		_spec.SetField(orderconsolidation.FieldDocumentType, field.TypeString, value)
+		_node.DocumentType = value
+	}
+	if value, ok := _c.mutation.ReleaseMethod(); ok {
+		_spec.SetField(orderconsolidation.FieldReleaseMethod, field.TypeString, value)
+		_node.ReleaseMethod = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

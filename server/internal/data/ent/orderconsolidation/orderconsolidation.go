@@ -28,6 +28,10 @@ const (
 	FieldMasterNo = "master_no"
 	// FieldNormalizedMasterNo holds the string denoting the normalized_master_no field in the database.
 	FieldNormalizedMasterNo = "normalized_master_no"
+	// FieldDocumentType holds the string denoting the document_type field in the database.
+	FieldDocumentType = "document_type"
+	// FieldReleaseMethod holds the string denoting the release_method field in the database.
+	FieldReleaseMethod = "release_method"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeShippingDocuments holds the string denoting the shipping_documents edge name in mutations.
@@ -59,6 +63,8 @@ var Columns = []string{
 	FieldBusinessType,
 	FieldMasterNo,
 	FieldNormalizedMasterNo,
+	FieldDocumentType,
+	FieldReleaseMethod,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -82,6 +88,10 @@ var (
 	MasterNoValidator func(string) error
 	// NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
 	NormalizedMasterNoValidator func(string) error
+	// DocumentTypeValidator is a validator for the "document_type" field. It is called by the builders before save.
+	DocumentTypeValidator func(string) error
+	// ReleaseMethodValidator is a validator for the "release_method" field. It is called by the builders before save.
+	ReleaseMethodValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -149,6 +159,16 @@ func ByMasterNo(opts ...sql.OrderTermOption) OrderOption {
 // ByNormalizedMasterNo orders the results by the normalized_master_no field.
 func ByNormalizedMasterNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNormalizedMasterNo, opts...).ToFunc()
+}
+
+// ByDocumentType orders the results by the document_type field.
+func ByDocumentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDocumentType, opts...).ToFunc()
+}
+
+// ByReleaseMethod orders the results by the release_method field.
+func ByReleaseMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReleaseMethod, opts...).ToFunc()
 }
 
 // ByOrganizationField orders the results by organization field.

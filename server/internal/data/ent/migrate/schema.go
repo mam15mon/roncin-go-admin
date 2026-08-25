@@ -1096,6 +1096,8 @@ var (
 		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "master_no", Type: field.TypeString, Size: 64},
 		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
+		{Name: "document_type", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "release_method", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// OrderConsolidationsTable holds the schema information for the "order_consolidations" table.
@@ -1106,7 +1108,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_consolidations_organizations_order_consolidations",
-				Columns:    []*schema.Column{OrderConsolidationsColumns[6]},
+				Columns:    []*schema.Column{OrderConsolidationsColumns[8]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1120,12 +1122,12 @@ var (
 			{
 				Name:    "orderconsolidation_organization_id_business_type_normalized_master_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrderConsolidationsColumns[6], OrderConsolidationsColumns[3], OrderConsolidationsColumns[5]},
+				Columns: []*schema.Column{OrderConsolidationsColumns[8], OrderConsolidationsColumns[3], OrderConsolidationsColumns[5]},
 			},
 			{
 				Name:    "orderconsolidation_organization_id_business_type_master_no",
 				Unique:  false,
-				Columns: []*schema.Column{OrderConsolidationsColumns[6], OrderConsolidationsColumns[3], OrderConsolidationsColumns[4]},
+				Columns: []*schema.Column{OrderConsolidationsColumns[8], OrderConsolidationsColumns[3], OrderConsolidationsColumns[4]},
 			},
 		},
 	}

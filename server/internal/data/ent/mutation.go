@@ -25163,6 +25163,8 @@ type OrderConsolidationMutation struct {
 	business_type             *orderconsolidation.BusinessType
 	master_no                 *string
 	normalized_master_no      *string
+	document_type             *string
+	release_method            *string
 	clearedFields             map[string]struct{}
 	organization              *uuid.UUID
 	clearedorganization       bool
@@ -25494,6 +25496,104 @@ func (m *OrderConsolidationMutation) ResetNormalizedMasterNo() {
 	m.normalized_master_no = nil
 }
 
+// SetDocumentType sets the "document_type" field.
+func (m *OrderConsolidationMutation) SetDocumentType(s string) {
+	m.document_type = &s
+}
+
+// DocumentType returns the value of the "document_type" field in the mutation.
+func (m *OrderConsolidationMutation) DocumentType() (r string, exists bool) {
+	v := m.document_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentType returns the old "document_type" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldDocumentType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentType: %w", err)
+	}
+	return oldValue.DocumentType, nil
+}
+
+// ClearDocumentType clears the value of the "document_type" field.
+func (m *OrderConsolidationMutation) ClearDocumentType() {
+	m.document_type = nil
+	m.clearedFields[orderconsolidation.FieldDocumentType] = struct{}{}
+}
+
+// DocumentTypeCleared returns if the "document_type" field was cleared in this mutation.
+func (m *OrderConsolidationMutation) DocumentTypeCleared() bool {
+	_, ok := m.clearedFields[orderconsolidation.FieldDocumentType]
+	return ok
+}
+
+// ResetDocumentType resets all changes to the "document_type" field.
+func (m *OrderConsolidationMutation) ResetDocumentType() {
+	m.document_type = nil
+	delete(m.clearedFields, orderconsolidation.FieldDocumentType)
+}
+
+// SetReleaseMethod sets the "release_method" field.
+func (m *OrderConsolidationMutation) SetReleaseMethod(s string) {
+	m.release_method = &s
+}
+
+// ReleaseMethod returns the value of the "release_method" field in the mutation.
+func (m *OrderConsolidationMutation) ReleaseMethod() (r string, exists bool) {
+	v := m.release_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReleaseMethod returns the old "release_method" field's value of the OrderConsolidation entity.
+// If the OrderConsolidation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderConsolidationMutation) OldReleaseMethod(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReleaseMethod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReleaseMethod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReleaseMethod: %w", err)
+	}
+	return oldValue.ReleaseMethod, nil
+}
+
+// ClearReleaseMethod clears the value of the "release_method" field.
+func (m *OrderConsolidationMutation) ClearReleaseMethod() {
+	m.release_method = nil
+	m.clearedFields[orderconsolidation.FieldReleaseMethod] = struct{}{}
+}
+
+// ReleaseMethodCleared returns if the "release_method" field was cleared in this mutation.
+func (m *OrderConsolidationMutation) ReleaseMethodCleared() bool {
+	_, ok := m.clearedFields[orderconsolidation.FieldReleaseMethod]
+	return ok
+}
+
+// ResetReleaseMethod resets all changes to the "release_method" field.
+func (m *OrderConsolidationMutation) ResetReleaseMethod() {
+	m.release_method = nil
+	delete(m.clearedFields, orderconsolidation.FieldReleaseMethod)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *OrderConsolidationMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -25609,7 +25709,7 @@ func (m *OrderConsolidationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderConsolidationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, orderconsolidation.FieldCreatedAt)
 	}
@@ -25627,6 +25727,12 @@ func (m *OrderConsolidationMutation) Fields() []string {
 	}
 	if m.normalized_master_no != nil {
 		fields = append(fields, orderconsolidation.FieldNormalizedMasterNo)
+	}
+	if m.document_type != nil {
+		fields = append(fields, orderconsolidation.FieldDocumentType)
+	}
+	if m.release_method != nil {
+		fields = append(fields, orderconsolidation.FieldReleaseMethod)
 	}
 	return fields
 }
@@ -25648,6 +25754,10 @@ func (m *OrderConsolidationMutation) Field(name string) (ent.Value, bool) {
 		return m.MasterNo()
 	case orderconsolidation.FieldNormalizedMasterNo:
 		return m.NormalizedMasterNo()
+	case orderconsolidation.FieldDocumentType:
+		return m.DocumentType()
+	case orderconsolidation.FieldReleaseMethod:
+		return m.ReleaseMethod()
 	}
 	return nil, false
 }
@@ -25669,6 +25779,10 @@ func (m *OrderConsolidationMutation) OldField(ctx context.Context, name string) 
 		return m.OldMasterNo(ctx)
 	case orderconsolidation.FieldNormalizedMasterNo:
 		return m.OldNormalizedMasterNo(ctx)
+	case orderconsolidation.FieldDocumentType:
+		return m.OldDocumentType(ctx)
+	case orderconsolidation.FieldReleaseMethod:
+		return m.OldReleaseMethod(ctx)
 	}
 	return nil, fmt.Errorf("unknown OrderConsolidation field %s", name)
 }
@@ -25720,6 +25834,20 @@ func (m *OrderConsolidationMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetNormalizedMasterNo(v)
 		return nil
+	case orderconsolidation.FieldDocumentType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentType(v)
+		return nil
+	case orderconsolidation.FieldReleaseMethod:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReleaseMethod(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OrderConsolidation field %s", name)
 }
@@ -25749,7 +25877,14 @@ func (m *OrderConsolidationMutation) AddField(name string, value ent.Value) erro
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *OrderConsolidationMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(orderconsolidation.FieldDocumentType) {
+		fields = append(fields, orderconsolidation.FieldDocumentType)
+	}
+	if m.FieldCleared(orderconsolidation.FieldReleaseMethod) {
+		fields = append(fields, orderconsolidation.FieldReleaseMethod)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -25762,6 +25897,14 @@ func (m *OrderConsolidationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *OrderConsolidationMutation) ClearField(name string) error {
+	switch name {
+	case orderconsolidation.FieldDocumentType:
+		m.ClearDocumentType()
+		return nil
+	case orderconsolidation.FieldReleaseMethod:
+		m.ClearReleaseMethod()
+		return nil
+	}
 	return fmt.Errorf("unknown OrderConsolidation nullable field %s", name)
 }
 
@@ -25786,6 +25929,12 @@ func (m *OrderConsolidationMutation) ResetField(name string) error {
 		return nil
 	case orderconsolidation.FieldNormalizedMasterNo:
 		m.ResetNormalizedMasterNo()
+		return nil
+	case orderconsolidation.FieldDocumentType:
+		m.ResetDocumentType()
+		return nil
+	case orderconsolidation.FieldReleaseMethod:
+		m.ResetReleaseMethod()
 		return nil
 	}
 	return fmt.Errorf("unknown OrderConsolidation field %s", name)

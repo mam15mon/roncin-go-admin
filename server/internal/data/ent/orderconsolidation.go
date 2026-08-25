@@ -31,6 +31,10 @@ type OrderConsolidation struct {
 	MasterNo string `json:"master_no,omitempty"`
 	// NormalizedMasterNo holds the value of the "normalized_master_no" field.
 	NormalizedMasterNo string `json:"normalized_master_no,omitempty"`
+	// DocumentType holds the value of the "document_type" field.
+	DocumentType string `json:"document_type,omitempty"`
+	// ReleaseMethod holds the value of the "release_method" field.
+	ReleaseMethod string `json:"release_method,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderConsolidationQuery when eager-loading is set.
 	Edges        OrderConsolidationEdges `json:"edges"`
@@ -73,7 +77,7 @@ func (*OrderConsolidation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderconsolidation.FieldBusinessType, orderconsolidation.FieldMasterNo, orderconsolidation.FieldNormalizedMasterNo:
+		case orderconsolidation.FieldBusinessType, orderconsolidation.FieldMasterNo, orderconsolidation.FieldNormalizedMasterNo, orderconsolidation.FieldDocumentType, orderconsolidation.FieldReleaseMethod:
 			values[i] = new(sql.NullString)
 		case orderconsolidation.FieldCreatedAt, orderconsolidation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -135,6 +139,18 @@ func (_m *OrderConsolidation) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field normalized_master_no", values[i])
 			} else if value.Valid {
 				_m.NormalizedMasterNo = value.String
+			}
+		case orderconsolidation.FieldDocumentType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field document_type", values[i])
+			} else if value.Valid {
+				_m.DocumentType = value.String
+			}
+		case orderconsolidation.FieldReleaseMethod:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field release_method", values[i])
+			} else if value.Valid {
+				_m.ReleaseMethod = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -199,6 +215,12 @@ func (_m *OrderConsolidation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("normalized_master_no=")
 	builder.WriteString(_m.NormalizedMasterNo)
+	builder.WriteString(", ")
+	builder.WriteString("document_type=")
+	builder.WriteString(_m.DocumentType)
+	builder.WriteString(", ")
+	builder.WriteString("release_method=")
+	builder.WriteString(_m.ReleaseMethod)
 	builder.WriteByte(')')
 	return builder.String()
 }

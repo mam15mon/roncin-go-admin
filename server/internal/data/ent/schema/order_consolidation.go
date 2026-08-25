@@ -19,6 +19,8 @@ func (OrderConsolidation) Fields() []ent.Field {
 		field.Enum("business_type").Values("SE", "SI", "AE", "AI", "LAND", "RAIL"),
 		field.String("master_no").NotEmpty().MaxLen(64),
 		field.String("normalized_master_no").NotEmpty().MaxLen(64),
+		field.String("document_type").Optional().MaxLen(64),
+		field.String("release_method").Optional().MaxLen(64),
 	}
 }
 
