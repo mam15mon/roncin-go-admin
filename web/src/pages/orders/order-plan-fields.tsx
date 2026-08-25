@@ -40,13 +40,19 @@ export interface MasterDocGroup {
   houses: HouseDocItem[];
 }
 
-const RELEASE_TYPE_OPTIONS = [
-  { label: '电放 (TELEX)', value: 'TELEX' },
-  { label: '正本 (ORIGINAL)', value: 'ORIGINAL' },
-  { label: '海运单 (SEAWAYBILL)', value: 'SEAWAYBILL' },
-  { label: '放行条 (RELEASE)', value: 'RELEASE' },
-  { label: '正本寄单 (MAILED)', value: 'MAILED' },
+export const SEA_HOUSE_RELEASE_TYPE_OPTIONS = [
+  { label: '电放 (TELEX RELEASE)', value: 'TELEX_RELEASE' },
+  { label: '正本提单 (ORIGINAL)', value: 'ORIGINAL' },
+  { label: '海运单 (SEA WAYBILL)', value: 'SEA_WAYBILL' },
 ];
+
+const seaHouseReleaseTypeLabelMap = Object.fromEntries(
+  SEA_HOUSE_RELEASE_TYPE_OPTIONS.map((option) => [option.value, option.label]),
+);
+
+export function formatHouseReleaseType(value?: string) {
+  return value ? seaHouseReleaseTypeLabelMap[value] || value : '-';
+}
 
 type ShippingDocumentFormValue = API.OrderShippingDocumentInput & {
   status?: number;
@@ -371,7 +377,7 @@ export function OrderShippingDocumentFields({
       ? { master: 'MAWB', house: 'HAWB' }
       : { master: 'MBL', house: 'HBL' };
   const releaseTypeOptions =
-    transportMode === 'sea' ? RELEASE_TYPE_OPTIONS : [];
+    transportMode === 'sea' ? SEA_HOUSE_RELEASE_TYPE_OPTIONS : [];
   const masterNoCounts = new Map<string, number>();
   const houseNoCounts = new Map<string, number>();
   for (const group of groups) {
@@ -629,7 +635,7 @@ export function OrderShippingDocumentFields({
                       paddingInline: 6,
                     }}
                   >
-                    放货类型
+                    分单签放方式
                   </div>
                   <div
                     style={{
@@ -752,8 +758,8 @@ export function OrderShippingDocumentFields({
                             }
                             placeholder={
                               transportMode === 'sea'
-                                ? '如 电放 / 正本'
-                                : '请输入放货类型'
+                                ? '请选择或输入分单签放方式'
+                                : '请输入分单签放方式'
                             }
                             disabled={disabled || isReleased}
                             filterOption={(inputValue, option) =>

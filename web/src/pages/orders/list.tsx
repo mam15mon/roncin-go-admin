@@ -112,8 +112,10 @@ import {
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import {
+  formatHouseReleaseType,
   OrderContainerRequestFields,
   OrderShippingDocumentFields,
+  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
 } from './order-plan-fields';
 
 const { Text } = Typography;
@@ -611,13 +613,13 @@ export default function OrderListPage() {
       render: (_, record) => record.houseNo || '-',
     },
     {
-      title: '放货类型',
+      title: '分单签放方式',
       dataIndex: 'releaseType',
       width: 140,
       render: (_, record) =>
         record.releaseType ? (
           <Tag color="geekblue" bordered={false}>
-            {record.releaseType}
+            {formatHouseReleaseType(record.releaseType)}
           </Tag>
         ) : (
           '-'
@@ -2422,11 +2424,20 @@ export default function OrderListPage() {
           placeholder="请输入分单号"
           rules={[{ required: true, message: '请输入分单号' }]}
         />
-        <ProFormText
-          name="releaseType"
-          label="放货类型"
-          placeholder="请输入放货类型 (如 电放 / 正本 / SeaWayBill)"
-        />
+        {config.category === 'sea' ? (
+          <ProFormSelect
+            name="releaseType"
+            label="分单签放方式"
+            options={SEA_HOUSE_RELEASE_TYPE_OPTIONS}
+            placeholder="请选择分单签放方式"
+          />
+        ) : (
+          <ProFormText
+            name="releaseType"
+            label="分单签放方式"
+            placeholder="请输入分单签放方式"
+          />
+        )}
         <ProFormTextArea
           name="note"
           label="备注说明"

@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Button, Form } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
-import { OrderShippingDocumentFields } from './order-plan-fields';
+import {
+  OrderShippingDocumentFields,
+  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
+} from './order-plan-fields';
 
 function renderFields({
   initialValues,
@@ -36,7 +39,7 @@ describe('主分单分组编辑', () => {
             id: 'doc-1',
             masterNo: 'MBL-001',
             houseNo: 'HBL-001',
-            releaseType: 'TELEX',
+            releaseType: 'TELEX_RELEASE',
             status: 1,
           },
         ],
@@ -52,7 +55,7 @@ describe('主分单分组编辑', () => {
         id: 'doc-1',
         masterNo: 'MBL-001',
         houseNo: 'HBL-001',
-        releaseType: 'TELEX',
+        releaseType: 'TELEX_RELEASE',
         note: undefined,
       },
     ]);
@@ -154,5 +157,11 @@ describe('主分单分组编辑', () => {
     expect(
       screen.getByPlaceholderText('请输入分单号 (如 HAWB-001)'),
     ).toBeTruthy();
+  });
+
+  it('海运分单签放选项不混入放行和寄单状态', () => {
+    expect(
+      SEA_HOUSE_RELEASE_TYPE_OPTIONS.map((option) => option.value),
+    ).toEqual(['TELEX_RELEASE', 'ORIGINAL', 'SEA_WAYBILL']);
   });
 });
