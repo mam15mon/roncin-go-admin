@@ -3496,6 +3496,29 @@ func HasContainersWith(preds ...predicate.OrderContainer) predicate.Order {
 	})
 }
 
+// HasContainerRequests applies the HasEdge predicate on the "container_requests" edge.
+func HasContainerRequests() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContainerRequestsTable, ContainerRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContainerRequestsWith applies the HasEdge predicate on the "container_requests" edge with a given conditions (other predicates).
+func HasContainerRequestsWith(preds ...predicate.OrderContainerRequest) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newContainerRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCargoItems applies the HasEdge predicate on the "cargo_items" edge.
 func HasCargoItems() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

@@ -75,6 +75,9 @@ type OrderCargoItem func(*sql.Selector)
 // OrderContainer is the predicate function for ordercontainer builders.
 type OrderContainer func(*sql.Selector)
 
+// OrderContainerRequest is the predicate function for ordercontainerrequest builders.
+type OrderContainerRequest func(*sql.Selector)
+
 // OrderFee is the predicate function for orderfee builders.
 type OrderFee func(*sql.Selector)
 

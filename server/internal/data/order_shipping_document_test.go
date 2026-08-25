@@ -78,7 +78,7 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 
 	// Unique constraint error with Postgres constraint name
 	mock.ExpectExec(`INSERT INTO "order_shipping_documents"`).
-		WillReturnError(errors.New(`pq: duplicate key value violates unique constraint "ordershippingdocument_order_id_master_no"`))
+		WillReturnError(errors.New(`pq: duplicate key value violates unique constraint "ordershippingdocument_order_id_house_no"`))
 
 	mock.ExpectRollback()
 

@@ -7,6 +7,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import React from 'react';
+import { OrderShippingDocumentFields } from '../order-plan-fields';
 import { paymentTermOptions, tradeTermOptions } from '../common';
 import type { TemplateProps, TemplateSection } from './types';
 
@@ -26,6 +27,8 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
       title: '基本信息',
       content: (
         <>
+          <OrderShippingDocumentFields />
+
           {/* 第 1 行：核心商务信息（一行 5 个） */}
           <ProFormSelect
             colProps={{ xs: 24, sm: 24, lg: 12, xl: 7 }}

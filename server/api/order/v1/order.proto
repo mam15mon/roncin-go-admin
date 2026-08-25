@@ -6,6 +6,7 @@ import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "order/v1/order_personnel.proto";
+import "order/v1/order_shipping_document.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -185,6 +186,34 @@ message Order {
   optional string booking_notes = 54;
   optional string allocation_notes = 55;
   optional string operation_notes = 56;
+  repeated OrderShippingDocument shipping_documents = 57;
+  repeated OrderContainerRequest container_requests = 58;
+}
+
+// OrderShippingDocumentInput 订单表单中的主分单输入。
+message OrderShippingDocumentInput {
+  optional string id = 1;
+  string master_no = 2 [(google.api.field_behavior) = REQUIRED];
+  string house_no = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string release_type = 4;
+  optional string note = 5;
+}
+
+// OrderContainerRequestInput 订单订舱阶段的箱型箱量输入。
+message OrderContainerRequestInput {
+  optional string id = 1;
+  string container_spec_id = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 quantity = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrderContainerRequest 订单订舱阶段的箱型箱量计划。
+message OrderContainerRequest {
+  string id = 1;
+  string order_id = 2;
+  string container_spec_id = 3;
+  int32 quantity = 4;
+  string created_at = 5;
+  string updated_at = 6;
 }
 
 // OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
@@ -315,6 +344,8 @@ message CreateOrderRequest {
   optional string allocation_notes = 47;
   optional string operation_notes = 48;
   repeated OrderPersonnelAssignmentInput personnel_assignments = 49;
+  repeated OrderShippingDocumentInput shipping_documents = 50;
+  repeated OrderContainerRequestInput container_requests = 51;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -368,6 +399,8 @@ message UpdateOrderRequest {
   optional string booking_notes = 47;
   optional string allocation_notes = 48;
   optional string operation_notes = 49;
+  repeated OrderShippingDocumentInput shipping_documents = 50;
+  repeated OrderContainerRequestInput container_requests = 51;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

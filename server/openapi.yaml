@@ -6082,6 +6082,14 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.OrderPersonnelAssignmentInput'
+                shippingDocuments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderShippingDocumentInput'
+                containerRequests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderContainerRequestInput'
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -6489,6 +6497,14 @@ components:
                     type: string
                 operationNotes:
                     type: string
+                shippingDocuments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderShippingDocument'
+                containerRequests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderContainerRequest'
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
             type: object
@@ -6599,6 +6615,37 @@ components:
                 shippingDocumentId:
                     type: string
             description: OrderContainer 订单集装箱信息。
+        order.v1.OrderContainerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                containerSpecId:
+                    type: string
+                quantity:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: OrderContainerRequest 订单订舱阶段的箱型箱量计划。
+        order.v1.OrderContainerRequestInput:
+            required:
+                - containerSpecId
+                - quantity
+            type: object
+            properties:
+                id:
+                    type: string
+                containerSpecId:
+                    type: string
+                quantity:
+                    type: integer
+                    format: int32
+            description: OrderContainerRequestInput 订单订舱阶段的箱型箱量输入。
         order.v1.OrderFee:
             type: object
             properties:
@@ -6839,6 +6886,23 @@ components:
                 updatedAt:
                     type: string
             description: OrderShippingDocument 提单信息。
+        order.v1.OrderShippingDocumentInput:
+            required:
+                - masterNo
+                - houseNo
+            type: object
+            properties:
+                id:
+                    type: string
+                masterNo:
+                    type: string
+                houseNo:
+                    type: string
+                releaseType:
+                    type: string
+                note:
+                    type: string
+            description: OrderShippingDocumentInput 订单表单中的主分单输入。
         order.v1.RegisterAttachmentRequest:
             required:
                 - orderId
@@ -7407,6 +7471,14 @@ components:
                     type: string
                 operationNotes:
                     type: string
+                shippingDocuments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderShippingDocumentInput'
+                containerRequests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.OrderContainerRequestInput'
             description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
         order.v1.UpdateOrderResponse:
             type: object

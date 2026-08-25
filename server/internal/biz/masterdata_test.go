@@ -62,14 +62,14 @@ func (s *masterDataRepoStub) Import(_ context.Context, organizationID uuid.UUID,
 
 func TestDefaultOrderOptions(t *testing.T) {
 	items := DefaultOrderOptions()
-	if len(items) != 24 {
-		t.Fatalf("DefaultOrderOptions() count = %d, want 24", len(items))
+	if len(items) != 42 {
+		t.Fatalf("DefaultOrderOptions() count = %d, want 42", len(items))
 	}
 
 	counts := map[MasterDataKind]int{}
 	seen := make(map[string]struct{}, len(items))
 	for _, item := range items {
-		if item.Kind != MasterDataKindServiceType && item.Kind != MasterDataKindCargoCategory {
+		if item.Kind != MasterDataKindContainerSpec && item.Kind != MasterDataKindServiceType && item.Kind != MasterDataKindCargoCategory {
 			t.Fatalf("unexpected kind %q", item.Kind)
 		}
 		key := string(item.Kind) + "/" + item.Code
@@ -82,7 +82,7 @@ func TestDefaultOrderOptions(t *testing.T) {
 			t.Fatalf("invalid default option: %#v", item)
 		}
 	}
-	if counts[MasterDataKindServiceType] != 19 || counts[MasterDataKindCargoCategory] != 5 {
+	if counts[MasterDataKindContainerSpec] != 18 || counts[MasterDataKindServiceType] != 19 || counts[MasterDataKindCargoCategory] != 5 {
 		t.Fatalf("option counts = %#v", counts)
 	}
 }
@@ -433,6 +433,27 @@ func TestMasterDataImportUpsertModePassThrough(t *testing.T) {
 	}
 	if len(repo.importItems) != 1 || repo.importItems[0].Code != "40HC" {
 		t.Fatalf("repo.importItems = %#v", repo.importItems)
+	}
+}
+
+func TestDefaultOrderOptionsIncludesContainerSpecs(t *testing.T) {
+	options := DefaultOrderOptions()
+	want := map[string]string{"20GP": "1", "40HQ": "2"}
+	for _, option := range options {
+		if option.Kind != MasterDataKindContainerSpec {
+			continue
+		}
+		factor, exists := want[option.Code]
+		if !exists {
+			continue
+		}
+		if option.TEUFactor == nil || *option.TEUFactor != factor {
+			t.Fatalf("箱型 %s TEU 系数 = %v，期望 %s", option.Code, option.TEUFactor, factor)
+		}
+		delete(want, option.Code)
+	}
+	if len(want) != 0 {
+		t.Fatalf("默认订单选项缺少箱型：%v", want)
 	}
 }
 

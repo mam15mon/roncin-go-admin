@@ -70,7 +70,7 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 	created, err := builder.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_master_no") {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
 			return nil, biz.ErrOrderShippingDocumentExists
 		}
 		return nil, err
@@ -127,7 +127,7 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 	updated, err := builder.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_master_no") {
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
 			return nil, biz.ErrOrderShippingDocumentExists
 		}
 		return nil, err

@@ -470,63 +470,65 @@ func (OrderReferenceType) EnumDescriptor() ([]byte, []int) {
 
 // Order 订单核心信息。
 type Order struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId        string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrderNo               string                 `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	CustomerId            string                 `protobuf:"bytes,4,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	CarrierId             *string                `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
-	BookingAgentId        *string                `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
-	BusinessType          BusinessType           `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
-	TradeDirection        TradeDirection         `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
-	TradeTerm             TradeTerm              `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
-	PaymentTerm           PaymentTerm            `protobuf:"varint,10,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
-	ShipmentType          *ShipmentType          `protobuf:"varint,11,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
-	ContainerOwnership    *ContainerOwnership    `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
-	ShipmentMode          *ShipmentMode          `protobuf:"varint,13,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
-	Status                string                 `protobuf:"bytes,14,opt,name=status,proto3" json:"status,omitempty"`
-	StatusTemplateId      string                 `protobuf:"bytes,15,opt,name=status_template_id,json=statusTemplateId,proto3" json:"status_template_id,omitempty"`
-	ServiceTypeIds        []string               `protobuf:"bytes,16,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
-	CargoCategoryIds      []string               `protobuf:"bytes,17,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
-	OriginLocationId      *string                `protobuf:"bytes,18,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
-	DestinationLocationId *string                `protobuf:"bytes,19,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
-	DischargeLocationId   *string                `protobuf:"bytes,20,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
-	TransitLocationId     *string                `protobuf:"bytes,21,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
-	VesselVoyage          *string                `protobuf:"bytes,22,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
-	Etd                   *string                `protobuf:"bytes,23,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
-	Eta                   *string                `protobuf:"bytes,24,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
-	SiCutoff              *string                `protobuf:"bytes,25,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
-	DocCutoff             *string                `protobuf:"bytes,26,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
-	CustomsCutoff         *string                `protobuf:"bytes,27,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
-	VgmCutoff             *string                `protobuf:"bytes,28,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
-	GoodsDescription      *string                `protobuf:"bytes,29,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
-	TotalPackages         *int32                 `protobuf:"varint,30,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
-	TotalPackageUnit      *string                `protobuf:"bytes,31,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
-	SpecialRequirements   *string                `protobuf:"bytes,32,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
-	OrderDate             *string                `protobuf:"bytes,33,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
-	Notes                 *string                `protobuf:"bytes,34,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
-	CreatedAt             string                 `protobuf:"bytes,35,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt             string                 `protobuf:"bytes,36,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CustomerReferenceNo   *string                `protobuf:"bytes,37,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
-	ForeignAgentId        *string                `protobuf:"bytes,38,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
-	ContractNo            *string                `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
-	CargoValue            *string                `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
-	CargoCurrency         *string                `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
-	InternalReferenceNo   *string                `protobuf:"bytes,42,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
-	ShippingAgentId       *string                `protobuf:"bytes,43,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
-	InsurancePremium      *string                `protobuf:"bytes,44,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
-	InsuranceCurrency     *string                `protobuf:"bytes,45,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
-	UnNumber              *string                `protobuf:"bytes,46,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
-	HazardClass           *string                `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
-	FactoryName           *string                `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
-	CargoReadyAt          *string                `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms          *string                `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
-	ReceivedAt            *string                `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
-	OrganizationName      string                 `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	CanModify             bool                   `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
-	BookingNotes          *string                `protobuf:"bytes,54,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
-	AllocationNotes       *string                `protobuf:"bytes,55,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
-	OperationNotes        *string                `protobuf:"bytes,56,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	state                 protoimpl.MessageState   `protogen:"open.v1"`
+	Id                    string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId        string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrderNo               string                   `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	CustomerId            string                   `protobuf:"bytes,4,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CarrierId             *string                  `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	BookingAgentId        *string                  `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
+	BusinessType          BusinessType             `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
+	TradeDirection        TradeDirection           `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
+	TradeTerm             TradeTerm                `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
+	PaymentTerm           PaymentTerm              `protobuf:"varint,10,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
+	ShipmentType          *ShipmentType            `protobuf:"varint,11,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
+	ContainerOwnership    *ContainerOwnership      `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
+	ShipmentMode          *ShipmentMode            `protobuf:"varint,13,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
+	Status                string                   `protobuf:"bytes,14,opt,name=status,proto3" json:"status,omitempty"`
+	StatusTemplateId      string                   `protobuf:"bytes,15,opt,name=status_template_id,json=statusTemplateId,proto3" json:"status_template_id,omitempty"`
+	ServiceTypeIds        []string                 `protobuf:"bytes,16,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
+	CargoCategoryIds      []string                 `protobuf:"bytes,17,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
+	OriginLocationId      *string                  `protobuf:"bytes,18,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
+	DestinationLocationId *string                  `protobuf:"bytes,19,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
+	DischargeLocationId   *string                  `protobuf:"bytes,20,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
+	TransitLocationId     *string                  `protobuf:"bytes,21,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
+	VesselVoyage          *string                  `protobuf:"bytes,22,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
+	Etd                   *string                  `protobuf:"bytes,23,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
+	Eta                   *string                  `protobuf:"bytes,24,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
+	SiCutoff              *string                  `protobuf:"bytes,25,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
+	DocCutoff             *string                  `protobuf:"bytes,26,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
+	CustomsCutoff         *string                  `protobuf:"bytes,27,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
+	VgmCutoff             *string                  `protobuf:"bytes,28,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
+	GoodsDescription      *string                  `protobuf:"bytes,29,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
+	TotalPackages         *int32                   `protobuf:"varint,30,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
+	TotalPackageUnit      *string                  `protobuf:"bytes,31,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
+	SpecialRequirements   *string                  `protobuf:"bytes,32,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
+	OrderDate             *string                  `protobuf:"bytes,33,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
+	Notes                 *string                  `protobuf:"bytes,34,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	CreatedAt             string                   `protobuf:"bytes,35,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt             string                   `protobuf:"bytes,36,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CustomerReferenceNo   *string                  `protobuf:"bytes,37,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId        *string                  `protobuf:"bytes,38,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo            *string                  `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue            *string                  `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency         *string                  `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo   *string                  `protobuf:"bytes,42,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId       *string                  `protobuf:"bytes,43,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium      *string                  `protobuf:"bytes,44,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency     *string                  `protobuf:"bytes,45,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber              *string                  `protobuf:"bytes,46,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass           *string                  `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName           *string                  `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt          *string                  `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms          *string                  `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt            *string                  `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
+	OrganizationName      string                   `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	CanModify             bool                     `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
+	BookingNotes          *string                  `protobuf:"bytes,54,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
+	AllocationNotes       *string                  `protobuf:"bytes,55,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
+	OperationNotes        *string                  `protobuf:"bytes,56,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	ShippingDocuments     []*OrderShippingDocument `protobuf:"bytes,57,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
+	ContainerRequests     []*OrderContainerRequest `protobuf:"bytes,58,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -953,6 +955,243 @@ func (x *Order) GetOperationNotes() string {
 	return ""
 }
 
+func (x *Order) GetShippingDocuments() []*OrderShippingDocument {
+	if x != nil {
+		return x.ShippingDocuments
+	}
+	return nil
+}
+
+func (x *Order) GetContainerRequests() []*OrderContainerRequest {
+	if x != nil {
+		return x.ContainerRequests
+	}
+	return nil
+}
+
+// OrderShippingDocumentInput 订单表单中的主分单输入。
+type OrderShippingDocumentInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	MasterNo      string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	HouseNo       string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	ReleaseType   *string                `protobuf:"bytes,4,opt,name=release_type,json=releaseType,proto3,oneof" json:"release_type,omitempty"`
+	Note          *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderShippingDocumentInput) Reset() {
+	*x = OrderShippingDocumentInput{}
+	mi := &file_order_v1_order_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderShippingDocumentInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderShippingDocumentInput) ProtoMessage() {}
+
+func (x *OrderShippingDocumentInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderShippingDocumentInput.ProtoReflect.Descriptor instead.
+func (*OrderShippingDocumentInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *OrderShippingDocumentInput) GetId() string {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetMasterNo() string {
+	if x != nil {
+		return x.MasterNo
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetReleaseType() string {
+	if x != nil && x.ReleaseType != nil {
+		return *x.ReleaseType
+	}
+	return ""
+}
+
+func (x *OrderShippingDocumentInput) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+// OrderContainerRequestInput 订单订舱阶段的箱型箱量输入。
+type OrderContainerRequestInput struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	ContainerSpecId string                 `protobuf:"bytes,2,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	Quantity        int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *OrderContainerRequestInput) Reset() {
+	*x = OrderContainerRequestInput{}
+	mi := &file_order_v1_order_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderContainerRequestInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderContainerRequestInput) ProtoMessage() {}
+
+func (x *OrderContainerRequestInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderContainerRequestInput.ProtoReflect.Descriptor instead.
+func (*OrderContainerRequestInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OrderContainerRequestInput) GetId() string {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return ""
+}
+
+func (x *OrderContainerRequestInput) GetContainerSpecId() string {
+	if x != nil {
+		return x.ContainerSpecId
+	}
+	return ""
+}
+
+func (x *OrderContainerRequestInput) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+// OrderContainerRequest 订单订舱阶段的箱型箱量计划。
+type OrderContainerRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId         string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ContainerSpecId string                 `protobuf:"bytes,3,opt,name=container_spec_id,json=containerSpecId,proto3" json:"container_spec_id,omitempty"`
+	Quantity        int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	CreatedAt       string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *OrderContainerRequest) Reset() {
+	*x = OrderContainerRequest{}
+	mi := &file_order_v1_order_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderContainerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderContainerRequest) ProtoMessage() {}
+
+func (x *OrderContainerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderContainerRequest.ProtoReflect.Descriptor instead.
+func (*OrderContainerRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *OrderContainerRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OrderContainerRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderContainerRequest) GetContainerSpecId() string {
+	if x != nil {
+		return x.ContainerSpecId
+	}
+	return ""
+}
+
+func (x *OrderContainerRequest) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *OrderContainerRequest) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *OrderContainerRequest) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 // OrderPersonnelAssignmentInput 新建订单时的协作人员配置。
 type OrderPersonnelAssignmentInput struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
@@ -965,7 +1204,7 @@ type OrderPersonnelAssignmentInput struct {
 
 func (x *OrderPersonnelAssignmentInput) Reset() {
 	*x = OrderPersonnelAssignmentInput{}
-	mi := &file_order_v1_order_proto_msgTypes[1]
+	mi := &file_order_v1_order_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -977,7 +1216,7 @@ func (x *OrderPersonnelAssignmentInput) String() string {
 func (*OrderPersonnelAssignmentInput) ProtoMessage() {}
 
 func (x *OrderPersonnelAssignmentInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[1]
+	mi := &file_order_v1_order_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +1229,7 @@ func (x *OrderPersonnelAssignmentInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderPersonnelAssignmentInput.ProtoReflect.Descriptor instead.
 func (*OrderPersonnelAssignmentInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{1}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *OrderPersonnelAssignmentInput) GetUserId() string {
@@ -1027,7 +1266,7 @@ type OrderPersonnelOption struct {
 
 func (x *OrderPersonnelOption) Reset() {
 	*x = OrderPersonnelOption{}
-	mi := &file_order_v1_order_proto_msgTypes[2]
+	mi := &file_order_v1_order_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1039,7 +1278,7 @@ func (x *OrderPersonnelOption) String() string {
 func (*OrderPersonnelOption) ProtoMessage() {}
 
 func (x *OrderPersonnelOption) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[2]
+	mi := &file_order_v1_order_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1052,7 +1291,7 @@ func (x *OrderPersonnelOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderPersonnelOption.ProtoReflect.Descriptor instead.
 func (*OrderPersonnelOption) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{2}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OrderPersonnelOption) GetUserId() string {
@@ -1096,7 +1335,7 @@ type OrderServiceSelection struct {
 
 func (x *OrderServiceSelection) Reset() {
 	*x = OrderServiceSelection{}
-	mi := &file_order_v1_order_proto_msgTypes[3]
+	mi := &file_order_v1_order_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1347,7 @@ func (x *OrderServiceSelection) String() string {
 func (*OrderServiceSelection) ProtoMessage() {}
 
 func (x *OrderServiceSelection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[3]
+	mi := &file_order_v1_order_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1121,7 +1360,7 @@ func (x *OrderServiceSelection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderServiceSelection.ProtoReflect.Descriptor instead.
 func (*OrderServiceSelection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{3}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *OrderServiceSelection) GetId() string {
@@ -1165,7 +1404,7 @@ type OrderCargoSelection struct {
 
 func (x *OrderCargoSelection) Reset() {
 	*x = OrderCargoSelection{}
-	mi := &file_order_v1_order_proto_msgTypes[4]
+	mi := &file_order_v1_order_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1177,7 +1416,7 @@ func (x *OrderCargoSelection) String() string {
 func (*OrderCargoSelection) ProtoMessage() {}
 
 func (x *OrderCargoSelection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[4]
+	mi := &file_order_v1_order_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1190,7 +1429,7 @@ func (x *OrderCargoSelection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderCargoSelection.ProtoReflect.Descriptor instead.
 func (*OrderCargoSelection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{4}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *OrderCargoSelection) GetId() string {
@@ -1238,7 +1477,7 @@ type OrderStatusLog struct {
 
 func (x *OrderStatusLog) Reset() {
 	*x = OrderStatusLog{}
-	mi := &file_order_v1_order_proto_msgTypes[5]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1250,7 +1489,7 @@ func (x *OrderStatusLog) String() string {
 func (*OrderStatusLog) ProtoMessage() {}
 
 func (x *OrderStatusLog) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[5]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1263,7 +1502,7 @@ func (x *OrderStatusLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderStatusLog.ProtoReflect.Descriptor instead.
 func (*OrderStatusLog) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{5}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *OrderStatusLog) GetId() string {
@@ -1332,7 +1571,7 @@ type GetOrderRequest struct {
 
 func (x *GetOrderRequest) Reset() {
 	*x = GetOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1344,7 +1583,7 @@ func (x *GetOrderRequest) String() string {
 func (*GetOrderRequest) ProtoMessage() {}
 
 func (x *GetOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1357,7 +1596,7 @@ func (x *GetOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderRequest.ProtoReflect.Descriptor instead.
 func (*GetOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetOrderRequest) GetId() string {
@@ -1382,7 +1621,7 @@ type ListOrdersRequest struct {
 
 func (x *ListOrdersRequest) Reset() {
 	*x = ListOrdersRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1394,7 +1633,7 @@ func (x *ListOrdersRequest) String() string {
 func (*ListOrdersRequest) ProtoMessage() {}
 
 func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1407,7 +1646,7 @@ func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrdersRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListOrdersRequest) GetPage() int32 {
@@ -1465,7 +1704,7 @@ type CheckOrderReferenceRequest struct {
 
 func (x *CheckOrderReferenceRequest) Reset() {
 	*x = CheckOrderReferenceRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1477,7 +1716,7 @@ func (x *CheckOrderReferenceRequest) String() string {
 func (*CheckOrderReferenceRequest) ProtoMessage() {}
 
 func (x *CheckOrderReferenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1490,7 +1729,7 @@ func (x *CheckOrderReferenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOrderReferenceRequest.ProtoReflect.Descriptor instead.
 func (*CheckOrderReferenceRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CheckOrderReferenceRequest) GetReferenceType() OrderReferenceType {
@@ -1530,7 +1769,7 @@ type ListPersonnelOptionsRequest struct {
 
 func (x *ListPersonnelOptionsRequest) Reset() {
 	*x = ListPersonnelOptionsRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1542,7 +1781,7 @@ func (x *ListPersonnelOptionsRequest) String() string {
 func (*ListPersonnelOptionsRequest) ProtoMessage() {}
 
 func (x *ListPersonnelOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1555,7 +1794,7 @@ func (x *ListPersonnelOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonnelOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPersonnelOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListPersonnelOptionsRequest) GetBusinessType() BusinessType {
@@ -1577,7 +1816,7 @@ type OrderReferenceCheck struct {
 
 func (x *OrderReferenceCheck) Reset() {
 	*x = OrderReferenceCheck{}
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1589,7 +1828,7 @@ func (x *OrderReferenceCheck) String() string {
 func (*OrderReferenceCheck) ProtoMessage() {}
 
 func (x *OrderReferenceCheck) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1602,7 +1841,7 @@ func (x *OrderReferenceCheck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderReferenceCheck.ProtoReflect.Descriptor instead.
 func (*OrderReferenceCheck) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *OrderReferenceCheck) GetDuplicate() bool {
@@ -1678,13 +1917,15 @@ type CreateOrderRequest struct {
 	AllocationNotes       *string                          `protobuf:"bytes,47,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
 	OperationNotes        *string                          `protobuf:"bytes,48,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
 	PersonnelAssignments  []*OrderPersonnelAssignmentInput `protobuf:"bytes,49,rep,name=personnel_assignments,json=personnelAssignments,proto3" json:"personnel_assignments,omitempty"`
+	ShippingDocuments     []*OrderShippingDocumentInput    `protobuf:"bytes,50,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
+	ContainerRequests     []*OrderContainerRequestInput    `protobuf:"bytes,51,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[11]
+	mi := &file_order_v1_order_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1696,7 +1937,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[11]
+	mi := &file_order_v1_order_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1709,7 +1950,7 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateOrderRequest) GetCustomerId() string {
@@ -2055,65 +2296,81 @@ func (x *CreateOrderRequest) GetPersonnelAssignments() []*OrderPersonnelAssignme
 	return nil
 }
 
+func (x *CreateOrderRequest) GetShippingDocuments() []*OrderShippingDocumentInput {
+	if x != nil {
+		return x.ShippingDocuments
+	}
+	return nil
+}
+
+func (x *CreateOrderRequest) GetContainerRequests() []*OrderContainerRequestInput {
+	if x != nil {
+		return x.ContainerRequests
+	}
+	return nil
+}
+
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
 type UpdateOrderRequest struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	ExpectedStatus        string                 `protobuf:"bytes,2,opt,name=expected_status,json=expectedStatus,proto3" json:"expected_status,omitempty"`
-	CustomerId            *string                `protobuf:"bytes,3,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
-	BusinessType          *BusinessType          `protobuf:"varint,4,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
-	TradeDirection        *TradeDirection        `protobuf:"varint,5,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection,oneof" json:"trade_direction,omitempty"`
-	TradeTerm             *TradeTerm             `protobuf:"varint,6,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm,oneof" json:"trade_term,omitempty"`
-	PaymentTerm           *PaymentTerm           `protobuf:"varint,7,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm,oneof" json:"payment_term,omitempty"`
-	CarrierId             *string                `protobuf:"bytes,8,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
-	BookingAgentId        *string                `protobuf:"bytes,9,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
-	ShipmentType          *ShipmentType          `protobuf:"varint,10,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
-	ContainerOwnership    *ContainerOwnership    `protobuf:"varint,11,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
-	ShipmentMode          *ShipmentMode          `protobuf:"varint,12,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
-	ServiceTypeIds        []string               `protobuf:"bytes,13,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
-	CargoCategoryIds      []string               `protobuf:"bytes,14,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
-	OriginLocationId      *string                `protobuf:"bytes,15,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
-	DestinationLocationId *string                `protobuf:"bytes,16,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
-	DischargeLocationId   *string                `protobuf:"bytes,17,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
-	TransitLocationId     *string                `protobuf:"bytes,18,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
-	VesselVoyage          *string                `protobuf:"bytes,19,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
-	Etd                   *string                `protobuf:"bytes,20,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
-	Eta                   *string                `protobuf:"bytes,21,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
-	SiCutoff              *string                `protobuf:"bytes,22,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
-	DocCutoff             *string                `protobuf:"bytes,23,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
-	CustomsCutoff         *string                `protobuf:"bytes,24,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
-	VgmCutoff             *string                `protobuf:"bytes,25,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
-	GoodsDescription      *string                `protobuf:"bytes,26,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
-	TotalPackages         *int32                 `protobuf:"varint,27,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
-	TotalPackageUnit      *string                `protobuf:"bytes,28,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
-	SpecialRequirements   *string                `protobuf:"bytes,29,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
-	OrderDate             *string                `protobuf:"bytes,30,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
-	Notes                 *string                `protobuf:"bytes,31,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
-	CustomerReferenceNo   *string                `protobuf:"bytes,32,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
-	ForeignAgentId        *string                `protobuf:"bytes,33,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
-	ContractNo            *string                `protobuf:"bytes,34,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
-	CargoValue            *string                `protobuf:"bytes,35,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
-	CargoCurrency         *string                `protobuf:"bytes,36,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
-	InternalReferenceNo   *string                `protobuf:"bytes,37,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
-	ShippingAgentId       *string                `protobuf:"bytes,38,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
-	InsurancePremium      *string                `protobuf:"bytes,39,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
-	InsuranceCurrency     *string                `protobuf:"bytes,40,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
-	UnNumber              *string                `protobuf:"bytes,41,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
-	HazardClass           *string                `protobuf:"bytes,42,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
-	FactoryName           *string                `protobuf:"bytes,43,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
-	CargoReadyAt          *string                `protobuf:"bytes,44,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms          *string                `protobuf:"bytes,45,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
-	ReceivedAt            *string                `protobuf:"bytes,46,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
-	BookingNotes          *string                `protobuf:"bytes,47,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
-	AllocationNotes       *string                `protobuf:"bytes,48,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
-	OperationNotes        *string                `protobuf:"bytes,49,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	state                 protoimpl.MessageState        `protogen:"open.v1"`
+	Id                    string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedStatus        string                        `protobuf:"bytes,2,opt,name=expected_status,json=expectedStatus,proto3" json:"expected_status,omitempty"`
+	CustomerId            *string                       `protobuf:"bytes,3,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
+	BusinessType          *BusinessType                 `protobuf:"varint,4,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
+	TradeDirection        *TradeDirection               `protobuf:"varint,5,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection,oneof" json:"trade_direction,omitempty"`
+	TradeTerm             *TradeTerm                    `protobuf:"varint,6,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm,oneof" json:"trade_term,omitempty"`
+	PaymentTerm           *PaymentTerm                  `protobuf:"varint,7,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm,oneof" json:"payment_term,omitempty"`
+	CarrierId             *string                       `protobuf:"bytes,8,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	BookingAgentId        *string                       `protobuf:"bytes,9,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
+	ShipmentType          *ShipmentType                 `protobuf:"varint,10,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
+	ContainerOwnership    *ContainerOwnership           `protobuf:"varint,11,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
+	ShipmentMode          *ShipmentMode                 `protobuf:"varint,12,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
+	ServiceTypeIds        []string                      `protobuf:"bytes,13,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
+	CargoCategoryIds      []string                      `protobuf:"bytes,14,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
+	OriginLocationId      *string                       `protobuf:"bytes,15,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
+	DestinationLocationId *string                       `protobuf:"bytes,16,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
+	DischargeLocationId   *string                       `protobuf:"bytes,17,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
+	TransitLocationId     *string                       `protobuf:"bytes,18,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
+	VesselVoyage          *string                       `protobuf:"bytes,19,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
+	Etd                   *string                       `protobuf:"bytes,20,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
+	Eta                   *string                       `protobuf:"bytes,21,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
+	SiCutoff              *string                       `protobuf:"bytes,22,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
+	DocCutoff             *string                       `protobuf:"bytes,23,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
+	CustomsCutoff         *string                       `protobuf:"bytes,24,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
+	VgmCutoff             *string                       `protobuf:"bytes,25,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
+	GoodsDescription      *string                       `protobuf:"bytes,26,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
+	TotalPackages         *int32                        `protobuf:"varint,27,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
+	TotalPackageUnit      *string                       `protobuf:"bytes,28,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
+	SpecialRequirements   *string                       `protobuf:"bytes,29,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
+	OrderDate             *string                       `protobuf:"bytes,30,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
+	Notes                 *string                       `protobuf:"bytes,31,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	CustomerReferenceNo   *string                       `protobuf:"bytes,32,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId        *string                       `protobuf:"bytes,33,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo            *string                       `protobuf:"bytes,34,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue            *string                       `protobuf:"bytes,35,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency         *string                       `protobuf:"bytes,36,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo   *string                       `protobuf:"bytes,37,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId       *string                       `protobuf:"bytes,38,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium      *string                       `protobuf:"bytes,39,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency     *string                       `protobuf:"bytes,40,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber              *string                       `protobuf:"bytes,41,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass           *string                       `protobuf:"bytes,42,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName           *string                       `protobuf:"bytes,43,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt          *string                       `protobuf:"bytes,44,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms          *string                       `protobuf:"bytes,45,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt            *string                       `protobuf:"bytes,46,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
+	BookingNotes          *string                       `protobuf:"bytes,47,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
+	AllocationNotes       *string                       `protobuf:"bytes,48,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
+	OperationNotes        *string                       `protobuf:"bytes,49,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	ShippingDocuments     []*OrderShippingDocumentInput `protobuf:"bytes,50,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
+	ContainerRequests     []*OrderContainerRequestInput `protobuf:"bytes,51,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateOrderRequest) Reset() {
 	*x = UpdateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[12]
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2382,7 @@ func (x *UpdateOrderRequest) String() string {
 func (*UpdateOrderRequest) ProtoMessage() {}
 
 func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[12]
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2395,7 @@ func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateOrderRequest) GetId() string {
@@ -2484,6 +2741,20 @@ func (x *UpdateOrderRequest) GetOperationNotes() string {
 	return ""
 }
 
+func (x *UpdateOrderRequest) GetShippingDocuments() []*OrderShippingDocumentInput {
+	if x != nil {
+		return x.ShippingDocuments
+	}
+	return nil
+}
+
+func (x *UpdateOrderRequest) GetContainerRequests() []*OrderContainerRequestInput {
+	if x != nil {
+		return x.ContainerRequests
+	}
+	return nil
+}
+
 // TransitionOrderStatusRequest 流转订单状态请求。
 type TransitionOrderStatusRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
@@ -2497,7 +2768,7 @@ type TransitionOrderStatusRequest struct {
 
 func (x *TransitionOrderStatusRequest) Reset() {
 	*x = TransitionOrderStatusRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[13]
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2509,7 +2780,7 @@ func (x *TransitionOrderStatusRequest) String() string {
 func (*TransitionOrderStatusRequest) ProtoMessage() {}
 
 func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[13]
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2522,7 +2793,7 @@ func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderStatusRequest.ProtoReflect.Descriptor instead.
 func (*TransitionOrderStatusRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *TransitionOrderStatusRequest) GetId() string {
@@ -2567,7 +2838,7 @@ type GetOrderResponse struct {
 
 func (x *GetOrderResponse) Reset() {
 	*x = GetOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[14]
+	mi := &file_order_v1_order_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2579,7 +2850,7 @@ func (x *GetOrderResponse) String() string {
 func (*GetOrderResponse) ProtoMessage() {}
 
 func (x *GetOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[14]
+	mi := &file_order_v1_order_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2592,7 +2863,7 @@ func (x *GetOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderResponse.ProtoReflect.Descriptor instead.
 func (*GetOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{14}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetOrderResponse) GetSuccess() bool {
@@ -2643,7 +2914,7 @@ type CreateOrderResponse struct {
 
 func (x *CreateOrderResponse) Reset() {
 	*x = CreateOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[15]
+	mi := &file_order_v1_order_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2655,7 +2926,7 @@ func (x *CreateOrderResponse) String() string {
 func (*CreateOrderResponse) ProtoMessage() {}
 
 func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[15]
+	mi := &file_order_v1_order_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2668,7 +2939,7 @@ func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateOrderResponse) GetSuccess() bool {
@@ -2719,7 +2990,7 @@ type UpdateOrderResponse struct {
 
 func (x *UpdateOrderResponse) Reset() {
 	*x = UpdateOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[16]
+	mi := &file_order_v1_order_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2731,7 +3002,7 @@ func (x *UpdateOrderResponse) String() string {
 func (*UpdateOrderResponse) ProtoMessage() {}
 
 func (x *UpdateOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[16]
+	mi := &file_order_v1_order_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2744,7 +3015,7 @@ func (x *UpdateOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateOrderResponse) GetSuccess() bool {
@@ -2795,7 +3066,7 @@ type TransitionOrderStatusResponse struct {
 
 func (x *TransitionOrderStatusResponse) Reset() {
 	*x = TransitionOrderStatusResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[17]
+	mi := &file_order_v1_order_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2807,7 +3078,7 @@ func (x *TransitionOrderStatusResponse) String() string {
 func (*TransitionOrderStatusResponse) ProtoMessage() {}
 
 func (x *TransitionOrderStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[17]
+	mi := &file_order_v1_order_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2820,7 +3091,7 @@ func (x *TransitionOrderStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderStatusResponse.ProtoReflect.Descriptor instead.
 func (*TransitionOrderStatusResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *TransitionOrderStatusResponse) GetSuccess() bool {
@@ -2875,7 +3146,7 @@ type ListOrdersResponse struct {
 
 func (x *ListOrdersResponse) Reset() {
 	*x = ListOrdersResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[18]
+	mi := &file_order_v1_order_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2887,7 +3158,7 @@ func (x *ListOrdersResponse) String() string {
 func (*ListOrdersResponse) ProtoMessage() {}
 
 func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[18]
+	mi := &file_order_v1_order_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2900,7 +3171,7 @@ func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrdersResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListOrdersResponse) GetSuccess() bool {
@@ -2973,7 +3244,7 @@ type CheckOrderReferenceResponse struct {
 
 func (x *CheckOrderReferenceResponse) Reset() {
 	*x = CheckOrderReferenceResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[19]
+	mi := &file_order_v1_order_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2985,7 +3256,7 @@ func (x *CheckOrderReferenceResponse) String() string {
 func (*CheckOrderReferenceResponse) ProtoMessage() {}
 
 func (x *CheckOrderReferenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[19]
+	mi := &file_order_v1_order_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2998,7 +3269,7 @@ func (x *CheckOrderReferenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOrderReferenceResponse.ProtoReflect.Descriptor instead.
 func (*CheckOrderReferenceResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CheckOrderReferenceResponse) GetSuccess() bool {
@@ -3049,7 +3320,7 @@ type ListPersonnelOptionsResponse struct {
 
 func (x *ListPersonnelOptionsResponse) Reset() {
 	*x = ListPersonnelOptionsResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[20]
+	mi := &file_order_v1_order_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3061,7 +3332,7 @@ func (x *ListPersonnelOptionsResponse) String() string {
 func (*ListPersonnelOptionsResponse) ProtoMessage() {}
 
 func (x *ListPersonnelOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[20]
+	mi := &file_order_v1_order_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3074,7 +3345,7 @@ func (x *ListPersonnelOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonnelOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPersonnelOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListPersonnelOptionsResponse) GetSuccess() bool {
@@ -3116,7 +3387,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\"\xad\x19\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\x1a&order/v1/order_shipping_document.proto\"\xcd\x1a\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -3187,7 +3458,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"can_modify\x185 \x01(\bR\tcanModify\x12(\n" +
 	"\rbooking_notes\x186 \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
 	"\x10allocation_notes\x187 \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x188 \x01(\tH'R\x0eoperationNotes\x88\x01\x01B\r\n" +
+	"\x0foperation_notes\x188 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12N\n" +
+	"\x12shipping_documents\x189 \x03(\v2\x1f.order.v1.OrderShippingDocumentR\x11shippingDocuments\x12N\n" +
+	"\x12container_requests\x18: \x03(\v2\x1f.order.v1.OrderContainerRequestR\x11containerRequestsB\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -3229,7 +3502,30 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xa2\x01\n" +
+	"\x10_operation_notes\"\xd5\x01\n" +
+	"\x1aOrderShippingDocumentInput\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12 \n" +
+	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\x1e\n" +
+	"\bhouse_no\x18\x03 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12&\n" +
+	"\frelease_type\x18\x04 \x01(\tH\x01R\vreleaseType\x88\x01\x01\x12\x17\n" +
+	"\x04note\x18\x05 \x01(\tH\x02R\x04note\x88\x01\x01B\x05\n" +
+	"\x03_idB\x0f\n" +
+	"\r_release_typeB\a\n" +
+	"\x05_note\"\x8a\x01\n" +
+	"\x1aOrderContainerRequestInput\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12/\n" +
+	"\x11container_spec_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0fcontainerSpecId\x12\x1f\n" +
+	"\bquantity\x18\x03 \x01(\x05B\x03\xe0A\x02R\bquantityB\x05\n" +
+	"\x03_id\"\xc8\x01\n" +
+	"\x15OrderContainerRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12*\n" +
+	"\x11container_spec_id\x18\x03 \x01(\tR\x0fcontainerSpecId\x12\x1a\n" +
+	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\xa2\x01\n" +
 	"\x1dOrderPersonnelAssignmentInput\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x125\n" +
@@ -3292,7 +3588,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xc0\x18\n" +
+	"\t_order_no\"\xea\x19\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -3353,7 +3649,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rbooking_notes\x18. \x01(\tH%R\fbookingNotes\x88\x01\x01\x12.\n" +
 	"\x10allocation_notes\x18/ \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
 	"\x0foperation_notes\x180 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
-	"\x15personnel_assignments\x181 \x03(\v2'.order.v1.OrderPersonnelAssignmentInputR\x14personnelAssignmentsB\r\n" +
+	"\x15personnel_assignments\x181 \x03(\v2'.order.v1.OrderPersonnelAssignmentInputR\x14personnelAssignments\x12S\n" +
+	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
+	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequestsB\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -3395,7 +3693,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xc8\x18\n" +
+	"\x10_operation_notes\"\xf2\x19\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12$\n" +
@@ -3456,7 +3754,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"receivedAt\x88\x01\x01\x12(\n" +
 	"\rbooking_notes\x18/ \x01(\tH*R\fbookingNotes\x88\x01\x01\x12.\n" +
 	"\x10allocation_notes\x180 \x01(\tH+R\x0fallocationNotes\x88\x01\x01\x12,\n" +
-	"\x0foperation_notes\x181 \x01(\tH,R\x0eoperationNotes\x88\x01\x01B\x0e\n" +
+	"\x0foperation_notes\x181 \x01(\tH,R\x0eoperationNotes\x88\x01\x01\x12S\n" +
+	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
+	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequestsB\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -3629,7 +3929,7 @@ func file_order_v1_order_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_order_v1_order_proto_goTypes = []any{
 	(BusinessType)(0),                     // 0: order.v1.BusinessType
 	(TradeDirection)(0),                   // 1: order.v1.TradeDirection
@@ -3640,27 +3940,31 @@ var file_order_v1_order_proto_goTypes = []any{
 	(ShipmentMode)(0),                     // 6: order.v1.ShipmentMode
 	(OrderReferenceType)(0),               // 7: order.v1.OrderReferenceType
 	(*Order)(nil),                         // 8: order.v1.Order
-	(*OrderPersonnelAssignmentInput)(nil), // 9: order.v1.OrderPersonnelAssignmentInput
-	(*OrderPersonnelOption)(nil),          // 10: order.v1.OrderPersonnelOption
-	(*OrderServiceSelection)(nil),         // 11: order.v1.OrderServiceSelection
-	(*OrderCargoSelection)(nil),           // 12: order.v1.OrderCargoSelection
-	(*OrderStatusLog)(nil),                // 13: order.v1.OrderStatusLog
-	(*GetOrderRequest)(nil),               // 14: order.v1.GetOrderRequest
-	(*ListOrdersRequest)(nil),             // 15: order.v1.ListOrdersRequest
-	(*CheckOrderReferenceRequest)(nil),    // 16: order.v1.CheckOrderReferenceRequest
-	(*ListPersonnelOptionsRequest)(nil),   // 17: order.v1.ListPersonnelOptionsRequest
-	(*OrderReferenceCheck)(nil),           // 18: order.v1.OrderReferenceCheck
-	(*CreateOrderRequest)(nil),            // 19: order.v1.CreateOrderRequest
-	(*UpdateOrderRequest)(nil),            // 20: order.v1.UpdateOrderRequest
-	(*TransitionOrderStatusRequest)(nil),  // 21: order.v1.TransitionOrderStatusRequest
-	(*GetOrderResponse)(nil),              // 22: order.v1.GetOrderResponse
-	(*CreateOrderResponse)(nil),           // 23: order.v1.CreateOrderResponse
-	(*UpdateOrderResponse)(nil),           // 24: order.v1.UpdateOrderResponse
-	(*TransitionOrderStatusResponse)(nil), // 25: order.v1.TransitionOrderStatusResponse
-	(*ListOrdersResponse)(nil),            // 26: order.v1.ListOrdersResponse
-	(*CheckOrderReferenceResponse)(nil),   // 27: order.v1.CheckOrderReferenceResponse
-	(*ListPersonnelOptionsResponse)(nil),  // 28: order.v1.ListPersonnelOptionsResponse
-	(OrderPersonnelRole)(0),               // 29: order.v1.OrderPersonnelRole
+	(*OrderShippingDocumentInput)(nil),    // 9: order.v1.OrderShippingDocumentInput
+	(*OrderContainerRequestInput)(nil),    // 10: order.v1.OrderContainerRequestInput
+	(*OrderContainerRequest)(nil),         // 11: order.v1.OrderContainerRequest
+	(*OrderPersonnelAssignmentInput)(nil), // 12: order.v1.OrderPersonnelAssignmentInput
+	(*OrderPersonnelOption)(nil),          // 13: order.v1.OrderPersonnelOption
+	(*OrderServiceSelection)(nil),         // 14: order.v1.OrderServiceSelection
+	(*OrderCargoSelection)(nil),           // 15: order.v1.OrderCargoSelection
+	(*OrderStatusLog)(nil),                // 16: order.v1.OrderStatusLog
+	(*GetOrderRequest)(nil),               // 17: order.v1.GetOrderRequest
+	(*ListOrdersRequest)(nil),             // 18: order.v1.ListOrdersRequest
+	(*CheckOrderReferenceRequest)(nil),    // 19: order.v1.CheckOrderReferenceRequest
+	(*ListPersonnelOptionsRequest)(nil),   // 20: order.v1.ListPersonnelOptionsRequest
+	(*OrderReferenceCheck)(nil),           // 21: order.v1.OrderReferenceCheck
+	(*CreateOrderRequest)(nil),            // 22: order.v1.CreateOrderRequest
+	(*UpdateOrderRequest)(nil),            // 23: order.v1.UpdateOrderRequest
+	(*TransitionOrderStatusRequest)(nil),  // 24: order.v1.TransitionOrderStatusRequest
+	(*GetOrderResponse)(nil),              // 25: order.v1.GetOrderResponse
+	(*CreateOrderResponse)(nil),           // 26: order.v1.CreateOrderResponse
+	(*UpdateOrderResponse)(nil),           // 27: order.v1.UpdateOrderResponse
+	(*TransitionOrderStatusResponse)(nil), // 28: order.v1.TransitionOrderStatusResponse
+	(*ListOrdersResponse)(nil),            // 29: order.v1.ListOrdersResponse
+	(*CheckOrderReferenceResponse)(nil),   // 30: order.v1.CheckOrderReferenceResponse
+	(*ListPersonnelOptionsResponse)(nil),  // 31: order.v1.ListPersonnelOptionsResponse
+	(*OrderShippingDocument)(nil),         // 32: order.v1.OrderShippingDocument
+	(OrderPersonnelRole)(0),               // 33: order.v1.OrderPersonnelRole
 }
 var file_order_v1_order_proto_depIdxs = []int32{
 	0,  // 0: order.v1.Order.business_type:type_name -> order.v1.BusinessType
@@ -3670,51 +3974,57 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	4,  // 4: order.v1.Order.shipment_type:type_name -> order.v1.ShipmentType
 	5,  // 5: order.v1.Order.container_ownership:type_name -> order.v1.ContainerOwnership
 	6,  // 6: order.v1.Order.shipment_mode:type_name -> order.v1.ShipmentMode
-	29, // 7: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
-	0,  // 8: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
-	7,  // 9: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
-	0,  // 10: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
-	0,  // 11: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 12: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 13: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 14: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 15: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 16: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 17: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	9,  // 18: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
-	0,  // 19: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 20: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 21: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 22: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 23: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 24: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 25: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	8,  // 26: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
-	8,  // 27: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
-	8,  // 28: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
-	8,  // 29: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
-	8,  // 30: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
-	18, // 31: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
-	10, // 32: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	14, // 33: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	15, // 34: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	16, // 35: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	17, // 36: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
-	19, // 37: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	20, // 38: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	21, // 39: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	22, // 40: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
-	26, // 41: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	27, // 42: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
-	28, // 43: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
-	23, // 44: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
-	24, // 45: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
-	25, // 46: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
-	40, // [40:47] is the sub-list for method output_type
-	33, // [33:40] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	32, // 7: order.v1.Order.shipping_documents:type_name -> order.v1.OrderShippingDocument
+	11, // 8: order.v1.Order.container_requests:type_name -> order.v1.OrderContainerRequest
+	33, // 9: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
+	0,  // 10: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
+	7,  // 11: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
+	0,  // 12: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
+	0,  // 13: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 14: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 15: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 16: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 17: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 18: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 19: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	12, // 20: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
+	9,  // 21: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	10, // 22: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	0,  // 23: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 24: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 25: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 26: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 27: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 28: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 29: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	9,  // 30: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	10, // 31: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	8,  // 32: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
+	8,  // 33: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
+	8,  // 34: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
+	8,  // 35: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
+	8,  // 36: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
+	21, // 37: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
+	13, // 38: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
+	17, // 39: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	18, // 40: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	19, // 41: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	20, // 42: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
+	22, // 43: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	23, // 44: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	24, // 45: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	25, // 46: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	29, // 47: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	30, // 48: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	31, // 49: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
+	26, // 50: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	27, // 51: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	28, // 52: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	46, // [46:53] is the sub-list for method output_type
+	39, // [39:46] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }
@@ -3723,21 +4033,24 @@ func file_order_v1_order_proto_init() {
 		return
 	}
 	file_order_v1_order_personnel_proto_init()
+	file_order_v1_order_shipping_document_proto_init()
 	file_order_v1_order_proto_msgTypes[0].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[5].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[7].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[1].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[2].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[10].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[11].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[12].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[13].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[14].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[15].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_proto_rawDesc), len(file_order_v1_order_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   21,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

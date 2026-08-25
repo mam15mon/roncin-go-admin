@@ -13,6 +13,10 @@ import dayjs from 'dayjs';
 import React from 'react';
 import { TooltipInput } from '@/components/ui/tooltip-input';
 import {
+  OrderContainerRequestFields,
+  OrderShippingDocumentFields,
+} from '../order-plan-fields';
+import {
   containerOwnershipOptions,
   paymentTermOptions,
   shipmentModeOptions,
@@ -213,6 +217,7 @@ export function getSeaTemplateSections(
     cargoCategoryOptions,
     locationOptions,
     currencyOptions,
+    containerSpecOptions,
     searchCustomers,
     searchCarriers,
     searchBookingAgents,
@@ -640,6 +645,8 @@ export function getSeaTemplateSections(
           />
           <SeaScheduleDateFields />
 
+          <OrderContainerRequestFields options={containerSpecOptions} />
+
           {/* 第 3 行：4 大截关时间（一行 4 个，各占 6 栅格） */}
           <ProFormDateTimePicker
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
@@ -673,6 +680,8 @@ export function getSeaTemplateSections(
       title: '提单信息',
       content: (
         <>
+          <OrderShippingDocumentFields />
+
           {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}
           <ProFormTextArea
             colProps={{ xs: 24, lg: 12 }}

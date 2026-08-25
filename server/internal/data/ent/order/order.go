@@ -138,6 +138,8 @@ const (
 	EdgePersonnel = "personnel"
 	// EdgeContainers holds the string denoting the containers edge name in mutations.
 	EdgeContainers = "containers"
+	// EdgeContainerRequests holds the string denoting the container_requests edge name in mutations.
+	EdgeContainerRequests = "container_requests"
 	// EdgeCargoItems holds the string denoting the cargo_items edge name in mutations.
 	EdgeCargoItems = "cargo_items"
 	// EdgeShippingDocuments holds the string denoting the shipping_documents edge name in mutations.
@@ -220,6 +222,13 @@ const (
 	ContainersInverseTable = "order_containers"
 	// ContainersColumn is the table column denoting the containers relation/edge.
 	ContainersColumn = "order_id"
+	// ContainerRequestsTable is the table that holds the container_requests relation/edge.
+	ContainerRequestsTable = "order_container_requests"
+	// ContainerRequestsInverseTable is the table name for the OrderContainerRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercontainerrequest" package.
+	ContainerRequestsInverseTable = "order_container_requests"
+	// ContainerRequestsColumn is the table column denoting the container_requests relation/edge.
+	ContainerRequestsColumn = "order_id"
 	// CargoItemsTable is the table that holds the cargo_items relation/edge.
 	CargoItemsTable = "order_cargo_items"
 	// CargoItemsInverseTable is the table name for the OrderCargoItem entity.
@@ -954,6 +963,20 @@ func ByContainers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByContainerRequestsCount orders the results by container_requests count.
+func ByContainerRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContainerRequestsStep(), opts...)
+	}
+}
+
+// ByContainerRequests orders the results by container_requests terms.
+func ByContainerRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContainerRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCargoItemsCount orders the results by cargo_items count.
 func ByCargoItemsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1091,6 +1114,13 @@ func newContainersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ContainersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ContainersTable, ContainersColumn),
+	)
+}
+func newContainerRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContainerRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContainerRequestsTable, ContainerRequestsColumn),
 	)
 }
 func newCargoItemsStep() *sqlgraph.Step {

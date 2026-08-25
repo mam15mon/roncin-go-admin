@@ -285,6 +285,18 @@ func (f OrderContainerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderContainerMutation", m)
 }
 
+// The OrderContainerRequestFunc type is an adapter to allow the use of ordinary
+// function as OrderContainerRequest mutator.
+type OrderContainerRequestFunc func(context.Context, *ent.OrderContainerRequestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderContainerRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderContainerRequestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderContainerRequestMutation", m)
+}
+
 // The OrderFeeFunc type is an adapter to allow the use of ordinary
 // function as OrderFee mutator.
 type OrderFeeFunc func(context.Context, *ent.OrderFeeMutation) (ent.Value, error)

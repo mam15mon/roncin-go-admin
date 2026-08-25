@@ -79,6 +79,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("attachments", OrderAttachment.Type),
 		edge.To("personnel", OrderPersonnel.Type),
 		edge.To("containers", OrderContainer.Type),
+		edge.To("container_requests", OrderContainerRequest.Type),
 		edge.To("cargo_items", OrderCargoItem.Type),
 		edge.To("shipping_documents", OrderShippingDocument.Type),
 		edge.To("release_pods", OrderReleasePod.Type),

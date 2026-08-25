@@ -35,7 +35,8 @@ func (OrderShippingDocument) Edges() []ent.Edge {
 
 func (OrderShippingDocument) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("order_id", "master_no").Unique(),
+		index.Fields("order_id", "house_no").Unique(),
+		index.Fields("order_id", "master_no"),
 		index.Fields("order_id", "status"),
 	}
 }

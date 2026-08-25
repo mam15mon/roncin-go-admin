@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -50,6 +51,7 @@ type OrderQuery struct {
 	withAttachments       *OrderAttachmentQuery
 	withPersonnel         *OrderPersonnelQuery
 	withContainers        *OrderContainerQuery
+	withContainerRequests *OrderContainerRequestQuery
 	withCargoItems        *OrderCargoItemQuery
 	withShippingDocuments *OrderShippingDocumentQuery
 	withReleasePods       *OrderReleasePodQuery
@@ -305,6 +307,28 @@ func (_q *OrderQuery) QueryContainers() *OrderContainerQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(ordercontainer.Table, ordercontainer.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.ContainersTable, order.ContainersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryContainerRequests chains the current query on the "container_requests" edge.
+func (_q *OrderQuery) QueryContainerRequests() *OrderContainerRequestQuery {
+	query := (&OrderContainerRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(ordercontainerrequest.Table, ordercontainerrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.ContainerRequestsTable, order.ContainerRequestsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -624,6 +648,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withAttachments:       _q.withAttachments.Clone(),
 		withPersonnel:         _q.withPersonnel.Clone(),
 		withContainers:        _q.withContainers.Clone(),
+		withContainerRequests: _q.withContainerRequests.Clone(),
 		withCargoItems:        _q.withCargoItems.Clone(),
 		withShippingDocuments: _q.withShippingDocuments.Clone(),
 		withReleasePods:       _q.withReleasePods.Clone(),
@@ -742,6 +767,17 @@ func (_q *OrderQuery) WithContainers(opts ...func(*OrderContainerQuery)) *OrderQ
 		opt(query)
 	}
 	_q.withContainers = query
+	return _q
+}
+
+// WithContainerRequests tells the query-builder to eager-load the nodes that are connected to
+// the "container_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithContainerRequests(opts ...func(*OrderContainerRequestQuery)) *OrderQuery {
+	query := (&OrderContainerRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withContainerRequests = query
 	return _q
 }
 
@@ -878,7 +914,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [15]bool{
+		loadedTypes = [16]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withStatusTemplate != nil,
@@ -889,6 +925,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withAttachments != nil,
 			_q.withPersonnel != nil,
 			_q.withContainers != nil,
+			_q.withContainerRequests != nil,
 			_q.withCargoItems != nil,
 			_q.withShippingDocuments != nil,
 			_q.withReleasePods != nil,
@@ -981,6 +1018,15 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadContainers(ctx, query, nodes,
 			func(n *Order) { n.Edges.Containers = []*OrderContainer{} },
 			func(n *Order, e *OrderContainer) { n.Edges.Containers = append(n.Edges.Containers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withContainerRequests; query != nil {
+		if err := _q.loadContainerRequests(ctx, query, nodes,
+			func(n *Order) { n.Edges.ContainerRequests = []*OrderContainerRequest{} },
+			func(n *Order, e *OrderContainerRequest) {
+				n.Edges.ContainerRequests = append(n.Edges.ContainerRequests, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1306,6 +1352,36 @@ func (_q *OrderQuery) loadContainers(ctx context.Context, query *OrderContainerQ
 	}
 	query.Where(predicate.OrderContainer(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.ContainersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadContainerRequests(ctx context.Context, query *OrderContainerRequestQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderContainerRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(ordercontainerrequest.FieldOrderID)
+	}
+	query.Where(predicate.OrderContainerRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.ContainerRequestsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

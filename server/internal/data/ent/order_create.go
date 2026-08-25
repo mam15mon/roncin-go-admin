@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -820,6 +821,21 @@ func (_c *OrderCreate) AddContainers(v ...*OrderContainer) *OrderCreate {
 	return _c.AddContainerIDs(ids...)
 }
 
+// AddContainerRequestIDs adds the "container_requests" edge to the OrderContainerRequest entity by IDs.
+func (_c *OrderCreate) AddContainerRequestIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddContainerRequestIDs(ids...)
+	return _c
+}
+
+// AddContainerRequests adds the "container_requests" edges to the OrderContainerRequest entity.
+func (_c *OrderCreate) AddContainerRequests(v ...*OrderContainerRequest) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddContainerRequestIDs(ids...)
+}
+
 // AddCargoItemIDs adds the "cargo_items" edge to the OrderCargoItem entity by IDs.
 func (_c *OrderCreate) AddCargoItemIDs(ids ...uuid.UUID) *OrderCreate {
 	_c.mutation.AddCargoItemIDs(ids...)
@@ -1560,6 +1576,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercontainer.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ContainerRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.ContainerRequestsTable,
+			Columns: []string{order.ContainerRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercontainerrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

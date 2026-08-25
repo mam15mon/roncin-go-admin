@@ -181,8 +181,20 @@ type Order struct {
 	AllocationNotes       string
 	OperationNotes        string
 	PersonnelAssignments  []*OrderPersonnel
+	ShippingDocuments     []*OrderShippingDocument
+	ContainerRequests     []*OrderContainerRequest
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+}
+
+// OrderContainerRequest 表示订舱阶段的箱型箱量计划，不包含实际箱号。
+type OrderContainerRequest struct {
+	ID              uuid.UUID
+	OrderID         uuid.UUID
+	ContainerSpecID uuid.UUID
+	Quantity        int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type OrderListOptions struct {
@@ -375,6 +387,28 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		if roleCounts[assignment.Role] > 1 {
 			return nil, ErrOrderInvalidArgument
 		}
+	}
+	houseNumbers := make(map[string]struct{}, len(output.ShippingDocuments))
+	for index, document := range output.ShippingDocuments {
+		normalized, err := normalizeOrderShippingDocument(document)
+		if err != nil {
+			return nil, err
+		}
+		if _, exists := houseNumbers[strings.ToLower(normalized.HouseNo)]; exists {
+			return nil, ErrOrderShippingDocumentExists
+		}
+		houseNumbers[strings.ToLower(normalized.HouseNo)] = struct{}{}
+		output.ShippingDocuments[index] = normalized
+	}
+	containerSpecs := make(map[uuid.UUID]struct{}, len(output.ContainerRequests))
+	for _, request := range output.ContainerRequests {
+		if request == nil || request.ContainerSpecID == uuid.Nil || request.Quantity < 1 || request.Quantity > 999 {
+			return nil, ErrOrderInvalidArgument
+		}
+		if _, exists := containerSpecs[request.ContainerSpecID]; exists {
+			return nil, ErrOrderInvalidArgument
+		}
+		containerSpecs[request.ContainerSpecID] = struct{}{}
 	}
 	if (output.CargoValue == "") != (output.CargoCurrency == "") || output.CargoValue != "" && (!cargoValuePattern.MatchString(output.CargoValue) || len(output.CargoCurrency) != 3) {
 		return nil, ErrOrderInvalidArgument

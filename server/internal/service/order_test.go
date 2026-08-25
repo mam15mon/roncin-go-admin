@@ -2,9 +2,11 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
 func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
@@ -50,5 +52,46 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	apiOrder := orderToAPI(order)
 	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetLoadingTerms() != loadingTerms || apiOrder.GetReceivedAt() != receivedAt {
 		t.Fatalf("orderToAPI() business fields = %#v", apiOrder)
+	}
+}
+
+func TestOrderPlanFieldsRoundTrip(t *testing.T) {
+	customerID := uuid.New()
+	templateID := uuid.New()
+	containerSpecID := uuid.New()
+	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
+		CustomerId: customerID.String(), StatusTemplateId: templateID.String(),
+		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
+		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
+		ShippingDocuments: []*v1.OrderShippingDocumentInput{
+			{MasterNo: "MBL-001", HouseNo: "HBL-001"},
+			{MasterNo: "MBL-001", HouseNo: "HBL-002"},
+		},
+		ContainerRequests: []*v1.OrderContainerRequestInput{{ContainerSpecId: containerSpecID.String(), Quantity: 2}},
+	})
+	if err != nil {
+		t.Fatalf("orderFromCreateRequest() error = %v", err)
+	}
+	if len(order.ShippingDocuments) != 2 || order.ShippingDocuments[1].HouseNo != "HBL-002" || len(order.ContainerRequests) != 1 || order.ContainerRequests[0].Quantity != 2 {
+		t.Fatalf("converted order plan fields = %#v, %#v", order.ShippingDocuments, order.ContainerRequests)
+	}
+
+	now := time.Now().UTC()
+	order.ID = uuid.New()
+	order.OrganizationID = uuid.New()
+	order.CreatedAt = now
+	order.UpdatedAt = now
+	order.ShippingDocuments[0].ID = uuid.New()
+	order.ShippingDocuments[0].OrderID = order.ID
+	order.ShippingDocuments[0].Status = biz.OrderShippingDocumentStatusDraft
+	order.ShippingDocuments[0].CreatedAt = now
+	order.ShippingDocuments[0].UpdatedAt = now
+	order.ContainerRequests[0].ID = uuid.New()
+	order.ContainerRequests[0].OrderID = order.ID
+	order.ContainerRequests[0].CreatedAt = now
+	order.ContainerRequests[0].UpdatedAt = now
+	apiOrder := orderToAPI(order)
+	if len(apiOrder.GetShippingDocuments()) != 2 || apiOrder.GetShippingDocuments()[0].GetMasterNo() != "MBL-001" || len(apiOrder.GetContainerRequests()) != 1 || apiOrder.GetContainerRequests()[0].GetContainerSpecId() != containerSpecID.String() {
+		t.Fatalf("orderToAPI() plan fields = %#v, %#v", apiOrder.GetShippingDocuments(), apiOrder.GetContainerRequests())
 	}
 }

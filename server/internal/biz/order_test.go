@@ -160,6 +160,49 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 	}
 }
 
+func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testing.T) {
+	container20GP := uuid.New()
+	container40HQ := uuid.New()
+	input := &Order{
+		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
+		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ShippingDocuments: []*OrderShippingDocument{
+			{MasterNo: " MBL-001 ", HouseNo: " HBL-001 "},
+			{MasterNo: " MBL-001 ", HouseNo: " HBL-002 "},
+		},
+		ContainerRequests: []*OrderContainerRequest{
+			{ContainerSpecID: container20GP, Quantity: 2},
+			{ContainerSpecID: container40HQ, Quantity: 3},
+		},
+	}
+
+	normalized, err := normalizeOrder(input, false)
+	if err != nil {
+		t.Fatalf("normalizeOrder() error = %v", err)
+	}
+	if normalized.ShippingDocuments[0].MasterNo != "MBL-001" || normalized.ShippingDocuments[1].HouseNo != "HBL-002" {
+		t.Fatalf("normalized shipping documents = %#v", normalized.ShippingDocuments)
+	}
+
+	duplicateHouse := *input
+	duplicateHouse.ShippingDocuments = []*OrderShippingDocument{
+		{MasterNo: "MBL-001", HouseNo: "HBL-001"},
+		{MasterNo: "MBL-002", HouseNo: " hbl-001 "},
+	}
+	if _, err := normalizeOrder(&duplicateHouse, false); err != ErrOrderShippingDocumentExists {
+		t.Fatalf("duplicate house error = %v, want ErrOrderShippingDocumentExists", err)
+	}
+
+	duplicateContainer := *input
+	duplicateContainer.ContainerRequests = []*OrderContainerRequest{
+		{ContainerSpecID: container20GP, Quantity: 1},
+		{ContainerSpecID: container20GP, Quantity: 2},
+	}
+	if _, err := normalizeOrder(&duplicateContainer, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("duplicate container request error = %v, want ErrOrderInvalidArgument", err)
+	}
+}
+
 func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 	organizationID := uuid.New()
 	customerID := uuid.New()

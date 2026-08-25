@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -233,6 +234,14 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	shippingDocuments, err := shippingDocumentsFromAPI(request.GetShippingDocuments())
+	if err != nil {
+		return nil, err
+	}
+	containerRequests, err := containerRequestsFromAPI(request.GetContainerRequests())
+	if err != nil {
+		return nil, err
+	}
 	return &biz.Order{
 		CustomerID: customerID, StatusTemplateID: statusTemplateID,
 		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
@@ -251,7 +260,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		TotalPackages: optionalInt32ToInt(request.TotalPackages), TotalPackageUnit: request.GetTotalPackageUnit(), SpecialRequirements: request.GetSpecialRequirements(),
 		OrderDate: request.GetOrderDate(), Notes: request.GetNotes(),
 		BookingNotes: request.GetBookingNotes(), AllocationNotes: request.GetAllocationNotes(), OperationNotes: request.GetOperationNotes(),
-		PersonnelAssignments: personnelAssignments,
+		PersonnelAssignments: personnelAssignments, ShippingDocuments: shippingDocuments, ContainerRequests: containerRequests,
 	}, nil
 }
 
@@ -428,6 +437,14 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.OperationNotes != nil {
 		output.OperationNotes = request.GetOperationNotes()
 	}
+	output.ShippingDocuments, err = shippingDocumentsFromAPI(request.GetShippingDocuments())
+	if err != nil {
+		return nil, err
+	}
+	output.ContainerRequests, err = containerRequestsFromAPI(request.GetContainerRequests())
+	if err != nil {
+		return nil, err
+	}
 	return &output, nil
 }
 
@@ -446,7 +463,74 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
+	result.ShippingDocuments = make([]*v1.OrderShippingDocument, 0, len(item.ShippingDocuments))
+	for _, document := range item.ShippingDocuments {
+		result.ShippingDocuments = append(result.ShippingDocuments, orderShippingDocumentToAPI(document))
+	}
+	result.ContainerRequests = make([]*v1.OrderContainerRequest, 0, len(item.ContainerRequests))
+	for _, request := range item.ContainerRequests {
+		result.ContainerRequests = append(result.ContainerRequests, &v1.OrderContainerRequest{
+			Id: request.ID.String(), OrderId: request.OrderID.String(), ContainerSpecId: request.ContainerSpecID.String(), Quantity: int32(request.Quantity),
+			CreatedAt: request.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: request.UpdatedAt.UTC().Format(timeFormatRFC3339),
+		})
+	}
 	return result
+}
+
+func shippingDocumentsFromAPI(values []*v1.OrderShippingDocumentInput) ([]*biz.OrderShippingDocument, error) {
+	result := make([]*biz.OrderShippingDocument, 0, len(values))
+	for _, value := range values {
+		if value == nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		id, err := parseOptionalInputID(value.Id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, &biz.OrderShippingDocument{
+			ID: id, MasterNo: value.GetMasterNo(), HouseNo: value.GetHouseNo(),
+			ReleaseType: optionalStringPointer(value.ReleaseType), Note: optionalStringPointer(value.Note),
+		})
+	}
+	return result, nil
+}
+
+func containerRequestsFromAPI(values []*v1.OrderContainerRequestInput) ([]*biz.OrderContainerRequest, error) {
+	result := make([]*biz.OrderContainerRequest, 0, len(values))
+	for _, value := range values {
+		if value == nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		id, err := parseOptionalInputID(value.Id)
+		if err != nil {
+			return nil, err
+		}
+		containerSpecID, err := uuid.Parse(value.GetContainerSpecId())
+		if err != nil {
+			return nil, biz.ErrOrderInvalidArgument
+		}
+		result = append(result, &biz.OrderContainerRequest{ID: id, ContainerSpecID: containerSpecID, Quantity: int(value.GetQuantity())})
+	}
+	return result, nil
+}
+
+func parseOptionalInputID(value *string) (uuid.UUID, error) {
+	if value == nil || strings.TrimSpace(*value) == "" {
+		return uuid.Nil, nil
+	}
+	id, err := uuid.Parse(strings.TrimSpace(*value))
+	if err != nil {
+		return uuid.Nil, biz.ErrOrderInvalidArgument
+	}
+	return id, nil
+}
+
+func optionalStringPointer(value *string) *string {
+	if value == nil {
+		return nil
+	}
+	copy := *value
+	return &copy
 }
 
 func personnelAssignmentsFromAPI(values []*v1.OrderPersonnelAssignmentInput) ([]*biz.OrderPersonnel, error) {

@@ -59,6 +59,26 @@ type MasterDataItem struct {
 }
 
 func DefaultOrderOptions() []MasterDataItem {
+	containerSpecs := []struct{ code, teuFactor string }{
+		{"20GP", "1"},
+		{"40HQ", "2"},
+		{"20HC", "1"},
+		{"20OT", "1"},
+		{"20FR", "1"},
+		{"20RF", "1"},
+		{"20TK", "1"},
+		{"20HT", "1"},
+		{"20RH", "1"},
+		{"40FR", "2"},
+		{"40GP", "2"},
+		{"40PF", "2"},
+		{"40RF", "2"},
+		{"40OT", "2"},
+		{"40RH", "2"},
+		{"45HC", "2.25"},
+		{"12GP", "0.6"},
+		{"40HC", "2"},
+	}
 	serviceTypes := []struct{ code, name string }{
 		{"BOOKING", "订舱"},
 		{"TRUCKING", "拖车"},
@@ -88,7 +108,11 @@ func DefaultOrderOptions() []MasterDataItem {
 		{"BREAK_BULK_PIECE", "散杂件货"},
 	}
 
-	items := make([]MasterDataItem, 0, len(serviceTypes)+len(cargoCategories))
+	items := make([]MasterDataItem, 0, len(containerSpecs)+len(serviceTypes)+len(cargoCategories))
+	for index, item := range containerSpecs {
+		teuFactor := item.teuFactor
+		items = append(items, MasterDataItem{Kind: MasterDataKindContainerSpec, Code: item.code, Name: item.code, TEUFactor: &teuFactor, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
+	}
 	for index, item := range serviceTypes {
 		items = append(items, MasterDataItem{Kind: MasterDataKindServiceType, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
 	}

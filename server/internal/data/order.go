@@ -15,8 +15,10 @@ import (
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -218,6 +220,14 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := syncOrderShippingDocuments(ctx, tx, created.ID, input.ShippingDocuments); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := syncOrderContainerRequests(ctx, tx, organizationID, created.ID, input.ContainerRequests); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if _, err := tx.OrderStatusLog.Create().SetOrderID(created.ID).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -307,6 +317,14 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		return nil, mapOrderConstraint(err)
 	}
 	if err := replaceOrderSelections(ctx, tx, id, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := syncOrderShippingDocuments(ctx, tx, id, input.ShippingDocuments); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := syncOrderContainerRequests(ctx, tx, organizationID, id, input.ContainerRequests); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -553,11 +571,132 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 	return nil
 }
 
+func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, inputs []*biz.OrderShippingDocument) error {
+	existing, err := tx.OrderShippingDocument.Query().Where(ordershippingdocumentent.OrderIDEQ(orderID)).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	remaining := make(map[uuid.UUID]*ent.OrderShippingDocument, len(existing))
+	for _, item := range existing {
+		remaining[item.ID] = item
+	}
+	for _, input := range inputs {
+		if input.ID == uuid.Nil {
+			builder := tx.OrderShippingDocument.Create().SetID(uuid.Must(uuid.NewV7())).SetOrderID(orderID).SetMasterNo(input.MasterNo).SetHouseNo(input.HouseNo).SetStatus(ordershippingdocumentent.StatusDRAFT)
+			setShippingDocumentOptionalFieldsOnCreate(builder, input)
+			if _, err := builder.Save(ctx); err != nil {
+				return mapShippingDocumentConstraint(err)
+			}
+			continue
+		}
+		item, ok := remaining[input.ID]
+		if !ok {
+			return biz.ErrOrderShippingDocumentNotFound
+		}
+		if item.Status == ordershippingdocumentent.StatusRELEASED {
+			return biz.ErrOrderShippingDocumentInvalidStatus
+		}
+		builder := item.Update().SetMasterNo(input.MasterNo).SetHouseNo(input.HouseNo)
+		setShippingDocumentOptionalFieldsOnUpdate(builder, input)
+		if _, err := builder.Save(ctx); err != nil {
+			return mapShippingDocumentConstraint(err)
+		}
+		delete(remaining, input.ID)
+	}
+	for _, item := range remaining {
+		if item.Status == ordershippingdocumentent.StatusRELEASED {
+			return biz.ErrOrderShippingDocumentInvalidStatus
+		}
+		if err := tx.OrderShippingDocument.DeleteOneID(item.ID).Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setShippingDocumentOptionalFieldsOnCreate(builder *ent.OrderShippingDocumentCreate, input *biz.OrderShippingDocument) {
+	if input.ReleaseType != nil {
+		builder.SetReleaseType(*input.ReleaseType)
+	}
+	if input.Note != nil {
+		builder.SetNote(*input.Note)
+	}
+}
+
+func setShippingDocumentOptionalFieldsOnUpdate(builder *ent.OrderShippingDocumentUpdateOne, input *biz.OrderShippingDocument) {
+	if input.ReleaseType == nil {
+		builder.ClearReleaseType()
+	} else {
+		builder.SetReleaseType(*input.ReleaseType)
+	}
+	if input.Note == nil {
+		builder.ClearNote()
+	} else {
+		builder.SetNote(*input.Note)
+	}
+}
+
+func mapShippingDocumentConstraint(err error) error {
+	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
+		return biz.ErrOrderShippingDocumentExists
+	}
+	return err
+}
+
+func syncOrderContainerRequests(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID, inputs []*biz.OrderContainerRequest) error {
+	for _, input := range inputs {
+		exists, err := tx.MasterDataItem.Query().Where(
+			masterdataent.IDEQ(input.ContainerSpecID),
+			masterdataent.OrganizationIDEQ(organizationID),
+			masterdataent.KindEQ(masterdataent.KindContainerSpec),
+			masterdataent.EnabledEQ(true),
+		).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return biz.ErrOrderContainerSpecInvalid
+		}
+	}
+	existing, err := tx.OrderContainerRequest.Query().Where(ordercontainerrequestent.OrderIDEQ(orderID)).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	remaining := make(map[uuid.UUID]*ent.OrderContainerRequest, len(existing))
+	for _, item := range existing {
+		remaining[item.ID] = item
+	}
+	for _, input := range inputs {
+		if input.ID == uuid.Nil {
+			if _, err := tx.OrderContainerRequest.Create().SetID(uuid.Must(uuid.NewV7())).SetOrderID(orderID).SetContainerSpecID(input.ContainerSpecID).SetQuantity(input.Quantity).Save(ctx); err != nil {
+				return err
+			}
+			continue
+		}
+		item, ok := remaining[input.ID]
+		if !ok {
+			return biz.ErrOrderInvalidArgument
+		}
+		if _, err := item.Update().SetContainerSpecID(input.ContainerSpecID).SetQuantity(input.Quantity).Save(ctx); err != nil {
+			return err
+		}
+		delete(remaining, input.ID)
+	}
+	for id := range remaining {
+		if err := tx.OrderContainerRequest.DeleteOneID(id).Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
 		WithOrganization().
 		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
-		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) })
+		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) }).
+		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) { q.Order(ordershippingdocumentent.ByCreatedAt()) }).
+		WithContainerRequests(func(q *ent.OrderContainerRequestQuery) { q.Order(ordercontainerrequestent.ByCreatedAt()) })
 }
 
 func orderToBiz(item *ent.Order) *biz.Order {
@@ -595,6 +734,17 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	result.CargoCategoryIDs = make([]uuid.UUID, 0, len(item.Edges.CargoCategories))
 	for _, link := range item.Edges.CargoCategories {
 		result.CargoCategoryIDs = append(result.CargoCategoryIDs, link.MasterDataItemID)
+	}
+	result.ShippingDocuments = make([]*biz.OrderShippingDocument, 0, len(item.Edges.ShippingDocuments))
+	for _, document := range item.Edges.ShippingDocuments {
+		result.ShippingDocuments = append(result.ShippingDocuments, orderShippingDocumentToBiz(document))
+	}
+	result.ContainerRequests = make([]*biz.OrderContainerRequest, 0, len(item.Edges.ContainerRequests))
+	for _, request := range item.Edges.ContainerRequests {
+		result.ContainerRequests = append(result.ContainerRequests, &biz.OrderContainerRequest{
+			ID: request.ID, OrderID: request.OrderID, ContainerSpecID: request.ContainerSpecID,
+			Quantity: request.Quantity, CreatedAt: request.CreatedAt, UpdatedAt: request.UpdatedAt,
+		})
 	}
 	return result
 }

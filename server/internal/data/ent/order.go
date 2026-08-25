@@ -151,6 +151,8 @@ type OrderEdges struct {
 	Personnel []*OrderPersonnel `json:"personnel,omitempty"`
 	// Containers holds the value of the containers edge.
 	Containers []*OrderContainer `json:"containers,omitempty"`
+	// ContainerRequests holds the value of the container_requests edge.
+	ContainerRequests []*OrderContainerRequest `json:"container_requests,omitempty"`
 	// CargoItems holds the value of the cargo_items edge.
 	CargoItems []*OrderCargoItem `json:"cargo_items,omitempty"`
 	// ShippingDocuments holds the value of the shipping_documents edge.
@@ -163,7 +165,7 @@ type OrderEdges struct {
 	Fees []*OrderFee `json:"fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [16]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -262,10 +264,19 @@ func (e OrderEdges) ContainersOrErr() ([]*OrderContainer, error) {
 	return nil, &NotLoadedError{edge: "containers"}
 }
 
+// ContainerRequestsOrErr returns the ContainerRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) ContainerRequestsOrErr() ([]*OrderContainerRequest, error) {
+	if e.loadedTypes[10] {
+		return e.ContainerRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "container_requests"}
+}
+
 // CargoItemsOrErr returns the CargoItems value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) CargoItemsOrErr() ([]*OrderCargoItem, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.CargoItems, nil
 	}
 	return nil, &NotLoadedError{edge: "cargo_items"}
@@ -274,7 +285,7 @@ func (e OrderEdges) CargoItemsOrErr() ([]*OrderCargoItem, error) {
 // ShippingDocumentsOrErr returns the ShippingDocuments value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) ShippingDocumentsOrErr() ([]*OrderShippingDocument, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.ShippingDocuments, nil
 	}
 	return nil, &NotLoadedError{edge: "shipping_documents"}
@@ -283,7 +294,7 @@ func (e OrderEdges) ShippingDocumentsOrErr() ([]*OrderShippingDocument, error) {
 // ReleasePodsOrErr returns the ReleasePods value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.ReleasePods, nil
 	}
 	return nil, &NotLoadedError{edge: "release_pods"}
@@ -292,7 +303,7 @@ func (e OrderEdges) ReleasePodsOrErr() ([]*OrderReleasePod, error) {
 // AbnormalCasesOrErr returns the AbnormalCases value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.AbnormalCases, nil
 	}
 	return nil, &NotLoadedError{edge: "abnormal_cases"}
@@ -301,7 +312,7 @@ func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
 // FeesOrErr returns the Fees value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.Fees, nil
 	}
 	return nil, &NotLoadedError{edge: "fees"}
@@ -722,6 +733,11 @@ func (_m *Order) QueryPersonnel() *OrderPersonnelQuery {
 // QueryContainers queries the "containers" edge of the Order entity.
 func (_m *Order) QueryContainers() *OrderContainerQuery {
 	return NewOrderClient(_m.config).QueryContainers(_m)
+}
+
+// QueryContainerRequests queries the "container_requests" edge of the Order entity.
+func (_m *Order) QueryContainerRequests() *OrderContainerRequestQuery {
+	return NewOrderClient(_m.config).QueryContainerRequests(_m)
 }
 
 // QueryCargoItems queries the "cargo_items" edge of the Order entity.

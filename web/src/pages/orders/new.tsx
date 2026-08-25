@@ -18,7 +18,9 @@ import {
 } from '@/services/roncin/orderService';
 import {
   fetchOrderMasterData,
+  isMasterDataKind,
   loadStatusTemplatesByBusinessType,
+  MASTER_DATA_KINDS,
   PARTNER_ROLES,
   parseOrderKind,
   searchPartnersByRole,
@@ -77,6 +79,8 @@ type CreateOrderFormValues = {
   bookingNotes?: string;
   allocationNotes?: string;
   operationNotes?: string;
+  shippingDocuments?: API.OrderShippingDocumentInput[];
+  containerRequests?: API.OrderContainerRequestInput[];
   operatorUserId?: string;
   operatorOrganizationId?: string;
   salesUserId?: string;
@@ -116,6 +120,9 @@ export default function NewOrderPage() {
   >([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
+  const [containerSpecOptions, setContainerSpecOptions] = useState<
+    SelectOption[]
+  >([]);
   const [personnelOptions, setPersonnelOptions] = useState<
     API.OrderPersonnelOption[]
   >([]);
@@ -158,6 +165,23 @@ export default function NewOrderPage() {
             : masterData.airLocationOptions,
         );
         setCurrencyOptions(masterData.currencyOptions);
+        setContainerSpecOptions(
+          masterData.masterOptions
+            .filter(
+              (item) =>
+                isMasterDataKind(
+                  item.kind,
+                  MASTER_DATA_KINDS.CONTAINER_SPEC,
+                ) && item.enabled !== false,
+            )
+            .map((item) => ({
+              label: item.code
+                ? `${item.name ?? item.code} (${item.code})`
+                : (item.name ?? ''),
+              value: item.id ?? '',
+            }))
+            .filter((item) => item.value !== ''),
+        );
         setStatusTemplateOptions(templates);
         setPersonnelOptions(personnelResponse.data ?? []);
       })
@@ -219,6 +243,7 @@ export default function NewOrderPage() {
       cargoCategoryOptions,
       locationOptions,
       currencyOptions,
+      containerSpecOptions,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
       searchCarriers: (keyword?: string) =>
@@ -256,6 +281,7 @@ export default function NewOrderPage() {
       cargoCategoryOptions,
       locationOptions,
       currencyOptions,
+      containerSpecOptions,
       checkOrderReference,
       personnelOptions,
       initialState,
@@ -400,6 +426,8 @@ export default function NewOrderPage() {
         allocationNotes: values.allocationNotes?.trim() || undefined,
         operationNotes: values.operationNotes?.trim() || undefined,
         personnelAssignments,
+        shippingDocuments: values.shippingDocuments,
+        containerRequests: values.containerRequests,
       };
 
       await orderServiceCreateOrder(payload);

@@ -58,6 +58,8 @@ type Tx struct {
 	OrderCargoItem *OrderCargoItemClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
 	OrderContainer *OrderContainerClient
+	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
+	OrderContainerRequest *OrderContainerRequestClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
@@ -274,6 +276,7 @@ func (tx *Tx) init() {
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderCargoItem = NewOrderCargoItemClient(tx.config)
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
+	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
 	tx.OrderFee = NewOrderFeeClient(tx.config)
 	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
 	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)

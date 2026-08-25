@@ -545,6 +545,8 @@ declare namespace API {
     allocationNotes?: string;
     operationNotes?: string;
     personnelAssignments?: OrderPersonnelAssignmentInput[];
+    shippingDocuments?: OrderShippingDocumentInput[];
+    containerRequests?: OrderContainerRequestInput[];
   };
 
   type CreateOrderResponse = {
@@ -1616,6 +1618,8 @@ declare namespace API {
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    shippingDocuments?: OrderShippingDocument[];
+    containerRequests?: OrderContainerRequest[];
   };
 
   type OrderAbnormalCase = {
@@ -1715,6 +1719,21 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     shippingDocumentId?: string;
+  };
+
+  type OrderContainerRequest = {
+    id?: string;
+    orderId?: string;
+    containerSpecId?: string;
+    quantity?: number;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type OrderContainerRequestInput = {
+    id?: string;
+    containerSpecId: string;
+    quantity: number;
   };
 
   type OrderContainerServiceAddContainerParams = {
@@ -1972,6 +1991,14 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type OrderShippingDocumentInput = {
+    id?: string;
+    masterNo: string;
+    houseNo: string;
+    releaseType?: string;
+    note?: string;
   };
 
   type OrderShippingDocumentServiceAddShippingDocumentParams = {
@@ -2990,6 +3017,8 @@ declare namespace API {
     bookingNotes?: string;
     allocationNotes?: string;
     operationNotes?: string;
+    shippingDocuments?: OrderShippingDocumentInput[];
+    containerRequests?: OrderContainerRequestInput[];
   };
 
   type UpdateOrderResponse = {

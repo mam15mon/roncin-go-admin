@@ -111,6 +111,10 @@ import {
 } from './common';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import {
+  OrderContainerRequestFields,
+  OrderShippingDocumentFields,
+} from './order-plan-fields';
 
 const { Text } = Typography;
 
@@ -131,6 +135,8 @@ type EditOrderFormValues = {
   totalPackages?: number;
   totalPackageUnit?: string;
   notes?: string;
+  shippingDocuments?: API.OrderShippingDocumentInput[];
+  containerRequests?: API.OrderContainerRequestInput[];
 };
 
 type TransitionFormValues = {
@@ -392,6 +398,8 @@ export default function OrderListPage() {
       totalPackages: record.totalPackages,
       totalPackageUnit: record.totalPackageUnit,
       notes: record.notes,
+      shippingDocuments: record.shippingDocuments,
+      containerRequests: record.containerRequests,
     });
     setEditModalOpen(true);
   };
@@ -1414,6 +1422,8 @@ export default function OrderListPage() {
                 totalPackages: editingRecord.totalPackages,
                 totalPackageUnit: editingRecord.totalPackageUnit,
                 notes: editingRecord.notes,
+                shippingDocuments: editingRecord.shippingDocuments,
+                containerRequests: editingRecord.containerRequests,
               }
             : undefined
         }
@@ -1446,6 +1456,8 @@ export default function OrderListPage() {
               totalPackages: values.totalPackages,
               totalPackageUnit: values.totalPackageUnit,
               notes: values.notes,
+              shippingDocuments: values.shippingDocuments,
+              containerRequests: values.containerRequests,
             },
           );
           message.success('更新订单成功');
@@ -1496,6 +1508,10 @@ export default function OrderListPage() {
           options={shipmentTypeOptions}
           placeholder="请选择装载类型"
         />
+        <OrderShippingDocumentFields />
+        {config.category === 'sea' && (
+          <OrderContainerRequestFields options={containerSpecOptions} />
+        )}
         <ProFormSelect
           colProps={{ span: 12 }}
           name="originLocationId"

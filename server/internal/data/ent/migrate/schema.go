@@ -1149,6 +1149,46 @@ var (
 			},
 		},
 	}
+	// OrderContainerRequestsColumns holds the columns for the "order_container_requests" table.
+	OrderContainerRequestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "container_spec_id", Type: field.TypeUUID},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderContainerRequestsTable holds the schema information for the "order_container_requests" table.
+	OrderContainerRequestsTable = &schema.Table{
+		Name:       "order_container_requests",
+		Columns:    OrderContainerRequestsColumns,
+		PrimaryKey: []*schema.Column{OrderContainerRequestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_container_requests_orders_container_requests",
+				Columns:    []*schema.Column{OrderContainerRequestsColumns[5]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordercontainerrequest_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainerRequestsColumns[2]},
+			},
+			{
+				Name:    "ordercontainerrequest_order_id_container_spec_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderContainerRequestsColumns[5], OrderContainerRequestsColumns[3]},
+			},
+			{
+				Name:    "ordercontainerrequest_container_spec_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderContainerRequestsColumns[3]},
+			},
+		},
+	}
 	// OrderFeesColumns holds the columns for the "order_fees" table.
 	OrderFeesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1460,8 +1500,13 @@ var (
 				Columns: []*schema.Column{OrderShippingDocumentsColumns[2]},
 			},
 			{
-				Name:    "ordershippingdocument_order_id_master_no",
+				Name:    "ordershippingdocument_order_id_house_no",
 				Unique:  true,
+				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[4]},
+			},
+			{
+				Name:    "ordershippingdocument_order_id_master_no",
+				Unique:  false,
 				Columns: []*schema.Column{OrderShippingDocumentsColumns[8], OrderShippingDocumentsColumns[3]},
 			},
 			{
@@ -2685,6 +2730,7 @@ var (
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
 		OrderContainersTable,
+		OrderContainerRequestsTable,
 		OrderFeesTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
@@ -2746,6 +2792,7 @@ func init() {
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
+	OrderContainerRequestsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderFeesTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable

@@ -29,6 +29,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -1826,6 +1827,31 @@ func init() {
 	ordercontainerDescID := ordercontainerMixinFields0[0].Descriptor()
 	// ordercontainer.DefaultID holds the default value on creation for the id field.
 	ordercontainer.DefaultID = ordercontainerDescID.Default.(func() uuid.UUID)
+	ordercontainerrequestMixin := schema.OrderContainerRequest{}.Mixin()
+	ordercontainerrequestMixinFields0 := ordercontainerrequestMixin[0].Fields()
+	_ = ordercontainerrequestMixinFields0
+	ordercontainerrequestMixinFields1 := ordercontainerrequestMixin[1].Fields()
+	_ = ordercontainerrequestMixinFields1
+	ordercontainerrequestFields := schema.OrderContainerRequest{}.Fields()
+	_ = ordercontainerrequestFields
+	// ordercontainerrequestDescCreatedAt is the schema descriptor for created_at field.
+	ordercontainerrequestDescCreatedAt := ordercontainerrequestMixinFields1[0].Descriptor()
+	// ordercontainerrequest.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordercontainerrequest.DefaultCreatedAt = ordercontainerrequestDescCreatedAt.Default.(func() time.Time)
+	// ordercontainerrequestDescUpdatedAt is the schema descriptor for updated_at field.
+	ordercontainerrequestDescUpdatedAt := ordercontainerrequestMixinFields1[1].Descriptor()
+	// ordercontainerrequest.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordercontainerrequest.DefaultUpdatedAt = ordercontainerrequestDescUpdatedAt.Default.(func() time.Time)
+	// ordercontainerrequest.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordercontainerrequest.UpdateDefaultUpdatedAt = ordercontainerrequestDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordercontainerrequestDescQuantity is the schema descriptor for quantity field.
+	ordercontainerrequestDescQuantity := ordercontainerrequestFields[2].Descriptor()
+	// ordercontainerrequest.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
+	ordercontainerrequest.QuantityValidator = ordercontainerrequestDescQuantity.Validators[0].(func(int) error)
+	// ordercontainerrequestDescID is the schema descriptor for id field.
+	ordercontainerrequestDescID := ordercontainerrequestMixinFields0[0].Descriptor()
+	// ordercontainerrequest.DefaultID holds the default value on creation for the id field.
+	ordercontainerrequest.DefaultID = ordercontainerrequestDescID.Default.(func() uuid.UUID)
 	orderfeeMixin := schema.OrderFee{}.Mixin()
 	orderfeeMixinFields0 := orderfeeMixin[0].Fields()
 	_ = orderfeeMixinFields0
