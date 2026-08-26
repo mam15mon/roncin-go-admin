@@ -5,12 +5,18 @@ import {
   PlusOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
+import {
+  type ActionType,
+  type ProColumns,
+  ProTable,
+} from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import {
+  FinanceLedgerTemplate,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
+import {
   App,
-  Button,
   DatePicker,
   Descriptions,
   Drawer,
@@ -74,6 +80,12 @@ export default function FinanceInvoicesPage() {
     useState<API.PartnerInvoiceProfile>();
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
+  const [metricStats, setMetricStats] = useState({
+    totalCount: 0,
+    receivableTotal: 0,
+    payableTotal: 0,
+    issuedCount: 0,
+  });
   const reload = () => actionRef.current?.reload();
 
   const loadSelectedProfiles = async (partnerId?: string) => {
@@ -356,37 +368,60 @@ export default function FinanceInvoicesPage() {
       ],
     },
   ];
+  const metricCards: FinanceLedgerMetricCard[] = [
+    {
+      key: 'total-invoices',
+      title: '发票总记录数',
+      value: metricStats.totalCount,
+      suffix: '笔',
+    },
+    {
+      key: 'rec-invoices',
+      title: '销项发票金额',
+      value: metricStats.receivableTotal,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#1677ff',
+    },
+    {
+      key: 'pay-invoices',
+      title: '进项发票金额',
+      value: metricStats.payableTotal,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#fa8c16',
+    },
+    {
+      key: 'issued-count',
+      title: '已正式开具',
+      value: metricStats.issuedCount,
+      suffix: '笔',
+      valueColor: '#52c41a',
+    },
+  ];
+
   return (
     <>
-      <ProTable<API.FinanceInvoice>
-        headerTitle="开票记录"
+      <FinanceLedgerTemplate<API.FinanceInvoice>
+        headerTitle="发票明细管理"
         actionRef={actionRef}
-        rowKey="id"
         columns={columns}
-        bordered
-        size="small"
-        scroll={{ x: 1450 }}
-        toolBarRender={() =>
+        metricCards={metricCards}
+        scrollX={1600}
+        primaryActionText="新建开票记录"
+        primaryActionIcon={<PlusOutlined />}
+        onPrimaryAction={
           access.canCreateFinanceInvoices
-            ? [
-                <Button
-                  key="new"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    setSelectedIDs([]);
-                    setSelectedBills([]);
-                    setAvailableProfiles([]);
-                    setSelectedProfile(undefined);
-                    createForm.resetFields();
-                    createForm.setFieldsValue({ invoiceType: 'NORMAL' });
-                    setCreateOpen(true);
-                  }}
-                >
-                  新建开票记录
-                </Button>,
-              ]
-            : []
+            ? () => {
+                setSelectedIDs([]);
+                setSelectedBills([]);
+                setAvailableProfiles([]);
+                setSelectedProfile(undefined);
+                createForm.resetFields();
+                createForm.setFieldsValue({ invoiceType: 'NORMAL' });
+                setCreateOpen(true);
+              }
+            : undefined
         }
         request={async (p) => {
           const r = await settlementServiceListInvoices({
@@ -396,8 +431,29 @@ export default function FinanceInvoicesPage() {
             direction: p.direction,
             status: p.status,
           });
+          const list = r.data || [];
+          let recTotal = 0;
+          let payTotal = 0;
+          let issued = 0;
+          for (const item of list) {
+            const amount = Number(item.totalAmount || 0);
+            if (item.direction === 'RECEIVABLE') {
+              recTotal += amount;
+            } else if (item.direction === 'PAYABLE') {
+              payTotal += amount;
+            }
+            if (item.status === 'ISSUED') {
+              issued += 1;
+            }
+          }
+          setMetricStats({
+            totalCount: Number(r.total || 0),
+            receivableTotal: recTotal,
+            payableTotal: payTotal,
+            issuedCount: issued,
+          });
           return {
-            data: r.data || [],
+            data: list,
             total: Number(r.total || 0),
             success: r.success ?? true,
           };

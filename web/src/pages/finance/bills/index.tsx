@@ -6,11 +6,9 @@ import {
   PlusOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import {
   App,
-  Button,
   DatePicker,
   Descriptions,
   Drawer,
@@ -25,6 +23,10 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useRef, useState } from 'react';
+import {
+  FinanceLedgerTemplate,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
 import {
   settlementServiceCancelBill,
   settlementServiceConfirmBill,
@@ -59,6 +61,14 @@ export default function FinanceBillsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<API.FinanceBill>();
+
+  // 统计指标
+  const [metricStats, setMetricStats] = useState({
+    totalCount: 0,
+    receivableBase: 0,
+    payableBase: 0,
+    unverifiedBase: 0,
+  });
 
   const reload = () => actionRef.current?.reload();
   const openCreate = () => {
@@ -161,36 +171,59 @@ export default function FinanceBillsPage() {
     });
   };
 
+  const metricCards: FinanceLedgerMetricCard[] = [
+    {
+      key: 'total-bills',
+      title: '有效账单总笔数',
+      value: metricStats.totalCount,
+      suffix: '笔',
+    },
+    {
+      key: 'rec-bills',
+      title: '应收账单折本币',
+      value: metricStats.receivableBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#1677ff',
+    },
+    {
+      key: 'pay-bills',
+      title: '应付账单折本币',
+      value: metricStats.payableBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#fa8c16',
+    },
+    {
+      key: 'unverified-bills',
+      title: '未核销账单折本币',
+      value: metricStats.unverifiedBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#cf1322',
+    },
+  ];
+
   const columns: ProColumns<API.FinanceBill>[] = [
     {
-      title: '关键词',
-      dataIndex: 'keyword',
-      hideInTable: true,
-      fieldProps: { placeholder: '账单号、结算单位或订单号' },
-    },
-    {
-      title: '账单编号',
-      dataIndex: 'billNo',
-      width: 170,
-      copyable: true,
-      search: false,
-    },
-    {
-      title: '建单批次',
-      dataIndex: 'batchNo',
-      width: 175,
-      copyable: true,
-      search: false,
-      renderText: (value) => value || '-',
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 55,
+      fixed: 'left',
     },
     {
       title: '方向',
       dataIndex: 'direction',
-      width: 80,
+      width: 75,
+      fixed: 'left',
       valueType: 'select',
       valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
       render: (_, row) => (
-        <Tag color={row.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
+        <Tag
+          color={row.direction === 'RECEIVABLE' ? 'green' : 'volcano'}
+          style={{ margin: 0 }}
+        >
           {row.direction === 'RECEIVABLE' ? '应收' : '应付'}
         </Tag>
       ),
@@ -198,7 +231,7 @@ export default function FinanceBillsPage() {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 90,
+      width: 85,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(statusOptions).map(([key, value]) => [
@@ -208,8 +241,32 @@ export default function FinanceBillsPage() {
       ),
       render: (_, row) => {
         const value = statusOptions[row.status || 'DRAFT'];
-        return <Tag color={value.color}>{value.text}</Tag>;
+        return (
+          <Tag color={value.color} style={{ margin: 0 }}>
+            {value.text}
+          </Tag>
+        );
       },
+    },
+    {
+      title: '账单编号',
+      dataIndex: 'billNo',
+      width: 170,
+      copyable: true,
+      search: false,
+      render: (val, row) => (
+        <a style={{ fontWeight: 500 }} onClick={() => void openDetail(row)}>
+          {val}
+        </a>
+      ),
+    },
+    {
+      title: '建单批次',
+      dataIndex: 'batchNo',
+      width: 175,
+      copyable: true,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '结算单位',
@@ -229,11 +286,11 @@ export default function FinanceBillsPage() {
     {
       title: '账单金额',
       dataIndex: 'totalAmount',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, row) => (
-        <strong>
+        <strong style={{ color: '#262626' }}>
           {row.totalAmount} {row.currency}
         </strong>
       ),
@@ -241,15 +298,23 @@ export default function FinanceBillsPage() {
     {
       title: '折本币金额',
       dataIndex: 'baseCurrencyAmount',
-      width: 160,
+      width: 150,
       align: 'right',
       search: false,
-      render: (_, row) => `${row.baseCurrencyAmount} ${row.baseCurrency}`,
+      render: (_, row) => (
+        <strong
+          style={{
+            color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
+          }}
+        >
+          {row.baseCurrencyAmount} {row.baseCurrency}
+        </strong>
+      ),
     },
     {
       title: '已核销',
       dataIndex: 'verifiedAmount',
-      width: 145,
+      width: 135,
       align: 'right',
       search: false,
       render: (_, row) =>
@@ -258,7 +323,7 @@ export default function FinanceBillsPage() {
     {
       title: '未核销',
       dataIndex: 'unverifiedAmount',
-      width: 145,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, row) => (
@@ -272,7 +337,7 @@ export default function FinanceBillsPage() {
         </strong>
       ),
     },
-    { title: '费用数', dataIndex: 'feeCount', width: 80, search: false },
+    { title: '费用数', dataIndex: 'feeCount', width: 75, search: false, align: 'center' },
     {
       title: '账单日期',
       dataIndex: 'billDate',
@@ -296,7 +361,7 @@ export default function FinanceBillsPage() {
       title: '操作',
       valueType: 'option',
       fixed: 'right',
-      width: 230,
+      width: 220,
       render: (_, row) => [
         <a key="detail" onClick={() => void openDetail(row)}>
           <EyeOutlined /> 详情
@@ -329,30 +394,27 @@ export default function FinanceBillsPage() {
       ],
     },
   ];
+
   return (
     <>
-      <ProTable<API.FinanceBill>
-        headerTitle="账单管理"
+      <FinanceLedgerTemplate<API.FinanceBill>
+        headerTitle="对账单管理"
         actionRef={actionRef}
-        rowKey="id"
         columns={columns}
-        bordered
-        size="small"
-        scroll={{ x: 1800 }}
-        toolBarRender={() =>
-          access.canCreateFinanceBills
-            ? [
-                <Button
-                  key="create"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openCreate}
-                >
-                  生成账单
-                </Button>,
-              ]
-            : []
-        }
+        metricCards={metricCards}
+        scrollX={1900}
+        primaryActionText="生成账单"
+        primaryActionIcon={<PlusOutlined />}
+        onPrimaryAction={access.canCreateFinanceBills ? () => openCreate() : undefined}
+        batchActions={[
+          {
+            key: 'batch-confirm-bills',
+            label: '批量确认勾选账单',
+            onClick: (keys, _rows) => {
+              message.info(`已选 ${keys.length} 笔账单，可逐笔或批量确认流转`);
+            },
+          },
+        ]}
         request={async (params) => {
           const response = await settlementServiceListBills({
             page: params.current,
@@ -363,13 +425,36 @@ export default function FinanceBillsPage() {
             billDateFrom: params.billDateFrom,
             billDateTo: params.billDateTo,
           });
+          const list = response.data || [];
+          // 计算指标
+          let recBase = 0;
+          let payBase = 0;
+          let unvBase = 0;
+          for (const b of list) {
+            const baseAmount = Number(b.baseCurrencyAmount || 0);
+            const unverified = Number(b.unverifiedAmount || 0);
+            if (b.direction === 'RECEIVABLE') {
+              recBase += baseAmount;
+            } else if (b.direction === 'PAYABLE') {
+              payBase += baseAmount;
+            }
+            unvBase += unverified;
+          }
+          setMetricStats({
+            totalCount: Number(response.total || 0),
+            receivableBase: recBase,
+            payableBase: payBase,
+            unverifiedBase: unvBase,
+          });
+
           return {
-            data: response.data || [],
+            data: list,
             total: Number(response.total || 0),
             success: response.success ?? true,
           };
         }}
       />
+
       <Modal
         title={`编辑账单 ${editing?.billNo || ''}`}
         open={editOpen}
@@ -409,11 +494,13 @@ export default function FinanceBillsPage() {
           </Space>
         </Form>
       </Modal>
+
       <BillCreationWorkbench
         open={workbenchOpen}
         onClose={() => setWorkbenchOpen(false)}
         onCreated={() => reload()}
       />
+
       <Drawer
         title={`账单详情 ${detail?.billNo || ''}`}
         open={detailOpen}

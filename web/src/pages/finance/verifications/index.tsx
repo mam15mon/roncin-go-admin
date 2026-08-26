@@ -7,12 +7,15 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Input, Tag } from 'antd';
+import { App, Input, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import {
+  FinanceLedgerTemplate,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
 import {
   settlementServiceCreateVerification,
   settlementServiceListBills,
@@ -26,15 +29,22 @@ type Values = {
   note?: string;
   allocations: { cashflowId: string; billId: string; amount: string }[];
 };
+
 export default function FinanceVerificationsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
+  const [metricStats, setMetricStats] = useState({
+    totalCount: 0,
+    receivableTotal: 0,
+    payableTotal: 0,
+  });
+
   const reload = () => actionRef.current?.reload();
   const reverse = (r: API.FinanceVerification) => {
-    const id = r.id,
-      v = r.version;
+    const id = r.id;
+    const v = r.version;
     if (!id || !v) return;
     let reason = '';
     modal.confirm({
@@ -61,12 +71,39 @@ export default function FinanceVerificationsPage() {
       },
     });
   };
+
+  const metricCards: FinanceLedgerMetricCard[] = [
+    {
+      key: 'total-verifications',
+      title: '有效核销总笔数',
+      value: metricStats.totalCount,
+      suffix: '笔',
+    },
+    {
+      key: 'rec-verifications',
+      title: '应收核销总金额',
+      value: metricStats.receivableTotal,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#1677ff',
+    },
+    {
+      key: 'pay-verifications',
+      title: '应付核销总金额',
+      value: metricStats.payableTotal,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#fa8c16',
+    },
+  ];
+
   const columns: ProColumns<API.FinanceVerification>[] = [
     {
-      title: '关键词',
-      dataIndex: 'keyword',
-      hideInTable: true,
-      fieldProps: { placeholder: '核销号、账单号或流水号' },
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 55,
+      fixed: 'left',
     },
     {
       title: '核销编号',
@@ -82,7 +119,7 @@ export default function FinanceVerificationsPage() {
       valueType: 'select',
       valueEnum: { ACTIVE: { text: '有效' }, REVERSED: { text: '已反核销' } },
       render: (_, r) => (
-        <Tag color={r.status === 'ACTIVE' ? 'green' : 'default'}>
+        <Tag color={r.status === 'ACTIVE' ? 'green' : 'default'} style={{ margin: 0 }}>
           {r.status === 'ACTIVE' ? '有效' : '已反核销'}
         </Tag>
       ),
@@ -90,7 +127,7 @@ export default function FinanceVerificationsPage() {
     {
       title: '方向',
       dataIndex: 'direction',
-      width: 80,
+      width: 90,
       search: false,
       renderText: (v) => (v === 'RECEIVABLE' ? '应收核销' : '应付核销'),
     },
@@ -98,16 +135,17 @@ export default function FinanceVerificationsPage() {
       title: '结算单位',
       dataIndex: 'settlementPartyName',
       width: 220,
+      ellipsis: true,
       search: false,
     },
     {
       title: '核销金额',
       dataIndex: 'amount',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, r) => (
-        <strong>
+        <strong style={{ color: '#262626' }}>
           {r.amount} {r.currency}
         </strong>
       ),
@@ -116,7 +154,8 @@ export default function FinanceVerificationsPage() {
       title: '分配数',
       search: false,
       render: (_, r) => r.allocations?.length || 0,
-      width: 80,
+      width: 75,
+      align: 'center',
     },
     {
       title: '核销日期',
@@ -149,29 +188,19 @@ export default function FinanceVerificationsPage() {
           : [],
     },
   ];
+
   return (
     <>
-      <ProTable<API.FinanceVerification>
-        headerTitle="核销管理"
+      <FinanceLedgerTemplate<API.FinanceVerification>
+        headerTitle="核销台账管理"
         actionRef={actionRef}
-        rowKey="id"
         columns={columns}
-        bordered
-        size="small"
-        scroll={{ x: 1450 }}
-        toolBarRender={() =>
-          access.canCreateFinanceVerifications
-            ? [
-                <Button
-                  key="new"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => setOpen(true)}
-                >
-                  新建核销
-                </Button>,
-              ]
-            : []
+        metricCards={metricCards}
+        scrollX={1500}
+        primaryActionText="新建核销"
+        primaryActionIcon={<PlusOutlined />}
+        onPrimaryAction={
+          access.canCreateFinanceVerifications ? () => setOpen(true) : undefined
         }
         request={async (p) => {
           const r = await settlementServiceListVerifications({
@@ -180,8 +209,24 @@ export default function FinanceVerificationsPage() {
             keyword: p.keyword,
             status: p.status,
           });
+          const list = r.data || [];
+          let recTotal = 0;
+          let payTotal = 0;
+          for (const item of list) {
+            const amount = Number(item.amount || 0);
+            if (item.direction === 'RECEIVABLE') {
+              recTotal += amount;
+            } else if (item.direction === 'PAYABLE') {
+              payTotal += amount;
+            }
+          }
+          setMetricStats({
+            totalCount: Number(r.total || 0),
+            receivableTotal: recTotal,
+            payableTotal: payTotal,
+          });
           return {
-            data: r.data || [],
+            data: list,
             total: Number(r.total || 0),
             success: r.success ?? true,
           };

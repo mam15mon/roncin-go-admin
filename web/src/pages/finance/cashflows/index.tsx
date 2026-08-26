@@ -10,12 +10,15 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Input, Popconfirm, Tag } from 'antd';
+import { App, Input, Popconfirm, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import {
+  FinanceLedgerTemplate,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelCashflow,
@@ -47,11 +50,19 @@ const decimalRule = {
   pattern: /^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$/,
   message: '请输入大于 0 且最多 8 位小数的金额',
 };
+
 export default function FinanceCashflowsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
+  const [metricStats, setMetricStats] = useState({
+    totalCount: 0,
+    incomeBase: 0,
+    payoutBase: 0,
+    unverifiedBase: 0,
+  });
+
   const reload = () => actionRef.current?.reload();
   const confirm = async (r: API.FinanceCashflow) => {
     if (!r.id || !r.version) return;
@@ -67,8 +78,8 @@ export default function FinanceCashflowsPage() {
     }
   };
   const cancel = (r: API.FinanceCashflow) => {
-    const id = r.id,
-      v = r.version;
+    const id = r.id;
+    const v = r.version;
     if (!id || !v) return;
     let reason = '';
     modal.confirm({
@@ -96,28 +107,60 @@ export default function FinanceCashflowsPage() {
       },
     });
   };
-  const columns: ProColumns<API.FinanceCashflow>[] = [
+
+  const metricCards: FinanceLedgerMetricCard[] = [
     {
-      title: '关键词',
-      dataIndex: 'keyword',
-      hideInTable: true,
-      fieldProps: { placeholder: '流水号、单位或银行水单号' },
+      key: 'total-cashflows',
+      title: '资金流水总笔数',
+      value: metricStats.totalCount,
+      suffix: '笔',
     },
     {
-      title: '流水编号',
-      dataIndex: 'flowNo',
-      width: 170,
-      copyable: true,
-      search: false,
+      key: 'income-cashflows',
+      title: '收款流水折本币',
+      value: metricStats.incomeBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#1677ff',
+    },
+    {
+      key: 'payout-cashflows',
+      title: '付款流水折本币',
+      value: metricStats.payoutBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#fa8c16',
+    },
+    {
+      key: 'unverified-cashflows',
+      title: '未核销可用资金',
+      value: metricStats.unverifiedBase,
+      precision: 2,
+      suffix: 'CNY',
+      valueColor: '#52c41a',
+    },
+  ];
+
+  const columns: ProColumns<API.FinanceCashflow>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 55,
+      fixed: 'left',
     },
     {
       title: '方向',
       dataIndex: 'direction',
-      width: 80,
+      width: 75,
+      fixed: 'left',
       valueType: 'select',
       valueEnum: { RECEIVABLE: { text: '收款' }, PAYABLE: { text: '付款' } },
       render: (_, r) => (
-        <Tag color={r.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
+        <Tag
+          color={r.direction === 'RECEIVABLE' ? 'green' : 'volcano'}
+          style={{ margin: 0 }}
+        >
           {r.direction === 'RECEIVABLE' ? '收款' : '付款'}
         </Tag>
       ),
@@ -125,15 +168,26 @@ export default function FinanceCashflowsPage() {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 90,
+      width: 85,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(states).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
         const v = states[r.status || 'DRAFT'];
-        return <Tag color={v.color}>{v.text}</Tag>;
+        return (
+          <Tag color={v.color} style={{ margin: 0 }}>
+            {v.text}
+          </Tag>
+        );
       },
+    },
+    {
+      title: '流水编号',
+      dataIndex: 'flowNo',
+      width: 170,
+      copyable: true,
+      search: false,
     },
     {
       title: '结算单位',
@@ -145,11 +199,11 @@ export default function FinanceCashflowsPage() {
     {
       title: '金额',
       dataIndex: 'amount',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, r) => (
-        <strong>
+        <strong style={{ color: '#262626' }}>
           {r.amount} {r.currency}
         </strong>
       ),
@@ -157,7 +211,7 @@ export default function FinanceCashflowsPage() {
     {
       title: '折本币',
       dataIndex: 'baseAmount',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, r) => `${r.baseAmount} ${r.baseCurrency}`,
@@ -165,7 +219,7 @@ export default function FinanceCashflowsPage() {
     {
       title: '已核销',
       dataIndex: 'verifiedAmount',
-      width: 145,
+      width: 135,
       align: 'right',
       search: false,
       render: (_, r) => `${r.verifiedAmount || '0.00000000'} ${r.currency}`,
@@ -173,7 +227,7 @@ export default function FinanceCashflowsPage() {
     {
       title: '未核销',
       dataIndex: 'unverifiedAmount',
-      width: 145,
+      width: 135,
       align: 'right',
       search: false,
       render: (_, r) => (
@@ -202,7 +256,7 @@ export default function FinanceCashflowsPage() {
     {
       title: '支付方式',
       dataIndex: 'paymentMethod',
-      width: 100,
+      width: 95,
       search: false,
     },
     {
@@ -241,29 +295,19 @@ export default function FinanceCashflowsPage() {
       ],
     },
   ];
+
   return (
     <>
-      <ProTable<API.FinanceCashflow>
-        headerTitle="收付管理"
+      <FinanceLedgerTemplate<API.FinanceCashflow>
+        headerTitle="资金流水管理"
         actionRef={actionRef}
-        rowKey="id"
         columns={columns}
-        bordered
-        size="small"
-        scroll={{ x: 1550 }}
-        toolBarRender={() =>
-          access.canCreateFinanceCashflows
-            ? [
-                <Button
-                  key="new"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => setOpen(true)}
-                >
-                  录入收付款
-                </Button>,
-              ]
-            : []
+        metricCards={metricCards}
+        scrollX={1800}
+        primaryActionText="登记流水"
+        primaryActionIcon={<PlusOutlined />}
+        onPrimaryAction={
+          access.canCreateFinanceCashflows ? () => setOpen(true) : undefined
         }
         request={async (p) => {
           const r = await settlementServiceListCashflows({
@@ -273,25 +317,45 @@ export default function FinanceCashflowsPage() {
             direction: p.direction,
             status: p.status,
           });
+          const list = r.data || [];
+          let incBase = 0;
+          let payBase = 0;
+          let unvBase = 0;
+          for (const item of list) {
+            const baseAmount = Number(item.baseAmount || 0);
+            const unverified = Number(item.unverifiedAmount || 0);
+            if (item.direction === 'RECEIVABLE') {
+              incBase += baseAmount;
+            } else if (item.direction === 'PAYABLE') {
+              payBase += baseAmount;
+            }
+            unvBase += unverified;
+          }
+          setMetricStats({
+            totalCount: Number(r.total || 0),
+            incomeBase: incBase,
+            payoutBase: payBase,
+            unverifiedBase: unvBase,
+          });
           return {
-            data: r.data || [],
+            data: list,
             total: Number(r.total || 0),
             success: r.success ?? true,
           };
         }}
       />
       <ModalForm<Values>
-        title="录入真实资金流水"
+        title="登记资金流水"
         open={open}
-        width={720}
+        width={760}
         modalProps={{ destroyOnHidden: true, onCancel: () => setOpen(false) }}
         initialValues={{
           direction: 'RECEIVABLE',
           currency: 'CNY',
+          exchangeRate: '1.00000000',
           baseCurrency: 'CNY',
-          exchangeRate: '1',
           transactionDate: dayjs(),
-          paymentMethod: '银行转账',
+          paymentMethod: 'BANK_TRANSFER',
         }}
         onFinish={async (v) => {
           try {
@@ -310,60 +374,64 @@ export default function FinanceCashflowsPage() {
               note: v.note,
               idempotencyKey: globalThis.crypto.randomUUID(),
             });
-            message.success('资金流水录入成功');
+            message.success('资金流水已登记');
             setOpen(false);
             reload();
             return true;
           } catch (e: any) {
-            message.error(e.message || '录入失败');
+            message.error(e.message || '登记失败');
             return false;
           }
         }}
       >
         <ProFormSelect
           name="direction"
-          label="资金方向"
+          label="流水方向"
           rules={[{ required: true }]}
           options={[
-            { value: 'RECEIVABLE', label: '收款' },
-            { value: 'PAYABLE', label: '付款' },
+            { label: '收款（流入）', value: 'RECEIVABLE' },
+            { label: '付款（流出）', value: 'PAYABLE' },
           ]}
         />
         <ProFormSelect
           name="settlementPartyId"
-          label="对方单位"
+          label="往来结算单位"
           rules={[{ required: true }]}
+          showSearch
           request={async () => {
             const r = await partnerServiceListPartners({
               page: 1,
-              pageSize: 200,
-              enabled: true,
+              pageSize: 500,
             });
             return (r.data || []).map((x) => ({
               value: x.id,
-              label: `${x.code || ''} ${x.legalName || ''}`,
+              label: `${x.legalName || x.code} (${x.code})`,
             }));
           }}
         />
+        <ProFormSelect
+          name="currency"
+          label="原币币种"
+          rules={[{ required: true }]}
+          options={['CNY', 'USD', 'EUR', 'HKD'].map((x) => ({
+            label: x,
+            value: x,
+          }))}
+        />
         <ProFormText
           name="amount"
-          label="原币金额"
+          label="发生金额"
           rules={[{ required: true }, decimalRule]}
         />
         <ProFormText
-          name="currency"
-          label="原币币种"
-          rules={[{ required: true, pattern: /^[A-Za-z]{3}$/ }]}
-        />
-        <ProFormText
           name="exchangeRate"
-          label="折本币汇率"
+          label="汇率"
           rules={[{ required: true }, decimalRule]}
         />
         <ProFormText
           name="baseCurrency"
           label="本位币"
-          rules={[{ required: true, pattern: /^[A-Za-z]{3}$/ }]}
+          rules={[{ required: true }]}
         />
         <ProFormDatePicker
           name="transactionDate"
@@ -372,14 +440,20 @@ export default function FinanceCashflowsPage() {
         />
         <ProFormText
           name="ourAccount"
-          label="我方收付账户"
-          rules={[{ required: true, max: 200 }]}
+          label="我方账户"
+          rules={[{ required: true }]}
         />
         <ProFormText name="counterpartyAccount" label="对方账户" />
-        <ProFormText
+        <ProFormSelect
           name="paymentMethod"
           label="支付方式"
-          rules={[{ required: true, max: 50 }]}
+          rules={[{ required: true }]}
+          options={[
+            { label: '银行转账', value: 'BANK_TRANSFER' },
+            { label: '支票', value: 'CHECK' },
+            { label: '现金', value: 'CASH' },
+            { label: '第三方支付', value: 'THIRD_PARTY' },
+          ]}
         />
         <ProFormText name="bankReferenceNo" label="银行水单号" />
         <ProFormTextArea
