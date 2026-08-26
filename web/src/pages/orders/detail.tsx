@@ -1,9 +1,12 @@
 import {
   CheckOutlined,
+  CopyOutlined,
   DollarOutlined,
+  DownOutlined,
   FileDoneOutlined,
   LockOutlined,
   ReloadOutlined,
+  SaveOutlined,
   UndoOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
@@ -14,7 +17,9 @@ import {
   Button,
   Card,
   Col,
+  Dropdown,
   Empty,
+  type MenuProps,
   Space,
   Spin,
   Tag,
@@ -437,6 +442,26 @@ export default function OrderDetailPage() {
   const progressColor =
     progressStage === '已完结' ? 'success' : progressStage === '已退关' ? 'error' : 'processing';
 
+  const moreMenuItems: MenuProps['items'] = [
+    {
+      key: 'refresh',
+      label: '刷新数据',
+      icon: <ReloadOutlined />,
+      onClick: () => void loadData(),
+    },
+    {
+      key: 'copyOrderNo',
+      label: '复制订单编号',
+      icon: <CopyOutlined />,
+      onClick: () => {
+        if (order.orderNo) {
+          navigator.clipboard?.writeText(order.orderNo);
+          message.success('订单编号已复制到剪贴板');
+        }
+      },
+    },
+  ];
+
   return (
     <>
       <OrderFormTemplate<any>
@@ -449,7 +474,7 @@ export default function OrderDetailPage() {
           <PageHeaderShell
             title={
               <Space size={8}>
-                <span style={{ fontSize: 20, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>
+                <span style={{ fontSize: 18, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>
                   {order.orderNo || order.id}
                 </span>
                 <Tag color={progressColor}>
@@ -462,20 +487,25 @@ export default function OrderDetailPage() {
                 )}
               </Space>
             }
-            subTitle={`${config.title} · 订单详情维护`}
+            subTitle={`${config.title} · 详情`}
             breadcrumbs={[
-              { label: '订单管理' },
               { label: config.title, onClick: () => history.push(`/orders/${kind}`) },
-              { label: '订单详情' },
+              { label: `${config.title}详情` },
             ]}
             onBack={() => history.push(`/orders/${kind}`)}
             extra={[
-              <Button key="refresh" icon={<ReloadOutlined />} onClick={() => loadData()}>
-                刷新
+              <Button
+                key="save"
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={saving}
+                onClick={() => formRef.current?.submit()}
+              >
+                保存
               </Button>,
               access.canOrder(config.businessType, 'fee.read') && (
                 <Button key="fee" icon={<DollarOutlined />} onClick={() => orderFeePanelRef.current?.open(order)}>
-                  费用核算
+                  费用录入
                 </Button>
               ),
               access.canOrder(config.businessType, 'release_pod.create') && (
@@ -490,9 +520,14 @@ export default function OrderDetailPage() {
                   danger
                   onClick={() => abnormalCasePanelRef.current?.open(order)}
                 >
-                  异常登记
+                  异常情况
                 </Button>
               ),
+              <Dropdown key="more" menu={{ items: moreMenuItems }} trigger={['click']}>
+                <Button>
+                  更多操作 <DownOutlined />
+                </Button>
+              </Dropdown>,
             ].filter(Boolean)}
           />
         }
