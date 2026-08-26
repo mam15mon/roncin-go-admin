@@ -1068,6 +1068,52 @@ func HasCancelledFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicat
 	})
 }
 
+// HasConfirmedFinanceCashflows applies the HasEdge predicate on the "confirmed_finance_cashflows" edge.
+func HasConfirmedFinanceCashflows() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceCashflowsTable, ConfirmedFinanceCashflowsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmedFinanceCashflowsWith applies the HasEdge predicate on the "confirmed_finance_cashflows" edge with a given conditions (other predicates).
+func HasConfirmedFinanceCashflowsWith(preds ...predicate.FinanceCashflow) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfirmedFinanceCashflowsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCancelledFinanceCashflows applies the HasEdge predicate on the "cancelled_finance_cashflows" edge.
+func HasCancelledFinanceCashflows() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCashflowsTable, CancelledFinanceCashflowsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCancelledFinanceCashflowsWith applies the HasEdge predicate on the "cancelled_finance_cashflows" edge with a given conditions (other predicates).
+func HasCancelledFinanceCashflowsWith(preds ...predicate.FinanceCashflow) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCancelledFinanceCashflowsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -73,6 +74,7 @@ type OrganizationQuery struct {
 	withBackgroundTasks               *BackgroundTaskQuery
 	withFinanceBills                  *FinanceBillQuery
 	withFinanceInvoices               *FinanceInvoiceQuery
+	withFinanceCashflows              *FinanceCashflowQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -660,6 +662,28 @@ func (_q *OrganizationQuery) QueryFinanceInvoices() *FinanceInvoiceQuery {
 	return query
 }
 
+// QueryFinanceCashflows chains the current query on the "finance_cashflows" edge.
+func (_q *OrganizationQuery) QueryFinanceCashflows() *FinanceCashflowQuery {
+	query := (&FinanceCashflowClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financecashflow.Table, financecashflow.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCashflowsTable, organization.FinanceCashflowsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -877,6 +901,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		withFinanceBills:                  _q.withFinanceBills.Clone(),
 		withFinanceInvoices:               _q.withFinanceInvoices.Clone(),
+		withFinanceCashflows:              _q.withFinanceCashflows.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1158,6 +1183,17 @@ func (_q *OrganizationQuery) WithFinanceInvoices(opts ...func(*FinanceInvoiceQue
 	return _q
 }
 
+// WithFinanceCashflows tells the query-builder to eager-load the nodes that are connected to
+// the "finance_cashflows" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceCashflows(opts ...func(*FinanceCashflowQuery)) *OrganizationQuery {
+	query := (&FinanceCashflowClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCashflows = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1236,7 +1272,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [25]bool{
+		loadedTypes = [26]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1262,6 +1298,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withBackgroundTasks != nil,
 			_q.withFinanceBills != nil,
 			_q.withFinanceInvoices != nil,
+			_q.withFinanceCashflows != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1464,6 +1501,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadFinanceInvoices(ctx, query, nodes,
 			func(n *Organization) { n.Edges.FinanceInvoices = []*FinanceInvoice{} },
 			func(n *Organization, e *FinanceInvoice) { n.Edges.FinanceInvoices = append(n.Edges.FinanceInvoices, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCashflows; query != nil {
+		if err := _q.loadFinanceCashflows(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceCashflows = []*FinanceCashflow{} },
+			func(n *Organization, e *FinanceCashflow) {
+				n.Edges.FinanceCashflows = append(n.Edges.FinanceCashflows, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -2210,6 +2256,36 @@ func (_q *OrganizationQuery) loadFinanceInvoices(ctx context.Context, query *Fin
 	}
 	query.Where(predicate.FinanceInvoice(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceInvoicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceCashflows(ctx context.Context, query *FinanceCashflowQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceCashflow)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecashflow.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceCashflow(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceCashflowsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

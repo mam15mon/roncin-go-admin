@@ -1,0 +1,32 @@
+server:
+  http:
+    addr: 127.0.0.1:8010
+    timeout: 1s
+  grpc:
+    addr: 127.0.0.1:9010
+    timeout: 1s
+data:
+  database:
+    driver: postgres
+    source: ${DATABASE_SOURCE}
+    debug: false
+    auto_migrate: false
+    max_open_connections: 10
+    max_idle_connections: 5
+    connection_max_lifetime: 1800s
+  redis:
+    addr: ${REDIS_ADDR:127.0.0.1:6379}
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+security:
+  session:
+    cookie_name: roncin_acceptance_session
+    ttl: 43200s
+    secure: false
+    same_site: lax
+  wecom:
+    enabled: false
+  dingtalk:
+    enabled: false
+telemetry:
+  enabled: false

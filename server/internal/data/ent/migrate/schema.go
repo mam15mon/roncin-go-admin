@@ -663,6 +663,100 @@ var (
 			},
 		},
 	}
+	// FinanceCashflowsColumns holds the columns for the "finance_cashflows" table.
+	FinanceCashflowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "flow_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "CANCELLED"}, Default: "DRAFT"},
+		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "transaction_date", Type: field.TypeString, Size: 10},
+		{Name: "our_account", Type: field.TypeString, Size: 200},
+		{Name: "counterparty_account", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "payment_method", Type: field.TypeString, Size: 50},
+		{Name: "bank_reference_no", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceCashflowsTable holds the schema information for the "finance_cashflows" table.
+	FinanceCashflowsTable = &schema.Table{
+		Name:       "finance_cashflows",
+		Columns:    FinanceCashflowsColumns,
+		PrimaryKey: []*schema.Column{FinanceCashflowsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_cashflows_organizations_finance_cashflows",
+				Columns:    []*schema.Column{FinanceCashflowsColumns[23]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_cashflows_partners_finance_cashflows",
+				Columns:    []*schema.Column{FinanceCashflowsColumns[24]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_cashflows_users_confirmed_finance_cashflows",
+				Columns:    []*schema.Column{FinanceCashflowsColumns[25]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_cashflows_users_cancelled_finance_cashflows",
+				Columns:    []*schema.Column{FinanceCashflowsColumns[26]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecashflow_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCashflowsColumns[2]},
+			},
+			{
+				Name:    "financecashflow_organization_id_flow_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCashflowsColumns[23], FinanceCashflowsColumns[3]},
+			},
+			{
+				Name:    "financecashflow_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCashflowsColumns[23], FinanceCashflowsColumns[4]},
+			},
+			{
+				Name:    "financecashflow_organization_id_status_transaction_date",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCashflowsColumns[23], FinanceCashflowsColumns[6], FinanceCashflowsColumns[13]},
+			},
+			{
+				Name:    "financecashflow_settlement_party_id_direction_currency",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCashflowsColumns[24], FinanceCashflowsColumns[5], FinanceCashflowsColumns[8]},
+			},
+			{
+				Name:    "financecashflow_bank_reference_no",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCashflowsColumns[17]},
+			},
+		},
+	}
 	// FinanceInvoicesColumns holds the columns for the "finance_invoices" table.
 	FinanceInvoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3094,6 +3188,7 @@ var (
 		FeeSettingsTable,
 		FinanceBillsTable,
 		FinanceBillLinesTable,
+		FinanceCashflowsTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
 		LoginRateLimitBucketsTable,
@@ -3163,6 +3258,10 @@ func init() {
 	FinanceBillLinesTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceBillLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceBillLinesTable.ForeignKeys[2].RefTable = OrderFeesTable
+	FinanceCashflowsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceCashflowsTable.ForeignKeys[1].RefTable = PartnersTable
+	FinanceCashflowsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceCashflowsTable.ForeignKeys[3].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoicesTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceInvoicesTable.ForeignKeys[2].RefTable = UsersTable

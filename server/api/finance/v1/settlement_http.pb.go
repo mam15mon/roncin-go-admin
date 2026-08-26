@@ -18,28 +18,36 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationSettlementServiceCancelBill = "/finance.v1.SettlementService/CancelBill"
+const OperationSettlementServiceCancelCashflow = "/finance.v1.SettlementService/CancelCashflow"
 const OperationSettlementServiceCancelInvoice = "/finance.v1.SettlementService/CancelInvoice"
 const OperationSettlementServiceConfirmBill = "/finance.v1.SettlementService/ConfirmBill"
+const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService/ConfirmCashflow"
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
+const OperationSettlementServiceCreateCashflow = "/finance.v1.SettlementService/CreateCashflow"
 const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/CreateInvoice"
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
+const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 
 type SettlementServiceHTTPServer interface {
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
+	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
+	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
+	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
+	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
@@ -60,6 +68,10 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/invoices", _SettlementService_CreateInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/issue", _SettlementService_IssueInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/cancel", _SettlementService_CancelInvoice0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/cashflows", _SettlementService_ListCashflows0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/cashflows", _SettlementService_CreateCashflow0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/cashflows/{id}/confirm", _SettlementService_ConfirmCashflow0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/cashflows/{id}/cancel", _SettlementService_CancelCashflow0_HTTP_Handler(srv))
 }
 
 func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
@@ -311,16 +323,102 @@ func _SettlementService_CancelInvoice0_HTTP_Handler(srv SettlementServiceHTTPSer
 	}
 }
 
+func _SettlementService_ListCashflows0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCashflowsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCashflows)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCashflows(ctx, req.(*ListCashflowsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCashflowsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CreateCashflow0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateCashflowRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCreateCashflow)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateCashflow(ctx, req.(*CreateCashflowRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateCashflowResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ConfirmCashflow0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmCashflowRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceConfirmCashflow)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmCashflow(ctx, req.(*ConfirmCashflowRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmCashflowResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CancelCashflow0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelCashflowRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCancelCashflow)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelCashflow(ctx, req.(*CancelCashflowRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelCashflowResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SettlementServiceHTTPClient interface {
 	CancelBill(ctx context.Context, req *CancelBillRequest, opts ...http.CallOption) (rsp *CancelBillResponse, err error)
+	CancelCashflow(ctx context.Context, req *CancelCashflowRequest, opts ...http.CallOption) (rsp *CancelCashflowResponse, err error)
 	CancelInvoice(ctx context.Context, req *CancelInvoiceRequest, opts ...http.CallOption) (rsp *CancelInvoiceResponse, err error)
 	ConfirmBill(ctx context.Context, req *ConfirmBillRequest, opts ...http.CallOption) (rsp *ConfirmBillResponse, err error)
+	ConfirmCashflow(ctx context.Context, req *ConfirmCashflowRequest, opts ...http.CallOption) (rsp *ConfirmCashflowResponse, err error)
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
+	CreateCashflow(ctx context.Context, req *CreateCashflowRequest, opts ...http.CallOption) (rsp *CreateCashflowResponse, err error)
 	CreateInvoice(ctx context.Context, req *CreateInvoiceRequest, opts ...http.CallOption) (rsp *CreateInvoiceResponse, err error)
 	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
+	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
@@ -343,6 +441,23 @@ func (c *SettlementServiceHTTPClientImpl) CancelBill(ctx context.Context, in *Ca
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceCancelBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...http.CallOption) (*CancelCashflowResponse, error) {
+	var out CancelCashflowResponse
+	pattern := "/api/v1/finance/cashflows/{id}/cancel"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCancelCashflow),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -386,6 +501,23 @@ func (c *SettlementServiceHTTPClientImpl) ConfirmBill(ctx context.Context, in *C
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...http.CallOption) (*ConfirmCashflowResponse, error) {
+	var out ConfirmCashflowResponse
+	pattern := "/api/v1/finance/cashflows/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceConfirmCashflow),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) CreateBill(ctx context.Context, in *CreateBillRequest, opts ...http.CallOption) (*CreateBillResponse, error) {
 	var out CreateBillResponse
 	pattern := "/api/v1/finance/bills"
@@ -394,6 +526,23 @@ func (c *SettlementServiceHTTPClientImpl) CreateBill(ctx context.Context, in *Cr
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceCreateBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...http.CallOption) (*CreateCashflowResponse, error) {
+	var out CreateCashflowResponse
+	pattern := "/api/v1/finance/cashflows"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCreateCashflow),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -476,6 +625,22 @@ func (c *SettlementServiceHTTPClientImpl) ListBills(ctx context.Context, in *Lis
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListBills),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListCashflows(ctx context.Context, in *ListCashflowsRequest, opts ...http.CallOption) (*ListCashflowsResponse, error) {
+	var out ListCashflowsResponse
+	pattern := "/api/v1/finance/cashflows"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCashflows),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

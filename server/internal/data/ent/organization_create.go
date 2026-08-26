@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -509,6 +510,21 @@ func (_c *OrganizationCreate) AddFinanceInvoices(v ...*FinanceInvoice) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceInvoiceIDs(ids...)
+}
+
+// AddFinanceCashflowIDs adds the "finance_cashflows" edge to the FinanceCashflow entity by IDs.
+func (_c *OrganizationCreate) AddFinanceCashflowIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceCashflowIDs(ids...)
+	return _c
+}
+
+// AddFinanceCashflows adds the "finance_cashflows" edges to the FinanceCashflow entity.
+func (_c *OrganizationCreate) AddFinanceCashflows(v ...*FinanceCashflow) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCashflowIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1061,6 +1077,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCashflowsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCashflowsTable,
+			Columns: []string{organization.FinanceCashflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

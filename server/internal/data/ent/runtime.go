@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -1236,6 +1237,194 @@ func init() {
 	financebilllineDescID := financebilllineMixinFields0[0].Descriptor()
 	// financebillline.DefaultID holds the default value on creation for the id field.
 	financebillline.DefaultID = financebilllineDescID.Default.(func() uuid.UUID)
+	financecashflowMixin := schema.FinanceCashflow{}.Mixin()
+	financecashflowMixinFields0 := financecashflowMixin[0].Fields()
+	_ = financecashflowMixinFields0
+	financecashflowMixinFields1 := financecashflowMixin[1].Fields()
+	_ = financecashflowMixinFields1
+	financecashflowFields := schema.FinanceCashflow{}.Fields()
+	_ = financecashflowFields
+	// financecashflowDescCreatedAt is the schema descriptor for created_at field.
+	financecashflowDescCreatedAt := financecashflowMixinFields1[0].Descriptor()
+	// financecashflow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financecashflow.DefaultCreatedAt = financecashflowDescCreatedAt.Default.(func() time.Time)
+	// financecashflowDescUpdatedAt is the schema descriptor for updated_at field.
+	financecashflowDescUpdatedAt := financecashflowMixinFields1[1].Descriptor()
+	// financecashflow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financecashflow.DefaultUpdatedAt = financecashflowDescUpdatedAt.Default.(func() time.Time)
+	// financecashflow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financecashflow.UpdateDefaultUpdatedAt = financecashflowDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financecashflowDescFlowNo is the schema descriptor for flow_no field.
+	financecashflowDescFlowNo := financecashflowFields[1].Descriptor()
+	// financecashflow.FlowNoValidator is a validator for the "flow_no" field. It is called by the builders before save.
+	financecashflow.FlowNoValidator = func() func(string) error {
+		validators := financecashflowDescFlowNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(flow_no string) error {
+			for _, fn := range fns {
+				if err := fn(flow_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	financecashflowDescIdempotencyKey := financecashflowFields[2].Descriptor()
+	// financecashflow.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	financecashflow.IdempotencyKeyValidator = func() func(string) error {
+		validators := financecashflowDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescSettlementPartyName is the schema descriptor for settlement_party_name field.
+	financecashflowDescSettlementPartyName := financecashflowFields[6].Descriptor()
+	// financecashflow.SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
+	financecashflow.SettlementPartyNameValidator = func() func(string) error {
+		validators := financecashflowDescSettlementPartyName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_party_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_party_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescCurrency is the schema descriptor for currency field.
+	financecashflowDescCurrency := financecashflowFields[7].Descriptor()
+	// financecashflow.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	financecashflow.CurrencyValidator = func() func(string) error {
+		validators := financecashflowDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescBaseCurrency is the schema descriptor for base_currency field.
+	financecashflowDescBaseCurrency := financecashflowFields[10].Descriptor()
+	// financecashflow.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	financecashflow.BaseCurrencyValidator = func() func(string) error {
+		validators := financecashflowDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescTransactionDate is the schema descriptor for transaction_date field.
+	financecashflowDescTransactionDate := financecashflowFields[12].Descriptor()
+	// financecashflow.TransactionDateValidator is a validator for the "transaction_date" field. It is called by the builders before save.
+	financecashflow.TransactionDateValidator = func() func(string) error {
+		validators := financecashflowDescTransactionDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(transaction_date string) error {
+			for _, fn := range fns {
+				if err := fn(transaction_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescOurAccount is the schema descriptor for our_account field.
+	financecashflowDescOurAccount := financecashflowFields[13].Descriptor()
+	// financecashflow.OurAccountValidator is a validator for the "our_account" field. It is called by the builders before save.
+	financecashflow.OurAccountValidator = func() func(string) error {
+		validators := financecashflowDescOurAccount.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(our_account string) error {
+			for _, fn := range fns {
+				if err := fn(our_account); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescCounterpartyAccount is the schema descriptor for counterparty_account field.
+	financecashflowDescCounterpartyAccount := financecashflowFields[14].Descriptor()
+	// financecashflow.CounterpartyAccountValidator is a validator for the "counterparty_account" field. It is called by the builders before save.
+	financecashflow.CounterpartyAccountValidator = financecashflowDescCounterpartyAccount.Validators[0].(func(string) error)
+	// financecashflowDescPaymentMethod is the schema descriptor for payment_method field.
+	financecashflowDescPaymentMethod := financecashflowFields[15].Descriptor()
+	// financecashflow.PaymentMethodValidator is a validator for the "payment_method" field. It is called by the builders before save.
+	financecashflow.PaymentMethodValidator = func() func(string) error {
+		validators := financecashflowDescPaymentMethod.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(payment_method string) error {
+			for _, fn := range fns {
+				if err := fn(payment_method); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecashflowDescBankReferenceNo is the schema descriptor for bank_reference_no field.
+	financecashflowDescBankReferenceNo := financecashflowFields[16].Descriptor()
+	// financecashflow.BankReferenceNoValidator is a validator for the "bank_reference_no" field. It is called by the builders before save.
+	financecashflow.BankReferenceNoValidator = financecashflowDescBankReferenceNo.Validators[0].(func(string) error)
+	// financecashflowDescNote is the schema descriptor for note field.
+	financecashflowDescNote := financecashflowFields[17].Descriptor()
+	// financecashflow.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	financecashflow.NoteValidator = financecashflowDescNote.Validators[0].(func(string) error)
+	// financecashflowDescVersion is the schema descriptor for version field.
+	financecashflowDescVersion := financecashflowFields[18].Descriptor()
+	// financecashflow.DefaultVersion holds the default value on creation for the version field.
+	financecashflow.DefaultVersion = financecashflowDescVersion.Default.(uint64)
+	// financecashflowDescCancellationReason is the schema descriptor for cancellation_reason field.
+	financecashflowDescCancellationReason := financecashflowFields[23].Descriptor()
+	// financecashflow.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
+	financecashflow.CancellationReasonValidator = financecashflowDescCancellationReason.Validators[0].(func(string) error)
+	// financecashflowDescID is the schema descriptor for id field.
+	financecashflowDescID := financecashflowMixinFields0[0].Descriptor()
+	// financecashflow.DefaultID holds the default value on creation for the id field.
+	financecashflow.DefaultID = financecashflowDescID.Default.(func() uuid.UUID)
 	financeinvoiceMixin := schema.FinanceInvoice{}.Mixin()
 	financeinvoiceMixinFields0 := financeinvoiceMixin[0].Fields()
 	_ = financeinvoiceMixinFields0

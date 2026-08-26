@@ -40,6 +40,7 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("order_fees", OrderFee.Type),
 		edge.To("finance_bills", FinanceBill.Type),
 		edge.To("finance_invoices", FinanceInvoice.Type),
+		edge.To("finance_cashflows", FinanceCashflow.Type),
 	}
 }
 

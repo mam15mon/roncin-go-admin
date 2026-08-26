@@ -1,0 +1,160 @@
+package data
+
+import (
+	"context"
+	entsql "entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	partner "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/shopspring/decimal"
+	"time"
+)
+
+type financeCashflowRepo struct{ data *Data }
+
+func NewFinanceCashflowRepo(d *Data) biz.FinanceCashflowRepo { return &financeCashflowRepo{d} }
+func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
+	p := []predicate.FinanceCashflow{cash.OrganizationIDEQ(org)}
+	if f.Keyword != "" {
+		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword)))
+	}
+	if f.Direction != "" {
+		p = append(p, cash.DirectionEQ(cash.Direction(f.Direction)))
+	}
+	if f.Status != "" {
+		p = append(p, cash.StatusEQ(cash.Status(f.Status)))
+	}
+	q := r.data.db.FinanceCashflow.Query().Where(p...)
+	n, e := q.Clone().Count(ctx)
+	if e != nil {
+		return nil, e
+	}
+	xs, e := q.Order(cash.ByTransactionDate(entsql.OrderDesc()), cash.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
+	if e != nil {
+		return nil, e
+	}
+	out := &biz.FinanceCashflowListResult{Items: make([]*biz.FinanceCashflow, 0, len(xs)), Total: int64(n)}
+	for _, x := range xs {
+		v, e := cashflowToBiz(x)
+		if e != nil {
+			return nil, e
+		}
+		out.Items = append(out.Items, v)
+	}
+	return out, nil
+}
+func (r *financeCashflowRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
+	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
+	if ent.IsNotFound(e) {
+		return nil, biz.ErrFinanceCashflowNotFound
+	}
+	if e != nil {
+		return nil, e
+	}
+	return cashflowToBiz(x)
+}
+func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCashflow, error) {
+	x, e := r.data.db.FinanceCashflow.Query().Where(cash.OrganizationIDEQ(org), cash.IdempotencyKeyEQ(key)).Only(ctx)
+	if ent.IsNotFound(e) {
+		return nil, nil
+	}
+	if e != nil {
+		return nil, e
+	}
+	return cashflowToBiz(x)
+}
+func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUID) (string, error) {
+	x, e := r.data.db.Partner.Query().Where(partner.IDEQ(id), partner.OrganizationIDEQ(org), partner.EnabledEQ(true)).Only(ctx)
+	if ent.IsNotFound(e) {
+		return "", biz.ErrOrderFeePartyInvalid
+	}
+	if e != nil {
+		return "", e
+	}
+	return x.LegalName, nil
+}
+func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
+	tx, e := r.data.db.Tx(ctx)
+	if e != nil {
+		return nil, e
+	}
+	x, e := tx.FinanceCashflow.Create().SetID(v.ID).SetOrganizationID(v.OrganizationID).SetFlowNo(v.FlowNo).SetIdempotencyKey(v.IdempotencyKey).SetDirection(cash.Direction(v.Direction)).SetStatus(cash.StatusDRAFT).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetTransactionDate(v.TransactionDate).SetOurAccount(v.OurAccount).SetNillableCounterpartyAccount(v.CounterpartyAccount).SetPaymentMethod(v.PaymentMethod).SetNillableBankReferenceNo(v.BankReferenceNo).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+	if e != nil {
+		_ = tx.Rollback()
+		return nil, e
+	}
+	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
+		_ = tx.Rollback()
+		return nil, e
+	}
+	if e = tx.Commit(); e != nil {
+		return nil, e
+	}
+	return cashflowToBiz(x)
+}
+func (r *financeCashflowRepo) Confirm(ctx context.Context, org, id, actor uuid.UUID, v uint64, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
+	return r.transition(ctx, org, id, actor, v, "", true, a)
+}
+func (r *financeCashflowRepo) Cancel(ctx context.Context, org, id, actor uuid.UUID, v uint64, reason string, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
+	return r.transition(ctx, org, id, actor, v, reason, false, a)
+}
+func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uuid.UUID, v uint64, reason string, confirm bool, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
+	tx, e := r.data.db.Tx(ctx)
+	if e != nil {
+		return nil, e
+	}
+	rollback := func(e error) (*biz.FinanceCashflow, error) { _ = tx.Rollback(); return nil, e }
+	x, e := tx.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+	if ent.IsNotFound(e) {
+		return rollback(biz.ErrFinanceCashflowNotFound)
+	}
+	if e != nil {
+		return rollback(e)
+	}
+	if x.Version != v {
+		return rollback(biz.ErrFinanceCashflowVersionConflict)
+	}
+	now := time.Now()
+	u := tx.FinanceCashflow.UpdateOneID(id).SetVersion(v + 1)
+	if confirm {
+		if x.Status != cash.StatusDRAFT {
+			return rollback(biz.ErrFinanceCashflowInvalidTransition)
+		}
+		u.SetStatus(cash.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
+	} else {
+		if x.Status == cash.StatusCANCELLED {
+			return rollback(biz.ErrFinanceCashflowInvalidTransition)
+		}
+		u.SetStatus(cash.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
+	}
+	if _, e = u.Save(ctx); e != nil {
+		return rollback(e)
+	}
+	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
+		return rollback(e)
+	}
+	if e = tx.Commit(); e != nil {
+		return nil, e
+	}
+	return r.Get(ctx, org, id)
+}
+func cashflowToBiz(x *ent.FinanceCashflow) (*biz.FinanceCashflow, error) {
+	amount, e := decimal.NewFromString(x.Amount)
+	if e != nil {
+		return nil, e
+	}
+	rate, e := decimal.NewFromString(x.ExchangeRate)
+	if e != nil {
+		return nil, e
+	}
+	base, e := decimal.NewFromString(x.BaseAmount)
+	if e != nil {
+		return nil, e
+	}
+	return &biz.FinanceCashflow{ID: x.ID, OrganizationID: x.OrganizationID, FlowNo: x.FlowNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceCashflowStatus(x.Status), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, ExchangeRate: rate, BaseCurrency: x.BaseCurrency, BaseAmount: base, TransactionDate: x.TransactionDate, OurAccount: x.OurAccount, CounterpartyAccount: x.CounterpartyAccount, PaymentMethod: x.PaymentMethod, BankReferenceNo: x.BankReferenceNo, Note: x.Note, Version: x.Version, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
+}
+
+var _ biz.FinanceCashflowRepo = (*financeCashflowRepo)(nil)

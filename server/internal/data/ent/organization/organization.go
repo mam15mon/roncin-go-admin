@@ -82,6 +82,8 @@ const (
 	EdgeFinanceBills = "finance_bills"
 	// EdgeFinanceInvoices holds the string denoting the finance_invoices edge name in mutations.
 	EdgeFinanceInvoices = "finance_invoices"
+	// EdgeFinanceCashflows holds the string denoting the finance_cashflows edge name in mutations.
+	EdgeFinanceCashflows = "finance_cashflows"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -253,6 +255,13 @@ const (
 	FinanceInvoicesInverseTable = "finance_invoices"
 	// FinanceInvoicesColumn is the table column denoting the finance_invoices relation/edge.
 	FinanceInvoicesColumn = "organization_id"
+	// FinanceCashflowsTable is the table that holds the finance_cashflows relation/edge.
+	FinanceCashflowsTable = "finance_cashflows"
+	// FinanceCashflowsInverseTable is the table name for the FinanceCashflow entity.
+	// It exists in this package in order to avoid circular dependency with the "financecashflow" package.
+	FinanceCashflowsInverseTable = "finance_cashflows"
+	// FinanceCashflowsColumn is the table column denoting the finance_cashflows relation/edge.
+	FinanceCashflowsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -712,6 +721,20 @@ func ByFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFinanceInvoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceCashflowsCount orders the results by finance_cashflows count.
+func ByFinanceCashflowsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCashflowsStep(), opts...)
+	}
+}
+
+// ByFinanceCashflows orders the results by finance_cashflows terms.
+func ByFinanceCashflows(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCashflowsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -885,5 +908,12 @@ func newFinanceInvoicesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceInvoicesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceInvoicesTable, FinanceInvoicesColumn),
+	)
+}
+func newFinanceCashflowsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCashflowsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCashflowsTable, FinanceCashflowsColumn),
 	)
 }

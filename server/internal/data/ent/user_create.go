@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -327,6 +328,36 @@ func (_c *UserCreate) AddCancelledFinanceInvoices(v ...*FinanceInvoice) *UserCre
 		ids[i] = v[i].ID
 	}
 	return _c.AddCancelledFinanceInvoiceIDs(ids...)
+}
+
+// AddConfirmedFinanceCashflowIDs adds the "confirmed_finance_cashflows" edge to the FinanceCashflow entity by IDs.
+func (_c *UserCreate) AddConfirmedFinanceCashflowIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedFinanceCashflowIDs(ids...)
+	return _c
+}
+
+// AddConfirmedFinanceCashflows adds the "confirmed_finance_cashflows" edges to the FinanceCashflow entity.
+func (_c *UserCreate) AddConfirmedFinanceCashflows(v ...*FinanceCashflow) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedFinanceCashflowIDs(ids...)
+}
+
+// AddCancelledFinanceCashflowIDs adds the "cancelled_finance_cashflows" edge to the FinanceCashflow entity by IDs.
+func (_c *UserCreate) AddCancelledFinanceCashflowIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCancelledFinanceCashflowIDs(ids...)
+	return _c
+}
+
+// AddCancelledFinanceCashflows adds the "cancelled_finance_cashflows" edges to the FinanceCashflow entity.
+func (_c *UserCreate) AddCancelledFinanceCashflows(v ...*FinanceCashflow) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCancelledFinanceCashflowIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -659,6 +690,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedFinanceCashflowsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCashflowsTable,
+			Columns: []string{user.ConfirmedFinanceCashflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledFinanceCashflowsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCashflowsTable,
+			Columns: []string{user.CancelledFinanceCashflowsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

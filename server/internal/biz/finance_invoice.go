@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	ErrFinanceInvoiceNotFound          = errors.NotFound("FINANCE_INVOICE_NOT_FOUND", "开票记录不存在")
-	ErrFinanceInvoiceInvalidArgument   = errors.BadRequest("FINANCE_INVOICE_INVALID_ARGUMENT", "开票记录字段不合法")
-	ErrFinanceInvoiceBillInvalid       = errors.Conflict("FINANCE_INVOICE_BILL_INVALID", "所选账单必须已确认且未进入其他有效开票记录")
-	ErrFinanceInvoiceBillMismatch      = errors.BadRequest("FINANCE_INVOICE_BILL_MISMATCH", "同一开票记录的账单必须具有相同收付方向、结算单位和币种")
-	ErrFinanceInvoiceVersionConflict   = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
-	ErrFinanceInvoiceInvalidTransition = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
+	ErrFinanceInvoiceNotFound            = errors.NotFound("FINANCE_INVOICE_NOT_FOUND", "开票记录不存在")
+	ErrFinanceInvoiceInvalidArgument     = errors.BadRequest("FINANCE_INVOICE_INVALID_ARGUMENT", "开票记录字段不合法")
+	ErrFinanceInvoiceBillInvalid         = errors.Conflict("FINANCE_INVOICE_BILL_INVALID", "所选账单必须已确认且未进入其他有效开票记录")
+	ErrFinanceInvoiceBillMismatch        = errors.BadRequest("FINANCE_INVOICE_BILL_MISMATCH", "同一开票记录的账单必须具有相同收付方向、结算单位和币种")
+	ErrFinanceInvoiceVersionConflict     = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
+	ErrFinanceInvoiceInvalidTransition   = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
+	ErrFinanceInvoiceIdempotencyConflict = errors.Conflict("FINANCE_INVOICE_IDEMPOTENCY_CONFLICT", "开票请求幂等键已被其他请求使用")
 )
 
 type FinanceInvoiceStatus string
@@ -130,7 +131,24 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 	if existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); err != nil {
 		return nil, err
 	} else if existing != nil {
-		return existing, nil
+		if existing.InvoiceType == input.InvoiceType && stringPointersEqual(existing.Note, input.Note) && len(existing.Links) == len(input.BillIDs) {
+			ids := make([]string, 0, len(existing.Links))
+			for _, l := range existing.Links {
+				ids = append(ids, l.BillID.String())
+			}
+			sort.Strings(ids)
+			same := true
+			for i, id := range input.BillIDs {
+				if ids[i] != id.String() {
+					same = false
+					break
+				}
+			}
+			if same {
+				return existing, nil
+			}
+		}
+		return nil, ErrFinanceInvoiceIdempotencyConflict
 	}
 	bills, err := uc.repo.LoadBills(ctx, organizationID, input.BillIDs)
 	if err != nil {

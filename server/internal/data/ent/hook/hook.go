@@ -153,6 +153,18 @@ func (f FinanceBillLineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillLineMutation", m)
 }
 
+// The FinanceCashflowFunc type is an adapter to allow the use of ordinary
+// function as FinanceCashflow mutator.
+type FinanceCashflowFunc func(context.Context, *ent.FinanceCashflowMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceCashflowFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceCashflowMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCashflowMutation", m)
+}
+
 // The FinanceInvoiceFunc type is an adapter to allow the use of ordinary
 // function as FinanceInvoice mutator.
 type FinanceInvoiceFunc func(context.Context, *ent.FinanceInvoiceMutation) (ent.Value, error)

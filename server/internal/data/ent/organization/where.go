@@ -1011,6 +1011,29 @@ func HasFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicate.Organiz
 	})
 }
 
+// HasFinanceCashflows applies the HasEdge predicate on the "finance_cashflows" edge.
+func HasFinanceCashflows() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceCashflowsTable, FinanceCashflowsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceCashflowsWith applies the HasEdge predicate on the "finance_cashflows" edge with a given conditions (other predicates).
+func HasFinanceCashflowsWith(preds ...predicate.FinanceCashflow) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFinanceCashflowsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

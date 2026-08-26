@@ -358,6 +358,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CancelCashflowRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type CancelCashflowResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCashflow;
+    traceId?: string;
+  };
+
   type CancelInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -390,6 +404,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceBill;
+    traceId?: string;
+  };
+
+  type ConfirmCashflowRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmCashflowResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCashflow;
     traceId?: string;
   };
 
@@ -474,6 +501,30 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceBill;
+    traceId?: string;
+  };
+
+  type CreateCashflowRequest = {
+    direction: string;
+    settlementPartyId: string;
+    currency: string;
+    amount: string;
+    exchangeRate: string;
+    baseCurrency: string;
+    transactionDate: string;
+    ourAccount: string;
+    counterpartyAccount?: string;
+    paymentMethod: string;
+    bankReferenceNo?: string;
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateCashflowResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCashflow;
     traceId?: string;
   };
 
@@ -1062,6 +1113,32 @@ declare namespace API {
     active?: boolean;
   };
 
+  type FinanceCashflow = {
+    id?: string;
+    flowNo?: string;
+    direction?: string;
+    status?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    amount?: string;
+    exchangeRate?: string;
+    baseCurrency?: string;
+    baseAmount?: string;
+    transactionDate?: string;
+    ourAccount?: string;
+    counterpartyAccount?: string;
+    paymentMethod?: string;
+    bankReferenceNo?: string;
+    note?: string;
+    version?: string;
+    confirmedAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
   type FinanceInvoice = {
     id?: string;
     recordNo?: string;
@@ -1288,6 +1365,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderCargoItem[];
+    traceId?: string;
+  };
+
+  type ListCashflowsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCashflow[];
+    total?: string;
     traceId?: string;
   };
 
@@ -2988,11 +3074,19 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelCashflowParams = {
+    id: string;
+  };
+
   type SettlementServiceCancelInvoiceParams = {
     id: string;
   };
 
   type SettlementServiceConfirmBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceConfirmCashflowParams = {
     id: string;
   };
 
@@ -3018,6 +3112,14 @@ declare namespace API {
     currency?: string;
     billDateFrom?: string;
     billDateTo?: string;
+  };
+
+  type SettlementServiceListCashflowsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+    status?: string;
   };
 
   type SettlementServiceListFeeLedgerParams = {

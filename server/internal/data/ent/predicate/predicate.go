@@ -42,6 +42,9 @@ type FinanceBill func(*sql.Selector)
 // FinanceBillLine is the predicate function for financebillline builders.
 type FinanceBillLine func(*sql.Selector)
 
+// FinanceCashflow is the predicate function for financecashflow builders.
+type FinanceCashflow func(*sql.Selector)
+
 // FinanceInvoice is the predicate function for financeinvoice builders.
 type FinanceInvoice func(*sql.Selector)
 

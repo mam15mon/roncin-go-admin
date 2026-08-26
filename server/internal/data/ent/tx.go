@@ -36,6 +36,8 @@ type Tx struct {
 	FinanceBill *FinanceBillClient
 	// FinanceBillLine is the client for interacting with the FinanceBillLine builders.
 	FinanceBillLine *FinanceBillLineClient
+	// FinanceCashflow is the client for interacting with the FinanceCashflow builders.
+	FinanceCashflow *FinanceCashflowClient
 	// FinanceInvoice is the client for interacting with the FinanceInvoice builders.
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
@@ -275,6 +277,7 @@ func (tx *Tx) init() {
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.FinanceBill = NewFinanceBillClient(tx.config)
 	tx.FinanceBillLine = NewFinanceBillLineClient(tx.config)
+	tx.FinanceCashflow = NewFinanceCashflowClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)
 	tx.LoginRateLimitBucket = NewLoginRateLimitBucketClient(tx.config)

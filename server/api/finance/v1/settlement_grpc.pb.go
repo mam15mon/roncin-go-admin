@@ -19,18 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_ListBills_FullMethodName     = "/finance.v1.SettlementService/ListBills"
-	SettlementService_GetBill_FullMethodName       = "/finance.v1.SettlementService/GetBill"
-	SettlementService_CreateBill_FullMethodName    = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_UpdateBill_FullMethodName    = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName   = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName    = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName  = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_GetInvoice_FullMethodName    = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName  = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_ListFeeLedger_FullMethodName   = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_ListBills_FullMethodName       = "/finance.v1.SettlementService/ListBills"
+	SettlementService_GetBill_FullMethodName         = "/finance.v1.SettlementService/GetBill"
+	SettlementService_CreateBill_FullMethodName      = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_UpdateBill_FullMethodName      = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName     = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName      = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName    = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_GetInvoice_FullMethodName      = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName   = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName    = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName   = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_ListCashflows_FullMethodName   = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_CreateCashflow_FullMethodName  = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName  = "/finance.v1.SettlementService/CancelCashflow"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -52,6 +56,10 @@ type SettlementServiceClient interface {
 	CreateInvoice(ctx context.Context, in *CreateInvoiceRequest, opts ...grpc.CallOption) (*CreateInvoiceResponse, error)
 	IssueInvoice(ctx context.Context, in *IssueInvoiceRequest, opts ...grpc.CallOption) (*IssueInvoiceResponse, error)
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
+	ListCashflows(ctx context.Context, in *ListCashflowsRequest, opts ...grpc.CallOption) (*ListCashflowsResponse, error)
+	CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error)
+	ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error)
+	CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...grpc.CallOption) (*CancelCashflowResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -182,6 +190,46 @@ func (c *settlementServiceClient) CancelInvoice(ctx context.Context, in *CancelI
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListCashflows(ctx context.Context, in *ListCashflowsRequest, opts ...grpc.CallOption) (*ListCashflowsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCashflowsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCashflows_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateCashflowResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateCashflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmCashflowResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ConfirmCashflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...grpc.CallOption) (*CancelCashflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelCashflowResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CancelCashflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -201,6 +249,10 @@ type SettlementServiceServer interface {
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
+	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
+	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
+	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
+	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -246,6 +298,18 @@ func (UnimplementedSettlementServiceServer) IssueInvoice(context.Context, *Issue
 }
 func (UnimplementedSettlementServiceServer) CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelInvoice not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCashflows not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCashflow not implemented")
+}
+func (UnimplementedSettlementServiceServer) ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmCashflow not implemented")
+}
+func (UnimplementedSettlementServiceServer) CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelCashflow not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -484,6 +548,78 @@ func _SettlementService_CancelInvoice_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListCashflows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCashflowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCashflows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCashflows_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCashflows(ctx, req.(*ListCashflowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateCashflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCashflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateCashflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateCashflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateCashflow(ctx, req.(*CreateCashflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ConfirmCashflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmCashflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ConfirmCashflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ConfirmCashflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ConfirmCashflow(ctx, req.(*ConfirmCashflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CancelCashflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelCashflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CancelCashflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CancelCashflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CancelCashflow(ctx, req.(*CancelCashflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -538,6 +674,22 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelInvoice",
 			Handler:    _SettlementService_CancelInvoice_Handler,
+		},
+		{
+			MethodName: "ListCashflows",
+			Handler:    _SettlementService_ListCashflows_Handler,
+		},
+		{
+			MethodName: "CreateCashflow",
+			Handler:    _SettlementService_CreateCashflow_Handler,
+		},
+		{
+			MethodName: "ConfirmCashflow",
+			Handler:    _SettlementService_ConfirmCashflow_Handler,
+		},
+		{
+			MethodName: "CancelCashflow",
+			Handler:    _SettlementService_CancelCashflow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

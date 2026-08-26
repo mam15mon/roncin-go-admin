@@ -109,6 +109,80 @@ export async function settlementServiceConfirmBill(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/cashflows */
+export async function settlementServiceListCashflows(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCashflowsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCashflowsResponse>("/api/v1/finance/cashflows", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/cashflows */
+export async function settlementServiceCreateCashflow(
+  body: API.CreateCashflowRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.CreateCashflowResponse>("/api/v1/finance/cashflows", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/cashflows/${param0}/cancel */
+export async function settlementServiceCancelCashflow(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceCancelCashflowParams,
+  body: API.CancelCashflowRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CancelCashflowResponse>(
+    `/api/v1/finance/cashflows/${param0}/cancel`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/cashflows/${param0}/confirm */
+export async function settlementServiceConfirmCashflow(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceConfirmCashflowParams,
+  body: API.ConfirmCashflowRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.ConfirmCashflowResponse>(
+    `/api/v1/finance/cashflows/${param0}/confirm`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。 GET /api/v1/finance/fees */
 export async function settlementServiceListFeeLedger(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
