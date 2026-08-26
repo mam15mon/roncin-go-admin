@@ -71,12 +71,11 @@ type FinanceCashflowRepo interface {
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceCashflow, error)
 }
 type FinanceCashflowUsecase struct {
-	repo   FinanceCashflowRepo
-	config *OrderConfigUsecase
+	repo FinanceCashflowRepo
 }
 
-func NewFinanceCashflowUsecase(repo FinanceCashflowRepo, config *OrderConfigUsecase) *FinanceCashflowUsecase {
-	return &FinanceCashflowUsecase{repo: repo, config: config}
+func NewFinanceCashflowUsecase(repo FinanceCashflowRepo) *FinanceCashflowUsecase {
+	return &FinanceCashflowUsecase{repo: repo}
 }
 func (uc *FinanceCashflowUsecase) List(ctx context.Context, org uuid.UUID, f FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
@@ -107,7 +106,7 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 	if old, e := uc.repo.GetByIdempotencyKey(ctx, org, in.IdempotencyKey); e != nil {
 		return nil, e
 	} else if old != nil {
-		if old.Direction == in.Direction && old.SettlementPartyID == in.SettlementPartyID && old.Currency == in.Currency && old.Amount.Equal(in.Amount) && old.ExchangeRate.Equal(in.ExchangeRate) && old.BaseCurrency == in.BaseCurrency && old.TransactionDate == in.TransactionDate && old.OurAccount == in.OurAccount && old.PaymentMethod == in.PaymentMethod && stringPointersEqual(old.CounterpartyAccount, in.CounterpartyAccount) && stringPointersEqual(old.BankReferenceNo, in.BankReferenceNo) && stringPointersEqual(old.Note, in.Note) {
+		if sameFinanceCashflowIntent(old, in) {
 			return old, nil
 		}
 		return nil, ErrFinanceCashflowIdempotencyConflict
@@ -117,11 +116,19 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 		return nil, e
 	}
 	item := &FinanceCashflow{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: FinanceCashflowDraft, SettlementPartyID: in.SettlementPartyID, SettlementPartyName: name, Currency: in.Currency, Amount: in.Amount, ExchangeRate: in.ExchangeRate, BaseCurrency: in.BaseCurrency, BaseAmount: in.Amount.Mul(in.ExchangeRate).RoundBank(8), TransactionDate: in.TransactionDate, OurAccount: in.OurAccount, PaymentMethod: in.PaymentMethod, CounterpartyAccount: in.CounterpartyAccount, BankReferenceNo: in.BankReferenceNo, Note: in.Note, Version: 1}
-	item.FlowNo, e = uc.config.NextNumber(ctx, org, DocumentTypeReceiptPayment)
-	if e != nil {
-		return nil, e
+	created, e := uc.repo.Create(ctx, item, cashflowAudit(org, actor, item.ID, "finance.cashflow.create"))
+	if e == nil {
+		return created, nil
 	}
-	return uc.repo.Create(ctx, item, cashflowAudit(org, actor, item.ID, "finance.cashflow.create"))
+	old, lookupErr := uc.repo.GetByIdempotencyKey(ctx, org, in.IdempotencyKey)
+	if lookupErr == nil && old != nil && sameFinanceCashflowIntent(old, in) {
+		return old, nil
+	}
+	return nil, e
+}
+
+func sameFinanceCashflowIntent(old *FinanceCashflow, in CreateFinanceCashflowInput) bool {
+	return old != nil && old.Direction == in.Direction && old.SettlementPartyID == in.SettlementPartyID && old.Currency == in.Currency && old.Amount.Equal(in.Amount) && old.ExchangeRate.Equal(in.ExchangeRate) && old.BaseCurrency == in.BaseCurrency && old.TransactionDate == in.TransactionDate && old.OurAccount == in.OurAccount && old.PaymentMethod == in.PaymentMethod && stringPointersEqual(old.CounterpartyAccount, in.CounterpartyAccount) && stringPointersEqual(old.BankReferenceNo, in.BankReferenceNo) && stringPointersEqual(old.Note, in.Note)
 }
 func (uc *FinanceCashflowUsecase) Confirm(ctx context.Context, org, actor, id uuid.UUID, v uint64) (*FinanceCashflow, error) {
 	if org == uuid.Nil || actor == uuid.Nil || id == uuid.Nil || v == 0 {

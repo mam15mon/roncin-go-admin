@@ -19,5 +19,10 @@ func (FinanceVerificationAllocation) Edges() []ent.Edge {
 	return []ent.Edge{edge.From("verification", FinanceVerification.Type).Ref("allocations").Field("verification_id").Unique().Required().Immutable(), edge.From("cashflow", FinanceCashflow.Type).Ref("verification_allocations").Field("cashflow_id").Unique().Required().Immutable(), edge.From("bill", FinanceBill.Type).Ref("verification_allocations").Field("bill_id").Unique().Required().Immutable()}
 }
 func (FinanceVerificationAllocation) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("verification_id", "active"), index.Fields("cashflow_id", "active"), index.Fields("bill_id", "active")}
+	return []ent.Index{
+		index.Fields("verification_id", "active"),
+		index.Fields("cashflow_id", "active"),
+		index.Fields("bill_id", "active"),
+		index.Fields("verification_id", "cashflow_id", "bill_id").Unique().StorageKey("verification_allocation_pair_unique"),
+	}
 }

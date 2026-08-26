@@ -1347,6 +1347,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[7], FinanceVerificationAllocationsColumns[6]},
 			},
+			{
+				Name:    "verification_allocation_pair_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[9], FinanceVerificationAllocationsColumns[8], FinanceVerificationAllocationsColumns[7]},
+			},
 		},
 	}
 	// LoginRateLimitBucketsColumns holds the columns for the "login_rate_limit_buckets" table.

@@ -2,6 +2,9 @@ package data
 
 import (
 	"context"
+	"strings"
+	"time"
+
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -11,7 +14,6 @@ import (
 	partner "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
-	"time"
 )
 
 type financeCashflowRepo struct{ data *Data }
@@ -126,19 +128,37 @@ func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow
 	if e != nil {
 		return nil, e
 	}
+	rollback := func(value error) (*biz.FinanceCashflow, error) { _ = tx.Rollback(); return nil, value }
+	now := time.Now().UTC()
+	rule, sequence, e := allocateNumberInTx(ctx, tx, v.OrganizationID, biz.DocumentTypeReceiptPayment, now)
+	if e != nil {
+		return rollback(e)
+	}
+	v.FlowNo, e = biz.FormatAllocatedNumber(now, rule, sequence, "")
+	if e != nil {
+		return rollback(e)
+	}
 	x, e := tx.FinanceCashflow.Create().SetID(v.ID).SetOrganizationID(v.OrganizationID).SetFlowNo(v.FlowNo).SetIdempotencyKey(v.IdempotencyKey).SetDirection(cash.Direction(v.Direction)).SetStatus(cash.StatusDRAFT).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetTransactionDate(v.TransactionDate).SetOurAccount(v.OurAccount).SetNillableCounterpartyAccount(v.CounterpartyAccount).SetPaymentMethod(v.PaymentMethod).SetNillableBankReferenceNo(v.BankReferenceNo).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
 	if e != nil {
-		_ = tx.Rollback()
-		return nil, e
+		return rollback(mapFinanceCashflowConstraint(e))
 	}
 	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
-		_ = tx.Rollback()
-		return nil, e
+		return rollback(e)
 	}
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
 	return r.Get(ctx, v.OrganizationID, x.ID)
+}
+
+func mapFinanceCashflowConstraint(err error) error {
+	if !ent.IsConstraintError(err) {
+		return err
+	}
+	if strings.Contains(err.Error(), "financecashflow_organization_id_idempotency_key") {
+		return biz.ErrFinanceCashflowIdempotencyConflict
+	}
+	return err
 }
 func (r *financeCashflowRepo) Confirm(ctx context.Context, org, id, actor uuid.UUID, v uint64, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
 	return r.transition(ctx, org, id, actor, v, "", true, a)

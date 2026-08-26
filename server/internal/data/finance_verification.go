@@ -2,6 +2,10 @@ package data
 
 import (
 	"context"
+	"sort"
+	"strings"
+	"time"
+
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -13,7 +17,6 @@ import (
 	alloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
-	"time"
 )
 
 type verificationRepo struct{ data *Data }
@@ -75,16 +78,18 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		return nil, e
 	}
 	rollback := func(e error) (*biz.FinanceVerification, error) { _ = tx.Rollback(); return nil, e }
-	cashIDs, billIDs := []uuid.UUID{}, []uuid.UUID{}
+	cashSet, billSet := make(map[uuid.UUID]struct{}), make(map[uuid.UUID]struct{})
 	for _, a := range v.Allocations {
-		cashIDs = append(cashIDs, a.CashflowID)
-		billIDs = append(billIDs, a.BillID)
+		cashSet[a.CashflowID] = struct{}{}
+		billSet[a.BillID] = struct{}{}
 	}
-	cashs, e := tx.FinanceCashflow.Query().Where(cash.IDIn(cashIDs...), cash.OrganizationIDEQ(org)).ForUpdate().All(ctx)
+	cashIDs := sortedFinanceUUIDs(cashSet)
+	billIDs := sortedFinanceUUIDs(billSet)
+	cashs, e := tx.FinanceCashflow.Query().Where(cash.IDIn(cashIDs...), cash.OrganizationIDEQ(org)).Order(cash.ByID()).ForUpdate().All(ctx)
 	if e != nil {
 		return rollback(e)
 	}
-	bills, e := tx.FinanceBill.Query().Where(bill.IDIn(billIDs...), bill.OrganizationIDEQ(org)).ForUpdate().All(ctx)
+	bills, e := tx.FinanceBill.Query().Where(bill.IDIn(billIDs...), bill.OrganizationIDEQ(org)).Order(bill.ByID()).ForUpdate().All(ctx)
 	if e != nil {
 		return rollback(e)
 	}
@@ -132,16 +137,25 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		x.CashflowNo = c.FlowNo
 		x.BillNo = b.BillNo
 	}
-	_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+	now := time.Now().UTC()
+	rule, sequence, e := allocateNumberInTx(ctx, tx, org, biz.DocumentTypeWriteOff, now)
 	if e != nil {
 		return rollback(e)
+	}
+	v.VerificationNo, e = biz.FormatAllocatedNumber(now, rule, sequence, "")
+	if e != nil {
+		return rollback(e)
+	}
+	_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+	if e != nil {
+		return rollback(mapVerificationConstraint(e))
 	}
 	builders := make([]*ent.FinanceVerificationAllocationCreate, 0, len(v.Allocations))
 	for _, x := range v.Allocations {
 		builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetActive(true))
 	}
 	if _, e = tx.FinanceVerificationAllocation.CreateBulk(builders...).Save(ctx); e != nil {
-		return rollback(e)
+		return rollback(mapVerificationConstraint(e))
 	}
 	if e = writeAudit(ctx, tx.AuditLog, audit); e != nil {
 		return rollback(e)
@@ -150,6 +164,30 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		return nil, e
 	}
 	return r.Get(ctx, org, v.ID)
+}
+
+func sortedFinanceUUIDs(values map[uuid.UUID]struct{}) []uuid.UUID {
+	ids := make([]uuid.UUID, 0, len(values))
+	for id := range values {
+		ids = append(ids, id)
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i].String() < ids[j].String() })
+	return ids
+}
+
+func mapVerificationConstraint(err error) error {
+	if !ent.IsConstraintError(err) {
+		return err
+	}
+	message := err.Error()
+	switch {
+	case strings.Contains(message, "financeverification_org_idempotency"):
+		return biz.ErrVerificationIdempotency
+	case strings.Contains(message, "verification_allocation_pair_unique"):
+		return biz.ErrVerificationInvalid
+	default:
+		return err
+	}
 }
 func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	tx, e := r.data.db.Tx(ctx)

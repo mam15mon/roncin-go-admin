@@ -72,12 +72,11 @@ type VerificationRepo interface {
 	Reverse(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceVerification, error)
 }
 type VerificationUsecase struct {
-	repo   VerificationRepo
-	config *OrderConfigUsecase
+	repo VerificationRepo
 }
 
-func NewVerificationUsecase(r VerificationRepo, c *OrderConfigUsecase) *VerificationUsecase {
-	return &VerificationUsecase{r, c}
+func NewVerificationUsecase(r VerificationRepo) *VerificationUsecase {
+	return &VerificationUsecase{repo: r}
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
@@ -117,12 +116,15 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		a.Active = true
 		v.Amount = v.Amount.Add(a.Amount)
 	}
-	no, e := u.config.NextNumber(ctx, org, DocumentTypeWriteOff)
-	if e != nil {
-		return nil, e
+	created, e := u.repo.Create(ctx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
+	if e == nil {
+		return created, nil
 	}
-	v.VerificationNo = no
-	return u.repo.Create(ctx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
+	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
+	if lookupErr == nil && old != nil && sameVerificationIntent(old, in) {
+		return old, nil
+	}
+	return nil, e
 }
 func sameVerificationIntent(old *FinanceVerification, in CreateVerificationInput) bool {
 	if old == nil || old.VerificationDate != in.VerificationDate || !stringPointersEqual(old.Note, in.Note) || len(old.Allocations) != len(in.Allocations) {

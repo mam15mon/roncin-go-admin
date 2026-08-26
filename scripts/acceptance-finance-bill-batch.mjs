@@ -93,10 +93,22 @@ const batchRule = rules.data?.find(
     item.documentType === 14 ||
     item.documentType === 'DOCUMENT_TYPE_BILL_BATCH',
 );
+const writeOffRule = rules.data?.find(
+  (item) =>
+    item.documentType === 4 ||
+    item.documentType === 'DOCUMENT_TYPE_WRITE_OFF',
+);
+const receiptPaymentRule = rules.data?.find(
+  (item) =>
+    item.documentType === 5 ||
+    item.documentType === 'DOCUMENT_TYPE_RECEIPT_PAYMENT',
+);
 assert(customer?.id, '当前组织没有启用的客户');
 assert(statusTemplate?.id, '当前组织没有海运出口默认状态模板');
 assert(billRule?.enabled, '当前组织没有启用的账单编号规则');
 assert(batchRule?.enabled, '当前组织没有启用的账单批次编号规则');
+assert(writeOffRule?.enabled, '当前组织没有启用的核销编号规则');
+assert(receiptPaymentRule?.enabled, '当前组织没有启用的收付编号规则');
 
 if (!apply) {
   console.log(
@@ -416,7 +428,228 @@ assert(
   '开票详情未回显税务明细',
 );
 
-console.log('费用批量转账单与开票快照真实 API 验收通过。');
+const confirmedBill = confirmedBatch.data.bills[0];
+assert(
+  confirmedBill.totalAmount === '125.00000000',
+  `验收账单金额应为 125.00000000，实际 ${confirmedBill.totalAmount}`,
+);
+const cashflowBody = (amount, idempotencyKey) => ({
+  direction: 'RECEIVABLE',
+  settlementPartyId: customer.id,
+  currency: confirmedBill.currency,
+  amount,
+  exchangeRate: '1',
+  baseCurrency: confirmedBill.baseCurrency,
+  transactionDate: today,
+  ourAccount: '验收基本户',
+  counterpartyAccount: '验收客户账户',
+  paymentMethod: '银行转账',
+  bankReferenceNo: `ACC-BANK-${stamp}-${amount}`,
+  note: '财务资金核销自动验收',
+  idempotencyKey,
+});
+const sharedCashflowKey = `acc-fin-cashflow-${stamp}-shared`;
+const concurrentCashflows = await Promise.all([
+  raw('/api/v1/finance/cashflows', {
+    method: 'POST',
+    body: JSON.stringify(cashflowBody('40.00000000', sharedCashflowKey)),
+  }),
+  raw('/api/v1/finance/cashflows', {
+    method: 'POST',
+    body: JSON.stringify(cashflowBody('40.00000000', sharedCashflowKey)),
+  }),
+]);
+assert(
+  concurrentCashflows.every((item) => item.response.ok),
+  '相同幂等键的并发收款请求必须全部重放为成功响应',
+);
+assert(
+  concurrentCashflows[0].body.data?.id ===
+    concurrentCashflows[1].body.data?.id,
+  '相同幂等键的并发收款请求未返回同一资金流水',
+);
+const cashflowA = concurrentCashflows[0].body.data;
+const cashflowBResponse = await request('/api/v1/finance/cashflows', {
+  method: 'POST',
+  body: JSON.stringify(
+    cashflowBody('85.00000000', `acc-fin-cashflow-${stamp}-b`),
+  ),
+});
+const cashflowB = cashflowBResponse.data;
+const [confirmedCashflowAResponse, confirmedCashflowBResponse] =
+  await Promise.all([
+    request(`/api/v1/finance/cashflows/${cashflowA.id}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: cashflowA.id,
+        expectedVersion: cashflowA.version,
+      }),
+    }),
+    request(`/api/v1/finance/cashflows/${cashflowB.id}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: cashflowB.id,
+        expectedVersion: cashflowB.version,
+      }),
+    }),
+  ]);
+const confirmedCashflowA = confirmedCashflowAResponse.data;
+const confirmedCashflowB = confirmedCashflowBResponse.data;
+
+const verificationBody = (cashflowId, amount, idempotencyKey) => ({
+  allocations: [{ cashflowId, billId: confirmedBill.id, amount }],
+  verificationDate: today,
+  note: '财务资金核销自动验收',
+  idempotencyKey,
+});
+const sharedVerificationKey = `acc-fin-verification-${stamp}-shared`;
+const concurrentVerifications = await Promise.all([
+  raw('/api/v1/finance/verifications', {
+    method: 'POST',
+    body: JSON.stringify(
+      verificationBody(
+        confirmedCashflowA.id,
+        '40.00000000',
+        sharedVerificationKey,
+      ),
+    ),
+  }),
+  raw('/api/v1/finance/verifications', {
+    method: 'POST',
+    body: JSON.stringify(
+      verificationBody(
+        confirmedCashflowA.id,
+        '40.00000000',
+        sharedVerificationKey,
+      ),
+    ),
+  }),
+]);
+assert(
+  concurrentVerifications.every((item) => item.response.ok),
+  '相同幂等键的并发核销请求必须全部重放为成功响应',
+);
+assert(
+  concurrentVerifications[0].body.data?.id ===
+    concurrentVerifications[1].body.data?.id,
+  '相同幂等键的并发核销请求未返回同一核销记录',
+);
+const verificationA = concurrentVerifications[0].body.data;
+
+const overAllocated = await raw('/api/v1/finance/verifications', {
+  method: 'POST',
+  body: JSON.stringify(
+    verificationBody(
+      confirmedCashflowB.id,
+      '85.00000001',
+      `acc-fin-verification-${stamp}-over`,
+    ),
+  ),
+});
+assert(
+  overAllocated.response.status === 409 &&
+    overAllocated.body.reason === 'FINANCE_VERIFICATION_BALANCE',
+  '超过资金余额的核销必须返回明确余额冲突',
+);
+
+const verificationBResponse = await request('/api/v1/finance/verifications', {
+  method: 'POST',
+  body: JSON.stringify(
+    verificationBody(
+      confirmedCashflowB.id,
+      '85.00000000',
+      `acc-fin-verification-${stamp}-b`,
+    ),
+  ),
+});
+const verificationB = verificationBResponse.data;
+
+const balancesAfterFullVerification = await Promise.all([
+  request('/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED'),
+  request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
+]);
+const cashflowsAfterFullVerification = balancesAfterFullVerification[0].data;
+const billsAfterFullVerification = balancesAfterFullVerification[1].data;
+assert(
+  [confirmedCashflowA.id, confirmedCashflowB.id].every(
+    (id) =>
+      cashflowsAfterFullVerification.find((item) => item.id === id)
+        ?.unverifiedAmount === '0.00000000',
+  ),
+  '两笔资金完成核销后仍存在未核销余额',
+);
+assert(
+  billsAfterFullVerification.find((item) => item.id === confirmedBill.id)
+    ?.unverifiedAmount === '0.00000000',
+  '账单完成核销后仍存在未核销余额',
+);
+
+const cancelAllocatedCashflow = await raw(
+  `/api/v1/finance/cashflows/${confirmedCashflowB.id}/cancel`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: confirmedCashflowB.id,
+      expectedVersion: confirmedCashflowB.version,
+      reason: '有效核销期间取消测试',
+    }),
+  },
+);
+assert(
+  cancelAllocatedCashflow.response.status === 409 &&
+    cancelAllocatedCashflow.body.reason ===
+      'FINANCE_CASHFLOW_INVALID_TRANSITION',
+  '存在有效核销时必须禁止取消资金流水',
+);
+
+await request(`/api/v1/finance/verifications/${verificationB.id}/reverse`, {
+  method: 'POST',
+  body: JSON.stringify({
+    id: verificationB.id,
+    expectedVersion: verificationB.version,
+    reason: '验证反核销释放余额',
+  }),
+});
+const cancelledCashflowBResponse = await request(
+  `/api/v1/finance/cashflows/${confirmedCashflowB.id}/cancel`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: confirmedCashflowB.id,
+      expectedVersion: confirmedCashflowB.version,
+      reason: '反核销后取消资金流水验收',
+    }),
+  },
+);
+assert(
+  cancelledCashflowBResponse.data?.status === 'CANCELLED',
+  '反核销后资金流水仍无法取消',
+);
+await request(`/api/v1/finance/verifications/${verificationA.id}/reverse`, {
+  method: 'POST',
+  body: JSON.stringify({
+    id: verificationA.id,
+    expectedVersion: verificationA.version,
+    reason: '验证全部反核销恢复余额',
+  }),
+});
+const balancesAfterReverse = await Promise.all([
+  request('/api/v1/finance/cashflows?page=1&pageSize=200'),
+  request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
+]);
+assert(
+  balancesAfterReverse[0].data.find(
+    (item) => item.id === confirmedCashflowA.id,
+  )?.unverifiedAmount === '40.00000000',
+  '反核销后资金余额未恢复',
+);
+assert(
+  balancesAfterReverse[1].data.find((item) => item.id === confirmedBill.id)
+    ?.unverifiedAmount === '125.00000000',
+  '全部反核销后账单余额未恢复',
+);
+
+console.log('费用、账单、开票、收付与核销真实 API 闭环验收通过。');
 console.log(
   JSON.stringify(
     {
@@ -433,6 +666,15 @@ console.log(
       competingKeyConflictVerified: true,
       idempotentRetryVerified: true,
       defaultProfileProtectionVerified: true,
+      cashflowNos: [confirmedCashflowA.flowNo, confirmedCashflowB.flowNo],
+      verificationNos: [
+        verificationA.verificationNo,
+        verificationB.verificationNo,
+      ],
+      cashflowConcurrentIdempotencyVerified: true,
+      verificationConcurrentIdempotencyVerified: true,
+      overAllocationRejected: true,
+      reverseBalanceRecoveryVerified: true,
     },
     null,
     2,

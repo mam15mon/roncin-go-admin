@@ -78,6 +78,7 @@ func TestPostgresColdStartMigration(t *testing.T) {
 		"financeinvoice_org_tax_invoice_no":    {"UNIQUE", "organization_id", "tax_invoice_no", "tax_invoice_no IS NOT NULL"},
 		"financeinvoice_org_red_invoice_no":    {"UNIQUE", "organization_id", "red_invoice_no", "red_invoice_no IS NOT NULL"},
 		"finance_bill_lines_active_fee_unique": {"UNIQUE", "order_fee_id", "active = true"},
+		"verification_allocation_pair_unique":  {"UNIQUE", "verification_id", "cashflow_id", "bill_id"},
 	}
 	for name, fragments := range expectedIndexes {
 		var definition string
