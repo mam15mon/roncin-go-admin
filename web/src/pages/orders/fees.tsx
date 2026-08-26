@@ -27,9 +27,12 @@ import {
   Col,
   Descriptions,
   Empty,
+  Form,
   Input,
+  Modal,
   Popconfirm,
   Row,
+  Select,
   Space,
   Spin,
   Statistic,
@@ -42,6 +45,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import {
+  feeCatalogServiceCreateFeeSetting,
+  feeCatalogServiceListTaxableServices,
+} from '@/services/roncin/feeCatalogService';
+import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
@@ -52,6 +59,7 @@ import {
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
+import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 import { parseOrderKind } from './common';
 import {
   calculateExactFeeTotal,
@@ -186,6 +194,135 @@ export default function OrderFeesPage() {
     totalAmount: number;
     count: number;
   }>({ totalAmount: 0, count: 0 });
+
+  // 快捷新增费目状态
+  const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
+  const [quickAddFeeSaving, setQuickAddFeeSaving] = useState(false);
+  const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>([]);
+  const [quickAddFeeForm] = Form.useForm();
+
+  // 快捷新建结算单位状态
+  const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] = useState(false);
+  const [quickAddPartnerSaving, setQuickAddPartnerSaving] = useState(false);
+  const [quickAddPartnerForm] = Form.useForm();
+
+  const handleOpenQuickAddFee = async () => {
+    quickAddFeeForm.resetFields();
+    quickAddFeeForm.setFieldsValue({
+      defaultCurrency: 'CNY',
+      billingUnitId: billingUnits[0]?.id || '',
+      taxRate: '0',
+    });
+    setQuickAddFeeModalOpen(true);
+    try {
+      const res = await feeCatalogServiceListTaxableServices({
+        skipErrorHandler: true,
+      });
+      setTaxableServices(res.data || []);
+      if (res.data && res.data.length > 0) {
+        quickAddFeeForm.setFieldValue('taxableServiceId', res.data[0].id);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSaveQuickAddFee = async () => {
+    const values = await quickAddFeeForm.validateFields();
+    setQuickAddFeeSaving(true);
+    try {
+      const res = await feeCatalogServiceCreateFeeSetting(
+        {
+          feeCode: values.feeCode.trim().toUpperCase(),
+          nameZh: values.nameZh.trim(),
+          nameEn: values.nameEn?.trim() || undefined,
+          defaultCurrency: values.defaultCurrency,
+          billingUnitId: values.billingUnitId,
+          taxRate: values.taxRate,
+          taxableServiceId:
+            values.taxableServiceId || taxableServices[0]?.id || '',
+        },
+        { skipErrorHandler: true },
+      );
+      const created = res.data;
+      if (created) {
+        const newOption: API.OrderFeeSettingOption = {
+          id: created.id,
+          feeCode: created.feeCode,
+          nameZh: created.nameZh,
+          nameEn: created.nameEn,
+          defaultCurrency: created.defaultCurrency,
+          defaultBillingUnitId: created.billingUnitId,
+          defaultBillingUnitName: billingUnits.find(
+            (b) => b.id === created.billingUnitId,
+          )?.name,
+          taxRate: created.taxRate,
+        };
+        setFeeSettings((prev) => [newOption, ...prev]);
+        formRef.current?.setFieldValue('feeSettingId', created.id);
+        setSelectedFeeSetting(newOption);
+        if (created.billingUnitId) {
+          formRef.current?.setFieldValue('billingUnitId', created.billingUnitId);
+        }
+        if (created.defaultCurrency) {
+          formRef.current?.setFieldValue('currency', created.defaultCurrency);
+        }
+        handleValuesChange();
+        message.success(`已成功新建费用科目【${created.nameZh}】并自动选用`);
+        setQuickAddFeeModalOpen(false);
+      }
+    } catch (error: any) {
+      message.error(error.message || '新建费用科目失败');
+    } finally {
+      setQuickAddFeeSaving(false);
+    }
+  };
+
+  const handleOpenQuickAddPartner = () => {
+    quickAddPartnerForm.resetFields();
+    quickAddPartnerForm.setFieldsValue({
+      roles: [modalDirection === RECEIVABLE ? 'CUSTOMER' : 'SUPPLIER'],
+    });
+    setQuickAddPartnerModalOpen(true);
+  };
+
+  const handleSaveQuickAddPartner = async () => {
+    const values = await quickAddPartnerForm.validateFields();
+    setQuickAddPartnerSaving(true);
+    try {
+      const res = await partnerServiceCreatePartner(
+        {
+          legalName: values.legalName.trim(),
+          code: values.code
+            ? values.code.trim().toUpperCase()
+            : `P${Date.now().toString().slice(-6)}`,
+          unifiedSocialCreditCode:
+            values.unifiedSocialCreditCode?.trim().toUpperCase() || undefined,
+          roles: (values.roles || ['SUPPLIER']).map((role: string) => ({
+            type: role === 'CUSTOMER' ? 1 : 2,
+            enabled: true,
+          })),
+        },
+        { skipErrorHandler: true },
+      );
+      const created = res.data;
+      if (created) {
+        const newOption: API.OrderFeeSettlementPartyOption = {
+          id: created.id,
+          name: created.legalName,
+          code: created.code,
+        };
+        setSettlementParties((prev) => [newOption, ...prev]);
+        formRef.current?.setFieldValue('settlementPartyId', created.id);
+        message.success(`已成功新建往来单位【${created.legalName}】并自动选用`);
+        setQuickAddPartnerModalOpen(false);
+      }
+    } catch (error: any) {
+      message.error(error.message || '新建往来单位失败');
+    } finally {
+      setQuickAddPartnerSaving(false);
+    }
+  };
 
   const loadData = async () => {
     if (!orderId) return;
@@ -1056,6 +1193,31 @@ export default function OrderFeesPage() {
               }))}
               fieldProps={{
                 showSearch: true,
+                dropdownRender: (menu) => (
+                  <>
+                    {menu}
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        color: '#1677ff',
+                        fontSize: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: '#f6faff',
+                        borderTop: '1px solid #f0f0f0',
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        void handleOpenQuickAddFee();
+                      }}
+                    >
+                      <PlusOutlined /> 快捷新增费用科目
+                    </div>
+                  </>
+                ),
                 onChange: (val) => {
                   const setting = feeSettings.find((item) => item.id === val);
                   setSelectedFeeSetting(setting);
@@ -1085,7 +1247,34 @@ export default function OrderFeesPage() {
                 label: item.name ?? '',
                 value: item.id ?? '',
               }))}
-              fieldProps={{ showSearch: true }}
+              fieldProps={{
+                showSearch: true,
+                dropdownRender: (menu) => (
+                  <>
+                    {menu}
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        color: '#1677ff',
+                        fontSize: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: '#f6faff',
+                        borderTop: '1px solid #f0f0f0',
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleOpenQuickAddPartner();
+                      }}
+                    >
+                      <PlusOutlined /> 快捷新建往来单位
+                    </div>
+                  </>
+                ),
+              }}
             />
           </Col>
           <Col span={8}>
@@ -1230,6 +1419,165 @@ export default function OrderFeesPage() {
           </Col>
         </Row>
       </ModalForm>
+
+      {/* 快捷新增费用科目 Modal */}
+      <Modal
+        title="快捷新增费用科目"
+        open={quickAddFeeModalOpen}
+        confirmLoading={quickAddFeeSaving}
+        okText="保存并选用"
+        cancelText="取消"
+        onOk={() => void handleSaveQuickAddFee()}
+        onCancel={() => setQuickAddFeeModalOpen(false)}
+        destroyOnClose
+        width={580}
+      >
+        <Form form={quickAddFeeForm} layout="vertical" preserve={false}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="feeCode"
+                label="科目代码"
+                rules={[
+                  { required: true, whitespace: true, message: '请输入科目代码' },
+                  { max: 30, message: '不能超过 30 字符' },
+                ]}
+              >
+                <Input placeholder="例如：THC、OFRT、CUSTOMS" maxLength={30} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="nameZh"
+                label="科目中文名称"
+                rules={[
+                  { required: true, whitespace: true, message: '请输入中文名称' },
+                  { max: 100, message: '不能超过 100 字符' },
+                ]}
+              >
+                <Input placeholder="例如：码头操作费、海运费" maxLength={100} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="nameEn" label="英文名称（选填）">
+                <Input placeholder="例如：Terminal Handling Charge" maxLength={100} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="defaultCurrency"
+                label="默认币种"
+                rules={[{ required: true, message: '请选择币种' }]}
+              >
+                <Select
+                  options={currencies.map((c) => ({
+                    label: `${c.code} (${c.name})`,
+                    value: c.code ?? '',
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="billingUnitId"
+                label="默认计费单位"
+                rules={[{ required: true, message: '请选择计费单位' }]}
+              >
+                <Select
+                  options={billingUnits.map((u) => ({
+                    label: u.name ?? '',
+                    value: u.id ?? '',
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="taxRate"
+                label="默认增值税税率"
+                rules={[{ required: true, message: '请选择税率' }]}
+              >
+                <Select
+                  options={[
+                    { label: '0% (零税率/免税)', value: '0' },
+                    { label: '6% (现代服务业/货运代理)', value: '0.06' },
+                    { label: '9% (基础交通运输)', value: '0.09' },
+                    { label: '13% (商品贸易/修箱)', value: '0.13' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="taxableServiceId" label="应税服务类别">
+                <Select
+                  placeholder="选择税目分类"
+                  options={taxableServices.map((s) => ({
+                    label: s.goodsCode
+                      ? `${s.name} (${s.goodsCode})`
+                      : s.name || '',
+                    value: s.id ?? '',
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* 快捷新建往来单位 Modal */}
+      <Modal
+        title="快捷新建往来单位"
+        open={quickAddPartnerModalOpen}
+        confirmLoading={quickAddPartnerSaving}
+        okText="保存并选用"
+        cancelText="取消"
+        onOk={() => void handleSaveQuickAddPartner()}
+        onCancel={() => setQuickAddPartnerModalOpen(false)}
+        destroyOnClose
+        width={540}
+      >
+        <Form form={quickAddPartnerForm} layout="vertical" preserve={false}>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="legalName"
+                label="单位全称"
+                rules={[
+                  { required: true, whitespace: true, message: '请输入单位全称' },
+                  { max: 200, message: '不能超过 200 字符' },
+                ]}
+              >
+                <Input placeholder="工商登记全称或客商名称" maxLength={200} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="code" label="客商代码（选填）">
+                <Input placeholder="例如：COSCO、SITC（留空自动生成）" maxLength={50} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="unifiedSocialCreditCode" label="统一社会信用代码（选填）">
+                <Input placeholder="18 位税号" maxLength={50} />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                name="roles"
+                label="客商类型"
+                rules={[{ required: true, message: '请选择至少一种类型' }]}
+              >
+                <Select
+                  mode="multiple"
+                  options={[
+                    { label: '客户 (委托单位/收发通)', value: 'CUSTOMER' },
+                    { label: '供应商 (船东/车队/报关行/码头)', value: 'SUPPLIER' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
     </div>
   );
 }
