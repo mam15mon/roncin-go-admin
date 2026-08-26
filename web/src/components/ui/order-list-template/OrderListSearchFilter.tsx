@@ -211,10 +211,9 @@ export function OrderListSearchFilter({
                     placeholder="全部进程"
                     options={[
                       { label: '全部进程', value: 'all' },
-                      { label: '正常运作中', value: 'normal' },
-                      { label: '已完结', value: 'completed' },
-                      { label: '已退关', value: 'surrendered' },
-                      { label: '已作废', value: 'cancelled' },
+                      { label: '未退关 (进行中)', value: 'unreturned' },
+                      { label: '已完结 (已归档)', value: 'completed' },
+                      { label: '已退关 (已撤单)', value: 'returned' },
                     ]}
                   />
                 </Form.Item>

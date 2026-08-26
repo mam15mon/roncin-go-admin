@@ -4,7 +4,6 @@ import {
   DollarOutlined,
   EditOutlined,
   FileDoneOutlined,
-  FlagOutlined,
   LockOutlined,
   ReloadOutlined,
   WarningOutlined,
@@ -19,7 +18,6 @@ import {
   Empty,
   Space,
   Spin,
-  Steps,
   Tag,
   Timeline,
   Typography,
@@ -296,36 +294,7 @@ export default function OrderDetailPage() {
     return getSeaTemplateSections(templateProps);
   }, [config.category, templateProps]);
 
-  // 4. 前置区块：订单状态流程
-  const prependSections: OrderFormTemplateSection[] = useMemo(() => {
-    return [
-      {
-        key: 'order-status-steps',
-        title: '订单状态流程',
-        extra: <Tag color="blue">系统默认业务流程</Tag>,
-        content: (
-          <Col span={24}>
-            <div style={{ padding: '8px 12px' }}>
-              <Steps
-                current={2}
-                size="small"
-                items={[
-                  { title: '已订舱', status: 'finish', description: order?.createdAt ? dayjs(order.createdAt).format('MM-DD HH:mm') : undefined },
-                  { title: '已配舱', status: 'finish' },
-                  { title: '拖车已安排', status: 'process' },
-                  { title: '已截单', status: 'wait' },
-                  { title: '报关已安排', status: 'wait' },
-                  { title: '已签单', status: 'wait' },
-                ]}
-              />
-            </div>
-          </Col>
-        ),
-      },
-    ];
-  }, [order]);
-
-  // 5. 后置区块：操作记录日志
+  // 4. 后置区块：操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(() => {
     return [
       {
@@ -356,7 +325,7 @@ export default function OrderDetailPage() {
                     children: (
                       <div>
                         <Space>
-                          <Text strong>配舱与单证信息录入</Text>
+                          <Text strong>业务信息与配舱已录入</Text>
                           <Tag color="processing">主操作员</Tag>
                         </Space>
                         <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
@@ -374,7 +343,7 @@ export default function OrderDetailPage() {
     ];
   }, [order]);
 
-  // 6. 保存修改提交处理
+  // 5. 保存修改提交处理
   const handleSaveEdit = async (values: any) => {
     if (!orderId) return false;
     setSaving(true);
@@ -466,6 +435,11 @@ export default function OrderDetailPage() {
     );
   }
 
+  const progressStage =
+    order.status === 'COMPLETED' ? '已完结' : order.status === 'CANCELLED' ? '已退关' : '未退关';
+  const progressColor =
+    progressStage === '已完结' ? 'success' : progressStage === '已退关' ? 'error' : 'processing';
+
   return (
     <>
       <OrderFormTemplate<any>
@@ -481,8 +455,8 @@ export default function OrderDetailPage() {
                 <span style={{ fontSize: 20, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>
                   {order.orderNo || order.id}
                 </span>
-                <Tag color={order.status === 'COMPLETED' ? 'success' : order.status === 'DRAFT' ? 'default' : 'processing'}>
-                  {order.status || '正常运作'}
+                <Tag color={progressColor}>
+                  {progressStage}
                 </Tag>
                 {order.canModify === false && order.status !== 'DRAFT' && (
                   <Tag color="warning" icon={<LockOutlined />}>
@@ -536,15 +510,6 @@ export default function OrderDetailPage() {
                   费用核算
                 </Button>
               ),
-              !isEditing && (
-                <Button
-                  key="milestone"
-                  icon={<FlagOutlined />}
-                  onClick={() => message.info('已在页面顶部直观展示订单状态流程')}
-                >
-                  履约里程碑
-                </Button>
-              ),
               !isEditing && access.canOrder(config.businessType, 'release_pod.create') && (
                 <Button key="pod" icon={<FileDoneOutlined />} onClick={() => releasePodPanelRef.current?.open(order)}>
                   放货凭证 (POD)
@@ -563,7 +528,6 @@ export default function OrderDetailPage() {
             ].filter(Boolean)}
           />
         }
-        prependSections={prependSections}
         sections={formSections}
         appendSections={appendSections}
         footer={

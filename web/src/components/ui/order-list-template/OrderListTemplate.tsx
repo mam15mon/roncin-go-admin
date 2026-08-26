@@ -98,9 +98,9 @@ export function OrderListTemplate({
         width: 90,
         sorter: true,
         render: (_, record) => {
-          const val = record.stage || '正常运作';
+          const val = record.stage || (record.status === 'COMPLETED' ? '已完结' : record.status === 'CANCELLED' ? '已退关' : '未退关');
           const color =
-            val === '已完结' ? 'success' : val === '已退关' ? 'warning' : 'processing';
+            val === '已完结' ? 'success' : val === '已退关' ? 'error' : 'processing';
           return <Tag color={color}>{val}</Tag>;
         },
       },
