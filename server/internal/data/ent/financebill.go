@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -31,6 +32,8 @@ type FinanceBill struct {
 	BillNo string `json:"bill_no,omitempty"`
 	// IdempotencyKey holds the value of the "idempotency_key" field.
 	IdempotencyKey string `json:"idempotency_key,omitempty"`
+	// BatchID holds the value of the "batch_id" field.
+	BatchID *uuid.UUID `json:"batch_id,omitempty"`
 	// Direction holds the value of the "direction" field.
 	Direction financebill.Direction `json:"direction,omitempty"`
 	// Status holds the value of the "status" field.
@@ -55,6 +58,10 @@ type FinanceBill struct {
 	FeeCount int `json:"fee_count,omitempty"`
 	// BillDate holds the value of the "bill_date" field.
 	BillDate string `json:"bill_date,omitempty"`
+	// StatementTitle holds the value of the "statement_title" field.
+	StatementTitle *string `json:"statement_title,omitempty"`
+	// PaymentTermsDays holds the value of the "payment_terms_days" field.
+	PaymentTermsDays *int `json:"payment_terms_days,omitempty"`
 	// DueDate holds the value of the "due_date" field.
 	DueDate *string `json:"due_date,omitempty"`
 	// Note holds the value of the "note" field.
@@ -81,6 +88,8 @@ type FinanceBill struct {
 type FinanceBillEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// Batch holds the value of the batch edge.
+	Batch *FinanceBillBatch `json:"batch,omitempty"`
 	// SettlementParty holds the value of the settlement_party edge.
 	SettlementParty *Partner `json:"settlement_party,omitempty"`
 	// ConfirmedByUser holds the value of the confirmed_by_user edge.
@@ -95,7 +104,7 @@ type FinanceBillEdges struct {
 	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -109,12 +118,23 @@ func (e FinanceBillEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
+// BatchOrErr returns the Batch value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceBillEdges) BatchOrErr() (*FinanceBillBatch, error) {
+	if e.Batch != nil {
+		return e.Batch, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: financebillbatch.Label}
+	}
+	return nil, &NotLoadedError{edge: "batch"}
+}
+
 // SettlementPartyOrErr returns the SettlementParty value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceBillEdges) SettlementPartyOrErr() (*Partner, error) {
 	if e.SettlementParty != nil {
 		return e.SettlementParty, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: partner.Label}
 	}
 	return nil, &NotLoadedError{edge: "settlement_party"}
@@ -125,7 +145,7 @@ func (e FinanceBillEdges) SettlementPartyOrErr() (*Partner, error) {
 func (e FinanceBillEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -136,7 +156,7 @@ func (e FinanceBillEdges) ConfirmedByUserOrErr() (*User, error) {
 func (e FinanceBillEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -145,7 +165,7 @@ func (e FinanceBillEdges) CancelledByUserOrErr() (*User, error) {
 // LinesOrErr returns the Lines value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) LinesOrErr() ([]*FinanceBillLine, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Lines, nil
 	}
 	return nil, &NotLoadedError{edge: "lines"}
@@ -154,7 +174,7 @@ func (e FinanceBillEdges) LinesOrErr() ([]*FinanceBillLine, error) {
 // InvoiceLinksOrErr returns the InvoiceLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) InvoiceLinksOrErr() ([]*FinanceInvoiceBill, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.InvoiceLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "invoice_links"}
@@ -163,7 +183,7 @@ func (e FinanceBillEdges) InvoiceLinksOrErr() ([]*FinanceInvoiceBill, error) {
 // VerificationAllocationsOrErr returns the VerificationAllocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) VerificationAllocationsOrErr() ([]*FinanceVerificationAllocation, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.VerificationAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "verification_allocations"}
@@ -174,11 +194,11 @@ func (*FinanceBill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financebill.FieldConfirmedBy, financebill.FieldCancelledBy:
+		case financebill.FieldBatchID, financebill.FieldConfirmedBy, financebill.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case financebill.FieldFeeCount, financebill.FieldVersion:
+		case financebill.FieldFeeCount, financebill.FieldPaymentTermsDays, financebill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
+		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financebill.FieldCreatedAt, financebill.FieldUpdatedAt, financebill.FieldConfirmedAt, financebill.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -234,6 +254,13 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
 			} else if value.Valid {
 				_m.IdempotencyKey = value.String
+			}
+		case financebill.FieldBatchID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field batch_id", values[i])
+			} else if value.Valid {
+				_m.BatchID = new(uuid.UUID)
+				*_m.BatchID = *value.S.(*uuid.UUID)
 			}
 		case financebill.FieldDirection:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -306,6 +333,20 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field bill_date", values[i])
 			} else if value.Valid {
 				_m.BillDate = value.String
+			}
+		case financebill.FieldStatementTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field statement_title", values[i])
+			} else if value.Valid {
+				_m.StatementTitle = new(string)
+				*_m.StatementTitle = value.String
+			}
+		case financebill.FieldPaymentTermsDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_terms_days", values[i])
+			} else if value.Valid {
+				_m.PaymentTermsDays = new(int)
+				*_m.PaymentTermsDays = int(value.Int64)
 			}
 		case financebill.FieldDueDate:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -380,6 +421,11 @@ func (_m *FinanceBill) QueryOrganization() *OrganizationQuery {
 	return NewFinanceBillClient(_m.config).QueryOrganization(_m)
 }
 
+// QueryBatch queries the "batch" edge of the FinanceBill entity.
+func (_m *FinanceBill) QueryBatch() *FinanceBillBatchQuery {
+	return NewFinanceBillClient(_m.config).QueryBatch(_m)
+}
+
 // QuerySettlementParty queries the "settlement_party" edge of the FinanceBill entity.
 func (_m *FinanceBill) QuerySettlementParty() *PartnerQuery {
 	return NewFinanceBillClient(_m.config).QuerySettlementParty(_m)
@@ -448,6 +494,11 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString("idempotency_key=")
 	builder.WriteString(_m.IdempotencyKey)
 	builder.WriteString(", ")
+	if v := _m.BatchID; v != nil {
+		builder.WriteString("batch_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("direction=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Direction))
 	builder.WriteString(", ")
@@ -483,6 +534,16 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("bill_date=")
 	builder.WriteString(_m.BillDate)
+	builder.WriteString(", ")
+	if v := _m.StatementTitle; v != nil {
+		builder.WriteString("statement_title=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentTermsDays; v != nil {
+		builder.WriteString("payment_terms_days=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := _m.DueDate; v != nil {
 		builder.WriteString("due_date=")

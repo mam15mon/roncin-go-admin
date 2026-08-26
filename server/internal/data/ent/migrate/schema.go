@@ -525,12 +525,15 @@ var (
 		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "fee_count", Type: field.TypeInt},
 		{Name: "bill_date", Type: field.TypeString, Size: 10},
+		{Name: "statement_title", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "payment_terms_days", Type: field.TypeInt, Nullable: true},
 		{Name: "due_date", Type: field.TypeString, Nullable: true, Size: 10},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "batch_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
@@ -543,26 +546,32 @@ var (
 		PrimaryKey: []*schema.Column{FinanceBillsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "finance_bills_finance_bill_batches_bills",
+				Columns:    []*schema.Column{FinanceBillsColumns[24]},
+				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "finance_bills_organizations_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[22]},
+				Columns:    []*schema.Column{FinanceBillsColumns[25]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_partners_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[23]},
+				Columns:    []*schema.Column{FinanceBillsColumns[26]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_users_confirmed_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[24]},
+				Columns:    []*schema.Column{FinanceBillsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_users_cancelled_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[25]},
+				Columns:    []*schema.Column{FinanceBillsColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -576,22 +585,86 @@ var (
 			{
 				Name:    "financebill_organization_id_bill_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[3]},
+				Columns: []*schema.Column{FinanceBillsColumns[25], FinanceBillsColumns[3]},
 			},
 			{
 				Name:    "financebill_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[4]},
+				Columns: []*schema.Column{FinanceBillsColumns[25], FinanceBillsColumns[4]},
 			},
 			{
 				Name:    "financebill_organization_id_status_bill_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[6], FinanceBillsColumns[15]},
+				Columns: []*schema.Column{FinanceBillsColumns[25], FinanceBillsColumns[6], FinanceBillsColumns[15]},
 			},
 			{
 				Name:    "financebill_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[23], FinanceBillsColumns[5], FinanceBillsColumns[8]},
+				Columns: []*schema.Column{FinanceBillsColumns[26], FinanceBillsColumns[5], FinanceBillsColumns[8]},
+			},
+			{
+				Name:    "financebill_batch_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[24]},
+			},
+		},
+	}
+	// FinanceBillBatchesColumns holds the columns for the "finance_bill_batches" table.
+	FinanceBillBatchesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "batch_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_hash", Type: field.TypeString, Size: 64},
+		{Name: "split_by_order", Type: field.TypeBool, Default: false},
+		{Name: "split_by_tax_rate", Type: field.TypeBool, Default: false},
+		{Name: "fee_count", Type: field.TypeInt},
+		{Name: "bill_count", Type: field.TypeInt},
+		{Name: "total_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+	}
+	// FinanceBillBatchesTable holds the schema information for the "finance_bill_batches" table.
+	FinanceBillBatchesTable = &schema.Table{
+		Name:       "finance_bill_batches",
+		Columns:    FinanceBillBatchesColumns,
+		PrimaryKey: []*schema.Column{FinanceBillBatchesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_bill_batches_organizations_finance_bill_batches",
+				Columns:    []*schema.Column{FinanceBillBatchesColumns[12]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bill_batches_users_created_finance_bill_batches",
+				Columns:    []*schema.Column{FinanceBillBatchesColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financebillbatch_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillBatchesColumns[2]},
+			},
+			{
+				Name:    "financebillbatch_organization_id_batch_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillBatchesColumns[12], FinanceBillBatchesColumns[3]},
+			},
+			{
+				Name:    "financebillbatch_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillBatchesColumns[12], FinanceBillBatchesColumns[4]},
+			},
+			{
+				Name:    "financebillbatch_organization_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillBatchesColumns[12], FinanceBillBatchesColumns[1]},
 			},
 		},
 	}
@@ -606,6 +679,7 @@ var (
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -623,19 +697,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bill_lines_finance_bills_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[14]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[15]},
 				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bill_lines_orders_finance_bill_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[15]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[16]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bill_lines_order_fees_finance_bill_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[16]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[17]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -649,17 +723,17 @@ var (
 			{
 				Name:    "financebillline_bill_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[14], FinanceBillLinesColumns[13]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[15], FinanceBillLinesColumns[14]},
 			},
 			{
 				Name:    "financebillline_order_fee_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[16], FinanceBillLinesColumns[13]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[17], FinanceBillLinesColumns[14]},
 			},
 			{
 				Name:    "financebillline_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[15]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[16]},
 			},
 		},
 	}
@@ -1426,7 +1500,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission"}},
+		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "bill_batch", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission"}},
 		{Name: "prefix", Type: field.TypeString, Size: 32},
 		{Name: "date_format", Type: field.TypeEnum, Enums: []string{"yyyyMMdd", "yyyyMM", "yyyy", "none"}, Default: "yyyyMMdd"},
 		{Name: "sequence_length", Type: field.TypeInt, Default: 4},
@@ -3485,6 +3559,7 @@ var (
 		ExchangeRateTimeStandardsTable,
 		FeeSettingsTable,
 		FinanceBillsTable,
+		FinanceBillBatchesTable,
 		FinanceBillLinesTable,
 		FinanceCashflowsTable,
 		FinanceCommissionsTable,
@@ -3553,10 +3628,13 @@ func init() {
 	FeeSettingsTable.ForeignKeys[2].RefTable = MasterDataItemsTable
 	FeeSettingsTable.ForeignKeys[3].RefTable = OrganizationsTable
 	FeeSettingsTable.ForeignKeys[4].RefTable = TaxableServicesTable
-	FinanceBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
-	FinanceBillsTable.ForeignKeys[1].RefTable = PartnersTable
-	FinanceBillsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceBillsTable.ForeignKeys[0].RefTable = FinanceBillBatchesTable
+	FinanceBillsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	FinanceBillsTable.ForeignKeys[2].RefTable = PartnersTable
 	FinanceBillsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceBillsTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceBillBatchesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceBillBatchesTable.ForeignKeys[1].RefTable = UsersTable
 	FinanceBillLinesTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceBillLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceBillLinesTable.ForeignKeys[2].RefTable = OrderFeesTable

@@ -26,6 +26,8 @@ const (
 	FieldBillNo = "bill_no"
 	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
 	FieldIdempotencyKey = "idempotency_key"
+	// FieldBatchID holds the string denoting the batch_id field in the database.
+	FieldBatchID = "batch_id"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -50,6 +52,10 @@ const (
 	FieldFeeCount = "fee_count"
 	// FieldBillDate holds the string denoting the bill_date field in the database.
 	FieldBillDate = "bill_date"
+	// FieldStatementTitle holds the string denoting the statement_title field in the database.
+	FieldStatementTitle = "statement_title"
+	// FieldPaymentTermsDays holds the string denoting the payment_terms_days field in the database.
+	FieldPaymentTermsDays = "payment_terms_days"
 	// FieldDueDate holds the string denoting the due_date field in the database.
 	FieldDueDate = "due_date"
 	// FieldNote holds the string denoting the note field in the database.
@@ -68,6 +74,8 @@ const (
 	FieldCancellationReason = "cancellation_reason"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeBatch holds the string denoting the batch edge name in mutations.
+	EdgeBatch = "batch"
 	// EdgeSettlementParty holds the string denoting the settlement_party edge name in mutations.
 	EdgeSettlementParty = "settlement_party"
 	// EdgeConfirmedByUser holds the string denoting the confirmed_by_user edge name in mutations.
@@ -89,6 +97,13 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// BatchTable is the table that holds the batch relation/edge.
+	BatchTable = "finance_bills"
+	// BatchInverseTable is the table name for the FinanceBillBatch entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillbatch" package.
+	BatchInverseTable = "finance_bill_batches"
+	// BatchColumn is the table column denoting the batch relation/edge.
+	BatchColumn = "batch_id"
 	// SettlementPartyTable is the table that holds the settlement_party relation/edge.
 	SettlementPartyTable = "finance_bills"
 	// SettlementPartyInverseTable is the table name for the Partner entity.
@@ -141,6 +156,7 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldBillNo,
 	FieldIdempotencyKey,
+	FieldBatchID,
 	FieldDirection,
 	FieldStatus,
 	FieldSettlementPartyID,
@@ -153,6 +169,8 @@ var Columns = []string{
 	FieldBaseCurrencyAmount,
 	FieldFeeCount,
 	FieldBillDate,
+	FieldStatementTitle,
+	FieldPaymentTermsDays,
 	FieldDueDate,
 	FieldNote,
 	FieldVersion,
@@ -194,6 +212,10 @@ var (
 	FeeCountValidator func(int) error
 	// BillDateValidator is a validator for the "bill_date" field. It is called by the builders before save.
 	BillDateValidator func(string) error
+	// StatementTitleValidator is a validator for the "statement_title" field. It is called by the builders before save.
+	StatementTitleValidator func(string) error
+	// PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
+	PaymentTermsDaysValidator func(int) error
 	// DueDateValidator is a validator for the "due_date" field. It is called by the builders before save.
 	DueDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -289,6 +311,11 @@ func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
 }
 
+// ByBatchID orders the results by the batch_id field.
+func ByBatchID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBatchID, opts...).ToFunc()
+}
+
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
@@ -349,6 +376,16 @@ func ByBillDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBillDate, opts...).ToFunc()
 }
 
+// ByStatementTitle orders the results by the statement_title field.
+func ByStatementTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatementTitle, opts...).ToFunc()
+}
+
+// ByPaymentTermsDays orders the results by the payment_terms_days field.
+func ByPaymentTermsDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentTermsDays, opts...).ToFunc()
+}
+
 // ByDueDate orders the results by the due_date field.
 func ByDueDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDueDate, opts...).ToFunc()
@@ -393,6 +430,13 @@ func ByCancellationReason(opts ...sql.OrderTermOption) OrderOption {
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByBatchField orders the results by batch field.
+func ByBatchField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBatchStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -463,6 +507,13 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newBatchStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BatchInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, BatchTable, BatchColumn),
 	)
 }
 func newSettlementPartyStep() *sqlgraph.Step {

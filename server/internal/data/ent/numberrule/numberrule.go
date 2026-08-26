@@ -106,6 +106,7 @@ type DocumentType string
 const (
 	DocumentTypeOrder             DocumentType = "order"
 	DocumentTypeBill              DocumentType = "bill"
+	DocumentTypeBillBatch         DocumentType = "bill_batch"
 	DocumentTypeQuotation         DocumentType = "quotation"
 	DocumentTypeWriteOff          DocumentType = "write_off"
 	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
@@ -126,7 +127,7 @@ func (dt DocumentType) String() string {
 // DocumentTypeValidator is a validator for the "document_type" field enum values. It is called by the builders before save.
 func DocumentTypeValidator(dt DocumentType) error {
 	switch dt {
-	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeQuotation, DocumentTypeWriteOff, DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference, DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill, DocumentTypeInvoice, DocumentTypeFreightRate, DocumentTypeCommission:
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeQuotation, DocumentTypeWriteOff, DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference, DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill, DocumentTypeInvoice, DocumentTypeFreightRate, DocumentTypeCommission:
 		return nil
 	default:
 		return fmt.Errorf("numberrule: invalid enum value for document_type field: %q", dt)

@@ -111,6 +111,11 @@ func TaxAmount(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldEQ(FieldTaxAmount, v))
 }
 
+// TaxRate applies equality check predicate on the "tax_rate" field. It's identical to TaxRateEQ.
+func TaxRate(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldTaxRate, v))
+}
+
 // Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
 func Currency(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldEQ(FieldCurrency, v))
@@ -664,6 +669,81 @@ func TaxAmountEqualFold(v string) predicate.FinanceBillLine {
 // TaxAmountContainsFold applies the ContainsFold predicate on the "tax_amount" field.
 func TaxAmountContainsFold(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldContainsFold(FieldTaxAmount, v))
+}
+
+// TaxRateEQ applies the EQ predicate on the "tax_rate" field.
+func TaxRateEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldTaxRate, v))
+}
+
+// TaxRateNEQ applies the NEQ predicate on the "tax_rate" field.
+func TaxRateNEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNEQ(FieldTaxRate, v))
+}
+
+// TaxRateIn applies the In predicate on the "tax_rate" field.
+func TaxRateIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldIn(FieldTaxRate, vs...))
+}
+
+// TaxRateNotIn applies the NotIn predicate on the "tax_rate" field.
+func TaxRateNotIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNotIn(FieldTaxRate, vs...))
+}
+
+// TaxRateGT applies the GT predicate on the "tax_rate" field.
+func TaxRateGT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGT(FieldTaxRate, v))
+}
+
+// TaxRateGTE applies the GTE predicate on the "tax_rate" field.
+func TaxRateGTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGTE(FieldTaxRate, v))
+}
+
+// TaxRateLT applies the LT predicate on the "tax_rate" field.
+func TaxRateLT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLT(FieldTaxRate, v))
+}
+
+// TaxRateLTE applies the LTE predicate on the "tax_rate" field.
+func TaxRateLTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLTE(FieldTaxRate, v))
+}
+
+// TaxRateContains applies the Contains predicate on the "tax_rate" field.
+func TaxRateContains(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContains(FieldTaxRate, v))
+}
+
+// TaxRateHasPrefix applies the HasPrefix predicate on the "tax_rate" field.
+func TaxRateHasPrefix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasPrefix(FieldTaxRate, v))
+}
+
+// TaxRateHasSuffix applies the HasSuffix predicate on the "tax_rate" field.
+func TaxRateHasSuffix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasSuffix(FieldTaxRate, v))
+}
+
+// TaxRateIsNil applies the IsNil predicate on the "tax_rate" field.
+func TaxRateIsNil() predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldIsNull(FieldTaxRate))
+}
+
+// TaxRateNotNil applies the NotNil predicate on the "tax_rate" field.
+func TaxRateNotNil() predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNotNull(FieldTaxRate))
+}
+
+// TaxRateEqualFold applies the EqualFold predicate on the "tax_rate" field.
+func TaxRateEqualFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEqualFold(FieldTaxRate, v))
+}
+
+// TaxRateContainsFold applies the ContainsFold predicate on the "tax_rate" field.
+func TaxRateContainsFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContainsFold(FieldTaxRate, v))
 }
 
 // CurrencyEQ applies the EQ predicate on the "currency" field.

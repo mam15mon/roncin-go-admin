@@ -559,6 +559,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/task.v1.RequeueBackgroundTaskResponse'
+    /api/v1/finance/bill-batches:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CreateBillBatch
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateBillBatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateBillBatchResponse'
+    /api/v1/finance/bill-batches:preview:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_PreviewBillBatch
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.PreviewBillBatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.PreviewBillBatchResponse'
     /api/v1/finance/billing-units:
         get:
             tags:
@@ -4665,6 +4701,46 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 traceId:
                     type: string
+        finance.v1.BillBatchPreviewGroup:
+            type: object
+            properties:
+                groupKey:
+                    type: string
+                direction:
+                    type: string
+                settlementPartyId:
+                    type: string
+                settlementPartyName:
+                    type: string
+                currency:
+                    type: string
+                baseCurrency:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                taxRate:
+                    type: string
+                fees:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerItem'
+                totalAmount:
+                    type: string
+                netAmount:
+                    type: string
+                taxAmount:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
+        finance.v1.BillGroupingPolicy:
+            type: object
+            properties:
+                splitByOrder:
+                    type: boolean
+                splitByTaxRate:
+                    type: boolean
         finance.v1.BillingUnit:
             type: object
             properties:
@@ -4898,6 +4974,63 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
                 traceId:
                     type: string
+        finance.v1.CreateBillBatchGroupInput:
+            required:
+                - groupKey
+                - statementTitle
+                - billDate
+            type: object
+            properties:
+                groupKey:
+                    type: string
+                statementTitle:
+                    type: string
+                billDate:
+                    type: string
+                dueDate:
+                    type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
+                note:
+                    type: string
+        finance.v1.CreateBillBatchRequest:
+            required:
+                - feeIds
+                - groupingPolicy
+                - groups
+                - previewToken
+                - idempotencyKey
+            type: object
+            properties:
+                feeIds:
+                    type: array
+                    items:
+                        type: string
+                groupingPolicy:
+                    $ref: '#/components/schemas/finance.v1.BillGroupingPolicy'
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.CreateBillBatchGroupInput'
+                previewToken:
+                    type: string
+                idempotencyKey:
+                    type: string
+        finance.v1.CreateBillBatchResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceBillBatch'
+                traceId:
+                    type: string
         finance.v1.CreateBillRequest:
             required:
                 - feeIds
@@ -4917,6 +5050,11 @@ components:
                     type: string
                 idempotencyKey:
                     type: string
+                statementTitle:
+                    type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
         finance.v1.CreateBillResponse:
             type: object
             properties:
@@ -5336,6 +5474,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                taxRate:
+                    type: string
         finance.v1.FeeLedgerSummary:
             type: object
             properties:
@@ -5453,6 +5593,42 @@ components:
                     type: string
                 unverifiedAmount:
                     type: string
+                batchId:
+                    type: string
+                batchNo:
+                    type: string
+                statementTitle:
+                    type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
+        finance.v1.FinanceBillBatch:
+            type: object
+            properties:
+                id:
+                    type: string
+                batchNo:
+                    type: string
+                splitByOrder:
+                    type: boolean
+                splitByTaxRate:
+                    type: boolean
+                feeCount:
+                    type: integer
+                    format: int32
+                billCount:
+                    type: integer
+                    format: int32
+                totalBaseAmount:
+                    type: string
+                baseCurrency:
+                    type: string
+                bills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBill'
+                createdAt:
+                    type: string
         finance.v1.FinanceBillLine:
             type: object
             properties:
@@ -5486,6 +5662,8 @@ components:
                     type: string
                 active:
                     type: boolean
+                taxRate:
+                    type: string
         finance.v1.FinanceCashflow:
             type: object
             properties:
@@ -6026,6 +6204,36 @@ components:
                     type: string
                 traceId:
                     type: string
+        finance.v1.PreviewBillBatchRequest:
+            required:
+                - feeIds
+                - groupingPolicy
+            type: object
+            properties:
+                feeIds:
+                    type: array
+                    items:
+                        type: string
+                groupingPolicy:
+                    $ref: '#/components/schemas/finance.v1.BillGroupingPolicy'
+        finance.v1.PreviewBillBatchResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BillBatchPreviewGroup'
+                previewToken:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.RedFlushInvoiceRequest:
             required:
                 - id
@@ -6124,6 +6332,11 @@ components:
                     type: string
                 expectedVersion:
                     type: string
+                statementTitle:
+                    type: string
+                paymentTermsDays:
+                    type: integer
+                    format: int32
         finance.v1.UpdateBillResponse:
             type: object
             properties:

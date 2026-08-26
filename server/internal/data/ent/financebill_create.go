@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -70,6 +71,20 @@ func (_c *FinanceBillCreate) SetBillNo(v string) *FinanceBillCreate {
 // SetIdempotencyKey sets the "idempotency_key" field.
 func (_c *FinanceBillCreate) SetIdempotencyKey(v string) *FinanceBillCreate {
 	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
+// SetBatchID sets the "batch_id" field.
+func (_c *FinanceBillCreate) SetBatchID(v uuid.UUID) *FinanceBillCreate {
+	_c.mutation.SetBatchID(v)
+	return _c
+}
+
+// SetNillableBatchID sets the "batch_id" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableBatchID(v *uuid.UUID) *FinanceBillCreate {
+	if v != nil {
+		_c.SetBatchID(*v)
+	}
 	return _c
 }
 
@@ -150,6 +165,34 @@ func (_c *FinanceBillCreate) SetFeeCount(v int) *FinanceBillCreate {
 // SetBillDate sets the "bill_date" field.
 func (_c *FinanceBillCreate) SetBillDate(v string) *FinanceBillCreate {
 	_c.mutation.SetBillDate(v)
+	return _c
+}
+
+// SetStatementTitle sets the "statement_title" field.
+func (_c *FinanceBillCreate) SetStatementTitle(v string) *FinanceBillCreate {
+	_c.mutation.SetStatementTitle(v)
+	return _c
+}
+
+// SetNillableStatementTitle sets the "statement_title" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillableStatementTitle(v *string) *FinanceBillCreate {
+	if v != nil {
+		_c.SetStatementTitle(*v)
+	}
+	return _c
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_c *FinanceBillCreate) SetPaymentTermsDays(v int) *FinanceBillCreate {
+	_c.mutation.SetPaymentTermsDays(v)
+	return _c
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillablePaymentTermsDays(v *int) *FinanceBillCreate {
+	if v != nil {
+		_c.SetPaymentTermsDays(*v)
+	}
 	return _c
 }
 
@@ -282,6 +325,11 @@ func (_c *FinanceBillCreate) SetNillableID(v *uuid.UUID) *FinanceBillCreate {
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *FinanceBillCreate) SetOrganization(v *Organization) *FinanceBillCreate {
 	return _c.SetOrganizationID(v.ID)
+}
+
+// SetBatch sets the "batch" edge to the FinanceBillBatch entity.
+func (_c *FinanceBillCreate) SetBatch(v *FinanceBillBatch) *FinanceBillCreate {
+	return _c.SetBatchID(v.ID)
 }
 
 // SetSettlementParty sets the "settlement_party" edge to the Partner entity.
@@ -527,6 +575,16 @@ func (_c *FinanceBillCreate) check() error {
 			return &ValidationError{Name: "bill_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.bill_date": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.StatementTitle(); ok {
+		if err := financebill.StatementTitleValidator(v); err != nil {
+			return &ValidationError{Name: "statement_title", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.statement_title": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.PaymentTermsDays(); ok {
+		if err := financebill.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.payment_terms_days": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.DueDate(); ok {
 		if err := financebill.DueDateValidator(v); err != nil {
 			return &ValidationError{Name: "due_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.due_date": %w`, err)}
@@ -646,6 +704,14 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 		_spec.SetField(financebill.FieldBillDate, field.TypeString, value)
 		_node.BillDate = value
 	}
+	if value, ok := _c.mutation.StatementTitle(); ok {
+		_spec.SetField(financebill.FieldStatementTitle, field.TypeString, value)
+		_node.StatementTitle = &value
+	}
+	if value, ok := _c.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(financebill.FieldPaymentTermsDays, field.TypeInt, value)
+		_node.PaymentTermsDays = &value
+	}
 	if value, ok := _c.mutation.DueDate(); ok {
 		_spec.SetField(financebill.FieldDueDate, field.TypeString, value)
 		_node.DueDate = &value
@@ -685,6 +751,23 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BatchIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financebill.BatchTable,
+			Columns: []string{financebill.BatchColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.BatchID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.SettlementPartyIDs(); len(nodes) > 0 {

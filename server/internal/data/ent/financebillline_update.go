@@ -118,6 +118,9 @@ func (_u *FinanceBillLineUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financebillline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(financebillline.FieldTaxRate, field.TypeString)
+	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financebillline.FieldActive, field.TypeBool, value)
 	}
@@ -260,6 +263,9 @@ func (_u *FinanceBillLineUpdateOne) sqlSave(ctx context.Context) (_node *Finance
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financebillline.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(financebillline.FieldTaxRate, field.TypeString)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financebillline.FieldActive, field.TypeBool, value)

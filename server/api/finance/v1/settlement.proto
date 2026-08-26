@@ -31,6 +31,16 @@ service SettlementService {
     option (google.api.http) = {post: "/api/v1/finance/bills" body: "*"};
   }
 
+  rpc PreviewBillBatch(PreviewBillBatchRequest) returns (PreviewBillBatchResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bill-batches:preview" body: "*"};
+  }
+
+  rpc CreateBillBatch(CreateBillBatchRequest) returns (CreateBillBatchResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bill-batches" body: "*"};
+  }
+
   rpc UpdateBill(UpdateBillRequest) returns (UpdateBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/finance/bills/{id}" body: "*"};
@@ -109,6 +119,7 @@ message FeeLedgerItem {
   uint64 version = 23;
   string created_at = 24;
   string updated_at = 25;
+  optional string tax_rate = 26;
 }
 
 message FeeLedgerSummary {
@@ -151,6 +162,8 @@ message CreateBillRequest {
   optional string due_date = 3;
   optional string note = 4;
   string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string statement_title = 6;
+  optional int32 payment_terms_days = 7;
 }
 
 message UpdateBillRequest {
@@ -159,6 +172,8 @@ message UpdateBillRequest {
   optional string due_date = 3;
   optional string note = 4;
   uint64 expected_version = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string statement_title = 6;
+  optional int32 payment_terms_days = 7;
 }
 
 message ConfirmBillRequest {
@@ -188,6 +203,7 @@ message FinanceBillLine {
   string base_currency = 13;
   string base_currency_amount = 14;
   bool active = 15;
+  optional string tax_rate = 16;
 }
 
 message FinanceBill {
@@ -218,6 +234,84 @@ message FinanceBill {
   string updated_at = 25;
   string verified_amount = 26;
   string unverified_amount = 27;
+  optional string batch_id = 28;
+  optional string batch_no = 29;
+  optional string statement_title = 30;
+  optional int32 payment_terms_days = 31;
+}
+
+message BillGroupingPolicy {
+  bool split_by_order = 1;
+  bool split_by_tax_rate = 2;
+}
+
+message PreviewBillBatchRequest {
+  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  BillGroupingPolicy grouping_policy = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BillBatchPreviewGroup {
+  string group_key = 1;
+  string direction = 2;
+  string settlement_party_id = 3;
+  string settlement_party_name = 4;
+  string currency = 5;
+  string base_currency = 6;
+  optional string order_id = 7;
+  optional string order_no = 8;
+  optional string tax_rate = 9;
+  repeated FeeLedgerItem fees = 10;
+  string total_amount = 11;
+  string net_amount = 12;
+  string tax_amount = 13;
+  string base_currency_amount = 14;
+}
+
+message PreviewBillBatchResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated BillBatchPreviewGroup data = 4;
+  string preview_token = 5;
+  string trace_id = 6;
+}
+
+message CreateBillBatchGroupInput {
+  string group_key = 1 [(google.api.field_behavior) = REQUIRED];
+  string statement_title = 2 [(google.api.field_behavior) = REQUIRED];
+  string bill_date = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string due_date = 4;
+  optional int32 payment_terms_days = 5;
+  optional string note = 6;
+}
+
+message CreateBillBatchRequest {
+  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  BillGroupingPolicy grouping_policy = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated CreateBillBatchGroupInput groups = 3 [(google.api.field_behavior) = REQUIRED];
+  string preview_token = 4 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message FinanceBillBatch {
+  string id = 1;
+  string batch_no = 2;
+  bool split_by_order = 3;
+  bool split_by_tax_rate = 4;
+  int32 fee_count = 5;
+  int32 bill_count = 6;
+  string total_base_amount = 7;
+  string base_currency = 8;
+  repeated FinanceBill bills = 9;
+  string created_at = 10;
+}
+
+message CreateBillBatchResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBillBatch data = 4;
+  string trace_id = 5;
 }
 
 message ListBillsResponse {

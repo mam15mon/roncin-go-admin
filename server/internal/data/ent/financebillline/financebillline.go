@@ -37,6 +37,8 @@ const (
 	FieldNetAmount = "net_amount"
 	// FieldTaxAmount holds the string denoting the tax_amount field in the database.
 	FieldTaxAmount = "tax_amount"
+	// FieldTaxRate holds the string denoting the tax_rate field in the database.
+	FieldTaxRate = "tax_rate"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldExchangeRate holds the string denoting the exchange_rate field in the database.
@@ -92,6 +94,7 @@ var Columns = []string{
 	FieldTotalAmount,
 	FieldNetAmount,
 	FieldTaxAmount,
+	FieldTaxRate,
 	FieldCurrency,
 	FieldExchangeRate,
 	FieldBaseCurrency,
@@ -193,6 +196,11 @@ func ByNetAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByTaxAmount orders the results by the tax_amount field.
 func ByTaxAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTaxAmount, opts...).ToFunc()
+}
+
+// ByTaxRate orders the results by the tax_rate field.
+func ByTaxRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxRate, opts...).ToFunc()
 }
 
 // ByCurrency orders the results by the currency field.

@@ -43,6 +43,8 @@ type FinanceBillLine struct {
 	NetAmount string `json:"net_amount,omitempty"`
 	// TaxAmount holds the value of the "tax_amount" field.
 	TaxAmount string `json:"tax_amount,omitempty"`
+	// TaxRate holds the value of the "tax_rate" field.
+	TaxRate *string `json:"tax_rate,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// ExchangeRate holds the value of the "exchange_rate" field.
@@ -112,7 +114,7 @@ func (*FinanceBillLine) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financebillline.FieldActive:
 			values[i] = new(sql.NullBool)
-		case financebillline.FieldOrderNo, financebillline.FieldFeeCode, financebillline.FieldFeeName, financebillline.FieldTotalAmount, financebillline.FieldNetAmount, financebillline.FieldTaxAmount, financebillline.FieldCurrency, financebillline.FieldExchangeRate, financebillline.FieldBaseCurrency, financebillline.FieldBaseCurrencyAmount:
+		case financebillline.FieldOrderNo, financebillline.FieldFeeCode, financebillline.FieldFeeName, financebillline.FieldTotalAmount, financebillline.FieldNetAmount, financebillline.FieldTaxAmount, financebillline.FieldTaxRate, financebillline.FieldCurrency, financebillline.FieldExchangeRate, financebillline.FieldBaseCurrency, financebillline.FieldBaseCurrencyAmount:
 			values[i] = new(sql.NullString)
 		case financebillline.FieldCreatedAt, financebillline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -204,6 +206,13 @@ func (_m *FinanceBillLine) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field tax_amount", values[i])
 			} else if value.Valid {
 				_m.TaxAmount = value.String
+			}
+		case financebillline.FieldTaxRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tax_rate", values[i])
+			} else if value.Valid {
+				_m.TaxRate = new(string)
+				*_m.TaxRate = value.String
 			}
 		case financebillline.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -318,6 +327,11 @@ func (_m *FinanceBillLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tax_amount=")
 	builder.WriteString(_m.TaxAmount)
+	builder.WriteString(", ")
+	if v := _m.TaxRate; v != nil {
+		builder.WriteString("tax_rate=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)

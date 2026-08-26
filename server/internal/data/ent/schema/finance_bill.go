@@ -19,6 +19,7 @@ func (FinanceBill) Fields() []ent.Field {
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
+		field.UUID("batch_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE").Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "CANCELLED").Default("DRAFT"),
 		field.UUID("settlement_party_id", uuid.Nil).Immutable(),
@@ -31,6 +32,8 @@ func (FinanceBill) Fields() []ent.Field {
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.Int("fee_count").Positive().Immutable(),
 		field.String("bill_date").NotEmpty().MinLen(10).MaxLen(10),
+		field.String("statement_title").Optional().Nillable().MaxLen(200),
+		field.Int("payment_terms_days").Optional().Nillable().Min(0).Max(3650),
 		field.String("due_date").Optional().Nillable().MinLen(10).MaxLen(10),
 		field.String("note").Optional().Nillable().MaxLen(500),
 		field.Uint64("version").Default(1),
@@ -45,6 +48,7 @@ func (FinanceBill) Fields() []ent.Field {
 func (FinanceBill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("finance_bills").Field("organization_id").Unique().Required().Immutable(),
+		edge.From("batch", FinanceBillBatch.Type).Ref("bills").Field("batch_id").Unique().Immutable(),
 		edge.From("settlement_party", Partner.Type).Ref("finance_bills").Field("settlement_party_id").Unique().Required().Immutable(),
 		edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_bills").Field("confirmed_by").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_bills").Field("cancelled_by").Unique(),
@@ -60,5 +64,6 @@ func (FinanceBill) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "bill_date"),
 		index.Fields("settlement_party_id", "direction", "currency"),
+		index.Fields("batch_id"),
 	}
 }

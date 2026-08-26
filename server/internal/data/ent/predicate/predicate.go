@@ -39,6 +39,9 @@ type FeeSetting func(*sql.Selector)
 // FinanceBill is the predicate function for financebill builders.
 type FinanceBill func(*sql.Selector)
 
+// FinanceBillBatch is the predicate function for financebillbatch builders.
+type FinanceBillBatch func(*sql.Selector)
+
 // FinanceBillLine is the predicate function for financebillline builders.
 type FinanceBillLine func(*sql.Selector)
 

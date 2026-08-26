@@ -152,6 +152,7 @@ const (
 	DocumentType_DOCUMENT_TYPE_INVOICE            DocumentType = 11
 	DocumentType_DOCUMENT_TYPE_FREIGHT_RATE       DocumentType = 12
 	DocumentType_DOCUMENT_TYPE_COMMISSION         DocumentType = 13
+	DocumentType_DOCUMENT_TYPE_BILL_BATCH         DocumentType = 14
 )
 
 // Enum value maps for DocumentType.
@@ -170,6 +171,7 @@ var (
 		11: "DOCUMENT_TYPE_INVOICE",
 		12: "DOCUMENT_TYPE_FREIGHT_RATE",
 		13: "DOCUMENT_TYPE_COMMISSION",
+		14: "DOCUMENT_TYPE_BILL_BATCH",
 	}
 	DocumentType_value = map[string]int32{
 		"DOCUMENT_TYPE_UNSPECIFIED":        0,
@@ -185,6 +187,7 @@ var (
 		"DOCUMENT_TYPE_INVOICE":            11,
 		"DOCUMENT_TYPE_FREIGHT_RATE":       12,
 		"DOCUMENT_TYPE_COMMISSION":         13,
+		"DOCUMENT_TYPE_BILL_BATCH":         14,
 	}
 )
 
@@ -7724,7 +7727,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x1dMASTER_DATA_KIND_SERVICE_TYPE\x10\b\x12#\n" +
 	"\x1fMASTER_DATA_KIND_CARGO_CATEGORY\x10\t\x12\"\n" +
 	"\x1eMASTER_DATA_KIND_ABNORMAL_CASE\x10\n" +
-	"*\xc1\x03\n" +
+	"*\xdf\x03\n" +
 	"\fDocumentType\x12\x1d\n" +
 	"\x19DOCUMENT_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13DOCUMENT_TYPE_ORDER\x10\x01\x12\x16\n" +
@@ -7738,7 +7741,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x18DOCUMENT_TYPE_HOUSE_BILL\x10\t\x12\x19\n" +
 	"\x15DOCUMENT_TYPE_INVOICE\x10\v\x12\x1e\n" +
 	"\x1aDOCUMENT_TYPE_FREIGHT_RATE\x10\f\x12\x1c\n" +
-	"\x18DOCUMENT_TYPE_COMMISSION\x10\r\"\x04\b\n" +
+	"\x18DOCUMENT_TYPE_COMMISSION\x10\r\x12\x1c\n" +
+	"\x18DOCUMENT_TYPE_BILL_BATCH\x10\x0e\"\x04\b\n" +
 	"\x10\n" +
 	"*\x1fDOCUMENT_TYPE_COLOAD_HOUSE_BILL*\x87\x01\n" +
 	"\n" +

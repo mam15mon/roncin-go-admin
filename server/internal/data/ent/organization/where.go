@@ -988,6 +988,29 @@ func HasFinanceBillsWith(preds ...predicate.FinanceBill) predicate.Organization 
 	})
 }
 
+// HasFinanceBillBatches applies the HasEdge predicate on the "finance_bill_batches" edge.
+func HasFinanceBillBatches() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillBatchesTable, FinanceBillBatchesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceBillBatchesWith applies the HasEdge predicate on the "finance_bill_batches" edge with a given conditions (other predicates).
+func HasFinanceBillBatchesWith(preds ...predicate.FinanceBillBatch) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFinanceBillBatchesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFinanceInvoices applies the HasEdge predicate on the "finance_invoices" edge.
 func HasFinanceInvoices() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

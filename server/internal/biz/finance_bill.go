@@ -2,8 +2,11 @@ package biz
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -21,6 +24,9 @@ var (
 	ErrFinanceBillVersionConflict     = errors.Conflict("FINANCE_BILL_VERSION_CONFLICT", "账单已被其他操作人修改，请刷新后重试")
 	ErrFinanceBillInvalidTransition   = errors.Conflict("FINANCE_BILL_INVALID_TRANSITION", "当前账单状态不允许执行该操作")
 	ErrFinanceBillIdempotencyConflict = errors.Conflict("FINANCE_BILL_IDEMPOTENCY_CONFLICT", "账单请求幂等键已被其他请求使用")
+	ErrFinanceBillPreviewStale        = errors.Conflict("FINANCE_BILL_PREVIEW_STALE", "费用或拆单结果已变化，请重新预览")
+	ErrFinanceBillBatchMismatch       = errors.BadRequest("FINANCE_BILL_BATCH_MISMATCH", "批量账单分组资料与服务端预览不一致")
+	ErrFinanceBillBatchConflict       = errors.Conflict("FINANCE_BILL_BATCH_CONFLICT", "批量建单幂等键已被其他请求使用")
 )
 
 var financeBillCurrencyPattern = regexp.MustCompile(`^[A-Z]{3}$`)
@@ -36,6 +42,8 @@ const (
 type FinanceBill struct {
 	ID                  uuid.UUID
 	OrganizationID      uuid.UUID
+	BatchID             *uuid.UUID
+	BatchNo             string
 	BillNo              string
 	IdempotencyKey      string
 	Direction           OrderFeeDirection
@@ -52,6 +60,8 @@ type FinanceBill struct {
 	UnverifiedAmount    decimal.Decimal
 	FeeCount            int
 	BillDate            string
+	StatementTitle      *string
+	PaymentTermsDays    *int
 	DueDate             *string
 	Note                *string
 	Version             uint64
@@ -77,6 +87,7 @@ type FinanceBillLine struct {
 	TotalAmount        decimal.Decimal
 	NetAmount          decimal.Decimal
 	TaxAmount          decimal.Decimal
+	TaxRate            *decimal.Decimal
 	Currency           string
 	ExchangeRate       decimal.Decimal
 	BaseCurrency       string
@@ -110,27 +121,87 @@ type FinanceBillListResult struct {
 }
 
 type CreateFinanceBillInput struct {
-	FeeIDs         []uuid.UUID
-	BillDate       string
-	DueDate        *string
-	Note           *string
-	IdempotencyKey string
+	FeeIDs           []uuid.UUID
+	BillDate         string
+	DueDate          *string
+	Note             *string
+	StatementTitle   *string
+	PaymentTermsDays *int
+	IdempotencyKey   string
 }
 
 type UpdateFinanceBillInput struct {
-	ID              uuid.UUID
-	BillDate        string
-	DueDate         *string
-	Note            *string
-	ExpectedVersion uint64
+	ID               uuid.UUID
+	BillDate         string
+	DueDate          *string
+	Note             *string
+	StatementTitle   *string
+	PaymentTermsDays *int
+	ExpectedVersion  uint64
+}
+
+type FinanceBillGroupingPolicy struct {
+	SplitByOrder   bool
+	SplitByTaxRate bool
+}
+
+type FinanceBillBatchPreviewGroup struct {
+	GroupKey, SettlementPartyName, Currency, BaseCurrency string
+	Direction                                             OrderFeeDirection
+	SettlementPartyID                                     uuid.UUID
+	OrderID                                               *uuid.UUID
+	OrderNo                                               *string
+	TaxRate                                               *decimal.Decimal
+	Fees                                                  []*FinanceBillableFee
+	TotalAmount, NetAmount, TaxAmount, BaseCurrencyAmount decimal.Decimal
+}
+
+type FinanceBillBatchPreview struct {
+	Groups       []*FinanceBillBatchPreviewGroup
+	PreviewToken string
+}
+
+type CreateFinanceBillBatchGroupInput struct {
+	GroupKey         string
+	StatementTitle   string
+	BillDate         string
+	DueDate          *string
+	PaymentTermsDays *int
+	Note             *string
+}
+
+type CreateFinanceBillBatchInput struct {
+	FeeIDs         []uuid.UUID
+	GroupingPolicy FinanceBillGroupingPolicy
+	Groups         []CreateFinanceBillBatchGroupInput
+	PreviewToken   string
+	IdempotencyKey string
+}
+
+type PreviewFinanceBillBatchInput struct {
+	FeeIDs         []uuid.UUID
+	GroupingPolicy FinanceBillGroupingPolicy
+}
+
+type FinanceBillBatch struct {
+	ID, OrganizationID, CreatedBy        uuid.UUID
+	BatchNo, IdempotencyKey, RequestHash string
+	GroupingPolicy                       FinanceBillGroupingPolicy
+	FeeCount, BillCount                  int
+	TotalBaseAmount                      decimal.Decimal
+	BaseCurrency                         string
+	Bills                                []*FinanceBill
+	CreatedAt, UpdatedAt                 time.Time
 }
 
 type FinanceBillRepo interface {
 	List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error)
 	Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceBill, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBill, error)
+	GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBillBatch, error)
 	LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
+	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent) (*FinanceBillBatch, error)
 	Update(ctx context.Context, organizationID uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
 	Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*FinanceBill, error)
 	Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
@@ -171,6 +242,104 @@ func (uc *FinanceBillUsecase) Get(ctx context.Context, organizationID, id uuid.U
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	return uc.repo.Get(ctx, organizationID, id)
+}
+
+func (uc *FinanceBillUsecase) PreviewBatch(ctx context.Context, organizationID uuid.UUID, input PreviewFinanceBillBatchInput) (*FinanceBillBatchPreview, error) {
+	feeIDs, err := normalizeFinanceBillFeeIDs(input.FeeIDs)
+	if err != nil || organizationID == uuid.Nil {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	fees, err := uc.repo.LoadBillableFees(ctx, organizationID, feeIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(fees) != len(feeIDs) {
+		return nil, ErrFinanceBillFeeInvalid
+	}
+	return BuildFinanceBillBatchPreview(organizationID, fees, input.GroupingPolicy)
+}
+
+func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput) (*FinanceBillBatch, error) {
+	feeIDs, err := normalizeFinanceBillFeeIDs(input.FeeIDs)
+	if err != nil || organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	input.FeeIDs = feeIDs
+	input.PreviewToken = strings.TrimSpace(input.PreviewToken)
+	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
+	if input.PreviewToken == "" || len(input.PreviewToken) != 64 || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || len(input.Groups) == 0 || len(input.Groups) > len(input.FeeIDs) {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	normalizedGroups, err := normalizeFinanceBillBatchGroups(input.Groups)
+	if err != nil {
+		return nil, err
+	}
+	input.Groups = normalizedGroups
+	requestHash := financeBillBatchRequestHash(input)
+	if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr != nil {
+		return nil, lookupErr
+	} else if existing != nil {
+		if existing.RequestHash == requestHash {
+			return existing, nil
+		}
+		return nil, ErrFinanceBillBatchConflict
+	}
+	fees, err := uc.repo.LoadBillableFees(ctx, organizationID, input.FeeIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(fees) != len(input.FeeIDs) {
+		return nil, ErrFinanceBillFeeInvalid
+	}
+	preview, err := BuildFinanceBillBatchPreview(organizationID, fees, input.GroupingPolicy)
+	if err != nil {
+		return nil, err
+	}
+	if preview.PreviewToken != input.PreviewToken {
+		return nil, ErrFinanceBillPreviewStale
+	}
+	groupInputs := make(map[string]CreateFinanceBillBatchGroupInput, len(input.Groups))
+	for _, group := range input.Groups {
+		groupInputs[group.GroupKey] = group
+	}
+	batchID := uuid.Must(uuid.NewV7())
+	batch := &FinanceBillBatch{ID: batchID, OrganizationID: organizationID, CreatedBy: actorID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash, GroupingPolicy: input.GroupingPolicy, FeeCount: len(input.FeeIDs), BillCount: len(preview.Groups), Bills: make([]*FinanceBill, 0, len(preview.Groups))}
+	for _, previewGroup := range preview.Groups {
+		groupInput, ok := groupInputs[previewGroup.GroupKey]
+		if !ok {
+			return nil, ErrFinanceBillBatchMismatch
+		}
+		delete(groupInputs, previewGroup.GroupKey)
+		billInput := CreateFinanceBillInput{FeeIDs: financeBillableFeeIDs(previewGroup.Fees), BillDate: groupInput.BillDate, DueDate: groupInput.DueDate, Note: groupInput.Note, StatementTitle: &groupInput.StatementTitle, PaymentTermsDays: groupInput.PaymentTermsDays, IdempotencyKey: financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey)}
+		billInput, err = normalizeCreateFinanceBill(billInput)
+		if err != nil {
+			return nil, err
+		}
+		bill, buildErr := buildFinanceBill(organizationID, previewGroup.Fees, billInput)
+		if buildErr != nil {
+			return nil, buildErr
+		}
+		bill.BatchID = &batchID
+		batch.Bills = append(batch.Bills, bill)
+		batch.TotalBaseAmount = batch.TotalBaseAmount.Add(bill.BaseCurrencyAmount)
+		if batch.BaseCurrency == "" {
+			batch.BaseCurrency = bill.BaseCurrency
+		} else if batch.BaseCurrency != bill.BaseCurrency {
+			return nil, ErrFinanceBillBatchMismatch
+		}
+	}
+	if len(groupInputs) != 0 {
+		return nil, ErrFinanceBillBatchMismatch
+	}
+	batch.TotalBaseAmount = batch.TotalBaseAmount.Round(8)
+	created, err := uc.repo.CreateBatch(ctx, batch, preview.PreviewToken, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"))
+	if err == nil {
+		return created, nil
+	}
+	if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr == nil && existing != nil && existing.RequestHash == requestHash {
+		return existing, nil
+	}
+	return nil, err
 }
 
 func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillInput) (*FinanceBill, error) {
@@ -218,7 +387,9 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationID, actorI
 	input.BillDate = strings.TrimSpace(input.BillDate)
 	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
 	input.Note = normalizedOptionalFinanceString(input.Note)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || (input.DueDate != nil && (!validFinanceDate(*input.DueDate) || *input.DueDate < input.BillDate)) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) {
+	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
+	input.DueDate = normalizedFinanceBillDueDate(input.BillDate, input.DueDate, input.PaymentTermsDays)
+	if organizationID == uuid.Nil || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	return uc.repo.Update(ctx, organizationID, input, financeBillAudit(organizationID, actorID, input.ID, "finance.bill.update"))
@@ -243,8 +414,10 @@ func normalizeCreateFinanceBill(input CreateFinanceBillInput) (CreateFinanceBill
 	input.BillDate = strings.TrimSpace(input.BillDate)
 	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
 	input.Note = normalizedOptionalFinanceString(input.Note)
+	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
+	input.DueDate = normalizedFinanceBillDueDate(input.BillDate, input.DueDate, input.PaymentTermsDays)
 	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	if len(input.FeeIDs) == 0 || len(input.FeeIDs) > 500 || !validFinanceDate(input.BillDate) || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || (input.DueDate != nil && (!validFinanceDate(*input.DueDate) || *input.DueDate < input.BillDate)) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) {
+	if len(input.FeeIDs) == 0 || len(input.FeeIDs) > 500 || !validFinanceDate(input.BillDate) || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return CreateFinanceBillInput{}, ErrFinanceBillInvalidArgument
 	}
 	seen := make(map[uuid.UUID]struct{}, len(input.FeeIDs))
@@ -274,8 +447,11 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		ID: billID, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey,
 		Direction: first.Fee.Direction, Status: FinanceBillDraft, SettlementPartyID: first.Fee.SettlementPartyID,
 		SettlementPartyName: first.Fee.SettlementPartyName, Currency: first.Fee.Currency, BaseCurrency: first.Fee.BaseCurrency,
-		BillDate: input.BillDate, DueDate: input.DueDate, Note: input.Note, Version: 1,
+		BillDate: input.BillDate, StatementTitle: input.StatementTitle, PaymentTermsDays: input.PaymentTermsDays, DueDate: input.DueDate, Note: input.Note, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(fees)),
+	}
+	if bill.StatementTitle == nil {
+		bill.StatementTitle = &bill.SettlementPartyName
 	}
 	for _, item := range fees {
 		if item == nil || item.Fee == nil || item.Fee.Status != OrderFeeConfirmed {
@@ -293,6 +469,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 			ID: uuid.Must(uuid.NewV7()), BillID: billID, OrderFeeID: fee.ID, OrderID: fee.OrderID,
 			OrderNo: item.OrderNo, BusinessType: item.BusinessType, FeeCode: fee.FeeCode, FeeName: fee.FeeName,
 			TotalAmount: fee.TotalAmount, NetAmount: fee.NetAmount, TaxAmount: fee.TaxAmount, Currency: fee.Currency,
+			TaxRate:      fee.TaxRate,
 			ExchangeRate: fee.ExchangeRate, BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount, Active: true,
 		})
 	}
@@ -301,7 +478,14 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 }
 
 func sameFinanceBillCreateIntent(existing *FinanceBill, requested CreateFinanceBillInput) bool {
-	if existing == nil || existing.BillDate != requested.BillDate || !stringPointersEqual(existing.DueDate, requested.DueDate) || !stringPointersEqual(existing.Note, requested.Note) || len(existing.Lines) != len(requested.FeeIDs) {
+	if existing == nil {
+		return false
+	}
+	requestedTitle := requested.StatementTitle
+	if requestedTitle == nil {
+		requestedTitle = &existing.SettlementPartyName
+	}
+	if existing.BillDate != requested.BillDate || !stringPointersEqual(existing.DueDate, requested.DueDate) || !stringPointersEqual(existing.Note, requested.Note) || !stringPointersEqual(existing.StatementTitle, requestedTitle) || !intPointersEqual(existing.PaymentTermsDays, requested.PaymentTermsDays) || len(existing.Lines) != len(requested.FeeIDs) {
 		return false
 	}
 	ids := make([]string, 0, len(existing.Lines))
@@ -315,6 +499,215 @@ func sameFinanceBillCreateIntent(existing *FinanceBill, requested CreateFinanceB
 		}
 	}
 	return true
+}
+
+func normalizeFinanceBillFeeIDs(ids []uuid.UUID) ([]uuid.UUID, error) {
+	if len(ids) == 0 || len(ids) > 500 {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	result := append([]uuid.UUID(nil), ids...)
+	seen := make(map[uuid.UUID]struct{}, len(result))
+	for _, id := range result {
+		if id == uuid.Nil {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+		if _, exists := seen[id]; exists {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+		seen[id] = struct{}{}
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].String() < result[j].String() })
+	return result, nil
+}
+
+func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) ([]CreateFinanceBillBatchGroupInput, error) {
+	result := make([]CreateFinanceBillBatchGroupInput, 0, len(groups))
+	seen := make(map[string]struct{}, len(groups))
+	for _, item := range groups {
+		item.GroupKey = strings.TrimSpace(item.GroupKey)
+		item.StatementTitle = strings.TrimSpace(item.StatementTitle)
+		item.BillDate = strings.TrimSpace(item.BillDate)
+		item.DueDate = normalizedOptionalFinanceString(item.DueDate)
+		item.Note = normalizedOptionalFinanceString(item.Note)
+		item.DueDate = normalizedFinanceBillDueDate(item.BillDate, item.DueDate, item.PaymentTermsDays)
+		if item.GroupKey == "" || len(item.GroupKey) != 64 || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+		if _, exists := seen[item.GroupKey]; exists {
+			return nil, ErrFinanceBillBatchMismatch
+		}
+		seen[item.GroupKey] = struct{}{}
+		result = append(result, item)
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].GroupKey < result[j].GroupKey })
+	return result, nil
+}
+
+func validFinanceBillTerms(billDate string, dueDate *string, paymentTermsDays *int) bool {
+	if paymentTermsDays != nil && (*paymentTermsDays < 0 || *paymentTermsDays > 3650) {
+		return false
+	}
+	if dueDate != nil && (!validFinanceDate(*dueDate) || *dueDate < billDate) {
+		return false
+	}
+	if paymentTermsDays == nil {
+		return true
+	}
+	parsed, err := time.Parse("2006-01-02", billDate)
+	if err != nil {
+		return false
+	}
+	expected := parsed.AddDate(0, 0, *paymentTermsDays).Format("2006-01-02")
+	return dueDate == nil || *dueDate == expected
+}
+
+func normalizedFinanceBillDueDate(billDate string, dueDate *string, paymentTermsDays *int) *string {
+	if dueDate != nil || paymentTermsDays == nil {
+		return dueDate
+	}
+	parsed, err := time.Parse("2006-01-02", billDate)
+	if err != nil {
+		return dueDate
+	}
+	value := parsed.AddDate(0, 0, *paymentTermsDays).Format("2006-01-02")
+	return &value
+}
+
+func intPointersEqual(left, right *int) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
+}
+
+// BuildFinanceBillBatchPreview 按固定结算维度和可选策略生成确定性的服务端拆单预览。
+func BuildFinanceBillBatchPreview(organizationID uuid.UUID, fees []*FinanceBillableFee, policy FinanceBillGroupingPolicy) (*FinanceBillBatchPreview, error) {
+	if organizationID == uuid.Nil || len(fees) == 0 || len(fees) > 500 {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	ordered := append([]*FinanceBillableFee(nil), fees...)
+	for _, item := range ordered {
+		if item == nil || item.Fee == nil || item.Fee.ID == uuid.Nil || item.Fee.OrderID == uuid.Nil || item.Fee.Status != OrderFeeConfirmed || item.Fee.TaxRate == nil || !financeBillCurrencyPattern.MatchString(item.Fee.Currency) || !financeBillCurrencyPattern.MatchString(item.Fee.BaseCurrency) {
+			return nil, ErrFinanceBillFeeInvalid
+		}
+	}
+	sort.Slice(ordered, func(i, j int) bool {
+		return ordered[i].Fee.ID.String() < ordered[j].Fee.ID.String()
+	})
+	groupsByRawKey := make(map[string]*FinanceBillBatchPreviewGroup)
+	rawKeys := make([]string, 0)
+	tokenSource := strings.Builder{}
+	writeFinanceHashParts(&tokenSource, organizationID.String(), strconv.FormatBool(policy.SplitByOrder), strconv.FormatBool(policy.SplitByTaxRate))
+	seen := make(map[uuid.UUID]struct{}, len(ordered))
+	for _, item := range ordered {
+		fee := item.Fee
+		if _, exists := seen[fee.ID]; exists {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+		seen[fee.ID] = struct{}{}
+		taxRate := fee.TaxRate.StringFixed(4)
+		parts := []string{string(fee.Direction), fee.SettlementPartyID.String(), fee.Currency, fee.BaseCurrency}
+		if policy.SplitByOrder {
+			parts = append(parts, fee.OrderID.String())
+		}
+		if policy.SplitByTaxRate {
+			parts = append(parts, taxRate)
+		}
+		rawKey := strings.Join(parts, "\x00")
+		group := groupsByRawKey[rawKey]
+		if group == nil {
+			group = &FinanceBillBatchPreviewGroup{GroupKey: financeSHA256(rawKey), Direction: fee.Direction, SettlementPartyID: fee.SettlementPartyID, SettlementPartyName: fee.SettlementPartyName, Currency: fee.Currency, BaseCurrency: fee.BaseCurrency, Fees: make([]*FinanceBillableFee, 0)}
+			if policy.SplitByOrder {
+				orderID, orderNo := fee.OrderID, item.OrderNo
+				group.OrderID, group.OrderNo = &orderID, &orderNo
+			}
+			if policy.SplitByTaxRate {
+				rate := *fee.TaxRate
+				group.TaxRate = &rate
+			}
+			groupsByRawKey[rawKey] = group
+			rawKeys = append(rawKeys, rawKey)
+		}
+		group.Fees = append(group.Fees, item)
+		group.TotalAmount = group.TotalAmount.Add(fee.TotalAmount)
+		group.NetAmount = group.NetAmount.Add(fee.NetAmount)
+		group.TaxAmount = group.TaxAmount.Add(fee.TaxAmount)
+		group.BaseCurrencyAmount = group.BaseCurrencyAmount.Add(fee.BaseCurrencyAmount)
+		writeFinanceHashParts(
+			&tokenSource,
+			fee.ID.String(), fee.OrderID.String(), item.OrderNo, item.BusinessType,
+			strconv.FormatUint(fee.Version, 10), string(fee.Status), string(fee.Direction),
+			fee.SettlementPartyID.String(), fee.SettlementPartyName, fee.FeeCode, fee.FeeName,
+			fee.Currency, fee.BaseCurrency, fee.TotalAmount.StringFixed(8), fee.NetAmount.StringFixed(8),
+			fee.TaxAmount.StringFixed(8), taxRate, fee.ExchangeRate.StringFixed(8), fee.BaseCurrencyAmount.StringFixed(8),
+		)
+	}
+	sort.Strings(rawKeys)
+	result := &FinanceBillBatchPreview{Groups: make([]*FinanceBillBatchPreviewGroup, 0, len(rawKeys)), PreviewToken: financeSHA256(tokenSource.String())}
+	for _, rawKey := range rawKeys {
+		group := groupsByRawKey[rawKey]
+		group.TotalAmount = group.TotalAmount.Round(8)
+		group.NetAmount = group.NetAmount.Round(8)
+		group.TaxAmount = group.TaxAmount.Round(8)
+		group.BaseCurrencyAmount = group.BaseCurrencyAmount.Round(8)
+		result.Groups = append(result.Groups, group)
+	}
+	return result, nil
+}
+
+func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
+	builder := strings.Builder{}
+	writeFinanceHashParts(&builder, input.PreviewToken, strconv.FormatBool(input.GroupingPolicy.SplitByOrder), strconv.FormatBool(input.GroupingPolicy.SplitByTaxRate))
+	for _, id := range input.FeeIDs {
+		writeFinanceHashParts(&builder, id.String())
+	}
+	for _, group := range input.Groups {
+		dueDate := ""
+		if group.DueDate != nil {
+			dueDate = *group.DueDate
+		}
+		paymentTermsDays := ""
+		if group.PaymentTermsDays != nil {
+			paymentTermsDays = strconv.Itoa(*group.PaymentTermsDays)
+		}
+		note := ""
+		if group.Note != nil {
+			note = *group.Note
+		}
+		writeFinanceHashParts(&builder, group.GroupKey, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note)
+	}
+	return financeSHA256(builder.String())
+}
+
+func financeBillBatchBillKey(batchKey, groupKey string) string {
+	builder := strings.Builder{}
+	writeFinanceHashParts(&builder, batchKey, groupKey)
+	return "batch-bill:" + financeSHA256(builder.String())
+}
+
+func financeSHA256(value string) string {
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])
+}
+
+func writeFinanceHashParts(builder *strings.Builder, values ...string) {
+	for _, value := range values {
+		builder.WriteString(strconv.Itoa(len(value)))
+		builder.WriteByte(':')
+		builder.WriteString(value)
+	}
+}
+
+func financeBillableFeeIDs(fees []*FinanceBillableFee) []uuid.UUID {
+	result := make([]uuid.UUID, 0, len(fees))
+	for _, item := range fees {
+		result = append(result, item.Fee.ID)
+	}
+	return result
+}
+
+func financeBillBatchAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
+	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_bill_batch", ResourceID: id.String(), Details: map[string]string{"finance_bill_batch.id": id.String()}}
 }
 
 func validFinanceDate(value string) bool {

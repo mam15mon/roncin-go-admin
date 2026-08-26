@@ -53,6 +53,8 @@ const (
 	EdgeConfirmedFinanceBills = "confirmed_finance_bills"
 	// EdgeCancelledFinanceBills holds the string denoting the cancelled_finance_bills edge name in mutations.
 	EdgeCancelledFinanceBills = "cancelled_finance_bills"
+	// EdgeCreatedFinanceBillBatches holds the string denoting the created_finance_bill_batches edge name in mutations.
+	EdgeCreatedFinanceBillBatches = "created_finance_bill_batches"
 	// EdgeIssuedFinanceInvoices holds the string denoting the issued_finance_invoices edge name in mutations.
 	EdgeIssuedFinanceInvoices = "issued_finance_invoices"
 	// EdgeCancelledFinanceInvoices holds the string denoting the cancelled_finance_invoices edge name in mutations.
@@ -124,6 +126,13 @@ const (
 	CancelledFinanceBillsInverseTable = "finance_bills"
 	// CancelledFinanceBillsColumn is the table column denoting the cancelled_finance_bills relation/edge.
 	CancelledFinanceBillsColumn = "cancelled_by"
+	// CreatedFinanceBillBatchesTable is the table that holds the created_finance_bill_batches relation/edge.
+	CreatedFinanceBillBatchesTable = "finance_bill_batches"
+	// CreatedFinanceBillBatchesInverseTable is the table name for the FinanceBillBatch entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillbatch" package.
+	CreatedFinanceBillBatchesInverseTable = "finance_bill_batches"
+	// CreatedFinanceBillBatchesColumn is the table column denoting the created_finance_bill_batches relation/edge.
+	CreatedFinanceBillBatchesColumn = "created_by"
 	// IssuedFinanceInvoicesTable is the table that holds the issued_finance_invoices relation/edge.
 	IssuedFinanceInvoicesTable = "finance_invoices"
 	// IssuedFinanceInvoicesInverseTable is the table name for the FinanceInvoice entity.
@@ -418,6 +427,20 @@ func ByCancelledFinanceBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 	}
 }
 
+// ByCreatedFinanceBillBatchesCount orders the results by created_finance_bill_batches count.
+func ByCreatedFinanceBillBatchesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedFinanceBillBatchesStep(), opts...)
+	}
+}
+
+// ByCreatedFinanceBillBatches orders the results by created_finance_bill_batches terms.
+func ByCreatedFinanceBillBatches(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedFinanceBillBatchesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByIssuedFinanceInvoicesCount orders the results by issued_finance_invoices count.
 func ByIssuedFinanceInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -604,6 +627,13 @@ func newCancelledFinanceBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceBillsTable, CancelledFinanceBillsColumn),
+	)
+}
+func newCreatedFinanceBillBatchesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedFinanceBillBatchesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedFinanceBillBatchesTable, CreatedFinanceBillBatchesColumn),
 	)
 }
 func newIssuedFinanceInvoicesStep() *sqlgraph.Step {

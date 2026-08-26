@@ -113,6 +113,7 @@ func TestDefaultNumberRules(t *testing.T) {
 	want := []NumberRule{
 		{DocumentType: DocumentTypeOrder, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeBillBatch, Prefix: "BG", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeQuotation, Prefix: "QO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeWriteOff, Prefix: "WO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeReceiptPayment, Prefix: "PR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},

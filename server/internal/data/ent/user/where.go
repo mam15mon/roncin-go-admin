@@ -1022,6 +1022,29 @@ func HasCancelledFinanceBillsWith(preds ...predicate.FinanceBill) predicate.User
 	})
 }
 
+// HasCreatedFinanceBillBatches applies the HasEdge predicate on the "created_finance_bill_batches" edge.
+func HasCreatedFinanceBillBatches() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedFinanceBillBatchesTable, CreatedFinanceBillBatchesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedFinanceBillBatchesWith applies the HasEdge predicate on the "created_finance_bill_batches" edge with a given conditions (other predicates).
+func HasCreatedFinanceBillBatchesWith(preds ...predicate.FinanceBillBatch) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedFinanceBillBatchesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasIssuedFinanceInvoices applies the HasEdge predicate on the "issued_finance_invoices" edge.
 func HasIssuedFinanceInvoices() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

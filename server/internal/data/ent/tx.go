@@ -34,6 +34,8 @@ type Tx struct {
 	FeeSetting *FeeSettingClient
 	// FinanceBill is the client for interacting with the FinanceBill builders.
 	FinanceBill *FinanceBillClient
+	// FinanceBillBatch is the client for interacting with the FinanceBillBatch builders.
+	FinanceBillBatch *FinanceBillBatchClient
 	// FinanceBillLine is the client for interacting with the FinanceBillLine builders.
 	FinanceBillLine *FinanceBillLineClient
 	// FinanceCashflow is the client for interacting with the FinanceCashflow builders.
@@ -284,6 +286,7 @@ func (tx *Tx) init() {
 	tx.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.FinanceBill = NewFinanceBillClient(tx.config)
+	tx.FinanceBillBatch = NewFinanceBillBatchClient(tx.config)
 	tx.FinanceBillLine = NewFinanceBillLineClient(tx.config)
 	tx.FinanceCashflow = NewFinanceCashflowClient(tx.config)
 	tx.FinanceCommission = NewFinanceCommissionClient(tx.config)

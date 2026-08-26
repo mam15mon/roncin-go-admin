@@ -106,6 +106,20 @@ func (_c *FinanceBillLineCreate) SetTaxAmount(v string) *FinanceBillLineCreate {
 	return _c
 }
 
+// SetTaxRate sets the "tax_rate" field.
+func (_c *FinanceBillLineCreate) SetTaxRate(v string) *FinanceBillLineCreate {
+	_c.mutation.SetTaxRate(v)
+	return _c
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_c *FinanceBillLineCreate) SetNillableTaxRate(v *string) *FinanceBillLineCreate {
+	if v != nil {
+		_c.SetTaxRate(*v)
+	}
+	return _c
+}
+
 // SetCurrency sets the "currency" field.
 func (_c *FinanceBillLineCreate) SetCurrency(v string) *FinanceBillLineCreate {
 	_c.mutation.SetCurrency(v)
@@ -376,6 +390,10 @@ func (_c *FinanceBillLineCreate) createSpec() (*FinanceBillLine, *sqlgraph.Creat
 	if value, ok := _c.mutation.TaxAmount(); ok {
 		_spec.SetField(financebillline.FieldTaxAmount, field.TypeString, value)
 		_node.TaxAmount = value
+	}
+	if value, ok := _c.mutation.TaxRate(); ok {
+		_spec.SetField(financebillline.FieldTaxRate, field.TypeString, value)
+		_node.TaxRate = &value
 	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financebillline.FieldCurrency, field.TypeString, value)

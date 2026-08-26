@@ -28,6 +28,7 @@ type DocumentType string
 const (
 	DocumentTypeOrder             DocumentType = "order"
 	DocumentTypeBill              DocumentType = "bill"
+	DocumentTypeBillBatch         DocumentType = "bill_batch"
 	DocumentTypeQuotation         DocumentType = "quotation"
 	DocumentTypeWriteOff          DocumentType = "write_off"
 	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
@@ -42,7 +43,7 @@ const (
 
 func (value DocumentType) Valid() bool {
 	switch value {
-	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeQuotation, DocumentTypeWriteOff,
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeQuotation, DocumentTypeWriteOff,
 		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference,
 		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeInvoice,
 		DocumentTypeFreightRate, DocumentTypeCommission:
@@ -115,6 +116,7 @@ func DefaultNumberRules() []NumberRule {
 	return []NumberRule{
 		{DocumentType: DocumentTypeOrder, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
+		{DocumentType: DocumentTypeBillBatch, Prefix: "BG", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeQuotation, Prefix: "QO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeWriteOff, Prefix: "WO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeReceiptPayment, Prefix: "PR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
@@ -289,11 +291,19 @@ func (uc *OrderConfigUsecase) nextNumber(ctx context.Context, organizationID uui
 	if err != nil {
 		return "", err
 	}
+	return FormatAllocatedNumber(now, rule, sequence, businessCode)
+}
+
+// FormatAllocatedNumber 使用已锁定分配的序列值生成最终单据编号。
+func FormatAllocatedNumber(at time.Time, rule *NumberRule, sequence int64, businessCode string) (string, error) {
+	if rule == nil || sequence < 1 || rule.SequenceLength < 1 {
+		return "", ErrMasterDataInvalidArgument
+	}
 	sequenceText := strconv.FormatInt(sequence, 10)
 	if len(sequenceText) > rule.SequenceLength {
 		return "", ErrNumberSequenceExhausted
 	}
-	return rule.Prefix + businessCode + formatNumberDate(now, rule.DateFormat) + fmt.Sprintf("%0*d", rule.SequenceLength, sequence), nil
+	return rule.Prefix + businessCode + formatNumberDate(at.UTC(), rule.DateFormat) + fmt.Sprintf("%0*d", rule.SequenceLength, sequence), nil
 }
 
 func (uc *OrderConfigUsecase) NextOrderNumber(ctx context.Context, organizationID uuid.UUID, businessType OrderBusinessType) (string, error) {

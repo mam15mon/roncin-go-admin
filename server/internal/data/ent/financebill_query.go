@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -32,6 +33,7 @@ type FinanceBillQuery struct {
 	inters                      []Interceptor
 	predicates                  []predicate.FinanceBill
 	withOrganization            *OrganizationQuery
+	withBatch                   *FinanceBillBatchQuery
 	withSettlementParty         *PartnerQuery
 	withConfirmedByUser         *UserQuery
 	withCancelledByUser         *UserQuery
@@ -90,6 +92,28 @@ func (_q *FinanceBillQuery) QueryOrganization() *OrganizationQuery {
 			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
 			sqlgraph.To(organization.Table, organization.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financebill.OrganizationTable, financebill.OrganizationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryBatch chains the current query on the "batch" edge.
+func (_q *FinanceBillQuery) QueryBatch() *FinanceBillBatchQuery {
+	query := (&FinanceBillBatchClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financebillbatch.Table, financebillbatch.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financebill.BatchTable, financebill.BatchColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -422,6 +446,7 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		inters:                      append([]Interceptor{}, _q.inters...),
 		predicates:                  append([]predicate.FinanceBill{}, _q.predicates...),
 		withOrganization:            _q.withOrganization.Clone(),
+		withBatch:                   _q.withBatch.Clone(),
 		withSettlementParty:         _q.withSettlementParty.Clone(),
 		withConfirmedByUser:         _q.withConfirmedByUser.Clone(),
 		withCancelledByUser:         _q.withCancelledByUser.Clone(),
@@ -442,6 +467,17 @@ func (_q *FinanceBillQuery) WithOrganization(opts ...func(*OrganizationQuery)) *
 		opt(query)
 	}
 	_q.withOrganization = query
+	return _q
+}
+
+// WithBatch tells the query-builder to eager-load the nodes that are connected to
+// the "batch" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithBatch(opts ...func(*FinanceBillBatchQuery)) *FinanceBillQuery {
+	query := (&FinanceBillBatchClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBatch = query
 	return _q
 }
 
@@ -589,8 +625,9 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
+			_q.withBatch != nil,
 			_q.withSettlementParty != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withCancelledByUser != nil,
@@ -623,6 +660,12 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
 			func(n *FinanceBill, e *Organization) { n.Edges.Organization = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBatch; query != nil {
+		if err := _q.loadBatch(ctx, query, nodes, nil,
+			func(n *FinanceBill, e *FinanceBillBatch) { n.Edges.Batch = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -692,6 +735,38 @@ func (_q *FinanceBillQuery) loadOrganization(ctx context.Context, query *Organiz
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadBatch(ctx context.Context, query *FinanceBillBatchQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceBillBatch)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceBill)
+	for i := range nodes {
+		if nodes[i].BatchID == nil {
+			continue
+		}
+		fk := *nodes[i].BatchID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(financebillbatch.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "batch_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -913,6 +988,9 @@ func (_q *FinanceBillQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withOrganization != nil {
 			_spec.Node.AddColumnOnce(financebill.FieldOrganizationID)
+		}
+		if _q.withBatch != nil {
+			_spec.Node.AddColumnOnce(financebill.FieldBatchID)
 		}
 		if _q.withSettlementParty != nil {
 			_spec.Node.AddColumnOnce(financebill.FieldSettlementPartyID)

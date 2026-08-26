@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -42,6 +43,7 @@ type UserQuery struct {
 	withCancelledOrderFees           *OrderFeeQuery
 	withConfirmedFinanceBills        *FinanceBillQuery
 	withCancelledFinanceBills        *FinanceBillQuery
+	withCreatedFinanceBillBatches    *FinanceBillBatchQuery
 	withIssuedFinanceInvoices        *FinanceInvoiceQuery
 	withCancelledFinanceInvoices     *FinanceInvoiceQuery
 	withRedFlushedFinanceInvoices    *FinanceInvoiceQuery
@@ -236,6 +238,28 @@ func (_q *UserQuery) QueryCancelledFinanceBills() *FinanceBillQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(financebill.Table, financebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceBillsTable, user.CancelledFinanceBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedFinanceBillBatches chains the current query on the "created_finance_bill_batches" edge.
+func (_q *UserQuery) QueryCreatedFinanceBillBatches() *FinanceBillBatchQuery {
+	query := (&FinanceBillBatchClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financebillbatch.Table, financebillbatch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedFinanceBillBatchesTable, user.CreatedFinanceBillBatchesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -662,6 +686,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCancelledOrderFees:           _q.withCancelledOrderFees.Clone(),
 		withConfirmedFinanceBills:        _q.withConfirmedFinanceBills.Clone(),
 		withCancelledFinanceBills:        _q.withCancelledFinanceBills.Clone(),
+		withCreatedFinanceBillBatches:    _q.withCreatedFinanceBillBatches.Clone(),
 		withIssuedFinanceInvoices:        _q.withIssuedFinanceInvoices.Clone(),
 		withCancelledFinanceInvoices:     _q.withCancelledFinanceInvoices.Clone(),
 		withRedFlushedFinanceInvoices:    _q.withRedFlushedFinanceInvoices.Clone(),
@@ -752,6 +777,17 @@ func (_q *UserQuery) WithCancelledFinanceBills(opts ...func(*FinanceBillQuery)) 
 		opt(query)
 	}
 	_q.withCancelledFinanceBills = query
+	return _q
+}
+
+// WithCreatedFinanceBillBatches tells the query-builder to eager-load the nodes that are connected to
+// the "created_finance_bill_batches" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedFinanceBillBatches(opts ...func(*FinanceBillBatchQuery)) *UserQuery {
+	query := (&FinanceBillBatchClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedFinanceBillBatches = query
 	return _q
 }
 
@@ -943,7 +979,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [17]bool{
+		loadedTypes = [18]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -951,6 +987,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCancelledOrderFees != nil,
 			_q.withConfirmedFinanceBills != nil,
 			_q.withCancelledFinanceBills != nil,
+			_q.withCreatedFinanceBillBatches != nil,
 			_q.withIssuedFinanceInvoices != nil,
 			_q.withCancelledFinanceInvoices != nil,
 			_q.withRedFlushedFinanceInvoices != nil,
@@ -1035,6 +1072,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceBills = []*FinanceBill{} },
 			func(n *User, e *FinanceBill) {
 				n.Edges.CancelledFinanceBills = append(n.Edges.CancelledFinanceBills, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedFinanceBillBatches; query != nil {
+		if err := _q.loadCreatedFinanceBillBatches(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedFinanceBillBatches = []*FinanceBillBatch{} },
+			func(n *User, e *FinanceBillBatch) {
+				n.Edges.CreatedFinanceBillBatches = append(n.Edges.CreatedFinanceBillBatches, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1346,6 +1392,36 @@ func (_q *UserQuery) loadCancelledFinanceBills(ctx context.Context, query *Finan
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedFinanceBillBatches(ctx context.Context, query *FinanceBillBatchQuery, nodes []*User, init func(*User), assign func(*User, *FinanceBillBatch)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebillbatch.FieldCreatedBy)
+	}
+	query.Where(predicate.FinanceBillBatch(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedFinanceBillBatchesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

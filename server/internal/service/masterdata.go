@@ -816,6 +816,8 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 		return biz.DocumentTypeOrder
 	case v1.DocumentType_DOCUMENT_TYPE_BILL:
 		return biz.DocumentTypeBill
+	case v1.DocumentType_DOCUMENT_TYPE_BILL_BATCH:
+		return biz.DocumentTypeBillBatch
 	case v1.DocumentType_DOCUMENT_TYPE_QUOTATION:
 		return biz.DocumentTypeQuotation
 	case v1.DocumentType_DOCUMENT_TYPE_WRITE_OFF:
@@ -847,6 +849,8 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 		return v1.DocumentType_DOCUMENT_TYPE_ORDER
 	case biz.DocumentTypeBill:
 		return v1.DocumentType_DOCUMENT_TYPE_BILL
+	case biz.DocumentTypeBillBatch:
+		return v1.DocumentType_DOCUMENT_TYPE_BILL_BATCH
 	case biz.DocumentTypeQuotation:
 		return v1.DocumentType_DOCUMENT_TYPE_QUOTATION
 	case biz.DocumentTypeWriteOff:

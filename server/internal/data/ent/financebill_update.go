@@ -67,6 +67,53 @@ func (_u *FinanceBillUpdate) SetNillableBillDate(v *string) *FinanceBillUpdate {
 	return _u
 }
 
+// SetStatementTitle sets the "statement_title" field.
+func (_u *FinanceBillUpdate) SetStatementTitle(v string) *FinanceBillUpdate {
+	_u.mutation.SetStatementTitle(v)
+	return _u
+}
+
+// SetNillableStatementTitle sets the "statement_title" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillableStatementTitle(v *string) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetStatementTitle(*v)
+	}
+	return _u
+}
+
+// ClearStatementTitle clears the value of the "statement_title" field.
+func (_u *FinanceBillUpdate) ClearStatementTitle() *FinanceBillUpdate {
+	_u.mutation.ClearStatementTitle()
+	return _u
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_u *FinanceBillUpdate) SetPaymentTermsDays(v int) *FinanceBillUpdate {
+	_u.mutation.ResetPaymentTermsDays()
+	_u.mutation.SetPaymentTermsDays(v)
+	return _u
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillablePaymentTermsDays(v *int) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetPaymentTermsDays(*v)
+	}
+	return _u
+}
+
+// AddPaymentTermsDays adds value to the "payment_terms_days" field.
+func (_u *FinanceBillUpdate) AddPaymentTermsDays(v int) *FinanceBillUpdate {
+	_u.mutation.AddPaymentTermsDays(v)
+	return _u
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (_u *FinanceBillUpdate) ClearPaymentTermsDays() *FinanceBillUpdate {
+	_u.mutation.ClearPaymentTermsDays()
+	return _u
+}
+
 // SetDueDate sets the "due_date" field.
 func (_u *FinanceBillUpdate) SetDueDate(v string) *FinanceBillUpdate {
 	_u.mutation.SetDueDate(v)
@@ -439,6 +486,16 @@ func (_u *FinanceBillUpdate) check() error {
 			return &ValidationError{Name: "bill_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.bill_date": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.StatementTitle(); ok {
+		if err := financebill.StatementTitleValidator(v); err != nil {
+			return &ValidationError{Name: "statement_title", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.statement_title": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PaymentTermsDays(); ok {
+		if err := financebill.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.payment_terms_days": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DueDate(); ok {
 		if err := financebill.DueDateValidator(v); err != nil {
 			return &ValidationError{Name: "due_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.due_date": %w`, err)}
@@ -483,6 +540,21 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.BillDate(); ok {
 		_spec.SetField(financebill.FieldBillDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StatementTitle(); ok {
+		_spec.SetField(financebill.FieldStatementTitle, field.TypeString, value)
+	}
+	if _u.mutation.StatementTitleCleared() {
+		_spec.ClearField(financebill.FieldStatementTitle, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(financebill.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentTermsDays(); ok {
+		_spec.AddField(financebill.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentTermsDaysCleared() {
+		_spec.ClearField(financebill.FieldPaymentTermsDays, field.TypeInt)
 	}
 	if value, ok := _u.mutation.DueDate(); ok {
 		_spec.SetField(financebill.FieldDueDate, field.TypeString, value)
@@ -764,6 +836,53 @@ func (_u *FinanceBillUpdateOne) SetNillableBillDate(v *string) *FinanceBillUpdat
 	if v != nil {
 		_u.SetBillDate(*v)
 	}
+	return _u
+}
+
+// SetStatementTitle sets the "statement_title" field.
+func (_u *FinanceBillUpdateOne) SetStatementTitle(v string) *FinanceBillUpdateOne {
+	_u.mutation.SetStatementTitle(v)
+	return _u
+}
+
+// SetNillableStatementTitle sets the "statement_title" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillableStatementTitle(v *string) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetStatementTitle(*v)
+	}
+	return _u
+}
+
+// ClearStatementTitle clears the value of the "statement_title" field.
+func (_u *FinanceBillUpdateOne) ClearStatementTitle() *FinanceBillUpdateOne {
+	_u.mutation.ClearStatementTitle()
+	return _u
+}
+
+// SetPaymentTermsDays sets the "payment_terms_days" field.
+func (_u *FinanceBillUpdateOne) SetPaymentTermsDays(v int) *FinanceBillUpdateOne {
+	_u.mutation.ResetPaymentTermsDays()
+	_u.mutation.SetPaymentTermsDays(v)
+	return _u
+}
+
+// SetNillablePaymentTermsDays sets the "payment_terms_days" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillablePaymentTermsDays(v *int) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetPaymentTermsDays(*v)
+	}
+	return _u
+}
+
+// AddPaymentTermsDays adds value to the "payment_terms_days" field.
+func (_u *FinanceBillUpdateOne) AddPaymentTermsDays(v int) *FinanceBillUpdateOne {
+	_u.mutation.AddPaymentTermsDays(v)
+	return _u
+}
+
+// ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
+func (_u *FinanceBillUpdateOne) ClearPaymentTermsDays() *FinanceBillUpdateOne {
+	_u.mutation.ClearPaymentTermsDays()
 	return _u
 }
 
@@ -1152,6 +1271,16 @@ func (_u *FinanceBillUpdateOne) check() error {
 			return &ValidationError{Name: "bill_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.bill_date": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.StatementTitle(); ok {
+		if err := financebill.StatementTitleValidator(v); err != nil {
+			return &ValidationError{Name: "statement_title", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.statement_title": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PaymentTermsDays(); ok {
+		if err := financebill.PaymentTermsDaysValidator(v); err != nil {
+			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.payment_terms_days": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DueDate(); ok {
 		if err := financebill.DueDateValidator(v); err != nil {
 			return &ValidationError{Name: "due_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.due_date": %w`, err)}
@@ -1213,6 +1342,21 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 	}
 	if value, ok := _u.mutation.BillDate(); ok {
 		_spec.SetField(financebill.FieldBillDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StatementTitle(); ok {
+		_spec.SetField(financebill.FieldStatementTitle, field.TypeString, value)
+	}
+	if _u.mutation.StatementTitleCleared() {
+		_spec.ClearField(financebill.FieldStatementTitle, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentTermsDays(); ok {
+		_spec.SetField(financebill.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentTermsDays(); ok {
+		_spec.AddField(financebill.FieldPaymentTermsDays, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentTermsDaysCleared() {
+		_spec.ClearField(financebill.FieldPaymentTermsDays, field.TypeInt)
 	}
 	if value, ok := _u.mutation.DueDate(); ok {
 		_spec.SetField(financebill.FieldDueDate, field.TypeString, value)

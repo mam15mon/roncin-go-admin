@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
@@ -478,6 +479,21 @@ func (_u *OrganizationUpdate) AddFinanceBills(v ...*FinanceBill) *OrganizationUp
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceBillIDs(ids...)
+}
+
+// AddFinanceBillBatchIDs adds the "finance_bill_batches" edge to the FinanceBillBatch entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceBillBatchIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceBillBatchIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillBatches adds the "finance_bill_batches" edges to the FinanceBillBatch entity.
+func (_u *OrganizationUpdate) AddFinanceBillBatches(v ...*FinanceBillBatch) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillBatchIDs(ids...)
 }
 
 // AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
@@ -1047,6 +1063,27 @@ func (_u *OrganizationUpdate) RemoveFinanceBills(v ...*FinanceBill) *Organizatio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillIDs(ids...)
+}
+
+// ClearFinanceBillBatches clears all "finance_bill_batches" edges to the FinanceBillBatch entity.
+func (_u *OrganizationUpdate) ClearFinanceBillBatches() *OrganizationUpdate {
+	_u.mutation.ClearFinanceBillBatches()
+	return _u
+}
+
+// RemoveFinanceBillBatchIDs removes the "finance_bill_batches" edge to FinanceBillBatch entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceBillBatchIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceBillBatchIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillBatches removes "finance_bill_batches" edges to FinanceBillBatch entities.
+func (_u *OrganizationUpdate) RemoveFinanceBillBatches(v ...*FinanceBillBatch) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillBatchIDs(ids...)
 }
 
 // ClearFinanceInvoices clears all "finance_invoices" edges to the FinanceInvoice entity.
@@ -2296,6 +2333,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceBillBatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillBatchesIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillBatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillBatchesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.FinanceInvoicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2965,6 +3047,21 @@ func (_u *OrganizationUpdateOne) AddFinanceBills(v ...*FinanceBill) *Organizatio
 	return _u.AddFinanceBillIDs(ids...)
 }
 
+// AddFinanceBillBatchIDs adds the "finance_bill_batches" edge to the FinanceBillBatch entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceBillBatchIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceBillBatchIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillBatches adds the "finance_bill_batches" edges to the FinanceBillBatch entity.
+func (_u *OrganizationUpdateOne) AddFinanceBillBatches(v ...*FinanceBillBatch) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillBatchIDs(ids...)
+}
+
 // AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
 func (_u *OrganizationUpdateOne) AddFinanceInvoiceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddFinanceInvoiceIDs(ids...)
@@ -3532,6 +3629,27 @@ func (_u *OrganizationUpdateOne) RemoveFinanceBills(v ...*FinanceBill) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillIDs(ids...)
+}
+
+// ClearFinanceBillBatches clears all "finance_bill_batches" edges to the FinanceBillBatch entity.
+func (_u *OrganizationUpdateOne) ClearFinanceBillBatches() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceBillBatches()
+	return _u
+}
+
+// RemoveFinanceBillBatchIDs removes the "finance_bill_batches" edge to FinanceBillBatch entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceBillBatchIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceBillBatchIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillBatches removes "finance_bill_batches" edges to FinanceBillBatch entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceBillBatches(v ...*FinanceBillBatch) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillBatchIDs(ids...)
 }
 
 // ClearFinanceInvoices clears all "finance_invoices" edges to the FinanceInvoice entity.
@@ -4804,6 +4922,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceBillBatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillBatchesIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillBatchesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillBatchesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillBatchesTable,
+			Columns: []string{organization.FinanceBillBatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

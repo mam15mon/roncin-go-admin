@@ -68,6 +68,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8),
 			ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
+			TaxRate: financeDecimalPointer(fee.TaxRate, 4),
 		})
 	}
 	return &v1.ListFeeLedgerResponse{
@@ -137,12 +138,59 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 		feeIDs = append(feeIDs, id)
 	}
 	item, err := s.billUsecase.Create(ctx, principal.Organization.ID, principal.UserID, biz.CreateFinanceBillInput{
-		FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, IdempotencyKey: request.GetIdempotencyKey(),
+		FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(),
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &v1.CreateBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.PreviewBillBatchRequest) (*v1.PreviewBillBatchResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	feeIDs, err := financeUUIDs(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil || request.GetGroupingPolicy() == nil {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	preview, err := s.billUsecase.PreviewBatch(ctx, principal.Organization.ID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy())})
+	if err != nil {
+		return nil, err
+	}
+	groups := make([]*v1.BillBatchPreviewGroup, 0, len(preview.Groups))
+	for _, group := range preview.Groups {
+		fees := make([]*v1.FeeLedgerItem, 0, len(group.Fees))
+		for _, item := range group.Fees {
+			fees = append(fees, financeBillableFeeToAPI(item))
+		}
+		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: financeUUID(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8)})
+	}
+	return &v1.PreviewBillBatchResponse{Success: true, Message: "OK", Data: groups, PreviewToken: preview.PreviewToken, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.CreateBillBatchRequest) (*v1.CreateBillBatchResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	feeIDs, err := financeUUIDs(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil || request.GetGroupingPolicy() == nil {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	groups := make([]biz.CreateFinanceBillBatchGroupInput, 0, len(request.GetGroups()))
+	for _, group := range request.GetGroups() {
+		if group == nil {
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note})
+	}
+	batch, err := s.billUsecase.CreateBatch(ctx, principal.Organization.ID, principal.UserID, biz.CreateFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, PreviewToken: request.GetPreviewToken(), IdempotencyKey: request.GetIdempotencyKey()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateBillBatchResponse{Success: true, Message: "OK", Data: financeBillBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBillRequest) (*v1.UpdateBillResponse, error) {
@@ -151,7 +199,7 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 		return nil, err
 	}
 	item, err := s.billUsecase.Update(ctx, principal.Organization.ID, principal.UserID, biz.UpdateFinanceBillInput{
-		ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, ExpectedVersion: request.GetExpectedVersion(),
+		ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(),
 	})
 	if err != nil {
 		return nil, err
@@ -206,6 +254,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 			BusinessType: line.BusinessType, FeeCode: line.FeeCode, FeeName: line.FeeName,
 			TotalAmount: line.TotalAmount.StringFixed(8), NetAmount: line.NetAmount.StringFixed(8), TaxAmount: line.TaxAmount.StringFixed(8), Currency: line.Currency,
 			ExchangeRate: line.ExchangeRate.StringFixed(8), BaseCurrency: line.BaseCurrency, BaseCurrencyAmount: line.BaseCurrencyAmount.StringFixed(8), Active: line.Active,
+			TaxRate: financeDecimalPointer(line.TaxRate, 4),
 		})
 	}
 	return &v1.FinanceBill{
@@ -218,7 +267,71 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		CancelledBy: financeUUID(item.CancelledBy), CancellationReason: item.CancellationReason, Lines: lines,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339),
 		VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8),
+		BatchId: financeUUID(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
 	}
+}
+
+func financeBillBatchToAPI(item *biz.FinanceBillBatch) *v1.FinanceBillBatch {
+	if item == nil {
+		return nil
+	}
+	bills := make([]*v1.FinanceBill, 0, len(item.Bills))
+	for _, bill := range item.Bills {
+		bills = append(bills, financeBillToAPI(bill))
+	}
+	return &v1.FinanceBillBatch{Id: item.ID.String(), BatchNo: item.BatchNo, SplitByOrder: item.GroupingPolicy.SplitByOrder, SplitByTaxRate: item.GroupingPolicy.SplitByTaxRate, FeeCount: int32(item.FeeCount), BillCount: int32(item.BillCount), TotalBaseAmount: item.TotalBaseAmount.StringFixed(8), BaseCurrency: item.BaseCurrency, Bills: bills, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339)}
+}
+
+func financeBillGroupingPolicyFromAPI(value *v1.BillGroupingPolicy) biz.FinanceBillGroupingPolicy {
+	return biz.FinanceBillGroupingPolicy{SplitByOrder: value.GetSplitByOrder(), SplitByTaxRate: value.GetSplitByTaxRate()}
+}
+
+func financeBillableFeeToAPI(item *biz.FinanceBillableFee) *v1.FeeLedgerItem {
+	fee := item.Fee
+	return &v1.FeeLedgerItem{Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.BusinessType, Direction: string(fee.Direction), Status: string(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit, Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), TaxRate: financeDecimalPointer(fee.TaxRate, 4), Currency: fee.Currency, ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version, CreatedAt: fee.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: fee.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func financeUUIDs(values []string, invalid error) ([]uuid.UUID, error) {
+	result := make([]uuid.UUID, 0, len(values))
+	for _, value := range values {
+		id, err := uuid.Parse(strings.TrimSpace(value))
+		if err != nil {
+			return nil, invalid
+		}
+		result = append(result, id)
+	}
+	return result, nil
+}
+
+func financeInt32Pointer(value *int32) *int {
+	if value == nil {
+		return nil
+	}
+	converted := int(*value)
+	return &converted
+}
+
+func financeIntPointerToInt32(value *int) *int32 {
+	if value == nil {
+		return nil
+	}
+	converted := int32(*value)
+	return &converted
+}
+
+func financeDecimalPointer(value *decimal.Decimal, scale int32) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.StringFixed(scale)
+	return &formatted
+}
+
+func financeOptionalValue(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 
 func financeTime(value *time.Time) *string {

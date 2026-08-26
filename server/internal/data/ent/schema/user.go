@@ -36,6 +36,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("cancelled_order_fees", OrderFee.Type),
 		edge.To("confirmed_finance_bills", FinanceBill.Type),
 		edge.To("cancelled_finance_bills", FinanceBill.Type),
+		edge.To("created_finance_bill_batches", FinanceBillBatch.Type),
 		edge.To("issued_finance_invoices", FinanceInvoice.Type),
 		edge.To("cancelled_finance_invoices", FinanceInvoice.Type),
 		edge.To("red_flushed_finance_invoices", FinanceInvoice.Type),

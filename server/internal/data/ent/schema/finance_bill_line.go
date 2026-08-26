@@ -25,6 +25,7 @@ func (FinanceBillLine) Fields() []ent.Field {
 		field.String("total_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("net_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("tax_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}).Immutable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),

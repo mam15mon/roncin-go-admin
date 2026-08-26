@@ -81,6 +81,11 @@ func IdempotencyKey(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldIdempotencyKey, v))
 }
 
+// BatchID applies equality check predicate on the "batch_id" field. It's identical to BatchIDEQ.
+func BatchID(v uuid.UUID) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldBatchID, v))
+}
+
 // SettlementPartyID applies equality check predicate on the "settlement_party_id" field. It's identical to SettlementPartyIDEQ.
 func SettlementPartyID(v uuid.UUID) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldSettlementPartyID, v))
@@ -129,6 +134,16 @@ func FeeCount(v int) predicate.FinanceBill {
 // BillDate applies equality check predicate on the "bill_date" field. It's identical to BillDateEQ.
 func BillDate(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldBillDate, v))
+}
+
+// StatementTitle applies equality check predicate on the "statement_title" field. It's identical to StatementTitleEQ.
+func StatementTitle(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldStatementTitle, v))
+}
+
+// PaymentTermsDays applies equality check predicate on the "payment_terms_days" field. It's identical to PaymentTermsDaysEQ.
+func PaymentTermsDays(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldPaymentTermsDays, v))
 }
 
 // DueDate applies equality check predicate on the "due_date" field. It's identical to DueDateEQ.
@@ -399,6 +414,36 @@ func IdempotencyKeyEqualFold(v string) predicate.FinanceBill {
 // IdempotencyKeyContainsFold applies the ContainsFold predicate on the "idempotency_key" field.
 func IdempotencyKeyContainsFold(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldContainsFold(FieldIdempotencyKey, v))
+}
+
+// BatchIDEQ applies the EQ predicate on the "batch_id" field.
+func BatchIDEQ(v uuid.UUID) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldBatchID, v))
+}
+
+// BatchIDNEQ applies the NEQ predicate on the "batch_id" field.
+func BatchIDNEQ(v uuid.UUID) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldBatchID, v))
+}
+
+// BatchIDIn applies the In predicate on the "batch_id" field.
+func BatchIDIn(vs ...uuid.UUID) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldBatchID, vs...))
+}
+
+// BatchIDNotIn applies the NotIn predicate on the "batch_id" field.
+func BatchIDNotIn(vs ...uuid.UUID) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldBatchID, vs...))
+}
+
+// BatchIDIsNil applies the IsNil predicate on the "batch_id" field.
+func BatchIDIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldBatchID))
+}
+
+// BatchIDNotNil applies the NotNil predicate on the "batch_id" field.
+func BatchIDNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldBatchID))
 }
 
 // DirectionEQ applies the EQ predicate on the "direction" field.
@@ -1021,6 +1066,131 @@ func BillDateContainsFold(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldContainsFold(FieldBillDate, v))
 }
 
+// StatementTitleEQ applies the EQ predicate on the "statement_title" field.
+func StatementTitleEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldStatementTitle, v))
+}
+
+// StatementTitleNEQ applies the NEQ predicate on the "statement_title" field.
+func StatementTitleNEQ(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldStatementTitle, v))
+}
+
+// StatementTitleIn applies the In predicate on the "statement_title" field.
+func StatementTitleIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldStatementTitle, vs...))
+}
+
+// StatementTitleNotIn applies the NotIn predicate on the "statement_title" field.
+func StatementTitleNotIn(vs ...string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldStatementTitle, vs...))
+}
+
+// StatementTitleGT applies the GT predicate on the "statement_title" field.
+func StatementTitleGT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGT(FieldStatementTitle, v))
+}
+
+// StatementTitleGTE applies the GTE predicate on the "statement_title" field.
+func StatementTitleGTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGTE(FieldStatementTitle, v))
+}
+
+// StatementTitleLT applies the LT predicate on the "statement_title" field.
+func StatementTitleLT(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLT(FieldStatementTitle, v))
+}
+
+// StatementTitleLTE applies the LTE predicate on the "statement_title" field.
+func StatementTitleLTE(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLTE(FieldStatementTitle, v))
+}
+
+// StatementTitleContains applies the Contains predicate on the "statement_title" field.
+func StatementTitleContains(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContains(FieldStatementTitle, v))
+}
+
+// StatementTitleHasPrefix applies the HasPrefix predicate on the "statement_title" field.
+func StatementTitleHasPrefix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasPrefix(FieldStatementTitle, v))
+}
+
+// StatementTitleHasSuffix applies the HasSuffix predicate on the "statement_title" field.
+func StatementTitleHasSuffix(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldHasSuffix(FieldStatementTitle, v))
+}
+
+// StatementTitleIsNil applies the IsNil predicate on the "statement_title" field.
+func StatementTitleIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldStatementTitle))
+}
+
+// StatementTitleNotNil applies the NotNil predicate on the "statement_title" field.
+func StatementTitleNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldStatementTitle))
+}
+
+// StatementTitleEqualFold applies the EqualFold predicate on the "statement_title" field.
+func StatementTitleEqualFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEqualFold(FieldStatementTitle, v))
+}
+
+// StatementTitleContainsFold applies the ContainsFold predicate on the "statement_title" field.
+func StatementTitleContainsFold(v string) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldContainsFold(FieldStatementTitle, v))
+}
+
+// PaymentTermsDaysEQ applies the EQ predicate on the "payment_terms_days" field.
+func PaymentTermsDaysEQ(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysNEQ applies the NEQ predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNEQ(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysIn applies the In predicate on the "payment_terms_days" field.
+func PaymentTermsDaysIn(vs ...int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldPaymentTermsDays, vs...))
+}
+
+// PaymentTermsDaysNotIn applies the NotIn predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNotIn(vs ...int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldPaymentTermsDays, vs...))
+}
+
+// PaymentTermsDaysGT applies the GT predicate on the "payment_terms_days" field.
+func PaymentTermsDaysGT(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGT(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysGTE applies the GTE predicate on the "payment_terms_days" field.
+func PaymentTermsDaysGTE(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldGTE(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysLT applies the LT predicate on the "payment_terms_days" field.
+func PaymentTermsDaysLT(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLT(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysLTE applies the LTE predicate on the "payment_terms_days" field.
+func PaymentTermsDaysLTE(v int) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldLTE(FieldPaymentTermsDays, v))
+}
+
+// PaymentTermsDaysIsNil applies the IsNil predicate on the "payment_terms_days" field.
+func PaymentTermsDaysIsNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIsNull(FieldPaymentTermsDays))
+}
+
+// PaymentTermsDaysNotNil applies the NotNil predicate on the "payment_terms_days" field.
+func PaymentTermsDaysNotNil() predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotNull(FieldPaymentTermsDays))
+}
+
 // DueDateEQ applies the EQ predicate on the "due_date" field.
 func DueDateEQ(v string) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldDueDate, v))
@@ -1461,6 +1631,29 @@ func HasOrganization() predicate.FinanceBill {
 func HasOrganizationWith(preds ...predicate.Organization) predicate.FinanceBill {
 	return predicate.FinanceBill(func(s *sql.Selector) {
 		step := newOrganizationStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasBatch applies the HasEdge predicate on the "batch" edge.
+func HasBatch() predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, BatchTable, BatchColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBatchWith applies the HasEdge predicate on the "batch" edge with a given conditions (other predicates).
+func HasBatchWith(preds ...predicate.FinanceBillBatch) predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := newBatchStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

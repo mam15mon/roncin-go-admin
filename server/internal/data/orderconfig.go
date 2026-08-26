@@ -116,12 +116,23 @@ func (r *orderConfigRepo) AllocateNumber(ctx context.Context, organizationID uui
 	if err != nil {
 		return nil, 0, err
 	}
-	lockedRule, err := tx.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID), numberrule.DocumentTypeEQ(numberrule.DocumentType(documentType)), numberrule.EnabledEQ(true)).ForUpdate().Only(ctx)
+	rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, documentType, at)
 	if err != nil {
 		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, 0, biz.ErrNumberRuleNotFound
-		}
+		return nil, 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, 0, err
+	}
+	return rule, sequence, nil
+}
+
+func allocateNumberInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, documentType biz.DocumentType, at time.Time) (*biz.NumberRule, int64, error) {
+	lockedRule, err := tx.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID), numberrule.DocumentTypeEQ(numberrule.DocumentType(documentType)), numberrule.EnabledEQ(true)).ForUpdate().Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, 0, biz.ErrNumberRuleNotFound
+	}
+	if err != nil {
 		return nil, 0, err
 	}
 	maximum := int64(1)
@@ -135,16 +146,11 @@ func (r *orderConfigRepo) AllocateNumber(ctx context.Context, organizationID uui
 		sequence, err = tx.NumberSequence.Create().SetRuleID(lockedRule.ID).SetPeriodKey(periodKey).SetCurrentValue(1).Save(ctx)
 	} else if err == nil {
 		if sequence.CurrentValue >= maximum {
-			_ = tx.Rollback()
 			return nil, 0, biz.ErrNumberSequenceExhausted
 		}
 		sequence, err = sequence.Update().AddCurrentValue(1).Save(ctx)
 	}
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, 0, err
 	}
 	return numberRuleToBiz(lockedRule), sequence.CurrentValue, nil
