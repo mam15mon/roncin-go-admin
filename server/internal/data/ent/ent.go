@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -62,6 +63,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
@@ -156,6 +158,7 @@ func checkColumn(t, c string) error {
 			financecommissionrule.Table:         financecommissionrule.ValidColumn,
 			financeinvoice.Table:                financeinvoice.ValidColumn,
 			financeinvoicebill.Table:            financeinvoicebill.ValidColumn,
+			financeinvoiceline.Table:            financeinvoiceline.ValidColumn,
 			financeverification.Table:           financeverification.ValidColumn,
 			financeverificationallocation.Table: financeverificationallocation.ValidColumn,
 			loginratelimitbucket.Table:          loginratelimitbucket.ValidColumn,
@@ -188,6 +191,7 @@ func checkColumn(t, c string) error {
 			partnerattachment.Table:             partnerattachment.ValidColumn,
 			partnercontact.Table:                partnercontact.ValidColumn,
 			partnercontract.Table:               partnercontract.ValidColumn,
+			partnerinvoiceprofile.Table:         partnerinvoiceprofile.ValidColumn,
 			partnerprofile.Table:                partnerprofile.ValidColumn,
 			partnerrole.Table:                   partnerrole.ValidColumn,
 			partnersettlementrule.Table:         partnersettlementrule.ValidColumn,

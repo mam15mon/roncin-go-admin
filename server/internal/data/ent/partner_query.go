@@ -27,6 +27,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
@@ -45,6 +46,7 @@ type PartnerQuery struct {
 	withContacts             *PartnerContactQuery
 	withAliases              *PartnerAliasQuery
 	withProfile              *PartnerProfileQuery
+	withInvoiceProfile       *PartnerInvoiceProfileQuery
 	withAssignments          *PartnerAssignmentQuery
 	withShippingPresets      *PartnerShippingPresetQuery
 	withContracts            *PartnerContractQuery
@@ -195,6 +197,28 @@ func (_q *PartnerQuery) QueryProfile() *PartnerProfileQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partnerprofile.Table, partnerprofile.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, partner.ProfileTable, partner.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInvoiceProfile chains the current query on the "invoice_profile" edge.
+func (_q *PartnerQuery) QueryInvoiceProfile() *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, partner.InvoiceProfileTable, partner.InvoiceProfileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -619,6 +643,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withContacts:             _q.withContacts.Clone(),
 		withAliases:              _q.withAliases.Clone(),
 		withProfile:              _q.withProfile.Clone(),
+		withInvoiceProfile:       _q.withInvoiceProfile.Clone(),
 		withAssignments:          _q.withAssignments.Clone(),
 		withShippingPresets:      _q.withShippingPresets.Clone(),
 		withContracts:            _q.withContracts.Clone(),
@@ -687,6 +712,17 @@ func (_q *PartnerQuery) WithProfile(opts ...func(*PartnerProfileQuery)) *Partner
 		opt(query)
 	}
 	_q.withProfile = query
+	return _q
+}
+
+// WithInvoiceProfile tells the query-builder to eager-load the nodes that are connected to
+// the "invoice_profile" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithInvoiceProfile(opts ...func(*PartnerInvoiceProfileQuery)) *PartnerQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoiceProfile = query
 	return _q
 }
 
@@ -878,12 +914,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [15]bool{
+		loadedTypes = [16]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
 			_q.withAliases != nil,
 			_q.withProfile != nil,
+			_q.withInvoiceProfile != nil,
 			_q.withAssignments != nil,
 			_q.withShippingPresets != nil,
 			_q.withContracts != nil,
@@ -947,6 +984,12 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	if query := _q.withProfile; query != nil {
 		if err := _q.loadProfile(ctx, query, nodes, nil,
 			func(n *Partner, e *PartnerProfile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withInvoiceProfile; query != nil {
+		if err := _q.loadInvoiceProfile(ctx, query, nodes, nil,
+			func(n *Partner, e *PartnerInvoiceProfile) { n.Edges.InvoiceProfile = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1158,6 +1201,33 @@ func (_q *PartnerQuery) loadProfile(ctx context.Context, query *PartnerProfileQu
 	}
 	query.Where(predicate.PartnerProfile(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.ProfileColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadInvoiceProfile(ctx context.Context, query *PartnerInvoiceProfileQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerInvoiceProfile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerinvoiceprofile.FieldPartnerID)
+	}
+	query.Where(predicate.PartnerInvoiceProfile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.InvoiceProfileColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

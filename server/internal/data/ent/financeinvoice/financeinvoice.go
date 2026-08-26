@@ -32,14 +32,30 @@ const (
 	FieldStatus = "status"
 	// FieldInvoiceType holds the string denoting the invoice_type field in the database.
 	FieldInvoiceType = "invoice_type"
+	// FieldInvoiceProfileID holds the string denoting the invoice_profile_id field in the database.
+	FieldInvoiceProfileID = "invoice_profile_id"
 	// FieldSettlementPartyID holds the string denoting the settlement_party_id field in the database.
 	FieldSettlementPartyID = "settlement_party_id"
 	// FieldSettlementPartyName holds the string denoting the settlement_party_name field in the database.
 	FieldSettlementPartyName = "settlement_party_name"
+	// FieldInvoiceTitle holds the string denoting the invoice_title field in the database.
+	FieldInvoiceTitle = "invoice_title"
+	// FieldTaxpayerIdentificationNo holds the string denoting the taxpayer_identification_no field in the database.
+	FieldTaxpayerIdentificationNo = "taxpayer_identification_no"
+	// FieldRegisteredAddress holds the string denoting the registered_address field in the database.
+	FieldRegisteredAddress = "registered_address"
+	// FieldRegisteredPhone holds the string denoting the registered_phone field in the database.
+	FieldRegisteredPhone = "registered_phone"
+	// FieldBankName holds the string denoting the bank_name field in the database.
+	FieldBankName = "bank_name"
+	// FieldBankAccount holds the string denoting the bank_account field in the database.
+	FieldBankAccount = "bank_account"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldTotalAmount holds the string denoting the total_amount field in the database.
 	FieldTotalAmount = "total_amount"
+	// FieldNetAmount holds the string denoting the net_amount field in the database.
+	FieldNetAmount = "net_amount"
 	// FieldTaxAmount holds the string denoting the tax_amount field in the database.
 	FieldTaxAmount = "tax_amount"
 	// FieldBillCount holds the string denoting the bill_count field in the database.
@@ -76,6 +92,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeSettlementParty holds the string denoting the settlement_party edge name in mutations.
 	EdgeSettlementParty = "settlement_party"
+	// EdgeInvoiceProfile holds the string denoting the invoice_profile edge name in mutations.
+	EdgeInvoiceProfile = "invoice_profile"
 	// EdgeIssuedByUser holds the string denoting the issued_by_user edge name in mutations.
 	EdgeIssuedByUser = "issued_by_user"
 	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
@@ -84,6 +102,8 @@ const (
 	EdgeRedFlushedByUser = "red_flushed_by_user"
 	// EdgeBillLinks holds the string denoting the bill_links edge name in mutations.
 	EdgeBillLinks = "bill_links"
+	// EdgeLines holds the string denoting the lines edge name in mutations.
+	EdgeLines = "lines"
 	// Table holds the table name of the financeinvoice in the database.
 	Table = "finance_invoices"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -100,6 +120,13 @@ const (
 	SettlementPartyInverseTable = "partners"
 	// SettlementPartyColumn is the table column denoting the settlement_party relation/edge.
 	SettlementPartyColumn = "settlement_party_id"
+	// InvoiceProfileTable is the table that holds the invoice_profile relation/edge.
+	InvoiceProfileTable = "finance_invoices"
+	// InvoiceProfileInverseTable is the table name for the PartnerInvoiceProfile entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerinvoiceprofile" package.
+	InvoiceProfileInverseTable = "partner_invoice_profiles"
+	// InvoiceProfileColumn is the table column denoting the invoice_profile relation/edge.
+	InvoiceProfileColumn = "invoice_profile_id"
 	// IssuedByUserTable is the table that holds the issued_by_user relation/edge.
 	IssuedByUserTable = "finance_invoices"
 	// IssuedByUserInverseTable is the table name for the User entity.
@@ -128,6 +155,13 @@ const (
 	BillLinksInverseTable = "finance_invoice_bills"
 	// BillLinksColumn is the table column denoting the bill_links relation/edge.
 	BillLinksColumn = "invoice_id"
+	// LinesTable is the table that holds the lines relation/edge.
+	LinesTable = "finance_invoice_lines"
+	// LinesInverseTable is the table name for the FinanceInvoiceLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoiceline" package.
+	LinesInverseTable = "finance_invoice_lines"
+	// LinesColumn is the table column denoting the lines relation/edge.
+	LinesColumn = "invoice_id"
 )
 
 // Columns holds all SQL columns for financeinvoice fields.
@@ -141,10 +175,18 @@ var Columns = []string{
 	FieldDirection,
 	FieldStatus,
 	FieldInvoiceType,
+	FieldInvoiceProfileID,
 	FieldSettlementPartyID,
 	FieldSettlementPartyName,
+	FieldInvoiceTitle,
+	FieldTaxpayerIdentificationNo,
+	FieldRegisteredAddress,
+	FieldRegisteredPhone,
+	FieldBankName,
+	FieldBankAccount,
 	FieldCurrency,
 	FieldTotalAmount,
+	FieldNetAmount,
 	FieldTaxAmount,
 	FieldBillCount,
 	FieldTaxInvoiceNo,
@@ -186,6 +228,18 @@ var (
 	IdempotencyKeyValidator func(string) error
 	// SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
 	SettlementPartyNameValidator func(string) error
+	// InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
+	InvoiceTitleValidator func(string) error
+	// TaxpayerIdentificationNoValidator is a validator for the "taxpayer_identification_no" field. It is called by the builders before save.
+	TaxpayerIdentificationNoValidator func(string) error
+	// RegisteredAddressValidator is a validator for the "registered_address" field. It is called by the builders before save.
+	RegisteredAddressValidator func(string) error
+	// RegisteredPhoneValidator is a validator for the "registered_phone" field. It is called by the builders before save.
+	RegisteredPhoneValidator func(string) error
+	// BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
+	BankNameValidator func(string) error
+	// BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
+	BankAccountValidator func(string) error
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// BillCountValidator is a validator for the "bill_count" field. It is called by the builders before save.
@@ -332,6 +386,11 @@ func ByInvoiceType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInvoiceType, opts...).ToFunc()
 }
 
+// ByInvoiceProfileID orders the results by the invoice_profile_id field.
+func ByInvoiceProfileID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInvoiceProfileID, opts...).ToFunc()
+}
+
 // BySettlementPartyID orders the results by the settlement_party_id field.
 func BySettlementPartyID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementPartyID, opts...).ToFunc()
@@ -342,6 +401,36 @@ func BySettlementPartyName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSettlementPartyName, opts...).ToFunc()
 }
 
+// ByInvoiceTitle orders the results by the invoice_title field.
+func ByInvoiceTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInvoiceTitle, opts...).ToFunc()
+}
+
+// ByTaxpayerIdentificationNo orders the results by the taxpayer_identification_no field.
+func ByTaxpayerIdentificationNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxpayerIdentificationNo, opts...).ToFunc()
+}
+
+// ByRegisteredAddress orders the results by the registered_address field.
+func ByRegisteredAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegisteredAddress, opts...).ToFunc()
+}
+
+// ByRegisteredPhone orders the results by the registered_phone field.
+func ByRegisteredPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegisteredPhone, opts...).ToFunc()
+}
+
+// ByBankName orders the results by the bank_name field.
+func ByBankName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBankName, opts...).ToFunc()
+}
+
+// ByBankAccount orders the results by the bank_account field.
+func ByBankAccount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBankAccount, opts...).ToFunc()
+}
+
 // ByCurrency orders the results by the currency field.
 func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
@@ -350,6 +439,11 @@ func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByTotalAmount orders the results by the total_amount field.
 func ByTotalAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotalAmount, opts...).ToFunc()
+}
+
+// ByNetAmount orders the results by the net_amount field.
+func ByNetAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNetAmount, opts...).ToFunc()
 }
 
 // ByTaxAmount orders the results by the tax_amount field.
@@ -446,6 +540,13 @@ func BySettlementPartyField(field string, opts ...sql.OrderTermOption) OrderOpti
 	}
 }
 
+// ByInvoiceProfileField orders the results by invoice_profile field.
+func ByInvoiceProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceProfileStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByIssuedByUserField orders the results by issued_by_user field.
 func ByIssuedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -480,6 +581,20 @@ func ByBillLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newBillLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLinesCount orders the results by lines count.
+func ByLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLinesStep(), opts...)
+	}
+}
+
+// ByLines orders the results by lines terms.
+func ByLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -492,6 +607,13 @@ func newSettlementPartyStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SettlementPartyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SettlementPartyTable, SettlementPartyColumn),
+	)
+}
+func newInvoiceProfileStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoiceProfileInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, InvoiceProfileTable, InvoiceProfileColumn),
 	)
 }
 func newIssuedByUserStep() *sqlgraph.Step {
@@ -520,5 +642,12 @@ func newBillLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, BillLinksTable, BillLinksColumn),
+	)
+}
+func newLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
 	)
 }

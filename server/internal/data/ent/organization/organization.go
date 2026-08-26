@@ -82,6 +82,8 @@ const (
 	EdgeFinanceBills = "finance_bills"
 	// EdgeFinanceBillBatches holds the string denoting the finance_bill_batches edge name in mutations.
 	EdgeFinanceBillBatches = "finance_bill_batches"
+	// EdgePartnerInvoiceProfiles holds the string denoting the partner_invoice_profiles edge name in mutations.
+	EdgePartnerInvoiceProfiles = "partner_invoice_profiles"
 	// EdgeFinanceInvoices holds the string denoting the finance_invoices edge name in mutations.
 	EdgeFinanceInvoices = "finance_invoices"
 	// EdgeFinanceCashflows holds the string denoting the finance_cashflows edge name in mutations.
@@ -263,6 +265,13 @@ const (
 	FinanceBillBatchesInverseTable = "finance_bill_batches"
 	// FinanceBillBatchesColumn is the table column denoting the finance_bill_batches relation/edge.
 	FinanceBillBatchesColumn = "organization_id"
+	// PartnerInvoiceProfilesTable is the table that holds the partner_invoice_profiles relation/edge.
+	PartnerInvoiceProfilesTable = "partner_invoice_profiles"
+	// PartnerInvoiceProfilesInverseTable is the table name for the PartnerInvoiceProfile entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerinvoiceprofile" package.
+	PartnerInvoiceProfilesInverseTable = "partner_invoice_profiles"
+	// PartnerInvoiceProfilesColumn is the table column denoting the partner_invoice_profiles relation/edge.
+	PartnerInvoiceProfilesColumn = "organization_id"
 	// FinanceInvoicesTable is the table that holds the finance_invoices relation/edge.
 	FinanceInvoicesTable = "finance_invoices"
 	// FinanceInvoicesInverseTable is the table name for the FinanceInvoice entity.
@@ -758,6 +767,20 @@ func ByFinanceBillBatches(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
+// ByPartnerInvoiceProfilesCount orders the results by partner_invoice_profiles count.
+func ByPartnerInvoiceProfilesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartnerInvoiceProfilesStep(), opts...)
+	}
+}
+
+// ByPartnerInvoiceProfiles orders the results by partner_invoice_profiles terms.
+func ByPartnerInvoiceProfiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartnerInvoiceProfilesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFinanceInvoicesCount orders the results by finance_invoices count.
 func ByFinanceInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1000,6 +1023,13 @@ func newFinanceBillBatchesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceBillBatchesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillBatchesTable, FinanceBillBatchesColumn),
+	)
+}
+func newPartnerInvoiceProfilesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartnerInvoiceProfilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartnerInvoiceProfilesTable, PartnerInvoiceProfilesColumn),
 	)
 }
 func newFinanceInvoicesStep() *sqlgraph.Step {

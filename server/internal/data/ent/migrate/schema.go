@@ -999,8 +999,15 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "ISSUED", "CANCELLED", "RED_FLUSHED"}, Default: "DRAFT"},
 		{Name: "invoice_type", Type: field.TypeEnum, Enums: []string{"NORMAL", "SPECIAL"}},
 		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "invoice_title", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "taxpayer_identification_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "registered_address", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "registered_phone", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "bill_count", Type: field.TypeInt},
 		{Name: "tax_invoice_no", Type: field.TypeString, Nullable: true, Size: 100},
@@ -1016,6 +1023,7 @@ var (
 		{Name: "red_flush_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "invoice_profile_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "issued_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "red_flushed_by", Type: field.TypeUUID, Nullable: true},
@@ -1028,31 +1036,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoices_organizations_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[24]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[31]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partners_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[25]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[32]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "finance_invoices_partner_invoice_profiles_finance_invoices",
+				Columns:    []*schema.Column{FinanceInvoicesColumns[33]},
+				RefColumns: []*schema.Column{PartnerInvoiceProfilesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "finance_invoices_users_issued_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[26]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[34]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[27]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[28]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[36]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1066,27 +1080,32 @@ var (
 			{
 				Name:    "financeinvoice_organization_id_record_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[3]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[31], FinanceInvoicesColumns[3]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[4]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[31], FinanceInvoicesColumns[4]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[31], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
 			},
 			{
 				Name:    "financeinvoice_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[25], FinanceInvoicesColumns[5], FinanceInvoicesColumns[9]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[32], FinanceInvoicesColumns[5], FinanceInvoicesColumns[15]},
+			},
+			{
+				Name:    "financeinvoice_invoice_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoicesColumns[33]},
 			},
 			{
 				Name:    "financeinvoice_tax_invoice_no",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[13]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[20]},
 			},
 		},
 	}
@@ -1136,6 +1155,48 @@ var (
 				Name:    "financeinvoicebill_bill_id_active",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceInvoiceBillsColumns[7], FinanceInvoiceBillsColumns[6]},
+			},
+		},
+	}
+	// FinanceInvoiceLinesColumns holds the columns for the "finance_invoice_lines" table.
+	FinanceInvoiceLinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "line_no", Type: field.TypeInt},
+		{Name: "item_code", Type: field.TypeString, Size: 30},
+		{Name: "item_name", Type: field.TypeString, Size: 80},
+		{Name: "tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "source_line_count", Type: field.TypeInt},
+		{Name: "invoice_id", Type: field.TypeUUID},
+	}
+	// FinanceInvoiceLinesTable holds the schema information for the "finance_invoice_lines" table.
+	FinanceInvoiceLinesTable = &schema.Table{
+		Name:       "finance_invoice_lines",
+		Columns:    FinanceInvoiceLinesColumns,
+		PrimaryKey: []*schema.Column{FinanceInvoiceLinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_invoice_lines_finance_invoices_lines",
+				Columns:    []*schema.Column{FinanceInvoiceLinesColumns[12]},
+				RefColumns: []*schema.Column{FinanceInvoicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeinvoiceline_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceLinesColumns[2]},
+			},
+			{
+				Name:    "financeinvoiceline_invoice_id_line_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoiceLinesColumns[12], FinanceInvoiceLinesColumns[3]},
 			},
 		},
 	}
@@ -2786,6 +2847,59 @@ var (
 			},
 		},
 	}
+	// PartnerInvoiceProfilesColumns holds the columns for the "partner_invoice_profiles" table.
+	PartnerInvoiceProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "invoice_title", Type: field.TypeString, Size: 200},
+		{Name: "taxpayer_identification_no", Type: field.TypeString, Size: 64},
+		{Name: "registered_address", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "registered_phone", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "default_invoice_type", Type: field.TypeEnum, Enums: []string{"NORMAL", "SPECIAL"}, Default: "NORMAL"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "partner_id", Type: field.TypeUUID, Unique: true},
+	}
+	// PartnerInvoiceProfilesTable holds the schema information for the "partner_invoice_profiles" table.
+	PartnerInvoiceProfilesTable = &schema.Table{
+		Name:       "partner_invoice_profiles",
+		Columns:    PartnerInvoiceProfilesColumns,
+		PrimaryKey: []*schema.Column{PartnerInvoiceProfilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "partner_invoice_profiles_organizations_partner_invoice_profiles",
+				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "partner_invoice_profiles_partners_invoice_profile",
+				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[12]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partnerinvoiceprofile_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[2]},
+			},
+			{
+				Name:    "partnerinvoiceprofile_organization_id_partner_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[11], PartnerInvoiceProfilesColumns[12]},
+			},
+			{
+				Name:    "partnerinvoiceprofile_organization_id_taxpayer_identification_no",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[11], PartnerInvoiceProfilesColumns[4]},
+			},
+		},
+	}
 	// PartnerProfilesColumns holds the columns for the "partner_profiles" table.
 	PartnerProfilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3566,6 +3680,7 @@ var (
 		FinanceCommissionRulesTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
+		FinanceInvoiceLinesTable,
 		FinanceVerificationsTable,
 		FinanceVerificationAllocationsTable,
 		LoginRateLimitBucketsTable,
@@ -3598,6 +3713,7 @@ var (
 		PartnerAttachmentsTable,
 		PartnerContactsTable,
 		PartnerContractsTable,
+		PartnerInvoiceProfilesTable,
 		PartnerProfilesTable,
 		PartnerRolesTable,
 		PartnerSettlementRulesTable,
@@ -3652,11 +3768,13 @@ func init() {
 	FinanceCommissionRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoicesTable.ForeignKeys[1].RefTable = PartnersTable
-	FinanceInvoicesTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceInvoicesTable.ForeignKeys[2].RefTable = PartnerInvoiceProfilesTable
 	FinanceInvoicesTable.ForeignKeys[3].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceInvoicesTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
+	FinanceInvoiceLinesTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
 	FinanceVerificationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceVerificationsTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceVerificationsTable.ForeignKeys[2].RefTable = UsersTable
@@ -3706,6 +3824,8 @@ func init() {
 	PartnerAttachmentsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContactsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerContractsTable.ForeignKeys[0].RefTable = PartnersTable
+	PartnerInvoiceProfilesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	PartnerInvoiceProfilesTable.ForeignKeys[1].RefTable = PartnersTable
 	PartnerProfilesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable

@@ -13,8 +13,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -97,6 +99,20 @@ func (_c *FinanceInvoiceCreate) SetInvoiceType(v financeinvoice.InvoiceType) *Fi
 	return _c
 }
 
+// SetInvoiceProfileID sets the "invoice_profile_id" field.
+func (_c *FinanceInvoiceCreate) SetInvoiceProfileID(v uuid.UUID) *FinanceInvoiceCreate {
+	_c.mutation.SetInvoiceProfileID(v)
+	return _c
+}
+
+// SetNillableInvoiceProfileID sets the "invoice_profile_id" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableInvoiceProfileID(v *uuid.UUID) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetInvoiceProfileID(*v)
+	}
+	return _c
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_c *FinanceInvoiceCreate) SetSettlementPartyID(v uuid.UUID) *FinanceInvoiceCreate {
 	_c.mutation.SetSettlementPartyID(v)
@@ -109,6 +125,90 @@ func (_c *FinanceInvoiceCreate) SetSettlementPartyName(v string) *FinanceInvoice
 	return _c
 }
 
+// SetInvoiceTitle sets the "invoice_title" field.
+func (_c *FinanceInvoiceCreate) SetInvoiceTitle(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetInvoiceTitle(v)
+	return _c
+}
+
+// SetNillableInvoiceTitle sets the "invoice_title" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableInvoiceTitle(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetInvoiceTitle(*v)
+	}
+	return _c
+}
+
+// SetTaxpayerIdentificationNo sets the "taxpayer_identification_no" field.
+func (_c *FinanceInvoiceCreate) SetTaxpayerIdentificationNo(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetTaxpayerIdentificationNo(v)
+	return _c
+}
+
+// SetNillableTaxpayerIdentificationNo sets the "taxpayer_identification_no" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableTaxpayerIdentificationNo(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetTaxpayerIdentificationNo(*v)
+	}
+	return _c
+}
+
+// SetRegisteredAddress sets the "registered_address" field.
+func (_c *FinanceInvoiceCreate) SetRegisteredAddress(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetRegisteredAddress(v)
+	return _c
+}
+
+// SetNillableRegisteredAddress sets the "registered_address" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableRegisteredAddress(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetRegisteredAddress(*v)
+	}
+	return _c
+}
+
+// SetRegisteredPhone sets the "registered_phone" field.
+func (_c *FinanceInvoiceCreate) SetRegisteredPhone(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetRegisteredPhone(v)
+	return _c
+}
+
+// SetNillableRegisteredPhone sets the "registered_phone" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableRegisteredPhone(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetRegisteredPhone(*v)
+	}
+	return _c
+}
+
+// SetBankName sets the "bank_name" field.
+func (_c *FinanceInvoiceCreate) SetBankName(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetBankName(v)
+	return _c
+}
+
+// SetNillableBankName sets the "bank_name" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableBankName(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetBankName(*v)
+	}
+	return _c
+}
+
+// SetBankAccount sets the "bank_account" field.
+func (_c *FinanceInvoiceCreate) SetBankAccount(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetBankAccount(v)
+	return _c
+}
+
+// SetNillableBankAccount sets the "bank_account" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableBankAccount(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetBankAccount(*v)
+	}
+	return _c
+}
+
 // SetCurrency sets the "currency" field.
 func (_c *FinanceInvoiceCreate) SetCurrency(v string) *FinanceInvoiceCreate {
 	_c.mutation.SetCurrency(v)
@@ -118,6 +218,12 @@ func (_c *FinanceInvoiceCreate) SetCurrency(v string) *FinanceInvoiceCreate {
 // SetTotalAmount sets the "total_amount" field.
 func (_c *FinanceInvoiceCreate) SetTotalAmount(v string) *FinanceInvoiceCreate {
 	_c.mutation.SetTotalAmount(v)
+	return _c
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_c *FinanceInvoiceCreate) SetNetAmount(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetNetAmount(v)
 	return _c
 }
 
@@ -353,6 +459,11 @@ func (_c *FinanceInvoiceCreate) SetSettlementParty(v *Partner) *FinanceInvoiceCr
 	return _c.SetSettlementPartyID(v.ID)
 }
 
+// SetInvoiceProfile sets the "invoice_profile" edge to the PartnerInvoiceProfile entity.
+func (_c *FinanceInvoiceCreate) SetInvoiceProfile(v *PartnerInvoiceProfile) *FinanceInvoiceCreate {
+	return _c.SetInvoiceProfileID(v.ID)
+}
+
 // SetIssuedByUserID sets the "issued_by_user" edge to the User entity by ID.
 func (_c *FinanceInvoiceCreate) SetIssuedByUserID(id uuid.UUID) *FinanceInvoiceCreate {
 	_c.mutation.SetIssuedByUserID(id)
@@ -423,6 +534,21 @@ func (_c *FinanceInvoiceCreate) AddBillLinks(v ...*FinanceInvoiceBill) *FinanceI
 		ids[i] = v[i].ID
 	}
 	return _c.AddBillLinkIDs(ids...)
+}
+
+// AddLineIDs adds the "lines" edge to the FinanceInvoiceLine entity by IDs.
+func (_c *FinanceInvoiceCreate) AddLineIDs(ids ...uuid.UUID) *FinanceInvoiceCreate {
+	_c.mutation.AddLineIDs(ids...)
+	return _c
+}
+
+// AddLines adds the "lines" edges to the FinanceInvoiceLine entity.
+func (_c *FinanceInvoiceCreate) AddLines(v ...*FinanceInvoiceLine) *FinanceInvoiceCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLineIDs(ids...)
 }
 
 // Mutation returns the FinanceInvoiceMutation object of the builder.
@@ -544,6 +670,36 @@ func (_c *FinanceInvoiceCreate) check() error {
 			return &ValidationError{Name: "settlement_party_name", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.settlement_party_name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.InvoiceTitle(); ok {
+		if err := financeinvoice.InvoiceTitleValidator(v); err != nil {
+			return &ValidationError{Name: "invoice_title", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.invoice_title": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.TaxpayerIdentificationNo(); ok {
+		if err := financeinvoice.TaxpayerIdentificationNoValidator(v); err != nil {
+			return &ValidationError{Name: "taxpayer_identification_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.taxpayer_identification_no": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RegisteredAddress(); ok {
+		if err := financeinvoice.RegisteredAddressValidator(v); err != nil {
+			return &ValidationError{Name: "registered_address", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.registered_address": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RegisteredPhone(); ok {
+		if err := financeinvoice.RegisteredPhoneValidator(v); err != nil {
+			return &ValidationError{Name: "registered_phone", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.registered_phone": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.BankName(); ok {
+		if err := financeinvoice.BankNameValidator(v); err != nil {
+			return &ValidationError{Name: "bank_name", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.bank_name": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.BankAccount(); ok {
+		if err := financeinvoice.BankAccountValidator(v); err != nil {
+			return &ValidationError{Name: "bank_account", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.bank_account": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Currency(); !ok {
 		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "FinanceInvoice.currency"`)}
 	}
@@ -554,6 +710,9 @@ func (_c *FinanceInvoiceCreate) check() error {
 	}
 	if _, ok := _c.mutation.TotalAmount(); !ok {
 		return &ValidationError{Name: "total_amount", err: errors.New(`ent: missing required field "FinanceInvoice.total_amount"`)}
+	}
+	if _, ok := _c.mutation.NetAmount(); !ok {
+		return &ValidationError{Name: "net_amount", err: errors.New(`ent: missing required field "FinanceInvoice.net_amount"`)}
 	}
 	if _, ok := _c.mutation.TaxAmount(); !ok {
 		return &ValidationError{Name: "tax_amount", err: errors.New(`ent: missing required field "FinanceInvoice.tax_amount"`)}
@@ -677,6 +836,30 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 		_spec.SetField(financeinvoice.FieldSettlementPartyName, field.TypeString, value)
 		_node.SettlementPartyName = value
 	}
+	if value, ok := _c.mutation.InvoiceTitle(); ok {
+		_spec.SetField(financeinvoice.FieldInvoiceTitle, field.TypeString, value)
+		_node.InvoiceTitle = &value
+	}
+	if value, ok := _c.mutation.TaxpayerIdentificationNo(); ok {
+		_spec.SetField(financeinvoice.FieldTaxpayerIdentificationNo, field.TypeString, value)
+		_node.TaxpayerIdentificationNo = &value
+	}
+	if value, ok := _c.mutation.RegisteredAddress(); ok {
+		_spec.SetField(financeinvoice.FieldRegisteredAddress, field.TypeString, value)
+		_node.RegisteredAddress = &value
+	}
+	if value, ok := _c.mutation.RegisteredPhone(); ok {
+		_spec.SetField(financeinvoice.FieldRegisteredPhone, field.TypeString, value)
+		_node.RegisteredPhone = &value
+	}
+	if value, ok := _c.mutation.BankName(); ok {
+		_spec.SetField(financeinvoice.FieldBankName, field.TypeString, value)
+		_node.BankName = &value
+	}
+	if value, ok := _c.mutation.BankAccount(); ok {
+		_spec.SetField(financeinvoice.FieldBankAccount, field.TypeString, value)
+		_node.BankAccount = &value
+	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financeinvoice.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
@@ -684,6 +867,10 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 	if value, ok := _c.mutation.TotalAmount(); ok {
 		_spec.SetField(financeinvoice.FieldTotalAmount, field.TypeString, value)
 		_node.TotalAmount = value
+	}
+	if value, ok := _c.mutation.NetAmount(); ok {
+		_spec.SetField(financeinvoice.FieldNetAmount, field.TypeString, value)
+		_node.NetAmount = value
 	}
 	if value, ok := _c.mutation.TaxAmount(); ok {
 		_spec.SetField(financeinvoice.FieldTaxAmount, field.TypeString, value)
@@ -771,6 +958,23 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 		_node.SettlementPartyID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.InvoiceProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financeinvoice.InvoiceProfileTable,
+			Columns: []string{financeinvoice.InvoiceProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.InvoiceProfileID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.IssuedByUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -831,6 +1035,22 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.LinesTable,
+			Columns: []string{financeinvoice.LinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

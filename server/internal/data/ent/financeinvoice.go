@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -37,14 +38,30 @@ type FinanceInvoice struct {
 	Status financeinvoice.Status `json:"status,omitempty"`
 	// InvoiceType holds the value of the "invoice_type" field.
 	InvoiceType financeinvoice.InvoiceType `json:"invoice_type,omitempty"`
+	// InvoiceProfileID holds the value of the "invoice_profile_id" field.
+	InvoiceProfileID *uuid.UUID `json:"invoice_profile_id,omitempty"`
 	// SettlementPartyID holds the value of the "settlement_party_id" field.
 	SettlementPartyID uuid.UUID `json:"settlement_party_id,omitempty"`
 	// SettlementPartyName holds the value of the "settlement_party_name" field.
 	SettlementPartyName string `json:"settlement_party_name,omitempty"`
+	// InvoiceTitle holds the value of the "invoice_title" field.
+	InvoiceTitle *string `json:"invoice_title,omitempty"`
+	// TaxpayerIdentificationNo holds the value of the "taxpayer_identification_no" field.
+	TaxpayerIdentificationNo *string `json:"taxpayer_identification_no,omitempty"`
+	// RegisteredAddress holds the value of the "registered_address" field.
+	RegisteredAddress *string `json:"registered_address,omitempty"`
+	// RegisteredPhone holds the value of the "registered_phone" field.
+	RegisteredPhone *string `json:"registered_phone,omitempty"`
+	// BankName holds the value of the "bank_name" field.
+	BankName *string `json:"bank_name,omitempty"`
+	// BankAccount holds the value of the "bank_account" field.
+	BankAccount *string `json:"bank_account,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// TotalAmount holds the value of the "total_amount" field.
 	TotalAmount string `json:"total_amount,omitempty"`
+	// NetAmount holds the value of the "net_amount" field.
+	NetAmount string `json:"net_amount,omitempty"`
 	// TaxAmount holds the value of the "tax_amount" field.
 	TaxAmount string `json:"tax_amount,omitempty"`
 	// BillCount holds the value of the "bill_count" field.
@@ -89,6 +106,8 @@ type FinanceInvoiceEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// SettlementParty holds the value of the settlement_party edge.
 	SettlementParty *Partner `json:"settlement_party,omitempty"`
+	// InvoiceProfile holds the value of the invoice_profile edge.
+	InvoiceProfile *PartnerInvoiceProfile `json:"invoice_profile,omitempty"`
 	// IssuedByUser holds the value of the issued_by_user edge.
 	IssuedByUser *User `json:"issued_by_user,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
@@ -97,9 +116,11 @@ type FinanceInvoiceEdges struct {
 	RedFlushedByUser *User `json:"red_flushed_by_user,omitempty"`
 	// BillLinks holds the value of the bill_links edge.
 	BillLinks []*FinanceInvoiceBill `json:"bill_links,omitempty"`
+	// Lines holds the value of the lines edge.
+	Lines []*FinanceInvoiceLine `json:"lines,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -124,12 +145,23 @@ func (e FinanceInvoiceEdges) SettlementPartyOrErr() (*Partner, error) {
 	return nil, &NotLoadedError{edge: "settlement_party"}
 }
 
+// InvoiceProfileOrErr returns the InvoiceProfile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceInvoiceEdges) InvoiceProfileOrErr() (*PartnerInvoiceProfile, error) {
+	if e.InvoiceProfile != nil {
+		return e.InvoiceProfile, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: partnerinvoiceprofile.Label}
+	}
+	return nil, &NotLoadedError{edge: "invoice_profile"}
+}
+
 // IssuedByUserOrErr returns the IssuedByUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceInvoiceEdges) IssuedByUserOrErr() (*User, error) {
 	if e.IssuedByUser != nil {
 		return e.IssuedByUser, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "issued_by_user"}
@@ -140,7 +172,7 @@ func (e FinanceInvoiceEdges) IssuedByUserOrErr() (*User, error) {
 func (e FinanceInvoiceEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -151,7 +183,7 @@ func (e FinanceInvoiceEdges) CancelledByUserOrErr() (*User, error) {
 func (e FinanceInvoiceEdges) RedFlushedByUserOrErr() (*User, error) {
 	if e.RedFlushedByUser != nil {
 		return e.RedFlushedByUser, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "red_flushed_by_user"}
@@ -160,10 +192,19 @@ func (e FinanceInvoiceEdges) RedFlushedByUserOrErr() (*User, error) {
 // BillLinksOrErr returns the BillLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceInvoiceEdges) BillLinksOrErr() ([]*FinanceInvoiceBill, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.BillLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "bill_links"}
+}
+
+// LinesOrErr returns the Lines value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceInvoiceEdges) LinesOrErr() ([]*FinanceInvoiceLine, error) {
+	if e.loadedTypes[7] {
+		return e.Lines, nil
+	}
+	return nil, &NotLoadedError{edge: "lines"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -171,11 +212,11 @@ func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
+		case financeinvoice.FieldInvoiceProfileID, financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldCurrency, financeinvoice.FieldTotalAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
+		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
 			values[i] = new(sql.NullString)
 		case financeinvoice.FieldCreatedAt, financeinvoice.FieldUpdatedAt, financeinvoice.FieldIssuedAt, financeinvoice.FieldCancelledAt, financeinvoice.FieldRedFlushedAt:
 			values[i] = new(sql.NullTime)
@@ -250,6 +291,13 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.InvoiceType = financeinvoice.InvoiceType(value.String)
 			}
+		case financeinvoice.FieldInvoiceProfileID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field invoice_profile_id", values[i])
+			} else if value.Valid {
+				_m.InvoiceProfileID = new(uuid.UUID)
+				*_m.InvoiceProfileID = *value.S.(*uuid.UUID)
+			}
 		case financeinvoice.FieldSettlementPartyID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field settlement_party_id", values[i])
@@ -262,6 +310,48 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SettlementPartyName = value.String
 			}
+		case financeinvoice.FieldInvoiceTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field invoice_title", values[i])
+			} else if value.Valid {
+				_m.InvoiceTitle = new(string)
+				*_m.InvoiceTitle = value.String
+			}
+		case financeinvoice.FieldTaxpayerIdentificationNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field taxpayer_identification_no", values[i])
+			} else if value.Valid {
+				_m.TaxpayerIdentificationNo = new(string)
+				*_m.TaxpayerIdentificationNo = value.String
+			}
+		case financeinvoice.FieldRegisteredAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field registered_address", values[i])
+			} else if value.Valid {
+				_m.RegisteredAddress = new(string)
+				*_m.RegisteredAddress = value.String
+			}
+		case financeinvoice.FieldRegisteredPhone:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field registered_phone", values[i])
+			} else if value.Valid {
+				_m.RegisteredPhone = new(string)
+				*_m.RegisteredPhone = value.String
+			}
+		case financeinvoice.FieldBankName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bank_name", values[i])
+			} else if value.Valid {
+				_m.BankName = new(string)
+				*_m.BankName = value.String
+			}
+		case financeinvoice.FieldBankAccount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bank_account", values[i])
+			} else if value.Valid {
+				_m.BankAccount = new(string)
+				*_m.BankAccount = value.String
+			}
 		case financeinvoice.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
@@ -273,6 +363,12 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field total_amount", values[i])
 			} else if value.Valid {
 				_m.TotalAmount = value.String
+			}
+		case financeinvoice.FieldNetAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field net_amount", values[i])
+			} else if value.Valid {
+				_m.NetAmount = value.String
 			}
 		case financeinvoice.FieldTaxAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -406,6 +502,11 @@ func (_m *FinanceInvoice) QuerySettlementParty() *PartnerQuery {
 	return NewFinanceInvoiceClient(_m.config).QuerySettlementParty(_m)
 }
 
+// QueryInvoiceProfile queries the "invoice_profile" edge of the FinanceInvoice entity.
+func (_m *FinanceInvoice) QueryInvoiceProfile() *PartnerInvoiceProfileQuery {
+	return NewFinanceInvoiceClient(_m.config).QueryInvoiceProfile(_m)
+}
+
 // QueryIssuedByUser queries the "issued_by_user" edge of the FinanceInvoice entity.
 func (_m *FinanceInvoice) QueryIssuedByUser() *UserQuery {
 	return NewFinanceInvoiceClient(_m.config).QueryIssuedByUser(_m)
@@ -424,6 +525,11 @@ func (_m *FinanceInvoice) QueryRedFlushedByUser() *UserQuery {
 // QueryBillLinks queries the "bill_links" edge of the FinanceInvoice entity.
 func (_m *FinanceInvoice) QueryBillLinks() *FinanceInvoiceBillQuery {
 	return NewFinanceInvoiceClient(_m.config).QueryBillLinks(_m)
+}
+
+// QueryLines queries the "lines" edge of the FinanceInvoice entity.
+func (_m *FinanceInvoice) QueryLines() *FinanceInvoiceLineQuery {
+	return NewFinanceInvoiceClient(_m.config).QueryLines(_m)
 }
 
 // Update returns a builder for updating this FinanceInvoice.
@@ -473,17 +579,55 @@ func (_m *FinanceInvoice) String() string {
 	builder.WriteString("invoice_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.InvoiceType))
 	builder.WriteString(", ")
+	if v := _m.InvoiceProfileID; v != nil {
+		builder.WriteString("invoice_profile_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("settlement_party_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SettlementPartyID))
 	builder.WriteString(", ")
 	builder.WriteString("settlement_party_name=")
 	builder.WriteString(_m.SettlementPartyName)
 	builder.WriteString(", ")
+	if v := _m.InvoiceTitle; v != nil {
+		builder.WriteString("invoice_title=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.TaxpayerIdentificationNo; v != nil {
+		builder.WriteString("taxpayer_identification_no=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RegisteredAddress; v != nil {
+		builder.WriteString("registered_address=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RegisteredPhone; v != nil {
+		builder.WriteString("registered_phone=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.BankName; v != nil {
+		builder.WriteString("bank_name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.BankAccount; v != nil {
+		builder.WriteString("bank_account=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
 	builder.WriteString(", ")
 	builder.WriteString("total_amount=")
 	builder.WriteString(_m.TotalAmount)
+	builder.WriteString(", ")
+	builder.WriteString("net_amount=")
+	builder.WriteString(_m.NetAmount)
 	builder.WriteString(", ")
 	builder.WriteString("tax_amount=")
 	builder.WriteString(_m.TaxAmount)

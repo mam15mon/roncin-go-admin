@@ -81,6 +81,11 @@ func IdempotencyKey(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldIdempotencyKey, v))
 }
 
+// InvoiceProfileID applies equality check predicate on the "invoice_profile_id" field. It's identical to InvoiceProfileIDEQ.
+func InvoiceProfileID(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldInvoiceProfileID, v))
+}
+
 // SettlementPartyID applies equality check predicate on the "settlement_party_id" field. It's identical to SettlementPartyIDEQ.
 func SettlementPartyID(v uuid.UUID) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldSettlementPartyID, v))
@@ -91,6 +96,36 @@ func SettlementPartyName(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldSettlementPartyName, v))
 }
 
+// InvoiceTitle applies equality check predicate on the "invoice_title" field. It's identical to InvoiceTitleEQ.
+func InvoiceTitle(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldInvoiceTitle, v))
+}
+
+// TaxpayerIdentificationNo applies equality check predicate on the "taxpayer_identification_no" field. It's identical to TaxpayerIdentificationNoEQ.
+func TaxpayerIdentificationNo(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldTaxpayerIdentificationNo, v))
+}
+
+// RegisteredAddress applies equality check predicate on the "registered_address" field. It's identical to RegisteredAddressEQ.
+func RegisteredAddress(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRegisteredAddress, v))
+}
+
+// RegisteredPhone applies equality check predicate on the "registered_phone" field. It's identical to RegisteredPhoneEQ.
+func RegisteredPhone(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRegisteredPhone, v))
+}
+
+// BankName applies equality check predicate on the "bank_name" field. It's identical to BankNameEQ.
+func BankName(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldBankName, v))
+}
+
+// BankAccount applies equality check predicate on the "bank_account" field. It's identical to BankAccountEQ.
+func BankAccount(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldBankAccount, v))
+}
+
 // Currency applies equality check predicate on the "currency" field. It's identical to CurrencyEQ.
 func Currency(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldCurrency, v))
@@ -99,6 +134,11 @@ func Currency(v string) predicate.FinanceInvoice {
 // TotalAmount applies equality check predicate on the "total_amount" field. It's identical to TotalAmountEQ.
 func TotalAmount(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldTotalAmount, v))
+}
+
+// NetAmount applies equality check predicate on the "net_amount" field. It's identical to NetAmountEQ.
+func NetAmount(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldNetAmount, v))
 }
 
 // TaxAmount applies equality check predicate on the "tax_amount" field. It's identical to TaxAmountEQ.
@@ -471,6 +511,36 @@ func InvoiceTypeNotIn(vs ...InvoiceType) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldNotIn(FieldInvoiceType, vs...))
 }
 
+// InvoiceProfileIDEQ applies the EQ predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDEQ(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldInvoiceProfileID, v))
+}
+
+// InvoiceProfileIDNEQ applies the NEQ predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDNEQ(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldInvoiceProfileID, v))
+}
+
+// InvoiceProfileIDIn applies the In predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDIn(vs ...uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldInvoiceProfileID, vs...))
+}
+
+// InvoiceProfileIDNotIn applies the NotIn predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDNotIn(vs ...uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldInvoiceProfileID, vs...))
+}
+
+// InvoiceProfileIDIsNil applies the IsNil predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldInvoiceProfileID))
+}
+
+// InvoiceProfileIDNotNil applies the NotNil predicate on the "invoice_profile_id" field.
+func InvoiceProfileIDNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldInvoiceProfileID))
+}
+
 // SettlementPartyIDEQ applies the EQ predicate on the "settlement_party_id" field.
 func SettlementPartyIDEQ(v uuid.UUID) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldSettlementPartyID, v))
@@ -554,6 +624,456 @@ func SettlementPartyNameEqualFold(v string) predicate.FinanceInvoice {
 // SettlementPartyNameContainsFold applies the ContainsFold predicate on the "settlement_party_name" field.
 func SettlementPartyNameContainsFold(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldSettlementPartyName, v))
+}
+
+// InvoiceTitleEQ applies the EQ predicate on the "invoice_title" field.
+func InvoiceTitleEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleNEQ applies the NEQ predicate on the "invoice_title" field.
+func InvoiceTitleNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleIn applies the In predicate on the "invoice_title" field.
+func InvoiceTitleIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldInvoiceTitle, vs...))
+}
+
+// InvoiceTitleNotIn applies the NotIn predicate on the "invoice_title" field.
+func InvoiceTitleNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldInvoiceTitle, vs...))
+}
+
+// InvoiceTitleGT applies the GT predicate on the "invoice_title" field.
+func InvoiceTitleGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleGTE applies the GTE predicate on the "invoice_title" field.
+func InvoiceTitleGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleLT applies the LT predicate on the "invoice_title" field.
+func InvoiceTitleLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleLTE applies the LTE predicate on the "invoice_title" field.
+func InvoiceTitleLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleContains applies the Contains predicate on the "invoice_title" field.
+func InvoiceTitleContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleHasPrefix applies the HasPrefix predicate on the "invoice_title" field.
+func InvoiceTitleHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleHasSuffix applies the HasSuffix predicate on the "invoice_title" field.
+func InvoiceTitleHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleIsNil applies the IsNil predicate on the "invoice_title" field.
+func InvoiceTitleIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldInvoiceTitle))
+}
+
+// InvoiceTitleNotNil applies the NotNil predicate on the "invoice_title" field.
+func InvoiceTitleNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldInvoiceTitle))
+}
+
+// InvoiceTitleEqualFold applies the EqualFold predicate on the "invoice_title" field.
+func InvoiceTitleEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldInvoiceTitle, v))
+}
+
+// InvoiceTitleContainsFold applies the ContainsFold predicate on the "invoice_title" field.
+func InvoiceTitleContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldInvoiceTitle, v))
+}
+
+// TaxpayerIdentificationNoEQ applies the EQ predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoNEQ applies the NEQ predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoIn applies the In predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldTaxpayerIdentificationNo, vs...))
+}
+
+// TaxpayerIdentificationNoNotIn applies the NotIn predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldTaxpayerIdentificationNo, vs...))
+}
+
+// TaxpayerIdentificationNoGT applies the GT predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoGTE applies the GTE predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoLT applies the LT predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoLTE applies the LTE predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoContains applies the Contains predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoHasPrefix applies the HasPrefix predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoHasSuffix applies the HasSuffix predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoIsNil applies the IsNil predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldTaxpayerIdentificationNo))
+}
+
+// TaxpayerIdentificationNoNotNil applies the NotNil predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldTaxpayerIdentificationNo))
+}
+
+// TaxpayerIdentificationNoEqualFold applies the EqualFold predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldTaxpayerIdentificationNo, v))
+}
+
+// TaxpayerIdentificationNoContainsFold applies the ContainsFold predicate on the "taxpayer_identification_no" field.
+func TaxpayerIdentificationNoContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldTaxpayerIdentificationNo, v))
+}
+
+// RegisteredAddressEQ applies the EQ predicate on the "registered_address" field.
+func RegisteredAddressEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressNEQ applies the NEQ predicate on the "registered_address" field.
+func RegisteredAddressNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressIn applies the In predicate on the "registered_address" field.
+func RegisteredAddressIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRegisteredAddress, vs...))
+}
+
+// RegisteredAddressNotIn applies the NotIn predicate on the "registered_address" field.
+func RegisteredAddressNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRegisteredAddress, vs...))
+}
+
+// RegisteredAddressGT applies the GT predicate on the "registered_address" field.
+func RegisteredAddressGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressGTE applies the GTE predicate on the "registered_address" field.
+func RegisteredAddressGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressLT applies the LT predicate on the "registered_address" field.
+func RegisteredAddressLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressLTE applies the LTE predicate on the "registered_address" field.
+func RegisteredAddressLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressContains applies the Contains predicate on the "registered_address" field.
+func RegisteredAddressContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressHasPrefix applies the HasPrefix predicate on the "registered_address" field.
+func RegisteredAddressHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressHasSuffix applies the HasSuffix predicate on the "registered_address" field.
+func RegisteredAddressHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressIsNil applies the IsNil predicate on the "registered_address" field.
+func RegisteredAddressIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRegisteredAddress))
+}
+
+// RegisteredAddressNotNil applies the NotNil predicate on the "registered_address" field.
+func RegisteredAddressNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRegisteredAddress))
+}
+
+// RegisteredAddressEqualFold applies the EqualFold predicate on the "registered_address" field.
+func RegisteredAddressEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldRegisteredAddress, v))
+}
+
+// RegisteredAddressContainsFold applies the ContainsFold predicate on the "registered_address" field.
+func RegisteredAddressContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldRegisteredAddress, v))
+}
+
+// RegisteredPhoneEQ applies the EQ predicate on the "registered_phone" field.
+func RegisteredPhoneEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneNEQ applies the NEQ predicate on the "registered_phone" field.
+func RegisteredPhoneNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneIn applies the In predicate on the "registered_phone" field.
+func RegisteredPhoneIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRegisteredPhone, vs...))
+}
+
+// RegisteredPhoneNotIn applies the NotIn predicate on the "registered_phone" field.
+func RegisteredPhoneNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRegisteredPhone, vs...))
+}
+
+// RegisteredPhoneGT applies the GT predicate on the "registered_phone" field.
+func RegisteredPhoneGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneGTE applies the GTE predicate on the "registered_phone" field.
+func RegisteredPhoneGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneLT applies the LT predicate on the "registered_phone" field.
+func RegisteredPhoneLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneLTE applies the LTE predicate on the "registered_phone" field.
+func RegisteredPhoneLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneContains applies the Contains predicate on the "registered_phone" field.
+func RegisteredPhoneContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneHasPrefix applies the HasPrefix predicate on the "registered_phone" field.
+func RegisteredPhoneHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneHasSuffix applies the HasSuffix predicate on the "registered_phone" field.
+func RegisteredPhoneHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneIsNil applies the IsNil predicate on the "registered_phone" field.
+func RegisteredPhoneIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRegisteredPhone))
+}
+
+// RegisteredPhoneNotNil applies the NotNil predicate on the "registered_phone" field.
+func RegisteredPhoneNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRegisteredPhone))
+}
+
+// RegisteredPhoneEqualFold applies the EqualFold predicate on the "registered_phone" field.
+func RegisteredPhoneEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldRegisteredPhone, v))
+}
+
+// RegisteredPhoneContainsFold applies the ContainsFold predicate on the "registered_phone" field.
+func RegisteredPhoneContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldRegisteredPhone, v))
+}
+
+// BankNameEQ applies the EQ predicate on the "bank_name" field.
+func BankNameEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldBankName, v))
+}
+
+// BankNameNEQ applies the NEQ predicate on the "bank_name" field.
+func BankNameNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldBankName, v))
+}
+
+// BankNameIn applies the In predicate on the "bank_name" field.
+func BankNameIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldBankName, vs...))
+}
+
+// BankNameNotIn applies the NotIn predicate on the "bank_name" field.
+func BankNameNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldBankName, vs...))
+}
+
+// BankNameGT applies the GT predicate on the "bank_name" field.
+func BankNameGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldBankName, v))
+}
+
+// BankNameGTE applies the GTE predicate on the "bank_name" field.
+func BankNameGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldBankName, v))
+}
+
+// BankNameLT applies the LT predicate on the "bank_name" field.
+func BankNameLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldBankName, v))
+}
+
+// BankNameLTE applies the LTE predicate on the "bank_name" field.
+func BankNameLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldBankName, v))
+}
+
+// BankNameContains applies the Contains predicate on the "bank_name" field.
+func BankNameContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldBankName, v))
+}
+
+// BankNameHasPrefix applies the HasPrefix predicate on the "bank_name" field.
+func BankNameHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldBankName, v))
+}
+
+// BankNameHasSuffix applies the HasSuffix predicate on the "bank_name" field.
+func BankNameHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldBankName, v))
+}
+
+// BankNameIsNil applies the IsNil predicate on the "bank_name" field.
+func BankNameIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldBankName))
+}
+
+// BankNameNotNil applies the NotNil predicate on the "bank_name" field.
+func BankNameNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldBankName))
+}
+
+// BankNameEqualFold applies the EqualFold predicate on the "bank_name" field.
+func BankNameEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldBankName, v))
+}
+
+// BankNameContainsFold applies the ContainsFold predicate on the "bank_name" field.
+func BankNameContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldBankName, v))
+}
+
+// BankAccountEQ applies the EQ predicate on the "bank_account" field.
+func BankAccountEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldBankAccount, v))
+}
+
+// BankAccountNEQ applies the NEQ predicate on the "bank_account" field.
+func BankAccountNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldBankAccount, v))
+}
+
+// BankAccountIn applies the In predicate on the "bank_account" field.
+func BankAccountIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldBankAccount, vs...))
+}
+
+// BankAccountNotIn applies the NotIn predicate on the "bank_account" field.
+func BankAccountNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldBankAccount, vs...))
+}
+
+// BankAccountGT applies the GT predicate on the "bank_account" field.
+func BankAccountGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldBankAccount, v))
+}
+
+// BankAccountGTE applies the GTE predicate on the "bank_account" field.
+func BankAccountGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldBankAccount, v))
+}
+
+// BankAccountLT applies the LT predicate on the "bank_account" field.
+func BankAccountLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldBankAccount, v))
+}
+
+// BankAccountLTE applies the LTE predicate on the "bank_account" field.
+func BankAccountLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldBankAccount, v))
+}
+
+// BankAccountContains applies the Contains predicate on the "bank_account" field.
+func BankAccountContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldBankAccount, v))
+}
+
+// BankAccountHasPrefix applies the HasPrefix predicate on the "bank_account" field.
+func BankAccountHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldBankAccount, v))
+}
+
+// BankAccountHasSuffix applies the HasSuffix predicate on the "bank_account" field.
+func BankAccountHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldBankAccount, v))
+}
+
+// BankAccountIsNil applies the IsNil predicate on the "bank_account" field.
+func BankAccountIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldBankAccount))
+}
+
+// BankAccountNotNil applies the NotNil predicate on the "bank_account" field.
+func BankAccountNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldBankAccount))
+}
+
+// BankAccountEqualFold applies the EqualFold predicate on the "bank_account" field.
+func BankAccountEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldBankAccount, v))
+}
+
+// BankAccountContainsFold applies the ContainsFold predicate on the "bank_account" field.
+func BankAccountContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldBankAccount, v))
 }
 
 // CurrencyEQ applies the EQ predicate on the "currency" field.
@@ -684,6 +1204,71 @@ func TotalAmountEqualFold(v string) predicate.FinanceInvoice {
 // TotalAmountContainsFold applies the ContainsFold predicate on the "total_amount" field.
 func TotalAmountContainsFold(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldTotalAmount, v))
+}
+
+// NetAmountEQ applies the EQ predicate on the "net_amount" field.
+func NetAmountEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldNetAmount, v))
+}
+
+// NetAmountNEQ applies the NEQ predicate on the "net_amount" field.
+func NetAmountNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldNetAmount, v))
+}
+
+// NetAmountIn applies the In predicate on the "net_amount" field.
+func NetAmountIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldNetAmount, vs...))
+}
+
+// NetAmountNotIn applies the NotIn predicate on the "net_amount" field.
+func NetAmountNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldNetAmount, vs...))
+}
+
+// NetAmountGT applies the GT predicate on the "net_amount" field.
+func NetAmountGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldNetAmount, v))
+}
+
+// NetAmountGTE applies the GTE predicate on the "net_amount" field.
+func NetAmountGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldNetAmount, v))
+}
+
+// NetAmountLT applies the LT predicate on the "net_amount" field.
+func NetAmountLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldNetAmount, v))
+}
+
+// NetAmountLTE applies the LTE predicate on the "net_amount" field.
+func NetAmountLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldNetAmount, v))
+}
+
+// NetAmountContains applies the Contains predicate on the "net_amount" field.
+func NetAmountContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldNetAmount, v))
+}
+
+// NetAmountHasPrefix applies the HasPrefix predicate on the "net_amount" field.
+func NetAmountHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldNetAmount, v))
+}
+
+// NetAmountHasSuffix applies the HasSuffix predicate on the "net_amount" field.
+func NetAmountHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldNetAmount, v))
+}
+
+// NetAmountEqualFold applies the EqualFold predicate on the "net_amount" field.
+func NetAmountEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldNetAmount, v))
+}
+
+// NetAmountContainsFold applies the ContainsFold predicate on the "net_amount" field.
+func NetAmountContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldNetAmount, v))
 }
 
 // TaxAmountEQ applies the EQ predicate on the "tax_amount" field.
@@ -1642,6 +2227,29 @@ func HasSettlementPartyWith(preds ...predicate.Partner) predicate.FinanceInvoice
 	})
 }
 
+// HasInvoiceProfile applies the HasEdge predicate on the "invoice_profile" edge.
+func HasInvoiceProfile() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, InvoiceProfileTable, InvoiceProfileColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInvoiceProfileWith applies the HasEdge predicate on the "invoice_profile" edge with a given conditions (other predicates).
+func HasInvoiceProfileWith(preds ...predicate.PartnerInvoiceProfile) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := newInvoiceProfileStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasIssuedByUser applies the HasEdge predicate on the "issued_by_user" edge.
 func HasIssuedByUser() predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(func(s *sql.Selector) {
@@ -1726,6 +2334,29 @@ func HasBillLinks() predicate.FinanceInvoice {
 func HasBillLinksWith(preds ...predicate.FinanceInvoiceBill) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(func(s *sql.Selector) {
 		step := newBillLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLines applies the HasEdge predicate on the "lines" edge.
+func HasLines() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLinesWith applies the HasEdge predicate on the "lines" edge with a given conditions (other predicates).
+func HasLinesWith(preds ...predicate.FinanceInvoiceLine) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := newLinesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

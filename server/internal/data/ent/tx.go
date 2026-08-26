@@ -48,6 +48,8 @@ type Tx struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
+	FinanceInvoiceLine *FinanceInvoiceLineClient
 	// FinanceVerification is the client for interacting with the FinanceVerification builders.
 	FinanceVerification *FinanceVerificationClient
 	// FinanceVerificationAllocation is the client for interacting with the FinanceVerificationAllocation builders.
@@ -112,6 +114,8 @@ type Tx struct {
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
 	PartnerContract *PartnerContractClient
+	// PartnerInvoiceProfile is the client for interacting with the PartnerInvoiceProfile builders.
+	PartnerInvoiceProfile *PartnerInvoiceProfileClient
 	// PartnerProfile is the client for interacting with the PartnerProfile builders.
 	PartnerProfile *PartnerProfileClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
@@ -293,6 +297,7 @@ func (tx *Tx) init() {
 	tx.FinanceCommissionRule = NewFinanceCommissionRuleClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)
+	tx.FinanceInvoiceLine = NewFinanceInvoiceLineClient(tx.config)
 	tx.FinanceVerification = NewFinanceVerificationClient(tx.config)
 	tx.FinanceVerificationAllocation = NewFinanceVerificationAllocationClient(tx.config)
 	tx.LoginRateLimitBucket = NewLoginRateLimitBucketClient(tx.config)
@@ -325,6 +330,7 @@ func (tx *Tx) init() {
 	tx.PartnerAttachment = NewPartnerAttachmentClient(tx.config)
 	tx.PartnerContact = NewPartnerContactClient(tx.config)
 	tx.PartnerContract = NewPartnerContractClient(tx.config)
+	tx.PartnerInvoiceProfile = NewPartnerInvoiceProfileClient(tx.config)
 	tx.PartnerProfile = NewPartnerProfileClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)
 	tx.PartnerSettlementRule = NewPartnerSettlementRuleClient(tx.config)

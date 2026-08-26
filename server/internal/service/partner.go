@@ -19,10 +19,11 @@ type PartnerService struct {
 	settlementRuleUsecase *biz.PartnerSettlementRuleUsecase
 	attachmentUsecase     *biz.PartnerAttachmentUsecase
 	shippingPresetUsecase *biz.PartnerShippingPresetUsecase
+	invoiceProfileUsecase *biz.PartnerInvoiceProfileUsecase
 }
 
-func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerAccountUsecase, contractUsecase *biz.PartnerContractUsecase, settlementRuleUsecase *biz.PartnerSettlementRuleUsecase, attachmentUsecase *biz.PartnerAttachmentUsecase, shippingPresetUsecase *biz.PartnerShippingPresetUsecase) *PartnerService {
-	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase, attachmentUsecase: attachmentUsecase, shippingPresetUsecase: shippingPresetUsecase}
+func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerAccountUsecase, contractUsecase *biz.PartnerContractUsecase, settlementRuleUsecase *biz.PartnerSettlementRuleUsecase, attachmentUsecase *biz.PartnerAttachmentUsecase, shippingPresetUsecase *biz.PartnerShippingPresetUsecase, invoiceProfileUsecase *biz.PartnerInvoiceProfileUsecase) *PartnerService {
+	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase, attachmentUsecase: attachmentUsecase, shippingPresetUsecase: shippingPresetUsecase, invoiceProfileUsecase: invoiceProfileUsecase}
 }
 
 func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.GetPartnerResponse, error) {
@@ -39,6 +40,42 @@ func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerR
 		return nil, err
 	}
 	return &v1.GetPartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) GetPartnerInvoiceProfile(ctx context.Context, request *v1.GetPartnerInvoiceProfileRequest) (*v1.GetPartnerInvoiceProfileResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerInvoiceProfileInvalidArgument
+	}
+	item, err := s.invoiceProfileUsecase.Get(ctx, principal.Organization.ID, partnerID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetPartnerInvoiceProfileResponse{Success: true, Message: "OK", Data: partnerInvoiceProfileToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *PartnerService) SavePartnerInvoiceProfile(ctx context.Context, request *v1.SavePartnerInvoiceProfileRequest) (*v1.SavePartnerInvoiceProfileResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerInvoiceProfileInvalidArgument
+	}
+	item, err := s.invoiceProfileUsecase.Save(ctx, principal.Organization.ID, principal.UserID, biz.SavePartnerInvoiceProfileInput{PartnerID: partnerID, InvoiceTitle: request.GetInvoiceTitle(), TaxpayerIdentificationNo: request.GetTaxpayerIdentificationNo(), RegisteredAddress: request.GetRegisteredAddress(), RegisteredPhone: request.GetRegisteredPhone(), BankName: request.GetBankName(), BankAccount: request.GetBankAccount(), DefaultInvoiceType: biz.FinanceInvoiceType(request.GetDefaultInvoiceType()), ExpectedVersion: request.GetExpectedVersion()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SavePartnerInvoiceProfileResponse{Success: true, Message: "OK", Data: partnerInvoiceProfileToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func partnerInvoiceProfileToAPI(item *biz.PartnerInvoiceProfile) *v1.PartnerInvoiceProfile {
+	return &v1.PartnerInvoiceProfile{Id: item.ID.String(), PartnerId: item.PartnerID.String(), InvoiceTitle: item.InvoiceTitle, TaxpayerIdentificationNo: item.TaxpayerIdentificationNo, RegisteredAddress: item.RegisteredAddress, RegisteredPhone: item.RegisteredPhone, BankName: item.BankName, BankAccount: item.BankAccount, DefaultInvoiceType: string(item.DefaultInvoiceType), Version: item.Version}
 }
 
 func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.ListPartnersResponse, error) {

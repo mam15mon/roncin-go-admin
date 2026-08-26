@@ -43,6 +43,8 @@ const (
 	EdgeAliases = "aliases"
 	// EdgeProfile holds the string denoting the profile edge name in mutations.
 	EdgeProfile = "profile"
+	// EdgeInvoiceProfile holds the string denoting the invoice_profile edge name in mutations.
+	EdgeInvoiceProfile = "invoice_profile"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
 	// EdgeShippingPresets holds the string denoting the shipping_presets edge name in mutations.
@@ -100,6 +102,13 @@ const (
 	ProfileInverseTable = "partner_profiles"
 	// ProfileColumn is the table column denoting the profile relation/edge.
 	ProfileColumn = "partner_id"
+	// InvoiceProfileTable is the table that holds the invoice_profile relation/edge.
+	InvoiceProfileTable = "partner_invoice_profiles"
+	// InvoiceProfileInverseTable is the table name for the PartnerInvoiceProfile entity.
+	// It exists in this package in order to avoid circular dependency with the "partnerinvoiceprofile" package.
+	InvoiceProfileInverseTable = "partner_invoice_profiles"
+	// InvoiceProfileColumn is the table column denoting the invoice_profile relation/edge.
+	InvoiceProfileColumn = "partner_id"
 	// AssignmentsTable is the table that holds the assignments relation/edge.
 	AssignmentsTable = "partner_assignments"
 	// AssignmentsInverseTable is the table name for the PartnerAssignment entity.
@@ -328,6 +337,13 @@ func ByProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByInvoiceProfileField orders the results by invoice_profile field.
+func ByInvoiceProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceProfileStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByAssignmentsCount orders the results by assignments count.
 func ByAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -500,6 +516,13 @@ func newProfileStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProfileInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, ProfileTable, ProfileColumn),
+	)
+}
+func newInvoiceProfileStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoiceProfileInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, InvoiceProfileTable, InvoiceProfileColumn),
 	)
 }
 func newAssignmentsStep() *sqlgraph.Step {

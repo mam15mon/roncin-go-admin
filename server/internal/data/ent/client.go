@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -66,6 +67,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
@@ -125,6 +127,8 @@ type Client struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
+	FinanceInvoiceLine *FinanceInvoiceLineClient
 	// FinanceVerification is the client for interacting with the FinanceVerification builders.
 	FinanceVerification *FinanceVerificationClient
 	// FinanceVerificationAllocation is the client for interacting with the FinanceVerificationAllocation builders.
@@ -189,6 +193,8 @@ type Client struct {
 	PartnerContact *PartnerContactClient
 	// PartnerContract is the client for interacting with the PartnerContract builders.
 	PartnerContract *PartnerContractClient
+	// PartnerInvoiceProfile is the client for interacting with the PartnerInvoiceProfile builders.
+	PartnerInvoiceProfile *PartnerInvoiceProfileClient
 	// PartnerProfile is the client for interacting with the PartnerProfile builders.
 	PartnerProfile *PartnerProfileClient
 	// PartnerRole is the client for interacting with the PartnerRole builders.
@@ -250,6 +256,7 @@ func (c *Client) init() {
 	c.FinanceCommissionRule = NewFinanceCommissionRuleClient(c.config)
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
+	c.FinanceInvoiceLine = NewFinanceInvoiceLineClient(c.config)
 	c.FinanceVerification = NewFinanceVerificationClient(c.config)
 	c.FinanceVerificationAllocation = NewFinanceVerificationAllocationClient(c.config)
 	c.LoginRateLimitBucket = NewLoginRateLimitBucketClient(c.config)
@@ -282,6 +289,7 @@ func (c *Client) init() {
 	c.PartnerAttachment = NewPartnerAttachmentClient(c.config)
 	c.PartnerContact = NewPartnerContactClient(c.config)
 	c.PartnerContract = NewPartnerContractClient(c.config)
+	c.PartnerInvoiceProfile = NewPartnerInvoiceProfileClient(c.config)
 	c.PartnerProfile = NewPartnerProfileClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
@@ -408,6 +416,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
 		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:            NewFinanceInvoiceLineClient(cfg),
 		FinanceVerification:           NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation: NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:          NewLoginRateLimitBucketClient(cfg),
@@ -440,6 +449,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartnerAttachment:             NewPartnerAttachmentClient(cfg),
 		PartnerContact:                NewPartnerContactClient(cfg),
 		PartnerContract:               NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:         NewPartnerInvoiceProfileClient(cfg),
 		PartnerProfile:                NewPartnerProfileClient(cfg),
 		PartnerRole:                   NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:         NewPartnerSettlementRuleClient(cfg),
@@ -493,6 +503,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
 		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:            NewFinanceInvoiceLineClient(cfg),
 		FinanceVerification:           NewFinanceVerificationClient(cfg),
 		FinanceVerificationAllocation: NewFinanceVerificationAllocationClient(cfg),
 		LoginRateLimitBucket:          NewLoginRateLimitBucketClient(cfg),
@@ -525,6 +536,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartnerAttachment:             NewPartnerAttachmentClient(cfg),
 		PartnerContact:                NewPartnerContactClient(cfg),
 		PartnerContract:               NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:         NewPartnerInvoiceProfileClient(cfg),
 		PartnerProfile:                NewPartnerProfileClient(cfg),
 		PartnerRole:                   NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:         NewPartnerSettlementRuleClient(cfg),
@@ -574,20 +586,20 @@ func (c *Client) Use(hooks ...Hook) {
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
 		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionRule,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
-		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
-		c.TaxableService, c.User,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -601,20 +613,20 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
 		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
 		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionRule,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerProfile, c.PartnerRole, c.PartnerSettlementRule,
-		c.PartnerShippingPreset, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
-		c.TaxableService, c.User,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -659,6 +671,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceInvoice.mutate(ctx, m)
 	case *FinanceInvoiceBillMutation:
 		return c.FinanceInvoiceBill.mutate(ctx, m)
+	case *FinanceInvoiceLineMutation:
+		return c.FinanceInvoiceLine.mutate(ctx, m)
 	case *FinanceVerificationMutation:
 		return c.FinanceVerification.mutate(ctx, m)
 	case *FinanceVerificationAllocationMutation:
@@ -723,6 +737,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerContact.mutate(ctx, m)
 	case *PartnerContractMutation:
 		return c.PartnerContract.mutate(ctx, m)
+	case *PartnerInvoiceProfileMutation:
+		return c.PartnerInvoiceProfile.mutate(ctx, m)
 	case *PartnerProfileMutation:
 		return c.PartnerProfile.mutate(ctx, m)
 	case *PartnerRoleMutation:
@@ -3668,6 +3684,22 @@ func (c *FinanceInvoiceClient) QuerySettlementParty(_m *FinanceInvoice) *Partner
 	return query
 }
 
+// QueryInvoiceProfile queries the invoice_profile edge of a FinanceInvoice.
+func (c *FinanceInvoiceClient) QueryInvoiceProfile(_m *FinanceInvoice) *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.InvoiceProfileTable, financeinvoice.InvoiceProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryIssuedByUser queries the issued_by_user edge of a FinanceInvoice.
 func (c *FinanceInvoiceClient) QueryIssuedByUser(_m *FinanceInvoice) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -3725,6 +3757,22 @@ func (c *FinanceInvoiceClient) QueryBillLinks(_m *FinanceInvoice) *FinanceInvoic
 			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
 			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.BillLinksTable, financeinvoice.BillLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLines queries the lines edge of a FinanceInvoice.
+func (c *FinanceInvoiceClient) QueryLines(_m *FinanceInvoice) *FinanceInvoiceLineQuery {
+	query := (&FinanceInvoiceLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
+			sqlgraph.To(financeinvoiceline.Table, financeinvoiceline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.LinesTable, financeinvoice.LinesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3919,6 +3967,155 @@ func (c *FinanceInvoiceBillClient) mutate(ctx context.Context, m *FinanceInvoice
 		return (&FinanceInvoiceBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceInvoiceBill mutation op: %q", m.Op())
+	}
+}
+
+// FinanceInvoiceLineClient is a client for the FinanceInvoiceLine schema.
+type FinanceInvoiceLineClient struct {
+	config
+}
+
+// NewFinanceInvoiceLineClient returns a client for the FinanceInvoiceLine from the given config.
+func NewFinanceInvoiceLineClient(c config) *FinanceInvoiceLineClient {
+	return &FinanceInvoiceLineClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financeinvoiceline.Hooks(f(g(h())))`.
+func (c *FinanceInvoiceLineClient) Use(hooks ...Hook) {
+	c.hooks.FinanceInvoiceLine = append(c.hooks.FinanceInvoiceLine, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financeinvoiceline.Intercept(f(g(h())))`.
+func (c *FinanceInvoiceLineClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceInvoiceLine = append(c.inters.FinanceInvoiceLine, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceInvoiceLine entity.
+func (c *FinanceInvoiceLineClient) Create() *FinanceInvoiceLineCreate {
+	mutation := newFinanceInvoiceLineMutation(c.config, OpCreate)
+	return &FinanceInvoiceLineCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceInvoiceLine entities.
+func (c *FinanceInvoiceLineClient) CreateBulk(builders ...*FinanceInvoiceLineCreate) *FinanceInvoiceLineCreateBulk {
+	return &FinanceInvoiceLineCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceInvoiceLineClient) MapCreateBulk(slice any, setFunc func(*FinanceInvoiceLineCreate, int)) *FinanceInvoiceLineCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceInvoiceLineCreateBulk{err: fmt.Errorf("calling to FinanceInvoiceLineClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceInvoiceLineCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceInvoiceLineCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceInvoiceLine.
+func (c *FinanceInvoiceLineClient) Update() *FinanceInvoiceLineUpdate {
+	mutation := newFinanceInvoiceLineMutation(c.config, OpUpdate)
+	return &FinanceInvoiceLineUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceInvoiceLineClient) UpdateOne(_m *FinanceInvoiceLine) *FinanceInvoiceLineUpdateOne {
+	mutation := newFinanceInvoiceLineMutation(c.config, OpUpdateOne, withFinanceInvoiceLine(_m))
+	return &FinanceInvoiceLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceInvoiceLineClient) UpdateOneID(id uuid.UUID) *FinanceInvoiceLineUpdateOne {
+	mutation := newFinanceInvoiceLineMutation(c.config, OpUpdateOne, withFinanceInvoiceLineID(id))
+	return &FinanceInvoiceLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceInvoiceLine.
+func (c *FinanceInvoiceLineClient) Delete() *FinanceInvoiceLineDelete {
+	mutation := newFinanceInvoiceLineMutation(c.config, OpDelete)
+	return &FinanceInvoiceLineDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceInvoiceLineClient) DeleteOne(_m *FinanceInvoiceLine) *FinanceInvoiceLineDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceInvoiceLineClient) DeleteOneID(id uuid.UUID) *FinanceInvoiceLineDeleteOne {
+	builder := c.Delete().Where(financeinvoiceline.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceInvoiceLineDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceInvoiceLine.
+func (c *FinanceInvoiceLineClient) Query() *FinanceInvoiceLineQuery {
+	return &FinanceInvoiceLineQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceInvoiceLine},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceInvoiceLine entity by its id.
+func (c *FinanceInvoiceLineClient) Get(ctx context.Context, id uuid.UUID) (*FinanceInvoiceLine, error) {
+	return c.Query().Where(financeinvoiceline.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceInvoiceLineClient) GetX(ctx context.Context, id uuid.UUID) *FinanceInvoiceLine {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInvoice queries the invoice edge of a FinanceInvoiceLine.
+func (c *FinanceInvoiceLineClient) QueryInvoice(_m *FinanceInvoiceLine) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoiceline.Table, financeinvoiceline.FieldID, id),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoiceline.InvoiceTable, financeinvoiceline.InvoiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceInvoiceLineClient) Hooks() []Hook {
+	return c.hooks.FinanceInvoiceLine
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceInvoiceLineClient) Interceptors() []Interceptor {
+	return c.inters.FinanceInvoiceLine
+}
+
+func (c *FinanceInvoiceLineClient) mutate(ctx context.Context, m *FinanceInvoiceLineMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceInvoiceLineCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceInvoiceLineUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceInvoiceLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceInvoiceLineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceInvoiceLine mutation op: %q", m.Op())
 	}
 }
 
@@ -8646,6 +8843,22 @@ func (c *OrganizationClient) QueryFinanceBillBatches(_m *Organization) *FinanceB
 	return query
 }
 
+// QueryPartnerInvoiceProfiles queries the partner_invoice_profiles edge of a Organization.
+func (c *OrganizationClient) QueryPartnerInvoiceProfiles(_m *Organization) *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PartnerInvoiceProfilesTable, organization.PartnerInvoiceProfilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceInvoices queries the finance_invoices edge of a Organization.
 func (c *OrganizationClient) QueryFinanceInvoices(_m *Organization) *FinanceInvoiceQuery {
 	query := (&FinanceInvoiceClient{config: c.config}).Query()
@@ -8932,6 +9145,22 @@ func (c *PartnerClient) QueryProfile(_m *Partner) *PartnerProfileQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partnerprofile.Table, partnerprofile.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, partner.ProfileTable, partner.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInvoiceProfile queries the invoice_profile edge of a Partner.
+func (c *PartnerClient) QueryInvoiceProfile(_m *Partner) *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, partner.InvoiceProfileTable, partner.InvoiceProfileColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -10047,6 +10276,187 @@ func (c *PartnerContractClient) mutate(ctx context.Context, m *PartnerContractMu
 		return (&PartnerContractDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown PartnerContract mutation op: %q", m.Op())
+	}
+}
+
+// PartnerInvoiceProfileClient is a client for the PartnerInvoiceProfile schema.
+type PartnerInvoiceProfileClient struct {
+	config
+}
+
+// NewPartnerInvoiceProfileClient returns a client for the PartnerInvoiceProfile from the given config.
+func NewPartnerInvoiceProfileClient(c config) *PartnerInvoiceProfileClient {
+	return &PartnerInvoiceProfileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partnerinvoiceprofile.Hooks(f(g(h())))`.
+func (c *PartnerInvoiceProfileClient) Use(hooks ...Hook) {
+	c.hooks.PartnerInvoiceProfile = append(c.hooks.PartnerInvoiceProfile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partnerinvoiceprofile.Intercept(f(g(h())))`.
+func (c *PartnerInvoiceProfileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartnerInvoiceProfile = append(c.inters.PartnerInvoiceProfile, interceptors...)
+}
+
+// Create returns a builder for creating a PartnerInvoiceProfile entity.
+func (c *PartnerInvoiceProfileClient) Create() *PartnerInvoiceProfileCreate {
+	mutation := newPartnerInvoiceProfileMutation(c.config, OpCreate)
+	return &PartnerInvoiceProfileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartnerInvoiceProfile entities.
+func (c *PartnerInvoiceProfileClient) CreateBulk(builders ...*PartnerInvoiceProfileCreate) *PartnerInvoiceProfileCreateBulk {
+	return &PartnerInvoiceProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartnerInvoiceProfileClient) MapCreateBulk(slice any, setFunc func(*PartnerInvoiceProfileCreate, int)) *PartnerInvoiceProfileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartnerInvoiceProfileCreateBulk{err: fmt.Errorf("calling to PartnerInvoiceProfileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartnerInvoiceProfileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartnerInvoiceProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) Update() *PartnerInvoiceProfileUpdate {
+	mutation := newPartnerInvoiceProfileMutation(c.config, OpUpdate)
+	return &PartnerInvoiceProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartnerInvoiceProfileClient) UpdateOne(_m *PartnerInvoiceProfile) *PartnerInvoiceProfileUpdateOne {
+	mutation := newPartnerInvoiceProfileMutation(c.config, OpUpdateOne, withPartnerInvoiceProfile(_m))
+	return &PartnerInvoiceProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartnerInvoiceProfileClient) UpdateOneID(id uuid.UUID) *PartnerInvoiceProfileUpdateOne {
+	mutation := newPartnerInvoiceProfileMutation(c.config, OpUpdateOne, withPartnerInvoiceProfileID(id))
+	return &PartnerInvoiceProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) Delete() *PartnerInvoiceProfileDelete {
+	mutation := newPartnerInvoiceProfileMutation(c.config, OpDelete)
+	return &PartnerInvoiceProfileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartnerInvoiceProfileClient) DeleteOne(_m *PartnerInvoiceProfile) *PartnerInvoiceProfileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartnerInvoiceProfileClient) DeleteOneID(id uuid.UUID) *PartnerInvoiceProfileDeleteOne {
+	builder := c.Delete().Where(partnerinvoiceprofile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartnerInvoiceProfileDeleteOne{builder}
+}
+
+// Query returns a query builder for PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) Query() *PartnerInvoiceProfileQuery {
+	return &PartnerInvoiceProfileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartnerInvoiceProfile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartnerInvoiceProfile entity by its id.
+func (c *PartnerInvoiceProfileClient) Get(ctx context.Context, id uuid.UUID) (*PartnerInvoiceProfile, error) {
+	return c.Query().Where(partnerinvoiceprofile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartnerInvoiceProfileClient) GetX(ctx context.Context, id uuid.UUID) *PartnerInvoiceProfile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) QueryOrganization(_m *PartnerInvoiceProfile) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerinvoiceprofile.OrganizationTable, partnerinvoiceprofile.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPartner queries the partner edge of a PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) QueryPartner(_m *PartnerInvoiceProfile) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, partnerinvoiceprofile.PartnerTable, partnerinvoiceprofile.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceInvoices queries the finance_invoices edge of a PartnerInvoiceProfile.
+func (c *PartnerInvoiceProfileClient) QueryFinanceInvoices(_m *PartnerInvoiceProfile) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID, id),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partnerinvoiceprofile.FinanceInvoicesTable, partnerinvoiceprofile.FinanceInvoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartnerInvoiceProfileClient) Hooks() []Hook {
+	return c.hooks.PartnerInvoiceProfile
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartnerInvoiceProfileClient) Interceptors() []Interceptor {
+	return c.inters.PartnerInvoiceProfile
+}
+
+func (c *PartnerInvoiceProfileClient) mutate(ctx context.Context, m *PartnerInvoiceProfileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartnerInvoiceProfileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartnerInvoiceProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartnerInvoiceProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartnerInvoiceProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartnerInvoiceProfile mutation op: %q", m.Op())
 	}
 }
 
@@ -12905,16 +13315,17 @@ type (
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		FinanceBill, FinanceBillBatch, FinanceBillLine, FinanceCashflow,
 		FinanceCommission, FinanceCommissionRule, FinanceInvoice, FinanceInvoiceBill,
-		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
-		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Port,
-		Role, RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Hook
 	}
@@ -12923,16 +13334,17 @@ type (
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		FinanceBill, FinanceBillBatch, FinanceBillLine, FinanceCashflow,
 		FinanceCommission, FinanceCommissionRule, FinanceInvoice, FinanceInvoiceBill,
-		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
-		MasterDataItem, Membership, MilestoneTemplate, MilestoneTemplateItem,
-		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
-		OrderCargoCategory, OrderCargoItem, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderMilestone, OrderPersonnel,
-		OrderReleasePod, OrderServiceType, OrderShippingDocument, OrderStatusLog,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PartnerShippingPreset, Permission, Port,
-		Role, RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Interceptor
 	}

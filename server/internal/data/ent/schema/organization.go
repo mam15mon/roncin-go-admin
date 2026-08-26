@@ -50,6 +50,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("background_tasks", BackgroundTask.Type),
 		edge.To("finance_bills", FinanceBill.Type),
 		edge.To("finance_bill_batches", FinanceBillBatch.Type),
+		edge.To("partner_invoice_profiles", PartnerInvoiceProfile.Type),
 		edge.To("finance_invoices", FinanceInvoice.Type),
 		edge.To("finance_cashflows", FinanceCashflow.Type),
 		edge.To("finance_verifications", FinanceVerification.Type),

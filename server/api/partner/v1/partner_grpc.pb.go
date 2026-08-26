@@ -24,6 +24,8 @@ const (
 	PartnerService_ListPartnerAssignmentOptions_FullMethodName = "/partner.v1.PartnerService/ListPartnerAssignmentOptions"
 	PartnerService_CreatePartner_FullMethodName                = "/partner.v1.PartnerService/CreatePartner"
 	PartnerService_UpdatePartner_FullMethodName                = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_GetPartnerInvoiceProfile_FullMethodName     = "/partner.v1.PartnerService/GetPartnerInvoiceProfile"
+	PartnerService_SavePartnerInvoiceProfile_FullMethodName    = "/partner.v1.PartnerService/SavePartnerInvoiceProfile"
 	PartnerService_SetSupplierBlacklist_FullMethodName         = "/partner.v1.PartnerService/SetSupplierBlacklist"
 	PartnerService_ListPartnerAccounts_FullMethodName          = "/partner.v1.PartnerService/ListPartnerAccounts"
 	PartnerService_CreatePartnerAccount_FullMethodName         = "/partner.v1.PartnerService/CreatePartnerAccount"
@@ -53,6 +55,8 @@ type PartnerServiceClient interface {
 	ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error)
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*CreatePartnerResponse, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*UpdatePartnerResponse, error)
+	GetPartnerInvoiceProfile(ctx context.Context, in *GetPartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*GetPartnerInvoiceProfileResponse, error)
+	SavePartnerInvoiceProfile(ctx context.Context, in *SavePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*SavePartnerInvoiceProfileResponse, error)
 	SetSupplierBlacklist(ctx context.Context, in *SetSupplierBlacklistRequest, opts ...grpc.CallOption) (*SetSupplierBlacklistResponse, error)
 	ListPartnerAccounts(ctx context.Context, in *ListPartnerAccountsRequest, opts ...grpc.CallOption) (*ListPartnerAccountsResponse, error)
 	CreatePartnerAccount(ctx context.Context, in *CreatePartnerAccountRequest, opts ...grpc.CallOption) (*CreatePartnerAccountResponse, error)
@@ -125,6 +129,26 @@ func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePart
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdatePartnerResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartner_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) GetPartnerInvoiceProfile(ctx context.Context, in *GetPartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*GetPartnerInvoiceProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPartnerInvoiceProfileResponse)
+	err := c.cc.Invoke(ctx, PartnerService_GetPartnerInvoiceProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) SavePartnerInvoiceProfile(ctx context.Context, in *SavePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*SavePartnerInvoiceProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SavePartnerInvoiceProfileResponse)
+	err := c.cc.Invoke(ctx, PartnerService_SavePartnerInvoiceProfile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -320,6 +344,8 @@ type PartnerServiceServer interface {
 	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
 	CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
+	GetPartnerInvoiceProfile(context.Context, *GetPartnerInvoiceProfileRequest) (*GetPartnerInvoiceProfileResponse, error)
+	SavePartnerInvoiceProfile(context.Context, *SavePartnerInvoiceProfileRequest) (*SavePartnerInvoiceProfileResponse, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
 	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error)
 	CreatePartnerAccount(context.Context, *CreatePartnerAccountRequest) (*CreatePartnerAccountResponse, error)
@@ -362,6 +388,12 @@ func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreateP
 }
 func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartner not implemented")
+}
+func (UnimplementedPartnerServiceServer) GetPartnerInvoiceProfile(context.Context, *GetPartnerInvoiceProfileRequest) (*GetPartnerInvoiceProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPartnerInvoiceProfile not implemented")
+}
+func (UnimplementedPartnerServiceServer) SavePartnerInvoiceProfile(context.Context, *SavePartnerInvoiceProfileRequest) (*SavePartnerInvoiceProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SavePartnerInvoiceProfile not implemented")
 }
 func (UnimplementedPartnerServiceServer) SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetSupplierBlacklist not implemented")
@@ -524,6 +556,42 @@ func _PartnerService_UpdatePartner_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PartnerServiceServer).UpdatePartner(ctx, req.(*UpdatePartnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_GetPartnerInvoiceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPartnerInvoiceProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).GetPartnerInvoiceProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_GetPartnerInvoiceProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).GetPartnerInvoiceProfile(ctx, req.(*GetPartnerInvoiceProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_SavePartnerInvoiceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavePartnerInvoiceProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).SavePartnerInvoiceProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_SavePartnerInvoiceProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).SavePartnerInvoiceProfile(ctx, req.(*SavePartnerInvoiceProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -878,6 +946,14 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartner",
 			Handler:    _PartnerService_UpdatePartner_Handler,
+		},
+		{
+			MethodName: "GetPartnerInvoiceProfile",
+			Handler:    _PartnerService_GetPartnerInvoiceProfile_Handler,
+		},
+		{
+			MethodName: "SavePartnerInvoiceProfile",
+			Handler:    _PartnerService_SavePartnerInvoiceProfile_Handler,
 		},
 		{
 			MethodName: "SetSupplierBlacklist",

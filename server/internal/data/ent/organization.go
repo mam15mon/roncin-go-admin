@@ -92,6 +92,8 @@ type OrganizationEdges struct {
 	FinanceBills []*FinanceBill `json:"finance_bills,omitempty"`
 	// FinanceBillBatches holds the value of the finance_bill_batches edge.
 	FinanceBillBatches []*FinanceBillBatch `json:"finance_bill_batches,omitempty"`
+	// PartnerInvoiceProfiles holds the value of the partner_invoice_profiles edge.
+	PartnerInvoiceProfiles []*PartnerInvoiceProfile `json:"partner_invoice_profiles,omitempty"`
 	// FinanceInvoices holds the value of the finance_invoices edge.
 	FinanceInvoices []*FinanceInvoice `json:"finance_invoices,omitempty"`
 	// FinanceCashflows holds the value of the finance_cashflows edge.
@@ -104,7 +106,7 @@ type OrganizationEdges struct {
 	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [30]bool
+	loadedTypes [31]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -334,10 +336,19 @@ func (e OrganizationEdges) FinanceBillBatchesOrErr() ([]*FinanceBillBatch, error
 	return nil, &NotLoadedError{edge: "finance_bill_batches"}
 }
 
+// PartnerInvoiceProfilesOrErr returns the PartnerInvoiceProfiles value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) PartnerInvoiceProfilesOrErr() ([]*PartnerInvoiceProfile, error) {
+	if e.loadedTypes[25] {
+		return e.PartnerInvoiceProfiles, nil
+	}
+	return nil, &NotLoadedError{edge: "partner_invoice_profiles"}
+}
+
 // FinanceInvoicesOrErr returns the FinanceInvoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
-	if e.loadedTypes[25] {
+	if e.loadedTypes[26] {
 		return e.FinanceInvoices, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_invoices"}
@@ -346,7 +357,7 @@ func (e OrganizationEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
 // FinanceCashflowsOrErr returns the FinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[26] {
+	if e.loadedTypes[27] {
 		return e.FinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_cashflows"}
@@ -355,7 +366,7 @@ func (e OrganizationEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
 // FinanceVerificationsOrErr returns the FinanceVerifications value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error) {
-	if e.loadedTypes[27] {
+	if e.loadedTypes[28] {
 		return e.FinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_verifications"}
@@ -364,7 +375,7 @@ func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, 
 // FinanceCommissionsOrErr returns the FinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[28] {
+	if e.loadedTypes[29] {
 		return e.FinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commissions"}
@@ -373,7 +384,7 @@ func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, erro
 // FinanceCommissionRulesOrErr returns the FinanceCommissionRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRule, error) {
-	if e.loadedTypes[29] {
+	if e.loadedTypes[30] {
 		return e.FinanceCommissionRules, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_rules"}
@@ -601,6 +612,11 @@ func (_m *Organization) QueryFinanceBills() *FinanceBillQuery {
 // QueryFinanceBillBatches queries the "finance_bill_batches" edge of the Organization entity.
 func (_m *Organization) QueryFinanceBillBatches() *FinanceBillBatchQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceBillBatches(_m)
+}
+
+// QueryPartnerInvoiceProfiles queries the "partner_invoice_profiles" edge of the Organization entity.
+func (_m *Organization) QueryPartnerInvoiceProfiles() *PartnerInvoiceProfileQuery {
+	return NewOrganizationClient(_m.config).QueryPartnerInvoiceProfiles(_m)
 }
 
 // QueryFinanceInvoices queries the "finance_invoices" edge of the Organization entity.

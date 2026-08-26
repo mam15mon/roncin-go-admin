@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
@@ -213,6 +214,25 @@ func (_u *PartnerUpdate) SetNillableProfileID(id *uuid.UUID) *PartnerUpdate {
 // SetProfile sets the "profile" edge to the PartnerProfile entity.
 func (_u *PartnerUpdate) SetProfile(v *PartnerProfile) *PartnerUpdate {
 	return _u.SetProfileID(v.ID)
+}
+
+// SetInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID.
+func (_u *PartnerUpdate) SetInvoiceProfileID(id uuid.UUID) *PartnerUpdate {
+	_u.mutation.SetInvoiceProfileID(id)
+	return _u
+}
+
+// SetNillableInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID if the given value is not nil.
+func (_u *PartnerUpdate) SetNillableInvoiceProfileID(id *uuid.UUID) *PartnerUpdate {
+	if id != nil {
+		_u = _u.SetInvoiceProfileID(*id)
+	}
+	return _u
+}
+
+// SetInvoiceProfile sets the "invoice_profile" edge to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdate) SetInvoiceProfile(v *PartnerInvoiceProfile) *PartnerUpdate {
+	return _u.SetInvoiceProfileID(v.ID)
 }
 
 // AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
@@ -442,6 +462,12 @@ func (_u *PartnerUpdate) RemoveAliases(v ...*PartnerAlias) *PartnerUpdate {
 // ClearProfile clears the "profile" edge to the PartnerProfile entity.
 func (_u *PartnerUpdate) ClearProfile() *PartnerUpdate {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearInvoiceProfile clears the "invoice_profile" edge to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdate) ClearInvoiceProfile() *PartnerUpdate {
+	_u.mutation.ClearInvoiceProfile()
 	return _u
 }
 
@@ -941,6 +967,35 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.InvoiceProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.InvoiceProfileTable,
+			Columns: []string{partner.InvoiceProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.InvoiceProfileTable,
+			Columns: []string{partner.InvoiceProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1589,6 +1644,25 @@ func (_u *PartnerUpdateOne) SetProfile(v *PartnerProfile) *PartnerUpdateOne {
 	return _u.SetProfileID(v.ID)
 }
 
+// SetInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID.
+func (_u *PartnerUpdateOne) SetInvoiceProfileID(id uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.SetInvoiceProfileID(id)
+	return _u
+}
+
+// SetNillableInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID if the given value is not nil.
+func (_u *PartnerUpdateOne) SetNillableInvoiceProfileID(id *uuid.UUID) *PartnerUpdateOne {
+	if id != nil {
+		_u = _u.SetInvoiceProfileID(*id)
+	}
+	return _u
+}
+
+// SetInvoiceProfile sets the "invoice_profile" edge to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdateOne) SetInvoiceProfile(v *PartnerInvoiceProfile) *PartnerUpdateOne {
+	return _u.SetInvoiceProfileID(v.ID)
+}
+
 // AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
 func (_u *PartnerUpdateOne) AddAssignmentIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddAssignmentIDs(ids...)
@@ -1816,6 +1890,12 @@ func (_u *PartnerUpdateOne) RemoveAliases(v ...*PartnerAlias) *PartnerUpdateOne 
 // ClearProfile clears the "profile" edge to the PartnerProfile entity.
 func (_u *PartnerUpdateOne) ClearProfile() *PartnerUpdateOne {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearInvoiceProfile clears the "invoice_profile" edge to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdateOne) ClearInvoiceProfile() *PartnerUpdateOne {
+	_u.mutation.ClearInvoiceProfile()
 	return _u
 }
 
@@ -2345,6 +2425,35 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.InvoiceProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.InvoiceProfileTable,
+			Columns: []string{partner.InvoiceProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   partner.InvoiceProfileTable,
+			Columns: []string{partner.InvoiceProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

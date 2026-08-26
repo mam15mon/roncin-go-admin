@@ -24,6 +24,7 @@ const OperationPartnerServiceCreatePartnerSettlementRule = "/partner.v1.PartnerS
 const OperationPartnerServiceCreatePartnerShippingPreset = "/partner.v1.PartnerService/CreatePartnerShippingPreset"
 const OperationPartnerServiceExportPartners = "/partner.v1.PartnerService/ExportPartners"
 const OperationPartnerServiceGetPartner = "/partner.v1.PartnerService/GetPartner"
+const OperationPartnerServiceGetPartnerInvoiceProfile = "/partner.v1.PartnerService/GetPartnerInvoiceProfile"
 const OperationPartnerServiceImportPartners = "/partner.v1.PartnerService/ImportPartners"
 const OperationPartnerServiceListPartnerAccounts = "/partner.v1.PartnerService/ListPartnerAccounts"
 const OperationPartnerServiceListPartnerAssignmentOptions = "/partner.v1.PartnerService/ListPartnerAssignmentOptions"
@@ -34,6 +35,7 @@ const OperationPartnerServiceListPartnerSettlementRules = "/partner.v1.PartnerSe
 const OperationPartnerServiceListPartnerShippingPresets = "/partner.v1.PartnerService/ListPartnerShippingPresets"
 const OperationPartnerServiceListPartners = "/partner.v1.PartnerService/ListPartners"
 const OperationPartnerServiceRegisterPartnerAttachment = "/partner.v1.PartnerService/RegisterPartnerAttachment"
+const OperationPartnerServiceSavePartnerInvoiceProfile = "/partner.v1.PartnerService/SavePartnerInvoiceProfile"
 const OperationPartnerServiceSetSupplierBlacklist = "/partner.v1.PartnerService/SetSupplierBlacklist"
 const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdatePartner"
 const OperationPartnerServiceUpdatePartnerAccount = "/partner.v1.PartnerService/UpdatePartnerAccount"
@@ -49,6 +51,7 @@ type PartnerServiceHTTPServer interface {
 	CreatePartnerShippingPreset(context.Context, *CreatePartnerShippingPresetRequest) (*CreatePartnerShippingPresetResponse, error)
 	ExportPartners(context.Context, *ExportPartnersRequest) (*ExportPartnersResponse, error)
 	GetPartner(context.Context, *GetPartnerRequest) (*GetPartnerResponse, error)
+	GetPartnerInvoiceProfile(context.Context, *GetPartnerInvoiceProfileRequest) (*GetPartnerInvoiceProfileResponse, error)
 	ImportPartners(context.Context, *ImportPartnersRequest) (*ImportPartnersResponse, error)
 	ListPartnerAccounts(context.Context, *ListPartnerAccountsRequest) (*ListPartnerAccountsResponse, error)
 	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
@@ -59,6 +62,7 @@ type PartnerServiceHTTPServer interface {
 	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
 	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error)
+	SavePartnerInvoiceProfile(context.Context, *SavePartnerInvoiceProfileRequest) (*SavePartnerInvoiceProfileResponse, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
@@ -74,6 +78,8 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r.Handle("GET", "/api/v1/partners/assignment-options", _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partners/{partner_id}/invoice-profile", _PartnerService_GetPartnerInvoiceProfile0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/partners/{partner_id}/invoice-profile", _PartnerService_SavePartnerInvoiceProfile0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{id}/supplier-blacklist", _PartnerService_SetSupplierBlacklist0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners/{partner_id}/accounts", _PartnerService_ListPartnerAccounts0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{partner_id}/accounts", _PartnerService_CreatePartnerAccount0_HTTP_Handler(srv))
@@ -191,6 +197,50 @@ func _PartnerService_UpdatePartner0_HTTP_Handler(srv PartnerServiceHTTPServer) f
 			return err
 		}
 		reply := out.(*UpdatePartnerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_GetPartnerInvoiceProfile0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetPartnerInvoiceProfileRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceGetPartnerInvoiceProfile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPartnerInvoiceProfile(ctx, req.(*GetPartnerInvoiceProfileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetPartnerInvoiceProfileResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_SavePartnerInvoiceProfile0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SavePartnerInvoiceProfileRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceSavePartnerInvoiceProfile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SavePartnerInvoiceProfile(ctx, req.(*SavePartnerInvoiceProfileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SavePartnerInvoiceProfileResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -593,6 +643,7 @@ type PartnerServiceHTTPClient interface {
 	CreatePartnerShippingPreset(ctx context.Context, req *CreatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *CreatePartnerShippingPresetResponse, err error)
 	ExportPartners(ctx context.Context, req *ExportPartnersRequest, opts ...http.CallOption) (rsp *ExportPartnersResponse, err error)
 	GetPartner(ctx context.Context, req *GetPartnerRequest, opts ...http.CallOption) (rsp *GetPartnerResponse, err error)
+	GetPartnerInvoiceProfile(ctx context.Context, req *GetPartnerInvoiceProfileRequest, opts ...http.CallOption) (rsp *GetPartnerInvoiceProfileResponse, err error)
 	ImportPartners(ctx context.Context, req *ImportPartnersRequest, opts ...http.CallOption) (rsp *ImportPartnersResponse, err error)
 	ListPartnerAccounts(ctx context.Context, req *ListPartnerAccountsRequest, opts ...http.CallOption) (rsp *ListPartnerAccountsResponse, err error)
 	ListPartnerAssignmentOptions(ctx context.Context, req *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListPartnerAssignmentOptionsResponse, err error)
@@ -603,6 +654,7 @@ type PartnerServiceHTTPClient interface {
 	ListPartnerShippingPresets(ctx context.Context, req *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (rsp *ListPartnerShippingPresetsResponse, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *ListPartnersResponse, err error)
 	RegisterPartnerAttachment(ctx context.Context, req *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (rsp *RegisterPartnerAttachmentResponse, err error)
+	SavePartnerInvoiceProfile(ctx context.Context, req *SavePartnerInvoiceProfileRequest, opts ...http.CallOption) (rsp *SavePartnerInvoiceProfileResponse, err error)
 	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *SetSupplierBlacklistResponse, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *UpdatePartnerResponse, err error)
 	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *UpdatePartnerAccountResponse, err error)
@@ -727,6 +779,22 @@ func (c *PartnerServiceHTTPClientImpl) GetPartner(ctx context.Context, in *GetPa
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationPartnerServiceGetPartner),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) GetPartnerInvoiceProfile(ctx context.Context, in *GetPartnerInvoiceProfileRequest, opts ...http.CallOption) (*GetPartnerInvoiceProfileResponse, error) {
+	var out GetPartnerInvoiceProfileResponse
+	pattern := "/api/v1/partners/{partner_id}/invoice-profile"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceGetPartnerInvoiceProfile),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -892,6 +960,23 @@ func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Con
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) SavePartnerInvoiceProfile(ctx context.Context, in *SavePartnerInvoiceProfileRequest, opts ...http.CallOption) (*SavePartnerInvoiceProfileResponse, error) {
+	var out SavePartnerInvoiceProfileResponse
+	pattern := "/api/v1/partners/{partner_id}/invoice-profile"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceSavePartnerInvoiceProfile),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

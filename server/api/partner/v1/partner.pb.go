@@ -6550,6 +6550,426 @@ func (x *ListPartnersResponse) GetTraceId() string {
 	return ""
 }
 
+type PartnerInvoiceProfile struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerId                string                 `protobuf:"bytes,2,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	InvoiceTitle             string                 `protobuf:"bytes,3,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
+	TaxpayerIdentificationNo string                 `protobuf:"bytes,4,opt,name=taxpayer_identification_no,json=taxpayerIdentificationNo,proto3" json:"taxpayer_identification_no,omitempty"`
+	RegisteredAddress        string                 `protobuf:"bytes,5,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
+	RegisteredPhone          string                 `protobuf:"bytes,6,opt,name=registered_phone,json=registeredPhone,proto3" json:"registered_phone,omitempty"`
+	BankName                 string                 `protobuf:"bytes,7,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount              string                 `protobuf:"bytes,8,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	DefaultInvoiceType       string                 `protobuf:"bytes,9,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
+	Version                  uint64                 `protobuf:"varint,10,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *PartnerInvoiceProfile) Reset() {
+	*x = PartnerInvoiceProfile{}
+	mi := &file_partner_v1_partner_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PartnerInvoiceProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PartnerInvoiceProfile) ProtoMessage() {}
+
+func (x *PartnerInvoiceProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PartnerInvoiceProfile.ProtoReflect.Descriptor instead.
+func (*PartnerInvoiceProfile) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *PartnerInvoiceProfile) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetInvoiceTitle() string {
+	if x != nil {
+		return x.InvoiceTitle
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetTaxpayerIdentificationNo() string {
+	if x != nil {
+		return x.TaxpayerIdentificationNo
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetRegisteredAddress() string {
+	if x != nil {
+		return x.RegisteredAddress
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetRegisteredPhone() string {
+	if x != nil {
+		return x.RegisteredPhone
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetBankAccount() string {
+	if x != nil {
+		return x.BankAccount
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetDefaultInvoiceType() string {
+	if x != nil {
+		return x.DefaultInvoiceType
+	}
+	return ""
+}
+
+func (x *PartnerInvoiceProfile) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type GetPartnerInvoiceProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId     string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPartnerInvoiceProfileRequest) Reset() {
+	*x = GetPartnerInvoiceProfileRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPartnerInvoiceProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPartnerInvoiceProfileRequest) ProtoMessage() {}
+
+func (x *GetPartnerInvoiceProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPartnerInvoiceProfileRequest.ProtoReflect.Descriptor instead.
+func (*GetPartnerInvoiceProfileRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *GetPartnerInvoiceProfileRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+type SavePartnerInvoiceProfileRequest struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	PartnerId                string                 `protobuf:"bytes,1,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	InvoiceTitle             string                 `protobuf:"bytes,2,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
+	TaxpayerIdentificationNo string                 `protobuf:"bytes,3,opt,name=taxpayer_identification_no,json=taxpayerIdentificationNo,proto3" json:"taxpayer_identification_no,omitempty"`
+	RegisteredAddress        string                 `protobuf:"bytes,4,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
+	RegisteredPhone          string                 `protobuf:"bytes,5,opt,name=registered_phone,json=registeredPhone,proto3" json:"registered_phone,omitempty"`
+	BankName                 string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount              string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	DefaultInvoiceType       string                 `protobuf:"bytes,8,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
+	ExpectedVersion          uint64                 `protobuf:"varint,9,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *SavePartnerInvoiceProfileRequest) Reset() {
+	*x = SavePartnerInvoiceProfileRequest{}
+	mi := &file_partner_v1_partner_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SavePartnerInvoiceProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SavePartnerInvoiceProfileRequest) ProtoMessage() {}
+
+func (x *SavePartnerInvoiceProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SavePartnerInvoiceProfileRequest.ProtoReflect.Descriptor instead.
+func (*SavePartnerInvoiceProfileRequest) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetPartnerId() string {
+	if x != nil {
+		return x.PartnerId
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetInvoiceTitle() string {
+	if x != nil {
+		return x.InvoiceTitle
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetTaxpayerIdentificationNo() string {
+	if x != nil {
+		return x.TaxpayerIdentificationNo
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetRegisteredAddress() string {
+	if x != nil {
+		return x.RegisteredAddress
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetRegisteredPhone() string {
+	if x != nil {
+		return x.RegisteredPhone
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetBankAccount() string {
+	if x != nil {
+		return x.BankAccount
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetDefaultInvoiceType() string {
+	if x != nil {
+		return x.DefaultInvoiceType
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type GetPartnerInvoiceProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *PartnerInvoiceProfile `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPartnerInvoiceProfileResponse) Reset() {
+	*x = GetPartnerInvoiceProfileResponse{}
+	mi := &file_partner_v1_partner_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPartnerInvoiceProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPartnerInvoiceProfileResponse) ProtoMessage() {}
+
+func (x *GetPartnerInvoiceProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPartnerInvoiceProfileResponse.ProtoReflect.Descriptor instead.
+func (*GetPartnerInvoiceProfileResponse) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *GetPartnerInvoiceProfileResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetPartnerInvoiceProfileResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetPartnerInvoiceProfileResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetPartnerInvoiceProfileResponse) GetData() *PartnerInvoiceProfile {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetPartnerInvoiceProfileResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SavePartnerInvoiceProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *PartnerInvoiceProfile `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SavePartnerInvoiceProfileResponse) Reset() {
+	*x = SavePartnerInvoiceProfileResponse{}
+	mi := &file_partner_v1_partner_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SavePartnerInvoiceProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SavePartnerInvoiceProfileResponse) ProtoMessage() {}
+
+func (x *SavePartnerInvoiceProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SavePartnerInvoiceProfileResponse.ProtoReflect.Descriptor instead.
+func (*SavePartnerInvoiceProfileResponse) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *SavePartnerInvoiceProfileResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SavePartnerInvoiceProfileResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SavePartnerInvoiceProfileResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SavePartnerInvoiceProfileResponse) GetData() *PartnerInvoiceProfile {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SavePartnerInvoiceProfileResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_partner_v1_partner_proto protoreflect.FileDescriptor
 
 const file_partner_v1_partner_proto_rawDesc = "" +
@@ -7143,7 +7563,46 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId*\xb8\x01\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\x8f\x03\n" +
+	"\x15PartnerInvoiceProfile\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"partner_id\x18\x02 \x01(\tR\tpartnerId\x12#\n" +
+	"\rinvoice_title\x18\x03 \x01(\tR\finvoiceTitle\x12<\n" +
+	"\x1ataxpayer_identification_no\x18\x04 \x01(\tR\x18taxpayerIdentificationNo\x12-\n" +
+	"\x12registered_address\x18\x05 \x01(\tR\x11registeredAddress\x12)\n" +
+	"\x10registered_phone\x18\x06 \x01(\tR\x0fregisteredPhone\x12\x1b\n" +
+	"\tbank_name\x18\a \x01(\tR\bbankName\x12!\n" +
+	"\fbank_account\x18\b \x01(\tR\vbankAccount\x120\n" +
+	"\x14default_invoice_type\x18\t \x01(\tR\x12defaultInvoiceType\x12\x18\n" +
+	"\aversion\x18\n" +
+	" \x01(\x04R\aversion\"E\n" +
+	"\x1fGetPartnerInvoiceProfileRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\"\xaf\x03\n" +
+	" SavePartnerInvoiceProfileRequest\x12\"\n" +
+	"\n" +
+	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12(\n" +
+	"\rinvoice_title\x18\x02 \x01(\tB\x03\xe0A\x02R\finvoiceTitle\x12A\n" +
+	"\x1ataxpayer_identification_no\x18\x03 \x01(\tB\x03\xe0A\x02R\x18taxpayerIdentificationNo\x12-\n" +
+	"\x12registered_address\x18\x04 \x01(\tR\x11registeredAddress\x12)\n" +
+	"\x10registered_phone\x18\x05 \x01(\tR\x0fregisteredPhone\x12\x1b\n" +
+	"\tbank_name\x18\x06 \x01(\tR\bbankName\x12!\n" +
+	"\fbank_account\x18\a \x01(\tR\vbankAccount\x125\n" +
+	"\x14default_invoice_type\x18\b \x01(\tB\x03\xe0A\x02R\x12defaultInvoiceType\x12)\n" +
+	"\x10expected_version\x18\t \x01(\x04R\x0fexpectedVersion\"\xbc\x01\n" +
+	" GetPartnerInvoiceProfileResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
+	"\x04data\x18\x04 \x01(\v2!.partner.v1.PartnerInvoiceProfileR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xbd\x01\n" +
+	"!SavePartnerInvoiceProfileResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
+	"\x04data\x18\x04 \x01(\v2!.partner.v1.PartnerInvoiceProfileR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xb8\x01\n" +
 	"\x0fPartnerRoleType\x12!\n" +
 	"\x1dPARTNER_ROLE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aPARTNER_ROLE_TYPE_CUSTOMER\x10\x01\x12\x1e\n" +
@@ -7211,14 +7670,16 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"#PARTNER_SETTLEMENT_BASE_UNSPECIFIED\x10\x00\x12%\n" +
 	"!PARTNER_SETTLEMENT_BASE_BILL_DATE\x10\x01\x12(\n" +
 	"$PARTNER_SETTLEMENT_BASE_SAILING_DATE\x10\x02\x12(\n" +
-	"$PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE\x10\x032\xa3$\n" +
+	"$PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE\x10\x032\xc7'\n" +
 	"\x0ePartnerService\x12\x89\x01\n" +
 	"\n" +
 	"GetPartner\x12\x1d.partner.v1.GetPartnerRequest\x1a\x1e.partner.v1.GetPartnerResponse\"<\x82\xb5\x18\x1b\b\x03\x12\x15business.partner.read \x02\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/partners/{id}\x12\x8a\x01\n" +
 	"\fListPartners\x12\x1f.partner.v1.ListPartnersRequest\x1a .partner.v1.ListPartnersResponse\"7\x82\xb5\x18\x1b\b\x03\x12\x15business.partner.read \x02\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/partners\x12\xdf\x01\n" +
 	"\x1cListPartnerAssignmentOptions\x12/.partner.v1.ListPartnerAssignmentOptionsRequest\x1a0.partner.v1.ListPartnerAssignmentOptionsResponse\"\\\x82\xb5\x18-\b\x03\x12'business.partner.assignment_option.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/partners/assignment-options\x12\x92\x01\n" +
 	"\rCreatePartner\x12 .partner.v1.CreatePartnerRequest\x1a!.partner.v1.CreatePartnerResponse\"<\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.create \x02\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/partners\x12\x97\x01\n" +
-	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a!.partner.v1.UpdatePartnerResponse\"A\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.update \x02\x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\xc2\x01\n" +
+	"\rUpdatePartner\x12 .partner.v1.UpdatePartnerRequest\x1a!.partner.v1.UpdatePartnerResponse\"A\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.update \x02\x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/partners/{id}\x12\xcb\x01\n" +
+	"\x18GetPartnerInvoiceProfile\x12+.partner.v1.GetPartnerInvoiceProfileRequest\x1a,.partner.v1.GetPartnerInvoiceProfileResponse\"T\x82\xb5\x18\x1b\b\x03\x12\x15business.partner.read \x02\x82\xd3\xe4\x93\x02/\x12-/api/v1/partners/{partner_id}/invoice-profile\x12\xd3\x01\n" +
+	"\x19SavePartnerInvoiceProfile\x12,.partner.v1.SavePartnerInvoiceProfileRequest\x1a-.partner.v1.SavePartnerInvoiceProfileResponse\"Y\x82\xb5\x18\x1d\b\x03\x12\x17business.partner.update \x02\x82\xd3\xe4\x93\x022:\x01*\x1a-/api/v1/partners/{partner_id}/invoice-profile\x12\xc2\x01\n" +
 	"\x14SetSupplierBlacklist\x12'.partner.v1.SetSupplierBlacklistRequest\x1a(.partner.v1.SetSupplierBlacklistResponse\"W\x82\xb5\x18 \b\x03\x12\x1abusiness.partner.blacklist \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/partners/{id}/supplier-blacklist\x12\xbd\x01\n" +
 	"\x13ListPartnerAccounts\x12&.partner.v1.ListPartnerAccountsRequest\x1a'.partner.v1.ListPartnerAccountsResponse\"U\x82\xb5\x18#\b\x03\x12\x1dbusiness.partner.account.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/partners/{partner_id}/accounts\x12\xc5\x01\n" +
 	"\x14CreatePartnerAccount\x12'.partner.v1.CreatePartnerAccountRequest\x1a(.partner.v1.CreatePartnerAccountResponse\"Z\x82\xb5\x18%\b\x03\x12\x1fbusiness.partner.account.create \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/partners/{partner_id}/accounts\x12\xca\x01\n" +
@@ -7251,7 +7712,7 @@ func file_partner_v1_partner_proto_rawDescGZIP() []byte {
 }
 
 var file_partner_v1_partner_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
-var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
+var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 78)
 var file_partner_v1_partner_proto_goTypes = []any{
 	(PartnerRoleType)(0),                         // 0: partner.v1.PartnerRoleType
 	(PartnerCustomerType)(0),                     // 1: partner.v1.PartnerCustomerType
@@ -7336,7 +7797,12 @@ var file_partner_v1_partner_proto_goTypes = []any{
 	(*UpdatePartnerResponse)(nil),                // 80: partner.v1.UpdatePartnerResponse
 	(*SetSupplierBlacklistResponse)(nil),         // 81: partner.v1.SetSupplierBlacklistResponse
 	(*ListPartnersResponse)(nil),                 // 82: partner.v1.ListPartnersResponse
-	nil,                                          // 83: partner.v1.PartnerAuditLog.DetailsEntry
+	(*PartnerInvoiceProfile)(nil),                // 83: partner.v1.PartnerInvoiceProfile
+	(*GetPartnerInvoiceProfileRequest)(nil),      // 84: partner.v1.GetPartnerInvoiceProfileRequest
+	(*SavePartnerInvoiceProfileRequest)(nil),     // 85: partner.v1.SavePartnerInvoiceProfileRequest
+	(*GetPartnerInvoiceProfileResponse)(nil),     // 86: partner.v1.GetPartnerInvoiceProfileResponse
+	(*SavePartnerInvoiceProfileResponse)(nil),    // 87: partner.v1.SavePartnerInvoiceProfileResponse
+	nil, // 88: partner.v1.PartnerAuditLog.DetailsEntry
 }
 var file_partner_v1_partner_proto_depIdxs = []int32{
 	0,   // 0: partner.v1.PartnerRole.type:type_name -> partner.v1.PartnerRoleType
@@ -7386,7 +7852,7 @@ var file_partner_v1_partner_proto_depIdxs = []int32{
 	36,  // 44: partner.v1.CreatePartnerShippingPresetResponse.data:type_name -> partner.v1.PartnerShippingPreset
 	36,  // 45: partner.v1.UpdatePartnerShippingPresetResponse.data:type_name -> partner.v1.PartnerShippingPreset
 	36,  // 46: partner.v1.ListPartnerShippingPresetsResponse.data:type_name -> partner.v1.PartnerShippingPreset
-	83,  // 47: partner.v1.PartnerAuditLog.details:type_name -> partner.v1.PartnerAuditLog.DetailsEntry
+	88,  // 47: partner.v1.PartnerAuditLog.details:type_name -> partner.v1.PartnerAuditLog.DetailsEntry
 	44,  // 48: partner.v1.ListPartnerAuditLogsResponse.data:type_name -> partner.v1.PartnerAuditLog
 	6,   // 49: partner.v1.PartnerAccount.status:type_name -> partner.v1.PartnerAccountStatus
 	6,   // 50: partner.v1.PartnerAccountInput.status:type_name -> partner.v1.PartnerAccountStatus
@@ -7425,57 +7891,63 @@ var file_partner_v1_partner_proto_depIdxs = []int32{
 	20,  // 83: partner.v1.UpdatePartnerResponse.data:type_name -> partner.v1.Partner
 	20,  // 84: partner.v1.SetSupplierBlacklistResponse.data:type_name -> partner.v1.Partner
 	20,  // 85: partner.v1.ListPartnersResponse.data:type_name -> partner.v1.Partner
-	24,  // 86: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
-	25,  // 87: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
-	18,  // 88: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
-	26,  // 89: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
-	27,  // 90: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
-	47,  // 91: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
-	50,  // 92: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
-	51,  // 93: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
-	52,  // 94: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
-	59,  // 95: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
-	60,  // 96: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
-	61,  // 97: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
-	67,  // 98: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
-	68,  // 99: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
-	69,  // 100: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
-	75,  // 101: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
-	74,  // 102: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
-	29,  // 103: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
-	31,  // 104: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
-	38,  // 105: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
-	45,  // 106: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
-	39,  // 107: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
-	40,  // 108: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
-	78,  // 109: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
-	82,  // 110: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
-	19,  // 111: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
-	79,  // 112: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
-	80,  // 113: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
-	81,  // 114: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
-	55,  // 115: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
-	53,  // 116: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
-	54,  // 117: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
-	64,  // 118: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
-	62,  // 119: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
-	63,  // 120: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
-	72,  // 121: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
-	70,  // 122: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
-	71,  // 123: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
-	77,  // 124: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
-	76,  // 125: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
-	30,  // 126: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
-	33,  // 127: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
-	43,  // 128: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
-	46,  // 129: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
-	41,  // 130: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
-	42,  // 131: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
-	109, // [109:132] is the sub-list for method output_type
-	86,  // [86:109] is the sub-list for method input_type
-	86,  // [86:86] is the sub-list for extension type_name
-	86,  // [86:86] is the sub-list for extension extendee
-	0,   // [0:86] is the sub-list for field type_name
+	83,  // 86: partner.v1.GetPartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	83,  // 87: partner.v1.SavePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	24,  // 88: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
+	25,  // 89: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
+	18,  // 90: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
+	26,  // 91: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
+	27,  // 92: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
+	84,  // 93: partner.v1.PartnerService.GetPartnerInvoiceProfile:input_type -> partner.v1.GetPartnerInvoiceProfileRequest
+	85,  // 94: partner.v1.PartnerService.SavePartnerInvoiceProfile:input_type -> partner.v1.SavePartnerInvoiceProfileRequest
+	47,  // 95: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
+	50,  // 96: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
+	51,  // 97: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
+	52,  // 98: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
+	59,  // 99: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
+	60,  // 100: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
+	61,  // 101: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
+	67,  // 102: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
+	68,  // 103: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
+	69,  // 104: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
+	75,  // 105: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
+	74,  // 106: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
+	29,  // 107: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
+	31,  // 108: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
+	38,  // 109: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
+	45,  // 110: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
+	39,  // 111: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
+	40,  // 112: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
+	78,  // 113: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
+	82,  // 114: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
+	19,  // 115: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
+	79,  // 116: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
+	80,  // 117: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
+	86,  // 118: partner.v1.PartnerService.GetPartnerInvoiceProfile:output_type -> partner.v1.GetPartnerInvoiceProfileResponse
+	87,  // 119: partner.v1.PartnerService.SavePartnerInvoiceProfile:output_type -> partner.v1.SavePartnerInvoiceProfileResponse
+	81,  // 120: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
+	55,  // 121: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
+	53,  // 122: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
+	54,  // 123: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
+	64,  // 124: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
+	62,  // 125: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
+	63,  // 126: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
+	72,  // 127: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
+	70,  // 128: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
+	71,  // 129: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
+	77,  // 130: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
+	76,  // 131: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
+	30,  // 132: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
+	33,  // 133: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
+	43,  // 134: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
+	46,  // 135: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
+	41,  // 136: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
+	42,  // 137: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
+	113, // [113:138] is the sub-list for method output_type
+	88,  // [88:113] is the sub-list for method input_type
+	88,  // [88:88] is the sub-list for extension type_name
+	88,  // [88:88] is the sub-list for extension extendee
+	0,   // [0:88] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }
@@ -7505,7 +7977,7 @@ func file_partner_v1_partner_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_partner_v1_partner_proto_rawDesc), len(file_partner_v1_partner_proto_rawDesc)),
 			NumEnums:      11,
-			NumMessages:   73,
+			NumMessages:   78,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

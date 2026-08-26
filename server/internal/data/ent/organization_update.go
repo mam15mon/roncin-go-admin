@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -494,6 +495,21 @@ func (_u *OrganizationUpdate) AddFinanceBillBatches(v ...*FinanceBillBatch) *Org
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceBillBatchIDs(ids...)
+}
+
+// AddPartnerInvoiceProfileIDs adds the "partner_invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (_u *OrganizationUpdate) AddPartnerInvoiceProfileIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddPartnerInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// AddPartnerInvoiceProfiles adds the "partner_invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *OrganizationUpdate) AddPartnerInvoiceProfiles(v ...*PartnerInvoiceProfile) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerInvoiceProfileIDs(ids...)
 }
 
 // AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
@@ -1084,6 +1100,27 @@ func (_u *OrganizationUpdate) RemoveFinanceBillBatches(v ...*FinanceBillBatch) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillBatchIDs(ids...)
+}
+
+// ClearPartnerInvoiceProfiles clears all "partner_invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *OrganizationUpdate) ClearPartnerInvoiceProfiles() *OrganizationUpdate {
+	_u.mutation.ClearPartnerInvoiceProfiles()
+	return _u
+}
+
+// RemovePartnerInvoiceProfileIDs removes the "partner_invoice_profiles" edge to PartnerInvoiceProfile entities by IDs.
+func (_u *OrganizationUpdate) RemovePartnerInvoiceProfileIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemovePartnerInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// RemovePartnerInvoiceProfiles removes "partner_invoice_profiles" edges to PartnerInvoiceProfile entities.
+func (_u *OrganizationUpdate) RemovePartnerInvoiceProfiles(v ...*PartnerInvoiceProfile) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerInvoiceProfileIDs(ids...)
 }
 
 // ClearFinanceInvoices clears all "finance_invoices" edges to the FinanceInvoice entity.
@@ -2378,6 +2415,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartnerInvoiceProfilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerInvoiceProfilesIDs(); len(nodes) > 0 && !_u.mutation.PartnerInvoiceProfilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerInvoiceProfilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.FinanceInvoicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -3062,6 +3144,21 @@ func (_u *OrganizationUpdateOne) AddFinanceBillBatches(v ...*FinanceBillBatch) *
 	return _u.AddFinanceBillBatchIDs(ids...)
 }
 
+// AddPartnerInvoiceProfileIDs adds the "partner_invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (_u *OrganizationUpdateOne) AddPartnerInvoiceProfileIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddPartnerInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// AddPartnerInvoiceProfiles adds the "partner_invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *OrganizationUpdateOne) AddPartnerInvoiceProfiles(v ...*PartnerInvoiceProfile) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartnerInvoiceProfileIDs(ids...)
+}
+
 // AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
 func (_u *OrganizationUpdateOne) AddFinanceInvoiceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddFinanceInvoiceIDs(ids...)
@@ -3650,6 +3747,27 @@ func (_u *OrganizationUpdateOne) RemoveFinanceBillBatches(v ...*FinanceBillBatch
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillBatchIDs(ids...)
+}
+
+// ClearPartnerInvoiceProfiles clears all "partner_invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *OrganizationUpdateOne) ClearPartnerInvoiceProfiles() *OrganizationUpdateOne {
+	_u.mutation.ClearPartnerInvoiceProfiles()
+	return _u
+}
+
+// RemovePartnerInvoiceProfileIDs removes the "partner_invoice_profiles" edge to PartnerInvoiceProfile entities by IDs.
+func (_u *OrganizationUpdateOne) RemovePartnerInvoiceProfileIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemovePartnerInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// RemovePartnerInvoiceProfiles removes "partner_invoice_profiles" edges to PartnerInvoiceProfile entities.
+func (_u *OrganizationUpdateOne) RemovePartnerInvoiceProfiles(v ...*PartnerInvoiceProfile) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartnerInvoiceProfileIDs(ids...)
 }
 
 // ClearFinanceInvoices clears all "finance_invoices" edges to the FinanceInvoice entity.
@@ -4967,6 +5085,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartnerInvoiceProfilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartnerInvoiceProfilesIDs(); len(nodes) > 0 && !_u.mutation.PartnerInvoiceProfilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartnerInvoiceProfilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

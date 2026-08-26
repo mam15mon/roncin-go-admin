@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
@@ -56,6 +57,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontract"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
@@ -1840,7 +1842,7 @@ func init() {
 		}
 	}()
 	// financeinvoiceDescSettlementPartyName is the schema descriptor for settlement_party_name field.
-	financeinvoiceDescSettlementPartyName := financeinvoiceFields[7].Descriptor()
+	financeinvoiceDescSettlementPartyName := financeinvoiceFields[8].Descriptor()
 	// financeinvoice.SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
 	financeinvoice.SettlementPartyNameValidator = func() func(string) error {
 		validators := financeinvoiceDescSettlementPartyName.Validators
@@ -1857,8 +1859,32 @@ func init() {
 			return nil
 		}
 	}()
+	// financeinvoiceDescInvoiceTitle is the schema descriptor for invoice_title field.
+	financeinvoiceDescInvoiceTitle := financeinvoiceFields[9].Descriptor()
+	// financeinvoice.InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
+	financeinvoice.InvoiceTitleValidator = financeinvoiceDescInvoiceTitle.Validators[0].(func(string) error)
+	// financeinvoiceDescTaxpayerIdentificationNo is the schema descriptor for taxpayer_identification_no field.
+	financeinvoiceDescTaxpayerIdentificationNo := financeinvoiceFields[10].Descriptor()
+	// financeinvoice.TaxpayerIdentificationNoValidator is a validator for the "taxpayer_identification_no" field. It is called by the builders before save.
+	financeinvoice.TaxpayerIdentificationNoValidator = financeinvoiceDescTaxpayerIdentificationNo.Validators[0].(func(string) error)
+	// financeinvoiceDescRegisteredAddress is the schema descriptor for registered_address field.
+	financeinvoiceDescRegisteredAddress := financeinvoiceFields[11].Descriptor()
+	// financeinvoice.RegisteredAddressValidator is a validator for the "registered_address" field. It is called by the builders before save.
+	financeinvoice.RegisteredAddressValidator = financeinvoiceDescRegisteredAddress.Validators[0].(func(string) error)
+	// financeinvoiceDescRegisteredPhone is the schema descriptor for registered_phone field.
+	financeinvoiceDescRegisteredPhone := financeinvoiceFields[12].Descriptor()
+	// financeinvoice.RegisteredPhoneValidator is a validator for the "registered_phone" field. It is called by the builders before save.
+	financeinvoice.RegisteredPhoneValidator = financeinvoiceDescRegisteredPhone.Validators[0].(func(string) error)
+	// financeinvoiceDescBankName is the schema descriptor for bank_name field.
+	financeinvoiceDescBankName := financeinvoiceFields[13].Descriptor()
+	// financeinvoice.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
+	financeinvoice.BankNameValidator = financeinvoiceDescBankName.Validators[0].(func(string) error)
+	// financeinvoiceDescBankAccount is the schema descriptor for bank_account field.
+	financeinvoiceDescBankAccount := financeinvoiceFields[14].Descriptor()
+	// financeinvoice.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
+	financeinvoice.BankAccountValidator = financeinvoiceDescBankAccount.Validators[0].(func(string) error)
 	// financeinvoiceDescCurrency is the schema descriptor for currency field.
-	financeinvoiceDescCurrency := financeinvoiceFields[8].Descriptor()
+	financeinvoiceDescCurrency := financeinvoiceFields[15].Descriptor()
 	// financeinvoice.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	financeinvoice.CurrencyValidator = func() func(string) error {
 		validators := financeinvoiceDescCurrency.Validators
@@ -1877,15 +1903,15 @@ func init() {
 		}
 	}()
 	// financeinvoiceDescBillCount is the schema descriptor for bill_count field.
-	financeinvoiceDescBillCount := financeinvoiceFields[11].Descriptor()
+	financeinvoiceDescBillCount := financeinvoiceFields[19].Descriptor()
 	// financeinvoice.BillCountValidator is a validator for the "bill_count" field. It is called by the builders before save.
 	financeinvoice.BillCountValidator = financeinvoiceDescBillCount.Validators[0].(func(int) error)
 	// financeinvoiceDescTaxInvoiceNo is the schema descriptor for tax_invoice_no field.
-	financeinvoiceDescTaxInvoiceNo := financeinvoiceFields[12].Descriptor()
+	financeinvoiceDescTaxInvoiceNo := financeinvoiceFields[20].Descriptor()
 	// financeinvoice.TaxInvoiceNoValidator is a validator for the "tax_invoice_no" field. It is called by the builders before save.
 	financeinvoice.TaxInvoiceNoValidator = financeinvoiceDescTaxInvoiceNo.Validators[0].(func(string) error)
 	// financeinvoiceDescInvoiceDate is the schema descriptor for invoice_date field.
-	financeinvoiceDescInvoiceDate := financeinvoiceFields[13].Descriptor()
+	financeinvoiceDescInvoiceDate := financeinvoiceFields[21].Descriptor()
 	// financeinvoice.InvoiceDateValidator is a validator for the "invoice_date" field. It is called by the builders before save.
 	financeinvoice.InvoiceDateValidator = func() func(string) error {
 		validators := financeinvoiceDescInvoiceDate.Validators
@@ -1903,23 +1929,23 @@ func init() {
 		}
 	}()
 	// financeinvoiceDescNote is the schema descriptor for note field.
-	financeinvoiceDescNote := financeinvoiceFields[14].Descriptor()
+	financeinvoiceDescNote := financeinvoiceFields[22].Descriptor()
 	// financeinvoice.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financeinvoice.NoteValidator = financeinvoiceDescNote.Validators[0].(func(string) error)
 	// financeinvoiceDescVersion is the schema descriptor for version field.
-	financeinvoiceDescVersion := financeinvoiceFields[15].Descriptor()
+	financeinvoiceDescVersion := financeinvoiceFields[23].Descriptor()
 	// financeinvoice.DefaultVersion holds the default value on creation for the version field.
 	financeinvoice.DefaultVersion = financeinvoiceDescVersion.Default.(uint64)
 	// financeinvoiceDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financeinvoiceDescCancellationReason := financeinvoiceFields[20].Descriptor()
+	financeinvoiceDescCancellationReason := financeinvoiceFields[28].Descriptor()
 	// financeinvoice.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financeinvoice.CancellationReasonValidator = financeinvoiceDescCancellationReason.Validators[0].(func(string) error)
 	// financeinvoiceDescRedInvoiceNo is the schema descriptor for red_invoice_no field.
-	financeinvoiceDescRedInvoiceNo := financeinvoiceFields[21].Descriptor()
+	financeinvoiceDescRedInvoiceNo := financeinvoiceFields[29].Descriptor()
 	// financeinvoice.RedInvoiceNoValidator is a validator for the "red_invoice_no" field. It is called by the builders before save.
 	financeinvoice.RedInvoiceNoValidator = financeinvoiceDescRedInvoiceNo.Validators[0].(func(string) error)
 	// financeinvoiceDescRedInvoiceDate is the schema descriptor for red_invoice_date field.
-	financeinvoiceDescRedInvoiceDate := financeinvoiceFields[22].Descriptor()
+	financeinvoiceDescRedInvoiceDate := financeinvoiceFields[30].Descriptor()
 	// financeinvoice.RedInvoiceDateValidator is a validator for the "red_invoice_date" field. It is called by the builders before save.
 	financeinvoice.RedInvoiceDateValidator = func() func(string) error {
 		validators := financeinvoiceDescRedInvoiceDate.Validators
@@ -1937,7 +1963,7 @@ func init() {
 		}
 	}()
 	// financeinvoiceDescRedFlushReason is the schema descriptor for red_flush_reason field.
-	financeinvoiceDescRedFlushReason := financeinvoiceFields[25].Descriptor()
+	financeinvoiceDescRedFlushReason := financeinvoiceFields[33].Descriptor()
 	// financeinvoice.RedFlushReasonValidator is a validator for the "red_flush_reason" field. It is called by the builders before save.
 	financeinvoice.RedFlushReasonValidator = financeinvoiceDescRedFlushReason.Validators[0].(func(string) error)
 	// financeinvoiceDescID is the schema descriptor for id field.
@@ -1987,6 +2013,90 @@ func init() {
 	financeinvoicebillDescID := financeinvoicebillMixinFields0[0].Descriptor()
 	// financeinvoicebill.DefaultID holds the default value on creation for the id field.
 	financeinvoicebill.DefaultID = financeinvoicebillDescID.Default.(func() uuid.UUID)
+	financeinvoicelineMixin := schema.FinanceInvoiceLine{}.Mixin()
+	financeinvoicelineMixinFields0 := financeinvoicelineMixin[0].Fields()
+	_ = financeinvoicelineMixinFields0
+	financeinvoicelineMixinFields1 := financeinvoicelineMixin[1].Fields()
+	_ = financeinvoicelineMixinFields1
+	financeinvoicelineFields := schema.FinanceInvoiceLine{}.Fields()
+	_ = financeinvoicelineFields
+	// financeinvoicelineDescCreatedAt is the schema descriptor for created_at field.
+	financeinvoicelineDescCreatedAt := financeinvoicelineMixinFields1[0].Descriptor()
+	// financeinvoiceline.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financeinvoiceline.DefaultCreatedAt = financeinvoicelineDescCreatedAt.Default.(func() time.Time)
+	// financeinvoicelineDescUpdatedAt is the schema descriptor for updated_at field.
+	financeinvoicelineDescUpdatedAt := financeinvoicelineMixinFields1[1].Descriptor()
+	// financeinvoiceline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financeinvoiceline.DefaultUpdatedAt = financeinvoicelineDescUpdatedAt.Default.(func() time.Time)
+	// financeinvoiceline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financeinvoiceline.UpdateDefaultUpdatedAt = financeinvoicelineDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financeinvoicelineDescLineNo is the schema descriptor for line_no field.
+	financeinvoicelineDescLineNo := financeinvoicelineFields[1].Descriptor()
+	// financeinvoiceline.LineNoValidator is a validator for the "line_no" field. It is called by the builders before save.
+	financeinvoiceline.LineNoValidator = financeinvoicelineDescLineNo.Validators[0].(func(int) error)
+	// financeinvoicelineDescItemCode is the schema descriptor for item_code field.
+	financeinvoicelineDescItemCode := financeinvoicelineFields[2].Descriptor()
+	// financeinvoiceline.ItemCodeValidator is a validator for the "item_code" field. It is called by the builders before save.
+	financeinvoiceline.ItemCodeValidator = func() func(string) error {
+		validators := financeinvoicelineDescItemCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(item_code string) error {
+			for _, fn := range fns {
+				if err := fn(item_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeinvoicelineDescItemName is the schema descriptor for item_name field.
+	financeinvoicelineDescItemName := financeinvoicelineFields[3].Descriptor()
+	// financeinvoiceline.ItemNameValidator is a validator for the "item_name" field. It is called by the builders before save.
+	financeinvoiceline.ItemNameValidator = func() func(string) error {
+		validators := financeinvoicelineDescItemName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(item_name string) error {
+			for _, fn := range fns {
+				if err := fn(item_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeinvoicelineDescCurrency is the schema descriptor for currency field.
+	financeinvoicelineDescCurrency := financeinvoicelineFields[8].Descriptor()
+	// financeinvoiceline.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	financeinvoiceline.CurrencyValidator = func() func(string) error {
+		validators := financeinvoicelineDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeinvoicelineDescSourceLineCount is the schema descriptor for source_line_count field.
+	financeinvoicelineDescSourceLineCount := financeinvoicelineFields[9].Descriptor()
+	// financeinvoiceline.SourceLineCountValidator is a validator for the "source_line_count" field. It is called by the builders before save.
+	financeinvoiceline.SourceLineCountValidator = financeinvoicelineDescSourceLineCount.Validators[0].(func(int) error)
+	// financeinvoicelineDescID is the schema descriptor for id field.
+	financeinvoicelineDescID := financeinvoicelineMixinFields0[0].Descriptor()
+	// financeinvoiceline.DefaultID holds the default value on creation for the id field.
+	financeinvoiceline.DefaultID = financeinvoicelineDescID.Default.(func() uuid.UUID)
 	financeverificationMixin := schema.FinanceVerification{}.Mixin()
 	financeverificationMixinFields0 := financeverificationMixin[0].Fields()
 	_ = financeverificationMixinFields0
@@ -4137,6 +4247,83 @@ func init() {
 	partnercontractDescID := partnercontractMixinFields0[0].Descriptor()
 	// partnercontract.DefaultID holds the default value on creation for the id field.
 	partnercontract.DefaultID = partnercontractDescID.Default.(func() uuid.UUID)
+	partnerinvoiceprofileMixin := schema.PartnerInvoiceProfile{}.Mixin()
+	partnerinvoiceprofileMixinFields0 := partnerinvoiceprofileMixin[0].Fields()
+	_ = partnerinvoiceprofileMixinFields0
+	partnerinvoiceprofileMixinFields1 := partnerinvoiceprofileMixin[1].Fields()
+	_ = partnerinvoiceprofileMixinFields1
+	partnerinvoiceprofileFields := schema.PartnerInvoiceProfile{}.Fields()
+	_ = partnerinvoiceprofileFields
+	// partnerinvoiceprofileDescCreatedAt is the schema descriptor for created_at field.
+	partnerinvoiceprofileDescCreatedAt := partnerinvoiceprofileMixinFields1[0].Descriptor()
+	// partnerinvoiceprofile.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partnerinvoiceprofile.DefaultCreatedAt = partnerinvoiceprofileDescCreatedAt.Default.(func() time.Time)
+	// partnerinvoiceprofileDescUpdatedAt is the schema descriptor for updated_at field.
+	partnerinvoiceprofileDescUpdatedAt := partnerinvoiceprofileMixinFields1[1].Descriptor()
+	// partnerinvoiceprofile.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partnerinvoiceprofile.DefaultUpdatedAt = partnerinvoiceprofileDescUpdatedAt.Default.(func() time.Time)
+	// partnerinvoiceprofile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partnerinvoiceprofile.UpdateDefaultUpdatedAt = partnerinvoiceprofileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partnerinvoiceprofileDescInvoiceTitle is the schema descriptor for invoice_title field.
+	partnerinvoiceprofileDescInvoiceTitle := partnerinvoiceprofileFields[2].Descriptor()
+	// partnerinvoiceprofile.InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
+	partnerinvoiceprofile.InvoiceTitleValidator = func() func(string) error {
+		validators := partnerinvoiceprofileDescInvoiceTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(invoice_title string) error {
+			for _, fn := range fns {
+				if err := fn(invoice_title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerinvoiceprofileDescTaxpayerIdentificationNo is the schema descriptor for taxpayer_identification_no field.
+	partnerinvoiceprofileDescTaxpayerIdentificationNo := partnerinvoiceprofileFields[3].Descriptor()
+	// partnerinvoiceprofile.TaxpayerIdentificationNoValidator is a validator for the "taxpayer_identification_no" field. It is called by the builders before save.
+	partnerinvoiceprofile.TaxpayerIdentificationNoValidator = func() func(string) error {
+		validators := partnerinvoiceprofileDescTaxpayerIdentificationNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(taxpayer_identification_no string) error {
+			for _, fn := range fns {
+				if err := fn(taxpayer_identification_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partnerinvoiceprofileDescRegisteredAddress is the schema descriptor for registered_address field.
+	partnerinvoiceprofileDescRegisteredAddress := partnerinvoiceprofileFields[4].Descriptor()
+	// partnerinvoiceprofile.RegisteredAddressValidator is a validator for the "registered_address" field. It is called by the builders before save.
+	partnerinvoiceprofile.RegisteredAddressValidator = partnerinvoiceprofileDescRegisteredAddress.Validators[0].(func(string) error)
+	// partnerinvoiceprofileDescRegisteredPhone is the schema descriptor for registered_phone field.
+	partnerinvoiceprofileDescRegisteredPhone := partnerinvoiceprofileFields[5].Descriptor()
+	// partnerinvoiceprofile.RegisteredPhoneValidator is a validator for the "registered_phone" field. It is called by the builders before save.
+	partnerinvoiceprofile.RegisteredPhoneValidator = partnerinvoiceprofileDescRegisteredPhone.Validators[0].(func(string) error)
+	// partnerinvoiceprofileDescBankName is the schema descriptor for bank_name field.
+	partnerinvoiceprofileDescBankName := partnerinvoiceprofileFields[6].Descriptor()
+	// partnerinvoiceprofile.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
+	partnerinvoiceprofile.BankNameValidator = partnerinvoiceprofileDescBankName.Validators[0].(func(string) error)
+	// partnerinvoiceprofileDescBankAccount is the schema descriptor for bank_account field.
+	partnerinvoiceprofileDescBankAccount := partnerinvoiceprofileFields[7].Descriptor()
+	// partnerinvoiceprofile.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
+	partnerinvoiceprofile.BankAccountValidator = partnerinvoiceprofileDescBankAccount.Validators[0].(func(string) error)
+	// partnerinvoiceprofileDescVersion is the schema descriptor for version field.
+	partnerinvoiceprofileDescVersion := partnerinvoiceprofileFields[9].Descriptor()
+	// partnerinvoiceprofile.DefaultVersion holds the default value on creation for the version field.
+	partnerinvoiceprofile.DefaultVersion = partnerinvoiceprofileDescVersion.Default.(uint64)
+	// partnerinvoiceprofileDescID is the schema descriptor for id field.
+	partnerinvoiceprofileDescID := partnerinvoiceprofileMixinFields0[0].Descriptor()
+	// partnerinvoiceprofile.DefaultID holds the default value on creation for the id field.
+	partnerinvoiceprofile.DefaultID = partnerinvoiceprofileDescID.Default.(func() uuid.UUID)
 	partnerprofileMixin := schema.PartnerProfile{}.Mixin()
 	partnerprofileMixinFields0 := partnerprofileMixin[0].Fields()
 	_ = partnerprofileMixinFields0

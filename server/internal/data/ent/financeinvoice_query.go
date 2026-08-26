@@ -16,8 +16,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -31,10 +33,12 @@ type FinanceInvoiceQuery struct {
 	predicates           []predicate.FinanceInvoice
 	withOrganization     *OrganizationQuery
 	withSettlementParty  *PartnerQuery
+	withInvoiceProfile   *PartnerInvoiceProfileQuery
 	withIssuedByUser     *UserQuery
 	withCancelledByUser  *UserQuery
 	withRedFlushedByUser *UserQuery
 	withBillLinks        *FinanceInvoiceBillQuery
+	withLines            *FinanceInvoiceLineQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -109,6 +113,28 @@ func (_q *FinanceInvoiceQuery) QuerySettlementParty() *PartnerQuery {
 			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
 			sqlgraph.To(partner.Table, partner.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.SettlementPartyTable, financeinvoice.SettlementPartyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInvoiceProfile chains the current query on the "invoice_profile" edge.
+func (_q *FinanceInvoiceQuery) QueryInvoiceProfile() *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.InvoiceProfileTable, financeinvoice.InvoiceProfileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -197,6 +223,28 @@ func (_q *FinanceInvoiceQuery) QueryBillLinks() *FinanceInvoiceBillQuery {
 			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
 			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.BillLinksTable, financeinvoice.BillLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLines chains the current query on the "lines" edge.
+func (_q *FinanceInvoiceQuery) QueryLines() *FinanceInvoiceLineQuery {
+	query := (&FinanceInvoiceLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
+			sqlgraph.To(financeinvoiceline.Table, financeinvoiceline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.LinesTable, financeinvoice.LinesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -398,10 +446,12 @@ func (_q *FinanceInvoiceQuery) Clone() *FinanceInvoiceQuery {
 		predicates:           append([]predicate.FinanceInvoice{}, _q.predicates...),
 		withOrganization:     _q.withOrganization.Clone(),
 		withSettlementParty:  _q.withSettlementParty.Clone(),
+		withInvoiceProfile:   _q.withInvoiceProfile.Clone(),
 		withIssuedByUser:     _q.withIssuedByUser.Clone(),
 		withCancelledByUser:  _q.withCancelledByUser.Clone(),
 		withRedFlushedByUser: _q.withRedFlushedByUser.Clone(),
 		withBillLinks:        _q.withBillLinks.Clone(),
+		withLines:            _q.withLines.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -427,6 +477,17 @@ func (_q *FinanceInvoiceQuery) WithSettlementParty(opts ...func(*PartnerQuery)) 
 		opt(query)
 	}
 	_q.withSettlementParty = query
+	return _q
+}
+
+// WithInvoiceProfile tells the query-builder to eager-load the nodes that are connected to
+// the "invoice_profile" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceInvoiceQuery) WithInvoiceProfile(opts ...func(*PartnerInvoiceProfileQuery)) *FinanceInvoiceQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoiceProfile = query
 	return _q
 }
 
@@ -471,6 +532,17 @@ func (_q *FinanceInvoiceQuery) WithBillLinks(opts ...func(*FinanceInvoiceBillQue
 		opt(query)
 	}
 	_q.withBillLinks = query
+	return _q
+}
+
+// WithLines tells the query-builder to eager-load the nodes that are connected to
+// the "lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceInvoiceQuery) WithLines(opts ...func(*FinanceInvoiceLineQuery)) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLines = query
 	return _q
 }
 
@@ -552,13 +624,15 @@ func (_q *FinanceInvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*FinanceInvoice{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
+			_q.withInvoiceProfile != nil,
 			_q.withIssuedByUser != nil,
 			_q.withCancelledByUser != nil,
 			_q.withRedFlushedByUser != nil,
 			_q.withBillLinks != nil,
+			_q.withLines != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -594,6 +668,12 @@ func (_q *FinanceInvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
+	if query := _q.withInvoiceProfile; query != nil {
+		if err := _q.loadInvoiceProfile(ctx, query, nodes, nil,
+			func(n *FinanceInvoice, e *PartnerInvoiceProfile) { n.Edges.InvoiceProfile = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withIssuedByUser; query != nil {
 		if err := _q.loadIssuedByUser(ctx, query, nodes, nil,
 			func(n *FinanceInvoice, e *User) { n.Edges.IssuedByUser = e }); err != nil {
@@ -616,6 +696,13 @@ func (_q *FinanceInvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		if err := _q.loadBillLinks(ctx, query, nodes,
 			func(n *FinanceInvoice) { n.Edges.BillLinks = []*FinanceInvoiceBill{} },
 			func(n *FinanceInvoice, e *FinanceInvoiceBill) { n.Edges.BillLinks = append(n.Edges.BillLinks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withLines; query != nil {
+		if err := _q.loadLines(ctx, query, nodes,
+			func(n *FinanceInvoice) { n.Edges.Lines = []*FinanceInvoiceLine{} },
+			func(n *FinanceInvoice, e *FinanceInvoiceLine) { n.Edges.Lines = append(n.Edges.Lines, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -673,6 +760,38 @@ func (_q *FinanceInvoiceQuery) loadSettlementParty(ctx context.Context, query *P
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "settlement_party_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceInvoiceQuery) loadInvoiceProfile(ctx context.Context, query *PartnerInvoiceProfileQuery, nodes []*FinanceInvoice, init func(*FinanceInvoice), assign func(*FinanceInvoice, *PartnerInvoiceProfile)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceInvoice)
+	for i := range nodes {
+		if nodes[i].InvoiceProfileID == nil {
+			continue
+		}
+		fk := *nodes[i].InvoiceProfileID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(partnerinvoiceprofile.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "invoice_profile_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -806,6 +925,36 @@ func (_q *FinanceInvoiceQuery) loadBillLinks(ctx context.Context, query *Finance
 	}
 	return nil
 }
+func (_q *FinanceInvoiceQuery) loadLines(ctx context.Context, query *FinanceInvoiceLineQuery, nodes []*FinanceInvoice, init func(*FinanceInvoice), assign func(*FinanceInvoice, *FinanceInvoiceLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceInvoice)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoiceline.FieldInvoiceID)
+	}
+	query.Where(predicate.FinanceInvoiceLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financeinvoice.LinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.InvoiceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "invoice_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (_q *FinanceInvoiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -840,6 +989,9 @@ func (_q *FinanceInvoiceQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withSettlementParty != nil {
 			_spec.Node.AddColumnOnce(financeinvoice.FieldSettlementPartyID)
+		}
+		if _q.withInvoiceProfile != nil {
+			_spec.Node.AddColumnOnce(financeinvoice.FieldInvoiceProfileID)
 		}
 		if _q.withIssuedByUser != nil {
 			_spec.Node.AddColumnOnce(financeinvoice.FieldIssuedBy)

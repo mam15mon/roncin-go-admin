@@ -60,6 +60,9 @@ type FinanceInvoice func(*sql.Selector)
 // FinanceInvoiceBill is the predicate function for financeinvoicebill builders.
 type FinanceInvoiceBill func(*sql.Selector)
 
+// FinanceInvoiceLine is the predicate function for financeinvoiceline builders.
+type FinanceInvoiceLine func(*sql.Selector)
+
 // FinanceVerification is the predicate function for financeverification builders.
 type FinanceVerification func(*sql.Selector)
 
@@ -155,6 +158,9 @@ type PartnerContact func(*sql.Selector)
 
 // PartnerContract is the predicate function for partnercontract builders.
 type PartnerContract func(*sql.Selector)
+
+// PartnerInvoiceProfile is the predicate function for partnerinvoiceprofile builders.
+type PartnerInvoiceProfile func(*sql.Selector)
 
 // PartnerProfile is the predicate function for partnerprofile builders.
 type PartnerProfile func(*sql.Selector)

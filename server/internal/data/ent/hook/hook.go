@@ -225,6 +225,18 @@ func (f FinanceInvoiceBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceBillMutation", m)
 }
 
+// The FinanceInvoiceLineFunc type is an adapter to allow the use of ordinary
+// function as FinanceInvoiceLine mutator.
+type FinanceInvoiceLineFunc func(context.Context, *ent.FinanceInvoiceLineMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceInvoiceLineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceInvoiceLineMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceLineMutation", m)
+}
+
 // The FinanceVerificationFunc type is an adapter to allow the use of ordinary
 // function as FinanceVerification mutator.
 type FinanceVerificationFunc func(context.Context, *ent.FinanceVerificationMutation) (ent.Value, error)
@@ -607,6 +619,18 @@ func (f PartnerContractFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerContractMutation", m)
+}
+
+// The PartnerInvoiceProfileFunc type is an adapter to allow the use of ordinary
+// function as PartnerInvoiceProfile mutator.
+type PartnerInvoiceProfileFunc func(context.Context, *ent.PartnerInvoiceProfileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartnerInvoiceProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartnerInvoiceProfileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerInvoiceProfileMutation", m)
 }
 
 // The PartnerProfileFunc type is an adapter to allow the use of ordinary

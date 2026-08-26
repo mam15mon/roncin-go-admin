@@ -33,6 +33,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
@@ -514,6 +515,21 @@ func (_c *OrganizationCreate) AddFinanceBillBatches(v ...*FinanceBillBatch) *Org
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceBillBatchIDs(ids...)
+}
+
+// AddPartnerInvoiceProfileIDs adds the "partner_invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (_c *OrganizationCreate) AddPartnerInvoiceProfileIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddPartnerInvoiceProfileIDs(ids...)
+	return _c
+}
+
+// AddPartnerInvoiceProfiles adds the "partner_invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_c *OrganizationCreate) AddPartnerInvoiceProfiles(v ...*PartnerInvoiceProfile) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartnerInvoiceProfileIDs(ids...)
 }
 
 // AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
@@ -1141,6 +1157,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillbatch.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartnerInvoiceProfilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.PartnerInvoiceProfilesTable,
+			Columns: []string{organization.PartnerInvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

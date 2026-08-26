@@ -20,6 +20,7 @@ var (
 	ErrFinanceInvoiceVersionConflict     = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
 	ErrFinanceInvoiceInvalidTransition   = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
 	ErrFinanceInvoiceIdempotencyConflict = errors.Conflict("FINANCE_INVOICE_IDEMPOTENCY_CONFLICT", "开票请求幂等键已被其他请求使用")
+	ErrFinanceInvoiceProfileRequired     = errors.Conflict("FINANCE_INVOICE_PROFILE_REQUIRED", "结算单位必须先配置完整开票资料")
 )
 
 type FinanceInvoiceStatus string
@@ -35,25 +36,38 @@ const (
 )
 
 type FinanceInvoice struct {
-	ID, OrganizationID, SettlementPartyID uuid.UUID
-	RecordNo, IdempotencyKey              string
-	Direction                             OrderFeeDirection
-	Status                                FinanceInvoiceStatus
-	InvoiceType                           FinanceInvoiceType
-	SettlementPartyName, Currency         string
-	TotalAmount, TaxAmount                decimal.Decimal
-	BillCount                             int
-	TaxInvoiceNo, InvoiceDate, Note       *string
-	Version                               uint64
-	IssuedAt, CancelledAt                 *time.Time
-	IssuedBy, CancelledBy                 *uuid.UUID
-	CancellationReason                    *string
-	RedInvoiceNo, RedInvoiceDate          *string
-	RedFlushedAt                          *time.Time
-	RedFlushedBy                          *uuid.UUID
-	RedFlushReason                        *string
-	Links                                 []*FinanceInvoiceBill
-	CreatedAt, UpdatedAt                  time.Time
+	ID, OrganizationID, SettlementPartyID  uuid.UUID
+	InvoiceProfileID                       *uuid.UUID
+	RecordNo, IdempotencyKey               string
+	Direction                              OrderFeeDirection
+	Status                                 FinanceInvoiceStatus
+	InvoiceType                            FinanceInvoiceType
+	SettlementPartyName, Currency          string
+	InvoiceTitle, TaxpayerIdentificationNo string
+	RegisteredAddress, RegisteredPhone     string
+	BankName, BankAccount                  string
+	TotalAmount, NetAmount, TaxAmount      decimal.Decimal
+	BillCount                              int
+	TaxInvoiceNo, InvoiceDate, Note        *string
+	Version                                uint64
+	IssuedAt, CancelledAt                  *time.Time
+	IssuedBy, CancelledBy                  *uuid.UUID
+	CancellationReason                     *string
+	RedInvoiceNo, RedInvoiceDate           *string
+	RedFlushedAt                           *time.Time
+	RedFlushedBy                           *uuid.UUID
+	RedFlushReason                         *string
+	Links                                  []*FinanceInvoiceBill
+	Lines                                  []*FinanceInvoiceLine
+	CreatedAt, UpdatedAt                   time.Time
+}
+
+type FinanceInvoiceLine struct {
+	ID, InvoiceID                     uuid.UUID
+	LineNo, SourceLineCount           int
+	ItemCode, ItemName, Currency      string
+	TaxRate                           decimal.Decimal
+	NetAmount, TaxAmount, TotalAmount decimal.Decimal
 }
 
 type FinanceInvoiceBill struct {
@@ -87,6 +101,7 @@ type FinanceInvoiceRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceInvoice, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceInvoice, error)
 	LoadBills(context.Context, uuid.UUID, []uuid.UUID) ([]*FinanceBill, error)
+	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
 	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
 	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, *AuditEvent) (*FinanceInvoice, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceInvoice, error)
@@ -168,7 +183,17 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	invoice, err := buildFinanceInvoice(organizationID, bills, input)
+	if len(bills) == 0 {
+		return nil, ErrFinanceInvoiceBillInvalid
+	}
+	profile, err := uc.repo.LoadInvoiceProfile(ctx, organizationID, bills[0].SettlementPartyID)
+	if err != nil {
+		if err == ErrPartnerInvoiceProfileNotFound {
+			return nil, ErrFinanceInvoiceProfileRequired
+		}
+		return nil, err
+	}
+	invoice, err := buildFinanceInvoice(organizationID, bills, profile, input)
 	if err != nil {
 		return nil, err
 	}
@@ -195,13 +220,22 @@ func (uc *FinanceInvoiceUsecase) Cancel(ctx context.Context, organizationID, act
 	return uc.repo.Cancel(ctx, organizationID, id, actorID, expectedVersion, reason, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.cancel"))
 }
 
-func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
+func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, profile *PartnerInvoiceProfile, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
 	if len(bills) != len(input.BillIDs) || len(bills) == 0 || bills[0].Status != FinanceBillConfirmed {
 		return nil, ErrFinanceInvoiceBillInvalid
 	}
 	first := bills[0]
+	if profile == nil || profile.OrganizationID != organizationID || profile.PartnerID != first.SettlementPartyID || profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" {
+		return nil, ErrFinanceInvoiceProfileRequired
+	}
+	if input.InvoiceType == FinanceInvoiceSpecial && (profile.RegisteredAddress == "" || profile.RegisteredPhone == "" || profile.BankName == "" || profile.BankAccount == "") {
+		return nil, ErrFinanceInvoiceProfileRequired
+	}
 	id := uuid.Must(uuid.NewV7())
-	invoice := &FinanceInvoice{ID: id, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey, Direction: first.Direction, Status: FinanceInvoiceDraft, InvoiceType: input.InvoiceType, SettlementPartyID: first.SettlementPartyID, SettlementPartyName: first.SettlementPartyName, Currency: first.Currency, Note: input.Note, Version: 1, Links: make([]*FinanceInvoiceBill, 0, len(bills))}
+	profileID := profile.ID
+	invoice := &FinanceInvoice{ID: id, OrganizationID: organizationID, InvoiceProfileID: &profileID, IdempotencyKey: input.IdempotencyKey, Direction: first.Direction, Status: FinanceInvoiceDraft, InvoiceType: input.InvoiceType, SettlementPartyID: first.SettlementPartyID, SettlementPartyName: first.SettlementPartyName, InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, RegisteredAddress: profile.RegisteredAddress, RegisteredPhone: profile.RegisteredPhone, BankName: profile.BankName, BankAccount: profile.BankAccount, Currency: first.Currency, Note: input.Note, Version: 1, Links: make([]*FinanceInvoiceBill, 0, len(bills))}
+	lineGroups := make(map[string]*FinanceInvoiceLine)
+	lineKeys := make([]string, 0)
 	for _, bill := range bills {
 		if bill.Status != FinanceBillConfirmed {
 			return nil, ErrFinanceInvoiceBillInvalid
@@ -210,10 +244,43 @@ func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, input C
 			return nil, ErrFinanceInvoiceBillMismatch
 		}
 		invoice.TotalAmount = invoice.TotalAmount.Add(bill.TotalAmount)
+		invoice.NetAmount = invoice.NetAmount.Add(bill.NetAmount)
 		invoice.TaxAmount = invoice.TaxAmount.Add(bill.TaxAmount)
 		invoice.Links = append(invoice.Links, &FinanceInvoiceBill{ID: uuid.Must(uuid.NewV7()), InvoiceID: id, BillID: bill.ID, BillNo: bill.BillNo, Amount: bill.TotalAmount, TaxAmount: bill.TaxAmount, Active: true})
+		for _, billLine := range bill.Lines {
+			if billLine == nil || !billLine.Active || billLine.TaxRate == nil {
+				return nil, ErrFinanceInvoiceBillInvalid
+			}
+			key := strings.Join([]string{billLine.FeeCode, billLine.FeeName, billLine.TaxRate.StringFixed(4), billLine.Currency}, "\x00")
+			line := lineGroups[key]
+			if line == nil {
+				line = &FinanceInvoiceLine{ID: uuid.Must(uuid.NewV7()), InvoiceID: id, ItemCode: billLine.FeeCode, ItemName: billLine.FeeName, Currency: billLine.Currency, TaxRate: *billLine.TaxRate}
+				lineGroups[key] = line
+				lineKeys = append(lineKeys, key)
+			}
+			line.NetAmount = line.NetAmount.Add(billLine.NetAmount)
+			line.TaxAmount = line.TaxAmount.Add(billLine.TaxAmount)
+			line.TotalAmount = line.TotalAmount.Add(billLine.TotalAmount)
+			line.SourceLineCount++
+		}
 	}
 	invoice.BillCount = len(invoice.Links)
+	sort.Strings(lineKeys)
+	invoice.Lines = make([]*FinanceInvoiceLine, 0, len(lineKeys))
+	for index, key := range lineKeys {
+		line := lineGroups[key]
+		line.LineNo = index + 1
+		line.NetAmount = line.NetAmount.Round(8)
+		line.TaxAmount = line.TaxAmount.Round(8)
+		line.TotalAmount = line.TotalAmount.Round(8)
+		invoice.Lines = append(invoice.Lines, line)
+	}
+	if len(invoice.Lines) == 0 {
+		return nil, ErrFinanceInvoiceBillInvalid
+	}
+	invoice.TotalAmount = invoice.TotalAmount.Round(8)
+	invoice.NetAmount = invoice.NetAmount.Round(8)
+	invoice.TaxAmount = invoice.TaxAmount.Round(8)
 	return invoice, nil
 }
 

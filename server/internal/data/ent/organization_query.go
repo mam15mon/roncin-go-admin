@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -78,6 +79,7 @@ type OrganizationQuery struct {
 	withBackgroundTasks               *BackgroundTaskQuery
 	withFinanceBills                  *FinanceBillQuery
 	withFinanceBillBatches            *FinanceBillBatchQuery
+	withPartnerInvoiceProfiles        *PartnerInvoiceProfileQuery
 	withFinanceInvoices               *FinanceInvoiceQuery
 	withFinanceCashflows              *FinanceCashflowQuery
 	withFinanceVerifications          *FinanceVerificationQuery
@@ -670,6 +672,28 @@ func (_q *OrganizationQuery) QueryFinanceBillBatches() *FinanceBillBatchQuery {
 	return query
 }
 
+// QueryPartnerInvoiceProfiles chains the current query on the "partner_invoice_profiles" edge.
+func (_q *OrganizationQuery) QueryPartnerInvoiceProfiles() *PartnerInvoiceProfileQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.PartnerInvoiceProfilesTable, organization.PartnerInvoiceProfilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryFinanceInvoices chains the current query on the "finance_invoices" edge.
 func (_q *OrganizationQuery) QueryFinanceInvoices() *FinanceInvoiceQuery {
 	query := (&FinanceInvoiceClient{config: _q.config}).Query()
@@ -997,6 +1021,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		withFinanceBills:                  _q.withFinanceBills.Clone(),
 		withFinanceBillBatches:            _q.withFinanceBillBatches.Clone(),
+		withPartnerInvoiceProfiles:        _q.withPartnerInvoiceProfiles.Clone(),
 		withFinanceInvoices:               _q.withFinanceInvoices.Clone(),
 		withFinanceCashflows:              _q.withFinanceCashflows.Clone(),
 		withFinanceVerifications:          _q.withFinanceVerifications.Clone(),
@@ -1283,6 +1308,17 @@ func (_q *OrganizationQuery) WithFinanceBillBatches(opts ...func(*FinanceBillBat
 	return _q
 }
 
+// WithPartnerInvoiceProfiles tells the query-builder to eager-load the nodes that are connected to
+// the "partner_invoice_profiles" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithPartnerInvoiceProfiles(opts ...func(*PartnerInvoiceProfileQuery)) *OrganizationQuery {
+	query := (&PartnerInvoiceProfileClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartnerInvoiceProfiles = query
+	return _q
+}
+
 // WithFinanceInvoices tells the query-builder to eager-load the nodes that are connected to
 // the "finance_invoices" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithFinanceInvoices(opts ...func(*FinanceInvoiceQuery)) *OrganizationQuery {
@@ -1416,7 +1452,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [30]bool{
+		loadedTypes = [31]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1442,6 +1478,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withBackgroundTasks != nil,
 			_q.withFinanceBills != nil,
 			_q.withFinanceBillBatches != nil,
+			_q.withPartnerInvoiceProfiles != nil,
 			_q.withFinanceInvoices != nil,
 			_q.withFinanceCashflows != nil,
 			_q.withFinanceVerifications != nil,
@@ -1650,6 +1687,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceBillBatches = []*FinanceBillBatch{} },
 			func(n *Organization, e *FinanceBillBatch) {
 				n.Edges.FinanceBillBatches = append(n.Edges.FinanceBillBatches, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartnerInvoiceProfiles; query != nil {
+		if err := _q.loadPartnerInvoiceProfiles(ctx, query, nodes,
+			func(n *Organization) { n.Edges.PartnerInvoiceProfiles = []*PartnerInvoiceProfile{} },
+			func(n *Organization, e *PartnerInvoiceProfile) {
+				n.Edges.PartnerInvoiceProfiles = append(n.Edges.PartnerInvoiceProfiles, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2440,6 +2486,36 @@ func (_q *OrganizationQuery) loadFinanceBillBatches(ctx context.Context, query *
 	}
 	query.Where(predicate.FinanceBillBatch(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceBillBatchesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadPartnerInvoiceProfiles(ctx context.Context, query *PartnerInvoiceProfileQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *PartnerInvoiceProfile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partnerinvoiceprofile.FieldOrganizationID)
+	}
+	query.Where(predicate.PartnerInvoiceProfile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.PartnerInvoiceProfilesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

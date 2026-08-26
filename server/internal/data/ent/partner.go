@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 )
 
@@ -56,6 +57,8 @@ type PartnerEdges struct {
 	Aliases []*PartnerAlias `json:"aliases,omitempty"`
 	// Profile holds the value of the profile edge.
 	Profile *PartnerProfile `json:"profile,omitempty"`
+	// InvoiceProfile holds the value of the invoice_profile edge.
+	InvoiceProfile *PartnerInvoiceProfile `json:"invoice_profile,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*PartnerAssignment `json:"assignments,omitempty"`
 	// ShippingPresets holds the value of the shipping_presets edge.
@@ -78,7 +81,7 @@ type PartnerEdges struct {
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [16]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -130,10 +133,21 @@ func (e PartnerEdges) ProfileOrErr() (*PartnerProfile, error) {
 	return nil, &NotLoadedError{edge: "profile"}
 }
 
+// InvoiceProfileOrErr returns the InvoiceProfile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PartnerEdges) InvoiceProfileOrErr() (*PartnerInvoiceProfile, error) {
+	if e.InvoiceProfile != nil {
+		return e.InvoiceProfile, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: partnerinvoiceprofile.Label}
+	}
+	return nil, &NotLoadedError{edge: "invoice_profile"}
+}
+
 // AssignmentsOrErr returns the Assignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) AssignmentsOrErr() ([]*PartnerAssignment, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Assignments, nil
 	}
 	return nil, &NotLoadedError{edge: "assignments"}
@@ -142,7 +156,7 @@ func (e PartnerEdges) AssignmentsOrErr() ([]*PartnerAssignment, error) {
 // ShippingPresetsOrErr returns the ShippingPresets value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) ShippingPresetsOrErr() ([]*PartnerShippingPreset, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.ShippingPresets, nil
 	}
 	return nil, &NotLoadedError{edge: "shipping_presets"}
@@ -151,7 +165,7 @@ func (e PartnerEdges) ShippingPresetsOrErr() ([]*PartnerShippingPreset, error) {
 // ContractsOrErr returns the Contracts value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Contracts, nil
 	}
 	return nil, &NotLoadedError{edge: "contracts"}
@@ -160,7 +174,7 @@ func (e PartnerEdges) ContractsOrErr() ([]*PartnerContract, error) {
 // AttachmentsOrErr returns the Attachments value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Attachments, nil
 	}
 	return nil, &NotLoadedError{edge: "attachments"}
@@ -169,7 +183,7 @@ func (e PartnerEdges) AttachmentsOrErr() ([]*PartnerAttachment, error) {
 // OrdersOrErr returns the Orders value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) OrdersOrErr() ([]*Order, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.Orders, nil
 	}
 	return nil, &NotLoadedError{edge: "orders"}
@@ -178,7 +192,7 @@ func (e PartnerEdges) OrdersOrErr() ([]*Order, error) {
 // OrderFeesOrErr returns the OrderFees value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) OrderFeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.OrderFees, nil
 	}
 	return nil, &NotLoadedError{edge: "order_fees"}
@@ -187,7 +201,7 @@ func (e PartnerEdges) OrderFeesOrErr() ([]*OrderFee, error) {
 // FinanceBillsOrErr returns the FinanceBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.FinanceBills, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bills"}
@@ -196,7 +210,7 @@ func (e PartnerEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
 // FinanceInvoicesOrErr returns the FinanceInvoices value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.FinanceInvoices, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_invoices"}
@@ -205,7 +219,7 @@ func (e PartnerEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
 // FinanceCashflowsOrErr returns the FinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.FinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_cashflows"}
@@ -214,7 +228,7 @@ func (e PartnerEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
 // FinanceVerificationsOrErr returns the FinanceVerifications value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartnerEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.FinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_verifications"}
@@ -345,6 +359,11 @@ func (_m *Partner) QueryAliases() *PartnerAliasQuery {
 // QueryProfile queries the "profile" edge of the Partner entity.
 func (_m *Partner) QueryProfile() *PartnerProfileQuery {
 	return NewPartnerClient(_m.config).QueryProfile(_m)
+}
+
+// QueryInvoiceProfile queries the "invoice_profile" edge of the Partner entity.
+func (_m *Partner) QueryInvoiceProfile() *PartnerInvoiceProfileQuery {
+	return NewPartnerClient(_m.config).QueryInvoiceProfile(_m)
 }
 
 // QueryAssignments queries the "assignments" edge of the Partner entity.

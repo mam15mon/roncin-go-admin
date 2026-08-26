@@ -40,6 +40,16 @@ service PartnerService {
     };
   }
 
+  rpc GetPartnerInvoiceProfile(GetPartnerInvoiceProfileRequest) returns (GetPartnerInvoiceProfileResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/invoice-profile"};
+  }
+
+  rpc SavePartnerInvoiceProfile(SavePartnerInvoiceProfileRequest) returns (SavePartnerInvoiceProfileResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/partners/{partner_id}/invoice-profile" body: "*"};
+  }
+
   rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (SetSupplierBlacklistResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.blacklist" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -879,4 +889,49 @@ message ListPartnersResponse {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+message PartnerInvoiceProfile {
+  string id = 1;
+  string partner_id = 2;
+  string invoice_title = 3;
+  string taxpayer_identification_no = 4;
+  string registered_address = 5;
+  string registered_phone = 6;
+  string bank_name = 7;
+  string bank_account = 8;
+  string default_invoice_type = 9;
+  uint64 version = 10;
+}
+
+message GetPartnerInvoiceProfileRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SavePartnerInvoiceProfileRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string invoice_title = 2 [(google.api.field_behavior) = REQUIRED];
+  string taxpayer_identification_no = 3 [(google.api.field_behavior) = REQUIRED];
+  string registered_address = 4;
+  string registered_phone = 5;
+  string bank_name = 6;
+  string bank_account = 7;
+  string default_invoice_type = 8 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 9;
+}
+
+message GetPartnerInvoiceProfileResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerInvoiceProfile data = 4;
+  string trace_id = 5;
+}
+
+message SavePartnerInvoiceProfileResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PartnerInvoiceProfile data = 4;
+  string trace_id = 5;
 }
