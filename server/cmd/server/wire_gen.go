@@ -118,7 +118,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	settlementRepo := data.NewSettlementRepo(dataData)
 	settlementUsecase := biz.NewSettlementUsecase(settlementRepo)
 	financeBillRepo := data.NewFinanceBillRepo(dataData)
-	financeBillUsecase := biz.NewFinanceBillUsecase(financeBillRepo, orderConfigUsecase)
+	financeBillUsecase := biz.NewFinanceBillUsecase(financeBillRepo)
 	financeInvoiceRepo := data.NewFinanceInvoiceRepo(dataData)
 	financeInvoiceUsecase := biz.NewFinanceInvoiceUsecase(financeInvoiceRepo, orderConfigUsecase)
 	financeCashflowRepo := data.NewFinanceCashflowRepo(dataData)

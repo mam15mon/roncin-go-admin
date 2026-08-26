@@ -11254,8 +11254,6 @@ components:
                 - invoiceTitle
                 - taxpayerIdentificationNo
                 - defaultInvoiceType
-                - isDefault
-                - enabled
                 - expectedVersion
             type: object
             properties:

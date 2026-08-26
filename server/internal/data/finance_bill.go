@@ -276,6 +276,15 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 	if active {
 		return rollback(biz.ErrFinanceBillFeeInvalid)
 	}
+	now := time.Now().UTC()
+	billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
+	if err != nil {
+		return rollback(err)
+	}
+	bill.BillNo, err = biz.FormatAllocatedNumber(now, billRule, billSequence, "")
+	if err != nil {
+		return rollback(err)
+	}
 	_, err = tx.FinanceBill.Create().
 		SetID(bill.ID).SetOrganizationID(bill.OrganizationID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).
 		SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).

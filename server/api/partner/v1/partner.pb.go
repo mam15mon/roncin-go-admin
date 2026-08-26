@@ -7766,7 +7766,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\fbank_account\x18\a \x01(\tR\vbankAccount\x125\n" +
 	"\x14default_invoice_type\x18\b \x01(\tB\x03\xe0A\x02R\x12defaultInvoiceType\x12\x1d\n" +
 	"\n" +
-	"is_default\x18\t \x01(\bR\tisDefault\"\x8e\x04\n" +
+	"is_default\x18\t \x01(\bR\tisDefault\"\x84\x04\n" +
 	"\"UpdatePartnerInvoiceProfileRequest\x12\"\n" +
 	"\n" +
 	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x13\n" +
@@ -7777,11 +7777,11 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x10registered_phone\x18\x06 \x01(\tR\x0fregisteredPhone\x12\x1b\n" +
 	"\tbank_name\x18\a \x01(\tR\bbankName\x12!\n" +
 	"\fbank_account\x18\b \x01(\tR\vbankAccount\x125\n" +
-	"\x14default_invoice_type\x18\t \x01(\tB\x03\xe0A\x02R\x12defaultInvoiceType\x12\"\n" +
+	"\x14default_invoice_type\x18\t \x01(\tB\x03\xe0A\x02R\x12defaultInvoiceType\x12\x1d\n" +
 	"\n" +
 	"is_default\x18\n" +
-	" \x01(\bB\x03\xe0A\x02R\tisDefault\x12\x1d\n" +
-	"\aenabled\x18\v \x01(\bB\x03\xe0A\x02R\aenabled\x12.\n" +
+	" \x01(\bR\tisDefault\x12\x18\n" +
+	"\aenabled\x18\v \x01(\bR\aenabled\x12.\n" +
 	"\x10expected_version\x18\f \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xbe\x01\n" +
 	"\"ListPartnerInvoiceProfilesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +

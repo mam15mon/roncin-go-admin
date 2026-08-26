@@ -4084,8 +4084,8 @@ declare namespace API {
     bankName?: string;
     bankAccount?: string;
     defaultInvoiceType: string;
-    isDefault: boolean;
-    enabled: boolean;
+    isDefault?: boolean;
+    enabled?: boolean;
     expectedVersion: string;
   };
 

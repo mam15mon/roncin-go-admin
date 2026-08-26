@@ -935,8 +935,8 @@ message UpdatePartnerInvoiceProfileRequest {
   string bank_name = 7;
   string bank_account = 8;
   string default_invoice_type = 9 [(google.api.field_behavior) = REQUIRED];
-  bool is_default = 10 [(google.api.field_behavior) = REQUIRED];
-  bool enabled = 11 [(google.api.field_behavior) = REQUIRED];
+  bool is_default = 10;
+  bool enabled = 11;
   uint64 expected_version = 12 [(google.api.field_behavior) = REQUIRED];
 }
 

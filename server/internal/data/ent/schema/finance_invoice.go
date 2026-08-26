@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -73,6 +74,7 @@ func (FinanceInvoice) Indexes() []ent.Index {
 		index.Fields("organization_id", "status", "created_at"),
 		index.Fields("settlement_party_id", "direction", "currency"),
 		index.Fields("invoice_profile_id"),
-		index.Fields("tax_invoice_no"),
+		index.Fields("organization_id", "tax_invoice_no").Unique().StorageKey("financeinvoice_org_tax_invoice_no").Annotations(entsql.IndexWhere("tax_invoice_no IS NOT NULL")),
+		index.Fields("organization_id", "red_invoice_no").Unique().StorageKey("financeinvoice_org_red_invoice_no").Annotations(entsql.IndexWhere("red_invoice_no IS NOT NULL")),
 	}
 }

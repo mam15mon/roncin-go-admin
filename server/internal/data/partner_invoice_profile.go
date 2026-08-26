@@ -98,6 +98,15 @@ func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID u
 	if current.Version != expectedVersion {
 		return rollback(biz.ErrPartnerInvoiceProfileVersionConflict)
 	}
+	if current.IsDefault && !profile.IsDefault {
+		otherEnabled, countErr := tx.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.EnabledEQ(true)).Exist(ctx)
+		if countErr != nil {
+			return rollback(countErr)
+		}
+		if profile.Enabled || otherEnabled {
+			return rollback(biz.ErrPartnerInvoiceProfileDefaultRequired)
+		}
+	}
 	if profile.IsDefault {
 		if _, err = tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
 			return rollback(err)

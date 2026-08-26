@@ -208,13 +208,10 @@ type FinanceBillRepo interface {
 	Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
 }
 
-type FinanceBillUsecase struct {
-	repo   FinanceBillRepo
-	config *OrderConfigUsecase
-}
+type FinanceBillUsecase struct{ repo FinanceBillRepo }
 
-func NewFinanceBillUsecase(repo FinanceBillRepo, config *OrderConfigUsecase) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo, config: config}
+func NewFinanceBillUsecase(repo FinanceBillRepo) *FinanceBillUsecase {
+	return &FinanceBillUsecase{repo: repo}
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -378,10 +375,6 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		return nil, err
 	}
 	bill, err := buildFinanceBill(organizationID, fees, normalized)
-	if err != nil {
-		return nil, err
-	}
-	bill.BillNo, err = uc.config.NextNumber(ctx, organizationID, DocumentTypeBill)
 	if err != nil {
 		return nil, err
 	}

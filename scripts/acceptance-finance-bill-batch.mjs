@@ -211,35 +211,44 @@ const createBody = (idempotencyKey) => ({
     note: '财务批量转账单自动验收',
   })),
 });
-const firstKey = `acc-fin-batch-${stamp}-a`;
-const secondKey = `acc-fin-batch-${stamp}-b`;
-const competing = await Promise.all([
+const sharedKey = `acc-fin-batch-${stamp}-shared`;
+const concurrentRetries = await Promise.all([
   raw('/api/v1/finance/bill-batches', {
     method: 'POST',
-    body: JSON.stringify(createBody(firstKey)),
+    body: JSON.stringify(createBody(sharedKey)),
   }),
   raw('/api/v1/finance/bill-batches', {
     method: 'POST',
-    body: JSON.stringify(createBody(secondKey)),
+    body: JSON.stringify(createBody(sharedKey)),
   }),
 ]);
-const successes = competing.filter((item) => item.response.ok);
-const conflicts = competing.filter((item) => item.response.status === 409);
 assert(
-  successes.length === 1 && conflicts.length === 1,
-  '并发争抢同一费用时必须且只能有一个批次成功',
+  concurrentRetries.every((item) => item.response.ok),
+  '相同幂等键的并发请求必须全部重放为成功响应',
 );
-const batch = successes[0].body.data;
-const successfulKey = successes[0] === competing[0] ? firstKey : secondKey;
+const batch = concurrentRetries[0].body.data;
+assert(
+  concurrentRetries[1].body.data?.id === batch?.id,
+  '相同幂等键的并发请求未返回同一个批次',
+);
 assert(batch?.id && batch?.batchNo, '批量建单响应缺少批次信息');
 assert(batch.bills?.length === 1, '批量建单结果账单数不正确');
 assert(batch.bills[0].lines?.length === 2, '账单未固化两条费用明细');
 
 const idempotentRetry = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
-  body: JSON.stringify(createBody(successfulKey)),
+  body: JSON.stringify(createBody(sharedKey)),
 });
 assert(idempotentRetry.data?.id === batch.id, '相同幂等请求未返回原批次');
+
+const competingKey = await raw('/api/v1/finance/bill-batches', {
+  method: 'POST',
+  body: JSON.stringify(createBody(`acc-fin-batch-${stamp}-competing`)),
+});
+assert(
+  competingKey.response.status === 409,
+  '不同幂等键重复占用同一费用必须返回冲突',
+);
 
 const confirmedBatch = await request(
   `/api/v1/finance/bill-batches/${batch.id}/confirm`,
@@ -343,6 +352,36 @@ assert(
   '同一客户的默认开票抬头不是唯一项',
 );
 assert(secondaryProfile.isDefault, '新指定的默认开票抬头未生效');
+const removeDefaultResult = await raw(
+  `/api/v1/partners/${customer.id}/invoice-profiles/${secondaryProfile.id}`,
+  {
+    method: 'PUT',
+    body: JSON.stringify({
+      partnerId: customer.id,
+      id: secondaryProfile.id,
+      invoiceTitle: secondaryProfile.invoiceTitle,
+      taxpayerIdentificationNo:
+        secondaryProfile.taxpayerIdentificationNo,
+      registeredAddress: secondaryProfile.registeredAddress || '',
+      registeredPhone: secondaryProfile.registeredPhone || '',
+      bankName: secondaryProfile.bankName || '',
+      bankAccount: secondaryProfile.bankAccount || '',
+      defaultInvoiceType: secondaryProfile.defaultInvoiceType,
+      isDefault: false,
+      enabled: true,
+      expectedVersion: secondaryProfile.version,
+    }),
+  },
+);
+assert(
+  removeDefaultResult.response.status === 409,
+  `存在启用抬头时不应允许取消唯一默认抬头，实际 HTTP ${removeDefaultResult.response.status}：${removeDefaultResult.body.message || '无错误消息'}`,
+);
+assert(
+  removeDefaultResult.body.reason ===
+    'PARTNER_INVOICE_PROFILE_DEFAULT_REQUIRED',
+  '取消唯一默认抬头未返回明确业务错误',
+);
 profile = enabledProfiles.find((item) => item.id === primaryProfile.id);
 assert(profile && !profile.isDefault, '原默认抬头未正确切换为非默认抬头');
 
@@ -390,8 +429,10 @@ console.log(
       invoiceLineCount: invoice.lines.length,
       invoiceProfileCount: enabledProfiles.length,
       selectedNonDefaultProfile: !profile.isDefault,
-      concurrentConflictVerified: true,
+      concurrentIdempotentReplayVerified: true,
+      competingKeyConflictVerified: true,
       idempotentRetryVerified: true,
+      defaultProfileProtectionVerified: true,
     },
     null,
     2,

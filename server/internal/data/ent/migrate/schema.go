@@ -731,6 +731,14 @@ var (
 				Columns: []*schema.Column{FinanceBillLinesColumns[17], FinanceBillLinesColumns[14]},
 			},
 			{
+				Name:    "finance_bill_lines_active_fee_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillLinesColumns[17]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "active = true",
+				},
+			},
+			{
 				Name:    "financebillline_order_id",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceBillLinesColumns[16]},
@@ -1103,9 +1111,20 @@ var (
 				Columns: []*schema.Column{FinanceInvoicesColumns[33]},
 			},
 			{
-				Name:    "financeinvoice_tax_invoice_no",
-				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[20]},
+				Name:    "financeinvoice_org_tax_invoice_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoicesColumns[31], FinanceInvoicesColumns[20]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "tax_invoice_no IS NOT NULL",
+				},
+			},
+			{
+				Name:    "financeinvoice_org_red_invoice_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoicesColumns[31], FinanceInvoicesColumns[27]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "red_invoice_no IS NOT NULL",
+				},
 			},
 		},
 	}

@@ -15,6 +15,7 @@ var (
 	ErrPartnerInvoiceProfileInvalidArgument = errors.BadRequest("PARTNER_INVOICE_PROFILE_INVALID_ARGUMENT", "开票抬头字段不合法")
 	ErrPartnerInvoiceProfileVersionConflict = errors.Conflict("PARTNER_INVOICE_PROFILE_VERSION_CONFLICT", "开票抬头已被其他操作人修改，请刷新后重试")
 	ErrPartnerInvoiceProfileTitleExists     = errors.Conflict("PARTNER_INVOICE_PROFILE_TITLE_EXISTS", "该客户已存在同名开票抬头")
+	ErrPartnerInvoiceProfileDefaultRequired = errors.Conflict("PARTNER_INVOICE_PROFILE_DEFAULT_REQUIRED", "请先将其他启用抬头设为默认抬头")
 )
 
 type PartnerInvoiceProfile struct {

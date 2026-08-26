@@ -73,4 +73,22 @@ func TestPostgresColdStartMigration(t *testing.T) {
 			t.Errorf("迁移后缺少表 %s", table.Name)
 		}
 	}
+
+	expectedIndexes := map[string][]string{
+		"financeinvoice_org_tax_invoice_no":    {"UNIQUE", "organization_id", "tax_invoice_no", "tax_invoice_no IS NOT NULL"},
+		"financeinvoice_org_red_invoice_no":    {"UNIQUE", "organization_id", "red_invoice_no", "red_invoice_no IS NOT NULL"},
+		"finance_bill_lines_active_fee_unique": {"UNIQUE", "order_fee_id", "active = true"},
+	}
+	for name, fragments := range expectedIndexes {
+		var definition string
+		if err := db.QueryRowContext(ctx, `SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = $2`, schemaName, name).Scan(&definition); err != nil {
+			t.Errorf("迁移后缺少索引 %s: %v", name, err)
+			continue
+		}
+		for _, fragment := range fragments {
+			if !strings.Contains(definition, fragment) {
+				t.Errorf("索引 %s 定义缺少 %q: %s", name, fragment, definition)
+			}
+		}
+	}
 }

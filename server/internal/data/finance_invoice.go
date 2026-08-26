@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -192,9 +193,16 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 	if item.Status != financeinvoiceent.StatusDRAFT {
 		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
 	}
+	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(taxNo)).Exist(ctx)
+	if err != nil {
+		return rollback(err)
+	}
+	if duplicate {
+		return rollback(biz.ErrFinanceInvoiceTaxNoExists)
+	}
 	now := time.Now()
 	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(taxNo).SetInvoiceDate(date).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(err)
+		return rollback(mapFinanceInvoiceNumberConstraint(err))
 	}
 	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		return rollback(err)
@@ -271,7 +279,7 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		return rollback(err)
 	}
 	if duplicate {
-		return rollback(biz.ErrFinanceInvoiceInvalidArgument)
+		return rollback(biz.ErrFinanceInvoiceRedNoExists)
 	}
 	links, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
 	if err != nil {
@@ -285,7 +293,7 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 	}
 	now := time.Now()
 	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(err)
+		return rollback(mapFinanceInvoiceNumberConstraint(err))
 	}
 	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		return rollback(err)
@@ -294,6 +302,21 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
+}
+
+func mapFinanceInvoiceNumberConstraint(err error) error {
+	if !ent.IsConstraintError(err) {
+		return err
+	}
+	message := err.Error()
+	switch {
+	case strings.Contains(message, "financeinvoice_org_tax_invoice_no"):
+		return biz.ErrFinanceInvoiceTaxNoExists
+	case strings.Contains(message, "financeinvoice_org_red_invoice_no"):
+		return biz.ErrFinanceInvoiceRedNoExists
+	default:
+		return err
+	}
 }
 
 func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {

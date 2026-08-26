@@ -28,7 +28,6 @@ import {
   InputNumber,
   Modal,
   Popconfirm,
-  Radio,
   Result,
   Row,
   Select,
@@ -319,7 +318,12 @@ export default function BillCreationWorkbench({
         const existing = prev[quickAddPartnerId] || [];
         return {
           ...prev,
-          [quickAddPartnerId]: [created, ...existing],
+          [quickAddPartnerId]: [
+            created,
+            ...existing.map((profile) =>
+              created.isDefault ? { ...profile, isDefault: false } : profile,
+            ),
+          ],
         };
       });
 
