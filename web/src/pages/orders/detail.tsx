@@ -1,12 +1,18 @@
 import {
+  AlertOutlined,
   CheckOutlined,
   CopyOutlined,
   DollarOutlined,
   DownOutlined,
+  EnvironmentOutlined,
   FileDoneOutlined,
+  FileTextOutlined,
+  InboxOutlined,
   LockOutlined,
   ReloadOutlined,
+  SafetyCertificateOutlined,
   SaveOutlined,
+  SendOutlined,
   UndoOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
@@ -14,12 +20,14 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
   App,
+  Badge,
   Button,
   Card,
   Col,
   Dropdown,
   Empty,
   type MenuProps,
+  Select,
   Space,
   Spin,
   Tag,
@@ -28,7 +36,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PageHeaderShell, StickyFooterBar } from '@/components/ui';
+import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 import {
@@ -74,7 +82,7 @@ export default function OrderDetailPage() {
   const orderId = params.id;
   const config = parseOrderKind(kind) || {
     kind: 'sea-export',
-    title: '海运出口订单',
+    title: '海运出口',
     businessType: 1,
     category: 'sea',
   };
@@ -89,7 +97,7 @@ export default function OrderDetailPage() {
   const [_milestones, setMilestones] = useState<API.OrderMilestone[]>([]);
   const [personnel, setPersonnel] = useState<API.OrderPersonnel[]>([]);
 
-  const [_statusTemplateOptions, setStatusTemplateOptions] = useState<{ label: string; value: string }[]>([]);
+  const [statusTemplateOptions, setStatusTemplateOptions] = useState<{ label: string; value: string }[]>([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
   const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
@@ -179,7 +187,7 @@ export default function OrderDetailPage() {
     void loadData();
   }, [orderId]);
 
-  // 2. 构造表单初始值（将订单数据与子明细映射到表单字段）
+  // 2. 构造表单初始值
   const initialValues = useMemo(() => {
     if (!order) return {};
 
@@ -254,14 +262,13 @@ export default function OrderDetailPage() {
     };
   }, [order, shippingDocs, personnel]);
 
-  // 当重新加载数据时同步更新表单值
   useEffect(() => {
     if (formRef.current && order) {
       formRef.current.setFieldsValue(initialValues);
     }
   }, [initialValues]);
 
-  // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true 锁定订单编号与创建人员）
+  // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
   const templateProps = useMemo(
     () => ({
       serviceTypeOptions,
@@ -297,7 +304,140 @@ export default function OrderDetailPage() {
     return getSeaTemplateSections(templateProps);
   }, [config.category, templateProps]);
 
-  // 4. 后置区块：操作记录日志
+  // 4. 海管家风格「订单状态」卡片（作为前置区块）
+  const prependSections: OrderFormTemplateSection[] = useMemo(() => {
+    const isUnreturned = order?.status !== 'CANCELLED';
+    const isUncompleted = order?.status !== 'COMPLETED';
+
+    const steps = [
+      { key: 'booked', label: '已订舱' },
+      { key: 'allocated', label: '已配舱' },
+      { key: 'trucked', label: '拖车已安排' },
+      { key: 'si_cutoff', label: '已截单' },
+      { key: 'customs', label: '报关已安排' },
+      { key: 'issued', label: '已签单' },
+    ];
+
+    return [
+      {
+        key: 'orderStatusSection',
+        title: '订单状态',
+        collapsible: true,
+        extra: (
+          <Space size={12} align="center">
+            <Select
+              size="small"
+              defaultValue={statusTemplateOptions[0]?.value || 'default'}
+              options={
+                statusTemplateOptions.length > 0
+                  ? statusTemplateOptions
+                  : [{ label: '系统默认订单状态流程', value: 'default' }]
+              }
+              style={{ width: 190 }}
+            />
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '2px 10px',
+                borderRadius: 12,
+                backgroundColor: isUnreturned ? '#f1f5f9' : '#fee2e2',
+                color: isUnreturned ? '#475569' : '#ef4444',
+                fontSize: 12,
+                userSelect: 'none',
+              }}
+            >
+              <span style={{ fontSize: 10 }}>{isUnreturned ? '⚪' : '🔴'}</span>
+              <span>{isUnreturned ? '未退关' : '已退关'}</span>
+            </div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '2px 10px',
+                borderRadius: 12,
+                backgroundColor: isUncompleted ? '#f1f5f9' : '#dcfce7',
+                color: isUncompleted ? '#475569' : '#16a34a',
+                fontSize: 12,
+                userSelect: 'none',
+              }}
+            >
+              <span style={{ fontSize: 10 }}>{isUncompleted ? '⚪' : '🟢'}</span>
+              <span>{isUncompleted ? '未完结' : '已完结'}</span>
+            </div>
+          </Space>
+        ),
+        content: (
+          <Col span={24}>
+            {/* 海管家极简横向流程节点 */}
+            <div
+              style={{
+                padding: '20px 40px 12px',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              {/* 背景贯穿灰色连接线 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 27,
+                  left: 60,
+                  right: 60,
+                  height: 1,
+                  backgroundColor: '#cbd5e1',
+                  zIndex: 1,
+                }}
+              />
+
+              {steps.map((st, idx) => {
+                const isPassed = idx <= 1; // 示例点亮前两个
+                return (
+                  <div
+                    key={st.key}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      position: 'relative',
+                      zIndex: 2,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        backgroundColor: isPassed ? '#1677ff' : '#94a3b8',
+                        border: '3px solid #ffffff',
+                        boxShadow: '0 0 0 1px #cbd5e1',
+                        marginBottom: 8,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: isPassed ? '#0f172a' : '#64748b',
+                        fontWeight: isPassed ? 500 : 400,
+                      }}
+                    >
+                      {st.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Col>
+        ),
+      },
+    ];
+  }, [order, statusTemplateOptions]);
+
+  // 5. 后置区块：操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(() => {
     return [
       {
@@ -346,7 +486,7 @@ export default function OrderDetailPage() {
     ];
   }, [order]);
 
-  // 5. 保存修改提交处理
+  // 6. 保存修改提交处理
   const handleSaveEdit = async (values: any) => {
     if (!orderId) return false;
     setSaving(true);
@@ -439,8 +579,6 @@ export default function OrderDetailPage() {
 
   const progressStage =
     order.status === 'COMPLETED' ? '已完结' : order.status === 'CANCELLED' ? '已退关' : '未退关';
-  const progressColor =
-    progressStage === '已完结' ? 'success' : progressStage === '已退关' ? 'error' : 'processing';
 
   const moreMenuItems: MenuProps['items'] = [
     {
@@ -462,6 +600,175 @@ export default function OrderDetailPage() {
     },
   ];
 
+  const dataChannelItems: MenuProps['items'] = [
+    { key: 'shanghai', label: '上海港舱单' },
+    { key: 'qingdao', label: '青岛港舱单' },
+    { key: 'vgm', label: 'VGM申报' },
+    { key: 'ams', label: 'AMS' },
+    { key: 'afr', label: 'AFR' },
+    { key: 'aci', label: 'ACI' },
+    { key: 'isf', label: 'ISF' },
+    { key: 'ics2', label: 'ICS2' },
+  ];
+
+  const bookingChannelItems: MenuProps['items'] = [
+    { key: 'edi', label: 'EDI订舱通道' },
+    { key: 'carrier', label: '直连船司订舱' },
+  ];
+
+  // 海管家头部渲染（面包屑 + 紧凑工具栏）
+  const haiguanjiaHeader = (
+    <div style={{ marginBottom: 12 }}>
+      {/* 顶部第 1 行：面包屑 */}
+      <div style={{ padding: '8px 16px', fontSize: 13, color: '#64748b' }}>
+        <Space size={6}>
+          <a style={{ color: '#64748b' }} onClick={() => history.push(`/orders/${kind}`)}>
+            {config.title}
+          </a>
+          <span>&gt;</span>
+          <span style={{ color: '#1677ff', fontWeight: 500 }}>{config.title}详情</span>
+          {order.orderNo && (
+            <span style={{ color: '#0f172a', fontWeight: 600, marginLeft: 8, fontFamily: 'monospace' }}>
+              ({order.orderNo})
+            </span>
+          )}
+        </Space>
+      </div>
+
+      {/* 顶部第 2 行：海管家风格操作工具栏 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          backgroundColor: '#ffffff',
+          padding: '8px 16px',
+          borderRadius: 6,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+        }}
+      >
+        {/* 左侧主要操作组 */}
+        <Space size={8} wrap={false}>
+          {/* 实心蓝底主按钮组 */}
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            loading={saving}
+            onClick={() => formRef.current?.submit()}
+            style={{ fontWeight: 500 }}
+          >
+            保存
+          </Button>
+          <Button
+            type="primary"
+            icon={<DollarOutlined />}
+            onClick={() => orderFeePanelRef.current?.open(order)}
+            style={{ fontWeight: 500 }}
+          >
+            费用录入
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => message.info('箱货信息已在配舱与提单模块中呈现')}
+            style={{ fontWeight: 500 }}
+          >
+            箱货信息
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => message.info('仓储功能模块')}
+            style={{ fontWeight: 500 }}
+          >
+            仓储
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => message.info('报关功能模块')}
+            style={{ fontWeight: 500 }}
+          >
+            报关
+          </Button>
+
+          {/* 描边蓝字操作按钮组 */}
+          <Button
+            style={{ color: '#1677ff', borderColor: '#1677ff' }}
+            icon={<FileDoneOutlined />}
+            onClick={() => releasePodPanelRef.current?.open(order)}
+          >
+            导出单证
+          </Button>
+          <Button
+            style={{ color: '#1677ff', borderColor: '#1677ff' }}
+            icon={<FileTextOutlined />}
+            onClick={() => message.info('进入单证制作与预览')}
+          >
+            单证制作
+          </Button>
+          <Button
+            style={{ color: '#1677ff', borderColor: '#1677ff' }}
+            icon={<AlertOutlined />}
+            onClick={() => abnormalCasePanelRef.current?.open(order)}
+          >
+            异常情况
+          </Button>
+          <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>
+            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
+              更多操作 <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
+          <Dropdown menu={{ items: dataChannelItems }} trigger={['click']}>
+            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
+              <SendOutlined /> 发送数据通道 <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
+          <Dropdown menu={{ items: bookingChannelItems }} trigger={['click']}>
+            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
+              <SendOutlined /> 发送订舱通道 <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
+        </Space>
+
+        {/* 右侧促销/小工具组 */}
+        <Space size={12} wrap={false} style={{ marginLeft: 16 }}>
+          <Tag
+            color="processing"
+            style={{
+              cursor: 'pointer',
+              fontWeight: 700,
+              padding: '2px 8px',
+              fontSize: 12,
+              borderRadius: 3,
+            }}
+          >
+            SPOT
+          </Tag>
+          <Badge count="投保" offset={[-2, 0]} style={{ backgroundColor: '#ff4d4f', fontSize: 10 }}>
+            <Button
+              size="small"
+              icon={<SafetyCertificateOutlined style={{ color: '#1677ff' }} />}
+              onClick={() => message.info('货运保险投保通道')}
+            />
+          </Badge>
+          <Badge count="限时优惠" offset={[-2, 0]} style={{ backgroundColor: '#ff4d4f', fontSize: 10 }}>
+            <Button
+              size="small"
+              icon={<EnvironmentOutlined style={{ color: '#8c8c8c' }} />}
+              onClick={() => message.info('全球港口定位与限时特惠')}
+            />
+          </Badge>
+          <Button
+            size="small"
+            icon={<InboxOutlined style={{ color: '#8c8c8c' }} />}
+            onClick={() => message.info('箱货中心')}
+          />
+        </Space>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <OrderFormTemplate<any>
@@ -470,67 +777,8 @@ export default function OrderDetailPage() {
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
-        header={
-          <PageHeaderShell
-            title={
-              <Space size={8}>
-                <span style={{ fontSize: 18, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>
-                  {order.orderNo || order.id}
-                </span>
-                <Tag color={progressColor}>
-                  {progressStage}
-                </Tag>
-                {order.canModify === false && order.status !== 'DRAFT' && (
-                  <Tag color="warning" icon={<LockOutlined />}>
-                    已锁定
-                  </Tag>
-                )}
-              </Space>
-            }
-            subTitle={`${config.title} · 详情`}
-            breadcrumbs={[
-              { label: config.title, onClick: () => history.push(`/orders/${kind}`) },
-              { label: `${config.title}详情` },
-            ]}
-            onBack={() => history.push(`/orders/${kind}`)}
-            extra={[
-              <Button
-                key="save"
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={() => formRef.current?.submit()}
-              >
-                保存
-              </Button>,
-              access.canOrder(config.businessType, 'fee.read') && (
-                <Button key="fee" icon={<DollarOutlined />} onClick={() => orderFeePanelRef.current?.open(order)}>
-                  费用录入
-                </Button>
-              ),
-              access.canOrder(config.businessType, 'release_pod.create') && (
-                <Button key="pod" icon={<FileDoneOutlined />} onClick={() => releasePodPanelRef.current?.open(order)}>
-                  放货凭证 (POD)
-                </Button>
-              ),
-              access.canOrder(config.businessType, 'abnormal_case.create') && (
-                <Button
-                  key="abnormal"
-                  icon={<WarningOutlined />}
-                  danger
-                  onClick={() => abnormalCasePanelRef.current?.open(order)}
-                >
-                  异常情况
-                </Button>
-              ),
-              <Dropdown key="more" menu={{ items: moreMenuItems }} trigger={['click']}>
-                <Button>
-                  更多操作 <DownOutlined />
-                </Button>
-              </Dropdown>,
-            ].filter(Boolean)}
-          />
-        }
+        header={haiguanjiaHeader}
+        prependSections={prependSections}
         sections={formSections}
         appendSections={appendSections}
         footer={
