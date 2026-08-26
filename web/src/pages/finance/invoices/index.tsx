@@ -20,9 +20,11 @@ import {
   Select,
   Table,
   Tag,
+  Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { partnerServiceGetPartnerInvoiceProfile } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
@@ -32,6 +34,8 @@ import {
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
+
+const { Text } = Typography;
 
 const states: Record<string, { text: string; color: string }> = {
   DRAFT: { text: '待开具', color: 'gold' },
@@ -59,9 +63,41 @@ export default function FinanceInvoicesPage() {
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
+  const [selectedProfile, setSelectedProfile] =
+    useState<API.PartnerInvoiceProfile>();
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
   const reload = () => actionRef.current?.reload();
+
+  const loadSelectedProfile = async (partnerId?: string) => {
+    if (!partnerId) {
+      setSelectedProfile(undefined);
+      return;
+    }
+    try {
+      const response = await partnerServiceGetPartnerInvoiceProfile(
+        { partnerId },
+        { skipErrorHandler: true },
+      );
+      setSelectedProfile(response.data);
+      if (response.data?.defaultInvoiceType) {
+        createForm.setFieldValue(
+          'invoiceType',
+          response.data.defaultInvoiceType,
+        );
+      }
+    } catch (rawError: any) {
+      setSelectedProfile(undefined);
+      const reason = rawError.data?.reason || rawError.response?.data?.reason;
+      if (reason === 'PARTNER_INVOICE_PROFILE_NOT_FOUND') {
+        message.warning(
+          '该结算单位尚未配置独立开票资料，请先到往来单位档案维护',
+        );
+      } else {
+        message.error(rawError.message || '加载开票资料失败');
+      }
+    }
+  };
 
   const showDetail = async (row: API.FinanceInvoice) => {
     if (!row.id) return;
@@ -89,7 +125,12 @@ export default function FinanceInvoicesPage() {
       setCreateOpen(false);
       reload();
     } catch (error: any) {
-      message.error(error.message || '创建开票记录失败');
+      const reason = error.data?.reason || error.response?.data?.reason;
+      if (reason === 'FINANCE_INVOICE_PROFILE_REQUIRED') {
+        message.error('结算单位缺少完整开票资料，请先到往来单位档案维护');
+      } else {
+        message.error(error.message || '创建开票记录失败');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -324,6 +365,7 @@ export default function FinanceInvoicesPage() {
                   onClick={() => {
                     setSelectedIDs([]);
                     setSelectedBills([]);
+                    setSelectedProfile(undefined);
                     createForm.setFieldsValue({ invoiceType: 'NORMAL' });
                     setCreateOpen(true);
                   }}
@@ -374,6 +416,30 @@ export default function FinanceInvoicesPage() {
             <Input style={{ width: 360 }} maxLength={500} />
           </Form.Item>
         </Form>
+        {selectedBills[0] && (
+          <Descriptions
+            bordered
+            size="small"
+            column={3}
+            style={{ marginBottom: 12 }}
+          >
+            <Descriptions.Item label="开票抬头" span={2}>
+              {selectedProfile?.invoiceTitle || (
+                <Text type="danger">未配置</Text>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="默认票种">
+              {selectedProfile?.defaultInvoiceType === 'SPECIAL'
+                ? '专用发票'
+                : selectedProfile
+                  ? '普通发票'
+                  : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="纳税人识别号" span={3}>
+              {selectedProfile?.taxpayerIdentificationNo || '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
         <ProTable<API.FinanceBill>
           rowKey="id"
           options={false}
@@ -407,6 +473,12 @@ export default function FinanceInvoicesPage() {
                   .map((k) => m.get(String(k)))
                   .filter(Boolean) as API.FinanceBill[],
               );
+              const first = keys.map((key) => m.get(String(key))).find(Boolean);
+              if (
+                first?.settlementPartyId !== selectedBills[0]?.settlementPartyId
+              ) {
+                void loadSelectedProfile(first?.settlementPartyId);
+              }
             },
             getCheckboxProps: (r) => {
               const f = selectedBills[0];
@@ -510,6 +582,24 @@ export default function FinanceInvoicesPage() {
               <Descriptions.Item label="结算单位">
                 {detail.settlementPartyName}
               </Descriptions.Item>
+              <Descriptions.Item label="发票抬头">
+                {detail.invoiceTitle || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="纳税人识别号" span={2}>
+                {detail.taxpayerIdentificationNo || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="注册地址">
+                {detail.registeredAddress || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="注册电话">
+                {detail.registeredPhone || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="开户银行">
+                {detail.bankName || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="银行账号">
+                {detail.bankAccount || '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="金额">
                 {detail.totalAmount} {detail.currency}
               </Descriptions.Item>
@@ -541,6 +631,29 @@ export default function FinanceInvoicesPage() {
                 </>
               )}
             </Descriptions>
+            <Table<API.FinanceInvoiceLine>
+              rowKey="id"
+              size="small"
+              bordered
+              pagination={false}
+              style={{ marginTop: 16 }}
+              dataSource={detail.lines || []}
+              columns={[
+                { title: '行号', dataIndex: 'lineNo', width: 65 },
+                { title: '费用代码', dataIndex: 'itemCode', width: 110 },
+                { title: '开票项目', dataIndex: 'itemName' },
+                {
+                  title: '税率',
+                  dataIndex: 'taxRate',
+                  align: 'right',
+                  render: (value) => `${Number(value)}%`,
+                },
+                { title: '未税金额', dataIndex: 'netAmount', align: 'right' },
+                { title: '税额', dataIndex: 'taxAmount', align: 'right' },
+                { title: '含税金额', dataIndex: 'totalAmount', align: 'right' },
+                { title: '来源行数', dataIndex: 'sourceLineCount', width: 90 },
+              ]}
+            />
             <Table
               rowKey="id"
               size="small"

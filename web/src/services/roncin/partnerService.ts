@@ -249,6 +249,45 @@ export async function partnerServiceUpdatePartnerContract(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/invoice-profile */
+export async function partnerServiceGetPartnerInvoiceProfile(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceGetPartnerInvoiceProfileParams,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.GetPartnerInvoiceProfileResponse>(
+    `/api/v1/partners/${param0}/invoice-profile`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/invoice-profile */
+export async function partnerServiceSavePartnerInvoiceProfile(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceSavePartnerInvoiceProfileParams,
+  body: API.SavePartnerInvoiceProfileRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.SavePartnerInvoiceProfileResponse>(
+    `/api/v1/partners/${param0}/invoice-profile`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/${param0}/roles/${param1}/settlement-rules */
 export async function partnerServiceListPartnerSettlementRules(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

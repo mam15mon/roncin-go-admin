@@ -1358,6 +1358,15 @@ declare namespace API {
     redInvoiceDate?: string;
     redFlushedAt?: string;
     redFlushReason?: string;
+    netAmount?: string;
+    invoiceProfileId?: string;
+    invoiceTitle?: string;
+    taxpayerIdentificationNo?: string;
+    registeredAddress?: string;
+    registeredPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    lines?: FinanceInvoiceLine[];
   };
 
   type FinanceInvoiceBill = {
@@ -1367,6 +1376,19 @@ declare namespace API {
     amount?: string;
     taxAmount?: string;
     active?: boolean;
+  };
+
+  type FinanceInvoiceLine = {
+    id?: string;
+    lineNo?: number;
+    itemCode?: string;
+    itemName?: string;
+    taxRate?: string;
+    netAmount?: string;
+    taxAmount?: string;
+    totalAmount?: string;
+    currency?: string;
+    sourceLineCount?: number;
   };
 
   type FinanceVerification = {
@@ -1434,6 +1456,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Order;
+    traceId?: string;
+  };
+
+  type GetPartnerInvoiceProfileResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerInvoiceProfile;
     traceId?: string;
   };
 
@@ -2879,6 +2909,19 @@ declare namespace API {
     assignments?: PartnerAssignmentInput[];
   };
 
+  type PartnerInvoiceProfile = {
+    id?: string;
+    partnerId?: string;
+    invoiceTitle?: string;
+    taxpayerIdentificationNo?: string;
+    registeredAddress?: string;
+    registeredPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    defaultInvoiceType?: string;
+    version?: string;
+  };
+
   type PartnerProfile = {
     nameEn?: string;
     addressEn?: string;
@@ -2933,6 +2976,10 @@ declare namespace API {
     enabled?: boolean;
   };
 
+  type PartnerServiceGetPartnerInvoiceProfileParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceGetPartnerParams = {
     id: string;
   };
@@ -2977,6 +3024,10 @@ declare namespace API {
   };
 
   type PartnerServiceRegisterPartnerAttachmentParams = {
+    partnerId: string;
+  };
+
+  type PartnerServiceSavePartnerInvoiceProfileParams = {
     partnerId: string;
   };
 
@@ -3317,6 +3368,26 @@ declare namespace API {
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
+  };
+
+  type SavePartnerInvoiceProfileRequest = {
+    partnerId: string;
+    invoiceTitle: string;
+    taxpayerIdentificationNo: string;
+    registeredAddress?: string;
+    registeredPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    defaultInvoiceType: string;
+    expectedVersion?: string;
+  };
+
+  type SavePartnerInvoiceProfileResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerInvoiceProfile;
+    traceId?: string;
   };
 
   type SetDefaultMilestoneTemplateRequest = {

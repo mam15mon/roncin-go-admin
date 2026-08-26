@@ -14,6 +14,7 @@ import type {
 import {
   ModalForm,
   ProFormDateRangePicker,
+  ProFormDependency,
   ProFormDigit,
   ProFormSelect,
   ProFormSwitch,
@@ -21,9 +22,20 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Alert, App, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Descriptions,
+  Drawer,
+  Space,
+  Spin,
+  Tabs,
+  Tag,
+  Typography,
+} from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceCreatePartnerContract,
@@ -32,7 +44,9 @@ import {
   partnerServiceListPartnerAttachments,
   partnerServiceListPartnerContracts,
   partnerServiceListPartnerSettlementRules,
+  partnerServiceGetPartnerInvoiceProfile,
   partnerServiceRegisterPartnerAttachment,
+  partnerServiceSavePartnerInvoiceProfile,
   partnerServiceUpdatePartnerAccount,
   partnerServiceUpdatePartnerContract,
   partnerServiceUpdatePartnerSettlementRule,
@@ -146,6 +160,16 @@ type AttachmentFormValues = {
   idempotencyKey?: string;
 };
 
+type InvoiceProfileFormValues = {
+  invoiceTitle?: string;
+  taxpayerIdentificationNo?: string;
+  registeredAddress?: string;
+  registeredPhone?: string;
+  bankName?: string;
+  bankAccount?: string;
+  defaultInvoiceType?: string;
+};
+
 type PartnerSecondaryProps = {
   partner?: API.Partner;
   open: boolean;
@@ -185,16 +209,58 @@ export default function PartnerSecondary({
   const contractFormRef = useRef<ProFormInstance | undefined>(undefined);
   const settlementRuleFormRef = useRef<ProFormInstance | undefined>(undefined);
   const attachmentFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const invoiceProfileFormRef = useRef<
+    ProFormInstance<InvoiceProfileFormValues> | undefined
+  >(undefined);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [settlementRuleModalOpen, setSettlementRuleModalOpen] = useState(false);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [invoiceProfileModalOpen, setInvoiceProfileModalOpen] = useState(false);
+  const [invoiceProfileLoading, setInvoiceProfileLoading] = useState(false);
+  const [invoiceProfile, setInvoiceProfile] =
+    useState<API.PartnerInvoiceProfile>();
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
   const [editingContract, setEditingContract] = useState<API.PartnerContract>();
   const [editingSettlementRule, setEditingSettlementRule] =
     useState<SettlementRuleItem>();
   const hasCustomerRole =
     partner?.roles?.some((role) => role.type === 1) ?? false;
+
+  const loadInvoiceProfile = async () => {
+    if (!partner?.id) return;
+    setInvoiceProfileLoading(true);
+    try {
+      const response = await partnerServiceGetPartnerInvoiceProfile(
+        { partnerId: partner.id },
+        { skipErrorHandler: true },
+      );
+      setInvoiceProfile(response.data);
+    } catch (rawError: any) {
+      const reason = rawError.data?.reason || rawError.response?.data?.reason;
+      if (reason === 'PARTNER_INVOICE_PROFILE_NOT_FOUND') {
+        setInvoiceProfile(undefined);
+      } else {
+        message.error(
+          rawError.data?.message ||
+            rawError.response?.data?.message ||
+            rawError.message ||
+            '加载开票资料失败',
+        );
+      }
+    } finally {
+      setInvoiceProfileLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && partner?.id) void loadInvoiceProfile();
+  }, [open, partner?.id]);
+
+  const openInvoiceProfileForm = () => {
+    invoiceProfileFormRef.current?.resetFields();
+    setInvoiceProfileModalOpen(true);
+  };
 
   const openAccountForm = (account?: API.PartnerAccount) => {
     setEditingAccount(account);
@@ -220,12 +286,21 @@ export default function PartnerSecondary({
   };
 
   const accountColumns: ProColumns<API.PartnerAccount>[] = [
-    { title: '发票抬头', dataIndex: 'invoiceTitle', ellipsis: true, render: (t) => <Text strong>{t}</Text> },
+    {
+      title: '发票抬头',
+      dataIndex: 'invoiceTitle',
+      ellipsis: true,
+      render: (t) => <Text strong>{t}</Text>,
+    },
     {
       title: '结算币种',
       dataIndex: 'currency',
       width: 100,
-      render: (cur) => <Tag color="gold" bordered={false}>{cur}</Tag>,
+      render: (cur) => (
+        <Tag color="gold" bordered={false}>
+          {cur}
+        </Tag>
+      ),
     },
     { title: '开户银行', dataIndex: 'bankName', ellipsis: true },
     {
@@ -240,14 +315,22 @@ export default function PartnerSecondary({
       dataIndex: 'isDefault',
       width: 90,
       render: (_, record) =>
-        record.isDefault ? <Tag color="blue">默认</Tag> : <Text type="secondary">-</Text>,
+        record.isDefault ? (
+          <Tag color="blue">默认</Tag>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
     },
     {
       title: '状态',
       dataIndex: 'status',
       width: 90,
       render: (_, record) =>
-        record.status === 1 ? <Tag color="success">启用</Tag> : <Tag color="default">停用</Tag>,
+        record.status === 1 ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
     {
       title: '更新时间',
@@ -281,9 +364,16 @@ export default function PartnerSecondary({
       dataIndex: 'contractNo',
       width: 150,
       copyable: true,
-      render: (no) => <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>{no}</Text>,
+      render: (no) => (
+        <Text style={{ fontFamily: 'monospace', fontWeight: 500 }}>{no}</Text>
+      ),
     },
-    { title: '合同名称', dataIndex: 'name', ellipsis: true, render: (name) => <Text strong>{name}</Text> },
+    {
+      title: '合同名称',
+      dataIndex: 'name',
+      ellipsis: true,
+      render: (name) => <Text strong>{name}</Text>,
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -300,7 +390,9 @@ export default function PartnerSecondary({
       width: 220,
       render: (_, record) => (
         <span>
-          {record.startDate ? dayjs(record.startDate).format('YYYY-MM-DD') : '-'}
+          {record.startDate
+            ? dayjs(record.startDate).format('YYYY-MM-DD')
+            : '-'}
           {' ~ '}
           {record.endDate ? dayjs(record.endDate).format('YYYY-MM-DD') : '-'}
         </span>
@@ -467,14 +559,22 @@ export default function PartnerSecondary({
       title: '结算币种',
       dataIndex: 'settlementCurrency',
       width: 90,
-      render: (cur) => <Tag color="gold" bordered={false}>{cur}</Tag>,
+      render: (cur) => (
+        <Tag color="gold" bordered={false}>
+          {cur}
+        </Tag>
+      ),
     },
     {
       title: '启用状态',
       dataIndex: 'isActive',
       width: 90,
       render: (_, record) =>
-        record.isActive ? <Tag color="success">启用</Tag> : <Tag color="default">停用</Tag>,
+        record.isActive ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
     },
     {
       title: '操作',
@@ -548,15 +648,27 @@ export default function PartnerSecondary({
   );
 
   const attachmentColumns: ProColumns<API.PartnerAttachment>[] = [
-    { title: '文件名', dataIndex: 'fileName', ellipsis: true, render: (name) => <Text strong>{name}</Text> },
+    {
+      title: '文件名',
+      dataIndex: 'fileName',
+      ellipsis: true,
+      render: (name) => <Text strong>{name}</Text>,
+    },
     { title: 'MIME 类型', dataIndex: 'mimeType', width: 140, ellipsis: true },
-    { title: '文件大小', dataIndex: 'fileSize', width: 110, render: (s) => `${s} 字节` },
+    {
+      title: '文件大小',
+      dataIndex: 'fileSize',
+      width: 110,
+      render: (s) => `${s} 字节`,
+    },
     {
       title: '对象键',
       dataIndex: 'objectKey',
       copyable: true,
       ellipsis: true,
-      render: (key) => <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{key}</Text>,
+      render: (key) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{key}</Text>
+      ),
     },
     {
       title: '校验和',
@@ -616,6 +728,67 @@ export default function PartnerSecondary({
     />
   );
 
+  const invoiceProfilePanel = (
+    <Spin spinning={invoiceProfileLoading}>
+      {invoiceProfile ? (
+        <>
+          <Descriptions bordered size="small" column={2}>
+            <Descriptions.Item label="发票抬头" span={2}>
+              {invoiceProfile.invoiceTitle}
+            </Descriptions.Item>
+            <Descriptions.Item label="纳税人识别号" span={2}>
+              <Text copyable>{invoiceProfile.taxpayerIdentificationNo}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="默认发票类型">
+              {invoiceProfile.defaultInvoiceType === 'SPECIAL'
+                ? '增值税专用发票'
+                : '增值税普通发票'}
+            </Descriptions.Item>
+            <Descriptions.Item label="资料版本">
+              v{invoiceProfile.version}
+            </Descriptions.Item>
+            <Descriptions.Item label="注册地址">
+              {invoiceProfile.registeredAddress || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="注册电话">
+              {invoiceProfile.registeredPhone || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="开户银行">
+              {invoiceProfile.bankName || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="银行账号">
+              {invoiceProfile.bankAccount || '-'}
+            </Descriptions.Item>
+          </Descriptions>
+          {canManage && (
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              style={{ marginTop: 16 }}
+              onClick={openInvoiceProfileForm}
+            >
+              编辑开票资料
+            </Button>
+          )}
+        </>
+      ) : (
+        <Alert
+          type="warning"
+          showIcon
+          message="尚未配置独立开票资料"
+          description="创建销项或进项开票记录前必须配置。发票创建后会固化资料快照，后续修改往来单位资料不会改写历史发票。"
+          action={
+            canManage ? (
+              <Button type="primary" onClick={openInvoiceProfileForm}>
+                配置开票资料
+              </Button>
+            ) : undefined
+          }
+        />
+      )}
+    </Spin>
+  );
+
   return (
     <>
       <Drawer
@@ -637,6 +810,16 @@ export default function PartnerSecondary({
       >
         <Tabs
           items={[
+            {
+              key: 'invoice-profile',
+              label: (
+                <Space size={4}>
+                  <FileTextOutlined />
+                  <span>开票资料</span>
+                </Space>
+              ),
+              children: invoiceProfilePanel,
+            },
             {
               key: 'accounts',
               label: (
@@ -681,6 +864,123 @@ export default function PartnerSecondary({
         />
       </Drawer>
 
+      <ModalForm<InvoiceProfileFormValues>
+        title={invoiceProfile ? '编辑独立开票资料' : '配置独立开票资料'}
+        open={invoiceProfileModalOpen}
+        formRef={invoiceProfileFormRef}
+        initialValues={
+          invoiceProfile ?? {
+            invoiceTitle: partner?.legalName,
+            taxpayerIdentificationNo: partner?.unifiedSocialCreditCode,
+            registeredAddress: partner?.registeredAddress,
+            defaultInvoiceType: 'NORMAL',
+          }
+        }
+        modalProps={{
+          destroyOnHidden: true,
+          width: 720,
+          onCancel: () => setInvoiceProfileModalOpen(false),
+        }}
+        onOpenChange={setInvoiceProfileModalOpen}
+        onFinish={async (values) => {
+          if (!partner?.id) return false;
+          await partnerServiceSavePartnerInvoiceProfile(
+            { partnerId: partner.id },
+            {
+              partnerId: partner.id,
+              invoiceTitle: values.invoiceTitle?.trim() || '',
+              taxpayerIdentificationNo:
+                values.taxpayerIdentificationNo?.trim() || '',
+              registeredAddress: values.registeredAddress?.trim() || '',
+              registeredPhone: values.registeredPhone?.trim() || '',
+              bankName: values.bankName?.trim() || '',
+              bankAccount: values.bankAccount?.trim() || '',
+              defaultInvoiceType: values.defaultInvoiceType || 'NORMAL',
+              expectedVersion: invoiceProfile?.version || '0',
+            },
+          );
+          message.success('独立开票资料已保存，后续发票将使用最新资料生成快照');
+          setInvoiceProfileModalOpen(false);
+          await loadInvoiceProfile();
+          return true;
+        }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="这里维护的是税务开票主体资料，不是按币种维护的收付款结算账户"
+        />
+        <ProFormText
+          name="invoiceTitle"
+          label="发票抬头"
+          rules={[
+            { required: true, whitespace: true, message: '请输入发票抬头' },
+          ]}
+        />
+        <ProFormText
+          name="taxpayerIdentificationNo"
+          label="纳税人识别号"
+          rules={[
+            { required: true, whitespace: true, message: '请输入纳税人识别号' },
+          ]}
+        />
+        <ProFormSelect
+          name="defaultInvoiceType"
+          label="默认发票类型"
+          options={[
+            { label: '增值税普通发票', value: 'NORMAL' },
+            { label: '增值税专用发票', value: 'SPECIAL' },
+          ]}
+          rules={[{ required: true, message: '请选择默认发票类型' }]}
+        />
+        <ProFormDependency name={['defaultInvoiceType']}>
+          {({ defaultInvoiceType }) => {
+            const required = defaultInvoiceType === 'SPECIAL';
+            return (
+              <>
+                <ProFormText
+                  name="registeredAddress"
+                  label="税务登记地址"
+                  rules={
+                    required
+                      ? [{ required: true, message: '专票必须填写登记地址' }]
+                      : []
+                  }
+                />
+                <ProFormText
+                  name="registeredPhone"
+                  label="税务登记电话"
+                  rules={
+                    required
+                      ? [{ required: true, message: '专票必须填写登记电话' }]
+                      : []
+                  }
+                />
+                <ProFormText
+                  name="bankName"
+                  label="开户银行"
+                  rules={
+                    required
+                      ? [{ required: true, message: '专票必须填写开户银行' }]
+                      : []
+                  }
+                />
+                <ProFormText
+                  name="bankAccount"
+                  label="银行账号"
+                  rules={
+                    required
+                      ? [{ required: true, message: '专票必须填写银行账号' }]
+                      : []
+                  }
+                />
+              </>
+            );
+          }}
+        </ProFormDependency>
+      </ModalForm>
+
       <ModalForm<AccountFormValues>
         title={editingAccount ? '编辑结算账户' : '新增结算账户'}
         open={accountModalOpen}
@@ -719,7 +1019,12 @@ export default function PartnerSecondary({
           return true;
         }}
       >
-        <Space align="start" wrap size={16} style={{ width: '100%', marginBottom: 12 }}>
+        <Space
+          align="start"
+          wrap
+          size={16}
+          style={{ width: '100%', marginBottom: 12 }}
+        >
           <ProFormText
             name="currency"
             label="结算币种"
@@ -742,12 +1047,36 @@ export default function PartnerSecondary({
           placeholder="请输入增值税发票抬头"
           rules={[{ required: true, message: '请输入发票抬头' }]}
         />
-        <ProFormText name="unifiedSocialCreditCode" label="纳税人识别号 / 统一社会信用代码" placeholder="18位纳税人识别号" />
-        <ProFormText name="billingAddress" label="开票法定注册地址" placeholder="请输入开票地址" />
-        <ProFormText name="billingPhone" label="开票联系电话" placeholder="请输入开票电话" />
-        <ProFormText name="bankName" label="开户银行名称及支行" placeholder="例如：中国工商银行上海自贸试验区分行" />
-        <ProFormText name="bankAccount" label="银行开户账号" placeholder="请输入银行结算账号" />
-        <ProFormText name="swiftCode" label="SWIFT Code (外币国际结算)" placeholder="例如：ICBKCNBS" />
+        <ProFormText
+          name="unifiedSocialCreditCode"
+          label="纳税人识别号 / 统一社会信用代码"
+          placeholder="18位纳税人识别号"
+        />
+        <ProFormText
+          name="billingAddress"
+          label="开票法定注册地址"
+          placeholder="请输入开票地址"
+        />
+        <ProFormText
+          name="billingPhone"
+          label="开票联系电话"
+          placeholder="请输入开票电话"
+        />
+        <ProFormText
+          name="bankName"
+          label="开户银行名称及支行"
+          placeholder="例如：中国工商银行上海自贸试验区分行"
+        />
+        <ProFormText
+          name="bankAccount"
+          label="银行开户账号"
+          placeholder="请输入银行结算账号"
+        />
+        <ProFormText
+          name="swiftCode"
+          label="SWIFT Code (外币国际结算)"
+          placeholder="例如：ICBKCNBS"
+        />
         <ProFormTextArea
           name="remark"
           label="备注说明"
