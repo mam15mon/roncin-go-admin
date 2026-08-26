@@ -79,6 +79,7 @@ export function OrderListTemplate({
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [currentFilter, setCurrentFilter] = useState<OrderListFilterParams>({});
   const [currentTab, setCurrentTab] = useState<string>(activeStatusTab);
+  const [filterVisible, setFilterVisible] = useState(false);
 
   // 1. 构建完整表头列定义
   const defaultColumns: ProColumns<OrderListItem>[] = useMemo(
@@ -590,18 +591,20 @@ export function OrderListTemplate({
         </Card>
       )}
 
-      {/* 展开/收起的专业多维筛选面板 */}
-      <OrderListSearchFilter
-        options={options}
-        onSearch={(values) => {
-          setCurrentFilter(values);
-          actionRef.current?.reload();
-        }}
-        onReset={() => {
-          setCurrentFilter({});
-          actionRef.current?.reload();
-        }}
-      />
+      {/* 展开/收起的专业多维筛选面板（默认收起） */}
+      {filterVisible && (
+        <OrderListSearchFilter
+          options={options}
+          onSearch={(values) => {
+            setCurrentFilter(values);
+            actionRef.current?.reload();
+          }}
+          onReset={() => {
+            setCurrentFilter({});
+            actionRef.current?.reload();
+          }}
+        />
+      )}
 
       {/* 数据表格卡片 */}
       <Card
@@ -622,6 +625,8 @@ export function OrderListTemplate({
           onCopyOrder={onCopyOrder}
           onExportDocuments={onExportDocuments}
           onBatchAction={onBatchAction}
+          filterVisible={filterVisible}
+          onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
         />
 

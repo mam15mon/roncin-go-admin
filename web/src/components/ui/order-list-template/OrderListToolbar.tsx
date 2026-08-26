@@ -5,6 +5,7 @@ import {
   DownOutlined,
   ExportOutlined,
   FileDoneOutlined,
+  FilterOutlined,
   LockOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -36,6 +37,8 @@ export interface OrderListToolbarProps {
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
   onBatchAction?: (actionKey: BatchActionKey, selectedRows: OrderListItem[]) => void;
   onExportTable?: () => void;
+  filterVisible?: boolean;
+  onToggleFilter?: () => void;
   readonly?: boolean;
 }
 
@@ -48,6 +51,8 @@ export function OrderListToolbar({
   onExportDocuments,
   onBatchAction,
   onExportTable,
+  filterVisible = false,
+  onToggleFilter,
   readonly = false,
 }: OrderListToolbarProps) {
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -220,6 +225,15 @@ export function OrderListToolbar({
 
       {/* 右侧工具区 */}
       <Space size="small">
+        {onToggleFilter && (
+          <Button
+            icon={<FilterOutlined />}
+            onClick={onToggleFilter}
+            style={filterVisible ? { borderColor: '#1677ff', color: '#1677ff' } : undefined}
+          >
+            {filterVisible ? '收起筛选' : '展开筛选'}
+          </Button>
+        )}
         {onExportTable && (
           <Button icon={<ExportOutlined />} onClick={onExportTable}>
             导出表格

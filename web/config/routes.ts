@@ -137,6 +137,12 @@ export default [
         hideInMenu: true,
         component: './orders/new',
       },
+      {
+        path: '/orders/:kind/:id',
+        name: '订单详情',
+        hideInMenu: true,
+        component: './orders/detail',
+      },
     ],
   },
   {

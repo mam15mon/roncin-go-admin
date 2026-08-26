@@ -1230,7 +1230,7 @@ export default function OrderListPage() {
           };
         }}
         onCreateOrder={() => history.push(`/orders/${config.kind}/new`)}
-        onViewDetail={(item) => item.rawRecord && openShippingDocuments(item.rawRecord)}
+        onViewDetail={(item) => history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)}
         onEditOrder={(item) => item.rawRecord && openEdit(item.rawRecord)}
         onOpenFees={(item) => item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)}
         onOpenMilestones={(item) => item.rawRecord && openMilestones(item.rawRecord)}
