@@ -89,9 +89,11 @@ type FinanceCashflowEdges struct {
 	ConfirmedByUser *User `json:"confirmed_by_user,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
+	// VerificationAllocations holds the value of the verification_allocations edge.
+	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -136,6 +138,15 @@ func (e FinanceCashflowEdges) CancelledByUserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
+}
+
+// VerificationAllocationsOrErr returns the VerificationAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceCashflowEdges) VerificationAllocationsOrErr() ([]*FinanceVerificationAllocation, error) {
+	if e.loadedTypes[4] {
+		return e.VerificationAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "verification_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -369,6 +380,11 @@ func (_m *FinanceCashflow) QueryConfirmedByUser() *UserQuery {
 // QueryCancelledByUser queries the "cancelled_by_user" edge of the FinanceCashflow entity.
 func (_m *FinanceCashflow) QueryCancelledByUser() *UserQuery {
 	return NewFinanceCashflowClient(_m.config).QueryCancelledByUser(_m)
+}
+
+// QueryVerificationAllocations queries the "verification_allocations" edge of the FinanceCashflow entity.
+func (_m *FinanceCashflow) QueryVerificationAllocations() *FinanceVerificationAllocationQuery {
+	return NewFinanceCashflowClient(_m.config).QueryVerificationAllocations(_m)
 }
 
 // Update returns a builder for updating this FinanceCashflow.

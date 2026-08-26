@@ -54,6 +54,9 @@ service SettlementService {
   rpc CreateCashflow(CreateCashflowRequest) returns (CreateCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows" body: "*"}; }
   rpc ConfirmCashflow(ConfirmCashflowRequest) returns (ConfirmCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/confirm" body: "*"}; }
   rpc CancelCashflow(CancelCashflowRequest) returns (CancelCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/cancel" body: "*"}; }
+  rpc ListVerifications(ListVerificationsRequest) returns (ListVerificationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications"}; }
+  rpc CreateVerification(CreateVerificationRequest) returns (CreateVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications" body: "*"}; }
+  rpc ReverseVerification(ReverseVerificationRequest) returns (ReverseVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications/{id}/reverse" body: "*"}; }
 }
 
 message ListFeeLedgerRequest {
@@ -274,3 +277,12 @@ message ListCashflowsResponse { bool success=1; int32 code=2; string message=3; 
 message CreateCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message ConfirmCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message CancelCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
+message VerificationAllocationInput { string cashflow_id=1 [(google.api.field_behavior)=REQUIRED]; string bill_id=2 [(google.api.field_behavior)=REQUIRED]; string amount=3 [(google.api.field_behavior)=REQUIRED]; }
+message ListVerificationsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string status=4; }
+message CreateVerificationRequest { repeated VerificationAllocationInput allocations=1 [(google.api.field_behavior)=REQUIRED]; string verification_date=2 [(google.api.field_behavior)=REQUIRED]; optional string note=3; string idempotency_key=4 [(google.api.field_behavior)=REQUIRED]; }
+message ReverseVerificationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message FinanceVerificationAllocation { string id=1; string cashflow_id=2; string bill_id=3; string cashflow_no=4; string bill_no=5; string amount=6; bool active=7; }
+message FinanceVerification { string id=1; string verification_no=2; string status=3; string direction=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string verification_date=9; optional string note=10; uint64 version=11; optional string reversed_at=12; optional string reversal_reason=13; repeated FinanceVerificationAllocation allocations=14; string created_at=15; }
+message ListVerificationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; }
+message CreateVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
+message ReverseVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }

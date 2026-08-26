@@ -28,6 +28,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -87,67 +89,69 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdministrativeRegion        = "AdministrativeRegion"
-	TypeAirline                     = "Airline"
-	TypeAirport                     = "Airport"
-	TypeAuditLog                    = "AuditLog"
-	TypeBackgroundTask              = "BackgroundTask"
-	TypeBillingUnit                 = "BillingUnit"
-	TypeCurrency                    = "Currency"
-	TypeExchangeRateSetting         = "ExchangeRateSetting"
-	TypeExchangeRateTimeStandard    = "ExchangeRateTimeStandard"
-	TypeFeeSetting                  = "FeeSetting"
-	TypeFinanceBill                 = "FinanceBill"
-	TypeFinanceBillLine             = "FinanceBillLine"
-	TypeFinanceCashflow             = "FinanceCashflow"
-	TypeFinanceInvoice              = "FinanceInvoice"
-	TypeFinanceInvoiceBill          = "FinanceInvoiceBill"
-	TypeLoginRateLimitBucket        = "LoginRateLimitBucket"
-	TypeMasterDataItem              = "MasterDataItem"
-	TypeMembership                  = "Membership"
-	TypeMilestoneTemplate           = "MilestoneTemplate"
-	TypeMilestoneTemplateItem       = "MilestoneTemplateItem"
-	TypeNumberRule                  = "NumberRule"
-	TypeNumberSequence              = "NumberSequence"
-	TypeOrder                       = "Order"
-	TypeOrderAbnormalCase           = "OrderAbnormalCase"
-	TypeOrderAttachment             = "OrderAttachment"
-	TypeOrderCargoCategory          = "OrderCargoCategory"
-	TypeOrderCargoItem              = "OrderCargoItem"
-	TypeOrderConsolidation          = "OrderConsolidation"
-	TypeOrderContainer              = "OrderContainer"
-	TypeOrderContainerRequest       = "OrderContainerRequest"
-	TypeOrderFee                    = "OrderFee"
-	TypeOrderMilestone              = "OrderMilestone"
-	TypeOrderPersonnel              = "OrderPersonnel"
-	TypeOrderReleasePod             = "OrderReleasePod"
-	TypeOrderServiceType            = "OrderServiceType"
-	TypeOrderShippingDocument       = "OrderShippingDocument"
-	TypeOrderStatusLog              = "OrderStatusLog"
-	TypeOrganization                = "Organization"
-	TypePartner                     = "Partner"
-	TypePartnerAccount              = "PartnerAccount"
-	TypePartnerAlias                = "PartnerAlias"
-	TypePartnerAssignment           = "PartnerAssignment"
-	TypePartnerAttachment           = "PartnerAttachment"
-	TypePartnerContact              = "PartnerContact"
-	TypePartnerContract             = "PartnerContract"
-	TypePartnerProfile              = "PartnerProfile"
-	TypePartnerRole                 = "PartnerRole"
-	TypePartnerSettlementRule       = "PartnerSettlementRule"
-	TypePartnerShippingPreset       = "PartnerShippingPreset"
-	TypePermission                  = "Permission"
-	TypePort                        = "Port"
-	TypeRole                        = "Role"
-	TypeRoleAssignment              = "RoleAssignment"
-	TypeRoleOrderOrganizationAccess = "RoleOrderOrganizationAccess"
-	TypeSession                     = "Session"
-	TypeShippingLine                = "ShippingLine"
-	TypeShippingLineContainerPrefix = "ShippingLineContainerPrefix"
-	TypeStatusTemplate              = "StatusTemplate"
-	TypeStatusTemplateItem          = "StatusTemplateItem"
-	TypeTaxableService              = "TaxableService"
-	TypeUser                        = "User"
+	TypeAdministrativeRegion          = "AdministrativeRegion"
+	TypeAirline                       = "Airline"
+	TypeAirport                       = "Airport"
+	TypeAuditLog                      = "AuditLog"
+	TypeBackgroundTask                = "BackgroundTask"
+	TypeBillingUnit                   = "BillingUnit"
+	TypeCurrency                      = "Currency"
+	TypeExchangeRateSetting           = "ExchangeRateSetting"
+	TypeExchangeRateTimeStandard      = "ExchangeRateTimeStandard"
+	TypeFeeSetting                    = "FeeSetting"
+	TypeFinanceBill                   = "FinanceBill"
+	TypeFinanceBillLine               = "FinanceBillLine"
+	TypeFinanceCashflow               = "FinanceCashflow"
+	TypeFinanceInvoice                = "FinanceInvoice"
+	TypeFinanceInvoiceBill            = "FinanceInvoiceBill"
+	TypeFinanceVerification           = "FinanceVerification"
+	TypeFinanceVerificationAllocation = "FinanceVerificationAllocation"
+	TypeLoginRateLimitBucket          = "LoginRateLimitBucket"
+	TypeMasterDataItem                = "MasterDataItem"
+	TypeMembership                    = "Membership"
+	TypeMilestoneTemplate             = "MilestoneTemplate"
+	TypeMilestoneTemplateItem         = "MilestoneTemplateItem"
+	TypeNumberRule                    = "NumberRule"
+	TypeNumberSequence                = "NumberSequence"
+	TypeOrder                         = "Order"
+	TypeOrderAbnormalCase             = "OrderAbnormalCase"
+	TypeOrderAttachment               = "OrderAttachment"
+	TypeOrderCargoCategory            = "OrderCargoCategory"
+	TypeOrderCargoItem                = "OrderCargoItem"
+	TypeOrderConsolidation            = "OrderConsolidation"
+	TypeOrderContainer                = "OrderContainer"
+	TypeOrderContainerRequest         = "OrderContainerRequest"
+	TypeOrderFee                      = "OrderFee"
+	TypeOrderMilestone                = "OrderMilestone"
+	TypeOrderPersonnel                = "OrderPersonnel"
+	TypeOrderReleasePod               = "OrderReleasePod"
+	TypeOrderServiceType              = "OrderServiceType"
+	TypeOrderShippingDocument         = "OrderShippingDocument"
+	TypeOrderStatusLog                = "OrderStatusLog"
+	TypeOrganization                  = "Organization"
+	TypePartner                       = "Partner"
+	TypePartnerAccount                = "PartnerAccount"
+	TypePartnerAlias                  = "PartnerAlias"
+	TypePartnerAssignment             = "PartnerAssignment"
+	TypePartnerAttachment             = "PartnerAttachment"
+	TypePartnerContact                = "PartnerContact"
+	TypePartnerContract               = "PartnerContract"
+	TypePartnerProfile                = "PartnerProfile"
+	TypePartnerRole                   = "PartnerRole"
+	TypePartnerSettlementRule         = "PartnerSettlementRule"
+	TypePartnerShippingPreset         = "PartnerShippingPreset"
+	TypePermission                    = "Permission"
+	TypePort                          = "Port"
+	TypeRole                          = "Role"
+	TypeRoleAssignment                = "RoleAssignment"
+	TypeRoleOrderOrganizationAccess   = "RoleOrderOrganizationAccess"
+	TypeSession                       = "Session"
+	TypeShippingLine                  = "ShippingLine"
+	TypeShippingLineContainerPrefix   = "ShippingLineContainerPrefix"
+	TypeStatusTemplate                = "StatusTemplate"
+	TypeStatusTemplateItem            = "StatusTemplateItem"
+	TypeTaxableService                = "TaxableService"
+	TypeUser                          = "User"
 )
 
 // AdministrativeRegionMutation represents an operation that mutates the AdministrativeRegion nodes in the graph.
@@ -10401,50 +10405,53 @@ func (m *FeeSettingMutation) ResetEdge(name string) error {
 // FinanceBillMutation represents an operation that mutates the FinanceBill nodes in the graph.
 type FinanceBillMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	bill_no                  *string
-	idempotency_key          *string
-	direction                *financebill.Direction
-	status                   *financebill.Status
-	settlement_party_name    *string
-	currency                 *string
-	base_currency            *string
-	total_amount             *string
-	net_amount               *string
-	tax_amount               *string
-	base_currency_amount     *string
-	fee_count                *int
-	addfee_count             *int
-	bill_date                *string
-	due_date                 *string
-	note                     *string
-	version                  *uint64
-	addversion               *int64
-	confirmed_at             *time.Time
-	cancelled_at             *time.Time
-	cancellation_reason      *string
-	clearedFields            map[string]struct{}
-	organization             *uuid.UUID
-	clearedorganization      bool
-	settlement_party         *uuid.UUID
-	clearedsettlement_party  bool
-	confirmed_by_user        *uuid.UUID
-	clearedconfirmed_by_user bool
-	cancelled_by_user        *uuid.UUID
-	clearedcancelled_by_user bool
-	lines                    map[uuid.UUID]struct{}
-	removedlines             map[uuid.UUID]struct{}
-	clearedlines             bool
-	invoice_links            map[uuid.UUID]struct{}
-	removedinvoice_links     map[uuid.UUID]struct{}
-	clearedinvoice_links     bool
-	done                     bool
-	oldValue                 func(context.Context) (*FinanceBill, error)
-	predicates               []predicate.FinanceBill
+	op                              Op
+	typ                             string
+	id                              *uuid.UUID
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	bill_no                         *string
+	idempotency_key                 *string
+	direction                       *financebill.Direction
+	status                          *financebill.Status
+	settlement_party_name           *string
+	currency                        *string
+	base_currency                   *string
+	total_amount                    *string
+	net_amount                      *string
+	tax_amount                      *string
+	base_currency_amount            *string
+	fee_count                       *int
+	addfee_count                    *int
+	bill_date                       *string
+	due_date                        *string
+	note                            *string
+	version                         *uint64
+	addversion                      *int64
+	confirmed_at                    *time.Time
+	cancelled_at                    *time.Time
+	cancellation_reason             *string
+	clearedFields                   map[string]struct{}
+	organization                    *uuid.UUID
+	clearedorganization             bool
+	settlement_party                *uuid.UUID
+	clearedsettlement_party         bool
+	confirmed_by_user               *uuid.UUID
+	clearedconfirmed_by_user        bool
+	cancelled_by_user               *uuid.UUID
+	clearedcancelled_by_user        bool
+	lines                           map[uuid.UUID]struct{}
+	removedlines                    map[uuid.UUID]struct{}
+	clearedlines                    bool
+	invoice_links                   map[uuid.UUID]struct{}
+	removedinvoice_links            map[uuid.UUID]struct{}
+	clearedinvoice_links            bool
+	verification_allocations        map[uuid.UUID]struct{}
+	removedverification_allocations map[uuid.UUID]struct{}
+	clearedverification_allocations bool
+	done                            bool
+	oldValue                        func(context.Context) (*FinanceBill, error)
+	predicates                      []predicate.FinanceBill
 }
 
 var _ ent.Mutation = (*FinanceBillMutation)(nil)
@@ -11824,6 +11831,60 @@ func (m *FinanceBillMutation) ResetInvoiceLinks() {
 	m.removedinvoice_links = nil
 }
 
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by ids.
+func (m *FinanceBillMutation) AddVerificationAllocationIDs(ids ...uuid.UUID) {
+	if m.verification_allocations == nil {
+		m.verification_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.verification_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVerificationAllocations clears the "verification_allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceBillMutation) ClearVerificationAllocations() {
+	m.clearedverification_allocations = true
+}
+
+// VerificationAllocationsCleared reports if the "verification_allocations" edge to the FinanceVerificationAllocation entity was cleared.
+func (m *FinanceBillMutation) VerificationAllocationsCleared() bool {
+	return m.clearedverification_allocations
+}
+
+// RemoveVerificationAllocationIDs removes the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (m *FinanceBillMutation) RemoveVerificationAllocationIDs(ids ...uuid.UUID) {
+	if m.removedverification_allocations == nil {
+		m.removedverification_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.verification_allocations, ids[i])
+		m.removedverification_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVerificationAllocations returns the removed IDs of the "verification_allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceBillMutation) RemovedVerificationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedverification_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VerificationAllocationsIDs returns the "verification_allocations" edge IDs in the mutation.
+func (m *FinanceBillMutation) VerificationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.verification_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVerificationAllocations resets all changes to the "verification_allocations" edge.
+func (m *FinanceBillMutation) ResetVerificationAllocations() {
+	m.verification_allocations = nil
+	m.clearedverification_allocations = false
+	m.removedverification_allocations = nil
+}
+
 // Where appends a list predicates to the FinanceBillMutation builder.
 func (m *FinanceBillMutation) Where(ps ...predicate.FinanceBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -12437,7 +12498,7 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.organization != nil {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -12455,6 +12516,9 @@ func (m *FinanceBillMutation) AddedEdges() []string {
 	}
 	if m.invoice_links != nil {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.verification_allocations != nil {
+		edges = append(edges, financebill.EdgeVerificationAllocations)
 	}
 	return edges
 }
@@ -12491,18 +12555,27 @@ func (m *FinanceBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeVerificationAllocations:
+		ids := make([]ent.Value, 0, len(m.verification_allocations))
+		for id := range m.verification_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedlines != nil {
 		edges = append(edges, financebill.EdgeLines)
 	}
 	if m.removedinvoice_links != nil {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.removedverification_allocations != nil {
+		edges = append(edges, financebill.EdgeVerificationAllocations)
 	}
 	return edges
 }
@@ -12523,13 +12596,19 @@ func (m *FinanceBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeVerificationAllocations:
+		ids := make([]ent.Value, 0, len(m.removedverification_allocations))
+		for id := range m.removedverification_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedorganization {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -12547,6 +12626,9 @@ func (m *FinanceBillMutation) ClearedEdges() []string {
 	}
 	if m.clearedinvoice_links {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.clearedverification_allocations {
+		edges = append(edges, financebill.EdgeVerificationAllocations)
 	}
 	return edges
 }
@@ -12567,6 +12649,8 @@ func (m *FinanceBillMutation) EdgeCleared(name string) bool {
 		return m.clearedlines
 	case financebill.EdgeInvoiceLinks:
 		return m.clearedinvoice_links
+	case financebill.EdgeVerificationAllocations:
+		return m.clearedverification_allocations
 	}
 	return false
 }
@@ -12612,6 +12696,9 @@ func (m *FinanceBillMutation) ResetEdge(name string) error {
 		return nil
 	case financebill.EdgeInvoiceLinks:
 		m.ResetInvoiceLinks()
+		return nil
+	case financebill.EdgeVerificationAllocations:
+		m.ResetVerificationAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceBill edge %s", name)
@@ -13908,44 +13995,47 @@ func (m *FinanceBillLineMutation) ResetEdge(name string) error {
 // FinanceCashflowMutation represents an operation that mutates the FinanceCashflow nodes in the graph.
 type FinanceCashflowMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	flow_no                  *string
-	idempotency_key          *string
-	direction                *financecashflow.Direction
-	status                   *financecashflow.Status
-	settlement_party_name    *string
-	currency                 *string
-	amount                   *string
-	exchange_rate            *string
-	base_currency            *string
-	base_amount              *string
-	transaction_date         *string
-	our_account              *string
-	counterparty_account     *string
-	payment_method           *string
-	bank_reference_no        *string
-	note                     *string
-	version                  *uint64
-	addversion               *int64
-	confirmed_at             *time.Time
-	cancelled_at             *time.Time
-	cancellation_reason      *string
-	clearedFields            map[string]struct{}
-	organization             *uuid.UUID
-	clearedorganization      bool
-	settlement_party         *uuid.UUID
-	clearedsettlement_party  bool
-	confirmed_by_user        *uuid.UUID
-	clearedconfirmed_by_user bool
-	cancelled_by_user        *uuid.UUID
-	clearedcancelled_by_user bool
-	done                     bool
-	oldValue                 func(context.Context) (*FinanceCashflow, error)
-	predicates               []predicate.FinanceCashflow
+	op                              Op
+	typ                             string
+	id                              *uuid.UUID
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	flow_no                         *string
+	idempotency_key                 *string
+	direction                       *financecashflow.Direction
+	status                          *financecashflow.Status
+	settlement_party_name           *string
+	currency                        *string
+	amount                          *string
+	exchange_rate                   *string
+	base_currency                   *string
+	base_amount                     *string
+	transaction_date                *string
+	our_account                     *string
+	counterparty_account            *string
+	payment_method                  *string
+	bank_reference_no               *string
+	note                            *string
+	version                         *uint64
+	addversion                      *int64
+	confirmed_at                    *time.Time
+	cancelled_at                    *time.Time
+	cancellation_reason             *string
+	clearedFields                   map[string]struct{}
+	organization                    *uuid.UUID
+	clearedorganization             bool
+	settlement_party                *uuid.UUID
+	clearedsettlement_party         bool
+	confirmed_by_user               *uuid.UUID
+	clearedconfirmed_by_user        bool
+	cancelled_by_user               *uuid.UUID
+	clearedcancelled_by_user        bool
+	verification_allocations        map[uuid.UUID]struct{}
+	removedverification_allocations map[uuid.UUID]struct{}
+	clearedverification_allocations bool
+	done                            bool
+	oldValue                        func(context.Context) (*FinanceCashflow, error)
+	predicates                      []predicate.FinanceCashflow
 }
 
 var _ ent.Mutation = (*FinanceCashflowMutation)(nil)
@@ -15246,6 +15336,60 @@ func (m *FinanceCashflowMutation) ResetCancelledByUser() {
 	m.clearedcancelled_by_user = false
 }
 
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by ids.
+func (m *FinanceCashflowMutation) AddVerificationAllocationIDs(ids ...uuid.UUID) {
+	if m.verification_allocations == nil {
+		m.verification_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.verification_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVerificationAllocations clears the "verification_allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceCashflowMutation) ClearVerificationAllocations() {
+	m.clearedverification_allocations = true
+}
+
+// VerificationAllocationsCleared reports if the "verification_allocations" edge to the FinanceVerificationAllocation entity was cleared.
+func (m *FinanceCashflowMutation) VerificationAllocationsCleared() bool {
+	return m.clearedverification_allocations
+}
+
+// RemoveVerificationAllocationIDs removes the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (m *FinanceCashflowMutation) RemoveVerificationAllocationIDs(ids ...uuid.UUID) {
+	if m.removedverification_allocations == nil {
+		m.removedverification_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.verification_allocations, ids[i])
+		m.removedverification_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVerificationAllocations returns the removed IDs of the "verification_allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceCashflowMutation) RemovedVerificationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedverification_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VerificationAllocationsIDs returns the "verification_allocations" edge IDs in the mutation.
+func (m *FinanceCashflowMutation) VerificationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.verification_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVerificationAllocations resets all changes to the "verification_allocations" edge.
+func (m *FinanceCashflowMutation) ResetVerificationAllocations() {
+	m.verification_allocations = nil
+	m.clearedverification_allocations = false
+	m.removedverification_allocations = nil
+}
+
 // Where appends a list predicates to the FinanceCashflowMutation builder.
 func (m *FinanceCashflowMutation) Where(ps ...predicate.FinanceCashflow) {
 	m.predicates = append(m.predicates, ps...)
@@ -15870,7 +16014,7 @@ func (m *FinanceCashflowMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceCashflowMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.organization != nil {
 		edges = append(edges, financecashflow.EdgeOrganization)
 	}
@@ -15882,6 +16026,9 @@ func (m *FinanceCashflowMutation) AddedEdges() []string {
 	}
 	if m.cancelled_by_user != nil {
 		edges = append(edges, financecashflow.EdgeCancelledByUser)
+	}
+	if m.verification_allocations != nil {
+		edges = append(edges, financecashflow.EdgeVerificationAllocations)
 	}
 	return edges
 }
@@ -15906,25 +16053,42 @@ func (m *FinanceCashflowMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cancelled_by_user; id != nil {
 			return []ent.Value{*id}
 		}
+	case financecashflow.EdgeVerificationAllocations:
+		ids := make([]ent.Value, 0, len(m.verification_allocations))
+		for id := range m.verification_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceCashflowMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
+	if m.removedverification_allocations != nil {
+		edges = append(edges, financecashflow.EdgeVerificationAllocations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *FinanceCashflowMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case financecashflow.EdgeVerificationAllocations:
+		ids := make([]ent.Value, 0, len(m.removedverification_allocations))
+		for id := range m.removedverification_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceCashflowMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedorganization {
 		edges = append(edges, financecashflow.EdgeOrganization)
 	}
@@ -15936,6 +16100,9 @@ func (m *FinanceCashflowMutation) ClearedEdges() []string {
 	}
 	if m.clearedcancelled_by_user {
 		edges = append(edges, financecashflow.EdgeCancelledByUser)
+	}
+	if m.clearedverification_allocations {
+		edges = append(edges, financecashflow.EdgeVerificationAllocations)
 	}
 	return edges
 }
@@ -15952,6 +16119,8 @@ func (m *FinanceCashflowMutation) EdgeCleared(name string) bool {
 		return m.clearedconfirmed_by_user
 	case financecashflow.EdgeCancelledByUser:
 		return m.clearedcancelled_by_user
+	case financecashflow.EdgeVerificationAllocations:
+		return m.clearedverification_allocations
 	}
 	return false
 }
@@ -15991,6 +16160,9 @@ func (m *FinanceCashflowMutation) ResetEdge(name string) error {
 		return nil
 	case financecashflow.EdgeCancelledByUser:
 		m.ResetCancelledByUser()
+		return nil
+	case financecashflow.EdgeVerificationAllocations:
+		m.ResetVerificationAllocations()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceCashflow edge %s", name)
@@ -18851,6 +19023,2471 @@ func (m *FinanceInvoiceBillMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoiceBill edge %s", name)
+}
+
+// FinanceVerificationMutation represents an operation that mutates the FinanceVerification nodes in the graph.
+type FinanceVerificationMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	verification_no         *string
+	idempotency_key         *string
+	status                  *financeverification.Status
+	direction               *financeverification.Direction
+	settlement_party_name   *string
+	currency                *string
+	amount                  *string
+	verification_date       *string
+	note                    *string
+	version                 *uint64
+	addversion              *int64
+	reversed_at             *time.Time
+	reversal_reason         *string
+	clearedFields           map[string]struct{}
+	organization            *uuid.UUID
+	clearedorganization     bool
+	settlement_party        *uuid.UUID
+	clearedsettlement_party bool
+	reversed_by_user        *uuid.UUID
+	clearedreversed_by_user bool
+	allocations             map[uuid.UUID]struct{}
+	removedallocations      map[uuid.UUID]struct{}
+	clearedallocations      bool
+	done                    bool
+	oldValue                func(context.Context) (*FinanceVerification, error)
+	predicates              []predicate.FinanceVerification
+}
+
+var _ ent.Mutation = (*FinanceVerificationMutation)(nil)
+
+// financeverificationOption allows management of the mutation configuration using functional options.
+type financeverificationOption func(*FinanceVerificationMutation)
+
+// newFinanceVerificationMutation creates new mutation for the FinanceVerification entity.
+func newFinanceVerificationMutation(c config, op Op, opts ...financeverificationOption) *FinanceVerificationMutation {
+	m := &FinanceVerificationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceVerification,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceVerificationID sets the ID field of the mutation.
+func withFinanceVerificationID(id uuid.UUID) financeverificationOption {
+	return func(m *FinanceVerificationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceVerification
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceVerification, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceVerification.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceVerification sets the old FinanceVerification of the mutation.
+func withFinanceVerification(node *FinanceVerification) financeverificationOption {
+	return func(m *FinanceVerificationMutation) {
+		m.oldValue = func(context.Context) (*FinanceVerification, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceVerificationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceVerificationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceVerification entities.
+func (m *FinanceVerificationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceVerificationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceVerificationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceVerification.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceVerificationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceVerificationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceVerificationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceVerificationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceVerificationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceVerificationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *FinanceVerificationMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *FinanceVerificationMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *FinanceVerificationMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetVerificationNo sets the "verification_no" field.
+func (m *FinanceVerificationMutation) SetVerificationNo(s string) {
+	m.verification_no = &s
+}
+
+// VerificationNo returns the value of the "verification_no" field in the mutation.
+func (m *FinanceVerificationMutation) VerificationNo() (r string, exists bool) {
+	v := m.verification_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationNo returns the old "verification_no" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldVerificationNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerificationNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerificationNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationNo: %w", err)
+	}
+	return oldValue.VerificationNo, nil
+}
+
+// ResetVerificationNo resets all changes to the "verification_no" field.
+func (m *FinanceVerificationMutation) ResetVerificationNo() {
+	m.verification_no = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *FinanceVerificationMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *FinanceVerificationMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *FinanceVerificationMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *FinanceVerificationMutation) SetStatus(f financeverification.Status) {
+	m.status = &f
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *FinanceVerificationMutation) Status() (r financeverification.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldStatus(ctx context.Context) (v financeverification.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *FinanceVerificationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetDirection sets the "direction" field.
+func (m *FinanceVerificationMutation) SetDirection(f financeverification.Direction) {
+	m.direction = &f
+}
+
+// Direction returns the value of the "direction" field in the mutation.
+func (m *FinanceVerificationMutation) Direction() (r financeverification.Direction, exists bool) {
+	v := m.direction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDirection returns the old "direction" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldDirection(ctx context.Context) (v financeverification.Direction, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDirection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDirection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDirection: %w", err)
+	}
+	return oldValue.Direction, nil
+}
+
+// ResetDirection resets all changes to the "direction" field.
+func (m *FinanceVerificationMutation) ResetDirection() {
+	m.direction = nil
+}
+
+// SetSettlementPartyID sets the "settlement_party_id" field.
+func (m *FinanceVerificationMutation) SetSettlementPartyID(u uuid.UUID) {
+	m.settlement_party = &u
+}
+
+// SettlementPartyID returns the value of the "settlement_party_id" field in the mutation.
+func (m *FinanceVerificationMutation) SettlementPartyID() (r uuid.UUID, exists bool) {
+	v := m.settlement_party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementPartyID returns the old "settlement_party_id" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldSettlementPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementPartyID: %w", err)
+	}
+	return oldValue.SettlementPartyID, nil
+}
+
+// ResetSettlementPartyID resets all changes to the "settlement_party_id" field.
+func (m *FinanceVerificationMutation) ResetSettlementPartyID() {
+	m.settlement_party = nil
+}
+
+// SetSettlementPartyName sets the "settlement_party_name" field.
+func (m *FinanceVerificationMutation) SetSettlementPartyName(s string) {
+	m.settlement_party_name = &s
+}
+
+// SettlementPartyName returns the value of the "settlement_party_name" field in the mutation.
+func (m *FinanceVerificationMutation) SettlementPartyName() (r string, exists bool) {
+	v := m.settlement_party_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettlementPartyName returns the old "settlement_party_name" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldSettlementPartyName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettlementPartyName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettlementPartyName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettlementPartyName: %w", err)
+	}
+	return oldValue.SettlementPartyName, nil
+}
+
+// ResetSettlementPartyName resets all changes to the "settlement_party_name" field.
+func (m *FinanceVerificationMutation) ResetSettlementPartyName() {
+	m.settlement_party_name = nil
+}
+
+// SetCurrency sets the "currency" field.
+func (m *FinanceVerificationMutation) SetCurrency(s string) {
+	m.currency = &s
+}
+
+// Currency returns the value of the "currency" field in the mutation.
+func (m *FinanceVerificationMutation) Currency() (r string, exists bool) {
+	v := m.currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrency returns the old "currency" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrency: %w", err)
+	}
+	return oldValue.Currency, nil
+}
+
+// ResetCurrency resets all changes to the "currency" field.
+func (m *FinanceVerificationMutation) ResetCurrency() {
+	m.currency = nil
+}
+
+// SetAmount sets the "amount" field.
+func (m *FinanceVerificationMutation) SetAmount(s string) {
+	m.amount = &s
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *FinanceVerificationMutation) Amount() (r string, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *FinanceVerificationMutation) ResetAmount() {
+	m.amount = nil
+}
+
+// SetVerificationDate sets the "verification_date" field.
+func (m *FinanceVerificationMutation) SetVerificationDate(s string) {
+	m.verification_date = &s
+}
+
+// VerificationDate returns the value of the "verification_date" field in the mutation.
+func (m *FinanceVerificationMutation) VerificationDate() (r string, exists bool) {
+	v := m.verification_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationDate returns the old "verification_date" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldVerificationDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerificationDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerificationDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationDate: %w", err)
+	}
+	return oldValue.VerificationDate, nil
+}
+
+// ResetVerificationDate resets all changes to the "verification_date" field.
+func (m *FinanceVerificationMutation) ResetVerificationDate() {
+	m.verification_date = nil
+}
+
+// SetNote sets the "note" field.
+func (m *FinanceVerificationMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *FinanceVerificationMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldNote(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *FinanceVerificationMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[financeverification.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *FinanceVerificationMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[financeverification.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *FinanceVerificationMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, financeverification.FieldNote)
+}
+
+// SetVersion sets the "version" field.
+func (m *FinanceVerificationMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FinanceVerificationMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *FinanceVerificationMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FinanceVerificationMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FinanceVerificationMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetReversedAt sets the "reversed_at" field.
+func (m *FinanceVerificationMutation) SetReversedAt(t time.Time) {
+	m.reversed_at = &t
+}
+
+// ReversedAt returns the value of the "reversed_at" field in the mutation.
+func (m *FinanceVerificationMutation) ReversedAt() (r time.Time, exists bool) {
+	v := m.reversed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReversedAt returns the old "reversed_at" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldReversedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReversedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReversedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReversedAt: %w", err)
+	}
+	return oldValue.ReversedAt, nil
+}
+
+// ClearReversedAt clears the value of the "reversed_at" field.
+func (m *FinanceVerificationMutation) ClearReversedAt() {
+	m.reversed_at = nil
+	m.clearedFields[financeverification.FieldReversedAt] = struct{}{}
+}
+
+// ReversedAtCleared returns if the "reversed_at" field was cleared in this mutation.
+func (m *FinanceVerificationMutation) ReversedAtCleared() bool {
+	_, ok := m.clearedFields[financeverification.FieldReversedAt]
+	return ok
+}
+
+// ResetReversedAt resets all changes to the "reversed_at" field.
+func (m *FinanceVerificationMutation) ResetReversedAt() {
+	m.reversed_at = nil
+	delete(m.clearedFields, financeverification.FieldReversedAt)
+}
+
+// SetReversedBy sets the "reversed_by" field.
+func (m *FinanceVerificationMutation) SetReversedBy(u uuid.UUID) {
+	m.reversed_by_user = &u
+}
+
+// ReversedBy returns the value of the "reversed_by" field in the mutation.
+func (m *FinanceVerificationMutation) ReversedBy() (r uuid.UUID, exists bool) {
+	v := m.reversed_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReversedBy returns the old "reversed_by" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldReversedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReversedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReversedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReversedBy: %w", err)
+	}
+	return oldValue.ReversedBy, nil
+}
+
+// ClearReversedBy clears the value of the "reversed_by" field.
+func (m *FinanceVerificationMutation) ClearReversedBy() {
+	m.reversed_by_user = nil
+	m.clearedFields[financeverification.FieldReversedBy] = struct{}{}
+}
+
+// ReversedByCleared returns if the "reversed_by" field was cleared in this mutation.
+func (m *FinanceVerificationMutation) ReversedByCleared() bool {
+	_, ok := m.clearedFields[financeverification.FieldReversedBy]
+	return ok
+}
+
+// ResetReversedBy resets all changes to the "reversed_by" field.
+func (m *FinanceVerificationMutation) ResetReversedBy() {
+	m.reversed_by_user = nil
+	delete(m.clearedFields, financeverification.FieldReversedBy)
+}
+
+// SetReversalReason sets the "reversal_reason" field.
+func (m *FinanceVerificationMutation) SetReversalReason(s string) {
+	m.reversal_reason = &s
+}
+
+// ReversalReason returns the value of the "reversal_reason" field in the mutation.
+func (m *FinanceVerificationMutation) ReversalReason() (r string, exists bool) {
+	v := m.reversal_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReversalReason returns the old "reversal_reason" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldReversalReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReversalReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReversalReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReversalReason: %w", err)
+	}
+	return oldValue.ReversalReason, nil
+}
+
+// ClearReversalReason clears the value of the "reversal_reason" field.
+func (m *FinanceVerificationMutation) ClearReversalReason() {
+	m.reversal_reason = nil
+	m.clearedFields[financeverification.FieldReversalReason] = struct{}{}
+}
+
+// ReversalReasonCleared returns if the "reversal_reason" field was cleared in this mutation.
+func (m *FinanceVerificationMutation) ReversalReasonCleared() bool {
+	_, ok := m.clearedFields[financeverification.FieldReversalReason]
+	return ok
+}
+
+// ResetReversalReason resets all changes to the "reversal_reason" field.
+func (m *FinanceVerificationMutation) ResetReversalReason() {
+	m.reversal_reason = nil
+	delete(m.clearedFields, financeverification.FieldReversalReason)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *FinanceVerificationMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[financeverification.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *FinanceVerificationMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *FinanceVerificationMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearSettlementParty clears the "settlement_party" edge to the Partner entity.
+func (m *FinanceVerificationMutation) ClearSettlementParty() {
+	m.clearedsettlement_party = true
+	m.clearedFields[financeverification.FieldSettlementPartyID] = struct{}{}
+}
+
+// SettlementPartyCleared reports if the "settlement_party" edge to the Partner entity was cleared.
+func (m *FinanceVerificationMutation) SettlementPartyCleared() bool {
+	return m.clearedsettlement_party
+}
+
+// SettlementPartyIDs returns the "settlement_party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SettlementPartyID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationMutation) SettlementPartyIDs() (ids []uuid.UUID) {
+	if id := m.settlement_party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSettlementParty resets all changes to the "settlement_party" edge.
+func (m *FinanceVerificationMutation) ResetSettlementParty() {
+	m.settlement_party = nil
+	m.clearedsettlement_party = false
+}
+
+// SetReversedByUserID sets the "reversed_by_user" edge to the User entity by id.
+func (m *FinanceVerificationMutation) SetReversedByUserID(id uuid.UUID) {
+	m.reversed_by_user = &id
+}
+
+// ClearReversedByUser clears the "reversed_by_user" edge to the User entity.
+func (m *FinanceVerificationMutation) ClearReversedByUser() {
+	m.clearedreversed_by_user = true
+	m.clearedFields[financeverification.FieldReversedBy] = struct{}{}
+}
+
+// ReversedByUserCleared reports if the "reversed_by_user" edge to the User entity was cleared.
+func (m *FinanceVerificationMutation) ReversedByUserCleared() bool {
+	return m.ReversedByCleared() || m.clearedreversed_by_user
+}
+
+// ReversedByUserID returns the "reversed_by_user" edge ID in the mutation.
+func (m *FinanceVerificationMutation) ReversedByUserID() (id uuid.UUID, exists bool) {
+	if m.reversed_by_user != nil {
+		return *m.reversed_by_user, true
+	}
+	return
+}
+
+// ReversedByUserIDs returns the "reversed_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ReversedByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationMutation) ReversedByUserIDs() (ids []uuid.UUID) {
+	if id := m.reversed_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetReversedByUser resets all changes to the "reversed_by_user" edge.
+func (m *FinanceVerificationMutation) ResetReversedByUser() {
+	m.reversed_by_user = nil
+	m.clearedreversed_by_user = false
+}
+
+// AddAllocationIDs adds the "allocations" edge to the FinanceVerificationAllocation entity by ids.
+func (m *FinanceVerificationMutation) AddAllocationIDs(ids ...uuid.UUID) {
+	if m.allocations == nil {
+		m.allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAllocations clears the "allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceVerificationMutation) ClearAllocations() {
+	m.clearedallocations = true
+}
+
+// AllocationsCleared reports if the "allocations" edge to the FinanceVerificationAllocation entity was cleared.
+func (m *FinanceVerificationMutation) AllocationsCleared() bool {
+	return m.clearedallocations
+}
+
+// RemoveAllocationIDs removes the "allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (m *FinanceVerificationMutation) RemoveAllocationIDs(ids ...uuid.UUID) {
+	if m.removedallocations == nil {
+		m.removedallocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.allocations, ids[i])
+		m.removedallocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAllocations returns the removed IDs of the "allocations" edge to the FinanceVerificationAllocation entity.
+func (m *FinanceVerificationMutation) RemovedAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedallocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AllocationsIDs returns the "allocations" edge IDs in the mutation.
+func (m *FinanceVerificationMutation) AllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAllocations resets all changes to the "allocations" edge.
+func (m *FinanceVerificationMutation) ResetAllocations() {
+	m.allocations = nil
+	m.clearedallocations = false
+	m.removedallocations = nil
+}
+
+// Where appends a list predicates to the FinanceVerificationMutation builder.
+func (m *FinanceVerificationMutation) Where(ps ...predicate.FinanceVerification) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceVerificationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceVerificationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceVerification, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceVerificationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceVerificationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceVerification).
+func (m *FinanceVerificationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceVerificationMutation) Fields() []string {
+	fields := make([]string, 0, 17)
+	if m.created_at != nil {
+		fields = append(fields, financeverification.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financeverification.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, financeverification.FieldOrganizationID)
+	}
+	if m.verification_no != nil {
+		fields = append(fields, financeverification.FieldVerificationNo)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, financeverification.FieldIdempotencyKey)
+	}
+	if m.status != nil {
+		fields = append(fields, financeverification.FieldStatus)
+	}
+	if m.direction != nil {
+		fields = append(fields, financeverification.FieldDirection)
+	}
+	if m.settlement_party != nil {
+		fields = append(fields, financeverification.FieldSettlementPartyID)
+	}
+	if m.settlement_party_name != nil {
+		fields = append(fields, financeverification.FieldSettlementPartyName)
+	}
+	if m.currency != nil {
+		fields = append(fields, financeverification.FieldCurrency)
+	}
+	if m.amount != nil {
+		fields = append(fields, financeverification.FieldAmount)
+	}
+	if m.verification_date != nil {
+		fields = append(fields, financeverification.FieldVerificationDate)
+	}
+	if m.note != nil {
+		fields = append(fields, financeverification.FieldNote)
+	}
+	if m.version != nil {
+		fields = append(fields, financeverification.FieldVersion)
+	}
+	if m.reversed_at != nil {
+		fields = append(fields, financeverification.FieldReversedAt)
+	}
+	if m.reversed_by_user != nil {
+		fields = append(fields, financeverification.FieldReversedBy)
+	}
+	if m.reversal_reason != nil {
+		fields = append(fields, financeverification.FieldReversalReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceVerificationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financeverification.FieldCreatedAt:
+		return m.CreatedAt()
+	case financeverification.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financeverification.FieldOrganizationID:
+		return m.OrganizationID()
+	case financeverification.FieldVerificationNo:
+		return m.VerificationNo()
+	case financeverification.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case financeverification.FieldStatus:
+		return m.Status()
+	case financeverification.FieldDirection:
+		return m.Direction()
+	case financeverification.FieldSettlementPartyID:
+		return m.SettlementPartyID()
+	case financeverification.FieldSettlementPartyName:
+		return m.SettlementPartyName()
+	case financeverification.FieldCurrency:
+		return m.Currency()
+	case financeverification.FieldAmount:
+		return m.Amount()
+	case financeverification.FieldVerificationDate:
+		return m.VerificationDate()
+	case financeverification.FieldNote:
+		return m.Note()
+	case financeverification.FieldVersion:
+		return m.Version()
+	case financeverification.FieldReversedAt:
+		return m.ReversedAt()
+	case financeverification.FieldReversedBy:
+		return m.ReversedBy()
+	case financeverification.FieldReversalReason:
+		return m.ReversalReason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceVerificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financeverification.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financeverification.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financeverification.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case financeverification.FieldVerificationNo:
+		return m.OldVerificationNo(ctx)
+	case financeverification.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case financeverification.FieldStatus:
+		return m.OldStatus(ctx)
+	case financeverification.FieldDirection:
+		return m.OldDirection(ctx)
+	case financeverification.FieldSettlementPartyID:
+		return m.OldSettlementPartyID(ctx)
+	case financeverification.FieldSettlementPartyName:
+		return m.OldSettlementPartyName(ctx)
+	case financeverification.FieldCurrency:
+		return m.OldCurrency(ctx)
+	case financeverification.FieldAmount:
+		return m.OldAmount(ctx)
+	case financeverification.FieldVerificationDate:
+		return m.OldVerificationDate(ctx)
+	case financeverification.FieldNote:
+		return m.OldNote(ctx)
+	case financeverification.FieldVersion:
+		return m.OldVersion(ctx)
+	case financeverification.FieldReversedAt:
+		return m.OldReversedAt(ctx)
+	case financeverification.FieldReversedBy:
+		return m.OldReversedBy(ctx)
+	case financeverification.FieldReversalReason:
+		return m.OldReversalReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceVerification field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceVerificationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financeverification.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financeverification.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financeverification.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case financeverification.FieldVerificationNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationNo(v)
+		return nil
+	case financeverification.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case financeverification.FieldStatus:
+		v, ok := value.(financeverification.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case financeverification.FieldDirection:
+		v, ok := value.(financeverification.Direction)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDirection(v)
+		return nil
+	case financeverification.FieldSettlementPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementPartyID(v)
+		return nil
+	case financeverification.FieldSettlementPartyName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettlementPartyName(v)
+		return nil
+	case financeverification.FieldCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrency(v)
+		return nil
+	case financeverification.FieldAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case financeverification.FieldVerificationDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationDate(v)
+		return nil
+	case financeverification.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case financeverification.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case financeverification.FieldReversedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReversedAt(v)
+		return nil
+	case financeverification.FieldReversedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReversedBy(v)
+		return nil
+	case financeverification.FieldReversalReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReversalReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceVerificationMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, financeverification.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceVerificationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case financeverification.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceVerificationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case financeverification.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceVerificationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(financeverification.FieldNote) {
+		fields = append(fields, financeverification.FieldNote)
+	}
+	if m.FieldCleared(financeverification.FieldReversedAt) {
+		fields = append(fields, financeverification.FieldReversedAt)
+	}
+	if m.FieldCleared(financeverification.FieldReversedBy) {
+		fields = append(fields, financeverification.FieldReversedBy)
+	}
+	if m.FieldCleared(financeverification.FieldReversalReason) {
+		fields = append(fields, financeverification.FieldReversalReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceVerificationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceVerificationMutation) ClearField(name string) error {
+	switch name {
+	case financeverification.FieldNote:
+		m.ClearNote()
+		return nil
+	case financeverification.FieldReversedAt:
+		m.ClearReversedAt()
+		return nil
+	case financeverification.FieldReversedBy:
+		m.ClearReversedBy()
+		return nil
+	case financeverification.FieldReversalReason:
+		m.ClearReversalReason()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceVerificationMutation) ResetField(name string) error {
+	switch name {
+	case financeverification.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financeverification.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financeverification.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case financeverification.FieldVerificationNo:
+		m.ResetVerificationNo()
+		return nil
+	case financeverification.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case financeverification.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case financeverification.FieldDirection:
+		m.ResetDirection()
+		return nil
+	case financeverification.FieldSettlementPartyID:
+		m.ResetSettlementPartyID()
+		return nil
+	case financeverification.FieldSettlementPartyName:
+		m.ResetSettlementPartyName()
+		return nil
+	case financeverification.FieldCurrency:
+		m.ResetCurrency()
+		return nil
+	case financeverification.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case financeverification.FieldVerificationDate:
+		m.ResetVerificationDate()
+		return nil
+	case financeverification.FieldNote:
+		m.ResetNote()
+		return nil
+	case financeverification.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case financeverification.FieldReversedAt:
+		m.ResetReversedAt()
+		return nil
+	case financeverification.FieldReversedBy:
+		m.ResetReversedBy()
+		return nil
+	case financeverification.FieldReversalReason:
+		m.ResetReversalReason()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceVerificationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.organization != nil {
+		edges = append(edges, financeverification.EdgeOrganization)
+	}
+	if m.settlement_party != nil {
+		edges = append(edges, financeverification.EdgeSettlementParty)
+	}
+	if m.reversed_by_user != nil {
+		edges = append(edges, financeverification.EdgeReversedByUser)
+	}
+	if m.allocations != nil {
+		edges = append(edges, financeverification.EdgeAllocations)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceVerificationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financeverification.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeverification.EdgeSettlementParty:
+		if id := m.settlement_party; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeverification.EdgeReversedByUser:
+		if id := m.reversed_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeverification.EdgeAllocations:
+		ids := make([]ent.Value, 0, len(m.allocations))
+		for id := range m.allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceVerificationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedallocations != nil {
+		edges = append(edges, financeverification.EdgeAllocations)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceVerificationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case financeverification.EdgeAllocations:
+		ids := make([]ent.Value, 0, len(m.removedallocations))
+		for id := range m.removedallocations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceVerificationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedorganization {
+		edges = append(edges, financeverification.EdgeOrganization)
+	}
+	if m.clearedsettlement_party {
+		edges = append(edges, financeverification.EdgeSettlementParty)
+	}
+	if m.clearedreversed_by_user {
+		edges = append(edges, financeverification.EdgeReversedByUser)
+	}
+	if m.clearedallocations {
+		edges = append(edges, financeverification.EdgeAllocations)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceVerificationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financeverification.EdgeOrganization:
+		return m.clearedorganization
+	case financeverification.EdgeSettlementParty:
+		return m.clearedsettlement_party
+	case financeverification.EdgeReversedByUser:
+		return m.clearedreversed_by_user
+	case financeverification.EdgeAllocations:
+		return m.clearedallocations
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceVerificationMutation) ClearEdge(name string) error {
+	switch name {
+	case financeverification.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case financeverification.EdgeSettlementParty:
+		m.ClearSettlementParty()
+		return nil
+	case financeverification.EdgeReversedByUser:
+		m.ClearReversedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceVerificationMutation) ResetEdge(name string) error {
+	switch name {
+	case financeverification.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case financeverification.EdgeSettlementParty:
+		m.ResetSettlementParty()
+		return nil
+	case financeverification.EdgeReversedByUser:
+		m.ResetReversedByUser()
+		return nil
+	case financeverification.EdgeAllocations:
+		m.ResetAllocations()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerification edge %s", name)
+}
+
+// FinanceVerificationAllocationMutation represents an operation that mutates the FinanceVerificationAllocation nodes in the graph.
+type FinanceVerificationAllocationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	cashflow_no         *string
+	bill_no             *string
+	amount              *string
+	active              *bool
+	clearedFields       map[string]struct{}
+	verification        *uuid.UUID
+	clearedverification bool
+	cashflow            *uuid.UUID
+	clearedcashflow     bool
+	bill                *uuid.UUID
+	clearedbill         bool
+	done                bool
+	oldValue            func(context.Context) (*FinanceVerificationAllocation, error)
+	predicates          []predicate.FinanceVerificationAllocation
+}
+
+var _ ent.Mutation = (*FinanceVerificationAllocationMutation)(nil)
+
+// financeverificationallocationOption allows management of the mutation configuration using functional options.
+type financeverificationallocationOption func(*FinanceVerificationAllocationMutation)
+
+// newFinanceVerificationAllocationMutation creates new mutation for the FinanceVerificationAllocation entity.
+func newFinanceVerificationAllocationMutation(c config, op Op, opts ...financeverificationallocationOption) *FinanceVerificationAllocationMutation {
+	m := &FinanceVerificationAllocationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceVerificationAllocation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceVerificationAllocationID sets the ID field of the mutation.
+func withFinanceVerificationAllocationID(id uuid.UUID) financeverificationallocationOption {
+	return func(m *FinanceVerificationAllocationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceVerificationAllocation
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceVerificationAllocation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceVerificationAllocation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceVerificationAllocation sets the old FinanceVerificationAllocation of the mutation.
+func withFinanceVerificationAllocation(node *FinanceVerificationAllocation) financeverificationallocationOption {
+	return func(m *FinanceVerificationAllocationMutation) {
+		m.oldValue = func(context.Context) (*FinanceVerificationAllocation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceVerificationAllocationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceVerificationAllocationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceVerificationAllocation entities.
+func (m *FinanceVerificationAllocationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceVerificationAllocationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceVerificationAllocationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceVerificationAllocation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceVerificationAllocationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceVerificationAllocationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceVerificationAllocationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceVerificationAllocationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetVerificationID sets the "verification_id" field.
+func (m *FinanceVerificationAllocationMutation) SetVerificationID(u uuid.UUID) {
+	m.verification = &u
+}
+
+// VerificationID returns the value of the "verification_id" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) VerificationID() (r uuid.UUID, exists bool) {
+	v := m.verification
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationID returns the old "verification_id" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldVerificationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerificationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerificationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationID: %w", err)
+	}
+	return oldValue.VerificationID, nil
+}
+
+// ResetVerificationID resets all changes to the "verification_id" field.
+func (m *FinanceVerificationAllocationMutation) ResetVerificationID() {
+	m.verification = nil
+}
+
+// SetCashflowID sets the "cashflow_id" field.
+func (m *FinanceVerificationAllocationMutation) SetCashflowID(u uuid.UUID) {
+	m.cashflow = &u
+}
+
+// CashflowID returns the value of the "cashflow_id" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) CashflowID() (r uuid.UUID, exists bool) {
+	v := m.cashflow
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCashflowID returns the old "cashflow_id" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldCashflowID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCashflowID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCashflowID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCashflowID: %w", err)
+	}
+	return oldValue.CashflowID, nil
+}
+
+// ResetCashflowID resets all changes to the "cashflow_id" field.
+func (m *FinanceVerificationAllocationMutation) ResetCashflowID() {
+	m.cashflow = nil
+}
+
+// SetBillID sets the "bill_id" field.
+func (m *FinanceVerificationAllocationMutation) SetBillID(u uuid.UUID) {
+	m.bill = &u
+}
+
+// BillID returns the value of the "bill_id" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) BillID() (r uuid.UUID, exists bool) {
+	v := m.bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillID returns the old "bill_id" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillID: %w", err)
+	}
+	return oldValue.BillID, nil
+}
+
+// ResetBillID resets all changes to the "bill_id" field.
+func (m *FinanceVerificationAllocationMutation) ResetBillID() {
+	m.bill = nil
+}
+
+// SetCashflowNo sets the "cashflow_no" field.
+func (m *FinanceVerificationAllocationMutation) SetCashflowNo(s string) {
+	m.cashflow_no = &s
+}
+
+// CashflowNo returns the value of the "cashflow_no" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) CashflowNo() (r string, exists bool) {
+	v := m.cashflow_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCashflowNo returns the old "cashflow_no" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldCashflowNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCashflowNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCashflowNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCashflowNo: %w", err)
+	}
+	return oldValue.CashflowNo, nil
+}
+
+// ResetCashflowNo resets all changes to the "cashflow_no" field.
+func (m *FinanceVerificationAllocationMutation) ResetCashflowNo() {
+	m.cashflow_no = nil
+}
+
+// SetBillNo sets the "bill_no" field.
+func (m *FinanceVerificationAllocationMutation) SetBillNo(s string) {
+	m.bill_no = &s
+}
+
+// BillNo returns the value of the "bill_no" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) BillNo() (r string, exists bool) {
+	v := m.bill_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillNo returns the old "bill_no" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldBillNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillNo: %w", err)
+	}
+	return oldValue.BillNo, nil
+}
+
+// ResetBillNo resets all changes to the "bill_no" field.
+func (m *FinanceVerificationAllocationMutation) ResetBillNo() {
+	m.bill_no = nil
+}
+
+// SetAmount sets the "amount" field.
+func (m *FinanceVerificationAllocationMutation) SetAmount(s string) {
+	m.amount = &s
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) Amount() (r string, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *FinanceVerificationAllocationMutation) ResetAmount() {
+	m.amount = nil
+}
+
+// SetActive sets the "active" field.
+func (m *FinanceVerificationAllocationMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *FinanceVerificationAllocationMutation) ResetActive() {
+	m.active = nil
+}
+
+// ClearVerification clears the "verification" edge to the FinanceVerification entity.
+func (m *FinanceVerificationAllocationMutation) ClearVerification() {
+	m.clearedverification = true
+	m.clearedFields[financeverificationallocation.FieldVerificationID] = struct{}{}
+}
+
+// VerificationCleared reports if the "verification" edge to the FinanceVerification entity was cleared.
+func (m *FinanceVerificationAllocationMutation) VerificationCleared() bool {
+	return m.clearedverification
+}
+
+// VerificationIDs returns the "verification" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VerificationID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationAllocationMutation) VerificationIDs() (ids []uuid.UUID) {
+	if id := m.verification; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVerification resets all changes to the "verification" edge.
+func (m *FinanceVerificationAllocationMutation) ResetVerification() {
+	m.verification = nil
+	m.clearedverification = false
+}
+
+// ClearCashflow clears the "cashflow" edge to the FinanceCashflow entity.
+func (m *FinanceVerificationAllocationMutation) ClearCashflow() {
+	m.clearedcashflow = true
+	m.clearedFields[financeverificationallocation.FieldCashflowID] = struct{}{}
+}
+
+// CashflowCleared reports if the "cashflow" edge to the FinanceCashflow entity was cleared.
+func (m *FinanceVerificationAllocationMutation) CashflowCleared() bool {
+	return m.clearedcashflow
+}
+
+// CashflowIDs returns the "cashflow" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CashflowID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationAllocationMutation) CashflowIDs() (ids []uuid.UUID) {
+	if id := m.cashflow; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCashflow resets all changes to the "cashflow" edge.
+func (m *FinanceVerificationAllocationMutation) ResetCashflow() {
+	m.cashflow = nil
+	m.clearedcashflow = false
+}
+
+// ClearBill clears the "bill" edge to the FinanceBill entity.
+func (m *FinanceVerificationAllocationMutation) ClearBill() {
+	m.clearedbill = true
+	m.clearedFields[financeverificationallocation.FieldBillID] = struct{}{}
+}
+
+// BillCleared reports if the "bill" edge to the FinanceBill entity was cleared.
+func (m *FinanceVerificationAllocationMutation) BillCleared() bool {
+	return m.clearedbill
+}
+
+// BillIDs returns the "bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BillID instead. It exists only for internal usage by the builders.
+func (m *FinanceVerificationAllocationMutation) BillIDs() (ids []uuid.UUID) {
+	if id := m.bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBill resets all changes to the "bill" edge.
+func (m *FinanceVerificationAllocationMutation) ResetBill() {
+	m.bill = nil
+	m.clearedbill = false
+}
+
+// Where appends a list predicates to the FinanceVerificationAllocationMutation builder.
+func (m *FinanceVerificationAllocationMutation) Where(ps ...predicate.FinanceVerificationAllocation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceVerificationAllocationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceVerificationAllocationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceVerificationAllocation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceVerificationAllocationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceVerificationAllocationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceVerificationAllocation).
+func (m *FinanceVerificationAllocationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceVerificationAllocationMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, financeverificationallocation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financeverificationallocation.FieldUpdatedAt)
+	}
+	if m.verification != nil {
+		fields = append(fields, financeverificationallocation.FieldVerificationID)
+	}
+	if m.cashflow != nil {
+		fields = append(fields, financeverificationallocation.FieldCashflowID)
+	}
+	if m.bill != nil {
+		fields = append(fields, financeverificationallocation.FieldBillID)
+	}
+	if m.cashflow_no != nil {
+		fields = append(fields, financeverificationallocation.FieldCashflowNo)
+	}
+	if m.bill_no != nil {
+		fields = append(fields, financeverificationallocation.FieldBillNo)
+	}
+	if m.amount != nil {
+		fields = append(fields, financeverificationallocation.FieldAmount)
+	}
+	if m.active != nil {
+		fields = append(fields, financeverificationallocation.FieldActive)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceVerificationAllocationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financeverificationallocation.FieldCreatedAt:
+		return m.CreatedAt()
+	case financeverificationallocation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financeverificationallocation.FieldVerificationID:
+		return m.VerificationID()
+	case financeverificationallocation.FieldCashflowID:
+		return m.CashflowID()
+	case financeverificationallocation.FieldBillID:
+		return m.BillID()
+	case financeverificationallocation.FieldCashflowNo:
+		return m.CashflowNo()
+	case financeverificationallocation.FieldBillNo:
+		return m.BillNo()
+	case financeverificationallocation.FieldAmount:
+		return m.Amount()
+	case financeverificationallocation.FieldActive:
+		return m.Active()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceVerificationAllocationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financeverificationallocation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financeverificationallocation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financeverificationallocation.FieldVerificationID:
+		return m.OldVerificationID(ctx)
+	case financeverificationallocation.FieldCashflowID:
+		return m.OldCashflowID(ctx)
+	case financeverificationallocation.FieldBillID:
+		return m.OldBillID(ctx)
+	case financeverificationallocation.FieldCashflowNo:
+		return m.OldCashflowNo(ctx)
+	case financeverificationallocation.FieldBillNo:
+		return m.OldBillNo(ctx)
+	case financeverificationallocation.FieldAmount:
+		return m.OldAmount(ctx)
+	case financeverificationallocation.FieldActive:
+		return m.OldActive(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceVerificationAllocation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceVerificationAllocationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financeverificationallocation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financeverificationallocation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financeverificationallocation.FieldVerificationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationID(v)
+		return nil
+	case financeverificationallocation.FieldCashflowID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCashflowID(v)
+		return nil
+	case financeverificationallocation.FieldBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillID(v)
+		return nil
+	case financeverificationallocation.FieldCashflowNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCashflowNo(v)
+		return nil
+	case financeverificationallocation.FieldBillNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillNo(v)
+		return nil
+	case financeverificationallocation.FieldAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case financeverificationallocation.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerificationAllocation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceVerificationAllocationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceVerificationAllocationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceVerificationAllocationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FinanceVerificationAllocation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceVerificationAllocationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceVerificationAllocationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceVerificationAllocationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FinanceVerificationAllocation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceVerificationAllocationMutation) ResetField(name string) error {
+	switch name {
+	case financeverificationallocation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financeverificationallocation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financeverificationallocation.FieldVerificationID:
+		m.ResetVerificationID()
+		return nil
+	case financeverificationallocation.FieldCashflowID:
+		m.ResetCashflowID()
+		return nil
+	case financeverificationallocation.FieldBillID:
+		m.ResetBillID()
+		return nil
+	case financeverificationallocation.FieldCashflowNo:
+		m.ResetCashflowNo()
+		return nil
+	case financeverificationallocation.FieldBillNo:
+		m.ResetBillNo()
+		return nil
+	case financeverificationallocation.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case financeverificationallocation.FieldActive:
+		m.ResetActive()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerificationAllocation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceVerificationAllocationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.verification != nil {
+		edges = append(edges, financeverificationallocation.EdgeVerification)
+	}
+	if m.cashflow != nil {
+		edges = append(edges, financeverificationallocation.EdgeCashflow)
+	}
+	if m.bill != nil {
+		edges = append(edges, financeverificationallocation.EdgeBill)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceVerificationAllocationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financeverificationallocation.EdgeVerification:
+		if id := m.verification; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeverificationallocation.EdgeCashflow:
+		if id := m.cashflow; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeverificationallocation.EdgeBill:
+		if id := m.bill; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceVerificationAllocationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceVerificationAllocationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceVerificationAllocationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedverification {
+		edges = append(edges, financeverificationallocation.EdgeVerification)
+	}
+	if m.clearedcashflow {
+		edges = append(edges, financeverificationallocation.EdgeCashflow)
+	}
+	if m.clearedbill {
+		edges = append(edges, financeverificationallocation.EdgeBill)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceVerificationAllocationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financeverificationallocation.EdgeVerification:
+		return m.clearedverification
+	case financeverificationallocation.EdgeCashflow:
+		return m.clearedcashflow
+	case financeverificationallocation.EdgeBill:
+		return m.clearedbill
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceVerificationAllocationMutation) ClearEdge(name string) error {
+	switch name {
+	case financeverificationallocation.EdgeVerification:
+		m.ClearVerification()
+		return nil
+	case financeverificationallocation.EdgeCashflow:
+		m.ClearCashflow()
+		return nil
+	case financeverificationallocation.EdgeBill:
+		m.ClearBill()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerificationAllocation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceVerificationAllocationMutation) ResetEdge(name string) error {
+	switch name {
+	case financeverificationallocation.EdgeVerification:
+		m.ResetVerification()
+		return nil
+	case financeverificationallocation.EdgeCashflow:
+		m.ResetCashflow()
+		return nil
+	case financeverificationallocation.EdgeBill:
+		m.ResetBill()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceVerificationAllocation edge %s", name)
 }
 
 // LoginRateLimitBucketMutation represents an operation that mutates the LoginRateLimitBucket nodes in the graph.
@@ -44454,6 +47091,9 @@ type OrganizationMutation struct {
 	finance_cashflows                       map[uuid.UUID]struct{}
 	removedfinance_cashflows                map[uuid.UUID]struct{}
 	clearedfinance_cashflows                bool
+	finance_verifications                   map[uuid.UUID]struct{}
+	removedfinance_verifications            map[uuid.UUID]struct{}
+	clearedfinance_verifications            bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -46254,6 +48894,60 @@ func (m *OrganizationMutation) ResetFinanceCashflows() {
 	m.removedfinance_cashflows = nil
 }
 
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by ids.
+func (m *OrganizationMutation) AddFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.finance_verifications == nil {
+		m.finance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceVerifications clears the "finance_verifications" edge to the FinanceVerification entity.
+func (m *OrganizationMutation) ClearFinanceVerifications() {
+	m.clearedfinance_verifications = true
+}
+
+// FinanceVerificationsCleared reports if the "finance_verifications" edge to the FinanceVerification entity was cleared.
+func (m *OrganizationMutation) FinanceVerificationsCleared() bool {
+	return m.clearedfinance_verifications
+}
+
+// RemoveFinanceVerificationIDs removes the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (m *OrganizationMutation) RemoveFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.removedfinance_verifications == nil {
+		m.removedfinance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_verifications, ids[i])
+		m.removedfinance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceVerifications returns the removed IDs of the "finance_verifications" edge to the FinanceVerification entity.
+func (m *OrganizationMutation) RemovedFinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceVerificationsIDs returns the "finance_verifications" edge IDs in the mutation.
+func (m *OrganizationMutation) FinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceVerifications resets all changes to the "finance_verifications" edge.
+func (m *OrganizationMutation) ResetFinanceVerifications() {
+	m.finance_verifications = nil
+	m.clearedfinance_verifications = false
+	m.removedfinance_verifications = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -46521,7 +49215,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -46599,6 +49293,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_cashflows != nil {
 		edges = append(edges, organization.EdgeFinanceCashflows)
+	}
+	if m.finance_verifications != nil {
+		edges = append(edges, organization.EdgeFinanceVerifications)
 	}
 	return edges
 }
@@ -46761,13 +49458,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.finance_verifications))
+		for id := range m.finance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -46842,6 +49545,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_cashflows != nil {
 		edges = append(edges, organization.EdgeFinanceCashflows)
+	}
+	if m.removedfinance_verifications != nil {
+		edges = append(edges, organization.EdgeFinanceVerifications)
 	}
 	return edges
 }
@@ -47000,13 +49706,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.removedfinance_verifications))
+		for id := range m.removedfinance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -47085,6 +49797,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedfinance_cashflows {
 		edges = append(edges, organization.EdgeFinanceCashflows)
 	}
+	if m.clearedfinance_verifications {
+		edges = append(edges, organization.EdgeFinanceVerifications)
+	}
 	return edges
 }
 
@@ -47144,6 +49859,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_invoices
 	case organization.EdgeFinanceCashflows:
 		return m.clearedfinance_cashflows
+	case organization.EdgeFinanceVerifications:
+		return m.clearedfinance_verifications
 	}
 	return false
 }
@@ -47241,6 +49958,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 	case organization.EdgeFinanceCashflows:
 		m.ResetFinanceCashflows()
 		return nil
+	case organization.EdgeFinanceVerifications:
+		m.ResetFinanceVerifications()
+		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
 }
@@ -47248,61 +49968,64 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 // PartnerMutation represents an operation that mutates the Partner nodes in the graph.
 type PartnerMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	code                       *string
-	legal_name                 *string
-	normalized_name            *string
-	unified_social_credit_code *string
-	registered_address         *string
-	enabled                    *bool
-	clearedFields              map[string]struct{}
-	organization               *uuid.UUID
-	clearedorganization        bool
-	roles                      map[uuid.UUID]struct{}
-	removedroles               map[uuid.UUID]struct{}
-	clearedroles               bool
-	contacts                   map[uuid.UUID]struct{}
-	removedcontacts            map[uuid.UUID]struct{}
-	clearedcontacts            bool
-	aliases                    map[uuid.UUID]struct{}
-	removedaliases             map[uuid.UUID]struct{}
-	clearedaliases             bool
-	profile                    *uuid.UUID
-	clearedprofile             bool
-	assignments                map[uuid.UUID]struct{}
-	removedassignments         map[uuid.UUID]struct{}
-	clearedassignments         bool
-	shipping_presets           map[uuid.UUID]struct{}
-	removedshipping_presets    map[uuid.UUID]struct{}
-	clearedshipping_presets    bool
-	contracts                  map[uuid.UUID]struct{}
-	removedcontracts           map[uuid.UUID]struct{}
-	clearedcontracts           bool
-	attachments                map[uuid.UUID]struct{}
-	removedattachments         map[uuid.UUID]struct{}
-	clearedattachments         bool
-	orders                     map[uuid.UUID]struct{}
-	removedorders              map[uuid.UUID]struct{}
-	clearedorders              bool
-	order_fees                 map[uuid.UUID]struct{}
-	removedorder_fees          map[uuid.UUID]struct{}
-	clearedorder_fees          bool
-	finance_bills              map[uuid.UUID]struct{}
-	removedfinance_bills       map[uuid.UUID]struct{}
-	clearedfinance_bills       bool
-	finance_invoices           map[uuid.UUID]struct{}
-	removedfinance_invoices    map[uuid.UUID]struct{}
-	clearedfinance_invoices    bool
-	finance_cashflows          map[uuid.UUID]struct{}
-	removedfinance_cashflows   map[uuid.UUID]struct{}
-	clearedfinance_cashflows   bool
-	done                       bool
-	oldValue                   func(context.Context) (*Partner, error)
-	predicates                 []predicate.Partner
+	op                           Op
+	typ                          string
+	id                           *uuid.UUID
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	code                         *string
+	legal_name                   *string
+	normalized_name              *string
+	unified_social_credit_code   *string
+	registered_address           *string
+	enabled                      *bool
+	clearedFields                map[string]struct{}
+	organization                 *uuid.UUID
+	clearedorganization          bool
+	roles                        map[uuid.UUID]struct{}
+	removedroles                 map[uuid.UUID]struct{}
+	clearedroles                 bool
+	contacts                     map[uuid.UUID]struct{}
+	removedcontacts              map[uuid.UUID]struct{}
+	clearedcontacts              bool
+	aliases                      map[uuid.UUID]struct{}
+	removedaliases               map[uuid.UUID]struct{}
+	clearedaliases               bool
+	profile                      *uuid.UUID
+	clearedprofile               bool
+	assignments                  map[uuid.UUID]struct{}
+	removedassignments           map[uuid.UUID]struct{}
+	clearedassignments           bool
+	shipping_presets             map[uuid.UUID]struct{}
+	removedshipping_presets      map[uuid.UUID]struct{}
+	clearedshipping_presets      bool
+	contracts                    map[uuid.UUID]struct{}
+	removedcontracts             map[uuid.UUID]struct{}
+	clearedcontracts             bool
+	attachments                  map[uuid.UUID]struct{}
+	removedattachments           map[uuid.UUID]struct{}
+	clearedattachments           bool
+	orders                       map[uuid.UUID]struct{}
+	removedorders                map[uuid.UUID]struct{}
+	clearedorders                bool
+	order_fees                   map[uuid.UUID]struct{}
+	removedorder_fees            map[uuid.UUID]struct{}
+	clearedorder_fees            bool
+	finance_bills                map[uuid.UUID]struct{}
+	removedfinance_bills         map[uuid.UUID]struct{}
+	clearedfinance_bills         bool
+	finance_invoices             map[uuid.UUID]struct{}
+	removedfinance_invoices      map[uuid.UUID]struct{}
+	clearedfinance_invoices      bool
+	finance_cashflows            map[uuid.UUID]struct{}
+	removedfinance_cashflows     map[uuid.UUID]struct{}
+	clearedfinance_cashflows     bool
+	finance_verifications        map[uuid.UUID]struct{}
+	removedfinance_verifications map[uuid.UUID]struct{}
+	clearedfinance_verifications bool
+	done                         bool
+	oldValue                     func(context.Context) (*Partner, error)
+	predicates                   []predicate.Partner
 }
 
 var _ ent.Mutation = (*PartnerMutation)(nil)
@@ -48473,6 +51196,60 @@ func (m *PartnerMutation) ResetFinanceCashflows() {
 	m.removedfinance_cashflows = nil
 }
 
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by ids.
+func (m *PartnerMutation) AddFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.finance_verifications == nil {
+		m.finance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceVerifications clears the "finance_verifications" edge to the FinanceVerification entity.
+func (m *PartnerMutation) ClearFinanceVerifications() {
+	m.clearedfinance_verifications = true
+}
+
+// FinanceVerificationsCleared reports if the "finance_verifications" edge to the FinanceVerification entity was cleared.
+func (m *PartnerMutation) FinanceVerificationsCleared() bool {
+	return m.clearedfinance_verifications
+}
+
+// RemoveFinanceVerificationIDs removes the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (m *PartnerMutation) RemoveFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.removedfinance_verifications == nil {
+		m.removedfinance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_verifications, ids[i])
+		m.removedfinance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceVerifications returns the removed IDs of the "finance_verifications" edge to the FinanceVerification entity.
+func (m *PartnerMutation) RemovedFinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceVerificationsIDs returns the "finance_verifications" edge IDs in the mutation.
+func (m *PartnerMutation) FinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceVerifications resets all changes to the "finance_verifications" edge.
+func (m *PartnerMutation) ResetFinanceVerifications() {
+	m.finance_verifications = nil
+	m.clearedfinance_verifications = false
+	m.removedfinance_verifications = nil
+}
+
 // Where appends a list predicates to the PartnerMutation builder.
 func (m *PartnerMutation) Where(ps ...predicate.Partner) {
 	m.predicates = append(m.predicates, ps...)
@@ -48757,7 +51534,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -48799,6 +51576,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.finance_cashflows != nil {
 		edges = append(edges, partner.EdgeFinanceCashflows)
+	}
+	if m.finance_verifications != nil {
+		edges = append(edges, partner.EdgeFinanceVerifications)
 	}
 	return edges
 }
@@ -48887,13 +51667,19 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.finance_verifications))
+		for id := range m.finance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -48929,6 +51715,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_cashflows != nil {
 		edges = append(edges, partner.EdgeFinanceCashflows)
+	}
+	if m.removedfinance_verifications != nil {
+		edges = append(edges, partner.EdgeFinanceVerifications)
 	}
 	return edges
 }
@@ -49009,13 +51798,19 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.removedfinance_verifications))
+		for id := range m.removedfinance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 15)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -49058,6 +51853,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedfinance_cashflows {
 		edges = append(edges, partner.EdgeFinanceCashflows)
 	}
+	if m.clearedfinance_verifications {
+		edges = append(edges, partner.EdgeFinanceVerifications)
+	}
 	return edges
 }
 
@@ -49093,6 +51891,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_invoices
 	case partner.EdgeFinanceCashflows:
 		return m.clearedfinance_cashflows
+	case partner.EdgeFinanceVerifications:
+		return m.clearedfinance_verifications
 	}
 	return false
 }
@@ -49156,6 +51956,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeFinanceCashflows:
 		m.ResetFinanceCashflows()
+		return nil
+	case partner.EdgeFinanceVerifications:
+		m.ResetFinanceVerifications()
 		return nil
 	}
 	return fmt.Errorf("unknown Partner edge %s", name)
@@ -69533,58 +72336,61 @@ func (m *TaxableServiceMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                                 Op
-	typ                                string
-	id                                 *uuid.UUID
-	created_at                         *time.Time
-	updated_at                         *time.Time
-	username                           *string
-	display_name                       *string
-	email                              *string
-	avatar_url                         *string
-	password_hash                      *string
-	wecom_userid                       *string
-	wecom_name                         *string
-	dingtalk_unionid                   *string
-	dingtalk_name                      *string
-	enabled                            *bool
-	clearedFields                      map[string]struct{}
-	memberships                        map[uuid.UUID]struct{}
-	removedmemberships                 map[uuid.UUID]struct{}
-	clearedmemberships                 bool
-	sessions                           map[uuid.UUID]struct{}
-	removedsessions                    map[uuid.UUID]struct{}
-	clearedsessions                    bool
-	order_personnel                    map[uuid.UUID]struct{}
-	removedorder_personnel             map[uuid.UUID]struct{}
-	clearedorder_personnel             bool
-	partner_assignments                map[uuid.UUID]struct{}
-	removedpartner_assignments         map[uuid.UUID]struct{}
-	clearedpartner_assignments         bool
-	cancelled_order_fees               map[uuid.UUID]struct{}
-	removedcancelled_order_fees        map[uuid.UUID]struct{}
-	clearedcancelled_order_fees        bool
-	confirmed_finance_bills            map[uuid.UUID]struct{}
-	removedconfirmed_finance_bills     map[uuid.UUID]struct{}
-	clearedconfirmed_finance_bills     bool
-	cancelled_finance_bills            map[uuid.UUID]struct{}
-	removedcancelled_finance_bills     map[uuid.UUID]struct{}
-	clearedcancelled_finance_bills     bool
-	issued_finance_invoices            map[uuid.UUID]struct{}
-	removedissued_finance_invoices     map[uuid.UUID]struct{}
-	clearedissued_finance_invoices     bool
-	cancelled_finance_invoices         map[uuid.UUID]struct{}
-	removedcancelled_finance_invoices  map[uuid.UUID]struct{}
-	clearedcancelled_finance_invoices  bool
-	confirmed_finance_cashflows        map[uuid.UUID]struct{}
-	removedconfirmed_finance_cashflows map[uuid.UUID]struct{}
-	clearedconfirmed_finance_cashflows bool
-	cancelled_finance_cashflows        map[uuid.UUID]struct{}
-	removedcancelled_finance_cashflows map[uuid.UUID]struct{}
-	clearedcancelled_finance_cashflows bool
-	done                               bool
-	oldValue                           func(context.Context) (*User, error)
-	predicates                         []predicate.User
+	op                                    Op
+	typ                                   string
+	id                                    *uuid.UUID
+	created_at                            *time.Time
+	updated_at                            *time.Time
+	username                              *string
+	display_name                          *string
+	email                                 *string
+	avatar_url                            *string
+	password_hash                         *string
+	wecom_userid                          *string
+	wecom_name                            *string
+	dingtalk_unionid                      *string
+	dingtalk_name                         *string
+	enabled                               *bool
+	clearedFields                         map[string]struct{}
+	memberships                           map[uuid.UUID]struct{}
+	removedmemberships                    map[uuid.UUID]struct{}
+	clearedmemberships                    bool
+	sessions                              map[uuid.UUID]struct{}
+	removedsessions                       map[uuid.UUID]struct{}
+	clearedsessions                       bool
+	order_personnel                       map[uuid.UUID]struct{}
+	removedorder_personnel                map[uuid.UUID]struct{}
+	clearedorder_personnel                bool
+	partner_assignments                   map[uuid.UUID]struct{}
+	removedpartner_assignments            map[uuid.UUID]struct{}
+	clearedpartner_assignments            bool
+	cancelled_order_fees                  map[uuid.UUID]struct{}
+	removedcancelled_order_fees           map[uuid.UUID]struct{}
+	clearedcancelled_order_fees           bool
+	confirmed_finance_bills               map[uuid.UUID]struct{}
+	removedconfirmed_finance_bills        map[uuid.UUID]struct{}
+	clearedconfirmed_finance_bills        bool
+	cancelled_finance_bills               map[uuid.UUID]struct{}
+	removedcancelled_finance_bills        map[uuid.UUID]struct{}
+	clearedcancelled_finance_bills        bool
+	issued_finance_invoices               map[uuid.UUID]struct{}
+	removedissued_finance_invoices        map[uuid.UUID]struct{}
+	clearedissued_finance_invoices        bool
+	cancelled_finance_invoices            map[uuid.UUID]struct{}
+	removedcancelled_finance_invoices     map[uuid.UUID]struct{}
+	clearedcancelled_finance_invoices     bool
+	confirmed_finance_cashflows           map[uuid.UUID]struct{}
+	removedconfirmed_finance_cashflows    map[uuid.UUID]struct{}
+	clearedconfirmed_finance_cashflows    bool
+	cancelled_finance_cashflows           map[uuid.UUID]struct{}
+	removedcancelled_finance_cashflows    map[uuid.UUID]struct{}
+	clearedcancelled_finance_cashflows    bool
+	reversed_finance_verifications        map[uuid.UUID]struct{}
+	removedreversed_finance_verifications map[uuid.UUID]struct{}
+	clearedreversed_finance_verifications bool
+	done                                  bool
+	oldValue                              func(context.Context) (*User, error)
+	predicates                            []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -70808,6 +73614,60 @@ func (m *UserMutation) ResetCancelledFinanceCashflows() {
 	m.removedcancelled_finance_cashflows = nil
 }
 
+// AddReversedFinanceVerificationIDs adds the "reversed_finance_verifications" edge to the FinanceVerification entity by ids.
+func (m *UserMutation) AddReversedFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.reversed_finance_verifications == nil {
+		m.reversed_finance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.reversed_finance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReversedFinanceVerifications clears the "reversed_finance_verifications" edge to the FinanceVerification entity.
+func (m *UserMutation) ClearReversedFinanceVerifications() {
+	m.clearedreversed_finance_verifications = true
+}
+
+// ReversedFinanceVerificationsCleared reports if the "reversed_finance_verifications" edge to the FinanceVerification entity was cleared.
+func (m *UserMutation) ReversedFinanceVerificationsCleared() bool {
+	return m.clearedreversed_finance_verifications
+}
+
+// RemoveReversedFinanceVerificationIDs removes the "reversed_finance_verifications" edge to the FinanceVerification entity by IDs.
+func (m *UserMutation) RemoveReversedFinanceVerificationIDs(ids ...uuid.UUID) {
+	if m.removedreversed_finance_verifications == nil {
+		m.removedreversed_finance_verifications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.reversed_finance_verifications, ids[i])
+		m.removedreversed_finance_verifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReversedFinanceVerifications returns the removed IDs of the "reversed_finance_verifications" edge to the FinanceVerification entity.
+func (m *UserMutation) RemovedReversedFinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedreversed_finance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReversedFinanceVerificationsIDs returns the "reversed_finance_verifications" edge IDs in the mutation.
+func (m *UserMutation) ReversedFinanceVerificationsIDs() (ids []uuid.UUID) {
+	for id := range m.reversed_finance_verifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReversedFinanceVerifications resets all changes to the "reversed_finance_verifications" edge.
+func (m *UserMutation) ResetReversedFinanceVerifications() {
+	m.reversed_finance_verifications = nil
+	m.clearedreversed_finance_verifications = false
+	m.removedreversed_finance_verifications = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -71173,7 +74033,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -71206,6 +74066,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.cancelled_finance_cashflows != nil {
 		edges = append(edges, user.EdgeCancelledFinanceCashflows)
+	}
+	if m.reversed_finance_verifications != nil {
+		edges = append(edges, user.EdgeReversedFinanceVerifications)
 	}
 	return edges
 }
@@ -71280,13 +74143,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeReversedFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.reversed_finance_verifications))
+		for id := range m.reversed_finance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -71319,6 +74188,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedcancelled_finance_cashflows != nil {
 		edges = append(edges, user.EdgeCancelledFinanceCashflows)
+	}
+	if m.removedreversed_finance_verifications != nil {
+		edges = append(edges, user.EdgeReversedFinanceVerifications)
 	}
 	return edges
 }
@@ -71393,13 +74265,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeReversedFinanceVerifications:
+		ids := make([]ent.Value, 0, len(m.removedreversed_finance_verifications))
+		for id := range m.removedreversed_finance_verifications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -71433,6 +74311,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedcancelled_finance_cashflows {
 		edges = append(edges, user.EdgeCancelledFinanceCashflows)
 	}
+	if m.clearedreversed_finance_verifications {
+		edges = append(edges, user.EdgeReversedFinanceVerifications)
+	}
 	return edges
 }
 
@@ -71462,6 +74343,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedconfirmed_finance_cashflows
 	case user.EdgeCancelledFinanceCashflows:
 		return m.clearedcancelled_finance_cashflows
+	case user.EdgeReversedFinanceVerifications:
+		return m.clearedreversed_finance_verifications
 	}
 	return false
 }
@@ -71510,6 +74393,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeCancelledFinanceCashflows:
 		m.ResetCancelledFinanceCashflows()
+		return nil
+	case user.EdgeReversedFinanceVerifications:
+		m.ResetReversedFinanceVerifications()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -897,6 +897,136 @@ var (
 			},
 		},
 	}
+	// FinanceVerificationsColumns holds the columns for the "finance_verifications" table.
+	FinanceVerificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "verification_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "REVERSED"}, Default: "ACTIVE"},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "verification_date", Type: field.TypeString, Size: 10},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "reversed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reversal_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "reversed_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceVerificationsTable holds the schema information for the "finance_verifications" table.
+	FinanceVerificationsTable = &schema.Table{
+		Name:       "finance_verifications",
+		Columns:    FinanceVerificationsColumns,
+		PrimaryKey: []*schema.Column{FinanceVerificationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_verifications_organizations_finance_verifications",
+				Columns:    []*schema.Column{FinanceVerificationsColumns[15]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_verifications_partners_finance_verifications",
+				Columns:    []*schema.Column{FinanceVerificationsColumns[16]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_verifications_users_reversed_finance_verifications",
+				Columns:    []*schema.Column{FinanceVerificationsColumns[17]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeverification_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationsColumns[2]},
+			},
+			{
+				Name:    "financeverification_organization_id_verification_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceVerificationsColumns[15], FinanceVerificationsColumns[3]},
+			},
+			{
+				Name:    "financeverification_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceVerificationsColumns[15], FinanceVerificationsColumns[4]},
+			},
+			{
+				Name:    "financeverification_organization_id_status_verification_date",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationsColumns[15], FinanceVerificationsColumns[5], FinanceVerificationsColumns[10]},
+			},
+		},
+	}
+	// FinanceVerificationAllocationsColumns holds the columns for the "finance_verification_allocations" table.
+	FinanceVerificationAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "cashflow_no", Type: field.TypeString, Size: 64},
+		{Name: "bill_no", Type: field.TypeString, Size: 64},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "bill_id", Type: field.TypeUUID},
+		{Name: "cashflow_id", Type: field.TypeUUID},
+		{Name: "verification_id", Type: field.TypeUUID},
+	}
+	// FinanceVerificationAllocationsTable holds the schema information for the "finance_verification_allocations" table.
+	FinanceVerificationAllocationsTable = &schema.Table{
+		Name:       "finance_verification_allocations",
+		Columns:    FinanceVerificationAllocationsColumns,
+		PrimaryKey: []*schema.Column{FinanceVerificationAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_verification_allocations_finance_bills_verification_allocations",
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[7]},
+				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_verification_allocations_finance_cashflows_verification_allocations",
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[8]},
+				RefColumns: []*schema.Column{FinanceCashflowsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_verification_allocations_finance_verifications_allocations",
+				Columns:    []*schema.Column{FinanceVerificationAllocationsColumns[9]},
+				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeverificationallocation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[2]},
+			},
+			{
+				Name:    "financeverificationallocation_verification_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[9], FinanceVerificationAllocationsColumns[6]},
+			},
+			{
+				Name:    "financeverificationallocation_cashflow_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[8], FinanceVerificationAllocationsColumns[6]},
+			},
+			{
+				Name:    "financeverificationallocation_bill_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationAllocationsColumns[7], FinanceVerificationAllocationsColumns[6]},
+			},
+		},
+	}
 	// LoginRateLimitBucketsColumns holds the columns for the "login_rate_limit_buckets" table.
 	LoginRateLimitBucketsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3191,6 +3321,8 @@ var (
 		FinanceCashflowsTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
+		FinanceVerificationsTable,
+		FinanceVerificationAllocationsTable,
 		LoginRateLimitBucketsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
@@ -3268,6 +3400,12 @@ func init() {
 	FinanceInvoicesTable.ForeignKeys[3].RefTable = UsersTable
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
+	FinanceVerificationsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceVerificationsTable.ForeignKeys[1].RefTable = PartnersTable
+	FinanceVerificationsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceVerificationAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
+	FinanceVerificationAllocationsTable.ForeignKeys[1].RefTable = FinanceCashflowsTable
+	FinanceVerificationAllocationsTable.ForeignKeys[2].RefTable = FinanceVerificationsTable
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable

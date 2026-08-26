@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -376,6 +377,21 @@ func (_u *UserUpdate) AddCancelledFinanceCashflows(v ...*FinanceCashflow) *UserU
 	return _u.AddCancelledFinanceCashflowIDs(ids...)
 }
 
+// AddReversedFinanceVerificationIDs adds the "reversed_finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_u *UserUpdate) AddReversedFinanceVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddReversedFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// AddReversedFinanceVerifications adds the "reversed_finance_verifications" edges to the FinanceVerification entity.
+func (_u *UserUpdate) AddReversedFinanceVerifications(v ...*FinanceVerification) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReversedFinanceVerificationIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -610,6 +626,27 @@ func (_u *UserUpdate) RemoveCancelledFinanceCashflows(v ...*FinanceCashflow) *Us
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCashflowIDs(ids...)
+}
+
+// ClearReversedFinanceVerifications clears all "reversed_finance_verifications" edges to the FinanceVerification entity.
+func (_u *UserUpdate) ClearReversedFinanceVerifications() *UserUpdate {
+	_u.mutation.ClearReversedFinanceVerifications()
+	return _u
+}
+
+// RemoveReversedFinanceVerificationIDs removes the "reversed_finance_verifications" edge to FinanceVerification entities by IDs.
+func (_u *UserUpdate) RemoveReversedFinanceVerificationIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveReversedFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// RemoveReversedFinanceVerifications removes "reversed_finance_verifications" edges to FinanceVerification entities.
+func (_u *UserUpdate) RemoveReversedFinanceVerifications(v ...*FinanceVerification) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReversedFinanceVerificationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1246,6 +1283,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ReversedFinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReversedFinanceVerificationsIDs(); len(nodes) > 0 && !_u.mutation.ReversedFinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReversedFinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1605,6 +1687,21 @@ func (_u *UserUpdateOne) AddCancelledFinanceCashflows(v ...*FinanceCashflow) *Us
 	return _u.AddCancelledFinanceCashflowIDs(ids...)
 }
 
+// AddReversedFinanceVerificationIDs adds the "reversed_finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_u *UserUpdateOne) AddReversedFinanceVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddReversedFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// AddReversedFinanceVerifications adds the "reversed_finance_verifications" edges to the FinanceVerification entity.
+func (_u *UserUpdateOne) AddReversedFinanceVerifications(v ...*FinanceVerification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReversedFinanceVerificationIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -1839,6 +1936,27 @@ func (_u *UserUpdateOne) RemoveCancelledFinanceCashflows(v ...*FinanceCashflow) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCashflowIDs(ids...)
+}
+
+// ClearReversedFinanceVerifications clears all "reversed_finance_verifications" edges to the FinanceVerification entity.
+func (_u *UserUpdateOne) ClearReversedFinanceVerifications() *UserUpdateOne {
+	_u.mutation.ClearReversedFinanceVerifications()
+	return _u
+}
+
+// RemoveReversedFinanceVerificationIDs removes the "reversed_finance_verifications" edge to FinanceVerification entities by IDs.
+func (_u *UserUpdateOne) RemoveReversedFinanceVerificationIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveReversedFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// RemoveReversedFinanceVerifications removes "reversed_finance_verifications" edges to FinanceVerification entities.
+func (_u *UserUpdateOne) RemoveReversedFinanceVerifications(v ...*FinanceVerification) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReversedFinanceVerificationIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -2498,6 +2616,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReversedFinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReversedFinanceVerificationsIDs(); len(nodes) > 0 && !_u.mutation.ReversedFinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReversedFinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

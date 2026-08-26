@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -354,6 +355,21 @@ func (_c *FinanceBillCreate) AddInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceB
 		ids[i] = v[i].ID
 	}
 	return _c.AddInvoiceLinkIDs(ids...)
+}
+
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (_c *FinanceBillCreate) AddVerificationAllocationIDs(ids ...uuid.UUID) *FinanceBillCreate {
+	_c.mutation.AddVerificationAllocationIDs(ids...)
+	return _c
+}
+
+// AddVerificationAllocations adds the "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_c *FinanceBillCreate) AddVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddVerificationAllocationIDs(ids...)
 }
 
 // Mutation returns the FinanceBillMutation object of the builder.
@@ -747,6 +763,22 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.VerificationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.VerificationAllocationsTable,
+			Columns: []string{financebill.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

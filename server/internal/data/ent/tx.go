@@ -42,6 +42,10 @@ type Tx struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceVerification is the client for interacting with the FinanceVerification builders.
+	FinanceVerification *FinanceVerificationClient
+	// FinanceVerificationAllocation is the client for interacting with the FinanceVerificationAllocation builders.
+	FinanceVerificationAllocation *FinanceVerificationAllocationClient
 	// LoginRateLimitBucket is the client for interacting with the LoginRateLimitBucket builders.
 	LoginRateLimitBucket *LoginRateLimitBucketClient
 	// MasterDataItem is the client for interacting with the MasterDataItem builders.
@@ -280,6 +284,8 @@ func (tx *Tx) init() {
 	tx.FinanceCashflow = NewFinanceCashflowClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)
+	tx.FinanceVerification = NewFinanceVerificationClient(tx.config)
+	tx.FinanceVerificationAllocation = NewFinanceVerificationAllocationClient(tx.config)
 	tx.LoginRateLimitBucket = NewLoginRateLimitBucketClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)

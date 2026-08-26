@@ -17,7 +17,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, NewDingTalkIdentityProvider, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewSettlementRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewBackgroundTaskRepo)
+var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, NewDingTalkIdentityProvider, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewSettlementRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewVerificationRepo, NewBackgroundTaskRepo)
 
 // Data holds the long-lived storage clients shared by repos.
 type Data struct {

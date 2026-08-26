@@ -21,6 +21,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -1600,6 +1602,192 @@ func init() {
 	financeinvoicebillDescID := financeinvoicebillMixinFields0[0].Descriptor()
 	// financeinvoicebill.DefaultID holds the default value on creation for the id field.
 	financeinvoicebill.DefaultID = financeinvoicebillDescID.Default.(func() uuid.UUID)
+	financeverificationMixin := schema.FinanceVerification{}.Mixin()
+	financeverificationMixinFields0 := financeverificationMixin[0].Fields()
+	_ = financeverificationMixinFields0
+	financeverificationMixinFields1 := financeverificationMixin[1].Fields()
+	_ = financeverificationMixinFields1
+	financeverificationFields := schema.FinanceVerification{}.Fields()
+	_ = financeverificationFields
+	// financeverificationDescCreatedAt is the schema descriptor for created_at field.
+	financeverificationDescCreatedAt := financeverificationMixinFields1[0].Descriptor()
+	// financeverification.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financeverification.DefaultCreatedAt = financeverificationDescCreatedAt.Default.(func() time.Time)
+	// financeverificationDescUpdatedAt is the schema descriptor for updated_at field.
+	financeverificationDescUpdatedAt := financeverificationMixinFields1[1].Descriptor()
+	// financeverification.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financeverification.DefaultUpdatedAt = financeverificationDescUpdatedAt.Default.(func() time.Time)
+	// financeverification.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financeverification.UpdateDefaultUpdatedAt = financeverificationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financeverificationDescVerificationNo is the schema descriptor for verification_no field.
+	financeverificationDescVerificationNo := financeverificationFields[1].Descriptor()
+	// financeverification.VerificationNoValidator is a validator for the "verification_no" field. It is called by the builders before save.
+	financeverification.VerificationNoValidator = func() func(string) error {
+		validators := financeverificationDescVerificationNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(verification_no string) error {
+			for _, fn := range fns {
+				if err := fn(verification_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	financeverificationDescIdempotencyKey := financeverificationFields[2].Descriptor()
+	// financeverification.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	financeverification.IdempotencyKeyValidator = func() func(string) error {
+		validators := financeverificationDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationDescSettlementPartyName is the schema descriptor for settlement_party_name field.
+	financeverificationDescSettlementPartyName := financeverificationFields[6].Descriptor()
+	// financeverification.SettlementPartyNameValidator is a validator for the "settlement_party_name" field. It is called by the builders before save.
+	financeverification.SettlementPartyNameValidator = func() func(string) error {
+		validators := financeverificationDescSettlementPartyName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(settlement_party_name string) error {
+			for _, fn := range fns {
+				if err := fn(settlement_party_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationDescCurrency is the schema descriptor for currency field.
+	financeverificationDescCurrency := financeverificationFields[7].Descriptor()
+	// financeverification.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
+	financeverification.CurrencyValidator = func() func(string) error {
+		validators := financeverificationDescCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(currency string) error {
+			for _, fn := range fns {
+				if err := fn(currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationDescVerificationDate is the schema descriptor for verification_date field.
+	financeverificationDescVerificationDate := financeverificationFields[9].Descriptor()
+	// financeverification.VerificationDateValidator is a validator for the "verification_date" field. It is called by the builders before save.
+	financeverification.VerificationDateValidator = func() func(string) error {
+		validators := financeverificationDescVerificationDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(verification_date string) error {
+			for _, fn := range fns {
+				if err := fn(verification_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationDescNote is the schema descriptor for note field.
+	financeverificationDescNote := financeverificationFields[10].Descriptor()
+	// financeverification.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	financeverification.NoteValidator = financeverificationDescNote.Validators[0].(func(string) error)
+	// financeverificationDescVersion is the schema descriptor for version field.
+	financeverificationDescVersion := financeverificationFields[11].Descriptor()
+	// financeverification.DefaultVersion holds the default value on creation for the version field.
+	financeverification.DefaultVersion = financeverificationDescVersion.Default.(uint64)
+	// financeverificationDescReversalReason is the schema descriptor for reversal_reason field.
+	financeverificationDescReversalReason := financeverificationFields[14].Descriptor()
+	// financeverification.ReversalReasonValidator is a validator for the "reversal_reason" field. It is called by the builders before save.
+	financeverification.ReversalReasonValidator = financeverificationDescReversalReason.Validators[0].(func(string) error)
+	// financeverificationDescID is the schema descriptor for id field.
+	financeverificationDescID := financeverificationMixinFields0[0].Descriptor()
+	// financeverification.DefaultID holds the default value on creation for the id field.
+	financeverification.DefaultID = financeverificationDescID.Default.(func() uuid.UUID)
+	financeverificationallocationMixin := schema.FinanceVerificationAllocation{}.Mixin()
+	financeverificationallocationMixinFields0 := financeverificationallocationMixin[0].Fields()
+	_ = financeverificationallocationMixinFields0
+	financeverificationallocationMixinFields1 := financeverificationallocationMixin[1].Fields()
+	_ = financeverificationallocationMixinFields1
+	financeverificationallocationFields := schema.FinanceVerificationAllocation{}.Fields()
+	_ = financeverificationallocationFields
+	// financeverificationallocationDescCreatedAt is the schema descriptor for created_at field.
+	financeverificationallocationDescCreatedAt := financeverificationallocationMixinFields1[0].Descriptor()
+	// financeverificationallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financeverificationallocation.DefaultCreatedAt = financeverificationallocationDescCreatedAt.Default.(func() time.Time)
+	// financeverificationallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	financeverificationallocationDescUpdatedAt := financeverificationallocationMixinFields1[1].Descriptor()
+	// financeverificationallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financeverificationallocation.DefaultUpdatedAt = financeverificationallocationDescUpdatedAt.Default.(func() time.Time)
+	// financeverificationallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financeverificationallocation.UpdateDefaultUpdatedAt = financeverificationallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financeverificationallocationDescCashflowNo is the schema descriptor for cashflow_no field.
+	financeverificationallocationDescCashflowNo := financeverificationallocationFields[3].Descriptor()
+	// financeverificationallocation.CashflowNoValidator is a validator for the "cashflow_no" field. It is called by the builders before save.
+	financeverificationallocation.CashflowNoValidator = func() func(string) error {
+		validators := financeverificationallocationDescCashflowNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(cashflow_no string) error {
+			for _, fn := range fns {
+				if err := fn(cashflow_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationallocationDescBillNo is the schema descriptor for bill_no field.
+	financeverificationallocationDescBillNo := financeverificationallocationFields[4].Descriptor()
+	// financeverificationallocation.BillNoValidator is a validator for the "bill_no" field. It is called by the builders before save.
+	financeverificationallocation.BillNoValidator = func() func(string) error {
+		validators := financeverificationallocationDescBillNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bill_no string) error {
+			for _, fn := range fns {
+				if err := fn(bill_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeverificationallocationDescActive is the schema descriptor for active field.
+	financeverificationallocationDescActive := financeverificationallocationFields[6].Descriptor()
+	// financeverificationallocation.DefaultActive holds the default value on creation for the active field.
+	financeverificationallocation.DefaultActive = financeverificationallocationDescActive.Default.(bool)
+	// financeverificationallocationDescID is the schema descriptor for id field.
+	financeverificationallocationDescID := financeverificationallocationMixinFields0[0].Descriptor()
+	// financeverificationallocation.DefaultID holds the default value on creation for the id field.
+	financeverificationallocation.DefaultID = financeverificationallocationDescID.Default.(func() uuid.UUID)
 	loginratelimitbucketMixin := schema.LoginRateLimitBucket{}.Mixin()
 	loginratelimitbucketMixinFields0 := loginratelimitbucketMixin[0].Fields()
 	_ = loginratelimitbucketMixinFields0

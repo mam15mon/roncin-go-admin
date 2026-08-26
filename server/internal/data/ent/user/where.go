@@ -1114,6 +1114,29 @@ func HasCancelledFinanceCashflowsWith(preds ...predicate.FinanceCashflow) predic
 	})
 }
 
+// HasReversedFinanceVerifications applies the HasEdge predicate on the "reversed_finance_verifications" edge.
+func HasReversedFinanceVerifications() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReversedFinanceVerificationsTable, ReversedFinanceVerificationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReversedFinanceVerificationsWith applies the HasEdge predicate on the "reversed_finance_verifications" edge with a given conditions (other predicates).
+func HasReversedFinanceVerificationsWith(preds ...predicate.FinanceVerification) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newReversedFinanceVerificationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

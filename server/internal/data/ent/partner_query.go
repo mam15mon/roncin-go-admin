@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -35,25 +36,26 @@ import (
 // PartnerQuery is the builder for querying Partner entities.
 type PartnerQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []partner.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.Partner
-	withOrganization     *OrganizationQuery
-	withRoles            *PartnerRoleQuery
-	withContacts         *PartnerContactQuery
-	withAliases          *PartnerAliasQuery
-	withProfile          *PartnerProfileQuery
-	withAssignments      *PartnerAssignmentQuery
-	withShippingPresets  *PartnerShippingPresetQuery
-	withContracts        *PartnerContractQuery
-	withAttachments      *PartnerAttachmentQuery
-	withOrders           *OrderQuery
-	withOrderFees        *OrderFeeQuery
-	withFinanceBills     *FinanceBillQuery
-	withFinanceInvoices  *FinanceInvoiceQuery
-	withFinanceCashflows *FinanceCashflowQuery
-	modifiers            []func(*sql.Selector)
+	ctx                      *QueryContext
+	order                    []partner.OrderOption
+	inters                   []Interceptor
+	predicates               []predicate.Partner
+	withOrganization         *OrganizationQuery
+	withRoles                *PartnerRoleQuery
+	withContacts             *PartnerContactQuery
+	withAliases              *PartnerAliasQuery
+	withProfile              *PartnerProfileQuery
+	withAssignments          *PartnerAssignmentQuery
+	withShippingPresets      *PartnerShippingPresetQuery
+	withContracts            *PartnerContractQuery
+	withAttachments          *PartnerAttachmentQuery
+	withOrders               *OrderQuery
+	withOrderFees            *OrderFeeQuery
+	withFinanceBills         *FinanceBillQuery
+	withFinanceInvoices      *FinanceInvoiceQuery
+	withFinanceCashflows     *FinanceCashflowQuery
+	withFinanceVerifications *FinanceVerificationQuery
+	modifiers                []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -398,6 +400,28 @@ func (_q *PartnerQuery) QueryFinanceCashflows() *FinanceCashflowQuery {
 	return query
 }
 
+// QueryFinanceVerifications chains the current query on the "finance_verifications" edge.
+func (_q *PartnerQuery) QueryFinanceVerifications() *FinanceVerificationQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(financeverification.Table, financeverification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceVerificationsTable, partner.FinanceVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Partner entity from the query.
 // Returns a *NotFoundError when no Partner was found.
 func (_q *PartnerQuery) First(ctx context.Context) (*Partner, error) {
@@ -585,25 +609,26 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		return nil
 	}
 	return &PartnerQuery{
-		config:               _q.config,
-		ctx:                  _q.ctx.Clone(),
-		order:                append([]partner.OrderOption{}, _q.order...),
-		inters:               append([]Interceptor{}, _q.inters...),
-		predicates:           append([]predicate.Partner{}, _q.predicates...),
-		withOrganization:     _q.withOrganization.Clone(),
-		withRoles:            _q.withRoles.Clone(),
-		withContacts:         _q.withContacts.Clone(),
-		withAliases:          _q.withAliases.Clone(),
-		withProfile:          _q.withProfile.Clone(),
-		withAssignments:      _q.withAssignments.Clone(),
-		withShippingPresets:  _q.withShippingPresets.Clone(),
-		withContracts:        _q.withContracts.Clone(),
-		withAttachments:      _q.withAttachments.Clone(),
-		withOrders:           _q.withOrders.Clone(),
-		withOrderFees:        _q.withOrderFees.Clone(),
-		withFinanceBills:     _q.withFinanceBills.Clone(),
-		withFinanceInvoices:  _q.withFinanceInvoices.Clone(),
-		withFinanceCashflows: _q.withFinanceCashflows.Clone(),
+		config:                   _q.config,
+		ctx:                      _q.ctx.Clone(),
+		order:                    append([]partner.OrderOption{}, _q.order...),
+		inters:                   append([]Interceptor{}, _q.inters...),
+		predicates:               append([]predicate.Partner{}, _q.predicates...),
+		withOrganization:         _q.withOrganization.Clone(),
+		withRoles:                _q.withRoles.Clone(),
+		withContacts:             _q.withContacts.Clone(),
+		withAliases:              _q.withAliases.Clone(),
+		withProfile:              _q.withProfile.Clone(),
+		withAssignments:          _q.withAssignments.Clone(),
+		withShippingPresets:      _q.withShippingPresets.Clone(),
+		withContracts:            _q.withContracts.Clone(),
+		withAttachments:          _q.withAttachments.Clone(),
+		withOrders:               _q.withOrders.Clone(),
+		withOrderFees:            _q.withOrderFees.Clone(),
+		withFinanceBills:         _q.withFinanceBills.Clone(),
+		withFinanceInvoices:      _q.withFinanceInvoices.Clone(),
+		withFinanceCashflows:     _q.withFinanceCashflows.Clone(),
+		withFinanceVerifications: _q.withFinanceVerifications.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -764,6 +789,17 @@ func (_q *PartnerQuery) WithFinanceCashflows(opts ...func(*FinanceCashflowQuery)
 	return _q
 }
 
+// WithFinanceVerifications tells the query-builder to eager-load the nodes that are connected to
+// the "finance_verifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithFinanceVerifications(opts ...func(*FinanceVerificationQuery)) *PartnerQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceVerifications = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -842,7 +878,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [14]bool{
+		loadedTypes = [15]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -857,6 +893,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withFinanceBills != nil,
 			_q.withFinanceInvoices != nil,
 			_q.withFinanceCashflows != nil,
+			_q.withFinanceVerifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -975,6 +1012,15 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadFinanceCashflows(ctx, query, nodes,
 			func(n *Partner) { n.Edges.FinanceCashflows = []*FinanceCashflow{} },
 			func(n *Partner, e *FinanceCashflow) { n.Edges.FinanceCashflows = append(n.Edges.FinanceCashflows, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceVerifications; query != nil {
+		if err := _q.loadFinanceVerifications(ctx, query, nodes,
+			func(n *Partner) { n.Edges.FinanceVerifications = []*FinanceVerification{} },
+			func(n *Partner, e *FinanceVerification) {
+				n.Edges.FinanceVerifications = append(n.Edges.FinanceVerifications, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1382,6 +1428,36 @@ func (_q *PartnerQuery) loadFinanceCashflows(ctx context.Context, query *Finance
 	}
 	query.Where(predicate.FinanceCashflow(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.FinanceCashflowsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SettlementPartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "settlement_party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadFinanceVerifications(ctx context.Context, query *FinanceVerificationQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *FinanceVerification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeverification.FieldSettlementPartyID)
+	}
+	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.FinanceVerificationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

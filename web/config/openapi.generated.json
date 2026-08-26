@@ -2086,6 +2086,126 @@
         }
       }
     },
+    "/api/v1/finance/verifications": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListVerifications",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListVerificationsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_CreateVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.CreateVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.CreateVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/verifications/{id}/reverse": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ReverseVerification",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.ReverseVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ReverseVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/master-data/airlines": {
       "get": {
         "tags": [
@@ -7659,6 +7779,52 @@
           }
         }
       },
+      "finance.v1.CreateVerificationRequest": {
+        "required": [
+          "allocations",
+          "verificationDate",
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.VerificationAllocationInput"
+            }
+          },
+          "verificationDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CreateVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceVerification"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.DisableExchangeRateSettingRequest": {
         "required": [
           "id"
@@ -8212,6 +8378,85 @@
           }
         }
       },
+      "finance.v1.FinanceVerification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "verificationNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "verificationDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "reversedAt": {
+            "type": "string"
+          },
+          "reversalReason": {
+            "type": "string"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceVerificationAllocation"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceVerificationAllocation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cashflowId": {
+            "type": "string"
+          },
+          "billId": {
+            "type": "string"
+          },
+          "cashflowNo": {
+            "type": "string"
+          },
+          "billNo": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
       "finance.v1.GetBillResponse": {
         "type": "object",
         "properties": {
@@ -8526,6 +8771,73 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.TaxableService"
             }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListVerificationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceVerification"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ReverseVerificationRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ReverseVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceVerification"
           },
           "traceId": {
             "type": "string"
@@ -8877,6 +9189,25 @@
             "$ref": "#/components/schemas/finance.v1.TaxableService"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.VerificationAllocationInput": {
+        "required": [
+          "cashflowId",
+          "billId",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "cashflowId": {
+            "type": "string"
+          },
+          "billId": {
+            "type": "string"
+          },
+          "amount": {
             "type": "string"
           }
         }

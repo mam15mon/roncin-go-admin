@@ -91,9 +91,11 @@ type FinanceBillEdges struct {
 	Lines []*FinanceBillLine `json:"lines,omitempty"`
 	// InvoiceLinks holds the value of the invoice_links edge.
 	InvoiceLinks []*FinanceInvoiceBill `json:"invoice_links,omitempty"`
+	// VerificationAllocations holds the value of the verification_allocations edge.
+	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -156,6 +158,15 @@ func (e FinanceBillEdges) InvoiceLinksOrErr() ([]*FinanceInvoiceBill, error) {
 		return e.InvoiceLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "invoice_links"}
+}
+
+// VerificationAllocationsOrErr returns the VerificationAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillEdges) VerificationAllocationsOrErr() ([]*FinanceVerificationAllocation, error) {
+	if e.loadedTypes[6] {
+		return e.VerificationAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "verification_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -392,6 +403,11 @@ func (_m *FinanceBill) QueryLines() *FinanceBillLineQuery {
 // QueryInvoiceLinks queries the "invoice_links" edge of the FinanceBill entity.
 func (_m *FinanceBill) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
 	return NewFinanceBillClient(_m.config).QueryInvoiceLinks(_m)
+}
+
+// QueryVerificationAllocations queries the "verification_allocations" edge of the FinanceBill entity.
+func (_m *FinanceBill) QueryVerificationAllocations() *FinanceVerificationAllocationQuery {
+	return NewFinanceBillClient(_m.config).QueryVerificationAllocations(_m)
 }
 
 // Update returns a builder for updating this FinanceBill.

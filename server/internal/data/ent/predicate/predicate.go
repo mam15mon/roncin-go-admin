@@ -51,6 +51,12 @@ type FinanceInvoice func(*sql.Selector)
 // FinanceInvoiceBill is the predicate function for financeinvoicebill builders.
 type FinanceInvoiceBill func(*sql.Selector)
 
+// FinanceVerification is the predicate function for financeverification builders.
+type FinanceVerification func(*sql.Selector)
+
+// FinanceVerificationAllocation is the predicate function for financeverificationallocation builders.
+type FinanceVerificationAllocation func(*sql.Selector)
+
 // LoginRateLimitBucket is the predicate function for loginratelimitbucket builders.
 type LoginRateLimitBucket func(*sql.Selector)
 

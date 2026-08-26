@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -29,22 +30,23 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                           *QueryContext
-	order                         []user.OrderOption
-	inters                        []Interceptor
-	predicates                    []predicate.User
-	withMemberships               *MembershipQuery
-	withSessions                  *SessionQuery
-	withOrderPersonnel            *OrderPersonnelQuery
-	withPartnerAssignments        *PartnerAssignmentQuery
-	withCancelledOrderFees        *OrderFeeQuery
-	withConfirmedFinanceBills     *FinanceBillQuery
-	withCancelledFinanceBills     *FinanceBillQuery
-	withIssuedFinanceInvoices     *FinanceInvoiceQuery
-	withCancelledFinanceInvoices  *FinanceInvoiceQuery
-	withConfirmedFinanceCashflows *FinanceCashflowQuery
-	withCancelledFinanceCashflows *FinanceCashflowQuery
-	modifiers                     []func(*sql.Selector)
+	ctx                              *QueryContext
+	order                            []user.OrderOption
+	inters                           []Interceptor
+	predicates                       []predicate.User
+	withMemberships                  *MembershipQuery
+	withSessions                     *SessionQuery
+	withOrderPersonnel               *OrderPersonnelQuery
+	withPartnerAssignments           *PartnerAssignmentQuery
+	withCancelledOrderFees           *OrderFeeQuery
+	withConfirmedFinanceBills        *FinanceBillQuery
+	withCancelledFinanceBills        *FinanceBillQuery
+	withIssuedFinanceInvoices        *FinanceInvoiceQuery
+	withCancelledFinanceInvoices     *FinanceInvoiceQuery
+	withConfirmedFinanceCashflows    *FinanceCashflowQuery
+	withCancelledFinanceCashflows    *FinanceCashflowQuery
+	withReversedFinanceVerifications *FinanceVerificationQuery
+	modifiers                        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -323,6 +325,28 @@ func (_q *UserQuery) QueryCancelledFinanceCashflows() *FinanceCashflowQuery {
 	return query
 }
 
+// QueryReversedFinanceVerifications chains the current query on the "reversed_finance_verifications" edge.
+func (_q *UserQuery) QueryReversedFinanceVerifications() *FinanceVerificationQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financeverification.Table, financeverification.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReversedFinanceVerificationsTable, user.ReversedFinanceVerificationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -510,22 +534,23 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                        _q.config,
-		ctx:                           _q.ctx.Clone(),
-		order:                         append([]user.OrderOption{}, _q.order...),
-		inters:                        append([]Interceptor{}, _q.inters...),
-		predicates:                    append([]predicate.User{}, _q.predicates...),
-		withMemberships:               _q.withMemberships.Clone(),
-		withSessions:                  _q.withSessions.Clone(),
-		withOrderPersonnel:            _q.withOrderPersonnel.Clone(),
-		withPartnerAssignments:        _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees:        _q.withCancelledOrderFees.Clone(),
-		withConfirmedFinanceBills:     _q.withConfirmedFinanceBills.Clone(),
-		withCancelledFinanceBills:     _q.withCancelledFinanceBills.Clone(),
-		withIssuedFinanceInvoices:     _q.withIssuedFinanceInvoices.Clone(),
-		withCancelledFinanceInvoices:  _q.withCancelledFinanceInvoices.Clone(),
-		withConfirmedFinanceCashflows: _q.withConfirmedFinanceCashflows.Clone(),
-		withCancelledFinanceCashflows: _q.withCancelledFinanceCashflows.Clone(),
+		config:                           _q.config,
+		ctx:                              _q.ctx.Clone(),
+		order:                            append([]user.OrderOption{}, _q.order...),
+		inters:                           append([]Interceptor{}, _q.inters...),
+		predicates:                       append([]predicate.User{}, _q.predicates...),
+		withMemberships:                  _q.withMemberships.Clone(),
+		withSessions:                     _q.withSessions.Clone(),
+		withOrderPersonnel:               _q.withOrderPersonnel.Clone(),
+		withPartnerAssignments:           _q.withPartnerAssignments.Clone(),
+		withCancelledOrderFees:           _q.withCancelledOrderFees.Clone(),
+		withConfirmedFinanceBills:        _q.withConfirmedFinanceBills.Clone(),
+		withCancelledFinanceBills:        _q.withCancelledFinanceBills.Clone(),
+		withIssuedFinanceInvoices:        _q.withIssuedFinanceInvoices.Clone(),
+		withCancelledFinanceInvoices:     _q.withCancelledFinanceInvoices.Clone(),
+		withConfirmedFinanceCashflows:    _q.withConfirmedFinanceCashflows.Clone(),
+		withCancelledFinanceCashflows:    _q.withCancelledFinanceCashflows.Clone(),
+		withReversedFinanceVerifications: _q.withReversedFinanceVerifications.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -653,6 +678,17 @@ func (_q *UserQuery) WithCancelledFinanceCashflows(opts ...func(*FinanceCashflow
 	return _q
 }
 
+// WithReversedFinanceVerifications tells the query-builder to eager-load the nodes that are connected to
+// the "reversed_finance_verifications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithReversedFinanceVerifications(opts ...func(*FinanceVerificationQuery)) *UserQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withReversedFinanceVerifications = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -731,7 +767,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [12]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -743,6 +779,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCancelledFinanceInvoices != nil,
 			_q.withConfirmedFinanceCashflows != nil,
 			_q.withCancelledFinanceCashflows != nil,
+			_q.withReversedFinanceVerifications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -853,6 +890,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceCashflows = []*FinanceCashflow{} },
 			func(n *User, e *FinanceCashflow) {
 				n.Edges.CancelledFinanceCashflows = append(n.Edges.CancelledFinanceCashflows, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withReversedFinanceVerifications; query != nil {
+		if err := _q.loadReversedFinanceVerifications(ctx, query, nodes,
+			func(n *User) { n.Edges.ReversedFinanceVerifications = []*FinanceVerification{} },
+			func(n *User, e *FinanceVerification) {
+				n.Edges.ReversedFinanceVerifications = append(n.Edges.ReversedFinanceVerifications, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1206,6 +1252,39 @@ func (_q *UserQuery) loadCancelledFinanceCashflows(ctx context.Context, query *F
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadReversedFinanceVerifications(ctx context.Context, query *FinanceVerificationQuery, nodes []*User, init func(*User), assign func(*User, *FinanceVerification)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeverification.FieldReversedBy)
+	}
+	query.Where(predicate.FinanceVerification(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReversedFinanceVerificationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ReversedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "reversed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "reversed_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

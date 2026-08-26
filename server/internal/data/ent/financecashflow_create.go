@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -336,6 +337,21 @@ func (_c *FinanceCashflowCreate) SetNillableCancelledByUserID(id *uuid.UUID) *Fi
 // SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
 func (_c *FinanceCashflowCreate) SetCancelledByUser(v *User) *FinanceCashflowCreate {
 	return _c.SetCancelledByUserID(v.ID)
+}
+
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (_c *FinanceCashflowCreate) AddVerificationAllocationIDs(ids ...uuid.UUID) *FinanceCashflowCreate {
+	_c.mutation.AddVerificationAllocationIDs(ids...)
+	return _c
+}
+
+// AddVerificationAllocations adds the "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_c *FinanceCashflowCreate) AddVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceCashflowCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddVerificationAllocationIDs(ids...)
 }
 
 // Mutation returns the FinanceCashflowMutation object of the builder.
@@ -716,6 +732,22 @@ func (_c *FinanceCashflowCreate) createSpec() (*FinanceCashflow, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CancelledBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.VerificationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

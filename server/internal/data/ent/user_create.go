@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -358,6 +359,21 @@ func (_c *UserCreate) AddCancelledFinanceCashflows(v ...*FinanceCashflow) *UserC
 		ids[i] = v[i].ID
 	}
 	return _c.AddCancelledFinanceCashflowIDs(ids...)
+}
+
+// AddReversedFinanceVerificationIDs adds the "reversed_finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_c *UserCreate) AddReversedFinanceVerificationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddReversedFinanceVerificationIDs(ids...)
+	return _c
+}
+
+// AddReversedFinanceVerifications adds the "reversed_finance_verifications" edges to the FinanceVerification entity.
+func (_c *UserCreate) AddReversedFinanceVerifications(v ...*FinanceVerification) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReversedFinanceVerificationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -722,6 +738,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReversedFinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReversedFinanceVerificationsTable,
+			Columns: []string{user.ReversedFinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

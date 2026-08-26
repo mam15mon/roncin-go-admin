@@ -74,9 +74,11 @@ type PartnerEdges struct {
 	FinanceInvoices []*FinanceInvoice `json:"finance_invoices,omitempty"`
 	// FinanceCashflows holds the value of the finance_cashflows edge.
 	FinanceCashflows []*FinanceCashflow `json:"finance_cashflows,omitempty"`
+	// FinanceVerifications holds the value of the finance_verifications edge.
+	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [14]bool
+	loadedTypes [15]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -207,6 +209,15 @@ func (e PartnerEdges) FinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
 		return e.FinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_cashflows"}
+}
+
+// FinanceVerificationsOrErr returns the FinanceVerifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error) {
+	if e.loadedTypes[14] {
+		return e.FinanceVerifications, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_verifications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -379,6 +390,11 @@ func (_m *Partner) QueryFinanceInvoices() *FinanceInvoiceQuery {
 // QueryFinanceCashflows queries the "finance_cashflows" edge of the Partner entity.
 func (_m *Partner) QueryFinanceCashflows() *FinanceCashflowQuery {
 	return NewPartnerClient(_m.config).QueryFinanceCashflows(_m)
+}
+
+// QueryFinanceVerifications queries the "finance_verifications" edge of the Partner entity.
+func (_m *Partner) QueryFinanceVerifications() *FinanceVerificationQuery {
+	return NewPartnerClient(_m.config).QueryFinanceVerifications(_m)
 }
 
 // Update returns a builder for updating this Partner.

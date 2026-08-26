@@ -25,6 +25,7 @@ const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
 const OperationSettlementServiceCreateCashflow = "/finance.v1.SettlementService/CreateCashflow"
 const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/CreateInvoice"
+const OperationSettlementServiceCreateVerification = "/finance.v1.SettlementService/CreateVerification"
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
@@ -32,6 +33,8 @@ const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListB
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
+const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
+const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 
 type SettlementServiceHTTPServer interface {
@@ -43,6 +46,7 @@ type SettlementServiceHTTPServer interface {
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
+	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
@@ -51,6 +55,8 @@ type SettlementServiceHTTPServer interface {
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
+	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 }
 
@@ -72,6 +78,9 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/cashflows", _SettlementService_CreateCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/confirm", _SettlementService_ConfirmCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/cancel", _SettlementService_CancelCashflow0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/verifications", _SettlementService_ListVerifications0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/verifications", _SettlementService_CreateVerification0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
 }
 
 func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
@@ -405,6 +414,66 @@ func _SettlementService_CancelCashflow0_HTTP_Handler(srv SettlementServiceHTTPSe
 	}
 }
 
+func _SettlementService_ListVerifications0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListVerificationsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListVerifications)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListVerifications(ctx, req.(*ListVerificationsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListVerificationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CreateVerification0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateVerificationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCreateVerification)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateVerification(ctx, req.(*CreateVerificationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateVerificationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ReverseVerification0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ReverseVerificationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceReverseVerification)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ReverseVerification(ctx, req.(*ReverseVerificationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ReverseVerificationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SettlementServiceHTTPClient interface {
 	CancelBill(ctx context.Context, req *CancelBillRequest, opts ...http.CallOption) (rsp *CancelBillResponse, err error)
 	CancelCashflow(ctx context.Context, req *CancelCashflowRequest, opts ...http.CallOption) (rsp *CancelCashflowResponse, err error)
@@ -414,6 +483,7 @@ type SettlementServiceHTTPClient interface {
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
 	CreateCashflow(ctx context.Context, req *CreateCashflowRequest, opts ...http.CallOption) (rsp *CreateCashflowResponse, err error)
 	CreateInvoice(ctx context.Context, req *CreateInvoiceRequest, opts ...http.CallOption) (rsp *CreateInvoiceResponse, err error)
+	CreateVerification(ctx context.Context, req *CreateVerificationRequest, opts ...http.CallOption) (rsp *CreateVerificationResponse, err error)
 	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
@@ -422,6 +492,8 @@ type SettlementServiceHTTPClient interface {
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
+	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
+	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
 }
 
@@ -569,6 +641,23 @@ func (c *SettlementServiceHTTPClientImpl) CreateInvoice(ctx context.Context, in 
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...http.CallOption) (*CreateVerificationResponse, error) {
+	var out CreateVerificationResponse
+	pattern := "/api/v1/finance/verifications"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCreateVerification),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) GetBill(ctx context.Context, in *GetBillRequest, opts ...http.CallOption) (*GetBillResponse, error) {
 	var out GetBillResponse
 	pattern := "/api/v1/finance/bills/{id}"
@@ -677,6 +766,39 @@ func (c *SettlementServiceHTTPClientImpl) ListInvoices(ctx context.Context, in *
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...http.CallOption) (*ListVerificationsResponse, error) {
+	var out ListVerificationsResponse
+	pattern := "/api/v1/finance/verifications"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListVerifications),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...http.CallOption) (*ReverseVerificationResponse, error) {
+	var out ReverseVerificationResponse
+	pattern := "/api/v1/finance/verifications/{id}/reverse"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceReverseVerification),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

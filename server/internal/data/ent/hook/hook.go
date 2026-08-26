@@ -189,6 +189,30 @@ func (f FinanceInvoiceBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceBillMutation", m)
 }
 
+// The FinanceVerificationFunc type is an adapter to allow the use of ordinary
+// function as FinanceVerification mutator.
+type FinanceVerificationFunc func(context.Context, *ent.FinanceVerificationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceVerificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceVerificationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceVerificationMutation", m)
+}
+
+// The FinanceVerificationAllocationFunc type is an adapter to allow the use of ordinary
+// function as FinanceVerificationAllocation mutator.
+type FinanceVerificationAllocationFunc func(context.Context, *ent.FinanceVerificationAllocationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceVerificationAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceVerificationAllocationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceVerificationAllocationMutation", m)
+}
+
 // The LoginRateLimitBucketFunc type is an adapter to allow the use of ordinary
 // function as LoginRateLimitBucket mutator.
 type LoginRateLimitBucketFunc func(context.Context, *ent.LoginRateLimitBucketMutation) (ent.Value, error)

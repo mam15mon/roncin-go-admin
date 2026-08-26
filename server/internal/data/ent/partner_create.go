@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -345,6 +346,21 @@ func (_c *PartnerCreate) AddFinanceCashflows(v ...*FinanceCashflow) *PartnerCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCashflowIDs(ids...)
+}
+
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_c *PartnerCreate) AddFinanceVerificationIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddFinanceVerificationIDs(ids...)
+	return _c
+}
+
+// AddFinanceVerifications adds the "finance_verifications" edges to the FinanceVerification entity.
+func (_c *PartnerCreate) AddFinanceVerifications(v ...*FinanceVerification) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceVerificationIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -736,6 +752,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

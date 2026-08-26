@@ -901,6 +901,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateVerificationRequest = {
+    allocations: VerificationAllocationInput[];
+    verificationDate: string;
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateVerificationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceVerification;
+    traceId?: string;
+  };
+
   type Currency = {
     id?: string;
     code?: string;
@@ -1169,6 +1184,34 @@ declare namespace API {
     billNo?: string;
     amount?: string;
     taxAmount?: string;
+    active?: boolean;
+  };
+
+  type FinanceVerification = {
+    id?: string;
+    verificationNo?: string;
+    status?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    amount?: string;
+    verificationDate?: string;
+    note?: string;
+    version?: string;
+    reversedAt?: string;
+    reversalReason?: string;
+    allocations?: FinanceVerificationAllocation[];
+    createdAt?: string;
+  };
+
+  type FinanceVerificationAllocation = {
+    id?: string;
+    cashflowId?: string;
+    billId?: string;
+    cashflowNo?: string;
+    billNo?: string;
+    amount?: string;
     active?: boolean;
   };
 
@@ -1699,6 +1742,15 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListVerificationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceVerification[];
+    total?: string;
     traceId?: string;
   };
 
@@ -3010,6 +3062,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ReverseVerificationRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type ReverseVerificationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceVerification;
+    traceId?: string;
+  };
+
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
@@ -3141,6 +3207,17 @@ declare namespace API {
     keyword?: string;
     direction?: string;
     status?: string;
+  };
+
+  type SettlementServiceListVerificationsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: string;
+  };
+
+  type SettlementServiceReverseVerificationParams = {
+    id: string;
   };
 
   type SettlementServiceUpdateBillParams = {
@@ -3789,6 +3866,12 @@ declare namespace API {
     message?: string;
     data?: AdminUser;
     traceId?: string;
+  };
+
+  type VerificationAllocationInput = {
+    cashflowId: string;
+    billId: string;
+    amount: string;
   };
 
   type WeComLoginConfig = {

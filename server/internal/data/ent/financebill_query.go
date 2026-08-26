@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -26,17 +27,18 @@ import (
 // FinanceBillQuery is the builder for querying FinanceBill entities.
 type FinanceBillQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []financebill.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.FinanceBill
-	withOrganization    *OrganizationQuery
-	withSettlementParty *PartnerQuery
-	withConfirmedByUser *UserQuery
-	withCancelledByUser *UserQuery
-	withLines           *FinanceBillLineQuery
-	withInvoiceLinks    *FinanceInvoiceBillQuery
-	modifiers           []func(*sql.Selector)
+	ctx                         *QueryContext
+	order                       []financebill.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.FinanceBill
+	withOrganization            *OrganizationQuery
+	withSettlementParty         *PartnerQuery
+	withConfirmedByUser         *UserQuery
+	withCancelledByUser         *UserQuery
+	withLines                   *FinanceBillLineQuery
+	withInvoiceLinks            *FinanceInvoiceBillQuery
+	withVerificationAllocations *FinanceVerificationAllocationQuery
+	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -198,6 +200,28 @@ func (_q *FinanceBillQuery) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
 			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
 			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebill.InvoiceLinksTable, financebill.InvoiceLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVerificationAllocations chains the current query on the "verification_allocations" edge.
+func (_q *FinanceBillQuery) QueryVerificationAllocations() *FinanceVerificationAllocationQuery {
+	query := (&FinanceVerificationAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financeverificationallocation.Table, financeverificationallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.VerificationAllocationsTable, financebill.VerificationAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -392,17 +416,18 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		return nil
 	}
 	return &FinanceBillQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]financebill.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.FinanceBill{}, _q.predicates...),
-		withOrganization:    _q.withOrganization.Clone(),
-		withSettlementParty: _q.withSettlementParty.Clone(),
-		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
-		withLines:           _q.withLines.Clone(),
-		withInvoiceLinks:    _q.withInvoiceLinks.Clone(),
+		config:                      _q.config,
+		ctx:                         _q.ctx.Clone(),
+		order:                       append([]financebill.OrderOption{}, _q.order...),
+		inters:                      append([]Interceptor{}, _q.inters...),
+		predicates:                  append([]predicate.FinanceBill{}, _q.predicates...),
+		withOrganization:            _q.withOrganization.Clone(),
+		withSettlementParty:         _q.withSettlementParty.Clone(),
+		withConfirmedByUser:         _q.withConfirmedByUser.Clone(),
+		withCancelledByUser:         _q.withCancelledByUser.Clone(),
+		withLines:                   _q.withLines.Clone(),
+		withInvoiceLinks:            _q.withInvoiceLinks.Clone(),
+		withVerificationAllocations: _q.withVerificationAllocations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -472,6 +497,17 @@ func (_q *FinanceBillQuery) WithInvoiceLinks(opts ...func(*FinanceInvoiceBillQue
 		opt(query)
 	}
 	_q.withInvoiceLinks = query
+	return _q
+}
+
+// WithVerificationAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "verification_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithVerificationAllocations(opts ...func(*FinanceVerificationAllocationQuery)) *FinanceBillQuery {
+	query := (&FinanceVerificationAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withVerificationAllocations = query
 	return _q
 }
 
@@ -553,13 +589,14 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withCancelledByUser != nil,
 			_q.withLines != nil,
 			_q.withInvoiceLinks != nil,
+			_q.withVerificationAllocations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -618,6 +655,15 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadInvoiceLinks(ctx, query, nodes,
 			func(n *FinanceBill) { n.Edges.InvoiceLinks = []*FinanceInvoiceBill{} },
 			func(n *FinanceBill, e *FinanceInvoiceBill) { n.Edges.InvoiceLinks = append(n.Edges.InvoiceLinks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withVerificationAllocations; query != nil {
+		if err := _q.loadVerificationAllocations(ctx, query, nodes,
+			func(n *FinanceBill) { n.Edges.VerificationAllocations = []*FinanceVerificationAllocation{} },
+			func(n *FinanceBill, e *FinanceVerificationAllocation) {
+				n.Edges.VerificationAllocations = append(n.Edges.VerificationAllocations, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -791,6 +837,36 @@ func (_q *FinanceBillQuery) loadInvoiceLinks(ctx context.Context, query *Finance
 	}
 	query.Where(predicate.FinanceInvoiceBill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financebill.InvoiceLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadVerificationAllocations(ctx context.Context, query *FinanceVerificationAllocationQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceVerificationAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeverificationallocation.FieldBillID)
+	}
+	query.Where(predicate.FinanceVerificationAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebill.VerificationAllocationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

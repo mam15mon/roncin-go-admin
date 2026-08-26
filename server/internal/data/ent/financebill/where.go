@@ -1584,6 +1584,29 @@ func HasInvoiceLinksWith(preds ...predicate.FinanceInvoiceBill) predicate.Financ
 	})
 }
 
+// HasVerificationAllocations applies the HasEdge predicate on the "verification_allocations" edge.
+func HasVerificationAllocations() predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VerificationAllocationsTable, VerificationAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVerificationAllocationsWith applies the HasEdge predicate on the "verification_allocations" edge with a given conditions (other predicates).
+func HasVerificationAllocationsWith(preds ...predicate.FinanceVerificationAllocation) predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := newVerificationAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceBill) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.AndPredicates(predicates...))

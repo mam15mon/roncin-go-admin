@@ -12,6 +12,7 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoicebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -295,6 +296,13 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 		return rollback(err)
 	}
 	if invoiced {
+		return rollback(biz.ErrFinanceBillInvalidTransition)
+	}
+	verified, err := tx.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDEQ(id), verificationallocationent.ActiveEQ(true)).Exist(ctx)
+	if err != nil {
+		return rollback(err)
+	}
+	if verified {
 		return rollback(biz.ErrFinanceBillInvalidTransition)
 	}
 	lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().All(ctx)

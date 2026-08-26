@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -525,6 +526,21 @@ func (_c *OrganizationCreate) AddFinanceCashflows(v ...*FinanceCashflow) *Organi
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCashflowIDs(ids...)
+}
+
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_c *OrganizationCreate) AddFinanceVerificationIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceVerificationIDs(ids...)
+	return _c
+}
+
+// AddFinanceVerifications adds the "finance_verifications" edges to the FinanceVerification entity.
+func (_c *OrganizationCreate) AddFinanceVerifications(v ...*FinanceVerification) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceVerificationIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1093,6 +1109,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceVerificationsTable,
+			Columns: []string{organization.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

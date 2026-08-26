@@ -41,6 +41,7 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("finance_bills", FinanceBill.Type),
 		edge.To("finance_invoices", FinanceInvoice.Type),
 		edge.To("finance_cashflows", FinanceCashflow.Type),
+		edge.To("finance_verifications", FinanceVerification.Type),
 	}
 }
 

@@ -3667,6 +3667,746 @@ func (x *CancelCashflowResponse) GetTraceId() string {
 	return ""
 }
 
+type VerificationAllocationInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CashflowId    string                 `protobuf:"bytes,1,opt,name=cashflow_id,json=cashflowId,proto3" json:"cashflow_id,omitempty"`
+	BillId        string                 `protobuf:"bytes,2,opt,name=bill_id,json=billId,proto3" json:"bill_id,omitempty"`
+	Amount        string                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerificationAllocationInput) Reset() {
+	*x = VerificationAllocationInput{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerificationAllocationInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerificationAllocationInput) ProtoMessage() {}
+
+func (x *VerificationAllocationInput) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerificationAllocationInput.ProtoReflect.Descriptor instead.
+func (*VerificationAllocationInput) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *VerificationAllocationInput) GetCashflowId() string {
+	if x != nil {
+		return x.CashflowId
+	}
+	return ""
+}
+
+func (x *VerificationAllocationInput) GetBillId() string {
+	if x != nil {
+		return x.BillId
+	}
+	return ""
+}
+
+func (x *VerificationAllocationInput) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+type ListVerificationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	Status        *string                `protobuf:"bytes,4,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVerificationsRequest) Reset() {
+	*x = ListVerificationsRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVerificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVerificationsRequest) ProtoMessage() {}
+
+func (x *ListVerificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVerificationsRequest.ProtoReflect.Descriptor instead.
+func (*ListVerificationsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ListVerificationsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListVerificationsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListVerificationsRequest) GetKeyword() string {
+	if x != nil && x.Keyword != nil {
+		return *x.Keyword
+	}
+	return ""
+}
+
+func (x *ListVerificationsRequest) GetStatus() string {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return ""
+}
+
+type CreateVerificationRequest struct {
+	state            protoimpl.MessageState         `protogen:"open.v1"`
+	Allocations      []*VerificationAllocationInput `protobuf:"bytes,1,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	VerificationDate string                         `protobuf:"bytes,2,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
+	Note             *string                        `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	IdempotencyKey   string                         `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CreateVerificationRequest) Reset() {
+	*x = CreateVerificationRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVerificationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVerificationRequest) ProtoMessage() {}
+
+func (x *CreateVerificationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVerificationRequest.ProtoReflect.Descriptor instead.
+func (*CreateVerificationRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *CreateVerificationRequest) GetAllocations() []*VerificationAllocationInput {
+	if x != nil {
+		return x.Allocations
+	}
+	return nil
+}
+
+func (x *CreateVerificationRequest) GetVerificationDate() string {
+	if x != nil {
+		return x.VerificationDate
+	}
+	return ""
+}
+
+func (x *CreateVerificationRequest) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *CreateVerificationRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+type ReverseVerificationRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Reason          string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ReverseVerificationRequest) Reset() {
+	*x = ReverseVerificationRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReverseVerificationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReverseVerificationRequest) ProtoMessage() {}
+
+func (x *ReverseVerificationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReverseVerificationRequest.ProtoReflect.Descriptor instead.
+func (*ReverseVerificationRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ReverseVerificationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ReverseVerificationRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *ReverseVerificationRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type FinanceVerificationAllocation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CashflowId    string                 `protobuf:"bytes,2,opt,name=cashflow_id,json=cashflowId,proto3" json:"cashflow_id,omitempty"`
+	BillId        string                 `protobuf:"bytes,3,opt,name=bill_id,json=billId,proto3" json:"bill_id,omitempty"`
+	CashflowNo    string                 `protobuf:"bytes,4,opt,name=cashflow_no,json=cashflowNo,proto3" json:"cashflow_no,omitempty"`
+	BillNo        string                 `protobuf:"bytes,5,opt,name=bill_no,json=billNo,proto3" json:"bill_no,omitempty"`
+	Amount        string                 `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	Active        bool                   `protobuf:"varint,7,opt,name=active,proto3" json:"active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinanceVerificationAllocation) Reset() {
+	*x = FinanceVerificationAllocation{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinanceVerificationAllocation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinanceVerificationAllocation) ProtoMessage() {}
+
+func (x *FinanceVerificationAllocation) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinanceVerificationAllocation.ProtoReflect.Descriptor instead.
+func (*FinanceVerificationAllocation) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *FinanceVerificationAllocation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetCashflowId() string {
+	if x != nil {
+		return x.CashflowId
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetBillId() string {
+	if x != nil {
+		return x.BillId
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetCashflowNo() string {
+	if x != nil {
+		return x.CashflowNo
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetBillNo() string {
+	if x != nil {
+		return x.BillNo
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *FinanceVerificationAllocation) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+type FinanceVerification struct {
+	state               protoimpl.MessageState           `protogen:"open.v1"`
+	Id                  string                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	VerificationNo      string                           `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
+	Status              string                           `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Direction           string                           `protobuf:"bytes,4,opt,name=direction,proto3" json:"direction,omitempty"`
+	SettlementPartyId   string                           `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName string                           `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	Currency            string                           `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
+	Amount              string                           `protobuf:"bytes,8,opt,name=amount,proto3" json:"amount,omitempty"`
+	VerificationDate    string                           `protobuf:"bytes,9,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
+	Note                *string                          `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version             uint64                           `protobuf:"varint,11,opt,name=version,proto3" json:"version,omitempty"`
+	ReversedAt          *string                          `protobuf:"bytes,12,opt,name=reversed_at,json=reversedAt,proto3,oneof" json:"reversed_at,omitempty"`
+	ReversalReason      *string                          `protobuf:"bytes,13,opt,name=reversal_reason,json=reversalReason,proto3,oneof" json:"reversal_reason,omitempty"`
+	Allocations         []*FinanceVerificationAllocation `protobuf:"bytes,14,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	CreatedAt           string                           `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *FinanceVerification) Reset() {
+	*x = FinanceVerification{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinanceVerification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinanceVerification) ProtoMessage() {}
+
+func (x *FinanceVerification) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinanceVerification.ProtoReflect.Descriptor instead.
+func (*FinanceVerification) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *FinanceVerification) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetVerificationNo() string {
+	if x != nil {
+		return x.VerificationNo
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetSettlementPartyId() string {
+	if x != nil {
+		return x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetSettlementPartyName() string {
+	if x != nil {
+		return x.SettlementPartyName
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetVerificationDate() string {
+	if x != nil {
+		return x.VerificationDate
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *FinanceVerification) GetReversedAt() string {
+	if x != nil && x.ReversedAt != nil {
+		return *x.ReversedAt
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetReversalReason() string {
+	if x != nil && x.ReversalReason != nil {
+		return *x.ReversalReason
+	}
+	return ""
+}
+
+func (x *FinanceVerification) GetAllocations() []*FinanceVerificationAllocation {
+	if x != nil {
+		return x.Allocations
+	}
+	return nil
+}
+
+func (x *FinanceVerification) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type ListVerificationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*FinanceVerification `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	Total         int64                  `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	TraceId       string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVerificationsResponse) Reset() {
+	*x = ListVerificationsResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVerificationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVerificationsResponse) ProtoMessage() {}
+
+func (x *ListVerificationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVerificationsResponse.ProtoReflect.Descriptor instead.
+func (*ListVerificationsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ListVerificationsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListVerificationsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListVerificationsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListVerificationsResponse) GetData() []*FinanceVerification {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListVerificationsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListVerificationsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type CreateVerificationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FinanceVerification   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVerificationResponse) Reset() {
+	*x = CreateVerificationResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVerificationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVerificationResponse) ProtoMessage() {}
+
+func (x *CreateVerificationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVerificationResponse.ProtoReflect.Descriptor instead.
+func (*CreateVerificationResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *CreateVerificationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateVerificationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateVerificationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateVerificationResponse) GetData() *FinanceVerification {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateVerificationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ReverseVerificationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FinanceVerification   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReverseVerificationResponse) Reset() {
+	*x = ReverseVerificationResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReverseVerificationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReverseVerificationResponse) ProtoMessage() {}
+
+func (x *ReverseVerificationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReverseVerificationResponse.ProtoReflect.Descriptor instead.
+func (*ReverseVerificationResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *ReverseVerificationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ReverseVerificationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ReverseVerificationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ReverseVerificationResponse) GetData() *FinanceVerification {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ReverseVerificationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 
 const file_finance_v1_settlement_proto_rawDesc = "" +
@@ -4080,7 +4820,81 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.finance.v1.FinanceCashflowR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\x98\x14\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"~\n" +
+	"\x1bVerificationAllocationInput\x12$\n" +
+	"\vcashflow_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"cashflowId\x12\x1c\n" +
+	"\abill_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06billId\x12\x1b\n" +
+	"\x06amount\x18\x03 \x01(\tB\x03\xe0A\x02R\x06amount\"\x9e\x01\n" +
+	"\x18ListVerificationsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\x04 \x01(\tH\x01R\x06status\x88\x01\x01B\n" +
+	"\n" +
+	"\b_keywordB\t\n" +
+	"\a_status\"\xed\x01\n" +
+	"\x19CreateVerificationRequest\x12N\n" +
+	"\vallocations\x18\x01 \x03(\v2'.finance.v1.VerificationAllocationInputB\x03\xe0A\x02R\vallocations\x120\n" +
+	"\x11verification_date\x18\x02 \x01(\tB\x03\xe0A\x02R\x10verificationDate\x12\x17\n" +
+	"\x04note\x18\x03 \x01(\tH\x00R\x04note\x88\x01\x01\x12,\n" +
+	"\x0fidempotency_key\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKeyB\a\n" +
+	"\x05_note\"~\n" +
+	"\x1aReverseVerificationRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xd3\x01\n" +
+	"\x1dFinanceVerificationAllocation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
+	"\vcashflow_id\x18\x02 \x01(\tR\n" +
+	"cashflowId\x12\x17\n" +
+	"\abill_id\x18\x03 \x01(\tR\x06billId\x12\x1f\n" +
+	"\vcashflow_no\x18\x04 \x01(\tR\n" +
+	"cashflowNo\x12\x17\n" +
+	"\abill_no\x18\x05 \x01(\tR\x06billNo\x12\x16\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x16\n" +
+	"\x06active\x18\a \x01(\bR\x06active\"\xe9\x04\n" +
+	"\x13FinanceVerification\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0fverification_no\x18\x02 \x01(\tR\x0everificationNo\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1c\n" +
+	"\tdirection\x18\x04 \x01(\tR\tdirection\x12.\n" +
+	"\x13settlement_party_id\x18\x05 \x01(\tR\x11settlementPartyId\x122\n" +
+	"\x15settlement_party_name\x18\x06 \x01(\tR\x13settlementPartyName\x12\x1a\n" +
+	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x16\n" +
+	"\x06amount\x18\b \x01(\tR\x06amount\x12+\n" +
+	"\x11verification_date\x18\t \x01(\tR\x10verificationDate\x12\x17\n" +
+	"\x04note\x18\n" +
+	" \x01(\tH\x00R\x04note\x88\x01\x01\x12\x18\n" +
+	"\aversion\x18\v \x01(\x04R\aversion\x12$\n" +
+	"\vreversed_at\x18\f \x01(\tH\x01R\n" +
+	"reversedAt\x88\x01\x01\x12,\n" +
+	"\x0freversal_reason\x18\r \x01(\tH\x02R\x0ereversalReason\x88\x01\x01\x12K\n" +
+	"\vallocations\x18\x0e \x03(\v2).finance.v1.FinanceVerificationAllocationR\vallocations\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x0f \x01(\tR\tcreatedAtB\a\n" +
+	"\x05_noteB\x0e\n" +
+	"\f_reversed_atB\x12\n" +
+	"\x10_reversal_reason\"\xc9\x01\n" +
+	"\x19ListVerificationsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x03(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1aCreateVerificationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb5\x01\n" +
+	"\x1bReverseVerificationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd5\x18\n" +
 	"\x11SettlementService\x12\x93\x01\n" +
 	"\rListFeeLedger\x12 .finance.v1.ListFeeLedgerRequest\x1a!.finance.v1.ListFeeLedgerResponse\"=\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/finance/fees\x12\x89\x01\n" +
 	"\tListBills\x12\x1c.finance.v1.ListBillsRequest\x1a\x1d.finance.v1.ListBillsResponse\"?\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/finance/bills\x12\x88\x01\n" +
@@ -4101,7 +4915,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\rListCashflows\x12 .finance.v1.ListCashflowsRequest\x1a!.finance.v1.ListCashflowsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.finance.cashflow.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/finance/cashflows\x12\xa5\x01\n" +
 	"\x0eCreateCashflow\x12!.finance.v1.CreateCashflowRequest\x1a\".finance.v1.CreateCashflowResponse\"L\x82\xb5\x18$\b\x03\x12\x1esystem.finance.cashflow.create \x02\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/finance/cashflows\x12\xb5\x01\n" +
 	"\x0fConfirmCashflow\x12\".finance.v1.ConfirmCashflowRequest\x1a#.finance.v1.ConfirmCashflowResponse\"Y\x82\xb5\x18$\b\x03\x12\x1esystem.finance.cashflow.update \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/finance/cashflows/{id}/confirm\x12\xb1\x01\n" +
-	"\x0eCancelCashflow\x12!.finance.v1.CancelCashflowRequest\x1a\".finance.v1.CancelCashflowResponse\"X\x82\xb5\x18$\b\x03\x12\x1esystem.finance.cashflow.update \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/cashflows/{id}/cancelB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"\x0eCancelCashflow\x12!.finance.v1.CancelCashflowRequest\x1a\".finance.v1.CancelCashflowResponse\"X\x82\xb5\x18$\b\x03\x12\x1esystem.finance.cashflow.update \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/cashflows/{id}/cancel\x12\xb1\x01\n" +
+	"\x11ListVerifications\x12$.finance.v1.ListVerificationsRequest\x1a%.finance.v1.ListVerificationsResponse\"O\x82\xb5\x18&\b\x03\x12 system.finance.verification.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/finance/verifications\x12\xb9\x01\n" +
+	"\x12CreateVerification\x12%.finance.v1.CreateVerificationRequest\x1a&.finance.v1.CreateVerificationResponse\"T\x82\xb5\x18(\b\x03\x12\"system.finance.verification.create \x02\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/finance/verifications\x12\xca\x01\n" +
+	"\x13ReverseVerification\x12&.finance.v1.ReverseVerificationRequest\x1a'.finance.v1.ReverseVerificationResponse\"b\x82\xb5\x18)\b\x03\x12#system.finance.verification.reverse \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/finance/verifications/{id}/reverseB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_settlement_proto_rawDescOnce sync.Once
@@ -4115,47 +4932,56 @@ func file_finance_v1_settlement_proto_rawDescGZIP() []byte {
 	return file_finance_v1_settlement_proto_rawDescData
 }
 
-var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_finance_v1_settlement_proto_goTypes = []any{
-	(*ListFeeLedgerRequest)(nil),    // 0: finance.v1.ListFeeLedgerRequest
-	(*FeeLedgerItem)(nil),           // 1: finance.v1.FeeLedgerItem
-	(*FeeLedgerSummary)(nil),        // 2: finance.v1.FeeLedgerSummary
-	(*ListFeeLedgerResponse)(nil),   // 3: finance.v1.ListFeeLedgerResponse
-	(*ListBillsRequest)(nil),        // 4: finance.v1.ListBillsRequest
-	(*GetBillRequest)(nil),          // 5: finance.v1.GetBillRequest
-	(*CreateBillRequest)(nil),       // 6: finance.v1.CreateBillRequest
-	(*UpdateBillRequest)(nil),       // 7: finance.v1.UpdateBillRequest
-	(*ConfirmBillRequest)(nil),      // 8: finance.v1.ConfirmBillRequest
-	(*CancelBillRequest)(nil),       // 9: finance.v1.CancelBillRequest
-	(*FinanceBillLine)(nil),         // 10: finance.v1.FinanceBillLine
-	(*FinanceBill)(nil),             // 11: finance.v1.FinanceBill
-	(*ListBillsResponse)(nil),       // 12: finance.v1.ListBillsResponse
-	(*GetBillResponse)(nil),         // 13: finance.v1.GetBillResponse
-	(*CreateBillResponse)(nil),      // 14: finance.v1.CreateBillResponse
-	(*UpdateBillResponse)(nil),      // 15: finance.v1.UpdateBillResponse
-	(*ConfirmBillResponse)(nil),     // 16: finance.v1.ConfirmBillResponse
-	(*CancelBillResponse)(nil),      // 17: finance.v1.CancelBillResponse
-	(*ListInvoicesRequest)(nil),     // 18: finance.v1.ListInvoicesRequest
-	(*GetInvoiceRequest)(nil),       // 19: finance.v1.GetInvoiceRequest
-	(*CreateInvoiceRequest)(nil),    // 20: finance.v1.CreateInvoiceRequest
-	(*IssueInvoiceRequest)(nil),     // 21: finance.v1.IssueInvoiceRequest
-	(*CancelInvoiceRequest)(nil),    // 22: finance.v1.CancelInvoiceRequest
-	(*FinanceInvoiceBill)(nil),      // 23: finance.v1.FinanceInvoiceBill
-	(*FinanceInvoice)(nil),          // 24: finance.v1.FinanceInvoice
-	(*ListInvoicesResponse)(nil),    // 25: finance.v1.ListInvoicesResponse
-	(*GetInvoiceResponse)(nil),      // 26: finance.v1.GetInvoiceResponse
-	(*CreateInvoiceResponse)(nil),   // 27: finance.v1.CreateInvoiceResponse
-	(*IssueInvoiceResponse)(nil),    // 28: finance.v1.IssueInvoiceResponse
-	(*CancelInvoiceResponse)(nil),   // 29: finance.v1.CancelInvoiceResponse
-	(*ListCashflowsRequest)(nil),    // 30: finance.v1.ListCashflowsRequest
-	(*CreateCashflowRequest)(nil),   // 31: finance.v1.CreateCashflowRequest
-	(*ConfirmCashflowRequest)(nil),  // 32: finance.v1.ConfirmCashflowRequest
-	(*CancelCashflowRequest)(nil),   // 33: finance.v1.CancelCashflowRequest
-	(*FinanceCashflow)(nil),         // 34: finance.v1.FinanceCashflow
-	(*ListCashflowsResponse)(nil),   // 35: finance.v1.ListCashflowsResponse
-	(*CreateCashflowResponse)(nil),  // 36: finance.v1.CreateCashflowResponse
-	(*ConfirmCashflowResponse)(nil), // 37: finance.v1.ConfirmCashflowResponse
-	(*CancelCashflowResponse)(nil),  // 38: finance.v1.CancelCashflowResponse
+	(*ListFeeLedgerRequest)(nil),          // 0: finance.v1.ListFeeLedgerRequest
+	(*FeeLedgerItem)(nil),                 // 1: finance.v1.FeeLedgerItem
+	(*FeeLedgerSummary)(nil),              // 2: finance.v1.FeeLedgerSummary
+	(*ListFeeLedgerResponse)(nil),         // 3: finance.v1.ListFeeLedgerResponse
+	(*ListBillsRequest)(nil),              // 4: finance.v1.ListBillsRequest
+	(*GetBillRequest)(nil),                // 5: finance.v1.GetBillRequest
+	(*CreateBillRequest)(nil),             // 6: finance.v1.CreateBillRequest
+	(*UpdateBillRequest)(nil),             // 7: finance.v1.UpdateBillRequest
+	(*ConfirmBillRequest)(nil),            // 8: finance.v1.ConfirmBillRequest
+	(*CancelBillRequest)(nil),             // 9: finance.v1.CancelBillRequest
+	(*FinanceBillLine)(nil),               // 10: finance.v1.FinanceBillLine
+	(*FinanceBill)(nil),                   // 11: finance.v1.FinanceBill
+	(*ListBillsResponse)(nil),             // 12: finance.v1.ListBillsResponse
+	(*GetBillResponse)(nil),               // 13: finance.v1.GetBillResponse
+	(*CreateBillResponse)(nil),            // 14: finance.v1.CreateBillResponse
+	(*UpdateBillResponse)(nil),            // 15: finance.v1.UpdateBillResponse
+	(*ConfirmBillResponse)(nil),           // 16: finance.v1.ConfirmBillResponse
+	(*CancelBillResponse)(nil),            // 17: finance.v1.CancelBillResponse
+	(*ListInvoicesRequest)(nil),           // 18: finance.v1.ListInvoicesRequest
+	(*GetInvoiceRequest)(nil),             // 19: finance.v1.GetInvoiceRequest
+	(*CreateInvoiceRequest)(nil),          // 20: finance.v1.CreateInvoiceRequest
+	(*IssueInvoiceRequest)(nil),           // 21: finance.v1.IssueInvoiceRequest
+	(*CancelInvoiceRequest)(nil),          // 22: finance.v1.CancelInvoiceRequest
+	(*FinanceInvoiceBill)(nil),            // 23: finance.v1.FinanceInvoiceBill
+	(*FinanceInvoice)(nil),                // 24: finance.v1.FinanceInvoice
+	(*ListInvoicesResponse)(nil),          // 25: finance.v1.ListInvoicesResponse
+	(*GetInvoiceResponse)(nil),            // 26: finance.v1.GetInvoiceResponse
+	(*CreateInvoiceResponse)(nil),         // 27: finance.v1.CreateInvoiceResponse
+	(*IssueInvoiceResponse)(nil),          // 28: finance.v1.IssueInvoiceResponse
+	(*CancelInvoiceResponse)(nil),         // 29: finance.v1.CancelInvoiceResponse
+	(*ListCashflowsRequest)(nil),          // 30: finance.v1.ListCashflowsRequest
+	(*CreateCashflowRequest)(nil),         // 31: finance.v1.CreateCashflowRequest
+	(*ConfirmCashflowRequest)(nil),        // 32: finance.v1.ConfirmCashflowRequest
+	(*CancelCashflowRequest)(nil),         // 33: finance.v1.CancelCashflowRequest
+	(*FinanceCashflow)(nil),               // 34: finance.v1.FinanceCashflow
+	(*ListCashflowsResponse)(nil),         // 35: finance.v1.ListCashflowsResponse
+	(*CreateCashflowResponse)(nil),        // 36: finance.v1.CreateCashflowResponse
+	(*ConfirmCashflowResponse)(nil),       // 37: finance.v1.ConfirmCashflowResponse
+	(*CancelCashflowResponse)(nil),        // 38: finance.v1.CancelCashflowResponse
+	(*VerificationAllocationInput)(nil),   // 39: finance.v1.VerificationAllocationInput
+	(*ListVerificationsRequest)(nil),      // 40: finance.v1.ListVerificationsRequest
+	(*CreateVerificationRequest)(nil),     // 41: finance.v1.CreateVerificationRequest
+	(*ReverseVerificationRequest)(nil),    // 42: finance.v1.ReverseVerificationRequest
+	(*FinanceVerificationAllocation)(nil), // 43: finance.v1.FinanceVerificationAllocation
+	(*FinanceVerification)(nil),           // 44: finance.v1.FinanceVerification
+	(*ListVerificationsResponse)(nil),     // 45: finance.v1.ListVerificationsResponse
+	(*CreateVerificationResponse)(nil),    // 46: finance.v1.CreateVerificationResponse
+	(*ReverseVerificationResponse)(nil),   // 47: finance.v1.ReverseVerificationResponse
 }
 var file_finance_v1_settlement_proto_depIdxs = []int32{
 	1,  // 0: finance.v1.ListFeeLedgerResponse.data:type_name -> finance.v1.FeeLedgerItem
@@ -4177,43 +5003,54 @@ var file_finance_v1_settlement_proto_depIdxs = []int32{
 	34, // 16: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
 	34, // 17: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
 	34, // 18: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	0,  // 19: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
-	4,  // 20: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
-	5,  // 21: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
-	6,  // 22: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
-	7,  // 23: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
-	8,  // 24: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
-	9,  // 25: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
-	18, // 26: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
-	19, // 27: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
-	20, // 28: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
-	21, // 29: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
-	22, // 30: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
-	30, // 31: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
-	31, // 32: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
-	32, // 33: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
-	33, // 34: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
-	3,  // 35: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
-	12, // 36: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
-	13, // 37: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
-	14, // 38: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
-	15, // 39: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
-	16, // 40: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
-	17, // 41: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
-	25, // 42: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
-	26, // 43: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
-	27, // 44: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
-	28, // 45: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
-	29, // 46: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
-	35, // 47: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
-	36, // 48: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
-	37, // 49: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
-	38, // 50: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
-	35, // [35:51] is the sub-list for method output_type
-	19, // [19:35] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	39, // 19: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
+	43, // 20: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
+	44, // 21: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
+	44, // 22: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	44, // 23: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	0,  // 24: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
+	4,  // 25: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
+	5,  // 26: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
+	6,  // 27: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
+	7,  // 28: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
+	8,  // 29: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
+	9,  // 30: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
+	18, // 31: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
+	19, // 32: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
+	20, // 33: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
+	21, // 34: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
+	22, // 35: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
+	30, // 36: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
+	31, // 37: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
+	32, // 38: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
+	33, // 39: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
+	40, // 40: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
+	41, // 41: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
+	42, // 42: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
+	3,  // 43: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
+	12, // 44: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
+	13, // 45: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
+	14, // 46: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
+	15, // 47: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
+	16, // 48: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
+	17, // 49: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
+	25, // 50: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
+	26, // 51: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
+	27, // 52: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
+	28, // 53: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
+	29, // 54: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
+	35, // 55: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
+	36, // 56: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
+	37, // 57: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
+	38, // 58: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
+	45, // 59: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
+	46, // 60: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
+	47, // 61: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
+	43, // [43:62] is the sub-list for method output_type
+	24, // [24:43] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_settlement_proto_init() }
@@ -4233,13 +5070,16 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[30].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[31].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[34].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[40].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[41].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[44].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_settlement_proto_rawDesc), len(file_finance_v1_settlement_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   39,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

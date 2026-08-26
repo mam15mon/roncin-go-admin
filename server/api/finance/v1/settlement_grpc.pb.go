@@ -19,22 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName   = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_ListBills_FullMethodName       = "/finance.v1.SettlementService/ListBills"
-	SettlementService_GetBill_FullMethodName         = "/finance.v1.SettlementService/GetBill"
-	SettlementService_CreateBill_FullMethodName      = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_UpdateBill_FullMethodName      = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName     = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName      = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName    = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_GetInvoice_FullMethodName      = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName   = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName    = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName   = "/finance.v1.SettlementService/CancelInvoice"
-	SettlementService_ListCashflows_FullMethodName   = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_CreateCashflow_FullMethodName  = "/finance.v1.SettlementService/CreateCashflow"
-	SettlementService_ConfirmCashflow_FullMethodName = "/finance.v1.SettlementService/ConfirmCashflow"
-	SettlementService_CancelCashflow_FullMethodName  = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListFeeLedger_FullMethodName       = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_ListBills_FullMethodName           = "/finance.v1.SettlementService/ListBills"
+	SettlementService_GetBill_FullMethodName             = "/finance.v1.SettlementService/GetBill"
+	SettlementService_CreateBill_FullMethodName          = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_UpdateBill_FullMethodName          = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName         = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName          = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName        = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_GetInvoice_FullMethodName          = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName       = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName        = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName       = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_ListCashflows_FullMethodName       = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_CreateCashflow_FullMethodName      = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName     = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName      = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListVerifications_FullMethodName   = "/finance.v1.SettlementService/ListVerifications"
+	SettlementService_CreateVerification_FullMethodName  = "/finance.v1.SettlementService/CreateVerification"
+	SettlementService_ReverseVerification_FullMethodName = "/finance.v1.SettlementService/ReverseVerification"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -60,6 +63,9 @@ type SettlementServiceClient interface {
 	CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error)
 	ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error)
 	CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...grpc.CallOption) (*CancelCashflowResponse, error)
+	ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error)
+	CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error)
+	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -230,6 +236,36 @@ func (c *settlementServiceClient) CancelCashflow(ctx context.Context, in *Cancel
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVerificationsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListVerifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateVerificationResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateVerification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReverseVerificationResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ReverseVerification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -253,6 +289,9 @@ type SettlementServiceServer interface {
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
+	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
+	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
+	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -310,6 +349,15 @@ func (UnimplementedSettlementServiceServer) ConfirmCashflow(context.Context, *Co
 }
 func (UnimplementedSettlementServiceServer) CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCashflow not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVerifications not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateVerification not implemented")
+}
+func (UnimplementedSettlementServiceServer) ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReverseVerification not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -620,6 +668,60 @@ func _SettlementService_CancelCashflow_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListVerifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVerificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListVerifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListVerifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListVerifications(ctx, req.(*ListVerificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateVerification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateVerification(ctx, req.(*CreateVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ReverseVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReverseVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ReverseVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ReverseVerification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ReverseVerification(ctx, req.(*ReverseVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -690,6 +792,18 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelCashflow",
 			Handler:    _SettlementService_CancelCashflow_Handler,
+		},
+		{
+			MethodName: "ListVerifications",
+			Handler:    _SettlementService_ListVerifications_Handler,
+		},
+		{
+			MethodName: "CreateVerification",
+			Handler:    _SettlementService_CreateVerification_Handler,
+		},
+		{
+			MethodName: "ReverseVerification",
+			Handler:    _SettlementService_ReverseVerification_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

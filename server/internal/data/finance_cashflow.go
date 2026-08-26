@@ -7,6 +7,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	partner "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
@@ -126,6 +127,13 @@ func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uui
 		u.SetStatus(cash.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
 	} else {
 		if x.Status == cash.StatusCANCELLED {
+			return rollback(biz.ErrFinanceCashflowInvalidTransition)
+		}
+		used, checkErr := tx.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDEQ(id), allocation.ActiveEQ(true)).Exist(ctx)
+		if checkErr != nil {
+			return rollback(checkErr)
+		}
+		if used {
 			return rollback(biz.ErrFinanceCashflowInvalidTransition)
 		}
 		u.SetStatus(cash.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)

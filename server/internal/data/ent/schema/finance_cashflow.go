@@ -24,7 +24,7 @@ func (FinanceCashflow) Fields() []ent.Field {
 	}
 }
 func (FinanceCashflow) Edges() []ent.Edge {
-	return []ent.Edge{edge.From("organization", Organization.Type).Ref("finance_cashflows").Field("organization_id").Unique().Required().Immutable(), edge.From("settlement_party", Partner.Type).Ref("finance_cashflows").Field("settlement_party_id").Unique().Required().Immutable(), edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_cashflows").Field("confirmed_by").Unique(), edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_cashflows").Field("cancelled_by").Unique()}
+	return []ent.Edge{edge.From("organization", Organization.Type).Ref("finance_cashflows").Field("organization_id").Unique().Required().Immutable(), edge.From("settlement_party", Partner.Type).Ref("finance_cashflows").Field("settlement_party_id").Unique().Required().Immutable(), edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_cashflows").Field("confirmed_by").Unique(), edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_cashflows").Field("cancelled_by").Unique(), edge.To("verification_allocations", FinanceVerificationAllocation.Type)}
 }
 func (FinanceCashflow) Indexes() []ent.Index {
 	return []ent.Index{index.Fields("organization_id", "flow_no").Unique(), index.Fields("organization_id", "idempotency_key").Unique(), index.Fields("organization_id", "status", "transaction_date"), index.Fields("settlement_party_id", "direction", "currency"), index.Fields("bank_reference_no")}

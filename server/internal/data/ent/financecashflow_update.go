@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -311,6 +312,21 @@ func (_u *FinanceCashflowUpdate) SetCancelledByUser(v *User) *FinanceCashflowUpd
 	return _u.SetCancelledByUserID(v.ID)
 }
 
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (_u *FinanceCashflowUpdate) AddVerificationAllocationIDs(ids ...uuid.UUID) *FinanceCashflowUpdate {
+	_u.mutation.AddVerificationAllocationIDs(ids...)
+	return _u
+}
+
+// AddVerificationAllocations adds the "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_u *FinanceCashflowUpdate) AddVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceCashflowUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddVerificationAllocationIDs(ids...)
+}
+
 // Mutation returns the FinanceCashflowMutation object of the builder.
 func (_u *FinanceCashflowUpdate) Mutation() *FinanceCashflowMutation {
 	return _u.mutation
@@ -326,6 +342,27 @@ func (_u *FinanceCashflowUpdate) ClearConfirmedByUser() *FinanceCashflowUpdate {
 func (_u *FinanceCashflowUpdate) ClearCancelledByUser() *FinanceCashflowUpdate {
 	_u.mutation.ClearCancelledByUser()
 	return _u
+}
+
+// ClearVerificationAllocations clears all "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_u *FinanceCashflowUpdate) ClearVerificationAllocations() *FinanceCashflowUpdate {
+	_u.mutation.ClearVerificationAllocations()
+	return _u
+}
+
+// RemoveVerificationAllocationIDs removes the "verification_allocations" edge to FinanceVerificationAllocation entities by IDs.
+func (_u *FinanceCashflowUpdate) RemoveVerificationAllocationIDs(ids ...uuid.UUID) *FinanceCashflowUpdate {
+	_u.mutation.RemoveVerificationAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveVerificationAllocations removes "verification_allocations" edges to FinanceVerificationAllocation entities.
+func (_u *FinanceCashflowUpdate) RemoveVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceCashflowUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveVerificationAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -535,6 +572,51 @@ func (_u *FinanceCashflowUpdate) sqlSave(ctx context.Context) (_node int, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.VerificationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedVerificationAllocationsIDs(); len(nodes) > 0 && !_u.mutation.VerificationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.VerificationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -843,6 +925,21 @@ func (_u *FinanceCashflowUpdateOne) SetCancelledByUser(v *User) *FinanceCashflow
 	return _u.SetCancelledByUserID(v.ID)
 }
 
+// AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
+func (_u *FinanceCashflowUpdateOne) AddVerificationAllocationIDs(ids ...uuid.UUID) *FinanceCashflowUpdateOne {
+	_u.mutation.AddVerificationAllocationIDs(ids...)
+	return _u
+}
+
+// AddVerificationAllocations adds the "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_u *FinanceCashflowUpdateOne) AddVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceCashflowUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddVerificationAllocationIDs(ids...)
+}
+
 // Mutation returns the FinanceCashflowMutation object of the builder.
 func (_u *FinanceCashflowUpdateOne) Mutation() *FinanceCashflowMutation {
 	return _u.mutation
@@ -858,6 +955,27 @@ func (_u *FinanceCashflowUpdateOne) ClearConfirmedByUser() *FinanceCashflowUpdat
 func (_u *FinanceCashflowUpdateOne) ClearCancelledByUser() *FinanceCashflowUpdateOne {
 	_u.mutation.ClearCancelledByUser()
 	return _u
+}
+
+// ClearVerificationAllocations clears all "verification_allocations" edges to the FinanceVerificationAllocation entity.
+func (_u *FinanceCashflowUpdateOne) ClearVerificationAllocations() *FinanceCashflowUpdateOne {
+	_u.mutation.ClearVerificationAllocations()
+	return _u
+}
+
+// RemoveVerificationAllocationIDs removes the "verification_allocations" edge to FinanceVerificationAllocation entities by IDs.
+func (_u *FinanceCashflowUpdateOne) RemoveVerificationAllocationIDs(ids ...uuid.UUID) *FinanceCashflowUpdateOne {
+	_u.mutation.RemoveVerificationAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveVerificationAllocations removes "verification_allocations" edges to FinanceVerificationAllocation entities.
+func (_u *FinanceCashflowUpdateOne) RemoveVerificationAllocations(v ...*FinanceVerificationAllocation) *FinanceCashflowUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveVerificationAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceCashflowUpdate builder.
@@ -1097,6 +1215,51 @@ func (_u *FinanceCashflowUpdateOne) sqlSave(ctx context.Context) (_node *Finance
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.VerificationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedVerificationAllocationsIDs(); len(nodes) > 0 && !_u.mutation.VerificationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.VerificationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecashflow.VerificationAllocationsTable,
+			Columns: []string{financecashflow.VerificationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

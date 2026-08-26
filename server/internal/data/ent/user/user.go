@@ -61,6 +61,8 @@ const (
 	EdgeConfirmedFinanceCashflows = "confirmed_finance_cashflows"
 	// EdgeCancelledFinanceCashflows holds the string denoting the cancelled_finance_cashflows edge name in mutations.
 	EdgeCancelledFinanceCashflows = "cancelled_finance_cashflows"
+	// EdgeReversedFinanceVerifications holds the string denoting the reversed_finance_verifications edge name in mutations.
+	EdgeReversedFinanceVerifications = "reversed_finance_verifications"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -140,6 +142,13 @@ const (
 	CancelledFinanceCashflowsInverseTable = "finance_cashflows"
 	// CancelledFinanceCashflowsColumn is the table column denoting the cancelled_finance_cashflows relation/edge.
 	CancelledFinanceCashflowsColumn = "cancelled_by"
+	// ReversedFinanceVerificationsTable is the table that holds the reversed_finance_verifications relation/edge.
+	ReversedFinanceVerificationsTable = "finance_verifications"
+	// ReversedFinanceVerificationsInverseTable is the table name for the FinanceVerification entity.
+	// It exists in this package in order to avoid circular dependency with the "financeverification" package.
+	ReversedFinanceVerificationsInverseTable = "finance_verifications"
+	// ReversedFinanceVerificationsColumn is the table column denoting the reversed_finance_verifications relation/edge.
+	ReversedFinanceVerificationsColumn = "reversed_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -419,6 +428,20 @@ func ByCancelledFinanceCashflows(term sql.OrderTerm, terms ...sql.OrderTerm) Ord
 		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceCashflowsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByReversedFinanceVerificationsCount orders the results by reversed_finance_verifications count.
+func ByReversedFinanceVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReversedFinanceVerificationsStep(), opts...)
+	}
+}
+
+// ByReversedFinanceVerifications orders the results by reversed_finance_verifications terms.
+func ByReversedFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReversedFinanceVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -494,5 +517,12 @@ func newCancelledFinanceCashflowsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceCashflowsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCashflowsTable, CancelledFinanceCashflowsColumn),
+	)
+}
+func newReversedFinanceVerificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReversedFinanceVerificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReversedFinanceVerificationsTable, ReversedFinanceVerificationsColumn),
 	)
 }

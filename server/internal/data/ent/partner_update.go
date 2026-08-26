@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -349,6 +350,21 @@ func (_u *PartnerUpdate) AddFinanceCashflows(v ...*FinanceCashflow) *PartnerUpda
 	return _u.AddFinanceCashflowIDs(ids...)
 }
 
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_u *PartnerUpdate) AddFinanceVerificationIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// AddFinanceVerifications adds the "finance_verifications" edges to the FinanceVerification entity.
+func (_u *PartnerUpdate) AddFinanceVerifications(v ...*FinanceVerification) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceVerificationIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdate) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -616,6 +632,27 @@ func (_u *PartnerUpdate) RemoveFinanceCashflows(v ...*FinanceCashflow) *PartnerU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCashflowIDs(ids...)
+}
+
+// ClearFinanceVerifications clears all "finance_verifications" edges to the FinanceVerification entity.
+func (_u *PartnerUpdate) ClearFinanceVerifications() *PartnerUpdate {
+	_u.mutation.ClearFinanceVerifications()
+	return _u
+}
+
+// RemoveFinanceVerificationIDs removes the "finance_verifications" edge to FinanceVerification entities by IDs.
+func (_u *PartnerUpdate) RemoveFinanceVerificationIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceVerifications removes "finance_verifications" edges to FinanceVerification entities.
+func (_u *PartnerUpdate) RemoveFinanceVerifications(v ...*FinanceVerification) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceVerificationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1316,6 +1353,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceVerificationsIDs(); len(nodes) > 0 && !_u.mutation.FinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partner.Label}
@@ -1642,6 +1724,21 @@ func (_u *PartnerUpdateOne) AddFinanceCashflows(v ...*FinanceCashflow) *PartnerU
 	return _u.AddFinanceCashflowIDs(ids...)
 }
 
+// AddFinanceVerificationIDs adds the "finance_verifications" edge to the FinanceVerification entity by IDs.
+func (_u *PartnerUpdateOne) AddFinanceVerificationIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// AddFinanceVerifications adds the "finance_verifications" edges to the FinanceVerification entity.
+func (_u *PartnerUpdateOne) AddFinanceVerifications(v ...*FinanceVerification) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceVerificationIDs(ids...)
+}
+
 // Mutation returns the PartnerMutation object of the builder.
 func (_u *PartnerUpdateOne) Mutation() *PartnerMutation {
 	return _u.mutation
@@ -1909,6 +2006,27 @@ func (_u *PartnerUpdateOne) RemoveFinanceCashflows(v ...*FinanceCashflow) *Partn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCashflowIDs(ids...)
+}
+
+// ClearFinanceVerifications clears all "finance_verifications" edges to the FinanceVerification entity.
+func (_u *PartnerUpdateOne) ClearFinanceVerifications() *PartnerUpdateOne {
+	_u.mutation.ClearFinanceVerifications()
+	return _u
+}
+
+// RemoveFinanceVerificationIDs removes the "finance_verifications" edge to FinanceVerification entities by IDs.
+func (_u *PartnerUpdateOne) RemoveFinanceVerificationIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveFinanceVerificationIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceVerifications removes "finance_verifications" edges to FinanceVerification entities.
+func (_u *PartnerUpdateOne) RemoveFinanceVerifications(v ...*FinanceVerification) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceVerificationIDs(ids...)
 }
 
 // Where appends a list predicates to the PartnerUpdate builder.
@@ -2632,6 +2750,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecashflow.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceVerificationsIDs(); len(nodes) > 0 && !_u.mutation.FinanceVerificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceVerificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceVerificationsTable,
+			Columns: []string{partner.FinanceVerificationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

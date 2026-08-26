@@ -72,9 +72,11 @@ type UserEdges struct {
 	ConfirmedFinanceCashflows []*FinanceCashflow `json:"confirmed_finance_cashflows,omitempty"`
 	// CancelledFinanceCashflows holds the value of the cancelled_finance_cashflows edge.
 	CancelledFinanceCashflows []*FinanceCashflow `json:"cancelled_finance_cashflows,omitempty"`
+	// ReversedFinanceVerifications holds the value of the reversed_finance_verifications edge.
+	ReversedFinanceVerifications []*FinanceVerification `json:"reversed_finance_verifications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [12]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -174,6 +176,15 @@ func (e UserEdges) CancelledFinanceCashflowsOrErr() ([]*FinanceCashflow, error) 
 		return e.CancelledFinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_cashflows"}
+}
+
+// ReversedFinanceVerificationsOrErr returns the ReversedFinanceVerifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReversedFinanceVerificationsOrErr() ([]*FinanceVerification, error) {
+	if e.loadedTypes[11] {
+		return e.ReversedFinanceVerifications, nil
+	}
+	return nil, &NotLoadedError{edge: "reversed_finance_verifications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -355,6 +366,11 @@ func (_m *User) QueryConfirmedFinanceCashflows() *FinanceCashflowQuery {
 // QueryCancelledFinanceCashflows queries the "cancelled_finance_cashflows" edge of the User entity.
 func (_m *User) QueryCancelledFinanceCashflows() *FinanceCashflowQuery {
 	return NewUserClient(_m.config).QueryCancelledFinanceCashflows(_m)
+}
+
+// QueryReversedFinanceVerifications queries the "reversed_finance_verifications" edge of the User entity.
+func (_m *User) QueryReversedFinanceVerifications() *FinanceVerificationQuery {
+	return NewUserClient(_m.config).QueryReversedFinanceVerifications(_m)
 }
 
 // Update returns a builder for updating this User.

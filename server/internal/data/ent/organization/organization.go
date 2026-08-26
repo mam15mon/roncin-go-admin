@@ -84,6 +84,8 @@ const (
 	EdgeFinanceInvoices = "finance_invoices"
 	// EdgeFinanceCashflows holds the string denoting the finance_cashflows edge name in mutations.
 	EdgeFinanceCashflows = "finance_cashflows"
+	// EdgeFinanceVerifications holds the string denoting the finance_verifications edge name in mutations.
+	EdgeFinanceVerifications = "finance_verifications"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -262,6 +264,13 @@ const (
 	FinanceCashflowsInverseTable = "finance_cashflows"
 	// FinanceCashflowsColumn is the table column denoting the finance_cashflows relation/edge.
 	FinanceCashflowsColumn = "organization_id"
+	// FinanceVerificationsTable is the table that holds the finance_verifications relation/edge.
+	FinanceVerificationsTable = "finance_verifications"
+	// FinanceVerificationsInverseTable is the table name for the FinanceVerification entity.
+	// It exists in this package in order to avoid circular dependency with the "financeverification" package.
+	FinanceVerificationsInverseTable = "finance_verifications"
+	// FinanceVerificationsColumn is the table column denoting the finance_verifications relation/edge.
+	FinanceVerificationsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -735,6 +744,20 @@ func ByFinanceCashflows(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newFinanceCashflowsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceVerificationsCount orders the results by finance_verifications count.
+func ByFinanceVerificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceVerificationsStep(), opts...)
+	}
+}
+
+// ByFinanceVerifications orders the results by finance_verifications terms.
+func ByFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -915,5 +938,12 @@ func newFinanceCashflowsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCashflowsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCashflowsTable, FinanceCashflowsColumn),
+	)
+}
+func newFinanceVerificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceVerificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceVerificationsTable, FinanceVerificationsColumn),
 	)
 }

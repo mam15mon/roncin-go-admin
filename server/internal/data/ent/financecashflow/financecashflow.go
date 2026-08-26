@@ -76,6 +76,8 @@ const (
 	EdgeConfirmedByUser = "confirmed_by_user"
 	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
 	EdgeCancelledByUser = "cancelled_by_user"
+	// EdgeVerificationAllocations holds the string denoting the verification_allocations edge name in mutations.
+	EdgeVerificationAllocations = "verification_allocations"
 	// Table holds the table name of the financecashflow in the database.
 	Table = "finance_cashflows"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -106,6 +108,13 @@ const (
 	CancelledByUserInverseTable = "users"
 	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
 	CancelledByUserColumn = "cancelled_by"
+	// VerificationAllocationsTable is the table that holds the verification_allocations relation/edge.
+	VerificationAllocationsTable = "finance_verification_allocations"
+	// VerificationAllocationsInverseTable is the table name for the FinanceVerificationAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financeverificationallocation" package.
+	VerificationAllocationsInverseTable = "finance_verification_allocations"
+	// VerificationAllocationsColumn is the table column denoting the verification_allocations relation/edge.
+	VerificationAllocationsColumn = "cashflow_id"
 )
 
 // Columns holds all SQL columns for financecashflow fields.
@@ -401,6 +410,20 @@ func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByVerificationAllocationsCount orders the results by verification_allocations count.
+func ByVerificationAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVerificationAllocationsStep(), opts...)
+	}
+}
+
+// ByVerificationAllocations orders the results by verification_allocations terms.
+func ByVerificationAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVerificationAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -427,5 +450,12 @@ func newCancelledByUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledByUserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
+	)
+}
+func newVerificationAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VerificationAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VerificationAllocationsTable, VerificationAllocationsColumn),
 	)
 }
