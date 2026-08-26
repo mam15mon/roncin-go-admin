@@ -358,6 +358,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CancelInvoiceRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type CancelInvoiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice;
+    traceId?: string;
+  };
+
   type CheckOrderReferenceResponse = {
     success?: boolean;
     code?: number;
@@ -500,6 +514,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FeeSetting;
+    traceId?: string;
+  };
+
+  type CreateInvoiceRequest = {
+    billIds: string[];
+    invoiceType: string;
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateInvoiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice;
     traceId?: string;
   };
 
@@ -1033,6 +1062,39 @@ declare namespace API {
     active?: boolean;
   };
 
+  type FinanceInvoice = {
+    id?: string;
+    recordNo?: string;
+    direction?: string;
+    status?: string;
+    invoiceType?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    totalAmount?: string;
+    taxAmount?: string;
+    billCount?: number;
+    taxInvoiceNo?: string;
+    invoiceDate?: string;
+    note?: string;
+    version?: string;
+    issuedAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    billLinks?: FinanceInvoiceBill[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type FinanceInvoiceBill = {
+    id?: string;
+    billId?: string;
+    billNo?: string;
+    amount?: string;
+    taxAmount?: string;
+    active?: boolean;
+  };
+
   type GetBackgroundTaskResponse = {
     success?: boolean;
     code?: number;
@@ -1054,6 +1116,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetInvoiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice;
     traceId?: string;
   };
 
@@ -1110,6 +1180,21 @@ declare namespace API {
     message?: string;
     createdCount?: number;
     updatedCount?: number;
+    traceId?: string;
+  };
+
+  type IssueInvoiceRequest = {
+    id: string;
+    expectedVersion: string;
+    taxInvoiceNo: string;
+    invoiceDate: string;
+  };
+
+  type IssueInvoiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice;
     traceId?: string;
   };
 
@@ -1274,6 +1359,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee[];
+    traceId?: string;
+  };
+
+  type ListInvoicesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice[];
+    total?: string;
     traceId?: string;
   };
 
@@ -2894,11 +2988,23 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelInvoiceParams = {
+    id: string;
+  };
+
   type SettlementServiceConfirmBillParams = {
     id: string;
   };
 
   type SettlementServiceGetBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetInvoiceParams = {
+    id: string;
+  };
+
+  type SettlementServiceIssueInvoiceParams = {
     id: string;
   };
 
@@ -2925,6 +3031,14 @@ declare namespace API {
     currency?: string;
     expenseDateFrom?: string;
     expenseDateTo?: string;
+  };
+
+  type SettlementServiceListInvoicesParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+    status?: string;
   };
 
   type SettlementServiceUpdateBillParams = {

@@ -76,6 +76,8 @@ const (
 	EdgeCancelledByUser = "cancelled_by_user"
 	// EdgeLines holds the string denoting the lines edge name in mutations.
 	EdgeLines = "lines"
+	// EdgeInvoiceLinks holds the string denoting the invoice_links edge name in mutations.
+	EdgeInvoiceLinks = "invoice_links"
 	// Table holds the table name of the financebill in the database.
 	Table = "finance_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -113,6 +115,13 @@ const (
 	LinesInverseTable = "finance_bill_lines"
 	// LinesColumn is the table column denoting the lines relation/edge.
 	LinesColumn = "bill_id"
+	// InvoiceLinksTable is the table that holds the invoice_links relation/edge.
+	InvoiceLinksTable = "finance_invoice_bills"
+	// InvoiceLinksInverseTable is the table name for the FinanceInvoiceBill entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicebill" package.
+	InvoiceLinksInverseTable = "finance_invoice_bills"
+	// InvoiceLinksColumn is the table column denoting the invoice_links relation/edge.
+	InvoiceLinksColumn = "bill_id"
 )
 
 // Columns holds all SQL columns for financebill fields.
@@ -412,6 +421,20 @@ func ByLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByInvoiceLinksCount orders the results by invoice_links count.
+func ByInvoiceLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInvoiceLinksStep(), opts...)
+	}
+}
+
+// ByInvoiceLinks orders the results by invoice_links terms.
+func ByInvoiceLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -445,5 +468,12 @@ func newLinesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LinesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
+	)
+}
+func newInvoiceLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoiceLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InvoiceLinksTable, InvoiceLinksColumn),
 	)
 }

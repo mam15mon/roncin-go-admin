@@ -89,9 +89,11 @@ type FinanceBillEdges struct {
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// Lines holds the value of the lines edge.
 	Lines []*FinanceBillLine `json:"lines,omitempty"`
+	// InvoiceLinks holds the value of the invoice_links edge.
+	InvoiceLinks []*FinanceInvoiceBill `json:"invoice_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -145,6 +147,15 @@ func (e FinanceBillEdges) LinesOrErr() ([]*FinanceBillLine, error) {
 		return e.Lines, nil
 	}
 	return nil, &NotLoadedError{edge: "lines"}
+}
+
+// InvoiceLinksOrErr returns the InvoiceLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillEdges) InvoiceLinksOrErr() ([]*FinanceInvoiceBill, error) {
+	if e.loadedTypes[5] {
+		return e.InvoiceLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "invoice_links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -376,6 +387,11 @@ func (_m *FinanceBill) QueryCancelledByUser() *UserQuery {
 // QueryLines queries the "lines" edge of the FinanceBill entity.
 func (_m *FinanceBill) QueryLines() *FinanceBillLineQuery {
 	return NewFinanceBillClient(_m.config).QueryLines(_m)
+}
+
+// QueryInvoiceLinks queries the "invoice_links" edge of the FinanceBill entity.
+func (_m *FinanceBill) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
+	return NewFinanceBillClient(_m.config).QueryInvoiceLinks(_m)
 }
 
 // Update returns a builder for updating this FinanceBill.

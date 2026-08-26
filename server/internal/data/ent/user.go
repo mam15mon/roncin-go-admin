@@ -64,9 +64,13 @@ type UserEdges struct {
 	ConfirmedFinanceBills []*FinanceBill `json:"confirmed_finance_bills,omitempty"`
 	// CancelledFinanceBills holds the value of the cancelled_finance_bills edge.
 	CancelledFinanceBills []*FinanceBill `json:"cancelled_finance_bills,omitempty"`
+	// IssuedFinanceInvoices holds the value of the issued_finance_invoices edge.
+	IssuedFinanceInvoices []*FinanceInvoice `json:"issued_finance_invoices,omitempty"`
+	// CancelledFinanceInvoices holds the value of the cancelled_finance_invoices edge.
+	CancelledFinanceInvoices []*FinanceInvoice `json:"cancelled_finance_invoices,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -130,6 +134,24 @@ func (e UserEdges) CancelledFinanceBillsOrErr() ([]*FinanceBill, error) {
 		return e.CancelledFinanceBills, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_bills"}
+}
+
+// IssuedFinanceInvoicesOrErr returns the IssuedFinanceInvoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) IssuedFinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
+	if e.loadedTypes[7] {
+		return e.IssuedFinanceInvoices, nil
+	}
+	return nil, &NotLoadedError{edge: "issued_finance_invoices"}
+}
+
+// CancelledFinanceInvoicesOrErr returns the CancelledFinanceInvoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CancelledFinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
+	if e.loadedTypes[8] {
+		return e.CancelledFinanceInvoices, nil
+	}
+	return nil, &NotLoadedError{edge: "cancelled_finance_invoices"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -291,6 +313,16 @@ func (_m *User) QueryConfirmedFinanceBills() *FinanceBillQuery {
 // QueryCancelledFinanceBills queries the "cancelled_finance_bills" edge of the User entity.
 func (_m *User) QueryCancelledFinanceBills() *FinanceBillQuery {
 	return NewUserClient(_m.config).QueryCancelledFinanceBills(_m)
+}
+
+// QueryIssuedFinanceInvoices queries the "issued_finance_invoices" edge of the User entity.
+func (_m *User) QueryIssuedFinanceInvoices() *FinanceInvoiceQuery {
+	return NewUserClient(_m.config).QueryIssuedFinanceInvoices(_m)
+}
+
+// QueryCancelledFinanceInvoices queries the "cancelled_finance_invoices" edge of the User entity.
+func (_m *User) QueryCancelledFinanceInvoices() *FinanceInvoiceQuery {
+	return NewUserClient(_m.config).QueryCancelledFinanceInvoices(_m)
 }
 
 // Update returns a builder for updating this User.

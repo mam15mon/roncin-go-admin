@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -493,6 +494,21 @@ func (_c *OrganizationCreate) AddFinanceBills(v ...*FinanceBill) *OrganizationCr
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceBillIDs(ids...)
+}
+
+// AddFinanceInvoiceIDs adds the "finance_invoices" edge to the FinanceInvoice entity by IDs.
+func (_c *OrganizationCreate) AddFinanceInvoiceIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceInvoiceIDs(ids...)
+	return _c
+}
+
+// AddFinanceInvoices adds the "finance_invoices" edges to the FinanceInvoice entity.
+func (_c *OrganizationCreate) AddFinanceInvoices(v ...*FinanceInvoice) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceInvoiceIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1029,6 +1045,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceInvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoicesTable,
+			Columns: []string{organization.FinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

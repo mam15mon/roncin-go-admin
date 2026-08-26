@@ -26,6 +26,11 @@ const (
 	SettlementService_UpdateBill_FullMethodName    = "/finance.v1.SettlementService/UpdateBill"
 	SettlementService_ConfirmBill_FullMethodName   = "/finance.v1.SettlementService/ConfirmBill"
 	SettlementService_CancelBill_FullMethodName    = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName  = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_GetInvoice_FullMethodName    = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName  = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName = "/finance.v1.SettlementService/CancelInvoice"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -42,6 +47,11 @@ type SettlementServiceClient interface {
 	UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error)
 	ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error)
 	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
+	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
+	GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...grpc.CallOption) (*GetInvoiceResponse, error)
+	CreateInvoice(ctx context.Context, in *CreateInvoiceRequest, opts ...grpc.CallOption) (*CreateInvoiceResponse, error)
+	IssueInvoice(ctx context.Context, in *IssueInvoiceRequest, opts ...grpc.CallOption) (*IssueInvoiceResponse, error)
+	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -122,6 +132,56 @@ func (c *settlementServiceClient) CancelBill(ctx context.Context, in *CancelBill
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInvoicesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListInvoices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...grpc.CallOption) (*GetInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInvoiceResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateInvoice(ctx context.Context, in *CreateInvoiceRequest, opts ...grpc.CallOption) (*CreateInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateInvoiceResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) IssueInvoice(ctx context.Context, in *IssueInvoiceRequest, opts ...grpc.CallOption) (*IssueInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IssueInvoiceResponse)
+	err := c.cc.Invoke(ctx, SettlementService_IssueInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelInvoiceResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CancelInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -136,6 +196,11 @@ type SettlementServiceServer interface {
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
+	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
+	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
+	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
+	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -166,6 +231,21 @@ func (UnimplementedSettlementServiceServer) ConfirmBill(context.Context, *Confir
 }
 func (UnimplementedSettlementServiceServer) CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInvoices not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInvoice not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateInvoice not implemented")
+}
+func (UnimplementedSettlementServiceServer) IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IssueInvoice not implemented")
+}
+func (UnimplementedSettlementServiceServer) CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelInvoice not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -314,6 +394,96 @@ func _SettlementService_CancelBill_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListInvoices(ctx, req.(*ListInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetInvoice(ctx, req.(*GetInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateInvoice(ctx, req.(*CreateInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_IssueInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IssueInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).IssueInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_IssueInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).IssueInvoice(ctx, req.(*IssueInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CancelInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CancelInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CancelInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CancelInvoice(ctx, req.(*CancelInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -348,6 +518,26 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelBill",
 			Handler:    _SettlementService_CancelBill_Handler,
+		},
+		{
+			MethodName: "ListInvoices",
+			Handler:    _SettlementService_ListInvoices_Handler,
+		},
+		{
+			MethodName: "GetInvoice",
+			Handler:    _SettlementService_GetInvoice_Handler,
+		},
+		{
+			MethodName: "CreateInvoice",
+			Handler:    _SettlementService_CreateInvoice_Handler,
+		},
+		{
+			MethodName: "IssueInvoice",
+			Handler:    _SettlementService_IssueInvoice_Handler,
+		},
+		{
+			MethodName: "CancelInvoice",
+			Handler:    _SettlementService_CancelInvoice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

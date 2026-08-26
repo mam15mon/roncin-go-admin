@@ -1022,6 +1022,52 @@ func HasCancelledFinanceBillsWith(preds ...predicate.FinanceBill) predicate.User
 	})
 }
 
+// HasIssuedFinanceInvoices applies the HasEdge predicate on the "issued_finance_invoices" edge.
+func HasIssuedFinanceInvoices() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IssuedFinanceInvoicesTable, IssuedFinanceInvoicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIssuedFinanceInvoicesWith applies the HasEdge predicate on the "issued_finance_invoices" edge with a given conditions (other predicates).
+func HasIssuedFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newIssuedFinanceInvoicesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCancelledFinanceInvoices applies the HasEdge predicate on the "cancelled_finance_invoices" edge.
+func HasCancelledFinanceInvoices() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceInvoicesTable, CancelledFinanceInvoicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCancelledFinanceInvoicesWith applies the HasEdge predicate on the "cancelled_finance_invoices" edge with a given conditions (other predicates).
+func HasCancelledFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCancelledFinanceInvoicesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

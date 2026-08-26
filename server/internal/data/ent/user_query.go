@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -27,18 +28,20 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                       *QueryContext
-	order                     []user.OrderOption
-	inters                    []Interceptor
-	predicates                []predicate.User
-	withMemberships           *MembershipQuery
-	withSessions              *SessionQuery
-	withOrderPersonnel        *OrderPersonnelQuery
-	withPartnerAssignments    *PartnerAssignmentQuery
-	withCancelledOrderFees    *OrderFeeQuery
-	withConfirmedFinanceBills *FinanceBillQuery
-	withCancelledFinanceBills *FinanceBillQuery
-	modifiers                 []func(*sql.Selector)
+	ctx                          *QueryContext
+	order                        []user.OrderOption
+	inters                       []Interceptor
+	predicates                   []predicate.User
+	withMemberships              *MembershipQuery
+	withSessions                 *SessionQuery
+	withOrderPersonnel           *OrderPersonnelQuery
+	withPartnerAssignments       *PartnerAssignmentQuery
+	withCancelledOrderFees       *OrderFeeQuery
+	withConfirmedFinanceBills    *FinanceBillQuery
+	withCancelledFinanceBills    *FinanceBillQuery
+	withIssuedFinanceInvoices    *FinanceInvoiceQuery
+	withCancelledFinanceInvoices *FinanceInvoiceQuery
+	modifiers                    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -222,6 +225,50 @@ func (_q *UserQuery) QueryCancelledFinanceBills() *FinanceBillQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(financebill.Table, financebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceBillsTable, user.CancelledFinanceBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIssuedFinanceInvoices chains the current query on the "issued_finance_invoices" edge.
+func (_q *UserQuery) QueryIssuedFinanceInvoices() *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.IssuedFinanceInvoicesTable, user.IssuedFinanceInvoicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceInvoices chains the current query on the "cancelled_finance_invoices" edge.
+func (_q *UserQuery) QueryCancelledFinanceInvoices() *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceInvoicesTable, user.CancelledFinanceInvoicesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -416,18 +463,20 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                    _q.config,
-		ctx:                       _q.ctx.Clone(),
-		order:                     append([]user.OrderOption{}, _q.order...),
-		inters:                    append([]Interceptor{}, _q.inters...),
-		predicates:                append([]predicate.User{}, _q.predicates...),
-		withMemberships:           _q.withMemberships.Clone(),
-		withSessions:              _q.withSessions.Clone(),
-		withOrderPersonnel:        _q.withOrderPersonnel.Clone(),
-		withPartnerAssignments:    _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees:    _q.withCancelledOrderFees.Clone(),
-		withConfirmedFinanceBills: _q.withConfirmedFinanceBills.Clone(),
-		withCancelledFinanceBills: _q.withCancelledFinanceBills.Clone(),
+		config:                       _q.config,
+		ctx:                          _q.ctx.Clone(),
+		order:                        append([]user.OrderOption{}, _q.order...),
+		inters:                       append([]Interceptor{}, _q.inters...),
+		predicates:                   append([]predicate.User{}, _q.predicates...),
+		withMemberships:              _q.withMemberships.Clone(),
+		withSessions:                 _q.withSessions.Clone(),
+		withOrderPersonnel:           _q.withOrderPersonnel.Clone(),
+		withPartnerAssignments:       _q.withPartnerAssignments.Clone(),
+		withCancelledOrderFees:       _q.withCancelledOrderFees.Clone(),
+		withConfirmedFinanceBills:    _q.withConfirmedFinanceBills.Clone(),
+		withCancelledFinanceBills:    _q.withCancelledFinanceBills.Clone(),
+		withIssuedFinanceInvoices:    _q.withIssuedFinanceInvoices.Clone(),
+		withCancelledFinanceInvoices: _q.withCancelledFinanceInvoices.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -511,6 +560,28 @@ func (_q *UserQuery) WithCancelledFinanceBills(opts ...func(*FinanceBillQuery)) 
 	return _q
 }
 
+// WithIssuedFinanceInvoices tells the query-builder to eager-load the nodes that are connected to
+// the "issued_finance_invoices" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithIssuedFinanceInvoices(opts ...func(*FinanceInvoiceQuery)) *UserQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIssuedFinanceInvoices = query
+	return _q
+}
+
+// WithCancelledFinanceInvoices tells the query-builder to eager-load the nodes that are connected to
+// the "cancelled_finance_invoices" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCancelledFinanceInvoices(opts ...func(*FinanceInvoiceQuery)) *UserQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCancelledFinanceInvoices = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -589,7 +660,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -597,6 +668,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCancelledOrderFees != nil,
 			_q.withConfirmedFinanceBills != nil,
 			_q.withCancelledFinanceBills != nil,
+			_q.withIssuedFinanceInvoices != nil,
+			_q.withCancelledFinanceInvoices != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -671,6 +744,24 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceBills = []*FinanceBill{} },
 			func(n *User, e *FinanceBill) {
 				n.Edges.CancelledFinanceBills = append(n.Edges.CancelledFinanceBills, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIssuedFinanceInvoices; query != nil {
+		if err := _q.loadIssuedFinanceInvoices(ctx, query, nodes,
+			func(n *User) { n.Edges.IssuedFinanceInvoices = []*FinanceInvoice{} },
+			func(n *User, e *FinanceInvoice) {
+				n.Edges.IssuedFinanceInvoices = append(n.Edges.IssuedFinanceInvoices, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCancelledFinanceInvoices; query != nil {
+		if err := _q.loadCancelledFinanceInvoices(ctx, query, nodes,
+			func(n *User) { n.Edges.CancelledFinanceInvoices = []*FinanceInvoice{} },
+			func(n *User, e *FinanceInvoice) {
+				n.Edges.CancelledFinanceInvoices = append(n.Edges.CancelledFinanceInvoices, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -879,6 +970,72 @@ func (_q *UserQuery) loadCancelledFinanceBills(ctx context.Context, query *Finan
 	}
 	query.Where(predicate.FinanceBill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.CancelledFinanceBillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CancelledBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadIssuedFinanceInvoices(ctx context.Context, query *FinanceInvoiceQuery, nodes []*User, init func(*User), assign func(*User, *FinanceInvoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoice.FieldIssuedBy)
+	}
+	query.Where(predicate.FinanceInvoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.IssuedFinanceInvoicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "issued_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issued_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCancelledFinanceInvoices(ctx context.Context, query *FinanceInvoiceQuery, nodes []*User, init func(*User), assign func(*User, *FinanceInvoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoice.FieldCancelledBy)
+	}
+	query.Where(predicate.FinanceInvoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CancelledFinanceInvoicesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

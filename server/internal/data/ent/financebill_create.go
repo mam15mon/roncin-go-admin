@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -338,6 +339,21 @@ func (_c *FinanceBillCreate) AddLines(v ...*FinanceBillLine) *FinanceBillCreate 
 		ids[i] = v[i].ID
 	}
 	return _c.AddLineIDs(ids...)
+}
+
+// AddInvoiceLinkIDs adds the "invoice_links" edge to the FinanceInvoiceBill entity by IDs.
+func (_c *FinanceBillCreate) AddInvoiceLinkIDs(ids ...uuid.UUID) *FinanceBillCreate {
+	_c.mutation.AddInvoiceLinkIDs(ids...)
+	return _c
+}
+
+// AddInvoiceLinks adds the "invoice_links" edges to the FinanceInvoiceBill entity.
+func (_c *FinanceBillCreate) AddInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddInvoiceLinkIDs(ids...)
 }
 
 // Mutation returns the FinanceBillMutation object of the builder.
@@ -715,6 +731,22 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.InvoiceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

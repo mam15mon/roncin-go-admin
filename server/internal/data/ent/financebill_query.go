@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -34,6 +35,7 @@ type FinanceBillQuery struct {
 	withConfirmedByUser *UserQuery
 	withCancelledByUser *UserQuery
 	withLines           *FinanceBillLineQuery
+	withInvoiceLinks    *FinanceInvoiceBillQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -174,6 +176,28 @@ func (_q *FinanceBillQuery) QueryLines() *FinanceBillLineQuery {
 			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
 			sqlgraph.To(financebillline.Table, financebillline.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebill.LinesTable, financebill.LinesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInvoiceLinks chains the current query on the "invoice_links" edge.
+func (_q *FinanceBillQuery) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
+	query := (&FinanceInvoiceBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.InvoiceLinksTable, financebill.InvoiceLinksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -378,6 +402,7 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
 		withCancelledByUser: _q.withCancelledByUser.Clone(),
 		withLines:           _q.withLines.Clone(),
+		withInvoiceLinks:    _q.withInvoiceLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -436,6 +461,17 @@ func (_q *FinanceBillQuery) WithLines(opts ...func(*FinanceBillLineQuery)) *Fina
 		opt(query)
 	}
 	_q.withLines = query
+	return _q
+}
+
+// WithInvoiceLinks tells the query-builder to eager-load the nodes that are connected to
+// the "invoice_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithInvoiceLinks(opts ...func(*FinanceInvoiceBillQuery)) *FinanceBillQuery {
+	query := (&FinanceInvoiceBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoiceLinks = query
 	return _q
 }
 
@@ -517,12 +553,13 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withCancelledByUser != nil,
 			_q.withLines != nil,
+			_q.withInvoiceLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -574,6 +611,13 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadLines(ctx, query, nodes,
 			func(n *FinanceBill) { n.Edges.Lines = []*FinanceBillLine{} },
 			func(n *FinanceBill, e *FinanceBillLine) { n.Edges.Lines = append(n.Edges.Lines, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withInvoiceLinks; query != nil {
+		if err := _q.loadInvoiceLinks(ctx, query, nodes,
+			func(n *FinanceBill) { n.Edges.InvoiceLinks = []*FinanceInvoiceBill{} },
+			func(n *FinanceBill, e *FinanceInvoiceBill) { n.Edges.InvoiceLinks = append(n.Edges.InvoiceLinks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -717,6 +761,36 @@ func (_q *FinanceBillQuery) loadLines(ctx context.Context, query *FinanceBillLin
 	}
 	query.Where(predicate.FinanceBillLine(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financebill.LinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadInvoiceLinks(ctx context.Context, query *FinanceInvoiceBillQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceInvoiceBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoicebill.FieldBillID)
+	}
+	query.Where(predicate.FinanceInvoiceBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebill.InvoiceLinksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

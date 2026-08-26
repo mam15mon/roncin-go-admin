@@ -1561,6 +1561,29 @@ func HasLinesWith(preds ...predicate.FinanceBillLine) predicate.FinanceBill {
 	})
 }
 
+// HasInvoiceLinks applies the HasEdge predicate on the "invoice_links" edge.
+func HasInvoiceLinks() predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InvoiceLinksTable, InvoiceLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInvoiceLinksWith applies the HasEdge predicate on the "invoice_links" edge with a given conditions (other predicates).
+func HasInvoiceLinksWith(preds ...predicate.FinanceInvoiceBill) predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := newInvoiceLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceBill) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.AndPredicates(predicates...))

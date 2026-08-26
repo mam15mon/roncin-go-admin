@@ -13,12 +13,13 @@ import (
 
 type SettlementService struct {
 	v1.UnimplementedSettlementServiceServer
-	usecase     *biz.SettlementUsecase
-	billUsecase *biz.FinanceBillUsecase
+	usecase        *biz.SettlementUsecase
+	billUsecase    *biz.FinanceBillUsecase
+	invoiceUsecase *biz.FinanceInvoiceUsecase
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase}
 }
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
@@ -229,6 +230,91 @@ func financeUUID(value *uuid.UUID) *string {
 	}
 	formatted := value.String()
 	return &formatted
+}
+
+func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListInvoicesRequest) (*v1.ListInvoicesResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	filter := biz.FinanceInvoiceFilter{Page: int(request.GetPage()), PageSize: int(request.GetPageSize()), Keyword: financeOptionalString(request.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))), Status: biz.FinanceInvoiceStatus(strings.ToUpper(financeOptionalString(request.Status)))}
+	if filter.Page == 0 {
+		filter.Page = 1
+	}
+	if filter.PageSize == 0 {
+		filter.PageSize = 20
+	}
+	result, err := s.invoiceUsecase.List(ctx, principal.Organization.ID, filter)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceInvoice, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, financeInvoiceToAPI(item))
+	}
+	return &v1.ListInvoicesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) GetInvoice(ctx context.Context, request *v1.GetInvoiceRequest) (*v1.GetInvoiceResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.invoiceUsecase.Get(ctx, p.Organization.ID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) CreateInvoice(ctx context.Context, request *v1.CreateInvoiceRequest) (*v1.CreateInvoiceResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	ids := make([]uuid.UUID, 0, len(request.GetBillIds()))
+	for _, raw := range request.GetBillIds() {
+		id, err := uuid.Parse(strings.TrimSpace(raw))
+		if err != nil {
+			return nil, biz.ErrFinanceInvoiceInvalidArgument
+		}
+		ids = append(ids, id)
+	}
+	item, err := s.invoiceUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateFinanceInvoiceInput{BillIDs: ids, InvoiceType: biz.FinanceInvoiceType(strings.ToUpper(request.GetInvoiceType())), Note: request.Note, IdempotencyKey: request.GetIdempotencyKey()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) IssueInvoice(ctx context.Context, request *v1.IssueInvoiceRequest) (*v1.IssueInvoiceResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.invoiceUsecase.Issue(ctx, p.Organization.ID, p.UserID, id, request.GetExpectedVersion(), request.GetTaxInvoiceNo(), request.GetInvoiceDate())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.IssueInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) CancelInvoice(ctx context.Context, request *v1.CancelInvoiceRequest) (*v1.CancelInvoiceResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.invoiceUsecase.Cancel(ctx, p.Organization.ID, p.UserID, id, request.GetExpectedVersion(), request.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CancelInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func financeInvoiceToAPI(item *biz.FinanceInvoice) *v1.FinanceInvoice {
+	if item == nil {
+		return nil
+	}
+	links := make([]*v1.FinanceInvoiceBill, 0, len(item.Links))
+	for _, l := range item.Links {
+		links = append(links, &v1.FinanceInvoiceBill{Id: l.ID.String(), BillId: l.BillID.String(), BillNo: l.BillNo, Amount: l.Amount.StringFixed(8), TaxAmount: l.TaxAmount.StringFixed(8), Active: l.Active})
+	}
+	return &v1.FinanceInvoice{Id: item.ID.String(), RecordNo: item.RecordNo, Direction: string(item.Direction), Status: string(item.Status), InvoiceType: string(item.InvoiceType), SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName, Currency: item.Currency, TotalAmount: item.TotalAmount.StringFixed(8), TaxAmount: item.TaxAmount.StringFixed(8), BillCount: int32(item.BillCount), TaxInvoiceNo: item.TaxInvoiceNo, InvoiceDate: item.InvoiceDate, Note: item.Note, Version: item.Version, IssuedAt: financeTime(item.IssuedAt), CancelledAt: financeTime(item.CancelledAt), CancellationReason: item.CancellationReason, BillLinks: links, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func financeOptionalString(value *string) string {

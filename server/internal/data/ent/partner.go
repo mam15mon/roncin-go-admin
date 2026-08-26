@@ -70,9 +70,11 @@ type PartnerEdges struct {
 	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// FinanceBills holds the value of the finance_bills edge.
 	FinanceBills []*FinanceBill `json:"finance_bills,omitempty"`
+	// FinanceInvoices holds the value of the finance_invoices edge.
+	FinanceInvoices []*FinanceInvoice `json:"finance_invoices,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -185,6 +187,15 @@ func (e PartnerEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
 		return e.FinanceBills, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bills"}
+}
+
+// FinanceInvoicesOrErr returns the FinanceInvoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) FinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
+	if e.loadedTypes[12] {
+		return e.FinanceInvoices, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_invoices"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -347,6 +358,11 @@ func (_m *Partner) QueryOrderFees() *OrderFeeQuery {
 // QueryFinanceBills queries the "finance_bills" edge of the Partner entity.
 func (_m *Partner) QueryFinanceBills() *FinanceBillQuery {
 	return NewPartnerClient(_m.config).QueryFinanceBills(_m)
+}
+
+// QueryFinanceInvoices queries the "finance_invoices" edge of the Partner entity.
+func (_m *Partner) QueryFinanceInvoices() *FinanceInvoiceQuery {
+	return NewPartnerClient(_m.config).QueryFinanceInvoices(_m)
 }
 
 // Update returns a builder for updating this Partner.

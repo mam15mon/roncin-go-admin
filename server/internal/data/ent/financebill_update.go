@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -279,6 +280,21 @@ func (_u *FinanceBillUpdate) AddLines(v ...*FinanceBillLine) *FinanceBillUpdate 
 	return _u.AddLineIDs(ids...)
 }
 
+// AddInvoiceLinkIDs adds the "invoice_links" edge to the FinanceInvoiceBill entity by IDs.
+func (_u *FinanceBillUpdate) AddInvoiceLinkIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.AddInvoiceLinkIDs(ids...)
+	return _u
+}
+
+// AddInvoiceLinks adds the "invoice_links" edges to the FinanceInvoiceBill entity.
+func (_u *FinanceBillUpdate) AddInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddInvoiceLinkIDs(ids...)
+}
+
 // Mutation returns the FinanceBillMutation object of the builder.
 func (_u *FinanceBillUpdate) Mutation() *FinanceBillMutation {
 	return _u.mutation
@@ -315,6 +331,27 @@ func (_u *FinanceBillUpdate) RemoveLines(v ...*FinanceBillLine) *FinanceBillUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLineIDs(ids...)
+}
+
+// ClearInvoiceLinks clears all "invoice_links" edges to the FinanceInvoiceBill entity.
+func (_u *FinanceBillUpdate) ClearInvoiceLinks() *FinanceBillUpdate {
+	_u.mutation.ClearInvoiceLinks()
+	return _u
+}
+
+// RemoveInvoiceLinkIDs removes the "invoice_links" edge to FinanceInvoiceBill entities by IDs.
+func (_u *FinanceBillUpdate) RemoveInvoiceLinkIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.RemoveInvoiceLinkIDs(ids...)
+	return _u
+}
+
+// RemoveInvoiceLinks removes "invoice_links" edges to FinanceInvoiceBill entities.
+func (_u *FinanceBillUpdate) RemoveInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -542,6 +579,51 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.InvoiceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedInvoiceLinksIDs(); len(nodes) > 0 && !_u.mutation.InvoiceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -817,6 +899,21 @@ func (_u *FinanceBillUpdateOne) AddLines(v ...*FinanceBillLine) *FinanceBillUpda
 	return _u.AddLineIDs(ids...)
 }
 
+// AddInvoiceLinkIDs adds the "invoice_links" edge to the FinanceInvoiceBill entity by IDs.
+func (_u *FinanceBillUpdateOne) AddInvoiceLinkIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.AddInvoiceLinkIDs(ids...)
+	return _u
+}
+
+// AddInvoiceLinks adds the "invoice_links" edges to the FinanceInvoiceBill entity.
+func (_u *FinanceBillUpdateOne) AddInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddInvoiceLinkIDs(ids...)
+}
+
 // Mutation returns the FinanceBillMutation object of the builder.
 func (_u *FinanceBillUpdateOne) Mutation() *FinanceBillMutation {
 	return _u.mutation
@@ -853,6 +950,27 @@ func (_u *FinanceBillUpdateOne) RemoveLines(v ...*FinanceBillLine) *FinanceBillU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLineIDs(ids...)
+}
+
+// ClearInvoiceLinks clears all "invoice_links" edges to the FinanceInvoiceBill entity.
+func (_u *FinanceBillUpdateOne) ClearInvoiceLinks() *FinanceBillUpdateOne {
+	_u.mutation.ClearInvoiceLinks()
+	return _u
+}
+
+// RemoveInvoiceLinkIDs removes the "invoice_links" edge to FinanceInvoiceBill entities by IDs.
+func (_u *FinanceBillUpdateOne) RemoveInvoiceLinkIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.RemoveInvoiceLinkIDs(ids...)
+	return _u
+}
+
+// RemoveInvoiceLinks removes "invoice_links" edges to FinanceInvoiceBill entities.
+func (_u *FinanceBillUpdateOne) RemoveInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceBillUpdate builder.
@@ -1110,6 +1228,51 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.InvoiceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedInvoiceLinksIDs(); len(nodes) > 0 && !_u.mutation.InvoiceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceLinksTable,
+			Columns: []string{financebill.InvoiceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

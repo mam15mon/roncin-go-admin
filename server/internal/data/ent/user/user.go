@@ -53,6 +53,10 @@ const (
 	EdgeConfirmedFinanceBills = "confirmed_finance_bills"
 	// EdgeCancelledFinanceBills holds the string denoting the cancelled_finance_bills edge name in mutations.
 	EdgeCancelledFinanceBills = "cancelled_finance_bills"
+	// EdgeIssuedFinanceInvoices holds the string denoting the issued_finance_invoices edge name in mutations.
+	EdgeIssuedFinanceInvoices = "issued_finance_invoices"
+	// EdgeCancelledFinanceInvoices holds the string denoting the cancelled_finance_invoices edge name in mutations.
+	EdgeCancelledFinanceInvoices = "cancelled_finance_invoices"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -104,6 +108,20 @@ const (
 	CancelledFinanceBillsInverseTable = "finance_bills"
 	// CancelledFinanceBillsColumn is the table column denoting the cancelled_finance_bills relation/edge.
 	CancelledFinanceBillsColumn = "cancelled_by"
+	// IssuedFinanceInvoicesTable is the table that holds the issued_finance_invoices relation/edge.
+	IssuedFinanceInvoicesTable = "finance_invoices"
+	// IssuedFinanceInvoicesInverseTable is the table name for the FinanceInvoice entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoice" package.
+	IssuedFinanceInvoicesInverseTable = "finance_invoices"
+	// IssuedFinanceInvoicesColumn is the table column denoting the issued_finance_invoices relation/edge.
+	IssuedFinanceInvoicesColumn = "issued_by"
+	// CancelledFinanceInvoicesTable is the table that holds the cancelled_finance_invoices relation/edge.
+	CancelledFinanceInvoicesTable = "finance_invoices"
+	// CancelledFinanceInvoicesInverseTable is the table name for the FinanceInvoice entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoice" package.
+	CancelledFinanceInvoicesInverseTable = "finance_invoices"
+	// CancelledFinanceInvoicesColumn is the table column denoting the cancelled_finance_invoices relation/edge.
+	CancelledFinanceInvoicesColumn = "cancelled_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -327,6 +345,34 @@ func ByCancelledFinanceBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByIssuedFinanceInvoicesCount orders the results by issued_finance_invoices count.
+func ByIssuedFinanceInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIssuedFinanceInvoicesStep(), opts...)
+	}
+}
+
+// ByIssuedFinanceInvoices orders the results by issued_finance_invoices terms.
+func ByIssuedFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIssuedFinanceInvoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCancelledFinanceInvoicesCount orders the results by cancelled_finance_invoices count.
+func ByCancelledFinanceInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledFinanceInvoicesStep(), opts...)
+	}
+}
+
+// ByCancelledFinanceInvoices orders the results by cancelled_finance_invoices terms.
+func ByCancelledFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceInvoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -374,5 +420,19 @@ func newCancelledFinanceBillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceBillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceBillsTable, CancelledFinanceBillsColumn),
+	)
+}
+func newIssuedFinanceInvoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IssuedFinanceInvoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IssuedFinanceInvoicesTable, IssuedFinanceInvoicesColumn),
+	)
+}
+func newCancelledFinanceInvoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledFinanceInvoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceInvoicesTable, CancelledFinanceInvoicesColumn),
 	)
 }
