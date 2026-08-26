@@ -62,6 +62,16 @@ const FEE_STATUS_CODES: Record<string, number> = {
   ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
 };
 
+const FEE_DIRECTION_CODES: Record<string, number> = {
+  ORDER_FEE_DIRECTION_RECEIVABLE: RECEIVABLE,
+  ORDER_FEE_DIRECTION_PAYABLE: PAYABLE,
+};
+
+function feeDirectionCode(direction: unknown): number {
+  if (typeof direction === 'number') return direction;
+  return FEE_DIRECTION_CODES[String(direction)] ?? 0;
+}
+
 function feeStatusCode(status: unknown): number {
   if (typeof status === 'number') return status;
   return FEE_STATUS_CODES[String(status)] ?? 0;
@@ -279,7 +289,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         dataIndex: 'direction',
         width: 90,
         render: (_, record) =>
-          record.direction === PAYABLE ? (
+          feeDirectionCode(record.direction) === PAYABLE ? (
             <Tag color="volcano">应付</Tag>
           ) : (
             <Tag color="green">应收</Tag>
@@ -457,7 +467,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const initialValues: Partial<FeeFormValues> = editingFee
       ? {
-          direction: editingFee.direction,
+          direction: feeDirectionCode(editingFee.direction),
           feeSettingId: editingFee.feeSettingId,
           settlementPartyId: editingFee.settlementPartyId,
           billingUnitId: editingFee.billingUnitId,

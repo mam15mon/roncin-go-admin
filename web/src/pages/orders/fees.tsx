@@ -41,7 +41,6 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
-import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
@@ -52,6 +51,8 @@ import {
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
+import { orderServiceGetOrder } from '@/services/roncin/orderService';
+import { parseOrderKind } from './common';
 import {
   calculateExactFeeTotal,
   exchangeRatePattern,
@@ -59,7 +60,6 @@ import {
   quantityOrPricePattern,
   trimExactDecimal,
 } from './order-fee-decimal';
-import { parseOrderKind } from './common';
 
 const { Text } = Typography;
 
@@ -76,6 +76,16 @@ const FEE_STATUS_CODES: Record<string, number> = {
   ORDER_FEE_STATUS_BILLED: FEE_BILLED,
   ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
 };
+
+const FEE_DIRECTION_CODES: Record<string, number> = {
+  ORDER_FEE_DIRECTION_RECEIVABLE: RECEIVABLE,
+  ORDER_FEE_DIRECTION_PAYABLE: PAYABLE,
+};
+
+function feeDirectionCode(direction: unknown): number {
+  if (typeof direction === 'number') return direction;
+  return FEE_DIRECTION_CODES[String(direction)] ?? 0;
+}
 
 function feeStatusCode(status: unknown): number {
   if (typeof status === 'number') return status;
@@ -896,7 +906,7 @@ export default function OrderFeesPage() {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
                     const rItems = (res.data ?? []).filter(
-                      (f) => f.direction === RECEIVABLE,
+                      (f) => feeDirectionCode(f.direction) === RECEIVABLE,
                     );
                     const activeItems = rItems.filter(
                       (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
@@ -979,7 +989,7 @@ export default function OrderFeesPage() {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
                     const pItems = (res.data ?? []).filter(
-                      (f) => f.direction === PAYABLE,
+                      (f) => feeDirectionCode(f.direction) === PAYABLE,
                     );
                     const activeItems = pItems.filter(
                       (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
