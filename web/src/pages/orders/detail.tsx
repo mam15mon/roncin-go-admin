@@ -1,11 +1,10 @@
 import {
   CheckOutlined,
-  CloseOutlined,
   DollarOutlined,
-  EditOutlined,
   FileDoneOutlined,
   LockOutlined,
   ReloadOutlined,
+  UndoOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -77,7 +76,6 @@ export default function OrderDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   const [order, setOrder] = useState<API.Order>();
   const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>([]);
@@ -251,14 +249,14 @@ export default function OrderDetailPage() {
     };
   }, [order, shippingDocs, personnel]);
 
-  // 当进入编辑模式或重新加载数据时，同步表单值
+  // 当重新加载数据时同步更新表单值
   useEffect(() => {
     if (formRef.current && order) {
       formRef.current.setFieldsValue(initialValues);
     }
-  }, [initialValues, isEditing]);
+  }, [initialValues]);
 
-  // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
+  // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true 锁定订单编号与创建人员）
   const templateProps = useMemo(
     () => ({
       serviceTypeOptions,
@@ -403,7 +401,6 @@ export default function OrderDetailPage() {
 
       await orderServiceUpdateOrder({ id: orderId }, payload);
       message.success('保存订单成功');
-      setIsEditing(false);
       await loadData();
       return true;
     } catch (error: any) {
@@ -444,7 +441,7 @@ export default function OrderDetailPage() {
     <>
       <OrderFormTemplate<any>
         loading={false}
-        readonly={!isEditing}
+        readonly={false}
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
@@ -463,59 +460,30 @@ export default function OrderDetailPage() {
                     已锁定
                   </Tag>
                 )}
-                {isEditing && (
-                  <Tag color="geekblue">
-                    编辑模式中
-                  </Tag>
-                )}
               </Space>
             }
-            subTitle={`${config.title} · ${isEditing ? '订单修改维护' : '订单详情查看'}`}
+            subTitle={`${config.title} · 订单详情维护`}
             breadcrumbs={[
               { label: '订单管理' },
               { label: config.title, onClick: () => history.push(`/orders/${kind}`) },
               { label: '订单详情' },
             ]}
-            onBack={() => {
-              if (isEditing) {
-                setIsEditing(false);
-                formRef.current?.resetFields();
-              } else {
-                history.push(`/orders/${kind}`);
-              }
-            }}
+            onBack={() => history.push(`/orders/${kind}`)}
             extra={[
-              !isEditing && (
-                <Button key="refresh" icon={<ReloadOutlined />} onClick={() => loadData()}>
-                  刷新
-                </Button>
-              ),
-              !isEditing &&
-                access.canOrder(config.businessType, 'update') &&
-                (order.canModify || order.status === 'DRAFT') && (
-                  <Button
-                    key="edit"
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => {
-                      setIsEditing(true);
-                      message.info('已进入编辑模式，修改完成后请点击下方「保存修改」');
-                    }}
-                  >
-                    修改订单
-                  </Button>
-                ),
-              !isEditing && access.canOrder(config.businessType, 'fee.read') && (
+              <Button key="refresh" icon={<ReloadOutlined />} onClick={() => loadData()}>
+                刷新
+              </Button>,
+              access.canOrder(config.businessType, 'fee.read') && (
                 <Button key="fee" icon={<DollarOutlined />} onClick={() => orderFeePanelRef.current?.open(order)}>
                   费用核算
                 </Button>
               ),
-              !isEditing && access.canOrder(config.businessType, 'release_pod.create') && (
+              access.canOrder(config.businessType, 'release_pod.create') && (
                 <Button key="pod" icon={<FileDoneOutlined />} onClick={() => releasePodPanelRef.current?.open(order)}>
                   放货凭证 (POD)
                 </Button>
               ),
-              !isEditing && access.canOrder(config.businessType, 'abnormal_case.create') && (
+              access.canOrder(config.businessType, 'abnormal_case.create') && (
                 <Button
                   key="abnormal"
                   icon={<WarningOutlined />}
@@ -531,34 +499,29 @@ export default function OrderDetailPage() {
         sections={formSections}
         appendSections={appendSections}
         footer={
-          isEditing ? (
-            <StickyFooterBar
-              info={
-                <Space>
-                  <Text strong>{order.orderNo}</Text>
-                  <Text type="secondary">正在修改订单，保存后即时生效</Text>
-                </Space>
-              }
+          <StickyFooterBar
+            info={
+              <Space>
+                <Text strong>{order.orderNo}</Text>
+                <Text type="secondary">{progressStage}</Text>
+              </Space>
+            }
+          >
+            <Button
+              icon={<UndoOutlined />}
+              onClick={() => formRef.current?.setFieldsValue(initialValues)}
             >
-              <Button
-                icon={<CloseOutlined />}
-                onClick={() => {
-                  setIsEditing(false);
-                  formRef.current?.resetFields();
-                }}
-              >
-                取消
-              </Button>
-              <Button
-                type="primary"
-                icon={<CheckOutlined />}
-                loading={saving}
-                onClick={() => formRef.current?.submit()}
-              >
-                保存修改
-              </Button>
-            </StickyFooterBar>
-          ) : undefined
+              重置修改
+            </Button>
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              loading={saving}
+              onClick={() => formRef.current?.submit()}
+            >
+              保存修改
+            </Button>
+          </StickyFooterBar>
         }
       />
 
