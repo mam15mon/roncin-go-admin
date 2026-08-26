@@ -53,6 +53,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_cashflows", FinanceCashflow.Type),
 		edge.To("finance_verifications", FinanceVerification.Type),
 		edge.To("finance_commissions", FinanceCommission.Type),
+		edge.To("finance_commission_rules", FinanceCommissionRule.Type),
 	}
 }
 

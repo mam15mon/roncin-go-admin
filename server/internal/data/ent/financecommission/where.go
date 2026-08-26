@@ -101,6 +101,26 @@ func EmployeeName(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldEmployeeName, v))
 }
 
+// RuleID applies equality check predicate on the "rule_id" field. It's identical to RuleIDEQ.
+func RuleID(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleID, v))
+}
+
+// RuleName applies equality check predicate on the "rule_name" field. It's identical to RuleNameEQ.
+func RuleName(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleName, v))
+}
+
+// PersonnelRole applies equality check predicate on the "personnel_role" field. It's identical to PersonnelRoleEQ.
+func PersonnelRole(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPersonnelRole, v))
+}
+
+// CalculationBasis applies equality check predicate on the "calculation_basis" field. It's identical to CalculationBasisEQ.
+func CalculationBasis(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCalculationBasis, v))
+}
+
 // BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
 func BaseCurrency(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldBaseCurrency, v))
@@ -574,6 +594,261 @@ func EmployeeNameEqualFold(v string) predicate.FinanceCommission {
 // EmployeeNameContainsFold applies the ContainsFold predicate on the "employee_name" field.
 func EmployeeNameContainsFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldContainsFold(FieldEmployeeName, v))
+}
+
+// RuleIDEQ applies the EQ predicate on the "rule_id" field.
+func RuleIDEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleID, v))
+}
+
+// RuleIDNEQ applies the NEQ predicate on the "rule_id" field.
+func RuleIDNEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldRuleID, v))
+}
+
+// RuleIDIn applies the In predicate on the "rule_id" field.
+func RuleIDIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldRuleID, vs...))
+}
+
+// RuleIDNotIn applies the NotIn predicate on the "rule_id" field.
+func RuleIDNotIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldRuleID, vs...))
+}
+
+// RuleIDIsNil applies the IsNil predicate on the "rule_id" field.
+func RuleIDIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldRuleID))
+}
+
+// RuleIDNotNil applies the NotNil predicate on the "rule_id" field.
+func RuleIDNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldRuleID))
+}
+
+// RuleNameEQ applies the EQ predicate on the "rule_name" field.
+func RuleNameEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleName, v))
+}
+
+// RuleNameNEQ applies the NEQ predicate on the "rule_name" field.
+func RuleNameNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldRuleName, v))
+}
+
+// RuleNameIn applies the In predicate on the "rule_name" field.
+func RuleNameIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldRuleName, vs...))
+}
+
+// RuleNameNotIn applies the NotIn predicate on the "rule_name" field.
+func RuleNameNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldRuleName, vs...))
+}
+
+// RuleNameGT applies the GT predicate on the "rule_name" field.
+func RuleNameGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldRuleName, v))
+}
+
+// RuleNameGTE applies the GTE predicate on the "rule_name" field.
+func RuleNameGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldRuleName, v))
+}
+
+// RuleNameLT applies the LT predicate on the "rule_name" field.
+func RuleNameLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldRuleName, v))
+}
+
+// RuleNameLTE applies the LTE predicate on the "rule_name" field.
+func RuleNameLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldRuleName, v))
+}
+
+// RuleNameContains applies the Contains predicate on the "rule_name" field.
+func RuleNameContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldRuleName, v))
+}
+
+// RuleNameHasPrefix applies the HasPrefix predicate on the "rule_name" field.
+func RuleNameHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldRuleName, v))
+}
+
+// RuleNameHasSuffix applies the HasSuffix predicate on the "rule_name" field.
+func RuleNameHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldRuleName, v))
+}
+
+// RuleNameIsNil applies the IsNil predicate on the "rule_name" field.
+func RuleNameIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldRuleName))
+}
+
+// RuleNameNotNil applies the NotNil predicate on the "rule_name" field.
+func RuleNameNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldRuleName))
+}
+
+// RuleNameEqualFold applies the EqualFold predicate on the "rule_name" field.
+func RuleNameEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldRuleName, v))
+}
+
+// RuleNameContainsFold applies the ContainsFold predicate on the "rule_name" field.
+func RuleNameContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldRuleName, v))
+}
+
+// PersonnelRoleEQ applies the EQ predicate on the "personnel_role" field.
+func PersonnelRoleEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleNEQ applies the NEQ predicate on the "personnel_role" field.
+func PersonnelRoleNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleIn applies the In predicate on the "personnel_role" field.
+func PersonnelRoleIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldPersonnelRole, vs...))
+}
+
+// PersonnelRoleNotIn applies the NotIn predicate on the "personnel_role" field.
+func PersonnelRoleNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldPersonnelRole, vs...))
+}
+
+// PersonnelRoleGT applies the GT predicate on the "personnel_role" field.
+func PersonnelRoleGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleGTE applies the GTE predicate on the "personnel_role" field.
+func PersonnelRoleGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleLT applies the LT predicate on the "personnel_role" field.
+func PersonnelRoleLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleLTE applies the LTE predicate on the "personnel_role" field.
+func PersonnelRoleLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleContains applies the Contains predicate on the "personnel_role" field.
+func PersonnelRoleContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleHasPrefix applies the HasPrefix predicate on the "personnel_role" field.
+func PersonnelRoleHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleHasSuffix applies the HasSuffix predicate on the "personnel_role" field.
+func PersonnelRoleHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleIsNil applies the IsNil predicate on the "personnel_role" field.
+func PersonnelRoleIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldPersonnelRole))
+}
+
+// PersonnelRoleNotNil applies the NotNil predicate on the "personnel_role" field.
+func PersonnelRoleNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldPersonnelRole))
+}
+
+// PersonnelRoleEqualFold applies the EqualFold predicate on the "personnel_role" field.
+func PersonnelRoleEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldPersonnelRole, v))
+}
+
+// PersonnelRoleContainsFold applies the ContainsFold predicate on the "personnel_role" field.
+func PersonnelRoleContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldPersonnelRole, v))
+}
+
+// CalculationBasisEQ applies the EQ predicate on the "calculation_basis" field.
+func CalculationBasisEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCalculationBasis, v))
+}
+
+// CalculationBasisNEQ applies the NEQ predicate on the "calculation_basis" field.
+func CalculationBasisNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCalculationBasis, v))
+}
+
+// CalculationBasisIn applies the In predicate on the "calculation_basis" field.
+func CalculationBasisIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCalculationBasis, vs...))
+}
+
+// CalculationBasisNotIn applies the NotIn predicate on the "calculation_basis" field.
+func CalculationBasisNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCalculationBasis, vs...))
+}
+
+// CalculationBasisGT applies the GT predicate on the "calculation_basis" field.
+func CalculationBasisGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCalculationBasis, v))
+}
+
+// CalculationBasisGTE applies the GTE predicate on the "calculation_basis" field.
+func CalculationBasisGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCalculationBasis, v))
+}
+
+// CalculationBasisLT applies the LT predicate on the "calculation_basis" field.
+func CalculationBasisLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCalculationBasis, v))
+}
+
+// CalculationBasisLTE applies the LTE predicate on the "calculation_basis" field.
+func CalculationBasisLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCalculationBasis, v))
+}
+
+// CalculationBasisContains applies the Contains predicate on the "calculation_basis" field.
+func CalculationBasisContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCalculationBasis, v))
+}
+
+// CalculationBasisHasPrefix applies the HasPrefix predicate on the "calculation_basis" field.
+func CalculationBasisHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCalculationBasis, v))
+}
+
+// CalculationBasisHasSuffix applies the HasSuffix predicate on the "calculation_basis" field.
+func CalculationBasisHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCalculationBasis, v))
+}
+
+// CalculationBasisIsNil applies the IsNil predicate on the "calculation_basis" field.
+func CalculationBasisIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldCalculationBasis))
+}
+
+// CalculationBasisNotNil applies the NotNil predicate on the "calculation_basis" field.
+func CalculationBasisNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldCalculationBasis))
+}
+
+// CalculationBasisEqualFold applies the EqualFold predicate on the "calculation_basis" field.
+func CalculationBasisEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCalculationBasis, v))
+}
+
+// CalculationBasisContainsFold applies the ContainsFold predicate on the "calculation_basis" field.
+func CalculationBasisContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCalculationBasis, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -1477,6 +1752,29 @@ func HasEmployee() predicate.FinanceCommission {
 func HasEmployeeWith(preds ...predicate.User) predicate.FinanceCommission {
 	return predicate.FinanceCommission(func(s *sql.Selector) {
 		step := newEmployeeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRule applies the HasEdge predicate on the "rule" edge.
+func HasRule() predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RuleTable, RuleColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRuleWith applies the HasEdge predicate on the "rule" edge with a given conditions (other predicates).
+func HasRuleWith(preds ...predicate.FinanceCommissionRule) predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := newRuleStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

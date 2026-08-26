@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -91,6 +92,62 @@ func (_c *FinanceCommissionCreate) SetEmployeeID(v uuid.UUID) *FinanceCommission
 // SetEmployeeName sets the "employee_name" field.
 func (_c *FinanceCommissionCreate) SetEmployeeName(v string) *FinanceCommissionCreate {
 	_c.mutation.SetEmployeeName(v)
+	return _c
+}
+
+// SetRuleID sets the "rule_id" field.
+func (_c *FinanceCommissionCreate) SetRuleID(v uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.SetRuleID(v)
+	return _c
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableRuleID(v *uuid.UUID) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetRuleID(*v)
+	}
+	return _c
+}
+
+// SetRuleName sets the "rule_name" field.
+func (_c *FinanceCommissionCreate) SetRuleName(v string) *FinanceCommissionCreate {
+	_c.mutation.SetRuleName(v)
+	return _c
+}
+
+// SetNillableRuleName sets the "rule_name" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableRuleName(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetRuleName(*v)
+	}
+	return _c
+}
+
+// SetPersonnelRole sets the "personnel_role" field.
+func (_c *FinanceCommissionCreate) SetPersonnelRole(v string) *FinanceCommissionCreate {
+	_c.mutation.SetPersonnelRole(v)
+	return _c
+}
+
+// SetNillablePersonnelRole sets the "personnel_role" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillablePersonnelRole(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetPersonnelRole(*v)
+	}
+	return _c
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (_c *FinanceCommissionCreate) SetCalculationBasis(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCalculationBasis(v)
+	return _c
+}
+
+// SetNillableCalculationBasis sets the "calculation_basis" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableCalculationBasis(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetCalculationBasis(*v)
+	}
 	return _c
 }
 
@@ -299,6 +356,11 @@ func (_c *FinanceCommissionCreate) SetEmployee(v *User) *FinanceCommissionCreate
 	return _c.SetEmployeeID(v.ID)
 }
 
+// SetRule sets the "rule" edge to the FinanceCommissionRule entity.
+func (_c *FinanceCommissionCreate) SetRule(v *FinanceCommissionRule) *FinanceCommissionCreate {
+	return _c.SetRuleID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_c *FinanceCommissionCreate) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionCreate {
 	_c.mutation.SetConfirmedByUserID(id)
@@ -462,6 +524,21 @@ func (_c *FinanceCommissionCreate) check() error {
 			return &ValidationError{Name: "employee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.employee_name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.RuleName(); ok {
+		if err := financecommission.RuleNameValidator(v); err != nil {
+			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.rule_name": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.PersonnelRole(); ok {
+		if err := financecommission.PersonnelRoleValidator(v); err != nil {
+			return &ValidationError{Name: "personnel_role", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.personnel_role": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.CalculationBasis(); ok {
+		if err := financecommission.CalculationBasisValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_basis": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "FinanceCommission.status"`)}
 	}
@@ -574,6 +651,18 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 		_spec.SetField(financecommission.FieldEmployeeName, field.TypeString, value)
 		_node.EmployeeName = value
 	}
+	if value, ok := _c.mutation.RuleName(); ok {
+		_spec.SetField(financecommission.FieldRuleName, field.TypeString, value)
+		_node.RuleName = &value
+	}
+	if value, ok := _c.mutation.PersonnelRole(); ok {
+		_spec.SetField(financecommission.FieldPersonnelRole, field.TypeString, value)
+		_node.PersonnelRole = &value
+	}
+	if value, ok := _c.mutation.CalculationBasis(); ok {
+		_spec.SetField(financecommission.FieldCalculationBasis, field.TypeString, value)
+		_node.CalculationBasis = &value
+	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
@@ -675,6 +764,23 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.EmployeeID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RuleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.RuleTable,
+			Columns: []string{financecommission.RuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RuleID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ConfirmedByUserIDs(); len(nodes) > 0 {

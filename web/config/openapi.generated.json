@@ -1442,6 +1442,133 @@
         }
       }
     },
+    "/api/v1/finance/commission-rules": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListCommissionRules",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "personnelRole",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enabled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionRulesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_CreateCommissionRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.CreateCommissionRuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.CommissionRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commission-rules/{id}": {
+      "put": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_UpdateCommissionRule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.UpdateCommissionRuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.CommissionRuleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/commissions": {
       "get": {
         "tags": [
@@ -1515,6 +1642,42 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.CreateCommissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commissions/candidates": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListCommissionCandidates",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ruleId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionEmployeesResponse"
                 }
               }
             }
@@ -7638,6 +7801,62 @@
           }
         }
       },
+      "finance.v1.CommissionRuleInput": {
+        "required": [
+          "name",
+          "personnelRole",
+          "calculationBasis",
+          "ratePercent"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "effectiveFrom": {
+            "type": "string"
+          },
+          "effectiveTo": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CommissionRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.CommissionTransitionRequest": {
         "required": [
           "id",
@@ -7898,8 +8117,8 @@
         "required": [
           "verificationId",
           "employeeId",
-          "ratePercent",
-          "idempotencyKey"
+          "idempotencyKey",
+          "ruleId"
         ],
         "type": "object",
         "properties": {
@@ -7909,13 +8128,13 @@
           "employeeId": {
             "type": "string"
           },
-          "ratePercent": {
-            "type": "string"
-          },
           "note": {
             "type": "string"
           },
           "idempotencyKey": {
+            "type": "string"
+          },
+          "ruleId": {
             "type": "string"
           }
         }
@@ -7938,6 +8157,17 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "finance.v1.CreateCommissionRuleRequest": {
+        "required": [
+          "rule"
+        ],
+        "type": "object",
+        "properties": {
+          "rule": {
+            "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
           }
         }
       },
@@ -8733,6 +8963,59 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "ruleId": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceCommissionRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "effectiveFrom": {
+            "type": "string"
+          },
+          "effectiveTo": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
           }
         }
       },
@@ -9104,6 +9387,33 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.CommissionEmployeeOption"
             }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListCommissionRulesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+            }
+          },
+          "total": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"
@@ -9532,6 +9842,25 @@
             "$ref": "#/components/schemas/finance.v1.BillingUnit"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.UpdateCommissionRuleRequest": {
+        "required": [
+          "id",
+          "rule",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
+          },
+          "expectedVersion": {
             "type": "string"
           }
         }

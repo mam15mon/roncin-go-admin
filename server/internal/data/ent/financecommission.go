@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -39,6 +40,14 @@ type FinanceCommission struct {
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
 	EmployeeName string `json:"employee_name,omitempty"`
+	// RuleID holds the value of the "rule_id" field.
+	RuleID *uuid.UUID `json:"rule_id,omitempty"`
+	// RuleName holds the value of the "rule_name" field.
+	RuleName *string `json:"rule_name,omitempty"`
+	// PersonnelRole holds the value of the "personnel_role" field.
+	PersonnelRole *string `json:"personnel_role,omitempty"`
+	// CalculationBasis holds the value of the "calculation_basis" field.
+	CalculationBasis *string `json:"calculation_basis,omitempty"`
 	// Status holds the value of the "status" field.
 	Status financecommission.Status `json:"status,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
@@ -85,6 +94,8 @@ type FinanceCommissionEdges struct {
 	Verification *FinanceVerification `json:"verification,omitempty"`
 	// Employee holds the value of the employee edge.
 	Employee *User `json:"employee,omitempty"`
+	// Rule holds the value of the rule edge.
+	Rule *FinanceCommissionRule `json:"rule,omitempty"`
 	// ConfirmedByUser holds the value of the confirmed_by_user edge.
 	ConfirmedByUser *User `json:"confirmed_by_user,omitempty"`
 	// PaidByUser holds the value of the paid_by_user edge.
@@ -93,7 +104,7 @@ type FinanceCommissionEdges struct {
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -129,12 +140,23 @@ func (e FinanceCommissionEdges) EmployeeOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "employee"}
 }
 
+// RuleOrErr returns the Rule value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionEdges) RuleOrErr() (*FinanceCommissionRule, error) {
+	if e.Rule != nil {
+		return e.Rule, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: financecommissionrule.Label}
+	}
+	return nil, &NotLoadedError{edge: "rule"}
+}
+
 // ConfirmedByUserOrErr returns the ConfirmedByUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceCommissionEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -145,7 +167,7 @@ func (e FinanceCommissionEdges) ConfirmedByUserOrErr() (*User, error) {
 func (e FinanceCommissionEdges) PaidByUserOrErr() (*User, error) {
 	if e.PaidByUser != nil {
 		return e.PaidByUser, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "paid_by_user"}
@@ -156,7 +178,7 @@ func (e FinanceCommissionEdges) PaidByUserOrErr() (*User, error) {
 func (e FinanceCommissionEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -167,11 +189,11 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
+		case financecommission.FieldRuleID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -251,6 +273,34 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field employee_name", values[i])
 			} else if value.Valid {
 				_m.EmployeeName = value.String
+			}
+		case financecommission.FieldRuleID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field rule_id", values[i])
+			} else if value.Valid {
+				_m.RuleID = new(uuid.UUID)
+				*_m.RuleID = *value.S.(*uuid.UUID)
+			}
+		case financecommission.FieldRuleName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field rule_name", values[i])
+			} else if value.Valid {
+				_m.RuleName = new(string)
+				*_m.RuleName = value.String
+			}
+		case financecommission.FieldPersonnelRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field personnel_role", values[i])
+			} else if value.Valid {
+				_m.PersonnelRole = new(string)
+				*_m.PersonnelRole = value.String
+			}
+		case financecommission.FieldCalculationBasis:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field calculation_basis", values[i])
+			} else if value.Valid {
+				_m.CalculationBasis = new(string)
+				*_m.CalculationBasis = value.String
 			}
 		case financecommission.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -384,6 +434,11 @@ func (_m *FinanceCommission) QueryEmployee() *UserQuery {
 	return NewFinanceCommissionClient(_m.config).QueryEmployee(_m)
 }
 
+// QueryRule queries the "rule" edge of the FinanceCommission entity.
+func (_m *FinanceCommission) QueryRule() *FinanceCommissionRuleQuery {
+	return NewFinanceCommissionClient(_m.config).QueryRule(_m)
+}
+
 // QueryConfirmedByUser queries the "confirmed_by_user" edge of the FinanceCommission entity.
 func (_m *FinanceCommission) QueryConfirmedByUser() *UserQuery {
 	return NewFinanceCommissionClient(_m.config).QueryConfirmedByUser(_m)
@@ -448,6 +503,26 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("employee_name=")
 	builder.WriteString(_m.EmployeeName)
+	builder.WriteString(", ")
+	if v := _m.RuleID; v != nil {
+		builder.WriteString("rule_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.RuleName; v != nil {
+		builder.WriteString("rule_name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PersonnelRole; v != nil {
+		builder.WriteString("personnel_role=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.CalculationBasis; v != nil {
+		builder.WriteString("calculation_basis=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

@@ -34,6 +34,14 @@ const (
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
 	FieldEmployeeName = "employee_name"
+	// FieldRuleID holds the string denoting the rule_id field in the database.
+	FieldRuleID = "rule_id"
+	// FieldRuleName holds the string denoting the rule_name field in the database.
+	FieldRuleName = "rule_name"
+	// FieldPersonnelRole holds the string denoting the personnel_role field in the database.
+	FieldPersonnelRole = "personnel_role"
+	// FieldCalculationBasis holds the string denoting the calculation_basis field in the database.
+	FieldCalculationBasis = "calculation_basis"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
@@ -72,6 +80,8 @@ const (
 	EdgeVerification = "verification"
 	// EdgeEmployee holds the string denoting the employee edge name in mutations.
 	EdgeEmployee = "employee"
+	// EdgeRule holds the string denoting the rule edge name in mutations.
+	EdgeRule = "rule"
 	// EdgeConfirmedByUser holds the string denoting the confirmed_by_user edge name in mutations.
 	EdgeConfirmedByUser = "confirmed_by_user"
 	// EdgePaidByUser holds the string denoting the paid_by_user edge name in mutations.
@@ -101,6 +111,13 @@ const (
 	EmployeeInverseTable = "users"
 	// EmployeeColumn is the table column denoting the employee relation/edge.
 	EmployeeColumn = "employee_id"
+	// RuleTable is the table that holds the rule relation/edge.
+	RuleTable = "finance_commissions"
+	// RuleInverseTable is the table name for the FinanceCommissionRule entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionrule" package.
+	RuleInverseTable = "finance_commission_rules"
+	// RuleColumn is the table column denoting the rule relation/edge.
+	RuleColumn = "rule_id"
 	// ConfirmedByUserTable is the table that holds the confirmed_by_user relation/edge.
 	ConfirmedByUserTable = "finance_commissions"
 	// ConfirmedByUserInverseTable is the table name for the User entity.
@@ -136,6 +153,10 @@ var Columns = []string{
 	FieldVerificationNo,
 	FieldEmployeeID,
 	FieldEmployeeName,
+	FieldRuleID,
+	FieldRuleName,
+	FieldPersonnelRole,
+	FieldCalculationBasis,
 	FieldStatus,
 	FieldBaseCurrency,
 	FieldRealizedRevenue,
@@ -179,6 +200,12 @@ var (
 	VerificationNoValidator func(string) error
 	// EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	EmployeeNameValidator func(string) error
+	// RuleNameValidator is a validator for the "rule_name" field. It is called by the builders before save.
+	RuleNameValidator func(string) error
+	// PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
+	PersonnelRoleValidator func(string) error
+	// CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
+	CalculationBasisValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -270,6 +297,26 @@ func ByEmployeeID(opts ...sql.OrderTermOption) OrderOption {
 // ByEmployeeName orders the results by the employee_name field.
 func ByEmployeeName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmployeeName, opts...).ToFunc()
+}
+
+// ByRuleID orders the results by the rule_id field.
+func ByRuleID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRuleID, opts...).ToFunc()
+}
+
+// ByRuleName orders the results by the rule_name field.
+func ByRuleName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRuleName, opts...).ToFunc()
+}
+
+// ByPersonnelRole orders the results by the personnel_role field.
+func ByPersonnelRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersonnelRole, opts...).ToFunc()
+}
+
+// ByCalculationBasis orders the results by the calculation_basis field.
+func ByCalculationBasis(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCalculationBasis, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
@@ -373,6 +420,13 @@ func ByEmployeeField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByRuleField orders the results by rule field.
+func ByRuleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRuleStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByConfirmedByUserField orders the results by confirmed_by_user field.
 func ByConfirmedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -412,6 +466,13 @@ func newEmployeeStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EmployeeInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, EmployeeTable, EmployeeColumn),
+	)
+}
+func newRuleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RuleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RuleTable, RuleColumn),
 	)
 }
 func newConfirmedByUserStep() *sqlgraph.Step {

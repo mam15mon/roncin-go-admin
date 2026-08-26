@@ -88,6 +88,8 @@ const (
 	EdgeFinanceVerifications = "finance_verifications"
 	// EdgeFinanceCommissions holds the string denoting the finance_commissions edge name in mutations.
 	EdgeFinanceCommissions = "finance_commissions"
+	// EdgeFinanceCommissionRules holds the string denoting the finance_commission_rules edge name in mutations.
+	EdgeFinanceCommissionRules = "finance_commission_rules"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -280,6 +282,13 @@ const (
 	FinanceCommissionsInverseTable = "finance_commissions"
 	// FinanceCommissionsColumn is the table column denoting the finance_commissions relation/edge.
 	FinanceCommissionsColumn = "organization_id"
+	// FinanceCommissionRulesTable is the table that holds the finance_commission_rules relation/edge.
+	FinanceCommissionRulesTable = "finance_commission_rules"
+	// FinanceCommissionRulesInverseTable is the table name for the FinanceCommissionRule entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionrule" package.
+	FinanceCommissionRulesInverseTable = "finance_commission_rules"
+	// FinanceCommissionRulesColumn is the table column denoting the finance_commission_rules relation/edge.
+	FinanceCommissionRulesColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -781,6 +790,20 @@ func ByFinanceCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceCommissionRulesCount orders the results by finance_commission_rules count.
+func ByFinanceCommissionRulesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionRulesStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionRules orders the results by finance_commission_rules terms.
+func ByFinanceCommissionRules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionRulesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -975,5 +998,12 @@ func newFinanceCommissionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCommissionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionsTable, FinanceCommissionsColumn),
+	)
+}
+func newFinanceCommissionRulesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionRulesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionRulesTable, FinanceCommissionRulesColumn),
 	)
 }

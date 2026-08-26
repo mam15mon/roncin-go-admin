@@ -98,9 +98,11 @@ type OrganizationEdges struct {
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
 	// FinanceCommissions holds the value of the finance_commissions edge.
 	FinanceCommissions []*FinanceCommission `json:"finance_commissions,omitempty"`
+	// FinanceCommissionRules holds the value of the finance_commission_rules edge.
+	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [28]bool
+	loadedTypes [29]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -357,6 +359,15 @@ func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, erro
 	return nil, &NotLoadedError{edge: "finance_commissions"}
 }
 
+// FinanceCommissionRulesOrErr returns the FinanceCommissionRules value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRule, error) {
+	if e.loadedTypes[28] {
+		return e.FinanceCommissionRules, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_commission_rules"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -594,6 +605,11 @@ func (_m *Organization) QueryFinanceVerifications() *FinanceVerificationQuery {
 // QueryFinanceCommissions queries the "finance_commissions" edge of the Organization entity.
 func (_m *Organization) QueryFinanceCommissions() *FinanceCommissionQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceCommissions(_m)
+}
+
+// QueryFinanceCommissionRules queries the "finance_commission_rules" edge of the Organization entity.
+func (_m *Organization) QueryFinanceCommissionRules() *FinanceCommissionRuleQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceCommissionRules(_m)
 }
 
 // Update returns a builder for updating this Organization.

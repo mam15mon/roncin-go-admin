@@ -514,6 +514,97 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, _ *v1.L
 	}
 	return &v1.ListCommissionEmployeesResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
+func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionEmployeesResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	items, err := s.commissionUsecase.ListCandidates(ctx, p.Organization.ID, verificationID, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.CommissionEmployeeOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.CommissionEmployeeOption{Id: item.ID.String(), DisplayName: item.DisplayName})
+	}
+	return &v1.ListCommissionEmployeesResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListCommissionRulesRequest) (*v1.ListCommissionRulesResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	f := biz.CommissionRuleFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
+	if f.Page == 0 {
+		f.Page = 1
+	}
+	if f.PageSize == 0 {
+		f.PageSize = 20
+	}
+	result, err := s.commissionUsecase.ListRules(ctx, p.Organization.ID, f)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceCommissionRule, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, commissionRuleToAPI(item))
+	}
+	return &v1.ListCommissionRulesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CommissionRuleResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	in, err := commissionRuleInputFromAPI(r.GetRule())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.CreateRule(ctx, p.Organization.ID, p.UserID, in)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.UpdateCommissionRuleRequest) (*v1.CommissionRuleResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	in, err := commissionRuleInputFromAPI(r.GetRule())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.UpdateRule(ctx, p.Organization.ID, p.UserID, biz.UpdateCommissionRuleInput{ID: id, CreateCommissionRuleInput: in, ExpectedVersion: r.GetExpectedVersion()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func commissionRuleInputFromAPI(r *v1.CommissionRuleInput) (biz.CreateCommissionRuleInput, error) {
+	if r == nil {
+		return biz.CreateCommissionRuleInput{}, biz.ErrCommissionRuleInvalid
+	}
+	rate, err := decimal.NewFromString(r.GetRatePercent())
+	if err != nil {
+		return biz.CreateCommissionRuleInput{}, biz.ErrCommissionRuleInvalid
+	}
+	return biz.CreateCommissionRuleInput{Name: r.GetName(), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(r.GetPersonnelRole())), CalculationBasis: biz.CommissionCalculationBasis(strings.ToUpper(r.GetCalculationBasis())), RatePercent: rate, EffectiveFrom: r.EffectiveFrom, EffectiveTo: r.EffectiveTo, Enabled: r.GetEnabled(), Note: r.Note}, nil
+}
+func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule {
+	if x == nil {
+		return nil
+	}
+	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
+}
 func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCommissionRequest) (*v1.CreateCommissionResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -527,11 +618,11 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	rate, err := decimal.NewFromString(r.GetRatePercent())
+	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	item, err := s.commissionUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RatePercent: rate, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	item, err := s.commissionUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RuleID: ruleID, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -574,7 +665,24 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	if x == nil {
 		return nil
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
+	var ruleID, ruleName, personnelRole, calculationBasis *string
+	if x.RuleID != uuid.Nil {
+		value := x.RuleID.String()
+		ruleID = &value
+	}
+	if x.RuleName != "" {
+		value := x.RuleName
+		ruleName = &value
+	}
+	if x.PersonnelRole != "" {
+		value := string(x.PersonnelRole)
+		personnelRole = &value
+	}
+	if x.CalculationBasis != "" {
+		value := string(x.CalculationBasis)
+		calculationBasis = &value
+	}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis}
 }
 
 func financeOptionalString(value *string) string {

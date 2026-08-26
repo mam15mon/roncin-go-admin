@@ -19,32 +19,36 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName           = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_ListBills_FullMethodName               = "/finance.v1.SettlementService/ListBills"
-	SettlementService_GetBill_FullMethodName                 = "/finance.v1.SettlementService/GetBill"
-	SettlementService_CreateBill_FullMethodName              = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_UpdateBill_FullMethodName              = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName             = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName              = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName            = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_GetInvoice_FullMethodName              = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName           = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName            = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName           = "/finance.v1.SettlementService/CancelInvoice"
-	SettlementService_RedFlushInvoice_FullMethodName         = "/finance.v1.SettlementService/RedFlushInvoice"
-	SettlementService_ListCashflows_FullMethodName           = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_CreateCashflow_FullMethodName          = "/finance.v1.SettlementService/CreateCashflow"
-	SettlementService_ConfirmCashflow_FullMethodName         = "/finance.v1.SettlementService/ConfirmCashflow"
-	SettlementService_CancelCashflow_FullMethodName          = "/finance.v1.SettlementService/CancelCashflow"
-	SettlementService_ListVerifications_FullMethodName       = "/finance.v1.SettlementService/ListVerifications"
-	SettlementService_CreateVerification_FullMethodName      = "/finance.v1.SettlementService/CreateVerification"
-	SettlementService_ReverseVerification_FullMethodName     = "/finance.v1.SettlementService/ReverseVerification"
-	SettlementService_ListCommissions_FullMethodName         = "/finance.v1.SettlementService/ListCommissions"
-	SettlementService_ListCommissionEmployees_FullMethodName = "/finance.v1.SettlementService/ListCommissionEmployees"
-	SettlementService_CreateCommission_FullMethodName        = "/finance.v1.SettlementService/CreateCommission"
-	SettlementService_ConfirmCommission_FullMethodName       = "/finance.v1.SettlementService/ConfirmCommission"
-	SettlementService_MarkCommissionPaid_FullMethodName      = "/finance.v1.SettlementService/MarkCommissionPaid"
-	SettlementService_CancelCommission_FullMethodName        = "/finance.v1.SettlementService/CancelCommission"
+	SettlementService_ListFeeLedger_FullMethodName            = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_ListBills_FullMethodName                = "/finance.v1.SettlementService/ListBills"
+	SettlementService_GetBill_FullMethodName                  = "/finance.v1.SettlementService/GetBill"
+	SettlementService_CreateBill_FullMethodName               = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_UpdateBill_FullMethodName               = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName              = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName               = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName             = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_GetInvoice_FullMethodName               = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName            = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName             = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName            = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_RedFlushInvoice_FullMethodName          = "/finance.v1.SettlementService/RedFlushInvoice"
+	SettlementService_ListCashflows_FullMethodName            = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_CreateCashflow_FullMethodName           = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName          = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName           = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListVerifications_FullMethodName        = "/finance.v1.SettlementService/ListVerifications"
+	SettlementService_CreateVerification_FullMethodName       = "/finance.v1.SettlementService/CreateVerification"
+	SettlementService_ReverseVerification_FullMethodName      = "/finance.v1.SettlementService/ReverseVerification"
+	SettlementService_ListCommissions_FullMethodName          = "/finance.v1.SettlementService/ListCommissions"
+	SettlementService_ListCommissionEmployees_FullMethodName  = "/finance.v1.SettlementService/ListCommissionEmployees"
+	SettlementService_ListCommissionCandidates_FullMethodName = "/finance.v1.SettlementService/ListCommissionCandidates"
+	SettlementService_ListCommissionRules_FullMethodName      = "/finance.v1.SettlementService/ListCommissionRules"
+	SettlementService_CreateCommissionRule_FullMethodName     = "/finance.v1.SettlementService/CreateCommissionRule"
+	SettlementService_UpdateCommissionRule_FullMethodName     = "/finance.v1.SettlementService/UpdateCommissionRule"
+	SettlementService_CreateCommission_FullMethodName         = "/finance.v1.SettlementService/CreateCommission"
+	SettlementService_ConfirmCommission_FullMethodName        = "/finance.v1.SettlementService/ConfirmCommission"
+	SettlementService_MarkCommissionPaid_FullMethodName       = "/finance.v1.SettlementService/MarkCommissionPaid"
+	SettlementService_CancelCommission_FullMethodName         = "/finance.v1.SettlementService/CancelCommission"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -76,6 +80,10 @@ type SettlementServiceClient interface {
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
+	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
+	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
+	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
+	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
 	CreateCommission(ctx context.Context, in *CreateCommissionRequest, opts ...grpc.CallOption) (*CreateCommissionResponse, error)
 	ConfirmCommission(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
 	MarkCommissionPaid(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
@@ -310,6 +318,46 @@ func (c *settlementServiceClient) ListCommissionEmployees(ctx context.Context, i
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionEmployeesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionRulesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionRuleResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateCommissionRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionRuleResponse)
+	err := c.cc.Invoke(ctx, SettlementService_UpdateCommissionRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) CreateCommission(ctx context.Context, in *CreateCommissionRequest, opts ...grpc.CallOption) (*CreateCommissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateCommissionResponse)
@@ -379,6 +427,10 @@ type SettlementServiceServer interface {
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
+	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionEmployeesResponse, error)
+	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
+	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error)
+	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error)
 	CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error)
 	ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
@@ -458,6 +510,18 @@ func (UnimplementedSettlementServiceServer) ListCommissions(context.Context, *Li
 }
 func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionEmployees not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionEmployeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionRules not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCommissionRule not implemented")
+}
+func (UnimplementedSettlementServiceServer) UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCommissionRule not implemented")
 }
 func (UnimplementedSettlementServiceServer) CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCommission not implemented")
@@ -888,6 +952,78 @@ func _SettlementService_ListCommissionEmployees_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListCommissionCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionCandidates(ctx, req.(*ListCommissionCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListCommissionRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionRules(ctx, req.(*ListCommissionRulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateCommissionRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCommissionRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateCommissionRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateCommissionRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateCommissionRule(ctx, req.(*CreateCommissionRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_UpdateCommissionRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCommissionRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).UpdateCommissionRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_UpdateCommissionRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).UpdateCommissionRule(ctx, req.(*UpdateCommissionRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_CreateCommission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCommissionRequest)
 	if err := dec(in); err != nil {
@@ -1054,6 +1190,22 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommissionEmployees",
 			Handler:    _SettlementService_ListCommissionEmployees_Handler,
+		},
+		{
+			MethodName: "ListCommissionCandidates",
+			Handler:    _SettlementService_ListCommissionCandidates_Handler,
+		},
+		{
+			MethodName: "ListCommissionRules",
+			Handler:    _SettlementService_ListCommissionRules_Handler,
+		},
+		{
+			MethodName: "CreateCommissionRule",
+			Handler:    _SettlementService_CreateCommissionRule_Handler,
+		},
+		{
+			MethodName: "UpdateCommissionRule",
+			Handler:    _SettlementService_UpdateCommissionRule_Handler,
 		},
 		{
 			MethodName: "CreateCommission",

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -30,6 +31,7 @@ type FinanceCommissionQuery struct {
 	withOrganization    *OrganizationQuery
 	withVerification    *FinanceVerificationQuery
 	withEmployee        *UserQuery
+	withRule            *FinanceCommissionRuleQuery
 	withConfirmedByUser *UserQuery
 	withPaidByUser      *UserQuery
 	withCancelledByUser *UserQuery
@@ -129,6 +131,28 @@ func (_q *FinanceCommissionQuery) QueryEmployee() *UserQuery {
 			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.EmployeeTable, financecommission.EmployeeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRule chains the current query on the "rule" edge.
+func (_q *FinanceCommissionQuery) QueryRule() *FinanceCommissionRuleQuery {
+	query := (&FinanceCommissionRuleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
+			sqlgraph.To(financecommissionrule.Table, financecommissionrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.RuleTable, financecommission.RuleColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -397,6 +421,7 @@ func (_q *FinanceCommissionQuery) Clone() *FinanceCommissionQuery {
 		withOrganization:    _q.withOrganization.Clone(),
 		withVerification:    _q.withVerification.Clone(),
 		withEmployee:        _q.withEmployee.Clone(),
+		withRule:            _q.withRule.Clone(),
 		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
 		withPaidByUser:      _q.withPaidByUser.Clone(),
 		withCancelledByUser: _q.withCancelledByUser.Clone(),
@@ -436,6 +461,17 @@ func (_q *FinanceCommissionQuery) WithEmployee(opts ...func(*UserQuery)) *Financ
 		opt(query)
 	}
 	_q.withEmployee = query
+	return _q
+}
+
+// WithRule tells the query-builder to eager-load the nodes that are connected to
+// the "rule" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionQuery) WithRule(opts ...func(*FinanceCommissionRuleQuery)) *FinanceCommissionQuery {
+	query := (&FinanceCommissionRuleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRule = query
 	return _q
 }
 
@@ -550,10 +586,11 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*FinanceCommission{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withOrganization != nil,
 			_q.withVerification != nil,
 			_q.withEmployee != nil,
+			_q.withRule != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withPaidByUser != nil,
 			_q.withCancelledByUser != nil,
@@ -595,6 +632,12 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := _q.withEmployee; query != nil {
 		if err := _q.loadEmployee(ctx, query, nodes, nil,
 			func(n *FinanceCommission, e *User) { n.Edges.Employee = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRule; query != nil {
+		if err := _q.loadRule(ctx, query, nodes, nil,
+			func(n *FinanceCommission, e *FinanceCommissionRule) { n.Edges.Rule = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -699,6 +742,38 @@ func (_q *FinanceCommissionQuery) loadEmployee(ctx context.Context, query *UserQ
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "employee_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceCommissionQuery) loadRule(ctx context.Context, query *FinanceCommissionRuleQuery, nodes []*FinanceCommission, init func(*FinanceCommission), assign func(*FinanceCommission, *FinanceCommissionRule)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommission)
+	for i := range nodes {
+		if nodes[i].RuleID == nil {
+			continue
+		}
+		fk := *nodes[i].RuleID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(financecommissionrule.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "rule_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -839,6 +914,9 @@ func (_q *FinanceCommissionQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withEmployee != nil {
 			_spec.Node.AddColumnOnce(financecommission.FieldEmployeeID)
+		}
+		if _q.withRule != nil {
+			_spec.Node.AddColumnOnce(financecommission.FieldRuleID)
 		}
 		if _q.withConfirmedByUser != nil {
 			_spec.Node.AddColumnOnce(financecommission.FieldConfirmedBy)

@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -115,6 +116,8 @@ type Client struct {
 	FinanceCashflow *FinanceCashflowClient
 	// FinanceCommission is the client for interacting with the FinanceCommission builders.
 	FinanceCommission *FinanceCommissionClient
+	// FinanceCommissionRule is the client for interacting with the FinanceCommissionRule builders.
+	FinanceCommissionRule *FinanceCommissionRuleClient
 	// FinanceInvoice is the client for interacting with the FinanceInvoice builders.
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
@@ -240,6 +243,7 @@ func (c *Client) init() {
 	c.FinanceBillLine = NewFinanceBillLineClient(c.config)
 	c.FinanceCashflow = NewFinanceCashflowClient(c.config)
 	c.FinanceCommission = NewFinanceCommissionClient(c.config)
+	c.FinanceCommissionRule = NewFinanceCommissionRuleClient(c.config)
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
 	c.FinanceVerification = NewFinanceVerificationClient(c.config)
@@ -396,6 +400,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceBillLine:               NewFinanceBillLineClient(cfg),
 		FinanceCashflow:               NewFinanceCashflowClient(cfg),
 		FinanceCommission:             NewFinanceCommissionClient(cfg),
+		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
 		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
 		FinanceVerification:           NewFinanceVerificationClient(cfg),
@@ -479,6 +484,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceBillLine:               NewFinanceBillLineClient(cfg),
 		FinanceCashflow:               NewFinanceCashflowClient(cfg),
 		FinanceCommission:             NewFinanceCommissionClient(cfg),
+		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
 		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
 		FinanceVerification:           NewFinanceVerificationClient(cfg),
@@ -561,11 +567,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
 		c.FeeSetting, c.FinanceBill, c.FinanceBillLine, c.FinanceCashflow,
-		c.FinanceCommission, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.FinanceCommission, c.FinanceCommissionRule, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceVerification, c.FinanceVerificationAllocation,
+		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
 		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
@@ -587,11 +593,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
 		c.FeeSetting, c.FinanceBill, c.FinanceBillLine, c.FinanceCashflow,
-		c.FinanceCommission, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.FinanceCommission, c.FinanceCommissionRule, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceVerification, c.FinanceVerificationAllocation,
+		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
+		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
+		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
 		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
@@ -637,6 +643,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceCashflow.mutate(ctx, m)
 	case *FinanceCommissionMutation:
 		return c.FinanceCommission.mutate(ctx, m)
+	case *FinanceCommissionRuleMutation:
+		return c.FinanceCommissionRule.mutate(ctx, m)
 	case *FinanceInvoiceMutation:
 		return c.FinanceInvoice.mutate(ctx, m)
 	case *FinanceInvoiceBillMutation:
@@ -3059,6 +3067,22 @@ func (c *FinanceCommissionClient) QueryEmployee(_m *FinanceCommission) *UserQuer
 	return query
 }
 
+// QueryRule queries the rule edge of a FinanceCommission.
+func (c *FinanceCommissionClient) QueryRule(_m *FinanceCommission) *FinanceCommissionRuleQuery {
+	query := (&FinanceCommissionRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, id),
+			sqlgraph.To(financecommissionrule.Table, financecommissionrule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommission.RuleTable, financecommission.RuleColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryConfirmedByUser queries the confirmed_by_user edge of a FinanceCommission.
 func (c *FinanceCommissionClient) QueryConfirmedByUser(_m *FinanceCommission) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -3129,6 +3153,171 @@ func (c *FinanceCommissionClient) mutate(ctx context.Context, m *FinanceCommissi
 		return (&FinanceCommissionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceCommission mutation op: %q", m.Op())
+	}
+}
+
+// FinanceCommissionRuleClient is a client for the FinanceCommissionRule schema.
+type FinanceCommissionRuleClient struct {
+	config
+}
+
+// NewFinanceCommissionRuleClient returns a client for the FinanceCommissionRule from the given config.
+func NewFinanceCommissionRuleClient(c config) *FinanceCommissionRuleClient {
+	return &FinanceCommissionRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financecommissionrule.Hooks(f(g(h())))`.
+func (c *FinanceCommissionRuleClient) Use(hooks ...Hook) {
+	c.hooks.FinanceCommissionRule = append(c.hooks.FinanceCommissionRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financecommissionrule.Intercept(f(g(h())))`.
+func (c *FinanceCommissionRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceCommissionRule = append(c.inters.FinanceCommissionRule, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceCommissionRule entity.
+func (c *FinanceCommissionRuleClient) Create() *FinanceCommissionRuleCreate {
+	mutation := newFinanceCommissionRuleMutation(c.config, OpCreate)
+	return &FinanceCommissionRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceCommissionRule entities.
+func (c *FinanceCommissionRuleClient) CreateBulk(builders ...*FinanceCommissionRuleCreate) *FinanceCommissionRuleCreateBulk {
+	return &FinanceCommissionRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceCommissionRuleClient) MapCreateBulk(slice any, setFunc func(*FinanceCommissionRuleCreate, int)) *FinanceCommissionRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceCommissionRuleCreateBulk{err: fmt.Errorf("calling to FinanceCommissionRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceCommissionRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceCommissionRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) Update() *FinanceCommissionRuleUpdate {
+	mutation := newFinanceCommissionRuleMutation(c.config, OpUpdate)
+	return &FinanceCommissionRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceCommissionRuleClient) UpdateOne(_m *FinanceCommissionRule) *FinanceCommissionRuleUpdateOne {
+	mutation := newFinanceCommissionRuleMutation(c.config, OpUpdateOne, withFinanceCommissionRule(_m))
+	return &FinanceCommissionRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceCommissionRuleClient) UpdateOneID(id uuid.UUID) *FinanceCommissionRuleUpdateOne {
+	mutation := newFinanceCommissionRuleMutation(c.config, OpUpdateOne, withFinanceCommissionRuleID(id))
+	return &FinanceCommissionRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) Delete() *FinanceCommissionRuleDelete {
+	mutation := newFinanceCommissionRuleMutation(c.config, OpDelete)
+	return &FinanceCommissionRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceCommissionRuleClient) DeleteOne(_m *FinanceCommissionRule) *FinanceCommissionRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceCommissionRuleClient) DeleteOneID(id uuid.UUID) *FinanceCommissionRuleDeleteOne {
+	builder := c.Delete().Where(financecommissionrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceCommissionRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) Query() *FinanceCommissionRuleQuery {
+	return &FinanceCommissionRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceCommissionRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceCommissionRule entity by its id.
+func (c *FinanceCommissionRuleClient) Get(ctx context.Context, id uuid.UUID) (*FinanceCommissionRule, error) {
+	return c.Query().Where(financecommissionrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceCommissionRuleClient) GetX(ctx context.Context, id uuid.UUID) *FinanceCommissionRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) QueryOrganization(_m *FinanceCommissionRule) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionrule.Table, financecommissionrule.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionrule.OrganizationTable, financecommissionrule.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCommissions queries the commissions edge of a FinanceCommissionRule.
+func (c *FinanceCommissionRuleClient) QueryCommissions(_m *FinanceCommissionRule) *FinanceCommissionQuery {
+	query := (&FinanceCommissionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionrule.Table, financecommissionrule.FieldID, id),
+			sqlgraph.To(financecommission.Table, financecommission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financecommissionrule.CommissionsTable, financecommissionrule.CommissionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceCommissionRuleClient) Hooks() []Hook {
+	return c.hooks.FinanceCommissionRule
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceCommissionRuleClient) Interceptors() []Interceptor {
+	return c.inters.FinanceCommissionRule
+}
+
+func (c *FinanceCommissionRuleClient) mutate(ctx context.Context, m *FinanceCommissionRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceCommissionRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceCommissionRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceCommissionRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceCommissionRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceCommissionRule mutation op: %q", m.Op())
 	}
 }
 
@@ -8298,6 +8487,22 @@ func (c *OrganizationClient) QueryFinanceCommissions(_m *Organization) *FinanceC
 	return query
 }
 
+// QueryFinanceCommissionRules queries the finance_commission_rules edge of a Organization.
+func (c *OrganizationClient) QueryFinanceCommissionRules(_m *Organization) *FinanceCommissionRuleQuery {
+	query := (&FinanceCommissionRuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financecommissionrule.Table, financecommissionrule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionRulesTable, organization.FinanceCommissionRulesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	return c.hooks.Organization
@@ -12460,7 +12665,7 @@ type (
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		FinanceBill, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceInvoice, FinanceInvoiceBill, FinanceVerification,
+		FinanceCommissionRule, FinanceInvoice, FinanceInvoiceBill, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
@@ -12478,7 +12683,7 @@ type (
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
 		FinanceBill, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceInvoice, FinanceInvoiceBill, FinanceVerification,
+		FinanceCommissionRule, FinanceInvoice, FinanceInvoiceBill, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,

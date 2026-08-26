@@ -2,33 +2,52 @@ import {
   CheckOutlined,
   CloseCircleOutlined,
   DollarOutlined,
+  EditOutlined,
   PlusOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
+  ProFormDateRangePicker,
+  ProFormDependency,
   ProFormDigit,
   ProFormSelect,
+  ProFormSwitch,
+  ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Input, Space, Tag } from 'antd';
+import { App, Button, Drawer, Input, Space, Tag } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
   settlementServiceCancelCommission,
   settlementServiceConfirmCommission,
   settlementServiceCreateCommission,
-  settlementServiceListCommissionEmployees,
+  settlementServiceCreateCommissionRule,
+  settlementServiceListCommissionCandidates,
+  settlementServiceListCommissionRules,
   settlementServiceListCommissions,
   settlementServiceListVerifications,
   settlementServiceMarkCommissionPaid,
+  settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 
 type CreateValues = {
   verificationId: string;
   employeeId: string;
+  ruleId: string;
+  note?: string;
+};
+type RuleValues = {
+  name: string;
+  personnelRole: 'SALES' | 'OPERATOR';
+  calculationBasis: 'REALIZED_PROFIT' | 'REALIZED_REVENUE';
   ratePercent: number;
+  effectiveRange?: [Dayjs, Dayjs];
+  enabled: boolean;
   note?: string;
 };
 
@@ -43,7 +62,11 @@ export default function FinanceCommissionsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const ruleActionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [ruleFormOpen, setRuleFormOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<API.FinanceCommissionRule>();
   const reload = () => actionRef.current?.reload();
 
   const transition = async (
@@ -145,6 +168,22 @@ export default function FinanceCommissionsPage() {
       search: false,
     },
     {
+      title: '考核规则',
+      dataIndex: 'ruleName',
+      width: 170,
+      search: false,
+      renderText: (value) => value || '历史手工计提',
+    },
+    {
+      title: '角色/口径',
+      width: 150,
+      search: false,
+      renderText: (_, record) =>
+        record.personnelRole
+          ? `${record.personnelRole === 'SALES' ? '销售' : '操作'} · ${record.calculationBasis === 'REALIZED_PROFIT' ? '已实现毛利' : '已实现收入'}`
+          : '-',
+    },
+    {
       title: '已实现收入',
       dataIndex: 'realizedRevenue',
       width: 150,
@@ -218,6 +257,75 @@ export default function FinanceCommissionsPage() {
     },
   ];
 
+  const ruleColumns: ProColumns<API.FinanceCommissionRule>[] = [
+    { title: '规则名称', dataIndex: 'name', width: 180 },
+    {
+      title: '适用角色',
+      dataIndex: 'personnelRole',
+      width: 100,
+      valueType: 'select',
+      valueEnum: { SALES: { text: '销售' }, OPERATOR: { text: '操作' } },
+      renderText: (value) => (value === 'SALES' ? '销售' : '操作'),
+    },
+    {
+      title: '计算口径',
+      dataIndex: 'calculationBasis',
+      width: 130,
+      search: false,
+      renderText: (value) =>
+        value === 'REALIZED_PROFIT' ? '已实现毛利' : '已实现收入',
+    },
+    {
+      title: '比例',
+      dataIndex: 'ratePercent',
+      width: 90,
+      align: 'right',
+      search: false,
+      renderText: (value) => `${value}%`,
+    },
+    {
+      title: '有效期',
+      width: 190,
+      search: false,
+      renderText: (_, record) =>
+        `${record.effectiveFrom || '不限'} ～ ${record.effectiveTo || '不限'}`,
+    },
+    {
+      title: '启用',
+      dataIndex: 'enabled',
+      width: 80,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: '启用' },
+        false: { text: '停用' },
+      },
+      render: (_, record) => (
+        <Tag color={record.enabled ? 'green' : 'default'}>
+          {record.enabled ? '启用' : '停用'}
+        </Tag>
+      ),
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      render: (_, record) =>
+        access.canManageFinanceCommissions
+          ? [
+              <a
+                key="edit"
+                onClick={() => {
+                  setEditingRule(record);
+                  setRuleFormOpen(true);
+                }}
+              >
+                <EditOutlined /> 编辑
+              </a>,
+            ]
+          : [],
+    },
+  ];
+
   return (
     <>
       <ProTable<API.FinanceCommission>
@@ -227,7 +335,7 @@ export default function FinanceCommissionsPage() {
         columns={columns}
         bordered
         size="small"
-        scroll={{ x: 1700 }}
+        scroll={{ x: 2050 }}
         toolBarRender={() =>
           access.canManageFinanceCommissions
             ? [
@@ -239,8 +347,23 @@ export default function FinanceCommissionsPage() {
                 >
                   生成提成
                 </Button>,
+                <Button
+                  key="rules"
+                  icon={<SettingOutlined />}
+                  onClick={() => setRulesOpen(true)}
+                >
+                  考核规则
+                </Button>,
               ]
-            : []
+            : [
+                <Button
+                  key="rules"
+                  icon={<SettingOutlined />}
+                  onClick={() => setRulesOpen(true)}
+                >
+                  查看规则
+                </Button>,
+              ]
         }
         request={async (params) => {
           const response = await settlementServiceListCommissions({
@@ -266,7 +389,7 @@ export default function FinanceCommissionsPage() {
             await settlementServiceCreateCommission({
               verificationId: values.verificationId,
               employeeId: values.employeeId,
-              ratePercent: String(values.ratePercent),
+              ruleId: values.ruleId,
               note: values.note,
               idempotencyKey: globalThis.crypto.randomUUID(),
             });
@@ -299,16 +422,181 @@ export default function FinanceCommissionsPage() {
           }}
         />
         <ProFormSelect
-          name="employeeId"
-          label="提成员工"
-          rules={[{ required: true }]}
+          name="ruleId"
+          label="考核规则"
+          rules={[{ required: true, message: '请选择考核规则' }]}
           request={async () => {
-            const response = await settlementServiceListCommissionEmployees({});
+            const response = await settlementServiceListCommissionRules({
+              page: 1,
+              pageSize: 200,
+              enabled: true,
+            });
             return (response.data || []).map((item) => ({
-              label: item.displayName,
+              label: `${item.name}｜${item.personnelRole === 'SALES' ? '销售' : '操作'}｜${item.calculationBasis === 'REALIZED_PROFIT' ? '毛利' : '收入'} × ${item.ratePercent}%`,
               value: item.id,
             }));
           }}
+        />
+        <ProFormDependency name={['verificationId', 'ruleId']}>
+          {({ verificationId, ruleId }) => (
+            <ProFormSelect
+              key={`${verificationId || ''}-${ruleId || ''}`}
+              name="employeeId"
+              label="符合规则的订单人员"
+              rules={[{ required: true, message: '请选择符合角色的订单人员' }]}
+              disabled={!verificationId || !ruleId}
+              request={async () => {
+                if (!verificationId || !ruleId) return [];
+                const response =
+                  await settlementServiceListCommissionCandidates({
+                    verificationId,
+                    ruleId,
+                  });
+                return (response.data || []).map((item) => ({
+                  label: item.displayName,
+                  value: item.id,
+                }));
+              }}
+              extra="人员来自本次核销涉及订单中的销售或操作分工，不能选择无关人员。"
+            />
+          )}
+        </ProFormDependency>
+        <ProFormTextArea
+          name="note"
+          label="备注"
+          fieldProps={{ maxLength: 500 }}
+        />
+        <Space direction="vertical" size={2} style={{ color: '#666' }}>
+          <span>
+            计算比例、角色与口径均取自已启用且在核销日期生效的考核规则。
+          </span>
+          <span>亏损订单的提成基数按 0 处理，但仍保留真实负毛利快照。</span>
+        </Space>
+      </ModalForm>
+      <Drawer
+        title="提成考核规则"
+        width={980}
+        open={rulesOpen}
+        onClose={() => setRulesOpen(false)}
+      >
+        <ProTable<API.FinanceCommissionRule>
+          actionRef={ruleActionRef}
+          rowKey="id"
+          columns={ruleColumns}
+          bordered
+          size="small"
+          search={{ defaultCollapsed: false }}
+          toolBarRender={() =>
+            access.canManageFinanceCommissions
+              ? [
+                  <Button
+                    key="new-rule"
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      setEditingRule(undefined);
+                      setRuleFormOpen(true);
+                    }}
+                  >
+                    新建规则
+                  </Button>,
+                ]
+              : []
+          }
+          request={async (params) => {
+            const response = await settlementServiceListCommissionRules({
+              page: params.current,
+              pageSize: params.pageSize,
+              keyword: params.name,
+              personnelRole: params.personnelRole,
+              enabled: params.enabled,
+            });
+            return {
+              data: response.data || [],
+              total: Number(response.total || 0),
+              success: response.success ?? true,
+            };
+          }}
+        />
+      </Drawer>
+      <ModalForm<RuleValues>
+        key={editingRule?.id || 'new-rule'}
+        title={editingRule ? '编辑考核规则' : '新建考核规则'}
+        open={ruleFormOpen}
+        width={620}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => setRuleFormOpen(false),
+        }}
+        initialValues={{
+          name: editingRule?.name,
+          personnelRole: editingRule?.personnelRole || 'SALES',
+          calculationBasis: editingRule?.calculationBasis || 'REALIZED_PROFIT',
+          ratePercent: editingRule
+            ? Number(editingRule.ratePercent)
+            : undefined,
+          effectiveRange:
+            editingRule?.effectiveFrom && editingRule?.effectiveTo
+              ? [
+                  dayjs(editingRule.effectiveFrom),
+                  dayjs(editingRule.effectiveTo),
+                ]
+              : undefined,
+          enabled: editingRule?.enabled ?? true,
+          note: editingRule?.note,
+        }}
+        onFinish={async (values) => {
+          const rule = {
+            name: values.name,
+            personnelRole: values.personnelRole,
+            calculationBasis: values.calculationBasis,
+            ratePercent: String(values.ratePercent),
+            effectiveFrom: values.effectiveRange?.[0]?.format('YYYY-MM-DD'),
+            effectiveTo: values.effectiveRange?.[1]?.format('YYYY-MM-DD'),
+            enabled: values.enabled,
+            note: values.note,
+          };
+          if (editingRule?.id && editingRule.version) {
+            await settlementServiceUpdateCommissionRule(
+              { id: editingRule.id },
+              {
+                id: editingRule.id,
+                expectedVersion: editingRule.version,
+                rule,
+              },
+            );
+            message.success('考核规则已更新');
+          } else {
+            await settlementServiceCreateCommissionRule({ rule });
+            message.success('考核规则已创建');
+          }
+          setRuleFormOpen(false);
+          ruleActionRef.current?.reload();
+          return true;
+        }}
+      >
+        <ProFormText
+          name="name"
+          label="规则名称"
+          rules={[{ required: true }]}
+        />
+        <ProFormSelect
+          name="personnelRole"
+          label="适用订单角色"
+          rules={[{ required: true }]}
+          options={[
+            { value: 'SALES', label: '销售人员' },
+            { value: 'OPERATOR', label: '操作人员' },
+          ]}
+        />
+        <ProFormSelect
+          name="calculationBasis"
+          label="计提口径"
+          rules={[{ required: true }]}
+          options={[
+            { value: 'REALIZED_PROFIT', label: '已实现毛利' },
+            { value: 'REALIZED_REVENUE', label: '已实现收入（计费数据）' },
+          ]}
         />
         <ProFormDigit
           name="ratePercent"
@@ -317,17 +605,14 @@ export default function FinanceCommissionsPage() {
           max={100}
           fieldProps={{ precision: 4 }}
           rules={[{ required: true }]}
-          extra="提成基数由系统按有效核销对应的已实现毛利计算，不允许手工修改。"
         />
+        <ProFormDateRangePicker name="effectiveRange" label="生效区间" />
+        <ProFormSwitch name="enabled" label="启用" />
         <ProFormTextArea
           name="note"
-          label="备注"
+          label="规则说明"
           fieldProps={{ maxLength: 500 }}
         />
-        <Space direction="vertical" size={2} style={{ color: '#666' }}>
-          <span>计算口径：已实现收入 − 按订单毛利率分摊的成本。</span>
-          <span>亏损订单的提成基数按 0 处理，但仍保留真实负毛利快照。</span>
-        </Space>
       </ModalForm>
     </>
   );

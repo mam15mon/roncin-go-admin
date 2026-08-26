@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -1517,8 +1518,20 @@ func init() {
 			return nil
 		}
 	}()
+	// financecommissionDescRuleName is the schema descriptor for rule_name field.
+	financecommissionDescRuleName := financecommissionFields[8].Descriptor()
+	// financecommission.RuleNameValidator is a validator for the "rule_name" field. It is called by the builders before save.
+	financecommission.RuleNameValidator = financecommissionDescRuleName.Validators[0].(func(string) error)
+	// financecommissionDescPersonnelRole is the schema descriptor for personnel_role field.
+	financecommissionDescPersonnelRole := financecommissionFields[9].Descriptor()
+	// financecommission.PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
+	financecommission.PersonnelRoleValidator = financecommissionDescPersonnelRole.Validators[0].(func(string) error)
+	// financecommissionDescCalculationBasis is the schema descriptor for calculation_basis field.
+	financecommissionDescCalculationBasis := financecommissionFields[10].Descriptor()
+	// financecommission.CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
+	financecommission.CalculationBasisValidator = financecommissionDescCalculationBasis.Validators[0].(func(string) error)
 	// financecommissionDescBaseCurrency is the schema descriptor for base_currency field.
-	financecommissionDescBaseCurrency := financecommissionFields[8].Descriptor()
+	financecommissionDescBaseCurrency := financecommissionFields[12].Descriptor()
 	// financecommission.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financecommission.BaseCurrencyValidator = func() func(string) error {
 		validators := financecommissionDescBaseCurrency.Validators
@@ -1537,21 +1550,108 @@ func init() {
 		}
 	}()
 	// financecommissionDescNote is the schema descriptor for note field.
-	financecommissionDescNote := financecommissionFields[14].Descriptor()
+	financecommissionDescNote := financecommissionFields[18].Descriptor()
 	// financecommission.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommission.NoteValidator = financecommissionDescNote.Validators[0].(func(string) error)
 	// financecommissionDescVersion is the schema descriptor for version field.
-	financecommissionDescVersion := financecommissionFields[15].Descriptor()
+	financecommissionDescVersion := financecommissionFields[19].Descriptor()
 	// financecommission.DefaultVersion holds the default value on creation for the version field.
 	financecommission.DefaultVersion = financecommissionDescVersion.Default.(uint64)
 	// financecommissionDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionDescCancellationReason := financecommissionFields[22].Descriptor()
+	financecommissionDescCancellationReason := financecommissionFields[26].Descriptor()
 	// financecommission.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommission.CancellationReasonValidator = financecommissionDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionDescID is the schema descriptor for id field.
 	financecommissionDescID := financecommissionMixinFields0[0].Descriptor()
 	// financecommission.DefaultID holds the default value on creation for the id field.
 	financecommission.DefaultID = financecommissionDescID.Default.(func() uuid.UUID)
+	financecommissionruleMixin := schema.FinanceCommissionRule{}.Mixin()
+	financecommissionruleMixinFields0 := financecommissionruleMixin[0].Fields()
+	_ = financecommissionruleMixinFields0
+	financecommissionruleMixinFields1 := financecommissionruleMixin[1].Fields()
+	_ = financecommissionruleMixinFields1
+	financecommissionruleFields := schema.FinanceCommissionRule{}.Fields()
+	_ = financecommissionruleFields
+	// financecommissionruleDescCreatedAt is the schema descriptor for created_at field.
+	financecommissionruleDescCreatedAt := financecommissionruleMixinFields1[0].Descriptor()
+	// financecommissionrule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financecommissionrule.DefaultCreatedAt = financecommissionruleDescCreatedAt.Default.(func() time.Time)
+	// financecommissionruleDescUpdatedAt is the schema descriptor for updated_at field.
+	financecommissionruleDescUpdatedAt := financecommissionruleMixinFields1[1].Descriptor()
+	// financecommissionrule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financecommissionrule.DefaultUpdatedAt = financecommissionruleDescUpdatedAt.Default.(func() time.Time)
+	// financecommissionrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financecommissionrule.UpdateDefaultUpdatedAt = financecommissionruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financecommissionruleDescName is the schema descriptor for name field.
+	financecommissionruleDescName := financecommissionruleFields[1].Descriptor()
+	// financecommissionrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	financecommissionrule.NameValidator = func() func(string) error {
+		validators := financecommissionruleDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionruleDescEffectiveFrom is the schema descriptor for effective_from field.
+	financecommissionruleDescEffectiveFrom := financecommissionruleFields[5].Descriptor()
+	// financecommissionrule.EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
+	financecommissionrule.EffectiveFromValidator = func() func(string) error {
+		validators := financecommissionruleDescEffectiveFrom.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(effective_from string) error {
+			for _, fn := range fns {
+				if err := fn(effective_from); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionruleDescEffectiveTo is the schema descriptor for effective_to field.
+	financecommissionruleDescEffectiveTo := financecommissionruleFields[6].Descriptor()
+	// financecommissionrule.EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
+	financecommissionrule.EffectiveToValidator = func() func(string) error {
+		validators := financecommissionruleDescEffectiveTo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(effective_to string) error {
+			for _, fn := range fns {
+				if err := fn(effective_to); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionruleDescEnabled is the schema descriptor for enabled field.
+	financecommissionruleDescEnabled := financecommissionruleFields[7].Descriptor()
+	// financecommissionrule.DefaultEnabled holds the default value on creation for the enabled field.
+	financecommissionrule.DefaultEnabled = financecommissionruleDescEnabled.Default.(bool)
+	// financecommissionruleDescNote is the schema descriptor for note field.
+	financecommissionruleDescNote := financecommissionruleFields[8].Descriptor()
+	// financecommissionrule.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	financecommissionrule.NoteValidator = financecommissionruleDescNote.Validators[0].(func(string) error)
+	// financecommissionruleDescVersion is the schema descriptor for version field.
+	financecommissionruleDescVersion := financecommissionruleFields[9].Descriptor()
+	// financecommissionrule.DefaultVersion holds the default value on creation for the version field.
+	financecommissionrule.DefaultVersion = financecommissionruleDescVersion.Default.(uint64)
+	// financecommissionruleDescID is the schema descriptor for id field.
+	financecommissionruleDescID := financecommissionruleMixinFields0[0].Descriptor()
+	// financecommissionrule.DefaultID holds the default value on creation for the id field.
+	financecommissionrule.DefaultID = financecommissionruleDescID.Default.(func() uuid.UUID)
 	financeinvoiceMixin := schema.FinanceInvoice{}.Mixin()
 	financeinvoiceMixinFields0 := financeinvoiceMixin[0].Fields()
 	_ = financeinvoiceMixinFields0

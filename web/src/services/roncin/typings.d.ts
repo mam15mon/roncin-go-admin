@@ -413,6 +413,25 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CommissionRuleInput = {
+    name: string;
+    personnelRole: string;
+    calculationBasis: string;
+    ratePercent: string;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    enabled?: boolean;
+    note?: string;
+  };
+
+  type CommissionRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule;
+    traceId?: string;
+  };
+
   type CommissionTransitionRequest = {
     id: string;
     expectedVersion: string;
@@ -555,9 +574,9 @@ declare namespace API {
   type CreateCommissionRequest = {
     verificationId: string;
     employeeId: string;
-    ratePercent: string;
     note?: string;
     idempotencyKey: string;
+    ruleId: string;
   };
 
   type CreateCommissionResponse = {
@@ -566,6 +585,10 @@ declare namespace API {
     message?: string;
     data?: FinanceCommission;
     traceId?: string;
+  };
+
+  type CreateCommissionRuleRequest = {
+    rule: CommissionRuleInput;
   };
 
   type CreateExchangeRateSettingRequest = {
@@ -1220,6 +1243,25 @@ declare namespace API {
     cancellationReason?: string;
     createdAt?: string;
     updatedAt?: string;
+    ruleId?: string;
+    ruleName?: string;
+    personnelRole?: string;
+    calculationBasis?: string;
+  };
+
+  type FinanceCommissionRule = {
+    id?: string;
+    name?: string;
+    personnelRole?: string;
+    calculationBasis?: string;
+    ratePercent?: string;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    enabled?: boolean;
+    note?: string;
+    version?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
 
   type FinanceInvoice = {
@@ -1497,6 +1539,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CommissionEmployeeOption[];
+    traceId?: string;
+  };
+
+  type ListCommissionRulesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule[];
+    total?: string;
     traceId?: string;
   };
 
@@ -3301,6 +3352,19 @@ declare namespace API {
     status?: string;
   };
 
+  type SettlementServiceListCommissionCandidatesParams = {
+    verificationId?: string;
+    ruleId?: string;
+  };
+
+  type SettlementServiceListCommissionRulesParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    personnelRole?: string;
+    enabled?: boolean;
+  };
+
   type SettlementServiceListCommissionsParams = {
     page?: number;
     pageSize?: number;
@@ -3349,6 +3413,10 @@ declare namespace API {
   };
 
   type SettlementServiceUpdateBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceUpdateCommissionRuleParams = {
     id: string;
   };
 
@@ -3563,6 +3631,12 @@ declare namespace API {
     message?: string;
     data?: OrderCargoItem;
     traceId?: string;
+  };
+
+  type UpdateCommissionRuleRequest = {
+    id: string;
+    rule: CommissionRuleInput;
+    expectedVersion: string;
   };
 
   type UpdateContainerRequest = {

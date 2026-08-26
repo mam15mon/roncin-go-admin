@@ -391,6 +391,15 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.RuleNameCleared() {
+		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)
+	}
+	if _u.mutation.PersonnelRoleCleared() {
+		_spec.ClearField(financecommission.FieldPersonnelRole, field.TypeString)
+	}
+	if _u.mutation.CalculationBasisCleared() {
+		_spec.ClearField(financecommission.FieldCalculationBasis, field.TypeString)
+	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
 	}
@@ -927,6 +936,15 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RuleNameCleared() {
+		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)
+	}
+	if _u.mutation.PersonnelRoleCleared() {
+		_spec.ClearField(financecommission.FieldPersonnelRole, field.TypeString)
+	}
+	if _u.mutation.CalculationBasisCleared() {
+		_spec.ClearField(financecommission.FieldCalculationBasis, field.TypeString)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
