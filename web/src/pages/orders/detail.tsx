@@ -4,23 +4,16 @@ import {
   CopyOutlined,
   DollarOutlined,
   DownOutlined,
-  EnvironmentOutlined,
   FileDoneOutlined,
-  FileTextOutlined,
-  InboxOutlined,
   LockOutlined,
   ReloadOutlined,
-  SafetyCertificateOutlined,
   SaveOutlined,
-  SendOutlined,
   UndoOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
   App,
-  Badge,
   Button,
   Card,
   Col,
@@ -600,24 +593,8 @@ export default function OrderDetailPage() {
     },
   ];
 
-  const dataChannelItems: MenuProps['items'] = [
-    { key: 'shanghai', label: '上海港舱单' },
-    { key: 'qingdao', label: '青岛港舱单' },
-    { key: 'vgm', label: 'VGM申报' },
-    { key: 'ams', label: 'AMS' },
-    { key: 'afr', label: 'AFR' },
-    { key: 'aci', label: 'ACI' },
-    { key: 'isf', label: 'ISF' },
-    { key: 'ics2', label: 'ICS2' },
-  ];
-
-  const bookingChannelItems: MenuProps['items'] = [
-    { key: 'edi', label: 'EDI订舱通道' },
-    { key: 'carrier', label: '直连船司订舱' },
-  ];
-
-  // 海管家头部渲染（面包屑 + 紧凑工具栏）
-  const haiguanjiaHeader = (
+  // 纯粹本地已接入的操作工具栏（已彻底移除未接入的通道与推广小图标）
+  const cleanHeader = (
     <div style={{ marginBottom: 12 }}>
       {/* 顶部第 1 行：面包屑 */}
       <div style={{ padding: '8px 16px', fontSize: 13, color: '#64748b' }}>
@@ -635,12 +612,12 @@ export default function OrderDetailPage() {
         </Space>
       </div>
 
-      {/* 顶部第 2 行：海管家风格操作工具栏 */}
+      {/* 顶部第 2 行：操作工具栏 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-start',
           flexWrap: 'nowrap',
           overflowX: 'auto',
           backgroundColor: '#ffffff',
@@ -650,9 +627,8 @@ export default function OrderDetailPage() {
           boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
         }}
       >
-        {/* 左侧主要操作组 */}
         <Space size={8} wrap={false}>
-          {/* 实心蓝底主按钮组 */}
+          {/* 实心蓝底主保存按钮 */}
           <Button
             type="primary"
             icon={<SaveOutlined />}
@@ -662,108 +638,47 @@ export default function OrderDetailPage() {
           >
             保存
           </Button>
-          <Button
-            type="primary"
-            icon={<DollarOutlined />}
-            onClick={() => orderFeePanelRef.current?.open(order)}
-            style={{ fontWeight: 500 }}
-          >
-            费用录入
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => message.info('箱货信息已在配舱与提单模块中呈现')}
-            style={{ fontWeight: 500 }}
-          >
-            箱货信息
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => message.info('仓储功能模块')}
-            style={{ fontWeight: 500 }}
-          >
-            仓储
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => message.info('报关功能模块')}
-            style={{ fontWeight: 500 }}
-          >
-            报关
-          </Button>
 
-          {/* 描边蓝字操作按钮组 */}
-          <Button
-            style={{ color: '#1677ff', borderColor: '#1677ff' }}
-            icon={<FileDoneOutlined />}
-            onClick={() => releasePodPanelRef.current?.open(order)}
-          >
-            导出单证
-          </Button>
-          <Button
-            style={{ color: '#1677ff', borderColor: '#1677ff' }}
-            icon={<FileTextOutlined />}
-            onClick={() => message.info('进入单证制作与预览')}
-          >
-            单证制作
-          </Button>
-          <Button
-            style={{ color: '#1677ff', borderColor: '#1677ff' }}
-            icon={<AlertOutlined />}
-            onClick={() => abnormalCasePanelRef.current?.open(order)}
-          >
-            异常情况
-          </Button>
+          {/* 费用录入 */}
+          {access.canOrder(config.businessType, 'fee.read') && (
+            <Button
+              type="primary"
+              icon={<DollarOutlined />}
+              onClick={() => orderFeePanelRef.current?.open(order)}
+              style={{ fontWeight: 500 }}
+            >
+              费用录入
+            </Button>
+          )}
+
+          {/* 导出单证 / 放货凭证 POD */}
+          {access.canOrder(config.businessType, 'release_pod.create') && (
+            <Button
+              style={{ color: '#1677ff', borderColor: '#1677ff' }}
+              icon={<FileDoneOutlined />}
+              onClick={() => releasePodPanelRef.current?.open(order)}
+            >
+              导出单证 (POD)
+            </Button>
+          )}
+
+          {/* 异常情况 */}
+          {access.canOrder(config.businessType, 'abnormal_case.create') && (
+            <Button
+              style={{ color: '#ff4d4f', borderColor: '#ff4d4f' }}
+              icon={<AlertOutlined />}
+              onClick={() => abnormalCasePanelRef.current?.open(order)}
+            >
+              异常情况
+            </Button>
+          )}
+
+          {/* 更多操作 */}
           <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>
-            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
+            <Button style={{ color: '#64748b', borderColor: '#d9d9d9' }}>
               更多操作 <DownOutlined style={{ fontSize: 10 }} />
             </Button>
           </Dropdown>
-          <Dropdown menu={{ items: dataChannelItems }} trigger={['click']}>
-            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
-              <SendOutlined /> 发送数据通道 <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
-          <Dropdown menu={{ items: bookingChannelItems }} trigger={['click']}>
-            <Button style={{ color: '#1677ff', borderColor: '#1677ff' }}>
-              <SendOutlined /> 发送订舱通道 <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
-        </Space>
-
-        {/* 右侧促销/小工具组 */}
-        <Space size={12} wrap={false} style={{ marginLeft: 16 }}>
-          <Tag
-            color="processing"
-            style={{
-              cursor: 'pointer',
-              fontWeight: 700,
-              padding: '2px 8px',
-              fontSize: 12,
-              borderRadius: 3,
-            }}
-          >
-            SPOT
-          </Tag>
-          <Badge count="投保" offset={[-2, 0]} style={{ backgroundColor: '#ff4d4f', fontSize: 10 }}>
-            <Button
-              size="small"
-              icon={<SafetyCertificateOutlined style={{ color: '#1677ff' }} />}
-              onClick={() => message.info('货运保险投保通道')}
-            />
-          </Badge>
-          <Badge count="限时优惠" offset={[-2, 0]} style={{ backgroundColor: '#ff4d4f', fontSize: 10 }}>
-            <Button
-              size="small"
-              icon={<EnvironmentOutlined style={{ color: '#8c8c8c' }} />}
-              onClick={() => message.info('全球港口定位与限时特惠')}
-            />
-          </Badge>
-          <Button
-            size="small"
-            icon={<InboxOutlined style={{ color: '#8c8c8c' }} />}
-            onClick={() => message.info('箱货中心')}
-          />
         </Space>
       </div>
     </div>
@@ -777,7 +692,7 @@ export default function OrderDetailPage() {
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
-        header={haiguanjiaHeader}
+        header={cleanHeader}
         prependSections={prependSections}
         sections={formSections}
         appendSections={appendSections}
