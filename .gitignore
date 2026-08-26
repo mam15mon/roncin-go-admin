@@ -8,6 +8,8 @@ node_modules/
 web/dist/
 web/.umi/
 web/.umi-production/
+web/playwright-report/
+web/test-results/
 server/bin/
 server/tmp/
 server/var/
