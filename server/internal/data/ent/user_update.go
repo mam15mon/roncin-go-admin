@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -484,6 +485,66 @@ func (_u *UserUpdate) AddCancelledFinanceCommissions(v ...*FinanceCommission) *U
 	return _u.AddCancelledFinanceCommissionIDs(ids...)
 }
 
+// AddFinanceCommissionAdjustmentIDs adds the "finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdate) AddFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionAdjustments adds the "finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) AddFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddConfirmedFinanceCommissionAdjustmentIDs adds the "confirmed_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdate) AddConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddConfirmedFinanceCommissionAdjustments adds the "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) AddConfirmedFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddPaidFinanceCommissionAdjustmentIDs adds the "paid_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdate) AddPaidFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddPaidFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddPaidFinanceCommissionAdjustments adds the "paid_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) AddPaidFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaidFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddCancelledFinanceCommissionAdjustmentIDs adds the "cancelled_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdate) AddCancelledFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceCommissionAdjustments adds the "cancelled_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) AddCancelledFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -865,6 +926,90 @@ func (_u *UserUpdate) RemoveCancelledFinanceCommissions(v ...*FinanceCommission)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCommissionIDs(ids...)
+}
+
+// ClearFinanceCommissionAdjustments clears all "finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) ClearFinanceCommissionAdjustments() *UserUpdate {
+	_u.mutation.ClearFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveFinanceCommissionAdjustmentIDs removes the "finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdate) RemoveFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionAdjustments removes "finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdate) RemoveFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearConfirmedFinanceCommissionAdjustments clears all "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) ClearConfirmedFinanceCommissionAdjustments() *UserUpdate {
+	_u.mutation.ClearConfirmedFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveConfirmedFinanceCommissionAdjustmentIDs removes the "confirmed_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdate) RemoveConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveConfirmedFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedFinanceCommissionAdjustments removes "confirmed_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdate) RemoveConfirmedFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearPaidFinanceCommissionAdjustments clears all "paid_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) ClearPaidFinanceCommissionAdjustments() *UserUpdate {
+	_u.mutation.ClearPaidFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemovePaidFinanceCommissionAdjustmentIDs removes the "paid_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdate) RemovePaidFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemovePaidFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemovePaidFinanceCommissionAdjustments removes "paid_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdate) RemovePaidFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaidFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearCancelledFinanceCommissionAdjustments clears all "cancelled_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdate) ClearCancelledFinanceCommissionAdjustments() *UserUpdate {
+	_u.mutation.ClearCancelledFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionAdjustmentIDs removes the "cancelled_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdate) RemoveCancelledFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionAdjustments removes "cancelled_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdate) RemoveCancelledFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1816,6 +1961,186 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfirmedFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaidFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaidFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.PaidFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaidFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -2280,6 +2605,66 @@ func (_u *UserUpdateOne) AddCancelledFinanceCommissions(v ...*FinanceCommission)
 	return _u.AddCancelledFinanceCommissionIDs(ids...)
 }
 
+// AddFinanceCommissionAdjustmentIDs adds the "finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdateOne) AddFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionAdjustments adds the "finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) AddFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddConfirmedFinanceCommissionAdjustmentIDs adds the "confirmed_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdateOne) AddConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddConfirmedFinanceCommissionAdjustments adds the "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) AddConfirmedFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddPaidFinanceCommissionAdjustmentIDs adds the "paid_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdateOne) AddPaidFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddPaidFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddPaidFinanceCommissionAdjustments adds the "paid_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) AddPaidFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPaidFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddCancelledFinanceCommissionAdjustmentIDs adds the "cancelled_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *UserUpdateOne) AddCancelledFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCancelledFinanceCommissionAdjustments adds the "cancelled_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) AddCancelledFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -2661,6 +3046,90 @@ func (_u *UserUpdateOne) RemoveCancelledFinanceCommissions(v ...*FinanceCommissi
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCommissionIDs(ids...)
+}
+
+// ClearFinanceCommissionAdjustments clears all "finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) ClearFinanceCommissionAdjustments() *UserUpdateOne {
+	_u.mutation.ClearFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveFinanceCommissionAdjustmentIDs removes the "finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdateOne) RemoveFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionAdjustments removes "finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdateOne) RemoveFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearConfirmedFinanceCommissionAdjustments clears all "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) ClearConfirmedFinanceCommissionAdjustments() *UserUpdateOne {
+	_u.mutation.ClearConfirmedFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveConfirmedFinanceCommissionAdjustmentIDs removes the "confirmed_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdateOne) RemoveConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveConfirmedFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveConfirmedFinanceCommissionAdjustments removes "confirmed_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdateOne) RemoveConfirmedFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConfirmedFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearPaidFinanceCommissionAdjustments clears all "paid_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) ClearPaidFinanceCommissionAdjustments() *UserUpdateOne {
+	_u.mutation.ClearPaidFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemovePaidFinanceCommissionAdjustmentIDs removes the "paid_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdateOne) RemovePaidFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemovePaidFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemovePaidFinanceCommissionAdjustments removes "paid_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdateOne) RemovePaidFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePaidFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearCancelledFinanceCommissionAdjustments clears all "cancelled_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *UserUpdateOne) ClearCancelledFinanceCommissionAdjustments() *UserUpdateOne {
+	_u.mutation.ClearCancelledFinanceCommissionAdjustments()
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionAdjustmentIDs removes the "cancelled_finance_commission_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *UserUpdateOne) RemoveCancelledFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCancelledFinanceCommissionAdjustments removes "cancelled_finance_commission_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *UserUpdateOne) RemoveCancelledFinanceCommissionAdjustments(v ...*FinanceCommissionAdjustment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -3635,6 +4104,186 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionAdjustmentsTable,
+			Columns: []string{user.FinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConfirmedFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConfirmedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.ConfirmedFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConfirmedFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PaidFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPaidFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.PaidFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PaidFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.PaidFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CancelledFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCancelledFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CancelledFinanceCommissionAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CancelledFinanceCommissionAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionAdjustmentsTable,
+			Columns: []string{user.CancelledFinanceCommissionAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

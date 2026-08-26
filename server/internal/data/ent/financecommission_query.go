@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -38,6 +39,7 @@ type FinanceCommissionQuery struct {
 	withPaidByUser      *UserQuery
 	withCancelledByUser *UserQuery
 	withLines           *FinanceCommissionLineQuery
+	withAdjustments     *FinanceCommissionAdjustmentQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -251,6 +253,28 @@ func (_q *FinanceCommissionQuery) QueryLines() *FinanceCommissionLineQuery {
 	return query
 }
 
+// QueryAdjustments chains the current query on the "adjustments" edge.
+func (_q *FinanceCommissionQuery) QueryAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financecommission.AdjustmentsTable, financecommission.AdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first FinanceCommission entity from the query.
 // Returns a *NotFoundError when no FinanceCommission was found.
 func (_q *FinanceCommissionQuery) First(ctx context.Context) (*FinanceCommission, error) {
@@ -451,6 +475,7 @@ func (_q *FinanceCommissionQuery) Clone() *FinanceCommissionQuery {
 		withPaidByUser:      _q.withPaidByUser.Clone(),
 		withCancelledByUser: _q.withCancelledByUser.Clone(),
 		withLines:           _q.withLines.Clone(),
+		withAdjustments:     _q.withAdjustments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -545,6 +570,17 @@ func (_q *FinanceCommissionQuery) WithLines(opts ...func(*FinanceCommissionLineQ
 	return _q
 }
 
+// WithAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionQuery) WithAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *FinanceCommissionQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAdjustments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -623,7 +659,7 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*FinanceCommission{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withOrganization != nil,
 			_q.withVerification != nil,
 			_q.withEmployee != nil,
@@ -632,6 +668,7 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 			_q.withPaidByUser != nil,
 			_q.withCancelledByUser != nil,
 			_q.withLines != nil,
+			_q.withAdjustments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -701,6 +738,15 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		if err := _q.loadLines(ctx, query, nodes,
 			func(n *FinanceCommission) { n.Edges.Lines = []*FinanceCommissionLine{} },
 			func(n *FinanceCommission, e *FinanceCommissionLine) { n.Edges.Lines = append(n.Edges.Lines, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAdjustments; query != nil {
+		if err := _q.loadAdjustments(ctx, query, nodes,
+			func(n *FinanceCommission) { n.Edges.Adjustments = []*FinanceCommissionAdjustment{} },
+			func(n *FinanceCommission, e *FinanceCommissionAdjustment) {
+				n.Edges.Adjustments = append(n.Edges.Adjustments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -937,6 +983,36 @@ func (_q *FinanceCommissionQuery) loadLines(ctx context.Context, query *FinanceC
 	}
 	query.Where(predicate.FinanceCommissionLine(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financecommission.LinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CommissionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "commission_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceCommissionQuery) loadAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*FinanceCommission, init func(*FinanceCommission), assign func(*FinanceCommission, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceCommission)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldCommissionID)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financecommission.AdjustmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

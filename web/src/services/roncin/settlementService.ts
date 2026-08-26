@@ -238,6 +238,72 @@ export async function settlementServiceConfirmCashflow(
   );
 }
 
+/** 此处后端没有提供注释 POST /api/v1/finance/commission-adjustments/${param0}/cancel */
+export async function settlementServiceCancelCommissionAdjustment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceCancelCommissionAdjustmentParams,
+  body: API.CancelCommissionAdjustmentRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CommissionAdjustmentResponse>(
+    `/api/v1/finance/commission-adjustments/${param0}/cancel`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/commission-adjustments/${param0}/confirm */
+export async function settlementServiceConfirmCommissionAdjustment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceConfirmCommissionAdjustmentParams,
+  body: API.CommissionAdjustmentTransitionRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CommissionAdjustmentResponse>(
+    `/api/v1/finance/commission-adjustments/${param0}/confirm`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/commission-adjustments/${param0}/paid */
+export async function settlementServiceMarkCommissionAdjustmentPaid(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceMarkCommissionAdjustmentPaidParams,
+  body: API.CommissionAdjustmentTransitionRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CommissionAdjustmentResponse>(
+    `/api/v1/finance/commission-adjustments/${param0}/paid`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/commission-rules */
 export async function settlementServiceListCommissionRules(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -338,6 +404,28 @@ export async function settlementServiceGetCommission(
     {
       method: "GET",
       params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/commissions/${param0}/adjustments */
+export async function settlementServiceCreateCommissionAdjustment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceCreateCommissionAdjustmentParams,
+  body: API.CreateCommissionAdjustmentRequest,
+  options?: { [key: string]: any }
+) {
+  const { commissionId: param0, ...queryParams } = params;
+  return request<API.CommissionAdjustmentResponse>(
+    `/api/v1/finance/commissions/${param0}/adjustments`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
       ...(options || {}),
     }
   );

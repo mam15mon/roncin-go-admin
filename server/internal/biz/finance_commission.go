@@ -12,34 +12,58 @@ import (
 )
 
 var (
-	ErrCommissionNotFound        = errors.NotFound("FINANCE_COMMISSION_NOT_FOUND", "提成记录不存在")
-	ErrCommissionInvalid         = errors.BadRequest("FINANCE_COMMISSION_INVALID", "提成参数不合法")
-	ErrCommissionSource          = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")
-	ErrCommissionDuplicate       = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销与员工已存在提成记录")
-	ErrCommissionTransition      = errors.Conflict("FINANCE_COMMISSION_TRANSITION", "当前提成状态不允许该操作")
-	ErrVerificationHasCommission = errors.Conflict("FINANCE_VERIFICATION_HAS_COMMISSION", "核销已生成未取消提成，请先取消提成")
-	ErrCommissionRuleNotFound    = errors.NotFound("FINANCE_COMMISSION_RULE_NOT_FOUND", "提成规则不存在")
-	ErrCommissionRuleInvalid     = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
-	ErrCommissionRuleConflict    = errors.Conflict("FINANCE_COMMISSION_RULE_CONFLICT", "提成规则名称已存在或版本已变化")
-	ErrCommissionEmployeeRole    = errors.Conflict("FINANCE_COMMISSION_EMPLOYEE_ROLE", "所选员工未在核销涉及订单中担任规则指定角色")
-	ErrCommissionSourceChanged   = errors.Conflict("FINANCE_COMMISSION_SOURCE_CHANGED", "提成来源数据已变化，请取消当前草稿并重新生成")
+	ErrCommissionNotFound             = errors.NotFound("FINANCE_COMMISSION_NOT_FOUND", "提成记录不存在")
+	ErrCommissionInvalid              = errors.BadRequest("FINANCE_COMMISSION_INVALID", "提成参数不合法")
+	ErrCommissionSource               = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")
+	ErrCommissionDuplicate            = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销与员工已存在提成记录")
+	ErrCommissionTransition           = errors.Conflict("FINANCE_COMMISSION_TRANSITION", "当前提成状态不允许该操作")
+	ErrVerificationHasCommission      = errors.Conflict("FINANCE_VERIFICATION_HAS_COMMISSION", "核销已生成未取消提成，请先取消提成")
+	ErrCommissionRuleNotFound         = errors.NotFound("FINANCE_COMMISSION_RULE_NOT_FOUND", "提成规则不存在")
+	ErrCommissionRuleInvalid          = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
+	ErrCommissionRuleConflict         = errors.Conflict("FINANCE_COMMISSION_RULE_CONFLICT", "提成规则名称已存在或版本已变化")
+	ErrCommissionEmployeeRole         = errors.Conflict("FINANCE_COMMISSION_EMPLOYEE_ROLE", "所选员工未在核销涉及订单中担任规则指定角色")
+	ErrCommissionSourceChanged        = errors.Conflict("FINANCE_COMMISSION_SOURCE_CHANGED", "提成来源数据已变化，请取消当前草稿并重新生成")
+	ErrCommissionUnconfirmedFees      = errors.Conflict("FINANCE_COMMISSION_UNCONFIRMED_FEES", "关联订单仍有草稿费用，请先确认或作废后再确认提成")
+	ErrCommissionAdjustmentNotFound   = errors.NotFound("FINANCE_COMMISSION_ADJUSTMENT_NOT_FOUND", "提成调整记录不存在")
+	ErrCommissionAdjustmentInvalid    = errors.BadRequest("FINANCE_COMMISSION_ADJUSTMENT_INVALID", "提成调整参数不合法")
+	ErrCommissionAdjustmentTransition = errors.Conflict("FINANCE_COMMISSION_ADJUSTMENT_TRANSITION", "当前提成调整状态不允许该操作")
+	ErrCommissionAdjustmentExceeds    = errors.Conflict("FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS", "冲减后的有效提成金额不能小于零")
 )
 
 type CommissionStatus string
 type CommissionPersonnelRole string
 type CommissionCalculationBasis string
+type CommissionAdjustmentDirection string
 
 const (
-	CommissionDraft                CommissionStatus           = "DRAFT"
-	CommissionConfirmed            CommissionStatus           = "CONFIRMED"
-	CommissionPaid                 CommissionStatus           = "PAID"
-	CommissionCancelled            CommissionStatus           = "CANCELLED"
-	CommissionRoleSales            CommissionPersonnelRole    = "SALES"
-	CommissionRoleOperator         CommissionPersonnelRole    = "OPERATOR"
-	CommissionBasisRealizedProfit  CommissionCalculationBasis = "REALIZED_PROFIT"
-	CommissionBasisRealizedRevenue CommissionCalculationBasis = "REALIZED_REVENUE"
-	CommissionCalculationVersion                              = "ORDER_LINE_V1"
+	CommissionDraft                CommissionStatus              = "DRAFT"
+	CommissionConfirmed            CommissionStatus              = "CONFIRMED"
+	CommissionPaid                 CommissionStatus              = "PAID"
+	CommissionCancelled            CommissionStatus              = "CANCELLED"
+	CommissionRoleSales            CommissionPersonnelRole       = "SALES"
+	CommissionRoleOperator         CommissionPersonnelRole       = "OPERATOR"
+	CommissionBasisRealizedProfit  CommissionCalculationBasis    = "REALIZED_PROFIT"
+	CommissionBasisRealizedRevenue CommissionCalculationBasis    = "REALIZED_REVENUE"
+	CommissionCalculationVersion                                 = "ORDER_LINE_V1"
+	CommissionAdjustmentIncrease   CommissionAdjustmentDirection = "INCREASE"
+	CommissionAdjustmentDecrease   CommissionAdjustmentDirection = "DECREASE"
 )
+
+// FinanceCommissionAdjustment 以独立单据记录原始提成确认后的增提或冲减。
+type FinanceCommissionAdjustment struct {
+	ID, OrganizationID, CommissionID, OrderID, EmployeeID             uuid.UUID
+	AdjustmentNo, IdempotencyKey, CommissionNo, OrderNo, EmployeeName string
+	Direction                                                         CommissionAdjustmentDirection
+	Status                                                            CommissionStatus
+	BaseCurrency                                                      string
+	Amount                                                            decimal.Decimal
+	Reason                                                            string
+	Note                                                              *string
+	Version                                                           uint64
+	ConfirmedAt, PaidAt, CancelledAt                                  *time.Time
+	CancellationReason                                                *string
+	CreatedAt, UpdatedAt                                              time.Time
+}
 
 // FinanceCommissionLine 保存逐订单提成计算快照，保证汇总金额可追溯。
 type FinanceCommissionLine struct {
@@ -83,6 +107,8 @@ type FinanceCommission struct {
 	CancellationReason                                         *string
 	CreatedAt, UpdatedAt                                       time.Time
 	Lines                                                      []*FinanceCommissionLine
+	Adjustments                                                []*FinanceCommissionAdjustment
+	AdjustmentAmount, EffectiveCommissionAmount                decimal.Decimal
 }
 
 type CommissionFilter struct {
@@ -138,6 +164,15 @@ type CreateCommissionInput struct {
 	IdempotencyKey                     string
 }
 
+type CreateCommissionAdjustmentInput struct {
+	CommissionID, OrderID uuid.UUID
+	Direction             CommissionAdjustmentDirection
+	Amount                decimal.Decimal
+	Reason                string
+	Note                  *string
+	IdempotencyKey        string
+}
+
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
@@ -150,6 +185,9 @@ type CommissionRepo interface {
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceCommission, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceCommission, *AuditEvent) (*FinanceCommission, error)
 	Transition(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommission, error)
+	GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error)
+	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
+	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }
 
 func (u *CommissionUsecase) ListEmployees(ctx context.Context, org uuid.UUID) ([]*CommissionEmployeeOption, error) {
@@ -300,6 +338,66 @@ func (u *CommissionUsecase) MarkPaid(ctx context.Context, org, actor, id uuid.UU
 func (u *CommissionUsecase) Cancel(ctx context.Context, org, actor, id uuid.UUID, version uint64, reason string) (*FinanceCommission, error) {
 	return u.transition(ctx, org, actor, id, version, CommissionCancelled, strings.TrimSpace(reason))
 }
+
+func (u *CommissionUsecase) CreateAdjustment(ctx context.Context, org, actor uuid.UUID, in CreateCommissionAdjustmentInput) (*FinanceCommissionAdjustment, error) {
+	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
+	in.Reason = strings.TrimSpace(in.Reason)
+	in.Note = normalizedOptionalFinanceString(in.Note)
+	if org == uuid.Nil || actor == uuid.Nil || in.CommissionID == uuid.Nil || in.OrderID == uuid.Nil ||
+		(in.Direction != CommissionAdjustmentIncrease && in.Direction != CommissionAdjustmentDecrease) ||
+		!in.Amount.IsPositive() || !totalAmountPattern.MatchString(in.Amount.String()) || in.Reason == "" ||
+		utf8.RuneCountInString(in.Reason) > 500 || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 ||
+		(in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
+		return nil, ErrCommissionAdjustmentInvalid
+	}
+	if old, err := u.repo.GetAdjustmentByKey(ctx, org, in.IdempotencyKey); err != nil {
+		return nil, err
+	} else if old != nil {
+		if !sameCommissionAdjustmentIntent(old, in) {
+			return nil, ErrCommissionAdjustmentInvalid
+		}
+		return old, nil
+	}
+	item := &FinanceCommissionAdjustment{
+		ID: uuid.Must(uuid.NewV7()), OrganizationID: org, CommissionID: in.CommissionID, OrderID: in.OrderID,
+		IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: CommissionDraft,
+		Amount: in.Amount.Round(8), Reason: in.Reason, Note: in.Note, Version: 1,
+	}
+	created, err := u.repo.CreateAdjustment(ctx, org, actor, item, commissionAdjustmentAudit(org, actor, item.ID, "finance.commission_adjustment.create"))
+	if err == nil {
+		return created, nil
+	}
+	old, lookupErr := u.repo.GetAdjustmentByKey(ctx, org, in.IdempotencyKey)
+	if lookupErr == nil && old != nil && sameCommissionAdjustmentIntent(old, in) {
+		return old, nil
+	}
+	return nil, err
+}
+
+func sameCommissionAdjustmentIntent(old *FinanceCommissionAdjustment, in CreateCommissionAdjustmentInput) bool {
+	return old.CommissionID == in.CommissionID && old.OrderID == in.OrderID && old.Direction == in.Direction &&
+		old.Amount.Equal(in.Amount.Round(8)) && old.Reason == in.Reason && stringPointersEqual(old.Note, in.Note)
+}
+
+func (u *CommissionUsecase) ConfirmAdjustment(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommissionAdjustment, error) {
+	return u.transitionAdjustment(ctx, org, actor, id, version, CommissionConfirmed, "")
+}
+
+func (u *CommissionUsecase) MarkAdjustmentPaid(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommissionAdjustment, error) {
+	return u.transitionAdjustment(ctx, org, actor, id, version, CommissionPaid, "")
+}
+
+func (u *CommissionUsecase) CancelAdjustment(ctx context.Context, org, actor, id uuid.UUID, version uint64, reason string) (*FinanceCommissionAdjustment, error) {
+	return u.transitionAdjustment(ctx, org, actor, id, version, CommissionCancelled, strings.TrimSpace(reason))
+}
+
+func (u *CommissionUsecase) transitionAdjustment(ctx context.Context, org, actor, id uuid.UUID, version uint64, target CommissionStatus, reason string) (*FinanceCommissionAdjustment, error) {
+	if org == uuid.Nil || actor == uuid.Nil || id == uuid.Nil || version == 0 ||
+		(target == CommissionCancelled && (reason == "" || utf8.RuneCountInString(reason) > 500)) {
+		return nil, ErrCommissionAdjustmentInvalid
+	}
+	return u.repo.TransitionAdjustment(ctx, org, id, actor, version, target, reason, commissionAdjustmentAudit(org, actor, id, "finance.commission_adjustment."+strings.ToLower(string(target))))
+}
 func (u *CommissionUsecase) transition(ctx context.Context, org, actor, id uuid.UUID, version uint64, target CommissionStatus, reason string) (*FinanceCommission, error) {
 	if org == uuid.Nil || actor == uuid.Nil || id == uuid.Nil || version == 0 || (target == CommissionCancelled && (reason == "" || utf8.RuneCountInString(reason) > 500)) {
 		return nil, ErrCommissionInvalid
@@ -311,4 +409,8 @@ func commissionAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
 }
 func commissionRuleAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
 	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_commission_rule", ResourceID: id.String()}
+}
+
+func commissionAdjustmentAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
+	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_commission_adjustment", ResourceID: id.String()}
 }

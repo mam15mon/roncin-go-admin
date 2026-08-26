@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -48,6 +49,27 @@ func (_u *FinanceCommissionUpdate) SetNillableStatus(v *financecommission.Status
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetAdjustmentSequence sets the "adjustment_sequence" field.
+func (_u *FinanceCommissionUpdate) SetAdjustmentSequence(v uint64) *FinanceCommissionUpdate {
+	_u.mutation.ResetAdjustmentSequence()
+	_u.mutation.SetAdjustmentSequence(v)
+	return _u
+}
+
+// SetNillableAdjustmentSequence sets the "adjustment_sequence" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableAdjustmentSequence(v *uint64) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetAdjustmentSequence(*v)
+	}
+	return _u
+}
+
+// AddAdjustmentSequence adds value to the "adjustment_sequence" field.
+func (_u *FinanceCommissionUpdate) AddAdjustmentSequence(v int64) *FinanceCommissionUpdate {
+	_u.mutation.AddAdjustmentSequence(v)
 	return _u
 }
 
@@ -304,6 +326,21 @@ func (_u *FinanceCommissionUpdate) AddLines(v ...*FinanceCommissionLine) *Financ
 	return _u.AddLineIDs(ids...)
 }
 
+// AddAdjustmentIDs adds the "adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceCommissionUpdate) AddAdjustmentIDs(ids ...uuid.UUID) *FinanceCommissionUpdate {
+	_u.mutation.AddAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddAdjustments adds the "adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceCommissionUpdate) AddAdjustments(v ...*FinanceCommissionAdjustment) *FinanceCommissionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAdjustmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_u *FinanceCommissionUpdate) Mutation() *FinanceCommissionMutation {
 	return _u.mutation
@@ -346,6 +383,27 @@ func (_u *FinanceCommissionUpdate) RemoveLines(v ...*FinanceCommissionLine) *Fin
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLineIDs(ids...)
+}
+
+// ClearAdjustments clears all "adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceCommissionUpdate) ClearAdjustments() *FinanceCommissionUpdate {
+	_u.mutation.ClearAdjustments()
+	return _u
+}
+
+// RemoveAdjustmentIDs removes the "adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceCommissionUpdate) RemoveAdjustmentIDs(ids ...uuid.UUID) *FinanceCommissionUpdate {
+	_u.mutation.RemoveAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveAdjustments removes "adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceCommissionUpdate) RemoveAdjustments(v ...*FinanceCommissionAdjustment) *FinanceCommissionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAdjustmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -439,6 +497,12 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AdjustmentSequence(); ok {
+		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedAdjustmentSequence(); ok {
+		_spec.AddField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financecommission.FieldNote, field.TypeString, value)
@@ -608,6 +672,51 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.AdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financecommission.Label}
@@ -645,6 +754,27 @@ func (_u *FinanceCommissionUpdateOne) SetNillableStatus(v *financecommission.Sta
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetAdjustmentSequence sets the "adjustment_sequence" field.
+func (_u *FinanceCommissionUpdateOne) SetAdjustmentSequence(v uint64) *FinanceCommissionUpdateOne {
+	_u.mutation.ResetAdjustmentSequence()
+	_u.mutation.SetAdjustmentSequence(v)
+	return _u
+}
+
+// SetNillableAdjustmentSequence sets the "adjustment_sequence" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableAdjustmentSequence(v *uint64) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetAdjustmentSequence(*v)
+	}
+	return _u
+}
+
+// AddAdjustmentSequence adds value to the "adjustment_sequence" field.
+func (_u *FinanceCommissionUpdateOne) AddAdjustmentSequence(v int64) *FinanceCommissionUpdateOne {
+	_u.mutation.AddAdjustmentSequence(v)
 	return _u
 }
 
@@ -901,6 +1031,21 @@ func (_u *FinanceCommissionUpdateOne) AddLines(v ...*FinanceCommissionLine) *Fin
 	return _u.AddLineIDs(ids...)
 }
 
+// AddAdjustmentIDs adds the "adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceCommissionUpdateOne) AddAdjustmentIDs(ids ...uuid.UUID) *FinanceCommissionUpdateOne {
+	_u.mutation.AddAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddAdjustments adds the "adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceCommissionUpdateOne) AddAdjustments(v ...*FinanceCommissionAdjustment) *FinanceCommissionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAdjustmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_u *FinanceCommissionUpdateOne) Mutation() *FinanceCommissionMutation {
 	return _u.mutation
@@ -943,6 +1088,27 @@ func (_u *FinanceCommissionUpdateOne) RemoveLines(v ...*FinanceCommissionLine) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLineIDs(ids...)
+}
+
+// ClearAdjustments clears all "adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceCommissionUpdateOne) ClearAdjustments() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearAdjustments()
+	return _u
+}
+
+// RemoveAdjustmentIDs removes the "adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceCommissionUpdateOne) RemoveAdjustmentIDs(ids ...uuid.UUID) *FinanceCommissionUpdateOne {
+	_u.mutation.RemoveAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveAdjustments removes "adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceCommissionUpdateOne) RemoveAdjustments(v ...*FinanceCommissionAdjustment) *FinanceCommissionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAdjustmentIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceCommissionUpdate builder.
@@ -1066,6 +1232,12 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AdjustmentSequence(); ok {
+		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedAdjustmentSequence(); ok {
+		_spec.AddField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financecommission.FieldNote, field.TypeString, value)
@@ -1228,6 +1400,51 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.AdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

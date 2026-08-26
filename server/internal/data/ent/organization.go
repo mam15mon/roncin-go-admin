@@ -104,11 +104,13 @@ type OrganizationEdges struct {
 	FinanceCommissions []*FinanceCommission `json:"finance_commissions,omitempty"`
 	// FinanceCommissionLines holds the value of the finance_commission_lines edge.
 	FinanceCommissionLines []*FinanceCommissionLine `json:"finance_commission_lines,omitempty"`
+	// FinanceCommissionAdjustments holds the value of the finance_commission_adjustments edge.
+	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
 	// FinanceCommissionRules holds the value of the finance_commission_rules edge.
 	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [32]bool
+	loadedTypes [33]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -392,10 +394,19 @@ func (e OrganizationEdges) FinanceCommissionLinesOrErr() ([]*FinanceCommissionLi
 	return nil, &NotLoadedError{edge: "finance_commission_lines"}
 }
 
+// FinanceCommissionAdjustmentsOrErr returns the FinanceCommissionAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[31] {
+		return e.FinanceCommissionAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
+}
+
 // FinanceCommissionRulesOrErr returns the FinanceCommissionRules value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRule, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[32] {
 		return e.FinanceCommissionRules, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_rules"}
@@ -653,6 +664,11 @@ func (_m *Organization) QueryFinanceCommissions() *FinanceCommissionQuery {
 // QueryFinanceCommissionLines queries the "finance_commission_lines" edge of the Organization entity.
 func (_m *Organization) QueryFinanceCommissionLines() *FinanceCommissionLineQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceCommissionLines(_m)
+}
+
+// QueryFinanceCommissionAdjustments queries the "finance_commission_adjustments" edge of the Organization entity.
+func (_m *Organization) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceCommissionAdjustments(_m)
 }
 
 // QueryFinanceCommissionRules queries the "finance_commission_rules" edge of the Organization entity.

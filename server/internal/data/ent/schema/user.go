@@ -47,6 +47,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("confirmed_finance_commissions", FinanceCommission.Type),
 		edge.To("paid_finance_commissions", FinanceCommission.Type),
 		edge.To("cancelled_finance_commissions", FinanceCommission.Type),
+		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),
+		edge.To("confirmed_finance_commission_adjustments", FinanceCommissionAdjustment.Type),
+		edge.To("paid_finance_commission_adjustments", FinanceCommissionAdjustment.Type),
+		edge.To("cancelled_finance_commission_adjustments", FinanceCommissionAdjustment.Type),
 	}
 }
 

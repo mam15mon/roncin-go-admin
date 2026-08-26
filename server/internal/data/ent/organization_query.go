@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -86,6 +87,7 @@ type OrganizationQuery struct {
 	withFinanceVerifications          *FinanceVerificationQuery
 	withFinanceCommissions            *FinanceCommissionQuery
 	withFinanceCommissionLines        *FinanceCommissionLineQuery
+	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
 	withFinanceCommissionRules        *FinanceCommissionRuleQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -806,6 +808,28 @@ func (_q *OrganizationQuery) QueryFinanceCommissionLines() *FinanceCommissionLin
 	return query
 }
 
+// QueryFinanceCommissionAdjustments chains the current query on the "finance_commission_adjustments" edge.
+func (_q *OrganizationQuery) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionAdjustmentsTable, organization.FinanceCommissionAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryFinanceCommissionRules chains the current query on the "finance_commission_rules" edge.
 func (_q *OrganizationQuery) QueryFinanceCommissionRules() *FinanceCommissionRuleQuery {
 	query := (&FinanceCommissionRuleClient{config: _q.config}).Query()
@@ -1051,6 +1075,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceVerifications:          _q.withFinanceVerifications.Clone(),
 		withFinanceCommissions:            _q.withFinanceCommissions.Clone(),
 		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
+		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
 		withFinanceCommissionRules:        _q.withFinanceCommissionRules.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -1399,6 +1424,17 @@ func (_q *OrganizationQuery) WithFinanceCommissionLines(opts ...func(*FinanceCom
 	return _q
 }
 
+// WithFinanceCommissionAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceCommissionAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *OrganizationQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionAdjustments = query
+	return _q
+}
+
 // WithFinanceCommissionRules tells the query-builder to eager-load the nodes that are connected to
 // the "finance_commission_rules" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithFinanceCommissionRules(opts ...func(*FinanceCommissionRuleQuery)) *OrganizationQuery {
@@ -1488,7 +1524,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [32]bool{
+		loadedTypes = [33]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1520,6 +1556,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceVerifications != nil,
 			_q.withFinanceCommissions != nil,
 			_q.withFinanceCommissionLines != nil,
+			_q.withFinanceCommissionAdjustments != nil,
 			_q.withFinanceCommissionRules != nil,
 		}
 	)
@@ -1776,6 +1813,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceCommissionLines = []*FinanceCommissionLine{} },
 			func(n *Organization, e *FinanceCommissionLine) {
 				n.Edges.FinanceCommissionLines = append(n.Edges.FinanceCommissionLines, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionAdjustments; query != nil {
+		if err := _q.loadFinanceCommissionAdjustments(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *Organization, e *FinanceCommissionAdjustment) {
+				n.Edges.FinanceCommissionAdjustments = append(n.Edges.FinanceCommissionAdjustments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2712,6 +2758,36 @@ func (_q *OrganizationQuery) loadFinanceCommissionLines(ctx context.Context, que
 	}
 	query.Where(predicate.FinanceCommissionLine(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceCommissionLinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceCommissionAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceCommissionAdjustmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

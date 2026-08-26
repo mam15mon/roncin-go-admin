@@ -853,6 +853,69 @@ func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCo
 	}
 	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
+func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v1.CreateCommissionAdjustmentRequest) (*v1.CommissionAdjustmentResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	commissionID, err := uuid.Parse(strings.TrimSpace(r.GetCommissionId()))
+	if err != nil {
+		return nil, biz.ErrCommissionAdjustmentInvalid
+	}
+	orderID, err := uuid.Parse(strings.TrimSpace(r.GetOrderId()))
+	if err != nil {
+		return nil, biz.ErrCommissionAdjustmentInvalid
+	}
+	amount, err := decimal.NewFromString(strings.TrimSpace(r.GetAmount()))
+	if err != nil {
+		return nil, biz.ErrCommissionAdjustmentInvalid
+	}
+	item, err := s.commissionUsecase.CreateAdjustment(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionAdjustmentInput{
+		CommissionID: commissionID, OrderID: orderID, Direction: biz.CommissionAdjustmentDirection(strings.ToUpper(r.GetDirection())),
+		Amount: amount, Reason: r.GetReason(), Note: r.Note, IdempotencyKey: r.GetIdempotencyKey(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) ConfirmCommissionAdjustment(ctx context.Context, r *v1.CommissionAdjustmentTransitionRequest) (*v1.CommissionAdjustmentResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.ConfirmAdjustment(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) MarkCommissionAdjustmentPaid(ctx context.Context, r *v1.CommissionAdjustmentTransitionRequest) (*v1.CommissionAdjustmentResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.MarkAdjustmentPaid(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v1.CancelCommissionAdjustmentRequest) (*v1.CommissionAdjustmentResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.CancelAdjustment(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	if x == nil {
 		return nil
@@ -878,7 +941,25 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	for _, line := range x.Lines {
 		lines = append(lines, commissionLineToAPI(line))
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines}
+	adjustments := make([]*v1.FinanceCommissionAdjustment, 0, len(x.Adjustments))
+	for _, item := range x.Adjustments {
+		adjustments = append(adjustments, commissionAdjustmentToAPI(item))
+	}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8)}
+}
+
+func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCommissionAdjustment {
+	if x == nil {
+		return nil
+	}
+	return &v1.FinanceCommissionAdjustment{
+		Id: x.ID.String(), AdjustmentNo: x.AdjustmentNo, CommissionId: x.CommissionID.String(), CommissionNo: x.CommissionNo,
+		OrderId: x.OrderID.String(), OrderNo: x.OrderNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName,
+		Direction: string(x.Direction), Status: string(x.Status), BaseCurrency: x.BaseCurrency, Amount: x.Amount.StringFixed(8),
+		Reason: x.Reason, Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt),
+		CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason,
+		CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339),
+	}
 }
 
 func commissionCalculationToAPI(x *biz.CommissionCalculation) *v1.CommissionCalculation {

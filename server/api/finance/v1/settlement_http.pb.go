@@ -20,15 +20,18 @@ const _ = http.SupportPackageIsVersion3
 const OperationSettlementServiceCancelBill = "/finance.v1.SettlementService/CancelBill"
 const OperationSettlementServiceCancelCashflow = "/finance.v1.SettlementService/CancelCashflow"
 const OperationSettlementServiceCancelCommission = "/finance.v1.SettlementService/CancelCommission"
+const OperationSettlementServiceCancelCommissionAdjustment = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 const OperationSettlementServiceCancelInvoice = "/finance.v1.SettlementService/CancelInvoice"
 const OperationSettlementServiceConfirmBill = "/finance.v1.SettlementService/ConfirmBill"
 const OperationSettlementServiceConfirmBillBatch = "/finance.v1.SettlementService/ConfirmBillBatch"
 const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService/ConfirmCashflow"
 const OperationSettlementServiceConfirmCommission = "/finance.v1.SettlementService/ConfirmCommission"
+const OperationSettlementServiceConfirmCommissionAdjustment = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
 const OperationSettlementServiceCreateBillBatch = "/finance.v1.SettlementService/CreateBillBatch"
 const OperationSettlementServiceCreateCashflow = "/finance.v1.SettlementService/CreateCashflow"
 const OperationSettlementServiceCreateCommission = "/finance.v1.SettlementService/CreateCommission"
+const OperationSettlementServiceCreateCommissionAdjustment = "/finance.v1.SettlementService/CreateCommissionAdjustment"
 const OperationSettlementServiceCreateCommissionRule = "/finance.v1.SettlementService/CreateCommissionRule"
 const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/CreateInvoice"
 const OperationSettlementServiceCreateVerification = "/finance.v1.SettlementService/CreateVerification"
@@ -45,6 +48,7 @@ const OperationSettlementServiceListCommissions = "/finance.v1.SettlementService
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
+const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
 const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementService/PreviewBillBatch"
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
@@ -57,15 +61,18 @@ type SettlementServiceHTTPServer interface {
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error)
+	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
+	ConfirmCommissionAdjustment(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error)
+	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error)
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
@@ -83,6 +90,7 @@ type SettlementServiceHTTPServer interface {
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
+	MarkCommissionAdjustmentPaid(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
 	MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
@@ -129,6 +137,10 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/confirm", _SettlementService_ConfirmCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/paid", _SettlementService_MarkCommissionPaid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/cancel", _SettlementService_CancelCommission0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commissions/{commission_id}/adjustments", _SettlementService_CreateCommissionAdjustment0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/confirm", _SettlementService_ConfirmCommissionAdjustment0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/paid", _SettlementService_MarkCommissionAdjustmentPaid0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/cancel", _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv))
 }
 
 func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
@@ -847,19 +859,110 @@ func _SettlementService_CancelCommission0_HTTP_Handler(srv SettlementServiceHTTP
 	}
 }
 
+func _SettlementService_CreateCommissionAdjustment0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateCommissionAdjustmentRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCreateCommissionAdjustment)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateCommissionAdjustment(ctx, req.(*CreateCommissionAdjustmentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommissionAdjustmentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ConfirmCommissionAdjustment0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CommissionAdjustmentTransitionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceConfirmCommissionAdjustment)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmCommissionAdjustment(ctx, req.(*CommissionAdjustmentTransitionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommissionAdjustmentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_MarkCommissionAdjustmentPaid0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CommissionAdjustmentTransitionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceMarkCommissionAdjustmentPaid)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MarkCommissionAdjustmentPaid(ctx, req.(*CommissionAdjustmentTransitionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommissionAdjustmentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelCommissionAdjustmentRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCancelCommissionAdjustment)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelCommissionAdjustment(ctx, req.(*CancelCommissionAdjustmentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommissionAdjustmentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SettlementServiceHTTPClient interface {
 	CancelBill(ctx context.Context, req *CancelBillRequest, opts ...http.CallOption) (rsp *CancelBillResponse, err error)
 	CancelCashflow(ctx context.Context, req *CancelCashflowRequest, opts ...http.CallOption) (rsp *CancelCashflowResponse, err error)
 	CancelCommission(ctx context.Context, req *CancelCommissionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
+	CancelCommissionAdjustment(ctx context.Context, req *CancelCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *CommissionAdjustmentResponse, err error)
 	CancelInvoice(ctx context.Context, req *CancelInvoiceRequest, opts ...http.CallOption) (rsp *CancelInvoiceResponse, err error)
 	ConfirmBill(ctx context.Context, req *ConfirmBillRequest, opts ...http.CallOption) (rsp *ConfirmBillResponse, err error)
 	ConfirmBillBatch(ctx context.Context, req *ConfirmBillBatchRequest, opts ...http.CallOption) (rsp *ConfirmBillBatchResponse, err error)
 	ConfirmCashflow(ctx context.Context, req *ConfirmCashflowRequest, opts ...http.CallOption) (rsp *ConfirmCashflowResponse, err error)
 	ConfirmCommission(ctx context.Context, req *CommissionTransitionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
+	ConfirmCommissionAdjustment(ctx context.Context, req *CommissionAdjustmentTransitionRequest, opts ...http.CallOption) (rsp *CommissionAdjustmentResponse, err error)
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
 	CreateBillBatch(ctx context.Context, req *CreateBillBatchRequest, opts ...http.CallOption) (rsp *CreateBillBatchResponse, err error)
 	CreateCashflow(ctx context.Context, req *CreateCashflowRequest, opts ...http.CallOption) (rsp *CreateCashflowResponse, err error)
 	CreateCommission(ctx context.Context, req *CreateCommissionRequest, opts ...http.CallOption) (rsp *CreateCommissionResponse, err error)
+	CreateCommissionAdjustment(ctx context.Context, req *CreateCommissionAdjustmentRequest, opts ...http.CallOption) (rsp *CommissionAdjustmentResponse, err error)
 	CreateCommissionRule(ctx context.Context, req *CreateCommissionRuleRequest, opts ...http.CallOption) (rsp *CommissionRuleResponse, err error)
 	CreateInvoice(ctx context.Context, req *CreateInvoiceRequest, opts ...http.CallOption) (rsp *CreateInvoiceResponse, err error)
 	CreateVerification(ctx context.Context, req *CreateVerificationRequest, opts ...http.CallOption) (rsp *CreateVerificationResponse, err error)
@@ -877,6 +980,7 @@ type SettlementServiceHTTPClient interface {
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
+	MarkCommissionAdjustmentPaid(ctx context.Context, req *CommissionAdjustmentTransitionRequest, opts ...http.CallOption) (rsp *CommissionAdjustmentResponse, err error)
 	MarkCommissionPaid(ctx context.Context, req *CommissionTransitionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
 	PreviewBillBatch(ctx context.Context, req *PreviewBillBatchRequest, opts ...http.CallOption) (rsp *PreviewBillBatchResponse, err error)
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
@@ -936,6 +1040,23 @@ func (c *SettlementServiceHTTPClientImpl) CancelCommission(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceCancelCommission),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...http.CallOption) (*CommissionAdjustmentResponse, error) {
+	var out CommissionAdjustmentResponse
+	pattern := "/api/v1/finance/commission-adjustments/{id}/cancel"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCancelCommissionAdjustment),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1030,6 +1151,23 @@ func (c *SettlementServiceHTTPClientImpl) ConfirmCommission(ctx context.Context,
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) ConfirmCommissionAdjustment(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...http.CallOption) (*CommissionAdjustmentResponse, error) {
+	var out CommissionAdjustmentResponse
+	pattern := "/api/v1/finance/commission-adjustments/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceConfirmCommissionAdjustment),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) CreateBill(ctx context.Context, in *CreateBillRequest, opts ...http.CallOption) (*CreateBillResponse, error) {
 	var out CreateBillResponse
 	pattern := "/api/v1/finance/bills"
@@ -1089,6 +1227,23 @@ func (c *SettlementServiceHTTPClientImpl) CreateCommission(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceCreateCommission),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...http.CallOption) (*CommissionAdjustmentResponse, error) {
+	var out CommissionAdjustmentResponse
+	pattern := "/api/v1/finance/commissions/{commission_id}/adjustments"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCreateCommissionAdjustment),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1353,6 +1508,23 @@ func (c *SettlementServiceHTTPClientImpl) ListVerifications(ctx context.Context,
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) MarkCommissionAdjustmentPaid(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...http.CallOption) (*CommissionAdjustmentResponse, error) {
+	var out CommissionAdjustmentResponse
+	pattern := "/api/v1/finance/commission-adjustments/{id}/paid"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceMarkCommissionAdjustmentPaid),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -86,9 +86,17 @@ type UserEdges struct {
 	PaidFinanceCommissions []*FinanceCommission `json:"paid_finance_commissions,omitempty"`
 	// CancelledFinanceCommissions holds the value of the cancelled_finance_commissions edge.
 	CancelledFinanceCommissions []*FinanceCommission `json:"cancelled_finance_commissions,omitempty"`
+	// FinanceCommissionAdjustments holds the value of the finance_commission_adjustments edge.
+	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
+	// ConfirmedFinanceCommissionAdjustments holds the value of the confirmed_finance_commission_adjustments edge.
+	ConfirmedFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"confirmed_finance_commission_adjustments,omitempty"`
+	// PaidFinanceCommissionAdjustments holds the value of the paid_finance_commission_adjustments edge.
+	PaidFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"paid_finance_commission_adjustments,omitempty"`
+	// CancelledFinanceCommissionAdjustments holds the value of the cancelled_finance_commission_adjustments edge.
+	CancelledFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"cancelled_finance_commission_adjustments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [18]bool
+	loadedTypes [22]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -251,6 +259,42 @@ func (e UserEdges) CancelledFinanceCommissionsOrErr() ([]*FinanceCommission, err
 		return e.CancelledFinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_commissions"}
+}
+
+// FinanceCommissionAdjustmentsOrErr returns the FinanceCommissionAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[18] {
+		return e.FinanceCommissionAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
+}
+
+// ConfirmedFinanceCommissionAdjustmentsOrErr returns the ConfirmedFinanceCommissionAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ConfirmedFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[19] {
+		return e.ConfirmedFinanceCommissionAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "confirmed_finance_commission_adjustments"}
+}
+
+// PaidFinanceCommissionAdjustmentsOrErr returns the PaidFinanceCommissionAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PaidFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[20] {
+		return e.PaidFinanceCommissionAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "paid_finance_commission_adjustments"}
+}
+
+// CancelledFinanceCommissionAdjustmentsOrErr returns the CancelledFinanceCommissionAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CancelledFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[21] {
+		return e.CancelledFinanceCommissionAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "cancelled_finance_commission_adjustments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -467,6 +511,26 @@ func (_m *User) QueryPaidFinanceCommissions() *FinanceCommissionQuery {
 // QueryCancelledFinanceCommissions queries the "cancelled_finance_commissions" edge of the User entity.
 func (_m *User) QueryCancelledFinanceCommissions() *FinanceCommissionQuery {
 	return NewUserClient(_m.config).QueryCancelledFinanceCommissions(_m)
+}
+
+// QueryFinanceCommissionAdjustments queries the "finance_commission_adjustments" edge of the User entity.
+func (_m *User) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewUserClient(_m.config).QueryFinanceCommissionAdjustments(_m)
+}
+
+// QueryConfirmedFinanceCommissionAdjustments queries the "confirmed_finance_commission_adjustments" edge of the User entity.
+func (_m *User) QueryConfirmedFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewUserClient(_m.config).QueryConfirmedFinanceCommissionAdjustments(_m)
+}
+
+// QueryPaidFinanceCommissionAdjustments queries the "paid_finance_commission_adjustments" edge of the User entity.
+func (_m *User) QueryPaidFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewUserClient(_m.config).QueryPaidFinanceCommissionAdjustments(_m)
+}
+
+// QueryCancelledFinanceCommissionAdjustments queries the "cancelled_finance_commission_adjustments" edge of the User entity.
+func (_m *User) QueryCancelledFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewUserClient(_m.config).QueryCancelledFinanceCommissionAdjustments(_m)
 }
 
 // Update returns a builder for updating this User.

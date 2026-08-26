@@ -39,8 +39,11 @@ import {
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
+  settlementServiceCancelCommissionAdjustment,
   settlementServiceCancelCommission,
+  settlementServiceConfirmCommissionAdjustment,
   settlementServiceConfirmCommission,
+  settlementServiceCreateCommissionAdjustment,
   settlementServiceCreateCommission,
   settlementServiceCreateCommissionRule,
   settlementServiceGetCommission,
@@ -49,6 +52,7 @@ import {
   settlementServiceListCommissions,
   settlementServiceListVerifications,
   settlementServiceMarkCommissionPaid,
+  settlementServiceMarkCommissionAdjustmentPaid,
   settlementServicePreviewCommission,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
@@ -66,6 +70,13 @@ type RuleValues = {
   ratePercent: number;
   effectiveRange?: [Dayjs, Dayjs];
   enabled: boolean;
+  note?: string;
+};
+type AdjustmentValues = {
+  orderId: string;
+  direction: 'INCREASE' | 'DECREASE';
+  amount: number;
+  reason: string;
   note?: string;
 };
 
@@ -106,6 +117,7 @@ export default function FinanceCommissionsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<API.FinanceCommission>();
+  const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const reload = () => actionRef.current?.reload();
 
   const openDetail = async (record: API.FinanceCommission) => {
@@ -122,6 +134,77 @@ export default function FinanceCommissionsPage() {
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  const refreshDetail = async () => {
+    if (!detail?.id) return;
+    const response = await settlementServiceGetCommission({ id: detail.id });
+    setDetail(response.data);
+    reload();
+  };
+
+  const transitionAdjustment = (
+    record: API.FinanceCommissionAdjustment,
+    target: 'CONFIRMED' | 'PAID',
+  ) => {
+    if (!record.id || !record.version) return;
+    const adjustmentID = record.id;
+    const adjustmentVersion = record.version;
+    const action = target === 'CONFIRMED' ? '确认调整' : '标记调整已发放';
+    modal.confirm({
+      title: `${action} ${record.adjustmentNo}？`,
+      content:
+        target === 'CONFIRMED'
+          ? '确认后该增减金额会计入有效提成；冲减不会被允许把有效提成降到零以下。'
+          : '该操作表示本笔调整已实际发放或扣回，完成后不可取消。',
+      onOk: async () => {
+        const body = { id: adjustmentID, expectedVersion: adjustmentVersion };
+        if (target === 'CONFIRMED') {
+          await settlementServiceConfirmCommissionAdjustment(
+            { id: adjustmentID },
+            body,
+          );
+        } else {
+          await settlementServiceMarkCommissionAdjustmentPaid(
+            { id: adjustmentID },
+            body,
+          );
+        }
+        message.success(`${action}成功`);
+        await refreshDetail();
+      },
+    });
+  };
+
+  const cancelAdjustment = (record: API.FinanceCommissionAdjustment) => {
+    if (!record.id || !record.version) return;
+    const adjustmentID = record.id;
+    const adjustmentVersion = record.version;
+    let reason = '';
+    modal.confirm({
+      title: `取消调整 ${record.adjustmentNo}？`,
+      content: (
+        <Input.TextArea
+          placeholder="请输入取消原因（必填）"
+          maxLength={500}
+          onChange={(event) => {
+            reason = event.target.value.trim();
+          }}
+        />
+      ),
+      onOk: async () => {
+        if (!reason) {
+          message.warning('请输入取消原因');
+          throw new Error('取消原因不能为空');
+        }
+        await settlementServiceCancelCommissionAdjustment(
+          { id: adjustmentID },
+          { id: adjustmentID, expectedVersion: adjustmentVersion, reason },
+        );
+        message.success('调整已取消');
+        await refreshDetail();
+      },
+    });
   };
 
   const transition = async (
@@ -276,15 +359,18 @@ export default function FinanceCommissionsPage() {
       renderText: (value) => `${value}%`,
     },
     {
-      title: '提成金额',
+      title: '原始/有效提成',
       dataIndex: 'commissionAmount',
-      width: 150,
+      width: 180,
       align: 'right',
       search: false,
       render: (_, record) => (
-        <strong style={{ color: '#1677ff' }}>
-          {`${record.commissionAmount} ${record.baseCurrency}`}
-        </strong>
+        <Space direction="vertical" size={0}>
+          <span>{`${decimalText(record.commissionAmount)} ${record.baseCurrency}`}</span>
+          <strong style={{ color: '#1677ff' }}>
+            {`有效 ${decimalText(record.effectiveCommissionAmount || record.commissionAmount)} ${record.baseCurrency}`}
+          </strong>
+        </Space>
       ),
     },
     {
@@ -371,6 +457,66 @@ export default function FinanceCommissionsPage() {
         <Typography.Text strong type="success">
           {`${decimalText(value)} ${line.baseCurrency}`}
         </Typography.Text>
+      ),
+    },
+  ];
+
+  const adjustmentColumns = [
+    { title: '调整编号', dataIndex: 'adjustmentNo', key: 'adjustmentNo', width: 190 },
+    { title: '订单编号', dataIndex: 'orderNo', key: 'orderNo', width: 180 },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      key: 'direction',
+      width: 90,
+      render: (value: string) => (
+        <Tag color={value === 'INCREASE' ? 'green' : 'red'}>
+          {value === 'INCREASE' ? '增提' : '冲减'}
+        </Tag>
+      ),
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 140,
+      align: 'right' as const,
+      render: (value: string, record: API.FinanceCommissionAdjustment) => (
+        <Typography.Text type={record.direction === 'DECREASE' ? 'danger' : 'success'} strong>
+          {`${record.direction === 'DECREASE' ? '-' : '+'}${decimalText(value)} ${record.baseCurrency}`}
+        </Typography.Text>
+      ),
+    },
+    { title: '调整原因', dataIndex: 'reason', key: 'reason', ellipsis: true },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 90,
+      render: (value: string) => {
+        const meta = statusMeta[value] || statusMeta.DRAFT;
+        return <Tag color={meta.color}>{meta.text}</Tag>;
+      },
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 180,
+      render: (_: unknown, record: API.FinanceCommissionAdjustment) => (
+        <Space size={8}>
+          {record.status === 'DRAFT' && access.canManageFinanceCommissions && (
+            <a onClick={() => transitionAdjustment(record, 'CONFIRMED')}>确认</a>
+          )}
+          {record.status === 'CONFIRMED' && access.canManageFinanceCommissions && (
+            <a onClick={() => transitionAdjustment(record, 'PAID')}>已发放</a>
+          )}
+          {['DRAFT', 'CONFIRMED'].includes(record.status || '') &&
+            access.canManageFinanceCommissions && (
+              <a style={{ color: '#ff4d4f' }} onClick={() => cancelAdjustment(record)}>
+                取消
+              </a>
+            )}
+        </Space>
       ),
     },
   ];
@@ -732,6 +878,19 @@ export default function FinanceCommissionsPage() {
         width={1080}
         open={detailOpen}
         loading={detailLoading}
+        extra={
+          detail &&
+          ['CONFIRMED', 'PAID'].includes(detail.status || '') &&
+          access.canManageFinanceCommissions ? (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setAdjustmentOpen(true)}
+            >
+              新增提成调整
+            </Button>
+          ) : null
+        }
         onClose={() => {
           setDetailOpen(false);
           setDetail(undefined);
@@ -785,10 +944,24 @@ export default function FinanceCommissionsPage() {
                 },
                 {
                   key: 'amount',
-                  label: '提成金额',
+                  label: '原始提成',
                   children: (
                     <Typography.Text strong type="success">
                       {`${decimalText(detail.commissionAmount)} ${detail.baseCurrency}`}
+                    </Typography.Text>
+                  ),
+                },
+                {
+                  key: 'adjustmentAmount',
+                  label: '已确认调整',
+                  children: `${Number(detail.adjustmentAmount || 0) > 0 ? '+' : ''}${decimalText(detail.adjustmentAmount)} ${detail.baseCurrency}`,
+                },
+                {
+                  key: 'effectiveAmount',
+                  label: '有效提成',
+                  children: (
+                    <Typography.Text strong style={{ color: '#1677ff' }}>
+                      {`${decimalText(detail.effectiveCommissionAmount || detail.commissionAmount)} ${detail.baseCurrency}`}
                     </Typography.Text>
                   ),
                 },
@@ -823,8 +996,8 @@ export default function FinanceCommissionsPage() {
             <Alert
               type="info"
               showIcon
-              message="逐订单计算快照"
-              description="下列金额是生成提成时固化的计算证据；规则或费用后续变化不会改写这份历史快照。"
+              message="逐订单计算快照与财务锁"
+              description="下列金额是生成提成时固化的计算证据。提成确认后，关联订单的原费用会进入财务锁定；后续差异必须新增独立调整，不能改写历史快照。"
             />
             <Table<API.FinanceCommissionLine>
               size="small"
@@ -835,9 +1008,105 @@ export default function FinanceCommissionsPage() {
               dataSource={detail.lines || []}
               scroll={{ x: 1040 }}
             />
+            <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                提成调整记录
+              </Typography.Title>
+              <Typography.Text type="secondary">
+                草稿不计入有效提成，确认后计入；已发放调整不可取消。
+              </Typography.Text>
+            </Space>
+            <Table<API.FinanceCommissionAdjustment>
+              size="small"
+              bordered
+              pagination={false}
+              rowKey={(item) => item.id || item.adjustmentNo || ''}
+              columns={adjustmentColumns}
+              dataSource={detail.adjustments || []}
+              scroll={{ x: 1040 }}
+              locale={{ emptyText: '暂无调整，当前有效提成等于原始提成' }}
+            />
           </Space>
         ) : null}
       </Drawer>
+      <ModalForm<AdjustmentValues>
+        title={`新增提成调整${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
+        open={adjustmentOpen}
+        width={620}
+        initialValues={{ direction: 'INCREASE' }}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => setAdjustmentOpen(false),
+        }}
+        onFinish={async (values) => {
+          if (!detail?.id) return false;
+          try {
+            await settlementServiceCreateCommissionAdjustment(
+              { commissionId: detail.id },
+              {
+                commissionId: detail.id,
+                orderId: values.orderId,
+                direction: values.direction,
+                amount: String(values.amount),
+                reason: values.reason,
+                note: values.note,
+                idempotencyKey: globalThis.crypto.randomUUID(),
+              },
+            );
+            message.success('提成调整草稿已创建');
+            setAdjustmentOpen(false);
+            await refreshDetail();
+            return true;
+          } catch (error: any) {
+            message.error(error.message || '提成调整创建失败');
+            return false;
+          }
+        }}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message="原始提成不会被修改"
+          description="请选择产生差异的具体订单。增提或冲减会形成独立编号，并保留确认、发放和取消轨迹。"
+          style={{ marginBottom: 16 }}
+        />
+        <ProFormSelect
+          name="orderId"
+          label="归属订单"
+          rules={[{ required: true, message: '请选择调整归属订单' }]}
+          options={(detail?.lines || []).map((line) => ({
+            label: `${line.orderNo}｜原始提成 ${decimalText(line.commissionAmount)} ${line.baseCurrency}`,
+            value: line.orderId,
+          }))}
+        />
+        <ProFormSelect
+          name="direction"
+          label="调整方向"
+          rules={[{ required: true }]}
+          options={[
+            { label: '增提（增加应发提成）', value: 'INCREASE' },
+            { label: '冲减（减少应发提成）', value: 'DECREASE' },
+          ]}
+        />
+        <ProFormDigit
+          name="amount"
+          label={`调整金额（${detail?.baseCurrency || ''}）`}
+          min={0.00000001}
+          fieldProps={{ precision: 8, stringMode: false }}
+          rules={[{ required: true, message: '请输入大于 0 的调整金额' }]}
+        />
+        <ProFormTextArea
+          name="reason"
+          label="调整原因"
+          fieldProps={{ maxLength: 500, showCount: true }}
+          rules={[{ required: true, message: '请输入调整原因' }]}
+        />
+        <ProFormTextArea
+          name="note"
+          label="补充备注"
+          fieldProps={{ maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
       <Drawer
         title="提成考核规则"
         width={980}

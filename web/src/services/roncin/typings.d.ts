@@ -399,6 +399,12 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CancelCommissionAdjustmentRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
   type CancelCommissionRequest = {
     id: string;
     expectedVersion: string;
@@ -425,6 +431,19 @@ declare namespace API {
     message?: string;
     data?: OrderReferenceCheck;
     traceId?: string;
+  };
+
+  type CommissionAdjustmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment;
+    traceId?: string;
+  };
+
+  type CommissionAdjustmentTransitionRequest = {
+    id: string;
+    expectedVersion: string;
   };
 
   type CommissionCalculation = {
@@ -656,6 +675,16 @@ declare namespace API {
     message?: string;
     data?: FinanceCashflow;
     traceId?: string;
+  };
+
+  type CreateCommissionAdjustmentRequest = {
+    commissionId: string;
+    orderId: string;
+    direction: string;
+    amount: string;
+    reason: string;
+    note?: string;
+    idempotencyKey: string;
   };
 
   type CreateCommissionRequest = {
@@ -1377,6 +1406,33 @@ declare namespace API {
     ruleVersion?: string;
     calculationVersion?: string;
     lines?: FinanceCommissionLine[];
+    adjustments?: FinanceCommissionAdjustment[];
+    adjustmentAmount?: string;
+    effectiveCommissionAmount?: string;
+  };
+
+  type FinanceCommissionAdjustment = {
+    id?: string;
+    adjustmentNo?: string;
+    commissionId?: string;
+    commissionNo?: string;
+    orderId?: string;
+    orderNo?: string;
+    employeeId?: string;
+    employeeName?: string;
+    direction?: string;
+    status?: string;
+    baseCurrency?: string;
+    amount?: string;
+    reason?: string;
+    note?: string;
+    version?: string;
+    confirmedAt?: string;
+    paidAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
 
   type FinanceCommissionLine = {
@@ -1783,6 +1839,9 @@ declare namespace API {
     baseCurrency?: string;
     feeSettings?: OrderFeeSettingOption[];
     billingUnits?: OrderFeeBillingUnitOption[];
+    financeLocked?: boolean;
+    financeLockReason?: string;
+    financeLockCommissionNos?: string[];
   };
 
   type ListFeeSettingsResponse = {
@@ -3528,6 +3587,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelCommissionAdjustmentParams = {
+    id: string;
+  };
+
   type SettlementServiceCancelCommissionParams = {
     id: string;
   };
@@ -3548,8 +3611,16 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceConfirmCommissionAdjustmentParams = {
+    id: string;
+  };
+
   type SettlementServiceConfirmCommissionParams = {
     id: string;
+  };
+
+  type SettlementServiceCreateCommissionAdjustmentParams = {
+    commissionId: string;
   };
 
   type SettlementServiceGetBillParams = {
@@ -3636,6 +3707,10 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     status?: string;
+  };
+
+  type SettlementServiceMarkCommissionAdjustmentPaidParams = {
+    id: string;
   };
 
   type SettlementServiceMarkCommissionPaidParams = {

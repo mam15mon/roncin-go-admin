@@ -68,6 +68,8 @@ type FinanceCommission struct {
 	RatePercent string `json:"rate_percent,omitempty"`
 	// CommissionAmount holds the value of the "commission_amount" field.
 	CommissionAmount string `json:"commission_amount,omitempty"`
+	// AdjustmentSequence holds the value of the "adjustment_sequence" field.
+	AdjustmentSequence uint64 `json:"adjustment_sequence,omitempty"`
 	// Note holds the value of the "note" field.
 	Note *string `json:"note,omitempty"`
 	// Version holds the value of the "version" field.
@@ -110,9 +112,11 @@ type FinanceCommissionEdges struct {
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// Lines holds the value of the lines edge.
 	Lines []*FinanceCommissionLine `json:"lines,omitempty"`
+	// Adjustments holds the value of the adjustments edge.
+	Adjustments []*FinanceCommissionAdjustment `json:"adjustments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -201,6 +205,15 @@ func (e FinanceCommissionEdges) LinesOrErr() ([]*FinanceCommissionLine, error) {
 	return nil, &NotLoadedError{edge: "lines"}
 }
 
+// AdjustmentsOrErr returns the Adjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceCommissionEdges) AdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[8] {
+		return e.Adjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "adjustments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -208,7 +221,7 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financecommission.FieldRuleID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case financecommission.FieldRuleVersion, financecommission.FieldVersion:
+		case financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
@@ -379,6 +392,12 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.CommissionAmount = value.String
 			}
+		case financecommission.FieldAdjustmentSequence:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field adjustment_sequence", values[i])
+			} else if value.Valid {
+				_m.AdjustmentSequence = uint64(value.Int64)
+			}
 		case financecommission.FieldNote:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field note", values[i])
@@ -494,6 +513,11 @@ func (_m *FinanceCommission) QueryLines() *FinanceCommissionLineQuery {
 	return NewFinanceCommissionClient(_m.config).QueryLines(_m)
 }
 
+// QueryAdjustments queries the "adjustments" edge of the FinanceCommission entity.
+func (_m *FinanceCommission) QueryAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewFinanceCommissionClient(_m.config).QueryAdjustments(_m)
+}
+
 // Update returns a builder for updating this FinanceCommission.
 // Note that you need to call FinanceCommission.Unwrap() before calling this method if this FinanceCommission
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -593,6 +617,9 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("commission_amount=")
 	builder.WriteString(_m.CommissionAmount)
+	builder.WriteString(", ")
+	builder.WriteString("adjustment_sequence=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AdjustmentSequence))
 	builder.WriteString(", ")
 	if v := _m.Note; v != nil {
 		builder.WriteString("note=")

@@ -175,6 +175,9 @@ message ListFeeOptionsResponse {
   string base_currency = 7;
   repeated OrderFeeSettingOption fee_settings = 8;
   repeated OrderFeeBillingUnitOption billing_units = 9;
+  bool finance_locked = 10;
+  optional string finance_lock_reason = 11;
+  repeated string finance_lock_commission_nos = 12;
 }
 
 message AddFeeRequest {

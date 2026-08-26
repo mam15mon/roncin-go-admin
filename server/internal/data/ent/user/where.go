@@ -1275,6 +1275,98 @@ func HasCancelledFinanceCommissionsWith(preds ...predicate.FinanceCommission) pr
 	})
 }
 
+// HasFinanceCommissionAdjustments applies the HasEdge predicate on the "finance_commission_adjustments" edge.
+func HasFinanceCommissionAdjustments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionAdjustmentsTable, FinanceCommissionAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceCommissionAdjustmentsWith applies the HasEdge predicate on the "finance_commission_adjustments" edge with a given conditions (other predicates).
+func HasFinanceCommissionAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFinanceCommissionAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConfirmedFinanceCommissionAdjustments applies the HasEdge predicate on the "confirmed_finance_commission_adjustments" edge.
+func HasConfirmedFinanceCommissionAdjustments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceCommissionAdjustmentsTable, ConfirmedFinanceCommissionAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmedFinanceCommissionAdjustmentsWith applies the HasEdge predicate on the "confirmed_finance_commission_adjustments" edge with a given conditions (other predicates).
+func HasConfirmedFinanceCommissionAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfirmedFinanceCommissionAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPaidFinanceCommissionAdjustments applies the HasEdge predicate on the "paid_finance_commission_adjustments" edge.
+func HasPaidFinanceCommissionAdjustments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PaidFinanceCommissionAdjustmentsTable, PaidFinanceCommissionAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPaidFinanceCommissionAdjustmentsWith applies the HasEdge predicate on the "paid_finance_commission_adjustments" edge with a given conditions (other predicates).
+func HasPaidFinanceCommissionAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newPaidFinanceCommissionAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCancelledFinanceCommissionAdjustments applies the HasEdge predicate on the "cancelled_finance_commission_adjustments" edge.
+func HasCancelledFinanceCommissionAdjustments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionAdjustmentsTable, CancelledFinanceCommissionAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCancelledFinanceCommissionAdjustmentsWith applies the HasEdge predicate on the "cancelled_finance_commission_adjustments" edge with a given conditions (other predicates).
+func HasCancelledFinanceCommissionAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCancelledFinanceCommissionAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

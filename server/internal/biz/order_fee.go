@@ -24,6 +24,7 @@ var (
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
 	ErrOrderFeeInvalidTransition             = errors.Conflict("ORDER_FEE_INVALID_TRANSITION", "当前费用状态不允许执行该操作")
 	ErrOrderFeeIdempotencyConflict           = errors.Conflict("ORDER_FEE_IDEMPOTENCY_CONFLICT", "费用请求幂等键已被使用")
+	ErrOrderFeeFinanceLocked                 = errors.Conflict("ORDER_FEE_FINANCE_LOCKED", "订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异")
 )
 
 var (
@@ -125,11 +126,14 @@ type OrderFeeCatalogSnapshot struct {
 }
 
 type OrderFeeOptions struct {
-	SettlementParties []OrderFeeSettlementPartyOption
-	Currencies        []OrderFeeCurrencyOption
-	FeeSettings       []OrderFeeSettingOption
-	BillingUnits      []OrderFeeBillingUnitOption
-	BaseCurrency      string
+	SettlementParties        []OrderFeeSettlementPartyOption
+	Currencies               []OrderFeeCurrencyOption
+	FeeSettings              []OrderFeeSettingOption
+	BillingUnits             []OrderFeeBillingUnitOption
+	BaseCurrency             string
+	FinanceLocked            bool
+	FinanceLockReason        string
+	FinanceLockCommissionNos []string
 }
 
 type OrderFeeExchangeRateContext struct {

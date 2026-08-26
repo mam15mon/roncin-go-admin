@@ -1,10 +1,26 @@
 package biz
 
 import (
+	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type commissionAdjustmentRepoStub struct {
+	CommissionRepo
+	created *FinanceCommissionAdjustment
+}
+
+func (r *commissionAdjustmentRepoStub) GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error) {
+	return nil, nil
+}
+
+func (r *commissionAdjustmentRepoStub) CreateAdjustment(_ context.Context, _ uuid.UUID, _ uuid.UUID, item *FinanceCommissionAdjustment, _ *AuditEvent) (*FinanceCommissionAdjustment, error) {
+	r.created = item
+	return item, nil
+}
 
 func TestCalculateCommissionAmount(t *testing.T) {
 	tests := []struct {
@@ -90,4 +106,39 @@ func TestCalculateCommissionLine(t *testing.T) {
 			t.Fatalf("error = %v, want %v", err, ErrCommissionSource)
 		}
 	})
+}
+
+func TestCreateCommissionAdjustment(t *testing.T) {
+	org, actor, commissionID, orderID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
+
+	t.Run("创建逐订单增提草稿", func(t *testing.T) {
+		repo := &commissionAdjustmentRepoStub{}
+		usecase := NewCommissionUsecase(repo, nil)
+		item, err := usecase.CreateAdjustment(context.Background(), org, actor, CreateCommissionAdjustmentInput{
+			CommissionID: commissionID, OrderID: orderID, Direction: CommissionAdjustmentIncrease,
+			Amount: decimal.RequireFromString("1.25000000"), Reason: "补提", IdempotencyKey: "adjustment-test",
+		})
+		if err != nil {
+			t.Fatalf("CreateAdjustment() error = %v", err)
+		}
+		if item.Status != CommissionDraft || item.Direction != CommissionAdjustmentIncrease || item.Amount.StringFixed(8) != "1.25000000" {
+			t.Fatalf("调整草稿不符: %#v", item)
+		}
+	})
+
+	for _, tt := range []struct {
+		name  string
+		input CreateCommissionAdjustmentInput
+	}{
+		{name: "拒绝零金额", input: CreateCommissionAdjustmentInput{CommissionID: commissionID, OrderID: orderID, Direction: CommissionAdjustmentIncrease, Amount: decimal.Zero, Reason: "补提", IdempotencyKey: "zero"}},
+		{name: "拒绝未知方向", input: CreateCommissionAdjustmentInput{CommissionID: commissionID, OrderID: orderID, Direction: "UNKNOWN", Amount: decimal.NewFromInt(1), Reason: "补提", IdempotencyKey: "direction"}},
+		{name: "拒绝空原因", input: CreateCommissionAdjustmentInput{CommissionID: commissionID, OrderID: orderID, Direction: CommissionAdjustmentDecrease, Amount: decimal.NewFromInt(1), IdempotencyKey: "reason"}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			usecase := NewCommissionUsecase(&commissionAdjustmentRepoStub{}, nil)
+			if _, err := usecase.CreateAdjustment(context.Background(), org, actor, tt.input); err != ErrCommissionAdjustmentInvalid {
+				t.Fatalf("error = %v, want %v", err, ErrCommissionAdjustmentInvalid)
+			}
+		})
+	}
 }

@@ -830,18 +830,21 @@ func (x *OrderFeeBillingUnitOption) GetName() string {
 }
 
 type ListFeeOptionsResponse struct {
-	state             protoimpl.MessageState           `protogen:"open.v1"`
-	Success           bool                             `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code              int32                            `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message           string                           `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	SettlementParties []*OrderFeeSettlementPartyOption `protobuf:"bytes,4,rep,name=settlement_parties,json=settlementParties,proto3" json:"settlement_parties,omitempty"`
-	Currencies        []*OrderFeeCurrencyOption        `protobuf:"bytes,5,rep,name=currencies,proto3" json:"currencies,omitempty"`
-	TraceId           string                           `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	BaseCurrency      string                           `protobuf:"bytes,7,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	FeeSettings       []*OrderFeeSettingOption         `protobuf:"bytes,8,rep,name=fee_settings,json=feeSettings,proto3" json:"fee_settings,omitempty"`
-	BillingUnits      []*OrderFeeBillingUnitOption     `protobuf:"bytes,9,rep,name=billing_units,json=billingUnits,proto3" json:"billing_units,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                    protoimpl.MessageState           `protogen:"open.v1"`
+	Success                  bool                             `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code                     int32                            `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message                  string                           `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	SettlementParties        []*OrderFeeSettlementPartyOption `protobuf:"bytes,4,rep,name=settlement_parties,json=settlementParties,proto3" json:"settlement_parties,omitempty"`
+	Currencies               []*OrderFeeCurrencyOption        `protobuf:"bytes,5,rep,name=currencies,proto3" json:"currencies,omitempty"`
+	TraceId                  string                           `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	BaseCurrency             string                           `protobuf:"bytes,7,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	FeeSettings              []*OrderFeeSettingOption         `protobuf:"bytes,8,rep,name=fee_settings,json=feeSettings,proto3" json:"fee_settings,omitempty"`
+	BillingUnits             []*OrderFeeBillingUnitOption     `protobuf:"bytes,9,rep,name=billing_units,json=billingUnits,proto3" json:"billing_units,omitempty"`
+	FinanceLocked            bool                             `protobuf:"varint,10,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
+	FinanceLockReason        *string                          `protobuf:"bytes,11,opt,name=finance_lock_reason,json=financeLockReason,proto3,oneof" json:"finance_lock_reason,omitempty"`
+	FinanceLockCommissionNos []string                         `protobuf:"bytes,12,rep,name=finance_lock_commission_nos,json=financeLockCommissionNos,proto3" json:"finance_lock_commission_nos,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ListFeeOptionsResponse) Reset() {
@@ -933,6 +936,27 @@ func (x *ListFeeOptionsResponse) GetFeeSettings() []*OrderFeeSettingOption {
 func (x *ListFeeOptionsResponse) GetBillingUnits() []*OrderFeeBillingUnitOption {
 	if x != nil {
 		return x.BillingUnits
+	}
+	return nil
+}
+
+func (x *ListFeeOptionsResponse) GetFinanceLocked() bool {
+	if x != nil {
+		return x.FinanceLocked
+	}
+	return false
+}
+
+func (x *ListFeeOptionsResponse) GetFinanceLockReason() string {
+	if x != nil && x.FinanceLockReason != nil {
+		return *x.FinanceLockReason
+	}
+	return ""
+}
+
+func (x *ListFeeOptionsResponse) GetFinanceLockCommissionNos() []string {
+	if x != nil {
+		return x.FinanceLockCommissionNos
 	}
 	return nil
 }
@@ -2126,7 +2150,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x19OrderFeeBillingUnitOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\xc8\x03\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"\xfb\x04\n" +
 	"\x16ListFeeOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2138,7 +2162,12 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12#\n" +
 	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\x12B\n" +
 	"\ffee_settings\x18\b \x03(\v2\x1f.order.v1.OrderFeeSettingOptionR\vfeeSettings\x12H\n" +
-	"\rbilling_units\x18\t \x03(\v2#.order.v1.OrderFeeBillingUnitOptionR\fbillingUnits\"\xa6\x05\n" +
+	"\rbilling_units\x18\t \x03(\v2#.order.v1.OrderFeeBillingUnitOptionR\fbillingUnits\x12%\n" +
+	"\x0efinance_locked\x18\n" +
+	" \x01(\bR\rfinanceLocked\x123\n" +
+	"\x13finance_lock_reason\x18\v \x01(\tH\x00R\x11financeLockReason\x88\x01\x01\x12=\n" +
+	"\x1bfinance_lock_commission_nos\x18\f \x03(\tR\x18financeLockCommissionNosB\x16\n" +
+	"\x14_finance_lock_reason\"\xa6\x05\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x123\n" +
@@ -2352,6 +2381,7 @@ func file_order_v1_order_fee_proto_init() {
 	}
 	file_order_v1_order_fee_proto_msgTypes[0].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[5].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[7].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[9].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[14].OneofWrappers = []any{}

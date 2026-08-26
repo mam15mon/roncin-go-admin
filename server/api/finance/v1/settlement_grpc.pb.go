@@ -19,41 +19,45 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SettlementService_ListFeeLedger_FullMethodName            = "/finance.v1.SettlementService/ListFeeLedger"
-	SettlementService_ListBills_FullMethodName                = "/finance.v1.SettlementService/ListBills"
-	SettlementService_GetBill_FullMethodName                  = "/finance.v1.SettlementService/GetBill"
-	SettlementService_CreateBill_FullMethodName               = "/finance.v1.SettlementService/CreateBill"
-	SettlementService_PreviewBillBatch_FullMethodName         = "/finance.v1.SettlementService/PreviewBillBatch"
-	SettlementService_CreateBillBatch_FullMethodName          = "/finance.v1.SettlementService/CreateBillBatch"
-	SettlementService_ConfirmBillBatch_FullMethodName         = "/finance.v1.SettlementService/ConfirmBillBatch"
-	SettlementService_UpdateBill_FullMethodName               = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName              = "/finance.v1.SettlementService/ConfirmBill"
-	SettlementService_CancelBill_FullMethodName               = "/finance.v1.SettlementService/CancelBill"
-	SettlementService_ListInvoices_FullMethodName             = "/finance.v1.SettlementService/ListInvoices"
-	SettlementService_GetInvoice_FullMethodName               = "/finance.v1.SettlementService/GetInvoice"
-	SettlementService_CreateInvoice_FullMethodName            = "/finance.v1.SettlementService/CreateInvoice"
-	SettlementService_IssueInvoice_FullMethodName             = "/finance.v1.SettlementService/IssueInvoice"
-	SettlementService_CancelInvoice_FullMethodName            = "/finance.v1.SettlementService/CancelInvoice"
-	SettlementService_RedFlushInvoice_FullMethodName          = "/finance.v1.SettlementService/RedFlushInvoice"
-	SettlementService_ListCashflows_FullMethodName            = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_CreateCashflow_FullMethodName           = "/finance.v1.SettlementService/CreateCashflow"
-	SettlementService_ConfirmCashflow_FullMethodName          = "/finance.v1.SettlementService/ConfirmCashflow"
-	SettlementService_CancelCashflow_FullMethodName           = "/finance.v1.SettlementService/CancelCashflow"
-	SettlementService_ListVerifications_FullMethodName        = "/finance.v1.SettlementService/ListVerifications"
-	SettlementService_CreateVerification_FullMethodName       = "/finance.v1.SettlementService/CreateVerification"
-	SettlementService_ReverseVerification_FullMethodName      = "/finance.v1.SettlementService/ReverseVerification"
-	SettlementService_ListCommissions_FullMethodName          = "/finance.v1.SettlementService/ListCommissions"
-	SettlementService_GetCommission_FullMethodName            = "/finance.v1.SettlementService/GetCommission"
-	SettlementService_ListCommissionEmployees_FullMethodName  = "/finance.v1.SettlementService/ListCommissionEmployees"
-	SettlementService_ListCommissionCandidates_FullMethodName = "/finance.v1.SettlementService/ListCommissionCandidates"
-	SettlementService_ListCommissionRules_FullMethodName      = "/finance.v1.SettlementService/ListCommissionRules"
-	SettlementService_CreateCommissionRule_FullMethodName     = "/finance.v1.SettlementService/CreateCommissionRule"
-	SettlementService_UpdateCommissionRule_FullMethodName     = "/finance.v1.SettlementService/UpdateCommissionRule"
-	SettlementService_PreviewCommission_FullMethodName        = "/finance.v1.SettlementService/PreviewCommission"
-	SettlementService_CreateCommission_FullMethodName         = "/finance.v1.SettlementService/CreateCommission"
-	SettlementService_ConfirmCommission_FullMethodName        = "/finance.v1.SettlementService/ConfirmCommission"
-	SettlementService_MarkCommissionPaid_FullMethodName       = "/finance.v1.SettlementService/MarkCommissionPaid"
-	SettlementService_CancelCommission_FullMethodName         = "/finance.v1.SettlementService/CancelCommission"
+	SettlementService_ListFeeLedger_FullMethodName                = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_ListBills_FullMethodName                    = "/finance.v1.SettlementService/ListBills"
+	SettlementService_GetBill_FullMethodName                      = "/finance.v1.SettlementService/GetBill"
+	SettlementService_CreateBill_FullMethodName                   = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_PreviewBillBatch_FullMethodName             = "/finance.v1.SettlementService/PreviewBillBatch"
+	SettlementService_CreateBillBatch_FullMethodName              = "/finance.v1.SettlementService/CreateBillBatch"
+	SettlementService_ConfirmBillBatch_FullMethodName             = "/finance.v1.SettlementService/ConfirmBillBatch"
+	SettlementService_UpdateBill_FullMethodName                   = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName                  = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName                   = "/finance.v1.SettlementService/CancelBill"
+	SettlementService_ListInvoices_FullMethodName                 = "/finance.v1.SettlementService/ListInvoices"
+	SettlementService_GetInvoice_FullMethodName                   = "/finance.v1.SettlementService/GetInvoice"
+	SettlementService_CreateInvoice_FullMethodName                = "/finance.v1.SettlementService/CreateInvoice"
+	SettlementService_IssueInvoice_FullMethodName                 = "/finance.v1.SettlementService/IssueInvoice"
+	SettlementService_CancelInvoice_FullMethodName                = "/finance.v1.SettlementService/CancelInvoice"
+	SettlementService_RedFlushInvoice_FullMethodName              = "/finance.v1.SettlementService/RedFlushInvoice"
+	SettlementService_ListCashflows_FullMethodName                = "/finance.v1.SettlementService/ListCashflows"
+	SettlementService_CreateCashflow_FullMethodName               = "/finance.v1.SettlementService/CreateCashflow"
+	SettlementService_ConfirmCashflow_FullMethodName              = "/finance.v1.SettlementService/ConfirmCashflow"
+	SettlementService_CancelCashflow_FullMethodName               = "/finance.v1.SettlementService/CancelCashflow"
+	SettlementService_ListVerifications_FullMethodName            = "/finance.v1.SettlementService/ListVerifications"
+	SettlementService_CreateVerification_FullMethodName           = "/finance.v1.SettlementService/CreateVerification"
+	SettlementService_ReverseVerification_FullMethodName          = "/finance.v1.SettlementService/ReverseVerification"
+	SettlementService_ListCommissions_FullMethodName              = "/finance.v1.SettlementService/ListCommissions"
+	SettlementService_GetCommission_FullMethodName                = "/finance.v1.SettlementService/GetCommission"
+	SettlementService_ListCommissionEmployees_FullMethodName      = "/finance.v1.SettlementService/ListCommissionEmployees"
+	SettlementService_ListCommissionCandidates_FullMethodName     = "/finance.v1.SettlementService/ListCommissionCandidates"
+	SettlementService_ListCommissionRules_FullMethodName          = "/finance.v1.SettlementService/ListCommissionRules"
+	SettlementService_CreateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/CreateCommissionRule"
+	SettlementService_UpdateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/UpdateCommissionRule"
+	SettlementService_PreviewCommission_FullMethodName            = "/finance.v1.SettlementService/PreviewCommission"
+	SettlementService_CreateCommission_FullMethodName             = "/finance.v1.SettlementService/CreateCommission"
+	SettlementService_ConfirmCommission_FullMethodName            = "/finance.v1.SettlementService/ConfirmCommission"
+	SettlementService_MarkCommissionPaid_FullMethodName           = "/finance.v1.SettlementService/MarkCommissionPaid"
+	SettlementService_CancelCommission_FullMethodName             = "/finance.v1.SettlementService/CancelCommission"
+	SettlementService_CreateCommissionAdjustment_FullMethodName   = "/finance.v1.SettlementService/CreateCommissionAdjustment"
+	SettlementService_ConfirmCommissionAdjustment_FullMethodName  = "/finance.v1.SettlementService/ConfirmCommissionAdjustment"
+	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
+	SettlementService_CancelCommissionAdjustment_FullMethodName   = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -98,6 +102,10 @@ type SettlementServiceClient interface {
 	ConfirmCommission(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
 	MarkCommissionPaid(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
 	CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
+	CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
+	ConfirmCommissionAdjustment(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
+	MarkCommissionAdjustmentPaid(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
+	CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -458,6 +466,46 @@ func (c *settlementServiceClient) CancelCommission(ctx context.Context, in *Canc
 	return out, nil
 }
 
+func (c *settlementServiceClient) CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionAdjustmentResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateCommissionAdjustment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ConfirmCommissionAdjustment(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionAdjustmentResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ConfirmCommissionAdjustment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) MarkCommissionAdjustmentPaid(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionAdjustmentResponse)
+	err := c.cc.Invoke(ctx, SettlementService_MarkCommissionAdjustmentPaid_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommissionAdjustmentResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CancelCommissionAdjustment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -500,6 +548,10 @@ type SettlementServiceServer interface {
 	ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error)
+	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
+	ConfirmCommissionAdjustment(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
+	MarkCommissionAdjustmentPaid(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
+	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -614,6 +666,18 @@ func (UnimplementedSettlementServiceServer) MarkCommissionPaid(context.Context, 
 }
 func (UnimplementedSettlementServiceServer) CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCommission not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCommissionAdjustment not implemented")
+}
+func (UnimplementedSettlementServiceServer) ConfirmCommissionAdjustment(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmCommissionAdjustment not implemented")
+}
+func (UnimplementedSettlementServiceServer) MarkCommissionAdjustmentPaid(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkCommissionAdjustmentPaid not implemented")
+}
+func (UnimplementedSettlementServiceServer) CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelCommissionAdjustment not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -1266,6 +1330,78 @@ func _SettlementService_CancelCommission_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_CreateCommissionAdjustment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCommissionAdjustmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateCommissionAdjustment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateCommissionAdjustment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateCommissionAdjustment(ctx, req.(*CreateCommissionAdjustmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ConfirmCommissionAdjustment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommissionAdjustmentTransitionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ConfirmCommissionAdjustment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ConfirmCommissionAdjustment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ConfirmCommissionAdjustment(ctx, req.(*CommissionAdjustmentTransitionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_MarkCommissionAdjustmentPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommissionAdjustmentTransitionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).MarkCommissionAdjustmentPaid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_MarkCommissionAdjustmentPaid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).MarkCommissionAdjustmentPaid(ctx, req.(*CommissionAdjustmentTransitionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CancelCommissionAdjustment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelCommissionAdjustmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CancelCommissionAdjustment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CancelCommissionAdjustment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CancelCommissionAdjustment(ctx, req.(*CancelCommissionAdjustmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1412,6 +1548,22 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelCommission",
 			Handler:    _SettlementService_CancelCommission_Handler,
+		},
+		{
+			MethodName: "CreateCommissionAdjustment",
+			Handler:    _SettlementService_CreateCommissionAdjustment_Handler,
+		},
+		{
+			MethodName: "ConfirmCommissionAdjustment",
+			Handler:    _SettlementService_ConfirmCommissionAdjustment_Handler,
+		},
+		{
+			MethodName: "MarkCommissionAdjustmentPaid",
+			Handler:    _SettlementService_MarkCommissionAdjustmentPaid_Handler,
+		},
+		{
+			MethodName: "CancelCommissionAdjustment",
+			Handler:    _SettlementService_CancelCommissionAdjustment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -37,6 +37,7 @@ func (FinanceCommission) Fields() []ent.Field {
 		field.String("realized_profit").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("rate_percent").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.Uint64("adjustment_sequence").Default(0),
 		field.String("note").Optional().Nillable().MaxLen(500),
 		field.Uint64("version").Default(1),
 		field.Time("confirmed_at").Optional().Nillable(),
@@ -59,6 +60,7 @@ func (FinanceCommission) Edges() []ent.Edge {
 		edge.From("paid_by_user", User.Type).Ref("paid_finance_commissions").Field("paid_by").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_commissions").Field("cancelled_by").Unique(),
 		edge.To("lines", FinanceCommissionLine.Type),
+		edge.To("adjustments", FinanceCommissionAdjustment.Type),
 	}
 }
 

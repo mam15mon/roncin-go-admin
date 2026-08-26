@@ -189,6 +189,18 @@ func (f FinanceCommissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCommissionMutation", m)
 }
 
+// The FinanceCommissionAdjustmentFunc type is an adapter to allow the use of ordinary
+// function as FinanceCommissionAdjustment mutator.
+type FinanceCommissionAdjustmentFunc func(context.Context, *ent.FinanceCommissionAdjustmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceCommissionAdjustmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceCommissionAdjustmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCommissionAdjustmentMutation", m)
+}
+
 // The FinanceCommissionLineFunc type is an adapter to allow the use of ordinary
 // function as FinanceCommissionLine mutator.
 type FinanceCommissionLineFunc func(context.Context, *ent.FinanceCommissionLineMutation) (ent.Value, error)

@@ -90,6 +90,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("fees", OrderFee.Type),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
 		edge.To("finance_commission_lines", FinanceCommissionLine.Type),
+		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),
 	}
 }
 

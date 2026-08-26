@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -241,6 +242,20 @@ func (_c *FinanceCommissionCreate) SetRatePercent(v string) *FinanceCommissionCr
 // SetCommissionAmount sets the "commission_amount" field.
 func (_c *FinanceCommissionCreate) SetCommissionAmount(v string) *FinanceCommissionCreate {
 	_c.mutation.SetCommissionAmount(v)
+	return _c
+}
+
+// SetAdjustmentSequence sets the "adjustment_sequence" field.
+func (_c *FinanceCommissionCreate) SetAdjustmentSequence(v uint64) *FinanceCommissionCreate {
+	_c.mutation.SetAdjustmentSequence(v)
+	return _c
+}
+
+// SetNillableAdjustmentSequence sets the "adjustment_sequence" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableAdjustmentSequence(v *uint64) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetAdjustmentSequence(*v)
+	}
 	return _c
 }
 
@@ -476,6 +491,21 @@ func (_c *FinanceCommissionCreate) AddLines(v ...*FinanceCommissionLine) *Financ
 	return _c.AddLineIDs(ids...)
 }
 
+// AddAdjustmentIDs adds the "adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_c *FinanceCommissionCreate) AddAdjustmentIDs(ids ...uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.AddAdjustmentIDs(ids...)
+	return _c
+}
+
+// AddAdjustments adds the "adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_c *FinanceCommissionCreate) AddAdjustments(v ...*FinanceCommissionAdjustment) *FinanceCommissionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAdjustmentIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_c *FinanceCommissionCreate) Mutation() *FinanceCommissionMutation {
 	return _c.mutation
@@ -534,6 +564,10 @@ func (_c *FinanceCommissionCreate) defaults() {
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financecommission.DefaultStatus
 		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.AdjustmentSequence(); !ok {
+		v := financecommission.DefaultAdjustmentSequence
+		_c.mutation.SetAdjustmentSequence(v)
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := financecommission.DefaultVersion
@@ -658,6 +692,9 @@ func (_c *FinanceCommissionCreate) check() error {
 	}
 	if _, ok := _c.mutation.CommissionAmount(); !ok {
 		return &ValidationError{Name: "commission_amount", err: errors.New(`ent: missing required field "FinanceCommission.commission_amount"`)}
+	}
+	if _, ok := _c.mutation.AdjustmentSequence(); !ok {
+		return &ValidationError{Name: "adjustment_sequence", err: errors.New(`ent: missing required field "FinanceCommission.adjustment_sequence"`)}
 	}
 	if v, ok := _c.mutation.Note(); ok {
 		if err := financecommission.NoteValidator(v); err != nil {
@@ -791,6 +828,10 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.CommissionAmount(); ok {
 		_spec.SetField(financecommission.FieldCommissionAmount, field.TypeString, value)
 		_node.CommissionAmount = value
+	}
+	if value, ok := _c.mutation.AdjustmentSequence(); ok {
+		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
+		_node.AdjustmentSequence = value
 	}
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(financecommission.FieldNote, field.TypeString, value)
@@ -944,6 +985,22 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.AdjustmentsTable,
+			Columns: []string{financecommission.AdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

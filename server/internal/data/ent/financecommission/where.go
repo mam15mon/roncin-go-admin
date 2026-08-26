@@ -166,6 +166,11 @@ func CommissionAmount(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldCommissionAmount, v))
 }
 
+// AdjustmentSequence applies equality check predicate on the "adjustment_sequence" field. It's identical to AdjustmentSequenceEQ.
+func AdjustmentSequence(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldAdjustmentSequence, v))
+}
+
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldNote, v))
@@ -1446,6 +1451,46 @@ func CommissionAmountContainsFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCommissionAmount, v))
 }
 
+// AdjustmentSequenceEQ applies the EQ predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceEQ(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldAdjustmentSequence, v))
+}
+
+// AdjustmentSequenceNEQ applies the NEQ predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceNEQ(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldAdjustmentSequence, v))
+}
+
+// AdjustmentSequenceIn applies the In predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceIn(vs ...uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldAdjustmentSequence, vs...))
+}
+
+// AdjustmentSequenceNotIn applies the NotIn predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceNotIn(vs ...uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldAdjustmentSequence, vs...))
+}
+
+// AdjustmentSequenceGT applies the GT predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceGT(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldAdjustmentSequence, v))
+}
+
+// AdjustmentSequenceGTE applies the GTE predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceGTE(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldAdjustmentSequence, v))
+}
+
+// AdjustmentSequenceLT applies the LT predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceLT(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldAdjustmentSequence, v))
+}
+
+// AdjustmentSequenceLTE applies the LTE predicate on the "adjustment_sequence" field.
+func AdjustmentSequenceLTE(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldAdjustmentSequence, v))
+}
+
 // NoteEQ applies the EQ predicate on the "note" field.
 func NoteEQ(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldNote, v))
@@ -2052,6 +2097,29 @@ func HasLines() predicate.FinanceCommission {
 func HasLinesWith(preds ...predicate.FinanceCommissionLine) predicate.FinanceCommission {
 	return predicate.FinanceCommission(func(s *sql.Selector) {
 		step := newLinesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAdjustments applies the HasEdge predicate on the "adjustments" edge.
+func HasAdjustments() predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AdjustmentsTable, AdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAdjustmentsWith applies the HasEdge predicate on the "adjustments" edge with a given conditions (other predicates).
+func HasAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := newAdjustmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

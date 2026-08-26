@@ -75,6 +75,14 @@ const (
 	EdgePaidFinanceCommissions = "paid_finance_commissions"
 	// EdgeCancelledFinanceCommissions holds the string denoting the cancelled_finance_commissions edge name in mutations.
 	EdgeCancelledFinanceCommissions = "cancelled_finance_commissions"
+	// EdgeFinanceCommissionAdjustments holds the string denoting the finance_commission_adjustments edge name in mutations.
+	EdgeFinanceCommissionAdjustments = "finance_commission_adjustments"
+	// EdgeConfirmedFinanceCommissionAdjustments holds the string denoting the confirmed_finance_commission_adjustments edge name in mutations.
+	EdgeConfirmedFinanceCommissionAdjustments = "confirmed_finance_commission_adjustments"
+	// EdgePaidFinanceCommissionAdjustments holds the string denoting the paid_finance_commission_adjustments edge name in mutations.
+	EdgePaidFinanceCommissionAdjustments = "paid_finance_commission_adjustments"
+	// EdgeCancelledFinanceCommissionAdjustments holds the string denoting the cancelled_finance_commission_adjustments edge name in mutations.
+	EdgeCancelledFinanceCommissionAdjustments = "cancelled_finance_commission_adjustments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -203,6 +211,34 @@ const (
 	CancelledFinanceCommissionsInverseTable = "finance_commissions"
 	// CancelledFinanceCommissionsColumn is the table column denoting the cancelled_finance_commissions relation/edge.
 	CancelledFinanceCommissionsColumn = "cancelled_by"
+	// FinanceCommissionAdjustmentsTable is the table that holds the finance_commission_adjustments relation/edge.
+	FinanceCommissionAdjustmentsTable = "finance_commission_adjustments"
+	// FinanceCommissionAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	FinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
+	// FinanceCommissionAdjustmentsColumn is the table column denoting the finance_commission_adjustments relation/edge.
+	FinanceCommissionAdjustmentsColumn = "employee_id"
+	// ConfirmedFinanceCommissionAdjustmentsTable is the table that holds the confirmed_finance_commission_adjustments relation/edge.
+	ConfirmedFinanceCommissionAdjustmentsTable = "finance_commission_adjustments"
+	// ConfirmedFinanceCommissionAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	ConfirmedFinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
+	// ConfirmedFinanceCommissionAdjustmentsColumn is the table column denoting the confirmed_finance_commission_adjustments relation/edge.
+	ConfirmedFinanceCommissionAdjustmentsColumn = "confirmed_by"
+	// PaidFinanceCommissionAdjustmentsTable is the table that holds the paid_finance_commission_adjustments relation/edge.
+	PaidFinanceCommissionAdjustmentsTable = "finance_commission_adjustments"
+	// PaidFinanceCommissionAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	PaidFinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
+	// PaidFinanceCommissionAdjustmentsColumn is the table column denoting the paid_finance_commission_adjustments relation/edge.
+	PaidFinanceCommissionAdjustmentsColumn = "paid_by"
+	// CancelledFinanceCommissionAdjustmentsTable is the table that holds the cancelled_finance_commission_adjustments relation/edge.
+	CancelledFinanceCommissionAdjustmentsTable = "finance_commission_adjustments"
+	// CancelledFinanceCommissionAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	CancelledFinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
+	// CancelledFinanceCommissionAdjustmentsColumn is the table column denoting the cancelled_finance_commission_adjustments relation/edge.
+	CancelledFinanceCommissionAdjustmentsColumn = "cancelled_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -580,6 +616,62 @@ func ByCancelledFinanceCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) O
 		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceCommissionAdjustmentsCount orders the results by finance_commission_adjustments count.
+func ByFinanceCommissionAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionAdjustmentsStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionAdjustments orders the results by finance_commission_adjustments terms.
+func ByFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByConfirmedFinanceCommissionAdjustmentsCount orders the results by confirmed_finance_commission_adjustments count.
+func ByConfirmedFinanceCommissionAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfirmedFinanceCommissionAdjustmentsStep(), opts...)
+	}
+}
+
+// ByConfirmedFinanceCommissionAdjustments orders the results by confirmed_finance_commission_adjustments terms.
+func ByConfirmedFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmedFinanceCommissionAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPaidFinanceCommissionAdjustmentsCount orders the results by paid_finance_commission_adjustments count.
+func ByPaidFinanceCommissionAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPaidFinanceCommissionAdjustmentsStep(), opts...)
+	}
+}
+
+// ByPaidFinanceCommissionAdjustments orders the results by paid_finance_commission_adjustments terms.
+func ByPaidFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPaidFinanceCommissionAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCancelledFinanceCommissionAdjustmentsCount orders the results by cancelled_finance_commission_adjustments count.
+func ByCancelledFinanceCommissionAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledFinanceCommissionAdjustmentsStep(), opts...)
+	}
+}
+
+// ByCancelledFinanceCommissionAdjustments orders the results by cancelled_finance_commission_adjustments terms.
+func ByCancelledFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceCommissionAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -704,5 +796,33 @@ func newCancelledFinanceCommissionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceCommissionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionsTable, CancelledFinanceCommissionsColumn),
+	)
+}
+func newFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionAdjustmentsTable, FinanceCommissionAdjustmentsColumn),
+	)
+}
+func newConfirmedFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmedFinanceCommissionAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceCommissionAdjustmentsTable, ConfirmedFinanceCommissionAdjustmentsColumn),
+	)
+}
+func newPaidFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PaidFinanceCommissionAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PaidFinanceCommissionAdjustmentsTable, PaidFinanceCommissionAdjustmentsColumn),
+	)
+}
+func newCancelledFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledFinanceCommissionAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionAdjustmentsTable, CancelledFinanceCommissionAdjustmentsColumn),
 	)
 }

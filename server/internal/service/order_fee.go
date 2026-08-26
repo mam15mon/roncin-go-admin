@@ -58,7 +58,11 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	for _, item := range options.BillingUnits {
 		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
 	}
-	return &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency}, nil
+	response := &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency, FinanceLocked: options.FinanceLocked, FinanceLockCommissionNos: options.FinanceLockCommissionNos}
+	if options.FinanceLockReason != "" {
+		response.FinanceLockReason = &options.FinanceLockReason
+	}
+	return response, nil
 }
 
 func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequest) (*v1.ListFeesResponse, error) {

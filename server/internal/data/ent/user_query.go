@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -32,29 +33,33 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                              *QueryContext
-	order                            []user.OrderOption
-	inters                           []Interceptor
-	predicates                       []predicate.User
-	withMemberships                  *MembershipQuery
-	withSessions                     *SessionQuery
-	withOrderPersonnel               *OrderPersonnelQuery
-	withPartnerAssignments           *PartnerAssignmentQuery
-	withCancelledOrderFees           *OrderFeeQuery
-	withConfirmedFinanceBills        *FinanceBillQuery
-	withCancelledFinanceBills        *FinanceBillQuery
-	withCreatedFinanceBillBatches    *FinanceBillBatchQuery
-	withIssuedFinanceInvoices        *FinanceInvoiceQuery
-	withCancelledFinanceInvoices     *FinanceInvoiceQuery
-	withRedFlushedFinanceInvoices    *FinanceInvoiceQuery
-	withConfirmedFinanceCashflows    *FinanceCashflowQuery
-	withCancelledFinanceCashflows    *FinanceCashflowQuery
-	withReversedFinanceVerifications *FinanceVerificationQuery
-	withFinanceCommissions           *FinanceCommissionQuery
-	withConfirmedFinanceCommissions  *FinanceCommissionQuery
-	withPaidFinanceCommissions       *FinanceCommissionQuery
-	withCancelledFinanceCommissions  *FinanceCommissionQuery
-	modifiers                        []func(*sql.Selector)
+	ctx                                       *QueryContext
+	order                                     []user.OrderOption
+	inters                                    []Interceptor
+	predicates                                []predicate.User
+	withMemberships                           *MembershipQuery
+	withSessions                              *SessionQuery
+	withOrderPersonnel                        *OrderPersonnelQuery
+	withPartnerAssignments                    *PartnerAssignmentQuery
+	withCancelledOrderFees                    *OrderFeeQuery
+	withConfirmedFinanceBills                 *FinanceBillQuery
+	withCancelledFinanceBills                 *FinanceBillQuery
+	withCreatedFinanceBillBatches             *FinanceBillBatchQuery
+	withIssuedFinanceInvoices                 *FinanceInvoiceQuery
+	withCancelledFinanceInvoices              *FinanceInvoiceQuery
+	withRedFlushedFinanceInvoices             *FinanceInvoiceQuery
+	withConfirmedFinanceCashflows             *FinanceCashflowQuery
+	withCancelledFinanceCashflows             *FinanceCashflowQuery
+	withReversedFinanceVerifications          *FinanceVerificationQuery
+	withFinanceCommissions                    *FinanceCommissionQuery
+	withConfirmedFinanceCommissions           *FinanceCommissionQuery
+	withPaidFinanceCommissions                *FinanceCommissionQuery
+	withCancelledFinanceCommissions           *FinanceCommissionQuery
+	withFinanceCommissionAdjustments          *FinanceCommissionAdjustmentQuery
+	withConfirmedFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
+	withPaidFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
+	withCancelledFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
+	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -487,6 +492,94 @@ func (_q *UserQuery) QueryCancelledFinanceCommissions() *FinanceCommissionQuery 
 	return query
 }
 
+// QueryFinanceCommissionAdjustments chains the current query on the "finance_commission_adjustments" edge.
+func (_q *UserQuery) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceCommissionAdjustmentsTable, user.FinanceCommissionAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfirmedFinanceCommissionAdjustments chains the current query on the "confirmed_finance_commission_adjustments" edge.
+func (_q *UserQuery) QueryConfirmedFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedFinanceCommissionAdjustmentsTable, user.ConfirmedFinanceCommissionAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPaidFinanceCommissionAdjustments chains the current query on the "paid_finance_commission_adjustments" edge.
+func (_q *UserQuery) QueryPaidFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PaidFinanceCommissionAdjustmentsTable, user.PaidFinanceCommissionAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceCommissionAdjustments chains the current query on the "cancelled_finance_commission_adjustments" edge.
+func (_q *UserQuery) QueryCancelledFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceCommissionAdjustmentsTable, user.CancelledFinanceCommissionAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -674,29 +767,33 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                           _q.config,
-		ctx:                              _q.ctx.Clone(),
-		order:                            append([]user.OrderOption{}, _q.order...),
-		inters:                           append([]Interceptor{}, _q.inters...),
-		predicates:                       append([]predicate.User{}, _q.predicates...),
-		withMemberships:                  _q.withMemberships.Clone(),
-		withSessions:                     _q.withSessions.Clone(),
-		withOrderPersonnel:               _q.withOrderPersonnel.Clone(),
-		withPartnerAssignments:           _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees:           _q.withCancelledOrderFees.Clone(),
-		withConfirmedFinanceBills:        _q.withConfirmedFinanceBills.Clone(),
-		withCancelledFinanceBills:        _q.withCancelledFinanceBills.Clone(),
-		withCreatedFinanceBillBatches:    _q.withCreatedFinanceBillBatches.Clone(),
-		withIssuedFinanceInvoices:        _q.withIssuedFinanceInvoices.Clone(),
-		withCancelledFinanceInvoices:     _q.withCancelledFinanceInvoices.Clone(),
-		withRedFlushedFinanceInvoices:    _q.withRedFlushedFinanceInvoices.Clone(),
-		withConfirmedFinanceCashflows:    _q.withConfirmedFinanceCashflows.Clone(),
-		withCancelledFinanceCashflows:    _q.withCancelledFinanceCashflows.Clone(),
-		withReversedFinanceVerifications: _q.withReversedFinanceVerifications.Clone(),
-		withFinanceCommissions:           _q.withFinanceCommissions.Clone(),
-		withConfirmedFinanceCommissions:  _q.withConfirmedFinanceCommissions.Clone(),
-		withPaidFinanceCommissions:       _q.withPaidFinanceCommissions.Clone(),
-		withCancelledFinanceCommissions:  _q.withCancelledFinanceCommissions.Clone(),
+		config:                                    _q.config,
+		ctx:                                       _q.ctx.Clone(),
+		order:                                     append([]user.OrderOption{}, _q.order...),
+		inters:                                    append([]Interceptor{}, _q.inters...),
+		predicates:                                append([]predicate.User{}, _q.predicates...),
+		withMemberships:                           _q.withMemberships.Clone(),
+		withSessions:                              _q.withSessions.Clone(),
+		withOrderPersonnel:                        _q.withOrderPersonnel.Clone(),
+		withPartnerAssignments:                    _q.withPartnerAssignments.Clone(),
+		withCancelledOrderFees:                    _q.withCancelledOrderFees.Clone(),
+		withConfirmedFinanceBills:                 _q.withConfirmedFinanceBills.Clone(),
+		withCancelledFinanceBills:                 _q.withCancelledFinanceBills.Clone(),
+		withCreatedFinanceBillBatches:             _q.withCreatedFinanceBillBatches.Clone(),
+		withIssuedFinanceInvoices:                 _q.withIssuedFinanceInvoices.Clone(),
+		withCancelledFinanceInvoices:              _q.withCancelledFinanceInvoices.Clone(),
+		withRedFlushedFinanceInvoices:             _q.withRedFlushedFinanceInvoices.Clone(),
+		withConfirmedFinanceCashflows:             _q.withConfirmedFinanceCashflows.Clone(),
+		withCancelledFinanceCashflows:             _q.withCancelledFinanceCashflows.Clone(),
+		withReversedFinanceVerifications:          _q.withReversedFinanceVerifications.Clone(),
+		withFinanceCommissions:                    _q.withFinanceCommissions.Clone(),
+		withConfirmedFinanceCommissions:           _q.withConfirmedFinanceCommissions.Clone(),
+		withPaidFinanceCommissions:                _q.withPaidFinanceCommissions.Clone(),
+		withCancelledFinanceCommissions:           _q.withCancelledFinanceCommissions.Clone(),
+		withFinanceCommissionAdjustments:          _q.withFinanceCommissionAdjustments.Clone(),
+		withConfirmedFinanceCommissionAdjustments: _q.withConfirmedFinanceCommissionAdjustments.Clone(),
+		withPaidFinanceCommissionAdjustments:      _q.withPaidFinanceCommissionAdjustments.Clone(),
+		withCancelledFinanceCommissionAdjustments: _q.withCancelledFinanceCommissionAdjustments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -901,6 +998,50 @@ func (_q *UserQuery) WithCancelledFinanceCommissions(opts ...func(*FinanceCommis
 	return _q
 }
 
+// WithFinanceCommissionAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFinanceCommissionAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *UserQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionAdjustments = query
+	return _q
+}
+
+// WithConfirmedFinanceCommissionAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "confirmed_finance_commission_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConfirmedFinanceCommissionAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *UserQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmedFinanceCommissionAdjustments = query
+	return _q
+}
+
+// WithPaidFinanceCommissionAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "paid_finance_commission_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithPaidFinanceCommissionAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *UserQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPaidFinanceCommissionAdjustments = query
+	return _q
+}
+
+// WithCancelledFinanceCommissionAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "cancelled_finance_commission_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCancelledFinanceCommissionAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *UserQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCancelledFinanceCommissionAdjustments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -979,7 +1120,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [18]bool{
+		loadedTypes = [22]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -998,6 +1139,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withConfirmedFinanceCommissions != nil,
 			_q.withPaidFinanceCommissions != nil,
 			_q.withCancelledFinanceCommissions != nil,
+			_q.withFinanceCommissionAdjustments != nil,
+			_q.withConfirmedFinanceCommissionAdjustments != nil,
+			_q.withPaidFinanceCommissionAdjustments != nil,
+			_q.withCancelledFinanceCommissionAdjustments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1171,6 +1316,42 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceCommissions = []*FinanceCommission{} },
 			func(n *User, e *FinanceCommission) {
 				n.Edges.CancelledFinanceCommissions = append(n.Edges.CancelledFinanceCommissions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionAdjustments; query != nil {
+		if err := _q.loadFinanceCommissionAdjustments(ctx, query, nodes,
+			func(n *User) { n.Edges.FinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *User, e *FinanceCommissionAdjustment) {
+				n.Edges.FinanceCommissionAdjustments = append(n.Edges.FinanceCommissionAdjustments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmedFinanceCommissionAdjustments; query != nil {
+		if err := _q.loadConfirmedFinanceCommissionAdjustments(ctx, query, nodes,
+			func(n *User) { n.Edges.ConfirmedFinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *User, e *FinanceCommissionAdjustment) {
+				n.Edges.ConfirmedFinanceCommissionAdjustments = append(n.Edges.ConfirmedFinanceCommissionAdjustments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPaidFinanceCommissionAdjustments; query != nil {
+		if err := _q.loadPaidFinanceCommissionAdjustments(ctx, query, nodes,
+			func(n *User) { n.Edges.PaidFinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *User, e *FinanceCommissionAdjustment) {
+				n.Edges.PaidFinanceCommissionAdjustments = append(n.Edges.PaidFinanceCommissionAdjustments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCancelledFinanceCommissionAdjustments; query != nil {
+		if err := _q.loadCancelledFinanceCommissionAdjustments(ctx, query, nodes,
+			func(n *User) { n.Edges.CancelledFinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *User, e *FinanceCommissionAdjustment) {
+				n.Edges.CancelledFinanceCommissionAdjustments = append(n.Edges.CancelledFinanceCommissionAdjustments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1736,6 +1917,135 @@ func (_q *UserQuery) loadCancelledFinanceCommissions(ctx context.Context, query 
 	}
 	query.Where(predicate.FinanceCommission(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.CancelledFinanceCommissionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CancelledBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadFinanceCommissionAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldEmployeeID)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.FinanceCommissionAdjustmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EmployeeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "employee_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConfirmedFinanceCommissionAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldConfirmedBy)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConfirmedFinanceCommissionAdjustmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadPaidFinanceCommissionAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldPaidBy)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.PaidFinanceCommissionAdjustmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PaidBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "paid_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "paid_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCancelledFinanceCommissionAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldCancelledBy)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CancelledFinanceCommissionAdjustmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

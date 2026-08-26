@@ -721,6 +721,48 @@ const refreshedCommissionResponse = await request(
   },
 );
 const refreshedCommission = refreshedCommissionResponse.data;
+const draftFeeBeforeCloseResponse = await request(
+  `/api/v1/orders/${order.id}/fees`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      orderId: order.id,
+      direction: 1,
+      settlementPartyId: settlementParty.id,
+      quantity: '1',
+      unitPrice: '1.00',
+      currency: options.baseCurrency,
+      expenseDate: today,
+      feeSettingId: feeSetting.id,
+      billingUnitId: feeSetting.defaultBillingUnitId,
+      idempotencyKey: `acc-fin-fee-${stamp}-draft-before-close`,
+      taxInclusive: true,
+      note: '验证存在草稿费用时不得关账',
+    }),
+  },
+);
+const draftFeeBeforeClose = draftFeeBeforeCloseResponse.data;
+const closeWithDraftFee = await raw(
+  `/api/v1/finance/commissions/${refreshedCommission.id}/confirm`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: refreshedCommission.id,
+      expectedVersion: refreshedCommission.version,
+    }),
+  },
+);
+assert(
+  closeWithDraftFee.response.status === 409 &&
+    closeWithDraftFee.body.reason === 'FINANCE_COMMISSION_UNCONFIRMED_FEES',
+  '关联订单存在草稿费用时必须拒绝确认提成',
+);
+await request(
+  `/api/v1/orders/${order.id}/fees/${draftFeeBeforeClose.id}?expectedVersion=${draftFeeBeforeClose.version}&reason=${encodeURIComponent('完成草稿费用关账拦截验收')}`,
+  {
+    method: 'DELETE',
+  },
+);
 const confirmedCommissionResponse = await request(
   `/api/v1/finance/commissions/${refreshedCommission.id}/confirm`,
   {
@@ -733,6 +775,154 @@ const confirmedCommissionResponse = await request(
 );
 const confirmedCommission = confirmedCommissionResponse.data;
 assert(confirmedCommission.status === 'CONFIRMED', '提成草稿确认失败');
+const lockedFeeOptions = await request(
+  `/api/v1/orders/${order.id}/fee-options`,
+);
+assert(
+  lockedFeeOptions.financeLocked === true &&
+    lockedFeeOptions.financeLockCommissionNos?.includes(
+      confirmedCommission.commissionNo,
+    ),
+  '提成确认后关联订单未进入财务锁定',
+);
+const addFeeAfterClose = await raw(`/api/v1/orders/${order.id}/fees`, {
+  method: 'POST',
+  body: JSON.stringify({
+    orderId: order.id,
+    direction: 1,
+    settlementPartyId: settlementParty.id,
+    quantity: '1',
+    unitPrice: '1.00',
+    currency: options.baseCurrency,
+    expenseDate: today,
+    feeSettingId: feeSetting.id,
+    billingUnitId: feeSetting.defaultBillingUnitId,
+    idempotencyKey: `acc-fin-fee-${stamp}-after-close`,
+    taxInclusive: true,
+    note: '验证提成确认后禁止静默追加费用',
+  }),
+});
+assert(
+  addFeeAfterClose.response.status === 409 &&
+    addFeeAfterClose.body.reason === 'ORDER_FEE_FINANCE_LOCKED',
+  '提成确认后新增费用必须返回财务锁定冲突',
+);
+
+const adjustmentBody = {
+  commissionId: confirmedCommission.id,
+  orderId: order.id,
+  direction: 'INCREASE',
+  amount: '1.25000000',
+  reason: '验收确认后补提',
+  note: '原始提成保持不变',
+  idempotencyKey: `acc-fin-commission-adjustment-${stamp}-shared`,
+};
+const concurrentAdjustments = await Promise.all([
+  raw(`/api/v1/finance/commissions/${confirmedCommission.id}/adjustments`, {
+    method: 'POST',
+    body: JSON.stringify(adjustmentBody),
+  }),
+  raw(`/api/v1/finance/commissions/${confirmedCommission.id}/adjustments`, {
+    method: 'POST',
+    body: JSON.stringify(adjustmentBody),
+  }),
+]);
+assert(
+  concurrentAdjustments.every((item) => item.response.ok) &&
+    concurrentAdjustments[0].body.data?.id ===
+      concurrentAdjustments[1].body.data?.id,
+  '相同幂等键的并发提成调整未重放为同一记录',
+);
+const adjustmentDraft = concurrentAdjustments[0].body.data;
+const confirmedAdjustmentResponse = await request(
+  `/api/v1/finance/commission-adjustments/${adjustmentDraft.id}/confirm`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: adjustmentDraft.id,
+      expectedVersion: adjustmentDraft.version,
+    }),
+  },
+);
+const confirmedAdjustment = confirmedAdjustmentResponse.data;
+const commissionAfterAdjustment = await request(
+  `/api/v1/finance/commissions/${confirmedCommission.id}`,
+);
+assert(
+  commissionAfterAdjustment.data.commissionAmount === '4.00000000' &&
+    commissionAfterAdjustment.data.adjustmentAmount === '1.25000000' &&
+    commissionAfterAdjustment.data.effectiveCommissionAmount === '5.25000000',
+  '提成调整不得改写原始金额，且必须正确形成有效提成',
+);
+const cancelParentWithAdjustment = await raw(
+  `/api/v1/finance/commissions/${confirmedCommission.id}/cancel`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: confirmedCommission.id,
+      expectedVersion: confirmedCommission.version,
+      reason: '验证存在有效调整时禁止取消原提成',
+    }),
+  },
+);
+assert(
+  cancelParentWithAdjustment.response.status === 409 &&
+    cancelParentWithAdjustment.body.reason === 'FINANCE_COMMISSION_TRANSITION',
+  '存在有效调整时必须禁止取消原提成',
+);
+await request(
+  `/api/v1/finance/commission-adjustments/${confirmedAdjustment.id}/cancel`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: confirmedAdjustment.id,
+      expectedVersion: confirmedAdjustment.version,
+      reason: '验收结束后取消调整',
+    }),
+  },
+);
+const excessiveDecreaseResponse = await request(
+  `/api/v1/finance/commissions/${confirmedCommission.id}/adjustments`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      commissionId: confirmedCommission.id,
+      orderId: order.id,
+      direction: 'DECREASE',
+      amount: '100.00000000',
+      reason: '验证冲减不得超过有效提成',
+      idempotencyKey: `acc-fin-commission-adjustment-${stamp}-excessive`,
+    }),
+  },
+);
+const excessiveDecrease = excessiveDecreaseResponse.data;
+const excessiveDecreaseConfirmation = await raw(
+  `/api/v1/finance/commission-adjustments/${excessiveDecrease.id}/confirm`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: excessiveDecrease.id,
+      expectedVersion: excessiveDecrease.version,
+    }),
+  },
+);
+assert(
+  excessiveDecreaseConfirmation.response.status === 409 &&
+    excessiveDecreaseConfirmation.body.reason ===
+      'FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS',
+  '冲减后有效提成小于零时必须返回明确冲突',
+);
+await request(
+  `/api/v1/finance/commission-adjustments/${excessiveDecrease.id}/cancel`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: excessiveDecrease.id,
+      expectedVersion: excessiveDecrease.version,
+      reason: '验收结束后取消超额冲减草稿',
+    }),
+  },
+);
 const reverseWithCommission = await raw(
   `/api/v1/finance/verifications/${verificationA.id}/reverse`,
   {
@@ -757,6 +947,13 @@ await request(`/api/v1/finance/commissions/${confirmedCommission.id}/cancel`, {
     reason: '完成提成验收后释放核销',
   }),
 });
+const unlockedFeeOptions = await request(
+  `/api/v1/orders/${order.id}/fee-options`,
+);
+assert(
+  unlockedFeeOptions.financeLocked !== true,
+  '提成及调整全部取消后订单财务锁未释放',
+);
 
 const overAllocated = await raw('/api/v1/finance/verifications', {
   method: 'POST',
@@ -870,7 +1067,7 @@ assert(
   '全部反核销后账单余额未恢复',
 );
 
-console.log('费用、账单、开票、收付、核销与提成真实 API 闭环验收通过。');
+console.log('费用、账单、开票、收付、核销、提成关账与调整真实 API 闭环验收通过。');
 console.log(
   JSON.stringify(
     {
@@ -900,6 +1097,12 @@ console.log(
       commissionConcurrentIdempotencyVerified: true,
       commissionDetailSnapshotVerified: true,
       commissionReverseProtectionVerified: true,
+      commissionFinanceLockVerified: true,
+      commissionDraftFeeCloseRejected: true,
+      commissionAdjustmentIdempotencyVerified: true,
+      commissionAdjustmentEffectiveAmountVerified: true,
+      commissionAdjustmentCancellationProtectionVerified: true,
+      commissionAdjustmentOverDecreaseRejected: true,
       overAllocationRejected: true,
       reverseBalanceRecoveryVerified: true,
       cashflowCandidateFilterVerified: true,

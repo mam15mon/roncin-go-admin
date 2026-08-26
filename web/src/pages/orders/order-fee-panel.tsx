@@ -144,6 +144,11 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [exchangeRateStatus, setExchangeRateStatus] =
       useState<ExchangeRateStatus>('idle');
     const [manualExchangeRate, setManualExchangeRate] = useState(false);
+    const [financeLocked, setFinanceLocked] = useState(false);
+    const [financeLockReason, setFinanceLockReason] = useState('');
+    const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
+      string[]
+    >([]);
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
@@ -155,6 +160,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setSettlementParties(response.settlementParties ?? []);
             setFeeSettings(response.feeSettings ?? []);
             setBillingUnits(response.billingUnits ?? []);
+            setFinanceLocked(Boolean(response.financeLocked));
+            setFinanceLockReason(response.financeLockReason || '');
+            setFinanceLockCommissionNos(response.financeLockCommissionNos || []);
           })
           .catch((error: Error) =>
             message.error(error.message || '费用录入选项加载失败'),
@@ -235,11 +243,11 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const businessType = order?.businessType;
     const canCreate =
-      businessType !== undefined && access.canOrder(businessType, 'fee.create');
+      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.create');
     const canUpdate =
-      businessType !== undefined && access.canOrder(businessType, 'fee.update');
+      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.update');
     const canDelete =
-      businessType !== undefined && access.canOrder(businessType, 'fee.delete');
+      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.delete');
 
     const requestReason = (
       title: string,
@@ -512,10 +520,22 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFeeSettings([]);
             setBillingUnits([]);
             setSelectedFeeSetting(undefined);
+            setFinanceLocked(false);
+            setFinanceLockReason('');
+            setFinanceLockCommissionNos([]);
           }}
           width={1280}
           destroyOnHidden
         >
+          {financeLocked && (
+            <Alert
+              type="warning"
+              showIcon
+              message="该订单费用已进入财务锁定"
+              description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续差异请在提成管理中新增独立调整记录。`}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           {order?.id && (
             <ProTable<API.OrderFee>
               actionRef={actionRef}

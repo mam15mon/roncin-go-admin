@@ -937,6 +937,78 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ConfirmCashflowResponse'
+    /api/v1/finance/commission-adjustments/{id}/cancel:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CancelCommissionAdjustment
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CancelCommissionAdjustmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+    /api/v1/finance/commission-adjustments/{id}/confirm:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ConfirmCommissionAdjustment
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+    /api/v1/finance/commission-adjustments/{id}/paid:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_MarkCommissionAdjustmentPaid
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
     /api/v1/finance/commission-rules:
         get:
             tags:
@@ -1112,6 +1184,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.PreviewCommissionResponse'
+    /api/v1/finance/commissions/{commissionId}/adjustments:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CreateCommissionAdjustment
+            parameters:
+                - name: commissionId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateCommissionAdjustmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
     /api/v1/finance/commissions/{id}:
         get:
             tags:
@@ -4965,6 +5061,19 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
                 traceId:
                     type: string
+        finance.v1.CancelCommissionAdjustmentRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
         finance.v1.CancelCommissionRequest:
             required:
                 - id
@@ -5004,6 +5113,30 @@ components:
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
                 traceId:
+                    type: string
+        finance.v1.CommissionAdjustmentResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                traceId:
+                    type: string
+        finance.v1.CommissionAdjustmentTransitionRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
                     type: string
         finance.v1.CommissionCalculation:
             type: object
@@ -5364,6 +5497,30 @@ components:
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
                 traceId:
+                    type: string
+        finance.v1.CreateCommissionAdjustmentRequest:
+            required:
+                - commissionId
+                - orderId
+                - direction
+                - amount
+                - reason
+                - idempotencyKey
+            type: object
+            properties:
+                commissionId:
+                    type: string
+                orderId:
+                    type: string
+                direction:
+                    type: string
+                amount:
+                    type: string
+                reason:
+                    type: string
+                note:
+                    type: string
+                idempotencyKey:
                     type: string
         finance.v1.CreateCommissionRequest:
             required:
@@ -5994,6 +6151,59 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceCommissionLine'
+                adjustments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                adjustmentAmount:
+                    type: string
+                effectiveCommissionAmount:
+                    type: string
+        finance.v1.FinanceCommissionAdjustment:
+            type: object
+            properties:
+                id:
+                    type: string
+                adjustmentNo:
+                    type: string
+                commissionId:
+                    type: string
+                commissionNo:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                employeeId:
+                    type: string
+                employeeName:
+                    type: string
+                direction:
+                    type: string
+                status:
+                    type: string
+                baseCurrency:
+                    type: string
+                amount:
+                    type: string
+                reason:
+                    type: string
+                note:
+                    type: string
+                version:
+                    type: string
+                confirmedAt:
+                    type: string
+                paidAt:
+                    type: string
+                cancelledAt:
+                    type: string
+                cancellationReason:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
         finance.v1.FinanceCommissionLine:
             type: object
             properties:
@@ -8779,6 +8989,14 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.OrderFeeBillingUnitOption'
+                financeLocked:
+                    type: boolean
+                financeLockReason:
+                    type: string
+                financeLockCommissionNos:
+                    type: array
+                    items:
+                        type: string
         order.v1.ListFeesResponse:
             type: object
             properties:

@@ -11,6 +11,8 @@ import (
 	billingunitent "github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -164,6 +166,15 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		FeeSettings:       make([]biz.OrderFeeSettingOption, 0, len(feeSettings)),
 		BillingUnits:      make([]biz.OrderFeeBillingUnitOption, 0, len(billingUnits)),
 	}
+	lockNos, err := r.financeLockCommissionNos(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if len(lockNos) > 0 {
+		result.FinanceLocked = true
+		result.FinanceLockCommissionNos = lockNos
+		result.FinanceLockReason = "关联提成已确认或已发放，原费用事实已锁定"
+	}
 	for _, party := range parties {
 		result.SettlementParties = append(result.SettlementParties, biz.OrderFeeSettlementPartyOption{ID: party.ID, Code: party.Code, Name: party.LegalName})
 	}
@@ -193,6 +204,53 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		})
 	}
 	return result, nil
+}
+
+func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizationID, orderID uuid.UUID) ([]string, error) {
+	items, err := r.data.db.FinanceCommissionLine.Query().Where(
+		commissionlineent.OrganizationIDEQ(organizationID),
+		commissionlineent.OrderIDEQ(orderID),
+		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
+	).WithCommission().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		parent, edgeErr := item.Edges.CommissionOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		if _, ok := seen[parent.CommissionNo]; ok {
+			continue
+		}
+		seen[parent.CommissionNo] = struct{}{}
+		result = append(result, parent.CommissionNo)
+	}
+	return result, nil
+}
+
+func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) error {
+	_, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+	if ent.IsNotFound(err) {
+		return biz.ErrOrderFeeNotFound
+	}
+	if err != nil {
+		return err
+	}
+	locked, err := tx.FinanceCommissionLine.Query().Where(
+		commissionlineent.OrganizationIDEQ(organizationID),
+		commissionlineent.OrderIDEQ(orderID),
+		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
+	).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if locked {
+		return biz.ErrOrderFeeFinanceLocked
+	}
+	return nil
 }
 
 func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*biz.OrderFeeCatalogSnapshot, error) {
@@ -291,6 +349,10 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
+	if err := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	created, err := tx.OrderFee.Create().
 		SetID(input.ID).
 		SetOrderID(orderID).
@@ -357,6 +419,10 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
@@ -453,6 +519,10 @@ func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, 
 	if err != nil {
 		return nil, err
 	}
+	if err := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -504,6 +574,10 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 	}
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return err
+	}
+	if err := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)

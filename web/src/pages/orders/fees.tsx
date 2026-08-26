@@ -21,6 +21,7 @@ import {
 } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -179,6 +180,11 @@ export default function OrderFeesPage() {
   );
   const [billingUnits, setBillingUnits] = useState<
     API.OrderFeeBillingUnitOption[]
+  >([]);
+  const [financeLocked, setFinanceLocked] = useState(false);
+  const [financeLockReason, setFinanceLockReason] = useState('');
+  const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
+    string[]
   >([]);
   const [_selectedFeeSetting, setSelectedFeeSetting] =
     useState<API.OrderFeeSettingOption>();
@@ -341,6 +347,9 @@ export default function OrderFeesPage() {
       setSettlementParties(optionsRes.settlementParties ?? []);
       setFeeSettings(optionsRes.feeSettings ?? []);
       setBillingUnits(optionsRes.billingUnits ?? []);
+      setFinanceLocked(Boolean(optionsRes.financeLocked));
+      setFinanceLockReason(optionsRes.financeLockReason || '');
+      setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
     } catch (error: any) {
       message.error(error.message || '加载费用信息失败');
     } finally {
@@ -428,6 +437,10 @@ export default function OrderFeesPage() {
   };
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
+    if (financeLocked) {
+      message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
+      return;
+    }
     if (!fee) createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
     setEditingFee(fee);
     setModalDirection(direction);
@@ -717,7 +730,7 @@ export default function OrderFeesPage() {
       valueType: 'option',
       width: 110,
       fixed: 'right',
-      render: (_, record) => [
+      render: (_, record) => financeLocked ? [] : [
         feeStatusCode(record.status) === FEE_DRAFT && (
           <Button
             key="edit"
@@ -851,6 +864,11 @@ export default function OrderFeesPage() {
               已锁单
             </Tag>
           )}
+          {financeLocked && (
+            <Tag color="red" icon={<LockOutlined />}>
+              财务已关账
+            </Tag>
+          )}
         </Space>
 
         <Space size={8}>
@@ -874,6 +892,15 @@ export default function OrderFeesPage() {
       </div>
 
       <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
+        {financeLocked && (
+          <Alert
+            type="warning"
+            showIcon
+            message="该订单费用已进入财务锁定"
+            description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续提成差异请在提成管理中新增独立调整记录。`}
+            style={{ marginBottom: 16 }}
+          />
+        )}
         {/* 1. 基础信息卡片 */}
         <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
           <Descriptions
@@ -1037,6 +1064,7 @@ export default function OrderFeesPage() {
                         key="add"
                         type="primary"
                         icon={<PlusOutlined />}
+                        disabled={financeLocked}
                         onClick={() => openFeeModal(RECEIVABLE)}
                       >
                         + 新增应收费用
@@ -1113,6 +1141,7 @@ export default function OrderFeesPage() {
                         key="add"
                         type="primary"
                         icon={<PlusOutlined />}
+                        disabled={financeLocked}
                         style={{
                           backgroundColor: '#fa8c16',
                           borderColor: '#fa8c16',

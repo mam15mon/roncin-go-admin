@@ -153,8 +153,14 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
     return response.json();
   });
   const explainableCommission = commissions.data?.find(
-    (item: { calculationVersion?: string; commissionNo?: string }) =>
-      item.calculationVersion === 'ORDER_LINE_V1' && item.commissionNo,
+    (item: {
+      calculationVersion?: string;
+      commissionNo?: string;
+      adjustments?: unknown[];
+    }) =>
+      item.calculationVersion === 'ORDER_LINE_V1' &&
+      item.commissionNo &&
+      item.adjustments?.length,
   );
   expect(explainableCommission?.commissionNo).toBeTruthy();
   const commissionRow = page
@@ -168,10 +174,17 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   });
   await expect(commissionDrawer).toBeVisible();
   await expect(
-    commissionDrawer.getByText('逐订单计算快照', { exact: true }),
+    commissionDrawer.getByText('逐订单计算快照与财务锁', { exact: true }),
   ).toBeVisible();
   await expect(
     commissionDrawer.locator('.ant-table-tbody > tr.ant-table-row').first(),
+  ).toBeVisible();
+  await expect(
+    commissionDrawer.getByText('提成调整记录', { exact: true }),
+  ).toBeVisible();
+  await expect(commissionDrawer.getByText(/ADJ\d{3}/).first()).toBeVisible();
+  await expect(
+    commissionDrawer.getByText('有效提成', { exact: true }),
   ).toBeVisible();
   await commissionDrawer.getByRole('button', { name: 'Close' }).click();
 

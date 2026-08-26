@@ -51,6 +51,9 @@ type FinanceCashflow func(*sql.Selector)
 // FinanceCommission is the predicate function for financecommission builders.
 type FinanceCommission func(*sql.Selector)
 
+// FinanceCommissionAdjustment is the predicate function for financecommissionadjustment builders.
+type FinanceCommissionAdjustment func(*sql.Selector)
+
 // FinanceCommissionLine is the predicate function for financecommissionline builders.
 type FinanceCommissionLine func(*sql.Selector)
 
