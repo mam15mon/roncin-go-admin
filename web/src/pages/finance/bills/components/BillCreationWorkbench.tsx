@@ -3,6 +3,7 @@ import {
   CheckCircleOutlined,
   DeleteOutlined,
   FileDoneOutlined,
+  PlusOutlined,
   ReloadOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
@@ -15,22 +16,28 @@ import {
   AutoComplete,
   Button,
   Card,
+  Checkbox,
   Col,
   DatePicker,
   Descriptions,
+  Divider,
   Drawer,
   Empty,
   Form,
   Input,
   InputNumber,
+  Modal,
   Popconfirm,
+  Radio,
   Result,
   Row,
+  Select,
   Space,
   Steps,
   Switch,
   Table,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -41,7 +48,10 @@ import {
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
-import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
+import {
+  partnerServiceCreatePartnerInvoiceProfile,
+  partnerServiceListPartnerInvoiceProfiles,
+} from '@/services/roncin/partnerService';
 
 const { Text, Title } = Typography;
 
@@ -54,6 +64,17 @@ type GroupFormValue = {
 
 type WorkbenchFormValue = {
   groups: GroupFormValue[];
+};
+
+type QuickAddInvoiceProfileFormValue = {
+  invoiceTitle: string;
+  taxpayerIdentificationNo: string;
+  defaultInvoiceType: 'NORMAL' | 'SPECIAL';
+  bankName?: string;
+  bankAccount?: string;
+  registeredAddress?: string;
+  registeredPhone?: string;
+  isDefault?: boolean;
 };
 
 type RequestError = Error & {
@@ -96,6 +117,7 @@ export default function BillCreationWorkbench({
   const { message } = App.useApp();
   const access = useAccess();
   const [form] = Form.useForm<WorkbenchFormValue>();
+  const [quickAddForm] = Form.useForm<QuickAddInvoiceProfileFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
   const [splitByOrder, setSplitByOrder] = useState(false);
@@ -108,6 +130,14 @@ export default function BillCreationWorkbench({
   const [loading, setLoading] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [confirming, setConfirming] = useState(false);
+
+  // 就地快捷新增客商开票抬头状态
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddGroupIndex, setQuickAddGroupIndex] = useState(0);
+  const [quickAddPartnerId, setQuickAddPartnerId] = useState('');
+  const [quickAddPartnerName, setQuickAddPartnerName] = useState('');
+  const [quickAddSaving, setQuickAddSaving] = useState(false);
+
   const initialFeeKey = initialFeeIds.join('|');
   const fixedSelection = initialFeeIds.length > 0;
 
@@ -234,6 +264,83 @@ export default function BillCreationWorkbench({
     setSelectedFeeIds(nextIds);
     message.success('已从本次建单中移除该费用');
     await loadPreview(nextIds);
+  };
+
+  // 打开快捷新增客商抬头弹窗
+  const handleOpenQuickAddProfile = (
+    groupIndex: number,
+    partnerId?: string,
+    partnerName?: string,
+  ) => {
+    if (!partnerId) {
+      message.warning('当前账单缺少结算单位关联，无法维护抬头');
+      return;
+    }
+    setQuickAddGroupIndex(groupIndex);
+    setQuickAddPartnerId(partnerId);
+    setQuickAddPartnerName(partnerName || '');
+    quickAddForm.resetFields();
+    quickAddForm.setFieldsValue({
+      invoiceTitle: partnerName || '',
+      taxpayerIdentificationNo: '',
+      defaultInvoiceType: 'NORMAL',
+      isDefault: true,
+    });
+    setQuickAddOpen(true);
+  };
+
+  // 提交保存快捷开票抬头
+  const handleSaveQuickAddProfile = async () => {
+    const values = await quickAddForm.validateFields();
+    setQuickAddSaving(true);
+    try {
+      const res = await partnerServiceCreatePartnerInvoiceProfile(
+        { partnerId: quickAddPartnerId },
+        {
+          partnerId: quickAddPartnerId,
+          invoiceTitle: values.invoiceTitle.trim(),
+          taxpayerIdentificationNo: values.taxpayerIdentificationNo
+            .trim()
+            .toUpperCase(),
+          bankName: values.bankName?.trim() || undefined,
+          bankAccount: values.bankAccount?.trim() || undefined,
+          registeredAddress: values.registeredAddress?.trim() || undefined,
+          registeredPhone: values.registeredPhone?.trim() || undefined,
+          defaultInvoiceType: values.defaultInvoiceType,
+          isDefault: values.isDefault ?? false,
+        },
+        { skipErrorHandler: true },
+      );
+      const created = res.data;
+      if (!created) throw new Error('服务端未返回新增抬头数据');
+
+      // 更新客商开票资料缓存
+      setInvoiceProfilesMap((prev) => {
+        const existing = prev[quickAddPartnerId] || [];
+        return {
+          ...prev,
+          [quickAddPartnerId]: [created, ...existing],
+        };
+      });
+
+      // 自动回显并选中到当前账单的 statementTitle 表单字段
+      const currentGroups = form.getFieldValue('groups') || [];
+      if (currentGroups[quickAddGroupIndex]) {
+        currentGroups[quickAddGroupIndex] = {
+          ...currentGroups[quickAddGroupIndex],
+          statementTitle: created.invoiceTitle || '',
+        };
+        form.setFieldsValue({ groups: [...currentGroups] });
+      }
+
+      message.success(`已为【${quickAddPartnerName}】新增开票抬头并自动选中`);
+      setQuickAddOpen(false);
+    } catch (rawError: unknown) {
+      const error = rawError as RequestError;
+      message.error(requestMessage(error, '新增开票抬头失败'));
+    } finally {
+      setQuickAddSaving(false);
+    }
   };
 
   const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
@@ -464,10 +571,11 @@ export default function BillCreationWorkbench({
   );
 
   return (
-    <Drawer
-      title="费用批量转账单"
-      open={open}
-      width="min(1280px, 96vw)"
+    <>
+      <Drawer
+        title="费用批量转账单"
+        open={open}
+        width="min(1280px, 96vw)"
       destroyOnHidden
       maskClosable={false}
       footer={footer}
@@ -681,7 +789,40 @@ export default function BillCreationWorkbench({
                 <Col xs={24} md={8}>
                   <Form.Item
                     name={['groups', index, 'statementTitle']}
-                    label="对账抬头"
+                    label={
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          width: '100%',
+                        }}
+                      >
+                        <span>对账抬头</span>
+                        <Tooltip title="为该结算单位新增开票抬头并自动选中">
+                          <Button
+                            type="link"
+                            size="small"
+                            icon={<PlusOutlined />}
+                            style={{
+                              padding: 0,
+                              height: 'auto',
+                              fontSize: 12,
+                              fontWeight: 'normal',
+                            }}
+                            onClick={() =>
+                              handleOpenQuickAddProfile(
+                                index,
+                                group.settlementPartyId,
+                                group.settlementPartyName,
+                              )
+                            }
+                          >
+                            新增抬头
+                          </Button>
+                        </Tooltip>
+                      </div>
+                    }
                     rules={[
                       {
                         required: true,
@@ -746,6 +887,35 @@ export default function BillCreationWorkbench({
                         }
                         return list;
                       })()}
+                      dropdownRender={(menu) => (
+                        <>
+                          {menu}
+                          <Divider style={{ margin: '4px 0' }} />
+                          <div
+                            style={{
+                              padding: '6px 12px',
+                              cursor: 'pointer',
+                              color: '#1677ff',
+                              fontSize: 12,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              background: '#f6faff',
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenQuickAddProfile(
+                                index,
+                                group.settlementPartyId,
+                                group.settlementPartyName,
+                              );
+                            }}
+                          >
+                            <PlusOutlined /> 为【{group.settlementPartyName}】新增开票抬头
+                          </div>
+                        </>
+                      )}
                       placeholder="输入或下拉选择对账抬头"
                     />
                   </Form.Item>
@@ -889,6 +1059,104 @@ export default function BillCreationWorkbench({
         ) : (
           <Empty />
         ))}
-    </Drawer>
+      </Drawer>
+
+      <Modal
+        title={`为【${quickAddPartnerName}】新增开票抬头`}
+        open={quickAddOpen}
+        confirmLoading={quickAddSaving}
+        okText="保存并选用"
+        cancelText="取消"
+        onOk={() => void handleSaveQuickAddProfile()}
+        onCancel={() => setQuickAddOpen(false)}
+        destroyOnClose
+        width={620}
+      >
+        <Form form={quickAddForm} layout="vertical" preserve={false}>
+          <Alert
+            type="info"
+            showIcon
+            message="新增的开票抬头将自动保存至该客户的主档案中，并自动选中为当前账单的对账抬头。"
+            style={{ marginBottom: 16 }}
+          />
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="invoiceTitle"
+                label="发票抬头全称"
+                rules={[
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: '请输入发票抬头全称',
+                  },
+                  { max: 200, message: '抬头全称不能超过 200 字' },
+                ]}
+              >
+                <Input placeholder="公司注册全称或开票抬头" maxLength={200} />
+              </Form.Item>
+            </Col>
+            <Col span={14}>
+              <Form.Item
+                name="taxpayerIdentificationNo"
+                label="统一社会信用代码 / 税号"
+                rules={[
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: '请输入纳税人识别号/税号',
+                  },
+                  { max: 50, message: '税号不能超过 50 位' },
+                ]}
+              >
+                <Input
+                  placeholder="18 位纳税人识别号（自动大写）"
+                  maxLength={50}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={10}>
+              <Form.Item
+                name="defaultInvoiceType"
+                label="默认发票类型"
+                rules={[{ required: true, message: '请选择发票类型' }]}
+              >
+                <Select
+                  options={[
+                    { label: '增值税普通发票', value: 'NORMAL' },
+                    { label: '增值税专用发票', value: 'SPECIAL' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="bankName" label="开户银行（选填）">
+                <Input placeholder="例如：中国工商银行上海分行" maxLength={100} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="bankAccount" label="银行账号（选填）">
+                <Input placeholder="开户行银行账号" maxLength={50} />
+              </Form.Item>
+            </Col>
+            <Col span={15}>
+              <Form.Item name="registeredAddress" label="开票地址（选填）">
+                <Input placeholder="企业注册地址" maxLength={200} />
+              </Form.Item>
+            </Col>
+            <Col span={9}>
+              <Form.Item name="registeredPhone" label="开票电话（选填）">
+                <Input placeholder="注册联系电话" maxLength={50} />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="isDefault" valuePropName="checked" style={{ marginBottom: 0 }}>
+                <Checkbox>设为该客户的默认首选开票抬头</Checkbox>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+    </>
   );
 }
