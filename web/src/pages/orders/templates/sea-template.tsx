@@ -419,29 +419,33 @@ export function getSeaTemplateSections(
                 <ProFormText
                   name="orderNo"
                   label="订单编号"
-                  placeholder="保存后自动生成"
+                  placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
                   fieldProps={{ disabled: true }}
                 />
               </Col>
-              <Col className="col-5">
-                <ProFormDatePicker
-                  name="orderDate"
-                  label="订单编号时间"
-                  fieldProps={{ style: { width: '100%' } }}
-                />
-              </Col>
-              <Col flex="auto">
-                <div
-                  style={{
-                    color: '#ff4d4f',
-                    fontSize: 12,
-                    lineHeight: '32px',
-                    marginBottom: 24,
-                  }}
-                >
-                  *订单编号时间依据为订单编号生成时定义的时间，只可在该订单初次保存前修改
-                </div>
-              </Col>
+              {!props.isDetail && (
+                <>
+                  <Col className="col-5">
+                    <ProFormDatePicker
+                      name="orderDate"
+                      label="订单编号时间"
+                      fieldProps={{ style: { width: '100%' } }}
+                    />
+                  </Col>
+                  <Col flex="auto">
+                    <div
+                      style={{
+                        color: '#ff4d4f',
+                        fontSize: 12,
+                        lineHeight: '32px',
+                        marginBottom: 24,
+                      }}
+                    >
+                      *订单编号时间依据为订单编号生成时定义的时间，只可在该订单初次保存前修改
+                    </div>
+                  </Col>
+                </>
+              )}
             </Row>
           </Col>
 

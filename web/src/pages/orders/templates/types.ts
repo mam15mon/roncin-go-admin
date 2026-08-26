@@ -30,4 +30,6 @@ export interface TemplateProps {
     organizationId: string;
     organizationName: string;
   };
+  /** 是否为详情查看/编辑模式：详情页中不展示订单编号时间选择框，且创建人永久锁定不可变 */
+  isDetail?: boolean;
 }
