@@ -193,6 +193,36 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	return &v1.CreateBillBatchResponse{Success: true, Message: "OK", Data: financeBillBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *SettlementService) ConfirmBillBatch(ctx context.Context, request *v1.ConfirmBillBatchRequest) (*v1.ConfirmBillBatchResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	batchID, err := uuid.Parse(strings.TrimSpace(request.GetId()))
+	if err != nil {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	expectedVersions := make(map[uuid.UUID]uint64, len(request.GetBills()))
+	for _, item := range request.GetBills() {
+		if item == nil {
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+		billID, parseErr := uuid.Parse(strings.TrimSpace(item.GetBillId()))
+		if parseErr != nil {
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+		if _, exists := expectedVersions[billID]; exists {
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+		expectedVersions[billID] = item.GetExpectedVersion()
+	}
+	batch, err := s.billUsecase.ConfirmBatch(ctx, principal.Organization.ID, principal.UserID, batchID, expectedVersions)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ConfirmBillBatchResponse{Success: true, Message: "OK", Data: financeBillBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBillRequest) (*v1.UpdateBillResponse, error) {
 	principal, id, err := financePrincipalAndID(ctx, request.GetId())
 	if err != nil {

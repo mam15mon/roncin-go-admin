@@ -349,6 +349,11 @@ declare namespace API {
     baseCurrencyAmount?: string;
   };
 
+  type BillExpectedVersion = {
+    billId: string;
+    expectedVersion: string;
+  };
+
   type BillGroupingPolicy = {
     splitByOrder?: boolean;
     splitByTaxRate?: boolean;
@@ -457,6 +462,19 @@ declare namespace API {
   type CommissionTransitionRequest = {
     id: string;
     expectedVersion: string;
+  };
+
+  type ConfirmBillBatchRequest = {
+    id: string;
+    bills: BillExpectedVersion[];
+  };
+
+  type ConfirmBillBatchResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBillBatch;
+    traceId?: string;
   };
 
   type ConfirmBillRequest = {
@@ -3458,6 +3476,10 @@ declare namespace API {
   };
 
   type SettlementServiceCancelInvoiceParams = {
+    id: string;
+  };
+
+  type SettlementServiceConfirmBillBatchParams = {
     id: string;
   };
 

@@ -52,6 +52,7 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.SettlementService/CancelCommission":                          {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/CancelInvoice":                             {mode: accessModePermission, permission: "system.finance.invoice.update", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ConfirmBill":                               {mode: accessModePermission, permission: "system.finance.bill.confirm", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/ConfirmBillBatch":                          {mode: accessModePermission, permission: "system.finance.bill.confirm", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ConfirmCashflow":                           {mode: accessModePermission, permission: "system.finance.cashflow.update", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ConfirmCommission":                         {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/CreateBill":                                {mode: accessModePermission, permission: "system.finance.bill.create", scope: biz.DataScopeOrganization},

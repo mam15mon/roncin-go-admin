@@ -41,6 +41,11 @@ service SettlementService {
     option (google.api.http) = {post: "/api/v1/finance/bill-batches" body: "*"};
   }
 
+  rpc ConfirmBillBatch(ConfirmBillBatchRequest) returns (ConfirmBillBatchResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.confirm" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bill-batches/{id}/confirm" body: "*"};
+  }
+
   rpc UpdateBill(UpdateBillRequest) returns (UpdateBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/finance/bills/{id}" body: "*"};
@@ -307,6 +312,24 @@ message FinanceBillBatch {
 }
 
 message CreateBillBatchResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBillBatch data = 4;
+  string trace_id = 5;
+}
+
+message BillExpectedVersion {
+  string bill_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ConfirmBillBatchRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated BillExpectedVersion bills = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ConfirmBillBatchResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

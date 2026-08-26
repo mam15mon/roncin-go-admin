@@ -199,6 +199,7 @@ type FinanceBillRepo interface {
 	Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceBill, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBill, error)
 	GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBillBatch, error)
+	ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *AuditEvent) (*FinanceBillBatch, error)
 	LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
 	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent) (*FinanceBillBatch, error)
@@ -340,6 +341,18 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		return existing, nil
 	}
 	return nil, err
+}
+
+func (uc *FinanceBillUsecase) ConfirmBatch(ctx context.Context, organizationID, actorID, batchID uuid.UUID, expectedVersions map[uuid.UUID]uint64) (*FinanceBillBatch, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || batchID == uuid.Nil || len(expectedVersions) == 0 || len(expectedVersions) > 500 {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	for billID, version := range expectedVersions {
+		if billID == uuid.Nil || version == 0 {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+	}
+	return uc.repo.ConfirmBatch(ctx, organizationID, batchID, actorID, expectedVersions, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.confirm"))
 }
 
 func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillInput) (*FinanceBill, error) {

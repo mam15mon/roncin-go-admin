@@ -984,6 +984,46 @@
         }
       }
     },
+    "/api/v1/finance/bill-batches/{id}/confirm": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ConfirmBillBatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.ConfirmBillBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ConfirmBillBatchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/billing-units": {
       "get": {
         "tags": [
@@ -7775,6 +7815,21 @@
           }
         }
       },
+      "finance.v1.BillExpectedVersion": {
+        "required": [
+          "billId",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "billId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.BillGroupingPolicy": {
         "type": "object",
         "properties": {
@@ -8057,6 +8112,45 @@
             "type": "string"
           },
           "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmBillBatchRequest": {
+        "required": [
+          "id",
+          "bills"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillExpectedVersion"
+            }
+          }
+        }
+      },
+      "finance.v1.ConfirmBillBatchResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceBillBatch"
+          },
+          "traceId": {
             "type": "string"
           }
         }

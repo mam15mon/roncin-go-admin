@@ -25,6 +25,7 @@ const (
 	SettlementService_CreateBill_FullMethodName               = "/finance.v1.SettlementService/CreateBill"
 	SettlementService_PreviewBillBatch_FullMethodName         = "/finance.v1.SettlementService/PreviewBillBatch"
 	SettlementService_CreateBillBatch_FullMethodName          = "/finance.v1.SettlementService/CreateBillBatch"
+	SettlementService_ConfirmBillBatch_FullMethodName         = "/finance.v1.SettlementService/ConfirmBillBatch"
 	SettlementService_UpdateBill_FullMethodName               = "/finance.v1.SettlementService/UpdateBill"
 	SettlementService_ConfirmBill_FullMethodName              = "/finance.v1.SettlementService/ConfirmBill"
 	SettlementService_CancelBill_FullMethodName               = "/finance.v1.SettlementService/CancelBill"
@@ -66,6 +67,7 @@ type SettlementServiceClient interface {
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
 	PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...grpc.CallOption) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(ctx context.Context, in *CreateBillBatchRequest, opts ...grpc.CallOption) (*CreateBillBatchResponse, error)
+	ConfirmBillBatch(ctx context.Context, in *ConfirmBillBatchRequest, opts ...grpc.CallOption) (*ConfirmBillBatchResponse, error)
 	UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error)
 	ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error)
 	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
@@ -156,6 +158,16 @@ func (c *settlementServiceClient) CreateBillBatch(ctx context.Context, in *Creat
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateBillBatchResponse)
 	err := c.cc.Invoke(ctx, SettlementService_CreateBillBatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ConfirmBillBatch(ctx context.Context, in *ConfirmBillBatchRequest, opts ...grpc.CallOption) (*ConfirmBillBatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmBillBatchResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ConfirmBillBatch_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -435,6 +447,7 @@ type SettlementServiceServer interface {
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
+	ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
@@ -488,6 +501,9 @@ func (UnimplementedSettlementServiceServer) PreviewBillBatch(context.Context, *P
 }
 func (UnimplementedSettlementServiceServer) CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateBillBatch not implemented")
+}
+func (UnimplementedSettlementServiceServer) ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmBillBatch not implemented")
 }
 func (UnimplementedSettlementServiceServer) UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateBill not implemented")
@@ -692,6 +708,24 @@ func _SettlementService_CreateBillBatch_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).CreateBillBatch(ctx, req.(*CreateBillBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ConfirmBillBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmBillBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ConfirmBillBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ConfirmBillBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ConfirmBillBatch(ctx, req.(*ConfirmBillBatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1194,6 +1228,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateBillBatch",
 			Handler:    _SettlementService_CreateBillBatch_Handler,
+		},
+		{
+			MethodName: "ConfirmBillBatch",
+			Handler:    _SettlementService_ConfirmBillBatch_Handler,
 		},
 		{
 			MethodName: "UpdateBill",

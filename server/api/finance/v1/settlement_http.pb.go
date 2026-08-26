@@ -22,6 +22,7 @@ const OperationSettlementServiceCancelCashflow = "/finance.v1.SettlementService/
 const OperationSettlementServiceCancelCommission = "/finance.v1.SettlementService/CancelCommission"
 const OperationSettlementServiceCancelInvoice = "/finance.v1.SettlementService/CancelInvoice"
 const OperationSettlementServiceConfirmBill = "/finance.v1.SettlementService/ConfirmBill"
+const OperationSettlementServiceConfirmBillBatch = "/finance.v1.SettlementService/ConfirmBillBatch"
 const OperationSettlementServiceConfirmCashflow = "/finance.v1.SettlementService/ConfirmCashflow"
 const OperationSettlementServiceConfirmCommission = "/finance.v1.SettlementService/ConfirmCommission"
 const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
@@ -56,6 +57,7 @@ type SettlementServiceHTTPServer interface {
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
+	ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
@@ -94,6 +96,7 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches/preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches", _SettlementService_CreateBillBatch0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bill-batches/{id}/confirm", _SettlementService_ConfirmBillBatch0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/bills/{id}", _SettlementService_UpdateBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/confirm", _SettlementService_ConfirmBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/cancel", _SettlementService_CancelBill0_HTTP_Handler(srv))
@@ -235,6 +238,28 @@ func _SettlementService_CreateBillBatch0_HTTP_Handler(srv SettlementServiceHTTPS
 			return err
 		}
 		reply := out.(*CreateBillBatchResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ConfirmBillBatch0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmBillBatchRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceConfirmBillBatch)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmBillBatch(ctx, req.(*ConfirmBillBatchRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmBillBatchResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -781,6 +806,7 @@ type SettlementServiceHTTPClient interface {
 	CancelCommission(ctx context.Context, req *CancelCommissionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
 	CancelInvoice(ctx context.Context, req *CancelInvoiceRequest, opts ...http.CallOption) (rsp *CancelInvoiceResponse, err error)
 	ConfirmBill(ctx context.Context, req *ConfirmBillRequest, opts ...http.CallOption) (rsp *ConfirmBillResponse, err error)
+	ConfirmBillBatch(ctx context.Context, req *ConfirmBillBatchRequest, opts ...http.CallOption) (rsp *ConfirmBillBatchResponse, err error)
 	ConfirmCashflow(ctx context.Context, req *ConfirmCashflowRequest, opts ...http.CallOption) (rsp *ConfirmCashflowResponse, err error)
 	ConfirmCommission(ctx context.Context, req *CommissionTransitionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
 	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
@@ -895,6 +921,23 @@ func (c *SettlementServiceHTTPClientImpl) ConfirmBill(ctx context.Context, in *C
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceConfirmBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ConfirmBillBatch(ctx context.Context, in *ConfirmBillBatchRequest, opts ...http.CallOption) (*ConfirmBillBatchResponse, error) {
+	var out ConfirmBillBatchResponse
+	pattern := "/api/v1/finance/bill-batches/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceConfirmBillBatch),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

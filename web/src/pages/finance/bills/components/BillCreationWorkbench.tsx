@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
+import { history, useAccess } from '@umijs/max';
 import {
   Alert,
   App,
@@ -32,6 +33,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   settlementServiceCreateBillBatch,
+  settlementServiceConfirmBillBatch,
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
@@ -161,6 +163,7 @@ export default function BillCreationWorkbench({
   onCreated,
 }: BillCreationWorkbenchProps) {
   const { message } = App.useApp();
+  const access = useAccess();
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
@@ -170,6 +173,7 @@ export default function BillCreationWorkbench({
   const [result, setResult] = useState<API.FinanceBillBatch>();
   const [loading, setLoading] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
+  const [confirming, setConfirming] = useState(false);
   const initialFeeKey = initialFeeIds.join('|');
   const fixedSelection = initialFeeIds.length > 0;
 
@@ -182,6 +186,7 @@ export default function BillCreationWorkbench({
     setPreview(undefined);
     setResult(undefined);
     setLoading(false);
+    setConfirming(false);
     setIdempotencyKey(globalThis.crypto.randomUUID());
     form.resetFields();
   }, [form, open, initialFeeKey]);
@@ -282,6 +287,30 @@ export default function BillCreationWorkbench({
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmBatch = async () => {
+    if (!result?.id || !result.bills?.length) return;
+    setConfirming(true);
+    try {
+      const response = await settlementServiceConfirmBillBatch(
+        { id: result.id },
+        {
+          id: result.id,
+          bills: result.bills.map((bill) => ({
+            billId: bill.id || '',
+            expectedVersion: bill.version || '0',
+          })),
+        },
+      );
+      if (response.data) setResult(response.data);
+      message.success('本批账单已全部确认，可以进入开票、收付款和核销流程');
+      onCreated?.(response.data || result);
+    } catch (error: any) {
+      message.error(error.message || '批量确认账单失败');
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -565,7 +594,29 @@ export default function BillCreationWorkbench({
               status="success"
               icon={<CheckCircleOutlined />}
               title={`批次 ${result.batchNo || ''} 生成成功`}
-              subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张草稿账单，未发生部分成功。`}
+              subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单，当前${result.bills?.every((bill) => bill.status === 'CONFIRMED') ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
+              extra={
+                <Space wrap>
+                  {access.canConfirmFinanceBills &&
+                    result.bills?.every((bill) => bill.status === 'DRAFT') && (
+                      <Button
+                        type="primary"
+                        loading={confirming}
+                        onClick={() => void confirmBatch()}
+                      >
+                        确认本批全部账单
+                      </Button>
+                    )}
+                  <Button onClick={() => history.push('/finance/invoices')}>
+                    前往开票 / 来票
+                  </Button>
+                  <Button
+                    onClick={() => history.push('/finance/verifications')}
+                  >
+                    前往核销管理
+                  </Button>
+                </Space>
+              }
             />
             <Descriptions
               bordered
@@ -594,6 +645,17 @@ export default function BillCreationWorkbench({
               dataSource={result.bills || []}
               columns={[
                 { title: '账单编号', dataIndex: 'billNo', width: 180 },
+                {
+                  title: '状态',
+                  dataIndex: 'status',
+                  width: 90,
+                  render: (value) =>
+                    value === 'CONFIRMED' ? (
+                      <Tag color="green">已确认</Tag>
+                    ) : (
+                      <Tag color="gold">草稿</Tag>
+                    ),
+                },
                 {
                   title: '方向',
                   dataIndex: 'direction',
