@@ -17,6 +17,14 @@ const advisoryLockKey int64 = 7_266_246_125_832_581_107
 
 var migrationNamePattern = regexp.MustCompile(`^\d{14}_[a-z0-9_]+\.sql$`)
 
+// compatibleChecksums 仅登记经过审阅的历史迁移修复。修复后的文件用于新环境，
+// 已执行旧版本的环境仍可继续前进；未登记的任何校验和差异仍然立即失败。
+var compatibleChecksums = map[string]map[string]struct{}{
+	"20260824043000_global_exchange_rates": {
+		"d50b2a09d9b4d640285f3abb43d2d9ed05e7c701a1296363b7ab3c333cc6617c": {},
+	},
+}
+
 type file struct {
 	name     string
 	version  string
@@ -57,7 +65,7 @@ func Apply(ctx context.Context, db *sql.DB, dir string) error {
 		if !ok {
 			return fmt.Errorf("数据库中存在本地缺失的迁移版本 %s", version)
 		}
-		if checksum != migration.checksum {
+		if checksum != migration.checksum && !isCompatibleChecksum(version, checksum) {
 			return fmt.Errorf("迁移 %s 已执行但校验和不一致", migration.name)
 		}
 		if version > latestApplied {
@@ -76,6 +84,15 @@ func Apply(ctx context.Context, db *sql.DB, dir string) error {
 		}
 	}
 	return nil
+}
+
+func isCompatibleChecksum(version, checksum string) bool {
+	checksums, ok := compatibleChecksums[version]
+	if !ok {
+		return false
+	}
+	_, ok = checksums[checksum]
+	return ok
 }
 
 func readFiles(dir string) ([]file, error) {

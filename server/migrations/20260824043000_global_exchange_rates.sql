@@ -10,8 +10,17 @@ BEGIN
   FROM "organizations"
   WHERE "kind" = 'headquarters' AND "parent_id" IS NULL;
 
-  IF headquarters_count <> 1 THEN
+  IF headquarters_count > 1 THEN
     RAISE EXCEPTION '全公司共享汇率要求且仅允许一个根总部，当前数量：%', headquarters_count;
+  END IF;
+
+  -- 全新数据库会先执行迁移、再由 bootstrap-admin 创建根总部。空库没有汇率
+  -- 数据时无需归并；若已经存在汇率却没有根总部，则仍视为非法状态。
+  IF headquarters_count = 0 THEN
+    IF EXISTS (SELECT 1 FROM "exchange_rate_settings") THEN
+      RAISE EXCEPTION '数据库已存在汇率设置，但尚未配置根总部';
+    END IF;
+    RETURN;
   END IF;
 
   SELECT EXISTS (

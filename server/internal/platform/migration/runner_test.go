@@ -120,6 +120,19 @@ func TestApplyRejectsChangedMigration(t *testing.T) {
 	}
 }
 
+func TestCompatibleChecksumOnlyAcceptsRegisteredHistoricalRepair(t *testing.T) {
+	const oldChecksum = "d50b2a09d9b4d640285f3abb43d2d9ed05e7c701a1296363b7ab3c333cc6617c"
+	if !isCompatibleChecksum("20260824043000_global_exchange_rates", oldChecksum) {
+		t.Fatal("已登记的共享汇率迁移旧校验和应被接受")
+	}
+	if isCompatibleChecksum("20260824043000_global_exchange_rates", "unknown") {
+		t.Fatal("未知共享汇率迁移校验和不应被接受")
+	}
+	if isCompatibleChecksum("20260821140000_create_test", oldChecksum) {
+		t.Fatal("兼容校验和不应扩散到其他迁移")
+	}
+}
+
 func TestApplyRollsBackFailedMigration(t *testing.T) {
 	dir := t.TempDir()
 	statement := "CREATE TABLE broken;"
