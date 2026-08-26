@@ -1,29 +1,17 @@
 import { Divider, Space, Typography } from 'antd';
 import React, { useMemo } from 'react';
+import type {
+  FinanceLedgerGlobalSummary,
+  FinanceLedgerSummaryItem,
+} from './types';
 
 const { Text } = Typography;
 
-export interface FeeSummaryItem {
-  id?: string;
-  direction?: string | number;
-  status?: string | number;
-  currency?: string;
-  totalAmount?: string | number;
-  baseCurrency?: string;
-  baseCurrencyAmount?: string | number;
-}
-
-export interface FeeSummaryBoardProps {
-  selectedRows?: FeeSummaryItem[];
-  allRows?: FeeSummaryItem[];
+export interface FinanceSummaryBoardProps {
+  selectedRows?: FinanceLedgerSummaryItem[];
+  allRows?: FinanceLedgerSummaryItem[];
   totalCount?: number;
-  globalSummary?: {
-    activeCount?: number | string;
-    receivableBaseAmount?: string;
-    payableBaseAmount?: string;
-    profitBaseAmount?: string;
-    baseCurrency?: string;
-  };
+  globalSummary?: FinanceLedgerGlobalSummary;
 }
 
 interface AggregatedMetrics {
@@ -44,7 +32,7 @@ function formatNumber(num: number): string {
 }
 
 function aggregateFees(
-  items: FeeSummaryItem[],
+  items: FinanceLedgerSummaryItem[],
   fallbackBaseCurrency = 'CNY',
 ): AggregatedMetrics {
   const receivableByCurrency: Record<string, number> = {};
@@ -107,12 +95,12 @@ function aggregateFees(
   };
 }
 
-export default function FeeSummaryBoard({
+export function FinanceSummaryBoard({
   selectedRows = [],
   allRows = [],
   totalCount,
   globalSummary,
-}: FeeSummaryBoardProps) {
+}: FinanceSummaryBoardProps) {
   const selectedMetrics = useMemo(
     () => aggregateFees(selectedRows, globalSummary?.baseCurrency || 'CNY'),
     [selectedRows, globalSummary],

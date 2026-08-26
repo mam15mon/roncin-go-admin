@@ -5,3 +5,4 @@ export * from './master-data-template';
 export * from './order-template';
 export * from './order-list-template';
 export * from './parameter-setting-template';
+export * from './finance-ledger-template';

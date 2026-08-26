@@ -1,33 +1,14 @@
-import {
-  CloudUploadOutlined,
-  DownOutlined,
-  DownloadOutlined,
-  EyeOutlined,
-  FileDoneOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
-import {
-  ProTable,
-  type ActionType,
-  type ProColumns,
-} from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import {
-  App,
-  Button,
-  Card,
-  Col,
-  Dropdown,
-  Row,
-  Space,
-  Statistic,
-  Tag,
-  Tooltip,
-} from 'antd';
+import { App, Tag, Tooltip } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
 import React, { useRef, useState } from 'react';
+import type { ActionType } from '@ant-design/pro-components';
+import {
+  FinanceLedgerTemplate,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
 import { settlementServiceListFeeLedger } from '@/services/roncin/settlementService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
-import FeeSummaryBoard from './components/FeeSummaryBoard';
 
 const businessLabels: Record<string, string> = {
   SE: '海运出口',
@@ -50,7 +31,7 @@ const statusLabels: Record<string, { text: string; color: string }> = {
   CANCELLED: { text: '已作废', color: 'default' },
 };
 
-function amount(value?: string) {
+function amount(value?: string | number) {
   return Number(value || 0);
 }
 
@@ -58,77 +39,42 @@ export default function FinanceFeeLedgerPage() {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
-  const [currentData, setCurrentData] = useState<API.FeeLedgerItem[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [selectedRows, setSelectedRows] = useState<API.FeeLedgerItem[]>([]);
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
+  const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
 
-  // 导出 CSV 功能
-  const handleExport = () => {
-    const list = selectedRows.length > 0 ? selectedRows : currentData;
-    if (list.length === 0) {
-      message.warning('当前无数据可导出');
-      return;
-    }
-    const headers = [
-      '订单编号',
-      '业务类型',
-      '收付方向',
-      '状态',
-      '费用科目',
-      '费用代码',
-      '结算单位',
-      '币种',
-      '单价',
-      '数量',
-      '计费单位',
-      '含税金额',
-      '汇率',
-      '折本币金额',
-      '税率',
-      '税金',
-      '不含税净额',
-      '费用日期',
-      '备注',
-    ];
-    const rows = list.map((item) => [
-      `"${item.orderNo || ''}"`,
-      `"${businessLabels[item.businessType || ''] || item.businessType || ''}"`,
-      `"${item.direction === 'RECEIVABLE' ? '应收' : '应付'}"`,
-      `"${statusLabels[item.status || 'DRAFT']?.text || item.status || ''}"`,
-      `"${item.feeName || ''}"`,
-      `"${item.feeCode || ''}"`,
-      `"${item.settlementPartyName || ''}"`,
-      `"${item.currency || ''}"`,
-      `"${item.unitPrice || '0'}"`,
-      `"${item.quantity || '0'}"`,
-      `"${item.billingUnit || ''}"`,
-      `"${item.totalAmount || '0'}"`,
-      `"${item.exchangeRate || '1'}"`,
-      `"${item.baseCurrencyAmount || '0'}"`,
-      `"${item.taxRate ? `${Number(item.taxRate) * 100}%` : '0%'}"`,
-      `"${item.taxAmount || '0'}"`,
-      `"${item.netAmount || '0'}"`,
-      `"${item.expenseDate || ''}"`,
-      `"${(item.note || '').replace(/"/g, '""')}"`,
-    ]);
-    const csvContent =
-      '\uFEFF' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute(
-      'download',
-      `费用明细导出_${new Date().toISOString().slice(0, 10)}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    message.success(`已导出 ${list.length} 条费用明细`);
-  };
+  const metricCards: FinanceLedgerMetricCard[] = [
+    {
+      key: 'active-count',
+      title: '有效费用总笔数',
+      value: Number(summary?.activeCount || 0),
+      suffix: '笔',
+    },
+    {
+      key: 'receivable-base',
+      title: '应收折本币总池',
+      value: amount(summary?.receivableBaseAmount),
+      precision: 2,
+      suffix: summary?.baseCurrency || 'CNY',
+      valueColor: '#1677ff',
+    },
+    {
+      key: 'payable-base',
+      title: '应付折本币总池',
+      value: amount(summary?.payableBaseAmount),
+      precision: 2,
+      suffix: summary?.baseCurrency || 'CNY',
+      valueColor: '#fa8c16',
+    },
+    {
+      key: 'profit-base',
+      title: '确认综合毛利',
+      value: amount(summary?.profitBaseAmount),
+      precision: 2,
+      suffix: summary?.baseCurrency || 'CNY',
+      valueColor:
+        amount(summary?.profitBaseAmount) >= 0 ? '#52c41a' : '#ff4d4f',
+    },
+  ];
 
   const columns: ProColumns<API.FeeLedgerItem>[] = [
     {
@@ -360,7 +306,7 @@ export default function FinanceFeeLedgerPage() {
           key="to-bill"
           onClick={() => {
             if (row.id) {
-              setSelectedRowKeys([row.id]);
+              setSelectedFeeIds([row.id]);
               setBillWorkbenchOpen(true);
             }
           }}
@@ -372,131 +318,30 @@ export default function FinanceFeeLedgerPage() {
   ];
 
   return (
-    <div style={{ paddingBottom: 24 }}>
-      {/* 顶部宏观统计指标卡 */}
-      <Row gutter={12} style={{ marginBottom: 12 }}>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic
-              title="有效费用总笔数"
-              value={Number(summary?.activeCount || 0)}
-              suffix="笔"
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic
-              title="应收折本币总池"
-              value={amount(summary?.receivableBaseAmount)}
-              precision={2}
-              suffix={summary?.baseCurrency || 'CNY'}
-              valueStyle={{ color: '#1677ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic
-              title="应付折本币总池"
-              value={amount(summary?.payableBaseAmount)}
-              precision={2}
-              suffix={summary?.baseCurrency || 'CNY'}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic
-              title="确认综合毛利"
-              value={amount(summary?.profitBaseAmount)}
-              precision={2}
-              suffix={summary?.baseCurrency || 'CNY'}
-              valueStyle={{
-                color:
-                  amount(summary?.profitBaseAmount) >= 0
-                    ? '#52c41a'
-                    : '#ff4d4f',
-              }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <ProTable<API.FeeLedgerItem>
-        headerTitle="集运费用明细"
+    <>
+      <FinanceLedgerTemplate<API.FeeLedgerItem>
+        headerTitle="集运费用明细台账"
         actionRef={actionRef}
-        rowKey="id"
         columns={columns}
-        bordered
-        size="small"
-        scroll={{ x: 2100 }}
-        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        toolBarRender={() => [
-          <Button
-            key="create-bill"
-            type="primary"
-            icon={<FileDoneOutlined />}
-            disabled={selectedRowKeys.length === 0}
-            onClick={() => setBillWorkbenchOpen(true)}
-          >
-            创建账单{' '}
-            {selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : ''}
-          </Button>,
-          <Dropdown
-            key="batch-ops"
-            menu={{
-              items: [
-                {
-                  key: 'batch-confirm',
-                  label: '批量确认勾选费用',
-                  onClick: () => {
-                    if (selectedRowKeys.length === 0) {
-                      message.warning('请先勾选需要确认的费用');
-                      return;
-                    }
-                    message.info(
-                      `已选 ${selectedRowKeys.length} 笔费用，可直接点击【创建账单】自动原子确认并生成批次`,
-                    );
-                  },
-                },
-              ],
-            }}
-          >
-            <Button>
-              批量操作 <DownOutlined />
-            </Button>
-          </Dropdown>,
-          <Button
-            key="export"
-            icon={<DownloadOutlined />}
-            onClick={handleExport}
-          >
-            导出清单
-          </Button>,
-          <Tooltip key="import-tip" title="支持通过 Excel 标准模板批量导入费用">
-            <Button
-              key="import"
-              icon={<CloudUploadOutlined />}
-              style={{
-                backgroundColor: '#faad14',
-                borderColor: '#faad14',
-                color: '#fff',
-              }}
-              onClick={() => message.info('可通过 Excel 模板批量导入费用明细')}
-            >
-              导入费用
-            </Button>
-          </Tooltip>,
-        ]}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (keys, rows) => {
-            setSelectedRowKeys(keys);
-            setSelectedRows(rows);
-          },
+        metricCards={metricCards}
+        scrollX={2100}
+        primaryActionText="创建账单"
+        onPrimaryAction={(keys) => {
+          setSelectedFeeIds(keys.map(String));
+          setBillWorkbenchOpen(true);
         }}
+        batchActions={[
+          {
+            key: 'batch-confirm',
+            label: '批量确认勾选费用',
+            onClick: (keys) => {
+              message.info(
+                `已选 ${keys.length} 笔费用，可直接点击【创建账单】自动原子确认并生成批次`,
+              );
+            },
+          },
+        ]}
+        onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
         request={async (params) => {
           const response = await settlementServiceListFeeLedger({
             page: params.current,
@@ -508,39 +353,28 @@ export default function FinanceFeeLedgerPage() {
             expenseDateFrom: params.expenseDateFrom,
             expenseDateTo: params.expenseDateTo,
           });
-          const list = response.data || [];
-          setCurrentData(list);
-          setTotalCount(Number(response.total || 0));
           setSummary(response.summary);
           return {
-            data: list,
+            data: response.data || [],
             total: Number(response.total || 0),
             success: response.success ?? true,
+            summary: response.summary,
           };
         }}
-      />
-
-      {/* 底部双层动态汇总看板 */}
-      <FeeSummaryBoard
-        selectedRows={selectedRows}
-        allRows={currentData}
-        totalCount={totalCount}
-        globalSummary={summary}
       />
 
       {/* 批量转账单工作台 */}
       <BillCreationWorkbench
         open={billWorkbenchOpen}
-        initialFeeIds={selectedRowKeys.map(String)}
-        sourceLabel={`从费用明细勾选的 ${selectedRowKeys.length} 笔费用`}
+        initialFeeIds={selectedFeeIds}
+        sourceLabel={`从费用明细勾选的 ${selectedFeeIds.length} 笔费用`}
         onClose={() => setBillWorkbenchOpen(false)}
         onCreated={() => {
           setBillWorkbenchOpen(false);
-          setSelectedRowKeys([]);
-          setSelectedRows([]);
+          setSelectedFeeIds([]);
           actionRef.current?.reload();
         }}
       />
-    </div>
+    </>
   );
 }

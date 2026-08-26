@@ -42,9 +42,8 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { SectionCard } from '@/components/ui';
+import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
-import FeeSummaryBoard from '@/pages/finance/fees/components/FeeSummaryBoard';
 import {
   feeCatalogServiceCreateFeeSetting,
   feeCatalogServiceListTaxableServices,
@@ -1156,7 +1155,7 @@ export default function OrderFeesPage() {
         />
 
         {/* 底部双层多币种动态汇总看板 */}
-        <FeeSummaryBoard
+        <FinanceSummaryBoard
           selectedRows={[...allReceivableItems, ...allPayableItems].filter(
             (f) =>
               Boolean(f.id) &&
