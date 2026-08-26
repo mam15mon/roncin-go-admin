@@ -1,8 +1,4 @@
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   ModalForm,
   ProFormSelect,
@@ -45,7 +41,9 @@ export default function AccountCardList({
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<API.PartnerAccount[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<API.PartnerAccount | undefined>(undefined);
+  const [editingAccount, setEditingAccount] = useState<
+    API.PartnerAccount | undefined
+  >(undefined);
   const [form] = Form.useForm();
 
   const fetchAccounts = async () => {
@@ -85,10 +83,6 @@ export default function AccountCardList({
     form.resetFields();
     form.setFieldsValue({
       currency: item.currency || 'CNY',
-      invoiceTitle: item.invoiceTitle,
-      unifiedSocialCreditCode: item.unifiedSocialCreditCode,
-      billingAddress: item.billingAddress,
-      billingPhone: item.billingPhone,
       bankName: item.bankName,
       bankAccount: item.bankAccount,
       swiftCode: item.swiftCode,
@@ -109,10 +103,6 @@ export default function AccountCardList({
           id: item.id,
           account: {
             currency: item.currency || 'CNY',
-            invoiceTitle: item.invoiceTitle || '',
-            unifiedSocialCreditCode: item.unifiedSocialCreditCode,
-            billingAddress: item.billingAddress,
-            billingPhone: item.billingPhone,
             bankName: item.bankName,
             bankAccount: item.bankAccount,
             swiftCode: item.swiftCode,
@@ -134,10 +124,6 @@ export default function AccountCardList({
     try {
       const payload: API.PartnerAccountInput = {
         currency: values.currency,
-        invoiceTitle: values.invoiceTitle?.trim(),
-        unifiedSocialCreditCode: values.unifiedSocialCreditCode?.trim(),
-        billingAddress: values.billingAddress?.trim(),
-        billingPhone: values.billingPhone?.trim(),
         bankName: values.bankName?.trim(),
         bankAccount: values.bankAccount?.trim(),
         swiftCode: values.swiftCode?.trim(),
@@ -209,11 +195,27 @@ export default function AccountCardList({
                     marginBottom: 6,
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: 13, color: '#262626', wordBreak: 'break-all', flex: 1, paddingRight: 8 }}>
-                    {item.invoiceTitle || '未命名发票抬头'}
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: '#262626',
+                      wordBreak: 'break-all',
+                      flex: 1,
+                      paddingRight: 8,
+                    }}
+                  >
+                    {item.bankName || `${item.currency || 'CNY'} 结算账户`}
                     {item.isDefault && (
-                      <Tag color="blue" style={{ marginLeft: 6, fontSize: 10, padding: '0 4px' }}>
-                        默认导出
+                      <Tag
+                        color="blue"
+                        style={{
+                          marginLeft: 6,
+                          fontSize: 10,
+                          padding: '0 4px',
+                        }}
+                      >
+                        默认结算
                       </Tag>
                     )}
                   </div>
@@ -243,44 +245,36 @@ export default function AccountCardList({
 
                 {/* Account Details */}
                 <div style={{ color: '#595959' }}>
-                  {item.unifiedSocialCreditCode && (
-                    <div>
-                      <span style={{ color: '#8c8c8c' }}>社会统一信用代码: </span>
-                      <span style={{ fontFamily: 'monospace' }}>{item.unifiedSocialCreditCode}</span>
-                    </div>
-                  )}
-                  {item.billingAddress && (
-                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      <span style={{ color: '#8c8c8c' }}>开票地址: </span>
-                      {item.billingAddress}
-                    </div>
-                  )}
-                  {item.billingPhone && (
-                    <div>
-                      <span style={{ color: '#8c8c8c' }}>开票电话: </span>
-                      {item.billingPhone}
-                    </div>
-                  )}
                   {item.bankName && (
                     <div>
-                      <span style={{ color: '#8c8c8c' }}>{item.currency || 'CNY'}开户行: </span>
+                      <span style={{ color: '#8c8c8c' }}>
+                        {item.currency || 'CNY'}开户行:{' '}
+                      </span>
                       {item.bankName}
                     </div>
                   )}
                   {item.bankAccount && (
                     <div>
-                      <span style={{ color: '#8c8c8c' }}>{item.currency || 'CNY'}账号: </span>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 500 }}>{item.bankAccount}</span>
+                      <span style={{ color: '#8c8c8c' }}>
+                        {item.currency || 'CNY'}账号:{' '}
+                      </span>
+                      <span
+                        style={{ fontFamily: 'monospace', fontWeight: 500 }}
+                      >
+                        {item.bankAccount}
+                      </span>
                     </div>
                   )}
                   {item.swiftCode && (
                     <div>
                       <span style={{ color: '#8c8c8c' }}>SWIFT Code: </span>
-                      <span style={{ fontFamily: 'monospace' }}>{item.swiftCode}</span>
+                      <span style={{ fontFamily: 'monospace' }}>
+                        {item.swiftCode}
+                      </span>
                     </div>
                   )}
                   <div>
-                    <span style={{ color: '#8c8c8c' }}>是否默认导出: </span>
+                    <span style={{ color: '#8c8c8c' }}>是否默认结算: </span>
                     <span>{item.isDefault ? '是' : '否'}</span>
                   </div>
                 </div>
@@ -340,7 +334,7 @@ export default function AccountCardList({
 
       {/* Account Add/Edit Modal */}
       <ModalForm
-        title={editingAccount ? '编辑银行/开票账户' : '添加银行/开票账户'}
+        title={editingAccount ? '编辑结算账户' : '添加结算账户'}
         open={modalOpen}
         form={form}
         onOpenChange={setModalOpen}
@@ -353,27 +347,12 @@ export default function AccountCardList({
         layout="horizontal"
         grid
       >
-        <Col span={24}>
-          <ProFormText
-            name="invoiceTitle"
-            label="发票抬头"
-            placeholder="请输入发票开具抬头全称"
-            rules={[{ required: true, message: '请输入发票抬头' }]}
-          />
-        </Col>
         <Col span={12}>
           <ProFormSelect
             name="currency"
             label="账户币种"
             options={currencyOptions}
             rules={[{ required: true, message: '请选择币种' }]}
-          />
-        </Col>
-        <Col span={12}>
-          <ProFormText
-            name="unifiedSocialCreditCode"
-            label="统一税号"
-            placeholder="纳税人识别号/统一社会信用代码"
           />
         </Col>
         <Col span={12}>
@@ -392,37 +371,23 @@ export default function AccountCardList({
         </Col>
         <Col span={12}>
           <ProFormText
-            name="billingPhone"
-            label="开票电话"
-            placeholder="开票联系电话"
-          />
-        </Col>
-        <Col span={12}>
-          <ProFormText
             name="swiftCode"
             label="SWIFT Code"
             placeholder="境外汇款识别码"
           />
         </Col>
-        <Col span={24}>
-          <ProFormText
-            name="billingAddress"
-            label="开票地址"
-            placeholder="请输入开票地址"
-          />
-        </Col>
         <Col span={12}>
           <ProFormSwitch
             name="isDefault"
-            label="设为默认开票账户"
-            extra="勾选后此账户作为默认对外开票导出账户"
+            label="设为默认结算账户"
+            extra="勾选后此账户作为当前客户的默认结算账户"
           />
         </Col>
         <Col span={24}>
           <ProFormTextArea
             name="remark"
             label="账户备注"
-            placeholder="特殊结算或开票要求备注"
+            placeholder="特殊结算要求备注"
             fieldProps={{ rows: 2 }}
           />
         </Col>

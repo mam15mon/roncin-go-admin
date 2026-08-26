@@ -3878,54 +3878,24 @@ func init() {
 			return nil
 		}
 	}()
-	// partneraccountDescInvoiceTitle is the schema descriptor for invoice_title field.
-	partneraccountDescInvoiceTitle := partneraccountFields[3].Descriptor()
-	// partneraccount.InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
-	partneraccount.InvoiceTitleValidator = func() func(string) error {
-		validators := partneraccountDescInvoiceTitle.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(invoice_title string) error {
-			for _, fn := range fns {
-				if err := fn(invoice_title); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// partneraccountDescUnifiedSocialCreditCode is the schema descriptor for unified_social_credit_code field.
-	partneraccountDescUnifiedSocialCreditCode := partneraccountFields[4].Descriptor()
-	// partneraccount.UnifiedSocialCreditCodeValidator is a validator for the "unified_social_credit_code" field. It is called by the builders before save.
-	partneraccount.UnifiedSocialCreditCodeValidator = partneraccountDescUnifiedSocialCreditCode.Validators[0].(func(string) error)
-	// partneraccountDescBillingAddress is the schema descriptor for billing_address field.
-	partneraccountDescBillingAddress := partneraccountFields[5].Descriptor()
-	// partneraccount.BillingAddressValidator is a validator for the "billing_address" field. It is called by the builders before save.
-	partneraccount.BillingAddressValidator = partneraccountDescBillingAddress.Validators[0].(func(string) error)
-	// partneraccountDescBillingPhone is the schema descriptor for billing_phone field.
-	partneraccountDescBillingPhone := partneraccountFields[6].Descriptor()
-	// partneraccount.BillingPhoneValidator is a validator for the "billing_phone" field. It is called by the builders before save.
-	partneraccount.BillingPhoneValidator = partneraccountDescBillingPhone.Validators[0].(func(string) error)
 	// partneraccountDescBankName is the schema descriptor for bank_name field.
-	partneraccountDescBankName := partneraccountFields[7].Descriptor()
+	partneraccountDescBankName := partneraccountFields[3].Descriptor()
 	// partneraccount.BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
 	partneraccount.BankNameValidator = partneraccountDescBankName.Validators[0].(func(string) error)
 	// partneraccountDescBankAccount is the schema descriptor for bank_account field.
-	partneraccountDescBankAccount := partneraccountFields[8].Descriptor()
+	partneraccountDescBankAccount := partneraccountFields[4].Descriptor()
 	// partneraccount.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
 	partneraccount.BankAccountValidator = partneraccountDescBankAccount.Validators[0].(func(string) error)
 	// partneraccountDescSwiftCode is the schema descriptor for swift_code field.
-	partneraccountDescSwiftCode := partneraccountFields[9].Descriptor()
+	partneraccountDescSwiftCode := partneraccountFields[5].Descriptor()
 	// partneraccount.SwiftCodeValidator is a validator for the "swift_code" field. It is called by the builders before save.
 	partneraccount.SwiftCodeValidator = partneraccountDescSwiftCode.Validators[0].(func(string) error)
 	// partneraccountDescIsDefault is the schema descriptor for is_default field.
-	partneraccountDescIsDefault := partneraccountFields[10].Descriptor()
+	partneraccountDescIsDefault := partneraccountFields[6].Descriptor()
 	// partneraccount.DefaultIsDefault holds the default value on creation for the is_default field.
 	partneraccount.DefaultIsDefault = partneraccountDescIsDefault.Default.(bool)
 	// partneraccountDescRemark is the schema descriptor for remark field.
-	partneraccountDescRemark := partneraccountFields[12].Descriptor()
+	partneraccountDescRemark := partneraccountFields[8].Descriptor()
 	// partneraccount.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
 	partneraccount.RemarkValidator = partneraccountDescRemark.Validators[0].(func(string) error)
 	// partneraccountDescID is the schema descriptor for id field.

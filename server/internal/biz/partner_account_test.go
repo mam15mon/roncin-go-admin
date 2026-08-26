@@ -37,13 +37,13 @@ func TestPartnerAccountCreateNormalizesAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, partnerID, &PartnerAccount{
-		Currency: " cny ", InvoiceTitle: " 上海安可物流 ", UnifiedSocialCreditCode: "91310000ma1fl7a21q",
+		Currency: " cny ", BankName: " 中国银行 ", BankAccount: " 62220000 ",
 		SwiftCode: " bocccnbj ", Status: PartnerAccountActive, IsDefault: true, Remark: "  月结  ",
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
-	if created.Currency != "CNY" || created.InvoiceTitle != "上海安可物流" || created.UnifiedSocialCreditCode != "91310000MA1FL7A21Q" || created.SwiftCode != "BOCCCNBJ" || created.Remark != "月结" {
+	if created.Currency != "CNY" || created.BankName != "中国银行" || created.BankAccount != "62220000" || created.SwiftCode != "BOCCCNBJ" || created.Remark != "月结" {
 		t.Fatalf("normalized account = %#v", created)
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "partner.account.create" || audit.events[0].Details["partner.id"] != partnerID.String() {
@@ -54,7 +54,7 @@ func TestPartnerAccountCreateNormalizesAndAudits(t *testing.T) {
 func TestPartnerAccountRejectsInactiveDefault(t *testing.T) {
 	usecase := NewPartnerAccountUsecase(&partnerAccountRepoStub{}, &auditRepoStub{})
 	_, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), &PartnerAccount{
-		Currency: "CNY", InvoiceTitle: "上海安可物流", Status: PartnerAccountInactive, IsDefault: true,
+		Currency: "CNY", Status: PartnerAccountInactive, IsDefault: true,
 	})
 	if err != ErrPartnerAccountInvalidArgument {
 		t.Fatalf("Create() error = %v, want ErrPartnerAccountInvalidArgument", err)

@@ -59881,29 +59881,25 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 // PartnerAccountMutation represents an operation that mutates the PartnerAccount nodes in the graph.
 type PartnerAccountMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	account_type               *partneraccount.AccountType
-	currency                   *string
-	invoice_title              *string
-	unified_social_credit_code *string
-	billing_address            *string
-	billing_phone              *string
-	bank_name                  *string
-	bank_account               *string
-	swift_code                 *string
-	is_default                 *bool
-	status                     *partneraccount.Status
-	remark                     *string
-	clearedFields              map[string]struct{}
-	partner_role               *uuid.UUID
-	clearedpartner_role        bool
-	done                       bool
-	oldValue                   func(context.Context) (*PartnerAccount, error)
-	predicates                 []predicate.PartnerAccount
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	account_type        *partneraccount.AccountType
+	currency            *string
+	bank_name           *string
+	bank_account        *string
+	swift_code          *string
+	is_default          *bool
+	status              *partneraccount.Status
+	remark              *string
+	clearedFields       map[string]struct{}
+	partner_role        *uuid.UUID
+	clearedpartner_role bool
+	done                bool
+	oldValue            func(context.Context) (*PartnerAccount, error)
+	predicates          []predicate.PartnerAccount
 }
 
 var _ ent.Mutation = (*PartnerAccountMutation)(nil)
@@ -60188,189 +60184,6 @@ func (m *PartnerAccountMutation) OldCurrency(ctx context.Context) (v string, err
 // ResetCurrency resets all changes to the "currency" field.
 func (m *PartnerAccountMutation) ResetCurrency() {
 	m.currency = nil
-}
-
-// SetInvoiceTitle sets the "invoice_title" field.
-func (m *PartnerAccountMutation) SetInvoiceTitle(s string) {
-	m.invoice_title = &s
-}
-
-// InvoiceTitle returns the value of the "invoice_title" field in the mutation.
-func (m *PartnerAccountMutation) InvoiceTitle() (r string, exists bool) {
-	v := m.invoice_title
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldInvoiceTitle returns the old "invoice_title" field's value of the PartnerAccount entity.
-// If the PartnerAccount object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerAccountMutation) OldInvoiceTitle(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInvoiceTitle is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInvoiceTitle requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInvoiceTitle: %w", err)
-	}
-	return oldValue.InvoiceTitle, nil
-}
-
-// ResetInvoiceTitle resets all changes to the "invoice_title" field.
-func (m *PartnerAccountMutation) ResetInvoiceTitle() {
-	m.invoice_title = nil
-}
-
-// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
-func (m *PartnerAccountMutation) SetUnifiedSocialCreditCode(s string) {
-	m.unified_social_credit_code = &s
-}
-
-// UnifiedSocialCreditCode returns the value of the "unified_social_credit_code" field in the mutation.
-func (m *PartnerAccountMutation) UnifiedSocialCreditCode() (r string, exists bool) {
-	v := m.unified_social_credit_code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUnifiedSocialCreditCode returns the old "unified_social_credit_code" field's value of the PartnerAccount entity.
-// If the PartnerAccount object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerAccountMutation) OldUnifiedSocialCreditCode(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUnifiedSocialCreditCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUnifiedSocialCreditCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUnifiedSocialCreditCode: %w", err)
-	}
-	return oldValue.UnifiedSocialCreditCode, nil
-}
-
-// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
-func (m *PartnerAccountMutation) ClearUnifiedSocialCreditCode() {
-	m.unified_social_credit_code = nil
-	m.clearedFields[partneraccount.FieldUnifiedSocialCreditCode] = struct{}{}
-}
-
-// UnifiedSocialCreditCodeCleared returns if the "unified_social_credit_code" field was cleared in this mutation.
-func (m *PartnerAccountMutation) UnifiedSocialCreditCodeCleared() bool {
-	_, ok := m.clearedFields[partneraccount.FieldUnifiedSocialCreditCode]
-	return ok
-}
-
-// ResetUnifiedSocialCreditCode resets all changes to the "unified_social_credit_code" field.
-func (m *PartnerAccountMutation) ResetUnifiedSocialCreditCode() {
-	m.unified_social_credit_code = nil
-	delete(m.clearedFields, partneraccount.FieldUnifiedSocialCreditCode)
-}
-
-// SetBillingAddress sets the "billing_address" field.
-func (m *PartnerAccountMutation) SetBillingAddress(s string) {
-	m.billing_address = &s
-}
-
-// BillingAddress returns the value of the "billing_address" field in the mutation.
-func (m *PartnerAccountMutation) BillingAddress() (r string, exists bool) {
-	v := m.billing_address
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBillingAddress returns the old "billing_address" field's value of the PartnerAccount entity.
-// If the PartnerAccount object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerAccountMutation) OldBillingAddress(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBillingAddress is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBillingAddress requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBillingAddress: %w", err)
-	}
-	return oldValue.BillingAddress, nil
-}
-
-// ClearBillingAddress clears the value of the "billing_address" field.
-func (m *PartnerAccountMutation) ClearBillingAddress() {
-	m.billing_address = nil
-	m.clearedFields[partneraccount.FieldBillingAddress] = struct{}{}
-}
-
-// BillingAddressCleared returns if the "billing_address" field was cleared in this mutation.
-func (m *PartnerAccountMutation) BillingAddressCleared() bool {
-	_, ok := m.clearedFields[partneraccount.FieldBillingAddress]
-	return ok
-}
-
-// ResetBillingAddress resets all changes to the "billing_address" field.
-func (m *PartnerAccountMutation) ResetBillingAddress() {
-	m.billing_address = nil
-	delete(m.clearedFields, partneraccount.FieldBillingAddress)
-}
-
-// SetBillingPhone sets the "billing_phone" field.
-func (m *PartnerAccountMutation) SetBillingPhone(s string) {
-	m.billing_phone = &s
-}
-
-// BillingPhone returns the value of the "billing_phone" field in the mutation.
-func (m *PartnerAccountMutation) BillingPhone() (r string, exists bool) {
-	v := m.billing_phone
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBillingPhone returns the old "billing_phone" field's value of the PartnerAccount entity.
-// If the PartnerAccount object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerAccountMutation) OldBillingPhone(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBillingPhone is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBillingPhone requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBillingPhone: %w", err)
-	}
-	return oldValue.BillingPhone, nil
-}
-
-// ClearBillingPhone clears the value of the "billing_phone" field.
-func (m *PartnerAccountMutation) ClearBillingPhone() {
-	m.billing_phone = nil
-	m.clearedFields[partneraccount.FieldBillingPhone] = struct{}{}
-}
-
-// BillingPhoneCleared returns if the "billing_phone" field was cleared in this mutation.
-func (m *PartnerAccountMutation) BillingPhoneCleared() bool {
-	_, ok := m.clearedFields[partneraccount.FieldBillingPhone]
-	return ok
-}
-
-// ResetBillingPhone resets all changes to the "billing_phone" field.
-func (m *PartnerAccountMutation) ResetBillingPhone() {
-	m.billing_phone = nil
-	delete(m.clearedFields, partneraccount.FieldBillingPhone)
 }
 
 // SetBankName sets the "bank_name" field.
@@ -60702,7 +60515,7 @@ func (m *PartnerAccountMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerAccountMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, partneraccount.FieldCreatedAt)
 	}
@@ -60717,18 +60530,6 @@ func (m *PartnerAccountMutation) Fields() []string {
 	}
 	if m.currency != nil {
 		fields = append(fields, partneraccount.FieldCurrency)
-	}
-	if m.invoice_title != nil {
-		fields = append(fields, partneraccount.FieldInvoiceTitle)
-	}
-	if m.unified_social_credit_code != nil {
-		fields = append(fields, partneraccount.FieldUnifiedSocialCreditCode)
-	}
-	if m.billing_address != nil {
-		fields = append(fields, partneraccount.FieldBillingAddress)
-	}
-	if m.billing_phone != nil {
-		fields = append(fields, partneraccount.FieldBillingPhone)
 	}
 	if m.bank_name != nil {
 		fields = append(fields, partneraccount.FieldBankName)
@@ -60766,14 +60567,6 @@ func (m *PartnerAccountMutation) Field(name string) (ent.Value, bool) {
 		return m.AccountType()
 	case partneraccount.FieldCurrency:
 		return m.Currency()
-	case partneraccount.FieldInvoiceTitle:
-		return m.InvoiceTitle()
-	case partneraccount.FieldUnifiedSocialCreditCode:
-		return m.UnifiedSocialCreditCode()
-	case partneraccount.FieldBillingAddress:
-		return m.BillingAddress()
-	case partneraccount.FieldBillingPhone:
-		return m.BillingPhone()
 	case partneraccount.FieldBankName:
 		return m.BankName()
 	case partneraccount.FieldBankAccount:
@@ -60805,14 +60598,6 @@ func (m *PartnerAccountMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldAccountType(ctx)
 	case partneraccount.FieldCurrency:
 		return m.OldCurrency(ctx)
-	case partneraccount.FieldInvoiceTitle:
-		return m.OldInvoiceTitle(ctx)
-	case partneraccount.FieldUnifiedSocialCreditCode:
-		return m.OldUnifiedSocialCreditCode(ctx)
-	case partneraccount.FieldBillingAddress:
-		return m.OldBillingAddress(ctx)
-	case partneraccount.FieldBillingPhone:
-		return m.OldBillingPhone(ctx)
 	case partneraccount.FieldBankName:
 		return m.OldBankName(ctx)
 	case partneraccount.FieldBankAccount:
@@ -60868,34 +60653,6 @@ func (m *PartnerAccountMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCurrency(v)
-		return nil
-	case partneraccount.FieldInvoiceTitle:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetInvoiceTitle(v)
-		return nil
-	case partneraccount.FieldUnifiedSocialCreditCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUnifiedSocialCreditCode(v)
-		return nil
-	case partneraccount.FieldBillingAddress:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBillingAddress(v)
-		return nil
-	case partneraccount.FieldBillingPhone:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBillingPhone(v)
 		return nil
 	case partneraccount.FieldBankName:
 		v, ok := value.(string)
@@ -60969,15 +60726,6 @@ func (m *PartnerAccountMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PartnerAccountMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(partneraccount.FieldUnifiedSocialCreditCode) {
-		fields = append(fields, partneraccount.FieldUnifiedSocialCreditCode)
-	}
-	if m.FieldCleared(partneraccount.FieldBillingAddress) {
-		fields = append(fields, partneraccount.FieldBillingAddress)
-	}
-	if m.FieldCleared(partneraccount.FieldBillingPhone) {
-		fields = append(fields, partneraccount.FieldBillingPhone)
-	}
 	if m.FieldCleared(partneraccount.FieldBankName) {
 		fields = append(fields, partneraccount.FieldBankName)
 	}
@@ -61004,15 +60752,6 @@ func (m *PartnerAccountMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PartnerAccountMutation) ClearField(name string) error {
 	switch name {
-	case partneraccount.FieldUnifiedSocialCreditCode:
-		m.ClearUnifiedSocialCreditCode()
-		return nil
-	case partneraccount.FieldBillingAddress:
-		m.ClearBillingAddress()
-		return nil
-	case partneraccount.FieldBillingPhone:
-		m.ClearBillingPhone()
-		return nil
 	case partneraccount.FieldBankName:
 		m.ClearBankName()
 		return nil
@@ -61047,18 +60786,6 @@ func (m *PartnerAccountMutation) ResetField(name string) error {
 		return nil
 	case partneraccount.FieldCurrency:
 		m.ResetCurrency()
-		return nil
-	case partneraccount.FieldInvoiceTitle:
-		m.ResetInvoiceTitle()
-		return nil
-	case partneraccount.FieldUnifiedSocialCreditCode:
-		m.ResetUnifiedSocialCreditCode()
-		return nil
-	case partneraccount.FieldBillingAddress:
-		m.ResetBillingAddress()
-		return nil
-	case partneraccount.FieldBillingPhone:
-		m.ResetBillingPhone()
 		return nil
 	case partneraccount.FieldBankName:
 		m.ResetBankName()

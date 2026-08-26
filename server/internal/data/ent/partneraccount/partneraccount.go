@@ -26,14 +26,6 @@ const (
 	FieldAccountType = "account_type"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
-	// FieldInvoiceTitle holds the string denoting the invoice_title field in the database.
-	FieldInvoiceTitle = "invoice_title"
-	// FieldUnifiedSocialCreditCode holds the string denoting the unified_social_credit_code field in the database.
-	FieldUnifiedSocialCreditCode = "unified_social_credit_code"
-	// FieldBillingAddress holds the string denoting the billing_address field in the database.
-	FieldBillingAddress = "billing_address"
-	// FieldBillingPhone holds the string denoting the billing_phone field in the database.
-	FieldBillingPhone = "billing_phone"
 	// FieldBankName holds the string denoting the bank_name field in the database.
 	FieldBankName = "bank_name"
 	// FieldBankAccount holds the string denoting the bank_account field in the database.
@@ -67,10 +59,6 @@ var Columns = []string{
 	FieldPartnerRoleID,
 	FieldAccountType,
 	FieldCurrency,
-	FieldInvoiceTitle,
-	FieldUnifiedSocialCreditCode,
-	FieldBillingAddress,
-	FieldBillingPhone,
 	FieldBankName,
 	FieldBankAccount,
 	FieldSwiftCode,
@@ -98,14 +86,6 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
-	// InvoiceTitleValidator is a validator for the "invoice_title" field. It is called by the builders before save.
-	InvoiceTitleValidator func(string) error
-	// UnifiedSocialCreditCodeValidator is a validator for the "unified_social_credit_code" field. It is called by the builders before save.
-	UnifiedSocialCreditCodeValidator func(string) error
-	// BillingAddressValidator is a validator for the "billing_address" field. It is called by the builders before save.
-	BillingAddressValidator func(string) error
-	// BillingPhoneValidator is a validator for the "billing_phone" field. It is called by the builders before save.
-	BillingPhoneValidator func(string) error
 	// BankNameValidator is a validator for the "bank_name" field. It is called by the builders before save.
 	BankNameValidator func(string) error
 	// BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
@@ -199,26 +179,6 @@ func ByAccountType(opts ...sql.OrderTermOption) OrderOption {
 // ByCurrency orders the results by the currency field.
 func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
-}
-
-// ByInvoiceTitle orders the results by the invoice_title field.
-func ByInvoiceTitle(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldInvoiceTitle, opts...).ToFunc()
-}
-
-// ByUnifiedSocialCreditCode orders the results by the unified_social_credit_code field.
-func ByUnifiedSocialCreditCode(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUnifiedSocialCreditCode, opts...).ToFunc()
-}
-
-// ByBillingAddress orders the results by the billing_address field.
-func ByBillingAddress(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBillingAddress, opts...).ToFunc()
-}
-
-// ByBillingPhone orders the results by the billing_phone field.
-func ByBillingPhone(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBillingPhone, opts...).ToFunc()
 }
 
 // ByBankName orders the results by the bank_name field.

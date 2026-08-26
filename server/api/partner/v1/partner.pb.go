@@ -3683,25 +3683,21 @@ func (x *SetSupplierBlacklistRequest) GetReason() string {
 }
 
 type PartnerAccount struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	Id                      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	PartnerRoleId           string                 `protobuf:"bytes,2,opt,name=partner_role_id,json=partnerRoleId,proto3" json:"partner_role_id,omitempty"`
-	AccountType             string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
-	Currency                string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
-	InvoiceTitle            string                 `protobuf:"bytes,5,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
-	UnifiedSocialCreditCode string                 `protobuf:"bytes,6,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
-	BillingAddress          string                 `protobuf:"bytes,7,opt,name=billing_address,json=billingAddress,proto3" json:"billing_address,omitempty"`
-	BillingPhone            string                 `protobuf:"bytes,8,opt,name=billing_phone,json=billingPhone,proto3" json:"billing_phone,omitempty"`
-	BankName                string                 `protobuf:"bytes,9,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
-	BankAccount             string                 `protobuf:"bytes,10,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	SwiftCode               string                 `protobuf:"bytes,11,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
-	IsDefault               bool                   `protobuf:"varint,12,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Status                  PartnerAccountStatus   `protobuf:"varint,13,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
-	Remark                  string                 `protobuf:"bytes,14,opt,name=remark,proto3" json:"remark,omitempty"`
-	CreatedAt               string                 `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt               string                 `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerRoleId string                 `protobuf:"bytes,2,opt,name=partner_role_id,json=partnerRoleId,proto3" json:"partner_role_id,omitempty"`
+	AccountType   string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	Currency      string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
+	BankName      string                 `protobuf:"bytes,9,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount   string                 `protobuf:"bytes,10,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	SwiftCode     string                 `protobuf:"bytes,11,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	IsDefault     bool                   `protobuf:"varint,12,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Status        PartnerAccountStatus   `protobuf:"varint,13,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
+	Remark        string                 `protobuf:"bytes,14,opt,name=remark,proto3" json:"remark,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PartnerAccount) Reset() {
@@ -3758,34 +3754,6 @@ func (x *PartnerAccount) GetAccountType() string {
 func (x *PartnerAccount) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *PartnerAccount) GetInvoiceTitle() string {
-	if x != nil {
-		return x.InvoiceTitle
-	}
-	return ""
-}
-
-func (x *PartnerAccount) GetUnifiedSocialCreditCode() string {
-	if x != nil {
-		return x.UnifiedSocialCreditCode
-	}
-	return ""
-}
-
-func (x *PartnerAccount) GetBillingAddress() string {
-	if x != nil {
-		return x.BillingAddress
-	}
-	return ""
-}
-
-func (x *PartnerAccount) GetBillingPhone() string {
-	if x != nil {
-		return x.BillingPhone
 	}
 	return ""
 }
@@ -3847,20 +3815,16 @@ func (x *PartnerAccount) GetUpdatedAt() string {
 }
 
 type PartnerAccountInput struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	Currency                string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
-	InvoiceTitle            string                 `protobuf:"bytes,2,opt,name=invoice_title,json=invoiceTitle,proto3" json:"invoice_title,omitempty"`
-	UnifiedSocialCreditCode string                 `protobuf:"bytes,3,opt,name=unified_social_credit_code,json=unifiedSocialCreditCode,proto3" json:"unified_social_credit_code,omitempty"`
-	BillingAddress          string                 `protobuf:"bytes,4,opt,name=billing_address,json=billingAddress,proto3" json:"billing_address,omitempty"`
-	BillingPhone            string                 `protobuf:"bytes,5,opt,name=billing_phone,json=billingPhone,proto3" json:"billing_phone,omitempty"`
-	BankName                string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
-	BankAccount             string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	SwiftCode               string                 `protobuf:"bytes,8,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
-	IsDefault               bool                   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Status                  PartnerAccountStatus   `protobuf:"varint,10,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
-	Remark                  string                 `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Currency      string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	BankName      string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccount   string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	SwiftCode     string                 `protobuf:"bytes,8,opt,name=swift_code,json=swiftCode,proto3" json:"swift_code,omitempty"`
+	IsDefault     bool                   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Status        PartnerAccountStatus   `protobuf:"varint,10,opt,name=status,proto3,enum=partner.v1.PartnerAccountStatus" json:"status,omitempty"`
+	Remark        string                 `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PartnerAccountInput) Reset() {
@@ -3896,34 +3860,6 @@ func (*PartnerAccountInput) Descriptor() ([]byte, []int) {
 func (x *PartnerAccountInput) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *PartnerAccountInput) GetInvoiceTitle() string {
-	if x != nil {
-		return x.InvoiceTitle
-	}
-	return ""
-}
-
-func (x *PartnerAccountInput) GetUnifiedSocialCreditCode() string {
-	if x != nil {
-		return x.UnifiedSocialCreditCode
-	}
-	return ""
-}
-
-func (x *PartnerAccountInput) GetBillingAddress() string {
-	if x != nil {
-		return x.BillingAddress
-	}
-	return ""
-}
-
-func (x *PartnerAccountInput) GetBillingPhone() string {
-	if x != nil {
-		return x.BillingPhone
 	}
 	return ""
 }
@@ -7273,16 +7209,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x1bSetSupplierBlacklistRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
 	"\vblacklisted\x18\x02 \x01(\bR\vblacklisted\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xc5\x04\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xf8\x03\n" +
 	"\x0ePartnerAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
 	"\x0fpartner_role_id\x18\x02 \x01(\tR\rpartnerRoleId\x12!\n" +
 	"\faccount_type\x18\x03 \x01(\tR\vaccountType\x12\x1a\n" +
-	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12#\n" +
-	"\rinvoice_title\x18\x05 \x01(\tR\finvoiceTitle\x12;\n" +
-	"\x1aunified_social_credit_code\x18\x06 \x01(\tR\x17unifiedSocialCreditCode\x12'\n" +
-	"\x0fbilling_address\x18\a \x01(\tR\x0ebillingAddress\x12#\n" +
-	"\rbilling_phone\x18\b \x01(\tR\fbillingPhone\x12\x1b\n" +
+	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12\x1b\n" +
 	"\tbank_name\x18\t \x01(\tR\bbankName\x12!\n" +
 	"\fbank_account\x18\n" +
 	" \x01(\tR\vbankAccount\x12\x1d\n" +
@@ -7295,13 +7227,9 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x0f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x10 \x01(\tR\tupdatedAt\"\xc0\x03\n" +
+	"updated_at\x18\x10 \x01(\tR\tupdatedAtJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bJ\x04\b\b\x10\tR\rinvoice_titleR\x1aunified_social_credit_codeR\x0fbilling_addressR\rbilling_phone\"\xee\x02\n" +
 	"\x13PartnerAccountInput\x12\x1f\n" +
-	"\bcurrency\x18\x01 \x01(\tB\x03\xe0A\x02R\bcurrency\x12(\n" +
-	"\rinvoice_title\x18\x02 \x01(\tB\x03\xe0A\x02R\finvoiceTitle\x12;\n" +
-	"\x1aunified_social_credit_code\x18\x03 \x01(\tR\x17unifiedSocialCreditCode\x12'\n" +
-	"\x0fbilling_address\x18\x04 \x01(\tR\x0ebillingAddress\x12#\n" +
-	"\rbilling_phone\x18\x05 \x01(\tR\fbillingPhone\x12\x1b\n" +
+	"\bcurrency\x18\x01 \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x1b\n" +
 	"\tbank_name\x18\x06 \x01(\tR\bbankName\x12!\n" +
 	"\fbank_account\x18\a \x01(\tR\vbankAccount\x12\x1d\n" +
 	"\n" +
@@ -7310,7 +7238,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"is_default\x18\t \x01(\bR\tisDefault\x12=\n" +
 	"\x06status\x18\n" +
 	" \x01(\x0e2 .partner.v1.PartnerAccountStatusB\x03\xe0A\x02R\x06status\x12\x16\n" +
-	"\x06remark\x18\v \x01(\tR\x06remark\"k\n" +
+	"\x06remark\x18\v \x01(\tR\x06remarkJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06R\rinvoice_titleR\x1aunified_social_credit_codeR\x0fbilling_addressR\rbilling_phone\"k\n" +
 	"\x1aListPartnerAccountsRequest\x12\"\n" +
 	"\n" +
 	"partner_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tpartnerId\x12\x1d\n" +

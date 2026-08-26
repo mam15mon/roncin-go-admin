@@ -16263,18 +16263,6 @@
           "currency": {
             "type": "string"
           },
-          "invoiceTitle": {
-            "type": "string"
-          },
-          "unifiedSocialCreditCode": {
-            "type": "string"
-          },
-          "billingAddress": {
-            "type": "string"
-          },
-          "billingPhone": {
-            "type": "string"
-          },
           "bankName": {
             "type": "string"
           },
@@ -16305,24 +16293,11 @@
       "partner.v1.PartnerAccountInput": {
         "required": [
           "currency",
-          "invoiceTitle",
           "status"
         ],
         "type": "object",
         "properties": {
           "currency": {
-            "type": "string"
-          },
-          "invoiceTitle": {
-            "type": "string"
-          },
-          "unifiedSocialCreditCode": {
-            "type": "string"
-          },
-          "billingAddress": {
-            "type": "string"
-          },
-          "billingPhone": {
             "type": "string"
           },
           "bankName": {

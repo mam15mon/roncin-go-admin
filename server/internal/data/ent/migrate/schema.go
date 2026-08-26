@@ -2554,10 +2554,6 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "account_type", Type: field.TypeEnum, Enums: []string{"customer_settlement"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
-		{Name: "invoice_title", Type: field.TypeString, Size: 200},
-		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "billing_address", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "billing_phone", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "swift_code", Type: field.TypeString, Nullable: true, Size: 32},
@@ -2574,7 +2570,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_accounts_partner_roles_accounts",
-				Columns:    []*schema.Column{PartnerAccountsColumns[15]},
+				Columns:    []*schema.Column{PartnerAccountsColumns[11]},
 				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2588,7 +2584,7 @@ var (
 			{
 				Name:    "partner_account_default_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[3]},
+				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[3]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "is_default",
 				},
@@ -2596,12 +2592,12 @@ var (
 			{
 				Name:    "partneraccount_partner_role_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[13]},
+				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[9]},
 			},
 			{
 				Name:    "partneraccount_partner_role_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAccountsColumns[15], PartnerAccountsColumns[1]},
+				Columns: []*schema.Column{PartnerAccountsColumns[11], PartnerAccountsColumns[1]},
 			},
 		},
 	}

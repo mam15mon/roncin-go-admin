@@ -583,8 +583,7 @@ func partnerImportModeFromAPI(value v1.PartnerImportMode) biz.PartnerImportMode 
 
 func partnerAccountFromAPI(value *v1.PartnerAccountInput) *biz.PartnerAccount {
 	return &biz.PartnerAccount{
-		Currency: value.GetCurrency(), InvoiceTitle: value.GetInvoiceTitle(), UnifiedSocialCreditCode: value.GetUnifiedSocialCreditCode(),
-		BillingAddress: value.GetBillingAddress(), BillingPhone: value.GetBillingPhone(), BankName: value.GetBankName(), BankAccount: value.GetBankAccount(),
+		Currency: value.GetCurrency(), BankName: value.GetBankName(), BankAccount: value.GetBankAccount(),
 		SwiftCode: value.GetSwiftCode(), IsDefault: value.GetIsDefault(), Status: partnerAccountStatusFromAPI(value.GetStatus()), Remark: value.GetRemark(),
 	}
 }
@@ -642,8 +641,7 @@ func partnerContractStatusToAPI(value biz.PartnerContractStatus) v1.PartnerContr
 func partnerAccountToAPI(value *biz.PartnerAccount) *v1.PartnerAccount {
 	return &v1.PartnerAccount{
 		Id: value.ID.String(), PartnerRoleId: value.PartnerRoleID.String(), AccountType: value.AccountType,
-		Currency: value.Currency, InvoiceTitle: value.InvoiceTitle, UnifiedSocialCreditCode: value.UnifiedSocialCreditCode,
-		BillingAddress: value.BillingAddress, BillingPhone: value.BillingPhone, BankName: value.BankName, BankAccount: value.BankAccount,
+		Currency: value.Currency, BankName: value.BankName, BankAccount: value.BankAccount,
 		SwiftCode: value.SwiftCode, IsDefault: value.IsDefault, Status: partnerAccountStatusToAPI(value.Status), Remark: value.Remark,
 		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
 	}

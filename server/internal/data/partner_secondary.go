@@ -84,18 +84,12 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 		SetPartnerRoleID(role.ID).
 		SetAccountType(partneraccountent.AccountTypeCustomerSettlement).
 		SetCurrency(input.Currency).
-		SetInvoiceTitle(input.InvoiceTitle).
-		SetBillingAddress(input.BillingAddress).
-		SetBillingPhone(input.BillingPhone).
 		SetBankName(input.BankName).
 		SetBankAccount(input.BankAccount).
 		SetSwiftCode(input.SwiftCode).
 		SetIsDefault(input.IsDefault).
 		SetStatus(partneraccountent.Status(input.Status)).
 		SetRemark(input.Remark)
-	if input.UnifiedSocialCreditCode != "" {
-		created.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
-	}
 	item, err := created.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -141,12 +135,7 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 			return nil, err
 		}
 	}
-	update := existing.Update().SetCurrency(input.Currency).SetInvoiceTitle(input.InvoiceTitle).SetBillingAddress(input.BillingAddress).SetBillingPhone(input.BillingPhone).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark)
-	if input.UnifiedSocialCreditCode == "" {
-		update.ClearUnifiedSocialCreditCode()
-	} else {
-		update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
-	}
+	update := existing.Update().SetCurrency(input.Currency).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark)
 	updated, err := update.Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -262,11 +251,7 @@ func mapPartnerSecondaryConstraint(err error) error {
 }
 
 func partnerAccountToBiz(item *ent.PartnerAccount) *biz.PartnerAccount {
-	result := &biz.PartnerAccount{ID: item.ID, PartnerRoleID: item.PartnerRoleID, AccountType: string(item.AccountType), Currency: item.Currency, InvoiceTitle: item.InvoiceTitle, BillingAddress: item.BillingAddress, BillingPhone: item.BillingPhone, BankName: item.BankName, BankAccount: item.BankAccount, SwiftCode: item.SwiftCode, IsDefault: item.IsDefault, Status: biz.PartnerAccountStatus(item.Status), Remark: item.Remark, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
-	if item.UnifiedSocialCreditCode != nil {
-		result.UnifiedSocialCreditCode = *item.UnifiedSocialCreditCode
-	}
-	return result
+	return &biz.PartnerAccount{ID: item.ID, PartnerRoleID: item.PartnerRoleID, AccountType: string(item.AccountType), Currency: item.Currency, BankName: item.BankName, BankAccount: item.BankAccount, SwiftCode: item.SwiftCode, IsDefault: item.IsDefault, Status: biz.PartnerAccountStatus(item.Status), Remark: item.Remark, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func partnerContractToBiz(item *ent.PartnerContract) *biz.PartnerContract {

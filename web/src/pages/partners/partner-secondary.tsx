@@ -40,11 +40,11 @@ import {
   partnerServiceCreatePartnerAccount,
   partnerServiceCreatePartnerContract,
   partnerServiceCreatePartnerSettlementRule,
+  partnerServiceGetPartnerInvoiceProfile,
   partnerServiceListPartnerAccounts,
   partnerServiceListPartnerAttachments,
   partnerServiceListPartnerContracts,
   partnerServiceListPartnerSettlementRules,
-  partnerServiceGetPartnerInvoiceProfile,
   partnerServiceRegisterPartnerAttachment,
   partnerServiceSavePartnerInvoiceProfile,
   partnerServiceUpdatePartnerAccount,
@@ -287,12 +287,6 @@ export default function PartnerSecondary({
 
   const accountColumns: ProColumns<API.PartnerAccount>[] = [
     {
-      title: '发票抬头',
-      dataIndex: 'invoiceTitle',
-      ellipsis: true,
-      render: (t) => <Text strong>{t}</Text>,
-    },
-    {
       title: '结算币种',
       dataIndex: 'currency',
       width: 100,
@@ -459,7 +453,7 @@ export default function PartnerSecondary({
       showIcon
       type="info"
       message="无需结算账户配置"
-      description="该往来单位当前未分配客户角色，仅客户身份支持配置发票开票与结算银行账户。"
+      description="该往来单位当前未分配客户角色，仅客户身份支持配置结算银行账户。"
       style={{ margin: '16px 0' }}
     />
   );
@@ -999,7 +993,6 @@ export default function PartnerSecondary({
           const account: API.PartnerAccountInput = {
             ...values,
             currency: values.currency.trim(),
-            invoiceTitle: values.invoiceTitle.trim(),
           };
           if (editingAccount?.id) {
             await partnerServiceUpdatePartnerAccount(
@@ -1042,27 +1035,6 @@ export default function PartnerSecondary({
           <ProFormSwitch name="isDefault" label="设为默认结算账户" />
         </Space>
         <ProFormText
-          name="invoiceTitle"
-          label="开票发票抬头"
-          placeholder="请输入增值税发票抬头"
-          rules={[{ required: true, message: '请输入发票抬头' }]}
-        />
-        <ProFormText
-          name="unifiedSocialCreditCode"
-          label="纳税人识别号 / 统一社会信用代码"
-          placeholder="18位纳税人识别号"
-        />
-        <ProFormText
-          name="billingAddress"
-          label="开票法定注册地址"
-          placeholder="请输入开票地址"
-        />
-        <ProFormText
-          name="billingPhone"
-          label="开票联系电话"
-          placeholder="请输入开票电话"
-        />
-        <ProFormText
           name="bankName"
           label="开户银行名称及支行"
           placeholder="例如：中国工商银行上海自贸试验区分行"
@@ -1080,7 +1052,7 @@ export default function PartnerSecondary({
         <ProFormTextArea
           name="remark"
           label="备注说明"
-          placeholder="请输入其他开票说明"
+          placeholder="请输入其他结算说明"
           fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
         />
       </ModalForm>

@@ -29,22 +29,18 @@ func (s PartnerAccountStatus) Valid() bool {
 }
 
 type PartnerAccount struct {
-	ID                      uuid.UUID
-	PartnerRoleID           uuid.UUID
-	AccountType             string
-	Currency                string
-	InvoiceTitle            string
-	UnifiedSocialCreditCode string
-	BillingAddress          string
-	BillingPhone            string
-	BankName                string
-	BankAccount             string
-	SwiftCode               string
-	IsDefault               bool
-	Status                  PartnerAccountStatus
-	Remark                  string
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
+	ID            uuid.UUID
+	PartnerRoleID uuid.UUID
+	AccountType   string
+	Currency      string
+	BankName      string
+	BankAccount   string
+	SwiftCode     string
+	IsDefault     bool
+	Status        PartnerAccountStatus
+	Remark        string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type PartnerAccountRepo interface {
@@ -108,18 +104,11 @@ func normalizePartnerAccount(input *PartnerAccount) (*PartnerAccount, error) {
 	}
 	output := *input
 	output.Currency = strings.ToUpper(strings.TrimSpace(output.Currency))
-	output.InvoiceTitle = strings.TrimSpace(output.InvoiceTitle)
-	output.UnifiedSocialCreditCode = strings.ToUpper(strings.TrimSpace(output.UnifiedSocialCreditCode))
-	output.BillingAddress = strings.TrimSpace(output.BillingAddress)
-	output.BillingPhone = strings.TrimSpace(output.BillingPhone)
 	output.BankName = strings.TrimSpace(output.BankName)
 	output.BankAccount = strings.TrimSpace(output.BankAccount)
 	output.SwiftCode = strings.ToUpper(strings.TrimSpace(output.SwiftCode))
 	output.Remark = strings.TrimSpace(output.Remark)
-	if len(output.Currency) != 3 || output.InvoiceTitle == "" || !output.Status.Valid() || utf8.RuneCountInString(output.InvoiceTitle) > 200 || utf8.RuneCountInString(output.BillingAddress) > 500 || utf8.RuneCountInString(output.Remark) > 500 {
-		return nil, ErrPartnerAccountInvalidArgument
-	}
-	if output.UnifiedSocialCreditCode != "" && !validUnifiedSocialCreditCode(output.UnifiedSocialCreditCode) {
+	if len(output.Currency) != 3 || !output.Status.Valid() || utf8.RuneCountInString(output.BankName) > 200 || utf8.RuneCountInString(output.BankAccount) > 100 || utf8.RuneCountInString(output.SwiftCode) > 32 || utf8.RuneCountInString(output.Remark) > 500 {
 		return nil, ErrPartnerAccountInvalidArgument
 	}
 	if output.IsDefault && output.Status != PartnerAccountActive {

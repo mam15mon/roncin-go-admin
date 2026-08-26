@@ -2782,10 +2782,6 @@ declare namespace API {
     partnerRoleId?: string;
     accountType?: string;
     currency?: string;
-    invoiceTitle?: string;
-    unifiedSocialCreditCode?: string;
-    billingAddress?: string;
-    billingPhone?: string;
     bankName?: string;
     bankAccount?: string;
     swiftCode?: string;
@@ -2798,10 +2794,6 @@ declare namespace API {
 
   type PartnerAccountInput = {
     currency: string;
-    invoiceTitle: string;
-    unifiedSocialCreditCode?: string;
-    billingAddress?: string;
-    billingPhone?: string;
     bankName?: string;
     bankAccount?: string;
     swiftCode?: string;

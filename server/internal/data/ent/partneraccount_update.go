@@ -78,80 +78,6 @@ func (_u *PartnerAccountUpdate) SetNillableCurrency(v *string) *PartnerAccountUp
 	return _u
 }
 
-// SetInvoiceTitle sets the "invoice_title" field.
-func (_u *PartnerAccountUpdate) SetInvoiceTitle(v string) *PartnerAccountUpdate {
-	_u.mutation.SetInvoiceTitle(v)
-	return _u
-}
-
-// SetNillableInvoiceTitle sets the "invoice_title" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableInvoiceTitle(v *string) *PartnerAccountUpdate {
-	if v != nil {
-		_u.SetInvoiceTitle(*v)
-	}
-	return _u
-}
-
-// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
-func (_u *PartnerAccountUpdate) SetUnifiedSocialCreditCode(v string) *PartnerAccountUpdate {
-	_u.mutation.SetUnifiedSocialCreditCode(v)
-	return _u
-}
-
-// SetNillableUnifiedSocialCreditCode sets the "unified_social_credit_code" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableUnifiedSocialCreditCode(v *string) *PartnerAccountUpdate {
-	if v != nil {
-		_u.SetUnifiedSocialCreditCode(*v)
-	}
-	return _u
-}
-
-// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
-func (_u *PartnerAccountUpdate) ClearUnifiedSocialCreditCode() *PartnerAccountUpdate {
-	_u.mutation.ClearUnifiedSocialCreditCode()
-	return _u
-}
-
-// SetBillingAddress sets the "billing_address" field.
-func (_u *PartnerAccountUpdate) SetBillingAddress(v string) *PartnerAccountUpdate {
-	_u.mutation.SetBillingAddress(v)
-	return _u
-}
-
-// SetNillableBillingAddress sets the "billing_address" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableBillingAddress(v *string) *PartnerAccountUpdate {
-	if v != nil {
-		_u.SetBillingAddress(*v)
-	}
-	return _u
-}
-
-// ClearBillingAddress clears the value of the "billing_address" field.
-func (_u *PartnerAccountUpdate) ClearBillingAddress() *PartnerAccountUpdate {
-	_u.mutation.ClearBillingAddress()
-	return _u
-}
-
-// SetBillingPhone sets the "billing_phone" field.
-func (_u *PartnerAccountUpdate) SetBillingPhone(v string) *PartnerAccountUpdate {
-	_u.mutation.SetBillingPhone(v)
-	return _u
-}
-
-// SetNillableBillingPhone sets the "billing_phone" field if the given value is not nil.
-func (_u *PartnerAccountUpdate) SetNillableBillingPhone(v *string) *PartnerAccountUpdate {
-	if v != nil {
-		_u.SetBillingPhone(*v)
-	}
-	return _u
-}
-
-// ClearBillingPhone clears the value of the "billing_phone" field.
-func (_u *PartnerAccountUpdate) ClearBillingPhone() *PartnerAccountUpdate {
-	_u.mutation.ClearBillingPhone()
-	return _u
-}
-
 // SetBankName sets the "bank_name" field.
 func (_u *PartnerAccountUpdate) SetBankName(v string) *PartnerAccountUpdate {
 	_u.mutation.SetBankName(v)
@@ -324,26 +250,6 @@ func (_u *PartnerAccountUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.InvoiceTitle(); ok {
-		if err := partneraccount.InvoiceTitleValidator(v); err != nil {
-			return &ValidationError{Name: "invoice_title", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.invoice_title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
-		if err := partneraccount.UnifiedSocialCreditCodeValidator(v); err != nil {
-			return &ValidationError{Name: "unified_social_credit_code", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.unified_social_credit_code": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BillingAddress(); ok {
-		if err := partneraccount.BillingAddressValidator(v); err != nil {
-			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.billing_address": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BillingPhone(); ok {
-		if err := partneraccount.BillingPhoneValidator(v); err != nil {
-			return &ValidationError{Name: "billing_phone", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.billing_phone": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.BankName(); ok {
 		if err := partneraccount.BankNameValidator(v); err != nil {
 			return &ValidationError{Name: "bank_name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_name": %w`, err)}
@@ -395,27 +301,6 @@ func (_u *PartnerAccountUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(partneraccount.FieldCurrency, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.InvoiceTitle(); ok {
-		_spec.SetField(partneraccount.FieldInvoiceTitle, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
-		_spec.SetField(partneraccount.FieldUnifiedSocialCreditCode, field.TypeString, value)
-	}
-	if _u.mutation.UnifiedSocialCreditCodeCleared() {
-		_spec.ClearField(partneraccount.FieldUnifiedSocialCreditCode, field.TypeString)
-	}
-	if value, ok := _u.mutation.BillingAddress(); ok {
-		_spec.SetField(partneraccount.FieldBillingAddress, field.TypeString, value)
-	}
-	if _u.mutation.BillingAddressCleared() {
-		_spec.ClearField(partneraccount.FieldBillingAddress, field.TypeString)
-	}
-	if value, ok := _u.mutation.BillingPhone(); ok {
-		_spec.SetField(partneraccount.FieldBillingPhone, field.TypeString, value)
-	}
-	if _u.mutation.BillingPhoneCleared() {
-		_spec.ClearField(partneraccount.FieldBillingPhone, field.TypeString)
 	}
 	if value, ok := _u.mutation.BankName(); ok {
 		_spec.SetField(partneraccount.FieldBankName, field.TypeString, value)
@@ -541,80 +426,6 @@ func (_u *PartnerAccountUpdateOne) SetNillableCurrency(v *string) *PartnerAccoun
 	if v != nil {
 		_u.SetCurrency(*v)
 	}
-	return _u
-}
-
-// SetInvoiceTitle sets the "invoice_title" field.
-func (_u *PartnerAccountUpdateOne) SetInvoiceTitle(v string) *PartnerAccountUpdateOne {
-	_u.mutation.SetInvoiceTitle(v)
-	return _u
-}
-
-// SetNillableInvoiceTitle sets the "invoice_title" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableInvoiceTitle(v *string) *PartnerAccountUpdateOne {
-	if v != nil {
-		_u.SetInvoiceTitle(*v)
-	}
-	return _u
-}
-
-// SetUnifiedSocialCreditCode sets the "unified_social_credit_code" field.
-func (_u *PartnerAccountUpdateOne) SetUnifiedSocialCreditCode(v string) *PartnerAccountUpdateOne {
-	_u.mutation.SetUnifiedSocialCreditCode(v)
-	return _u
-}
-
-// SetNillableUnifiedSocialCreditCode sets the "unified_social_credit_code" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableUnifiedSocialCreditCode(v *string) *PartnerAccountUpdateOne {
-	if v != nil {
-		_u.SetUnifiedSocialCreditCode(*v)
-	}
-	return _u
-}
-
-// ClearUnifiedSocialCreditCode clears the value of the "unified_social_credit_code" field.
-func (_u *PartnerAccountUpdateOne) ClearUnifiedSocialCreditCode() *PartnerAccountUpdateOne {
-	_u.mutation.ClearUnifiedSocialCreditCode()
-	return _u
-}
-
-// SetBillingAddress sets the "billing_address" field.
-func (_u *PartnerAccountUpdateOne) SetBillingAddress(v string) *PartnerAccountUpdateOne {
-	_u.mutation.SetBillingAddress(v)
-	return _u
-}
-
-// SetNillableBillingAddress sets the "billing_address" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableBillingAddress(v *string) *PartnerAccountUpdateOne {
-	if v != nil {
-		_u.SetBillingAddress(*v)
-	}
-	return _u
-}
-
-// ClearBillingAddress clears the value of the "billing_address" field.
-func (_u *PartnerAccountUpdateOne) ClearBillingAddress() *PartnerAccountUpdateOne {
-	_u.mutation.ClearBillingAddress()
-	return _u
-}
-
-// SetBillingPhone sets the "billing_phone" field.
-func (_u *PartnerAccountUpdateOne) SetBillingPhone(v string) *PartnerAccountUpdateOne {
-	_u.mutation.SetBillingPhone(v)
-	return _u
-}
-
-// SetNillableBillingPhone sets the "billing_phone" field if the given value is not nil.
-func (_u *PartnerAccountUpdateOne) SetNillableBillingPhone(v *string) *PartnerAccountUpdateOne {
-	if v != nil {
-		_u.SetBillingPhone(*v)
-	}
-	return _u
-}
-
-// ClearBillingPhone clears the value of the "billing_phone" field.
-func (_u *PartnerAccountUpdateOne) ClearBillingPhone() *PartnerAccountUpdateOne {
-	_u.mutation.ClearBillingPhone()
 	return _u
 }
 
@@ -803,26 +614,6 @@ func (_u *PartnerAccountUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.InvoiceTitle(); ok {
-		if err := partneraccount.InvoiceTitleValidator(v); err != nil {
-			return &ValidationError{Name: "invoice_title", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.invoice_title": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
-		if err := partneraccount.UnifiedSocialCreditCodeValidator(v); err != nil {
-			return &ValidationError{Name: "unified_social_credit_code", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.unified_social_credit_code": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BillingAddress(); ok {
-		if err := partneraccount.BillingAddressValidator(v); err != nil {
-			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.billing_address": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.BillingPhone(); ok {
-		if err := partneraccount.BillingPhoneValidator(v); err != nil {
-			return &ValidationError{Name: "billing_phone", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.billing_phone": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.BankName(); ok {
 		if err := partneraccount.BankNameValidator(v); err != nil {
 			return &ValidationError{Name: "bank_name", err: fmt.Errorf(`ent: validator failed for field "PartnerAccount.bank_name": %w`, err)}
@@ -891,27 +682,6 @@ func (_u *PartnerAccountUpdateOne) sqlSave(ctx context.Context) (_node *PartnerA
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(partneraccount.FieldCurrency, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.InvoiceTitle(); ok {
-		_spec.SetField(partneraccount.FieldInvoiceTitle, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.UnifiedSocialCreditCode(); ok {
-		_spec.SetField(partneraccount.FieldUnifiedSocialCreditCode, field.TypeString, value)
-	}
-	if _u.mutation.UnifiedSocialCreditCodeCleared() {
-		_spec.ClearField(partneraccount.FieldUnifiedSocialCreditCode, field.TypeString)
-	}
-	if value, ok := _u.mutation.BillingAddress(); ok {
-		_spec.SetField(partneraccount.FieldBillingAddress, field.TypeString, value)
-	}
-	if _u.mutation.BillingAddressCleared() {
-		_spec.ClearField(partneraccount.FieldBillingAddress, field.TypeString)
-	}
-	if value, ok := _u.mutation.BillingPhone(); ok {
-		_spec.SetField(partneraccount.FieldBillingPhone, field.TypeString, value)
-	}
-	if _u.mutation.BillingPhoneCleared() {
-		_spec.ClearField(partneraccount.FieldBillingPhone, field.TypeString)
 	}
 	if value, ok := _u.mutation.BankName(); ok {
 		_spec.SetField(partneraccount.FieldBankName, field.TypeString, value)

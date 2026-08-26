@@ -29,14 +29,6 @@ type PartnerAccount struct {
 	AccountType partneraccount.AccountType `json:"account_type,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
-	// InvoiceTitle holds the value of the "invoice_title" field.
-	InvoiceTitle string `json:"invoice_title,omitempty"`
-	// UnifiedSocialCreditCode holds the value of the "unified_social_credit_code" field.
-	UnifiedSocialCreditCode *string `json:"unified_social_credit_code,omitempty"`
-	// BillingAddress holds the value of the "billing_address" field.
-	BillingAddress string `json:"billing_address,omitempty"`
-	// BillingPhone holds the value of the "billing_phone" field.
-	BillingPhone string `json:"billing_phone,omitempty"`
 	// BankName holds the value of the "bank_name" field.
 	BankName string `json:"bank_name,omitempty"`
 	// BankAccount holds the value of the "bank_account" field.
@@ -82,7 +74,7 @@ func (*PartnerAccount) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partneraccount.FieldIsDefault:
 			values[i] = new(sql.NullBool)
-		case partneraccount.FieldAccountType, partneraccount.FieldCurrency, partneraccount.FieldInvoiceTitle, partneraccount.FieldUnifiedSocialCreditCode, partneraccount.FieldBillingAddress, partneraccount.FieldBillingPhone, partneraccount.FieldBankName, partneraccount.FieldBankAccount, partneraccount.FieldSwiftCode, partneraccount.FieldStatus, partneraccount.FieldRemark:
+		case partneraccount.FieldAccountType, partneraccount.FieldCurrency, partneraccount.FieldBankName, partneraccount.FieldBankAccount, partneraccount.FieldSwiftCode, partneraccount.FieldStatus, partneraccount.FieldRemark:
 			values[i] = new(sql.NullString)
 		case partneraccount.FieldCreatedAt, partneraccount.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -138,31 +130,6 @@ func (_m *PartnerAccount) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
 			} else if value.Valid {
 				_m.Currency = value.String
-			}
-		case partneraccount.FieldInvoiceTitle:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field invoice_title", values[i])
-			} else if value.Valid {
-				_m.InvoiceTitle = value.String
-			}
-		case partneraccount.FieldUnifiedSocialCreditCode:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field unified_social_credit_code", values[i])
-			} else if value.Valid {
-				_m.UnifiedSocialCreditCode = new(string)
-				*_m.UnifiedSocialCreditCode = value.String
-			}
-		case partneraccount.FieldBillingAddress:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field billing_address", values[i])
-			} else if value.Valid {
-				_m.BillingAddress = value.String
-			}
-		case partneraccount.FieldBillingPhone:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field billing_phone", values[i])
-			} else if value.Valid {
-				_m.BillingPhone = value.String
 			}
 		case partneraccount.FieldBankName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -255,20 +222,6 @@ func (_m *PartnerAccount) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
-	builder.WriteString(", ")
-	builder.WriteString("invoice_title=")
-	builder.WriteString(_m.InvoiceTitle)
-	builder.WriteString(", ")
-	if v := _m.UnifiedSocialCreditCode; v != nil {
-		builder.WriteString("unified_social_credit_code=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	builder.WriteString("billing_address=")
-	builder.WriteString(_m.BillingAddress)
-	builder.WriteString(", ")
-	builder.WriteString("billing_phone=")
-	builder.WriteString(_m.BillingPhone)
 	builder.WriteString(", ")
 	builder.WriteString("bank_name=")
 	builder.WriteString(_m.BankName)
