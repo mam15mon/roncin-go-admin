@@ -10,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { PageHeaderShell } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import {
   orderServiceCheckOrderReference,
@@ -469,6 +470,18 @@ export default function NewOrderPage() {
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
+      header={
+        <PageHeaderShell
+          title={<span style={{ fontSize: 16, fontWeight: 600 }}>新建{config.title}</span>}
+          subTitle="填写业务委托与配舱信息"
+          breadcrumbs={[
+            { label: '订单管理' },
+            { label: config.title, onClick: () => history.push(`/orders/${config.kind}`) },
+            { label: '新建订单' },
+          ]}
+          onBack={() => history.push(`/orders/${config.kind}`)}
+        />
+      }
       sections={sections}
       initialValues={{
         orderDate: dayjs(),
