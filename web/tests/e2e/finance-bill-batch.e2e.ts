@@ -6,9 +6,7 @@ function requiredEnvironment(name: string) {
   return value;
 }
 
-test('费用、账单、开票、收付与核销页面可完成财务闭环操作', async ({
-  page,
-}) => {
+test('费用、账单、开票、收付与核销页面可完成财务闭环操作', async ({ page }) => {
   await page.goto('/user/login');
   await page
     .getByPlaceholder('用户名 / 邮箱')
@@ -73,7 +71,10 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
     partnerDrawer.locator('.ant-table-tbody > tr.ant-table-row').nth(1),
   ).toBeVisible();
   await expect(
-    partnerDrawer.locator('.ant-tag').filter({ hasText: /^默认$/ }).first(),
+    partnerDrawer
+      .locator('.ant-tag')
+      .filter({ hasText: /^默认$/ })
+      .first(),
   ).toBeVisible();
 
   await page.goto('/finance/invoices');
@@ -133,13 +134,54 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   await verificationDialog
     .getByRole('button', { name: '按余额自动分配' })
     .click();
-  await expect(
-    verificationDialog.getByLabel('第 1 行核销金额'),
-  ).toBeVisible();
+  await expect(verificationDialog.getByLabel('第 1 行核销金额')).toBeVisible();
   const submitVerification = verificationDialog.getByRole('button', {
     name: /提交核销/,
   });
   await expect(submitVerification).toBeEnabled();
   await submitVerification.click();
   await expect(verificationDialog).toBeHidden();
+
+  await page.goto('/finance/commissions');
+  await expect(
+    page.getByTestId('pro-table').getByText('提成管理', { exact: true }),
+  ).toBeVisible();
+  const commissions = await page.evaluate(async () => {
+    const response = await fetch(
+      '/api/v1/finance/commissions?page=1&pageSize=200',
+    );
+    return response.json();
+  });
+  const explainableCommission = commissions.data?.find(
+    (item: { calculationVersion?: string; commissionNo?: string }) =>
+      item.calculationVersion === 'ORDER_LINE_V1' && item.commissionNo,
+  );
+  expect(explainableCommission?.commissionNo).toBeTruthy();
+  const commissionRow = page
+    .locator('.ant-table-tbody > tr.ant-table-row')
+    .filter({ hasText: explainableCommission.commissionNo })
+    .first();
+  await expect(commissionRow).toBeVisible();
+  await commissionRow.getByText('明细', { exact: true }).click();
+  const commissionDrawer = page.getByRole('dialog', {
+    name: new RegExp(`提成明细.*${explainableCommission.commissionNo}`),
+  });
+  await expect(commissionDrawer).toBeVisible();
+  await expect(
+    commissionDrawer.getByText('逐订单计算快照', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    commissionDrawer.locator('.ant-table-tbody > tr.ant-table-row').first(),
+  ).toBeVisible();
+  await commissionDrawer.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('button', { name: '生成提成' }).click();
+  const commissionDialog = page.getByRole('dialog', { name: '生成提成' });
+  await expect(commissionDialog).toBeVisible();
+  await expect(
+    commissionDialog.getByText('生成前必须计算预览', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    commissionDialog.getByRole('button', { name: '计算并核对预览' }),
+  ).toBeDisabled();
 });

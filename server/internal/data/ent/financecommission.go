@@ -48,6 +48,12 @@ type FinanceCommission struct {
 	PersonnelRole *string `json:"personnel_role,omitempty"`
 	// CalculationBasis holds the value of the "calculation_basis" field.
 	CalculationBasis *string `json:"calculation_basis,omitempty"`
+	// RuleVersion holds the value of the "rule_version" field.
+	RuleVersion uint64 `json:"rule_version,omitempty"`
+	// CalculationVersion holds the value of the "calculation_version" field.
+	CalculationVersion string `json:"calculation_version,omitempty"`
+	// SourceFingerprint holds the value of the "source_fingerprint" field.
+	SourceFingerprint string `json:"source_fingerprint,omitempty"`
 	// Status holds the value of the "status" field.
 	Status financecommission.Status `json:"status,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
@@ -102,9 +108,11 @@ type FinanceCommissionEdges struct {
 	PaidByUser *User `json:"paid_by_user,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
+	// Lines holds the value of the lines edge.
+	Lines []*FinanceCommissionLine `json:"lines,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -184,6 +192,15 @@ func (e FinanceCommissionEdges) CancelledByUserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
 }
 
+// LinesOrErr returns the Lines value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceCommissionEdges) LinesOrErr() ([]*FinanceCommissionLine, error) {
+	if e.loadedTypes[7] {
+		return e.Lines, nil
+	}
+	return nil, &NotLoadedError{edge: "lines"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -191,9 +208,9 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financecommission.FieldRuleID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case financecommission.FieldVersion:
+		case financecommission.FieldRuleVersion, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -301,6 +318,24 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.CalculationBasis = new(string)
 				*_m.CalculationBasis = value.String
+			}
+		case financecommission.FieldRuleVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field rule_version", values[i])
+			} else if value.Valid {
+				_m.RuleVersion = uint64(value.Int64)
+			}
+		case financecommission.FieldCalculationVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field calculation_version", values[i])
+			} else if value.Valid {
+				_m.CalculationVersion = value.String
+			}
+		case financecommission.FieldSourceFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_fingerprint", values[i])
+			} else if value.Valid {
+				_m.SourceFingerprint = value.String
 			}
 		case financecommission.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -454,6 +489,11 @@ func (_m *FinanceCommission) QueryCancelledByUser() *UserQuery {
 	return NewFinanceCommissionClient(_m.config).QueryCancelledByUser(_m)
 }
 
+// QueryLines queries the "lines" edge of the FinanceCommission entity.
+func (_m *FinanceCommission) QueryLines() *FinanceCommissionLineQuery {
+	return NewFinanceCommissionClient(_m.config).QueryLines(_m)
+}
+
 // Update returns a builder for updating this FinanceCommission.
 // Note that you need to call FinanceCommission.Unwrap() before calling this method if this FinanceCommission
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -523,6 +563,15 @@ func (_m *FinanceCommission) String() string {
 		builder.WriteString("calculation_basis=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("rule_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RuleVersion))
+	builder.WriteString(", ")
+	builder.WriteString("calculation_version=")
+	builder.WriteString(_m.CalculationVersion)
+	builder.WriteString(", ")
+	builder.WriteString("source_fingerprint=")
+	builder.WriteString(_m.SourceFingerprint)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

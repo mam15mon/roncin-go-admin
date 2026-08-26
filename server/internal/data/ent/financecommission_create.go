@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -147,6 +148,48 @@ func (_c *FinanceCommissionCreate) SetCalculationBasis(v string) *FinanceCommiss
 func (_c *FinanceCommissionCreate) SetNillableCalculationBasis(v *string) *FinanceCommissionCreate {
 	if v != nil {
 		_c.SetCalculationBasis(*v)
+	}
+	return _c
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (_c *FinanceCommissionCreate) SetRuleVersion(v uint64) *FinanceCommissionCreate {
+	_c.mutation.SetRuleVersion(v)
+	return _c
+}
+
+// SetNillableRuleVersion sets the "rule_version" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableRuleVersion(v *uint64) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetRuleVersion(*v)
+	}
+	return _c
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (_c *FinanceCommissionCreate) SetCalculationVersion(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCalculationVersion(v)
+	return _c
+}
+
+// SetNillableCalculationVersion sets the "calculation_version" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableCalculationVersion(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetCalculationVersion(*v)
+	}
+	return _c
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (_c *FinanceCommissionCreate) SetSourceFingerprint(v string) *FinanceCommissionCreate {
+	_c.mutation.SetSourceFingerprint(v)
+	return _c
+}
+
+// SetNillableSourceFingerprint sets the "source_fingerprint" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableSourceFingerprint(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetSourceFingerprint(*v)
 	}
 	return _c
 }
@@ -418,6 +461,21 @@ func (_c *FinanceCommissionCreate) SetCancelledByUser(v *User) *FinanceCommissio
 	return _c.SetCancelledByUserID(v.ID)
 }
 
+// AddLineIDs adds the "lines" edge to the FinanceCommissionLine entity by IDs.
+func (_c *FinanceCommissionCreate) AddLineIDs(ids ...uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.AddLineIDs(ids...)
+	return _c
+}
+
+// AddLines adds the "lines" edges to the FinanceCommissionLine entity.
+func (_c *FinanceCommissionCreate) AddLines(v ...*FinanceCommissionLine) *FinanceCommissionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLineIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_c *FinanceCommissionCreate) Mutation() *FinanceCommissionMutation {
 	return _c.mutation
@@ -460,6 +518,18 @@ func (_c *FinanceCommissionCreate) defaults() {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		v := financecommission.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.RuleVersion(); !ok {
+		v := financecommission.DefaultRuleVersion
+		_c.mutation.SetRuleVersion(v)
+	}
+	if _, ok := _c.mutation.CalculationVersion(); !ok {
+		v := financecommission.DefaultCalculationVersion
+		_c.mutation.SetCalculationVersion(v)
+	}
+	if _, ok := _c.mutation.SourceFingerprint(); !ok {
+		v := financecommission.DefaultSourceFingerprint
+		_c.mutation.SetSourceFingerprint(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financecommission.DefaultStatus
@@ -537,6 +607,25 @@ func (_c *FinanceCommissionCreate) check() error {
 	if v, ok := _c.mutation.CalculationBasis(); ok {
 		if err := financecommission.CalculationBasisValidator(v); err != nil {
 			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_basis": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.RuleVersion(); !ok {
+		return &ValidationError{Name: "rule_version", err: errors.New(`ent: missing required field "FinanceCommission.rule_version"`)}
+	}
+	if _, ok := _c.mutation.CalculationVersion(); !ok {
+		return &ValidationError{Name: "calculation_version", err: errors.New(`ent: missing required field "FinanceCommission.calculation_version"`)}
+	}
+	if v, ok := _c.mutation.CalculationVersion(); ok {
+		if err := financecommission.CalculationVersionValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_version", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_version": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SourceFingerprint(); !ok {
+		return &ValidationError{Name: "source_fingerprint", err: errors.New(`ent: missing required field "FinanceCommission.source_fingerprint"`)}
+	}
+	if v, ok := _c.mutation.SourceFingerprint(); ok {
+		if err := financecommission.SourceFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "source_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.source_fingerprint": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
@@ -662,6 +751,18 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.CalculationBasis(); ok {
 		_spec.SetField(financecommission.FieldCalculationBasis, field.TypeString, value)
 		_node.CalculationBasis = &value
+	}
+	if value, ok := _c.mutation.RuleVersion(); ok {
+		_spec.SetField(financecommission.FieldRuleVersion, field.TypeUint64, value)
+		_node.RuleVersion = value
+	}
+	if value, ok := _c.mutation.CalculationVersion(); ok {
+		_spec.SetField(financecommission.FieldCalculationVersion, field.TypeString, value)
+		_node.CalculationVersion = value
+	}
+	if value, ok := _c.mutation.SourceFingerprint(); ok {
+		_spec.SetField(financecommission.FieldSourceFingerprint, field.TypeString, value)
+		_node.SourceFingerprint = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
@@ -832,6 +933,22 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CancelledBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.LinesTable,
+			Columns: []string{financecommission.LinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -121,6 +121,21 @@ func CalculationBasis(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldCalculationBasis, v))
 }
 
+// RuleVersion applies equality check predicate on the "rule_version" field. It's identical to RuleVersionEQ.
+func RuleVersion(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleVersion, v))
+}
+
+// CalculationVersion applies equality check predicate on the "calculation_version" field. It's identical to CalculationVersionEQ.
+func CalculationVersion(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCalculationVersion, v))
+}
+
+// SourceFingerprint applies equality check predicate on the "source_fingerprint" field. It's identical to SourceFingerprintEQ.
+func SourceFingerprint(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldSourceFingerprint, v))
+}
+
 // BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
 func BaseCurrency(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldBaseCurrency, v))
@@ -849,6 +864,176 @@ func CalculationBasisEqualFold(v string) predicate.FinanceCommission {
 // CalculationBasisContainsFold applies the ContainsFold predicate on the "calculation_basis" field.
 func CalculationBasisContainsFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCalculationBasis, v))
+}
+
+// RuleVersionEQ applies the EQ predicate on the "rule_version" field.
+func RuleVersionEQ(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldRuleVersion, v))
+}
+
+// RuleVersionNEQ applies the NEQ predicate on the "rule_version" field.
+func RuleVersionNEQ(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldRuleVersion, v))
+}
+
+// RuleVersionIn applies the In predicate on the "rule_version" field.
+func RuleVersionIn(vs ...uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldRuleVersion, vs...))
+}
+
+// RuleVersionNotIn applies the NotIn predicate on the "rule_version" field.
+func RuleVersionNotIn(vs ...uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldRuleVersion, vs...))
+}
+
+// RuleVersionGT applies the GT predicate on the "rule_version" field.
+func RuleVersionGT(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldRuleVersion, v))
+}
+
+// RuleVersionGTE applies the GTE predicate on the "rule_version" field.
+func RuleVersionGTE(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldRuleVersion, v))
+}
+
+// RuleVersionLT applies the LT predicate on the "rule_version" field.
+func RuleVersionLT(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldRuleVersion, v))
+}
+
+// RuleVersionLTE applies the LTE predicate on the "rule_version" field.
+func RuleVersionLTE(v uint64) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldRuleVersion, v))
+}
+
+// CalculationVersionEQ applies the EQ predicate on the "calculation_version" field.
+func CalculationVersionEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCalculationVersion, v))
+}
+
+// CalculationVersionNEQ applies the NEQ predicate on the "calculation_version" field.
+func CalculationVersionNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCalculationVersion, v))
+}
+
+// CalculationVersionIn applies the In predicate on the "calculation_version" field.
+func CalculationVersionIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCalculationVersion, vs...))
+}
+
+// CalculationVersionNotIn applies the NotIn predicate on the "calculation_version" field.
+func CalculationVersionNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCalculationVersion, vs...))
+}
+
+// CalculationVersionGT applies the GT predicate on the "calculation_version" field.
+func CalculationVersionGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCalculationVersion, v))
+}
+
+// CalculationVersionGTE applies the GTE predicate on the "calculation_version" field.
+func CalculationVersionGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCalculationVersion, v))
+}
+
+// CalculationVersionLT applies the LT predicate on the "calculation_version" field.
+func CalculationVersionLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCalculationVersion, v))
+}
+
+// CalculationVersionLTE applies the LTE predicate on the "calculation_version" field.
+func CalculationVersionLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCalculationVersion, v))
+}
+
+// CalculationVersionContains applies the Contains predicate on the "calculation_version" field.
+func CalculationVersionContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCalculationVersion, v))
+}
+
+// CalculationVersionHasPrefix applies the HasPrefix predicate on the "calculation_version" field.
+func CalculationVersionHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCalculationVersion, v))
+}
+
+// CalculationVersionHasSuffix applies the HasSuffix predicate on the "calculation_version" field.
+func CalculationVersionHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCalculationVersion, v))
+}
+
+// CalculationVersionEqualFold applies the EqualFold predicate on the "calculation_version" field.
+func CalculationVersionEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCalculationVersion, v))
+}
+
+// CalculationVersionContainsFold applies the ContainsFold predicate on the "calculation_version" field.
+func CalculationVersionContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCalculationVersion, v))
+}
+
+// SourceFingerprintEQ applies the EQ predicate on the "source_fingerprint" field.
+func SourceFingerprintEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintNEQ applies the NEQ predicate on the "source_fingerprint" field.
+func SourceFingerprintNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintIn applies the In predicate on the "source_fingerprint" field.
+func SourceFingerprintIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldSourceFingerprint, vs...))
+}
+
+// SourceFingerprintNotIn applies the NotIn predicate on the "source_fingerprint" field.
+func SourceFingerprintNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldSourceFingerprint, vs...))
+}
+
+// SourceFingerprintGT applies the GT predicate on the "source_fingerprint" field.
+func SourceFingerprintGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintGTE applies the GTE predicate on the "source_fingerprint" field.
+func SourceFingerprintGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintLT applies the LT predicate on the "source_fingerprint" field.
+func SourceFingerprintLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintLTE applies the LTE predicate on the "source_fingerprint" field.
+func SourceFingerprintLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintContains applies the Contains predicate on the "source_fingerprint" field.
+func SourceFingerprintContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintHasPrefix applies the HasPrefix predicate on the "source_fingerprint" field.
+func SourceFingerprintHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintHasSuffix applies the HasSuffix predicate on the "source_fingerprint" field.
+func SourceFingerprintHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintEqualFold applies the EqualFold predicate on the "source_fingerprint" field.
+func SourceFingerprintEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldSourceFingerprint, v))
+}
+
+// SourceFingerprintContainsFold applies the ContainsFold predicate on the "source_fingerprint" field.
+func SourceFingerprintContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldSourceFingerprint, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -1844,6 +2029,29 @@ func HasCancelledByUser() predicate.FinanceCommission {
 func HasCancelledByUserWith(preds ...predicate.User) predicate.FinanceCommission {
 	return predicate.FinanceCommission(func(s *sql.Selector) {
 		step := newCancelledByUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLines applies the HasEdge predicate on the "lines" edge.
+func HasLines() predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLinesWith applies the HasEdge predicate on the "lines" edge with a given conditions (other predicates).
+func HasLinesWith(preds ...predicate.FinanceCommissionLine) predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := newLinesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

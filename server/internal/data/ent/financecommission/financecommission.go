@@ -42,6 +42,12 @@ const (
 	FieldPersonnelRole = "personnel_role"
 	// FieldCalculationBasis holds the string denoting the calculation_basis field in the database.
 	FieldCalculationBasis = "calculation_basis"
+	// FieldRuleVersion holds the string denoting the rule_version field in the database.
+	FieldRuleVersion = "rule_version"
+	// FieldCalculationVersion holds the string denoting the calculation_version field in the database.
+	FieldCalculationVersion = "calculation_version"
+	// FieldSourceFingerprint holds the string denoting the source_fingerprint field in the database.
+	FieldSourceFingerprint = "source_fingerprint"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
@@ -88,6 +94,8 @@ const (
 	EdgePaidByUser = "paid_by_user"
 	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
 	EdgeCancelledByUser = "cancelled_by_user"
+	// EdgeLines holds the string denoting the lines edge name in mutations.
+	EdgeLines = "lines"
 	// Table holds the table name of the financecommission in the database.
 	Table = "finance_commissions"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -139,6 +147,13 @@ const (
 	CancelledByUserInverseTable = "users"
 	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
 	CancelledByUserColumn = "cancelled_by"
+	// LinesTable is the table that holds the lines relation/edge.
+	LinesTable = "finance_commission_lines"
+	// LinesInverseTable is the table name for the FinanceCommissionLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionline" package.
+	LinesInverseTable = "finance_commission_lines"
+	// LinesColumn is the table column denoting the lines relation/edge.
+	LinesColumn = "commission_id"
 )
 
 // Columns holds all SQL columns for financecommission fields.
@@ -157,6 +172,9 @@ var Columns = []string{
 	FieldRuleName,
 	FieldPersonnelRole,
 	FieldCalculationBasis,
+	FieldRuleVersion,
+	FieldCalculationVersion,
+	FieldSourceFingerprint,
 	FieldStatus,
 	FieldBaseCurrency,
 	FieldRealizedRevenue,
@@ -206,6 +224,16 @@ var (
 	PersonnelRoleValidator func(string) error
 	// CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
 	CalculationBasisValidator func(string) error
+	// DefaultRuleVersion holds the default value on creation for the "rule_version" field.
+	DefaultRuleVersion uint64
+	// DefaultCalculationVersion holds the default value on creation for the "calculation_version" field.
+	DefaultCalculationVersion string
+	// CalculationVersionValidator is a validator for the "calculation_version" field. It is called by the builders before save.
+	CalculationVersionValidator func(string) error
+	// DefaultSourceFingerprint holds the default value on creation for the "source_fingerprint" field.
+	DefaultSourceFingerprint string
+	// SourceFingerprintValidator is a validator for the "source_fingerprint" field. It is called by the builders before save.
+	SourceFingerprintValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -317,6 +345,21 @@ func ByPersonnelRole(opts ...sql.OrderTermOption) OrderOption {
 // ByCalculationBasis orders the results by the calculation_basis field.
 func ByCalculationBasis(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCalculationBasis, opts...).ToFunc()
+}
+
+// ByRuleVersion orders the results by the rule_version field.
+func ByRuleVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRuleVersion, opts...).ToFunc()
+}
+
+// ByCalculationVersion orders the results by the calculation_version field.
+func ByCalculationVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCalculationVersion, opts...).ToFunc()
+}
+
+// BySourceFingerprint orders the results by the source_fingerprint field.
+func BySourceFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceFingerprint, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
@@ -447,6 +490,20 @@ func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByLinesCount orders the results by lines count.
+func ByLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLinesStep(), opts...)
+	}
+}
+
+// ByLines orders the results by lines terms.
+func ByLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -494,5 +551,12 @@ func newCancelledByUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledByUserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
+	)
+}
+func newLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
 	)
 }

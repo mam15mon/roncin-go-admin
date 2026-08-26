@@ -427,6 +427,26 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CommissionCalculation = {
+    verificationId?: string;
+    verificationNo?: string;
+    employeeId?: string;
+    employeeName?: string;
+    ruleId?: string;
+    ruleName?: string;
+    personnelRole?: string;
+    calculationBasis?: string;
+    ruleVersion?: string;
+    calculationVersion?: string;
+    baseCurrency?: string;
+    realizedRevenue?: string;
+    allocatedCost?: string;
+    realizedProfit?: string;
+    ratePercent?: string;
+    commissionAmount?: string;
+    lines?: FinanceCommissionLine[];
+  };
+
   type CommissionEmployeeOption = {
     id?: string;
     displayName?: string;
@@ -1354,6 +1374,27 @@ declare namespace API {
     ruleName?: string;
     personnelRole?: string;
     calculationBasis?: string;
+    ruleVersion?: string;
+    calculationVersion?: string;
+    lines?: FinanceCommissionLine[];
+  };
+
+  type FinanceCommissionLine = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    employeeId?: string;
+    employeeName?: string;
+    personnelRole?: string;
+    calculationBasis?: string;
+    baseCurrency?: string;
+    realizedRevenue?: string;
+    allocatedCost?: string;
+    realizedProfit?: string;
+    ratePercent?: string;
+    commissionAmount?: string;
+    personnelOrganizationId?: string;
+    personnelAssignedAt?: string;
   };
 
   type FinanceCommissionRule = {
@@ -3200,6 +3241,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewCommissionRequest = {
+    verificationId: string;
+    employeeId: string;
+    ruleId: string;
+  };
+
+  type PreviewCommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CommissionCalculation;
+    traceId?: string;
+  };
+
   type PublishMilestoneTemplateRequest = {
     id: string;
     isDefault?: boolean;
@@ -3498,6 +3553,10 @@ declare namespace API {
   };
 
   type SettlementServiceGetBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetCommissionParams = {
     id: string;
   };
 

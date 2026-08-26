@@ -33,6 +33,7 @@ const OperationSettlementServiceCreateCommissionRule = "/finance.v1.SettlementSe
 const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/CreateInvoice"
 const OperationSettlementServiceCreateVerification = "/finance.v1.SettlementService/CreateVerification"
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
+const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/GetCommission"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
@@ -46,6 +47,7 @@ const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/Li
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
 const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementService/PreviewBillBatch"
+const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
@@ -68,6 +70,7 @@ type SettlementServiceHTTPServer interface {
 	CreateInvoice(context.Context, *CreateInvoiceRequest) (*CreateInvoiceResponse, error)
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
+	GetCommission(context.Context, *GetCommissionRequest) (*CommissionResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
@@ -82,6 +85,7 @@ type SettlementServiceHTTPServer interface {
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
+	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
@@ -114,11 +118,13 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/verifications", _SettlementService_CreateVerification0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions", _SettlementService_ListCommissions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commissions/{id}", _SettlementService_GetCommission0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/employees", _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/candidates", _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-rules", _SettlementService_ListCommissionRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-rules", _SettlementService_CreateCommissionRule0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/commission-rules/{id}", _SettlementService_UpdateCommissionRule0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commissions/preview", _SettlementService_PreviewCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions", _SettlementService_CreateCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/confirm", _SettlementService_ConfirmCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/paid", _SettlementService_MarkCommissionPaid0_HTTP_Handler(srv))
@@ -617,6 +623,28 @@ func _SettlementService_ListCommissions0_HTTP_Handler(srv SettlementServiceHTTPS
 	}
 }
 
+func _SettlementService_GetCommission0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetCommissionRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetCommission)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetCommission(ctx, req.(*GetCommissionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommissionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListCommissionEmployeesRequest
@@ -711,6 +739,25 @@ func _SettlementService_UpdateCommissionRule0_HTTP_Handler(srv SettlementService
 			return err
 		}
 		reply := out.(*CommissionRuleResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_PreviewCommission0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewCommissionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServicePreviewCommission)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewCommission(ctx, req.(*PreviewCommissionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewCommissionResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -817,6 +864,7 @@ type SettlementServiceHTTPClient interface {
 	CreateInvoice(ctx context.Context, req *CreateInvoiceRequest, opts ...http.CallOption) (rsp *CreateInvoiceResponse, err error)
 	CreateVerification(ctx context.Context, req *CreateVerificationRequest, opts ...http.CallOption) (rsp *CreateVerificationResponse, err error)
 	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
+	GetCommission(ctx context.Context, req *GetCommissionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
@@ -831,6 +879,7 @@ type SettlementServiceHTTPClient interface {
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
 	MarkCommissionPaid(ctx context.Context, req *CommissionTransitionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
 	PreviewBillBatch(ctx context.Context, req *PreviewBillBatchRequest, opts ...http.CallOption) (rsp *PreviewBillBatchResponse, err error)
+	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
@@ -1116,6 +1165,22 @@ func (c *SettlementServiceHTTPClientImpl) GetBill(ctx context.Context, in *GetBi
 	return &out, nil
 }
 
+func (c *SettlementServiceHTTPClientImpl) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...http.CallOption) (*CommissionResponse, error) {
+	var out CommissionResponse
+	pattern := "/api/v1/finance/commissions/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetCommission),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...http.CallOption) (*GetInvoiceResponse, error) {
 	var out GetInvoiceResponse
 	pattern := "/api/v1/finance/invoices/{id}"
@@ -1319,6 +1384,23 @@ func (c *SettlementServiceHTTPClientImpl) PreviewBillBatch(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServicePreviewBillBatch),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) PreviewCommission(ctx context.Context, in *PreviewCommissionRequest, opts ...http.CallOption) (*PreviewCommissionResponse, error) {
+	var out PreviewCommissionResponse
+	pattern := "/api/v1/finance/commissions/preview"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServicePreviewCommission),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

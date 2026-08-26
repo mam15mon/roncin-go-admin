@@ -1819,6 +1819,66 @@
         }
       }
     },
+    "/api/v1/finance/commissions/preview": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_PreviewCommission",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.PreviewCommissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.PreviewCommissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/commissions/{id}": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_GetCommission",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.CommissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/commissions/{id}/cancel": {
       "post": {
         "tags": [
@@ -8075,6 +8135,65 @@
           }
         }
       },
+      "finance.v1.CommissionCalculation": {
+        "type": "object",
+        "properties": {
+          "verificationId": {
+            "type": "string"
+          },
+          "verificationNo": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "ruleId": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "ruleVersion": {
+            "type": "string"
+          },
+          "calculationVersion": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "realizedRevenue": {
+            "type": "string"
+          },
+          "allocatedCost": {
+            "type": "string"
+          },
+          "realizedProfit": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "commissionAmount": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCommissionLine"
+            }
+          }
+        }
+      },
       "finance.v1.CommissionEmployeeOption": {
         "type": "object",
         "properties": {
@@ -9473,6 +9592,68 @@
           },
           "calculationBasis": {
             "type": "string"
+          },
+          "ruleVersion": {
+            "type": "string"
+          },
+          "calculationVersion": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceCommissionLine"
+            }
+          }
+        }
+      },
+      "finance.v1.FinanceCommissionLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "realizedRevenue": {
+            "type": "string"
+          },
+          "allocatedCost": {
+            "type": "string"
+          },
+          "realizedProfit": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "commissionAmount": {
+            "type": "string"
+          },
+          "personnelOrganizationId": {
+            "type": "string"
+          },
+          "personnelAssignedAt": {
+            "type": "string"
           }
         }
       },
@@ -10234,6 +10415,46 @@
           },
           "previewToken": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.PreviewCommissionRequest": {
+        "required": [
+          "verificationId",
+          "employeeId",
+          "ruleId"
+        ],
+        "type": "object",
+        "properties": {
+          "verificationId": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string"
+          },
+          "ruleId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.PreviewCommissionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.CommissionCalculation"
           },
           "traceId": {
             "type": "string"

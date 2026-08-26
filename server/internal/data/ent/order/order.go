@@ -158,6 +158,8 @@ const (
 	EdgeFees = "fees"
 	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
 	EdgeFinanceBillLines = "finance_bill_lines"
+	// EdgeFinanceCommissionLines holds the string denoting the finance_commission_lines edge name in mutations.
+	EdgeFinanceCommissionLines = "finance_commission_lines"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -279,6 +281,13 @@ const (
 	FinanceBillLinesInverseTable = "finance_bill_lines"
 	// FinanceBillLinesColumn is the table column denoting the finance_bill_lines relation/edge.
 	FinanceBillLinesColumn = "order_id"
+	// FinanceCommissionLinesTable is the table that holds the finance_commission_lines relation/edge.
+	FinanceCommissionLinesTable = "finance_commission_lines"
+	// FinanceCommissionLinesInverseTable is the table name for the FinanceCommissionLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionline" package.
+	FinanceCommissionLinesInverseTable = "finance_commission_lines"
+	// FinanceCommissionLinesColumn is the table column denoting the finance_commission_lines relation/edge.
+	FinanceCommissionLinesColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -1099,6 +1108,20 @@ func ByFinanceBillLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newFinanceBillLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceCommissionLinesCount orders the results by finance_commission_lines count.
+func ByFinanceCommissionLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionLinesStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionLines orders the results by finance_commission_lines terms.
+func ByFinanceCommissionLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1216,5 +1239,12 @@ func newFinanceBillLinesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceBillLinesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillLinesTable, FinanceBillLinesColumn),
+	)
+}
+func newFinanceCommissionLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionLinesTable, FinanceCommissionLinesColumn),
 	)
 }

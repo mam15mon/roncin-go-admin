@@ -326,6 +326,23 @@ export async function settlementServiceCreateCommission(
   });
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/commissions/${param0} */
+export async function settlementServiceGetCommission(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceGetCommissionParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.CommissionResponse>(
+    `/api/v1/finance/commissions/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/finance/commissions/${param0}/cancel */
 export async function settlementServiceCancelCommission(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -418,6 +435,24 @@ export async function settlementServiceListCommissionEmployees(options?: {
     "/api/v1/finance/commissions/employees",
     {
       method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/commissions/preview */
+export async function settlementServicePreviewCommission(
+  body: API.PreviewCommissionRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.PreviewCommissionResponse>(
+    "/api/v1/finance/commissions/preview",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
       ...(options || {}),
     }
   );

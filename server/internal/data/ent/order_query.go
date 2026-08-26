@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -38,28 +39,29 @@ import (
 // OrderQuery is the builder for querying Order entities.
 type OrderQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []order.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.Order
-	withOrganization      *OrganizationQuery
-	withCustomer          *PartnerQuery
-	withStatusTemplate    *StatusTemplateQuery
-	withStatusLogs        *OrderStatusLogQuery
-	withServiceTypes      *OrderServiceTypeQuery
-	withCargoCategories   *OrderCargoCategoryQuery
-	withMilestones        *OrderMilestoneQuery
-	withAttachments       *OrderAttachmentQuery
-	withPersonnel         *OrderPersonnelQuery
-	withContainers        *OrderContainerQuery
-	withContainerRequests *OrderContainerRequestQuery
-	withCargoItems        *OrderCargoItemQuery
-	withShippingDocuments *OrderShippingDocumentQuery
-	withReleasePods       *OrderReleasePodQuery
-	withAbnormalCases     *OrderAbnormalCaseQuery
-	withFees              *OrderFeeQuery
-	withFinanceBillLines  *FinanceBillLineQuery
-	modifiers             []func(*sql.Selector)
+	ctx                        *QueryContext
+	order                      []order.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.Order
+	withOrganization           *OrganizationQuery
+	withCustomer               *PartnerQuery
+	withStatusTemplate         *StatusTemplateQuery
+	withStatusLogs             *OrderStatusLogQuery
+	withServiceTypes           *OrderServiceTypeQuery
+	withCargoCategories        *OrderCargoCategoryQuery
+	withMilestones             *OrderMilestoneQuery
+	withAttachments            *OrderAttachmentQuery
+	withPersonnel              *OrderPersonnelQuery
+	withContainers             *OrderContainerQuery
+	withContainerRequests      *OrderContainerRequestQuery
+	withCargoItems             *OrderCargoItemQuery
+	withShippingDocuments      *OrderShippingDocumentQuery
+	withReleasePods            *OrderReleasePodQuery
+	withAbnormalCases          *OrderAbnormalCaseQuery
+	withFees                   *OrderFeeQuery
+	withFinanceBillLines       *FinanceBillLineQuery
+	withFinanceCommissionLines *FinanceCommissionLineQuery
+	modifiers                  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -470,6 +472,28 @@ func (_q *OrderQuery) QueryFinanceBillLines() *FinanceBillLineQuery {
 	return query
 }
 
+// QueryFinanceCommissionLines chains the current query on the "finance_commission_lines" edge.
+func (_q *OrderQuery) QueryFinanceCommissionLines() *FinanceCommissionLineQuery {
+	query := (&FinanceCommissionLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(financecommissionline.Table, financecommissionline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FinanceCommissionLinesTable, order.FinanceCommissionLinesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Order entity from the query.
 // Returns a *NotFoundError when no Order was found.
 func (_q *OrderQuery) First(ctx context.Context) (*Order, error) {
@@ -657,28 +681,29 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		return nil
 	}
 	return &OrderQuery{
-		config:                _q.config,
-		ctx:                   _q.ctx.Clone(),
-		order:                 append([]order.OrderOption{}, _q.order...),
-		inters:                append([]Interceptor{}, _q.inters...),
-		predicates:            append([]predicate.Order{}, _q.predicates...),
-		withOrganization:      _q.withOrganization.Clone(),
-		withCustomer:          _q.withCustomer.Clone(),
-		withStatusTemplate:    _q.withStatusTemplate.Clone(),
-		withStatusLogs:        _q.withStatusLogs.Clone(),
-		withServiceTypes:      _q.withServiceTypes.Clone(),
-		withCargoCategories:   _q.withCargoCategories.Clone(),
-		withMilestones:        _q.withMilestones.Clone(),
-		withAttachments:       _q.withAttachments.Clone(),
-		withPersonnel:         _q.withPersonnel.Clone(),
-		withContainers:        _q.withContainers.Clone(),
-		withContainerRequests: _q.withContainerRequests.Clone(),
-		withCargoItems:        _q.withCargoItems.Clone(),
-		withShippingDocuments: _q.withShippingDocuments.Clone(),
-		withReleasePods:       _q.withReleasePods.Clone(),
-		withAbnormalCases:     _q.withAbnormalCases.Clone(),
-		withFees:              _q.withFees.Clone(),
-		withFinanceBillLines:  _q.withFinanceBillLines.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]order.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.Order{}, _q.predicates...),
+		withOrganization:           _q.withOrganization.Clone(),
+		withCustomer:               _q.withCustomer.Clone(),
+		withStatusTemplate:         _q.withStatusTemplate.Clone(),
+		withStatusLogs:             _q.withStatusLogs.Clone(),
+		withServiceTypes:           _q.withServiceTypes.Clone(),
+		withCargoCategories:        _q.withCargoCategories.Clone(),
+		withMilestones:             _q.withMilestones.Clone(),
+		withAttachments:            _q.withAttachments.Clone(),
+		withPersonnel:              _q.withPersonnel.Clone(),
+		withContainers:             _q.withContainers.Clone(),
+		withContainerRequests:      _q.withContainerRequests.Clone(),
+		withCargoItems:             _q.withCargoItems.Clone(),
+		withShippingDocuments:      _q.withShippingDocuments.Clone(),
+		withReleasePods:            _q.withReleasePods.Clone(),
+		withAbnormalCases:          _q.withAbnormalCases.Clone(),
+		withFees:                   _q.withFees.Clone(),
+		withFinanceBillLines:       _q.withFinanceBillLines.Clone(),
+		withFinanceCommissionLines: _q.withFinanceCommissionLines.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -872,6 +897,17 @@ func (_q *OrderQuery) WithFinanceBillLines(opts ...func(*FinanceBillLineQuery)) 
 	return _q
 }
 
+// WithFinanceCommissionLines tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithFinanceCommissionLines(opts ...func(*FinanceCommissionLineQuery)) *OrderQuery {
+	query := (&FinanceCommissionLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionLines = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -950,7 +986,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [17]bool{
+		loadedTypes = [18]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withStatusTemplate != nil,
@@ -968,6 +1004,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withAbnormalCases != nil,
 			_q.withFees != nil,
 			_q.withFinanceBillLines != nil,
+			_q.withFinanceCommissionLines != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1108,6 +1145,15 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadFinanceBillLines(ctx, query, nodes,
 			func(n *Order) { n.Edges.FinanceBillLines = []*FinanceBillLine{} },
 			func(n *Order, e *FinanceBillLine) { n.Edges.FinanceBillLines = append(n.Edges.FinanceBillLines, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionLines; query != nil {
+		if err := _q.loadFinanceCommissionLines(ctx, query, nodes,
+			func(n *Order) { n.Edges.FinanceCommissionLines = []*FinanceCommissionLine{} },
+			func(n *Order, e *FinanceCommissionLine) {
+				n.Edges.FinanceCommissionLines = append(n.Edges.FinanceCommissionLines, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1606,6 +1652,36 @@ func (_q *OrderQuery) loadFinanceBillLines(ctx context.Context, query *FinanceBi
 	}
 	query.Where(predicate.FinanceBillLine(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.FinanceBillLinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadFinanceCommissionLines(ctx context.Context, query *FinanceCommissionLineQuery, nodes []*Order, init func(*Order), assign func(*Order, *FinanceCommissionLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionline.FieldOrderID)
+	}
+	query.Where(predicate.FinanceCommissionLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.FinanceCommissionLinesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

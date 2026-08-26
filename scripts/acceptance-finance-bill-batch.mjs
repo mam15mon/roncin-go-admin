@@ -75,7 +75,8 @@ function assert(condition, message) {
 const cookie = await login();
 const client = createClient(cookie);
 const { request, raw } = client;
-const [customers, templates, rules] = await Promise.all([
+const [me, customers, templates, rules] = await Promise.all([
+  request('/api/v1/auth/me'),
   request('/api/v1/partners?page=1&pageSize=100&role=1&enabled=true'),
   request('/api/v1/master-data/status-templates?businessType=1&published=true'),
   request('/api/v1/master-data/number-rules'),
@@ -95,20 +96,27 @@ const batchRule = rules.data?.find(
 );
 const writeOffRule = rules.data?.find(
   (item) =>
-    item.documentType === 4 ||
-    item.documentType === 'DOCUMENT_TYPE_WRITE_OFF',
+    item.documentType === 4 || item.documentType === 'DOCUMENT_TYPE_WRITE_OFF',
 );
 const receiptPaymentRule = rules.data?.find(
   (item) =>
     item.documentType === 5 ||
     item.documentType === 'DOCUMENT_TYPE_RECEIPT_PAYMENT',
 );
+const commissionNumberRule = rules.data?.find(
+  (item) =>
+    item.documentType === 13 ||
+    item.documentType === 'DOCUMENT_TYPE_COMMISSION',
+);
+assert(me.data?.id, '当前登录用户缺少用户编号');
+assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 assert(customer?.id, '当前组织没有启用的客户');
 assert(statusTemplate?.id, '当前组织没有海运出口默认状态模板');
 assert(billRule?.enabled, '当前组织没有启用的账单编号规则');
 assert(batchRule?.enabled, '当前组织没有启用的账单批次编号规则');
 assert(writeOffRule?.enabled, '当前组织没有启用的核销编号规则');
 assert(receiptPaymentRule?.enabled, '当前组织没有启用的收付编号规则');
+assert(commissionNumberRule?.enabled, '当前组织没有启用的提成编号规则');
 
 if (!apply) {
   console.log(
@@ -372,8 +380,7 @@ const removeDefaultResult = await raw(
       partnerId: customer.id,
       id: secondaryProfile.id,
       invoiceTitle: secondaryProfile.invoiceTitle,
-      taxpayerIdentificationNo:
-        secondaryProfile.taxpayerIdentificationNo,
+      taxpayerIdentificationNo: secondaryProfile.taxpayerIdentificationNo,
       registeredAddress: secondaryProfile.registeredAddress || '',
       registeredPhone: secondaryProfile.registeredPhone || '',
       bankName: secondaryProfile.bankName || '',
@@ -464,8 +471,7 @@ assert(
   '相同幂等键的并发收款请求必须全部重放为成功响应',
 );
 assert(
-  concurrentCashflows[0].body.data?.id ===
-    concurrentCashflows[1].body.data?.id,
+  concurrentCashflows[0].body.data?.id === concurrentCashflows[1].body.data?.id,
   '相同幂等键的并发收款请求未返回同一资金流水',
 );
 const cashflowA = concurrentCashflows[0].body.data;
@@ -553,6 +559,204 @@ assert(
   '相同幂等键的并发核销请求未返回同一核销记录',
 );
 const verificationA = concurrentVerifications[0].body.data;
+
+await request(`/api/v1/orders/${order.id}/personnel`, {
+  method: 'POST',
+  body: JSON.stringify({
+    orderId: order.id,
+    userId: me.data.id,
+    organizationId: me.data.currentOrganization.id,
+    role: 3,
+  }),
+});
+const commissionRuleResponse = await request(
+  '/api/v1/finance/commission-rules',
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      rule: {
+        name: `ACC-COMMISSION-${stamp}`,
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: '10',
+        effectiveFrom: today,
+        effectiveTo: today,
+        enabled: true,
+        note: '提成可解释化自动验收',
+      },
+    }),
+  },
+);
+let commissionRule = commissionRuleResponse.data;
+const commissionPreview = await request('/api/v1/finance/commissions/preview', {
+  method: 'POST',
+  body: JSON.stringify({
+    verificationId: verificationA.id,
+    employeeId: me.data.id,
+    ruleId: commissionRule.id,
+  }),
+});
+assert(
+  commissionPreview.data?.lines?.length === 1,
+  '提成预览未返回逐订单计算明细',
+);
+assert(
+  commissionPreview.data.lines[0].orderId === order.id,
+  '提成预览明细未归属到验收订单',
+);
+assert(
+  commissionPreview.data.commissionAmount === '4.00000000',
+  `40 元回款按 10% 毛利提成应为 4 元，实际 ${commissionPreview.data.commissionAmount}`,
+);
+const firstCommissionBody = {
+  verificationId: verificationA.id,
+  employeeId: me.data.id,
+  ruleId: commissionRule.id,
+  note: '验证来源变化拦截',
+  idempotencyKey: `acc-fin-commission-${stamp}-stale`,
+};
+const concurrentCommissions = await Promise.all([
+  raw('/api/v1/finance/commissions', {
+    method: 'POST',
+    body: JSON.stringify(firstCommissionBody),
+  }),
+  raw('/api/v1/finance/commissions', {
+    method: 'POST',
+    body: JSON.stringify(firstCommissionBody),
+  }),
+]);
+assert(
+  concurrentCommissions.every((item) => item.response.ok),
+  '相同幂等键的并发提成请求必须全部重放为成功响应',
+);
+assert(
+  concurrentCommissions[0].body.data?.id ===
+    concurrentCommissions[1].body.data?.id,
+  '相同幂等键的并发提成请求未返回同一提成草稿',
+);
+const firstCommission = concurrentCommissions[0].body.data;
+const firstCommissionDetail = await request(
+  `/api/v1/finance/commissions/${firstCommission.id}`,
+);
+assert(
+  firstCommissionDetail.data?.lines?.length === 1 &&
+    firstCommissionDetail.data.lines[0].commissionAmount === '4.00000000',
+  '提成草稿未固化逐订单计算快照',
+);
+assert(
+  firstCommissionDetail.data.lines[0].personnelOrganizationId ===
+    me.data.currentOrganization.id &&
+    firstCommissionDetail.data.lines[0].personnelAssignedAt,
+  '提成草稿未固化人员组织和指派时间快照',
+);
+
+const updatedRuleResponse = await request(
+  `/api/v1/finance/commission-rules/${commissionRule.id}`,
+  {
+    method: 'PUT',
+    body: JSON.stringify({
+      id: commissionRule.id,
+      expectedVersion: commissionRule.version,
+      rule: {
+        name: commissionRule.name,
+        personnelRole: commissionRule.personnelRole,
+        calculationBasis: commissionRule.calculationBasis,
+        ratePercent: commissionRule.ratePercent,
+        effectiveFrom: commissionRule.effectiveFrom,
+        effectiveTo: commissionRule.effectiveTo,
+        enabled: commissionRule.enabled,
+        note: '修改规则版本以验证草稿来源指纹',
+      },
+    }),
+  },
+);
+commissionRule = updatedRuleResponse.data;
+const staleConfirmation = await raw(
+  `/api/v1/finance/commissions/${firstCommission.id}/confirm`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: firstCommission.id,
+      expectedVersion: firstCommission.version,
+    }),
+  },
+);
+assert(
+  staleConfirmation.response.status === 409 &&
+    staleConfirmation.body.reason === 'FINANCE_COMMISSION_SOURCE_CHANGED',
+  '规则变化后确认旧提成草稿必须返回来源变化冲突',
+);
+await request(`/api/v1/finance/commissions/${firstCommission.id}/cancel`, {
+  method: 'POST',
+  body: JSON.stringify({
+    id: firstCommission.id,
+    expectedVersion: firstCommission.version,
+    reason: '来源变化后取消旧草稿',
+  }),
+});
+
+const refreshedPreview = await request('/api/v1/finance/commissions/preview', {
+  method: 'POST',
+  body: JSON.stringify({
+    verificationId: verificationA.id,
+    employeeId: me.data.id,
+    ruleId: commissionRule.id,
+  }),
+});
+assert(
+  refreshedPreview.data?.ruleVersion === commissionRule.version,
+  '重新预览未使用最新提成规则版本',
+);
+const refreshedCommissionResponse = await request(
+  '/api/v1/finance/commissions',
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      verificationId: verificationA.id,
+      employeeId: me.data.id,
+      ruleId: commissionRule.id,
+      note: '验证来源一致时正常确认',
+      idempotencyKey: `acc-fin-commission-${stamp}-confirmed`,
+    }),
+  },
+);
+const refreshedCommission = refreshedCommissionResponse.data;
+const confirmedCommissionResponse = await request(
+  `/api/v1/finance/commissions/${refreshedCommission.id}/confirm`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: refreshedCommission.id,
+      expectedVersion: refreshedCommission.version,
+    }),
+  },
+);
+const confirmedCommission = confirmedCommissionResponse.data;
+assert(confirmedCommission.status === 'CONFIRMED', '提成草稿确认失败');
+const reverseWithCommission = await raw(
+  `/api/v1/finance/verifications/${verificationA.id}/reverse`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: verificationA.id,
+      expectedVersion: verificationA.version,
+      reason: '验证提成存在时禁止反核销',
+    }),
+  },
+);
+assert(
+  reverseWithCommission.response.status === 409 &&
+    reverseWithCommission.body.reason === 'FINANCE_VERIFICATION_HAS_COMMISSION',
+  '存在已确认提成时必须禁止反核销',
+);
+await request(`/api/v1/finance/commissions/${confirmedCommission.id}/cancel`, {
+  method: 'POST',
+  body: JSON.stringify({
+    id: confirmedCommission.id,
+    expectedVersion: confirmedCommission.version,
+    reason: '完成提成验收后释放核销',
+  }),
+});
 
 const overAllocated = await raw('/api/v1/finance/verifications', {
   method: 'POST',
@@ -656,9 +860,8 @@ const balancesAfterReverse = await Promise.all([
   request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
 ]);
 assert(
-  balancesAfterReverse[0].data.find(
-    (item) => item.id === confirmedCashflowA.id,
-  )?.unverifiedAmount === '40.00000000',
+  balancesAfterReverse[0].data.find((item) => item.id === confirmedCashflowA.id)
+    ?.unverifiedAmount === '40.00000000',
   '反核销后资金余额未恢复',
 );
 assert(
@@ -667,7 +870,7 @@ assert(
   '全部反核销后账单余额未恢复',
 );
 
-console.log('费用、账单、开票、收付与核销真实 API 闭环验收通过。');
+console.log('费用、账单、开票、收付、核销与提成真实 API 闭环验收通过。');
 console.log(
   JSON.stringify(
     {
@@ -691,6 +894,12 @@ console.log(
       ],
       cashflowConcurrentIdempotencyVerified: true,
       verificationConcurrentIdempotencyVerified: true,
+      commissionNo: refreshedCommission.commissionNo,
+      commissionPreviewLineCount: refreshedPreview.data.lines.length,
+      commissionSourceChangeRejected: true,
+      commissionConcurrentIdempotencyVerified: true,
+      commissionDetailSnapshotVerified: true,
+      commissionReverseProtectionVerified: true,
       overAllocationRejected: true,
       reverseBalanceRecoveryVerified: true,
       cashflowCandidateFilterVerified: true,

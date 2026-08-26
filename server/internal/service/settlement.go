@@ -657,6 +657,17 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 	}
 	return &v1.ListCommissionsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
+func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissionRequest) (*v1.CommissionResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.Get(ctx, p.Organization.ID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
 func (s *SettlementService) ListCommissionEmployees(ctx context.Context, _ *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -763,6 +774,29 @@ func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule
 	}
 	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
 }
+func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.PreviewCommissionRequest) (*v1.PreviewCommissionResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	employeeID, err := uuid.Parse(strings.TrimSpace(r.GetEmployeeId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	item, err := s.commissionUsecase.Preview(ctx, p.Organization.ID, verificationID, employeeID, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PreviewCommissionResponse{Success: true, Message: "OK", Data: commissionCalculationToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
 func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCommissionRequest) (*v1.CreateCommissionResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -840,7 +874,29 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 		value := string(x.CalculationBasis)
 		calculationBasis = &value
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis}
+	lines := make([]*v1.FinanceCommissionLine, 0, len(x.Lines))
+	for _, line := range x.Lines {
+		lines = append(lines, commissionLineToAPI(line))
+	}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines}
+}
+
+func commissionCalculationToAPI(x *biz.CommissionCalculation) *v1.CommissionCalculation {
+	if x == nil {
+		return nil
+	}
+	lines := make([]*v1.FinanceCommissionLine, 0, len(x.Lines))
+	for _, line := range x.Lines {
+		lines = append(lines, commissionLineToAPI(line))
+	}
+	return &v1.CommissionCalculation{VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, RuleId: x.RuleID.String(), RuleName: x.RuleName, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Lines: lines}
+}
+
+func commissionLineToAPI(x *biz.FinanceCommissionLine) *v1.FinanceCommissionLine {
+	if x == nil {
+		return nil
+	}
+	return &v1.FinanceCommissionLine{Id: x.ID.String(), OrderId: x.OrderID.String(), OrderNo: x.OrderNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), PersonnelOrganizationId: x.PersonnelOrganizationID.String(), PersonnelAssignedAt: x.PersonnelAssignedAt.UTC().Format(time.RFC3339)}
 }
 
 func financeOptionalString(value *string) string {

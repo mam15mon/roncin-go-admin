@@ -21,6 +21,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
@@ -1666,8 +1667,38 @@ func init() {
 	financecommissionDescCalculationBasis := financecommissionFields[10].Descriptor()
 	// financecommission.CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
 	financecommission.CalculationBasisValidator = financecommissionDescCalculationBasis.Validators[0].(func(string) error)
+	// financecommissionDescRuleVersion is the schema descriptor for rule_version field.
+	financecommissionDescRuleVersion := financecommissionFields[11].Descriptor()
+	// financecommission.DefaultRuleVersion holds the default value on creation for the rule_version field.
+	financecommission.DefaultRuleVersion = financecommissionDescRuleVersion.Default.(uint64)
+	// financecommissionDescCalculationVersion is the schema descriptor for calculation_version field.
+	financecommissionDescCalculationVersion := financecommissionFields[12].Descriptor()
+	// financecommission.DefaultCalculationVersion holds the default value on creation for the calculation_version field.
+	financecommission.DefaultCalculationVersion = financecommissionDescCalculationVersion.Default.(string)
+	// financecommission.CalculationVersionValidator is a validator for the "calculation_version" field. It is called by the builders before save.
+	financecommission.CalculationVersionValidator = func() func(string) error {
+		validators := financecommissionDescCalculationVersion.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(calculation_version string) error {
+			for _, fn := range fns {
+				if err := fn(calculation_version); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionDescSourceFingerprint is the schema descriptor for source_fingerprint field.
+	financecommissionDescSourceFingerprint := financecommissionFields[13].Descriptor()
+	// financecommission.DefaultSourceFingerprint holds the default value on creation for the source_fingerprint field.
+	financecommission.DefaultSourceFingerprint = financecommissionDescSourceFingerprint.Default.(string)
+	// financecommission.SourceFingerprintValidator is a validator for the "source_fingerprint" field. It is called by the builders before save.
+	financecommission.SourceFingerprintValidator = financecommissionDescSourceFingerprint.Validators[0].(func(string) error)
 	// financecommissionDescBaseCurrency is the schema descriptor for base_currency field.
-	financecommissionDescBaseCurrency := financecommissionFields[12].Descriptor()
+	financecommissionDescBaseCurrency := financecommissionFields[15].Descriptor()
 	// financecommission.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financecommission.BaseCurrencyValidator = func() func(string) error {
 		validators := financecommissionDescBaseCurrency.Validators
@@ -1686,21 +1717,133 @@ func init() {
 		}
 	}()
 	// financecommissionDescNote is the schema descriptor for note field.
-	financecommissionDescNote := financecommissionFields[18].Descriptor()
+	financecommissionDescNote := financecommissionFields[21].Descriptor()
 	// financecommission.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommission.NoteValidator = financecommissionDescNote.Validators[0].(func(string) error)
 	// financecommissionDescVersion is the schema descriptor for version field.
-	financecommissionDescVersion := financecommissionFields[19].Descriptor()
+	financecommissionDescVersion := financecommissionFields[22].Descriptor()
 	// financecommission.DefaultVersion holds the default value on creation for the version field.
 	financecommission.DefaultVersion = financecommissionDescVersion.Default.(uint64)
 	// financecommissionDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionDescCancellationReason := financecommissionFields[26].Descriptor()
+	financecommissionDescCancellationReason := financecommissionFields[29].Descriptor()
 	// financecommission.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommission.CancellationReasonValidator = financecommissionDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionDescID is the schema descriptor for id field.
 	financecommissionDescID := financecommissionMixinFields0[0].Descriptor()
 	// financecommission.DefaultID holds the default value on creation for the id field.
 	financecommission.DefaultID = financecommissionDescID.Default.(func() uuid.UUID)
+	financecommissionlineMixin := schema.FinanceCommissionLine{}.Mixin()
+	financecommissionlineMixinFields0 := financecommissionlineMixin[0].Fields()
+	_ = financecommissionlineMixinFields0
+	financecommissionlineMixinFields1 := financecommissionlineMixin[1].Fields()
+	_ = financecommissionlineMixinFields1
+	financecommissionlineFields := schema.FinanceCommissionLine{}.Fields()
+	_ = financecommissionlineFields
+	// financecommissionlineDescCreatedAt is the schema descriptor for created_at field.
+	financecommissionlineDescCreatedAt := financecommissionlineMixinFields1[0].Descriptor()
+	// financecommissionline.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financecommissionline.DefaultCreatedAt = financecommissionlineDescCreatedAt.Default.(func() time.Time)
+	// financecommissionlineDescUpdatedAt is the schema descriptor for updated_at field.
+	financecommissionlineDescUpdatedAt := financecommissionlineMixinFields1[1].Descriptor()
+	// financecommissionline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financecommissionline.DefaultUpdatedAt = financecommissionlineDescUpdatedAt.Default.(func() time.Time)
+	// financecommissionline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financecommissionline.UpdateDefaultUpdatedAt = financecommissionlineDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financecommissionlineDescOrderNo is the schema descriptor for order_no field.
+	financecommissionlineDescOrderNo := financecommissionlineFields[3].Descriptor()
+	// financecommissionline.OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
+	financecommissionline.OrderNoValidator = func() func(string) error {
+		validators := financecommissionlineDescOrderNo.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(order_no string) error {
+			for _, fn := range fns {
+				if err := fn(order_no); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionlineDescEmployeeName is the schema descriptor for employee_name field.
+	financecommissionlineDescEmployeeName := financecommissionlineFields[8].Descriptor()
+	// financecommissionline.EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
+	financecommissionline.EmployeeNameValidator = func() func(string) error {
+		validators := financecommissionlineDescEmployeeName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(employee_name string) error {
+			for _, fn := range fns {
+				if err := fn(employee_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionlineDescPersonnelRole is the schema descriptor for personnel_role field.
+	financecommissionlineDescPersonnelRole := financecommissionlineFields[9].Descriptor()
+	// financecommissionline.PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
+	financecommissionline.PersonnelRoleValidator = func() func(string) error {
+		validators := financecommissionlineDescPersonnelRole.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(personnel_role string) error {
+			for _, fn := range fns {
+				if err := fn(personnel_role); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionlineDescCalculationBasis is the schema descriptor for calculation_basis field.
+	financecommissionlineDescCalculationBasis := financecommissionlineFields[10].Descriptor()
+	// financecommissionline.CalculationBasisValidator is a validator for the "calculation_basis" field. It is called by the builders before save.
+	financecommissionline.CalculationBasisValidator = func() func(string) error {
+		validators := financecommissionlineDescCalculationBasis.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(calculation_basis string) error {
+			for _, fn := range fns {
+				if err := fn(calculation_basis); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionlineDescBaseCurrency is the schema descriptor for base_currency field.
+	financecommissionlineDescBaseCurrency := financecommissionlineFields[11].Descriptor()
+	// financecommissionline.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	financecommissionline.BaseCurrencyValidator = func() func(string) error {
+		validators := financecommissionlineDescBaseCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(base_currency string) error {
+			for _, fn := range fns {
+				if err := fn(base_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionlineDescID is the schema descriptor for id field.
+	financecommissionlineDescID := financecommissionlineMixinFields0[0].Descriptor()
+	// financecommissionline.DefaultID holds the default value on creation for the id field.
+	financecommissionline.DefaultID = financecommissionlineDescID.Default.(func() uuid.UUID)
 	financecommissionruleMixin := schema.FinanceCommissionRule{}.Mixin()
 	financecommissionruleMixinFields0 := financecommissionruleMixin[0].Fields()
 	_ = financecommissionruleMixinFields0

@@ -3,10 +3,15 @@ import {
   CloseCircleOutlined,
   DollarOutlined,
   EditOutlined,
+  EyeOutlined,
   PlusOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormDateRangePicker,
@@ -19,7 +24,18 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Drawer, Input, Space, Tag } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Descriptions,
+  Drawer,
+  Input,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
@@ -27,11 +43,13 @@ import {
   settlementServiceConfirmCommission,
   settlementServiceCreateCommission,
   settlementServiceCreateCommissionRule,
+  settlementServiceGetCommission,
   settlementServiceListCommissionCandidates,
   settlementServiceListCommissionRules,
   settlementServiceListCommissions,
   settlementServiceListVerifications,
   settlementServiceMarkCommissionPaid,
+  settlementServicePreviewCommission,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 
@@ -58,16 +76,53 @@ const statusMeta: Record<string, { text: string; color: string }> = {
   CANCELLED: { text: '已取消', color: 'default' },
 };
 
+const calculationBasisText = (value?: string) =>
+  value === 'REALIZED_REVENUE' ? '已实现收入' : '已实现毛利';
+
+const personnelRoleText = (value?: string) =>
+  value === 'OPERATOR' ? '操作' : '销售';
+
+const decimalText = (value?: string) => {
+  if (!value) return '0';
+  return value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+};
+
+const calculationSignature = (values: Partial<CreateValues>) =>
+  [values.verificationId, values.ruleId, values.employeeId].join('|');
+
 export default function FinanceCommissionsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const ruleActionRef = useRef<ActionType | undefined>(undefined);
+  const createFormRef = useRef<ProFormInstance<CreateValues>>(undefined);
   const [open, setOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [ruleFormOpen, setRuleFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<API.FinanceCommissionRule>();
+  const [preview, setPreview] = useState<API.CommissionCalculation>();
+  const [previewSignature, setPreviewSignature] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detail, setDetail] = useState<API.FinanceCommission>();
   const reload = () => actionRef.current?.reload();
+
+  const openDetail = async (record: API.FinanceCommission) => {
+    if (!record.id) return;
+    setDetailOpen(true);
+    setDetailLoading(true);
+    setDetail(undefined);
+    try {
+      const response = await settlementServiceGetCommission({ id: record.id });
+      setDetail(response.data);
+    } catch (error: any) {
+      message.error(error.message || '提成明细加载失败');
+      setDetailOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const transition = async (
     record: API.FinanceCommission,
@@ -81,7 +136,7 @@ export default function FinanceCommissionsPage() {
       title: `${action}提成 ${record.commissionNo}？`,
       content:
         target === 'CONFIRMED'
-          ? '确认后计算快照将锁定。'
+          ? '系统会重新校验核销、账单费用、提成规则和人员归属；来源发生变化时将拒绝确认。'
           : '该操作表示提成已实际发放，完成后不可取消。',
       onOk: async () => {
         const body = { id, expectedVersion: version };
@@ -140,6 +195,9 @@ export default function FinanceCommissionsPage() {
       width: 260,
       copyable: true,
       search: false,
+      render: (_, record) => (
+        <a onClick={() => openDetail(record)}>{record.commissionNo}</a>
+      ),
     },
     {
       title: '状态',
@@ -235,25 +293,85 @@ export default function FinanceCommissionsPage() {
       fixed: 'right',
       width: 190,
       render: (_, record) => {
-        if (!access.canManageFinanceCommissions) return [];
         return [
+          <a key="detail" onClick={() => openDetail(record)}>
+            <EyeOutlined /> 明细
+          </a>,
           record.status === 'DRAFT' ? (
-            <a key="confirm" onClick={() => transition(record, 'CONFIRMED')}>
-              <CheckOutlined /> 确认
-            </a>
+            access.canManageFinanceCommissions ? (
+              <a key="confirm" onClick={() => transition(record, 'CONFIRMED')}>
+                <CheckOutlined /> 确认
+              </a>
+            ) : null
           ) : null,
-          record.status === 'CONFIRMED' ? (
+          record.status === 'CONFIRMED' &&
+          access.canManageFinanceCommissions ? (
             <a key="paid" onClick={() => transition(record, 'PAID')}>
               <DollarOutlined /> 已发放
             </a>
           ) : null,
-          ['DRAFT', 'CONFIRMED'].includes(record.status || '') ? (
+          ['DRAFT', 'CONFIRMED'].includes(record.status || '') &&
+          access.canManageFinanceCommissions ? (
             <a key="cancel" onClick={() => cancel(record)}>
               <CloseCircleOutlined /> 取消
             </a>
           ) : null,
         ].filter(Boolean);
       },
+    },
+  ];
+
+  const previewColumns = [
+    { title: '订单编号', dataIndex: 'orderNo', key: 'orderNo', width: 190 },
+    {
+      title: '人员归属快照',
+      key: 'personnelSnapshot',
+      width: 180,
+      render: (_: unknown, line: API.FinanceCommissionLine) => (
+        <Space direction="vertical" size={0}>
+          <span>{`${line.employeeName} · ${personnelRoleText(line.personnelRole)}`}</span>
+          <Typography.Text type="secondary">
+            {line.personnelAssignedAt
+              ? dayjs(line.personnelAssignedAt).format('YYYY-MM-DD HH:mm')
+              : '-'}
+          </Typography.Text>
+        </Space>
+      ),
+    },
+    {
+      title: '已实现收入',
+      dataIndex: 'realizedRevenue',
+      key: 'realizedRevenue',
+      align: 'right' as const,
+      render: (value: string, line: API.FinanceCommissionLine) =>
+        `${decimalText(value)} ${line.baseCurrency}`,
+    },
+    {
+      title: '分摊成本',
+      dataIndex: 'allocatedCost',
+      key: 'allocatedCost',
+      align: 'right' as const,
+      render: (value: string, line: API.FinanceCommissionLine) =>
+        `${decimalText(value)} ${line.baseCurrency}`,
+    },
+    {
+      title: '已实现毛利',
+      dataIndex: 'realizedProfit',
+      key: 'realizedProfit',
+      align: 'right' as const,
+      render: (value: string, line: API.FinanceCommissionLine) =>
+        `${decimalText(value)} ${line.baseCurrency}`,
+    },
+    {
+      title: '提成金额',
+      dataIndex: 'commissionAmount',
+      key: 'commissionAmount',
+      align: 'right' as const,
+      render: (value: string, line: API.FinanceCommissionLine) => (
+        <Typography.Text strong type="success">
+          {`${decimalText(value)} ${line.baseCurrency}`}
+        </Typography.Text>
+      ),
     },
   ];
 
@@ -380,11 +498,37 @@ export default function FinanceCommissionsPage() {
         }}
       />
       <ModalForm<CreateValues>
-        title="按已实现毛利生成提成"
+        formRef={createFormRef}
+        title="生成提成"
         open={open}
-        width={640}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setOpen(false) }}
+        width={960}
+        submitter={{
+          searchConfig: { submitText: '生成草稿' },
+          submitButtonProps: { disabled: !preview },
+        }}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            setOpen(false);
+            setPreview(undefined);
+            setPreviewSignature('');
+          },
+        }}
+        onValuesChange={(changedValues) => {
+          if (
+            'verificationId' in changedValues ||
+            'ruleId' in changedValues ||
+            'employeeId' in changedValues
+          ) {
+            setPreview(undefined);
+            setPreviewSignature('');
+          }
+        }}
         onFinish={async (values) => {
+          if (!preview || previewSignature !== calculationSignature(values)) {
+            message.warning('请先计算并核对当前选择的提成预览');
+            return false;
+          }
           try {
             await settlementServiceCreateCommission({
               verificationId: values.verificationId,
@@ -393,8 +537,10 @@ export default function FinanceCommissionsPage() {
               note: values.note,
               idempotencyKey: globalThis.crypto.randomUUID(),
             });
-            message.success('提成计算完成，请核对后确认');
+            message.success('提成草稿已按预览结果生成');
             setOpen(false);
+            setPreview(undefined);
+            setPreviewSignature('');
             reload();
             return true;
           } catch (error: any) {
@@ -466,13 +612,232 @@ export default function FinanceCommissionsPage() {
           label="备注"
           fieldProps={{ maxLength: 500 }}
         />
+        <ProFormDependency name={['verificationId', 'ruleId', 'employeeId']}>
+          {(values: Partial<CreateValues>) => (
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <Button
+                type="primary"
+                ghost
+                loading={previewLoading}
+                disabled={
+                  !values.verificationId || !values.ruleId || !values.employeeId
+                }
+                onClick={async () => {
+                  const { verificationId, employeeId, ruleId } = values;
+                  if (!verificationId || !employeeId || !ruleId) return;
+                  try {
+                    setPreviewLoading(true);
+                    const response = await settlementServicePreviewCommission({
+                      verificationId,
+                      employeeId,
+                      ruleId,
+                    });
+                    setPreview(response.data);
+                    setPreviewSignature(calculationSignature(values));
+                  } catch (error: any) {
+                    setPreview(undefined);
+                    setPreviewSignature('');
+                    message.error(error.message || '提成预览计算失败');
+                  } finally {
+                    setPreviewLoading(false);
+                  }
+                }}
+              >
+                计算并核对预览
+              </Button>
+              {!preview ? (
+                <Alert
+                  type="info"
+                  showIcon
+                  message="生成前必须计算预览"
+                  description="系统会按本次核销涉及的订单，分别展示已实现收入、分摊成本、毛利和提成金额。"
+                />
+              ) : (
+                <>
+                  <Descriptions
+                    size="small"
+                    bordered
+                    column={4}
+                    items={[
+                      {
+                        key: 'employee',
+                        label: '提成员工',
+                        children: preview.employeeName,
+                      },
+                      {
+                        key: 'rule',
+                        label: '规则',
+                        children: `${preview.ruleName}（v${preview.ruleVersion}）`,
+                      },
+                      {
+                        key: 'basis',
+                        label: '角色/口径',
+                        children: `${personnelRoleText(preview.personnelRole)} · ${calculationBasisText(preview.calculationBasis)}`,
+                      },
+                      {
+                        key: 'rate',
+                        label: '比例',
+                        children: `${decimalText(preview.ratePercent)}%`,
+                      },
+                      {
+                        key: 'revenue',
+                        label: '已实现收入',
+                        children: `${decimalText(preview.realizedRevenue)} ${preview.baseCurrency}`,
+                      },
+                      {
+                        key: 'cost',
+                        label: '分摊成本',
+                        children: `${decimalText(preview.allocatedCost)} ${preview.baseCurrency}`,
+                      },
+                      {
+                        key: 'profit',
+                        label: '已实现毛利',
+                        children: `${decimalText(preview.realizedProfit)} ${preview.baseCurrency}`,
+                      },
+                      {
+                        key: 'amount',
+                        label: '提成金额',
+                        children: (
+                          <Typography.Text strong type="success">
+                            {`${decimalText(preview.commissionAmount)} ${preview.baseCurrency}`}
+                          </Typography.Text>
+                        ),
+                      },
+                    ]}
+                  />
+                  <Table<API.FinanceCommissionLine>
+                    size="small"
+                    bordered
+                    pagination={false}
+                    rowKey={(line) => line.orderId || line.orderNo || ''}
+                    columns={previewColumns}
+                    dataSource={preview.lines || []}
+                    scroll={{ x: 1040 }}
+                  />
+                </>
+              )}
+            </Space>
+          )}
+        </ProFormDependency>
         <Space direction="vertical" size={2} style={{ color: '#666' }}>
           <span>
             计算比例、角色与口径均取自已启用且在核销日期生效的考核规则。
           </span>
-          <span>亏损订单的提成基数按 0 处理，但仍保留真实负毛利快照。</span>
+          <span>亏损订单逐票按 0 计提，但仍保留真实负毛利快照。</span>
+          <span>草稿确认时会重新校验来源；来源变化后必须取消并重新生成。</span>
         </Space>
       </ModalForm>
+      <Drawer
+        title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
+        width={1080}
+        open={detailOpen}
+        loading={detailLoading}
+        onClose={() => {
+          setDetailOpen(false);
+          setDetail(undefined);
+        }}
+      >
+        {detail ? (
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            <Descriptions
+              bordered
+              size="small"
+              column={4}
+              items={[
+                {
+                  key: 'status',
+                  label: '状态',
+                  children: (
+                    <Tag color={statusMeta[detail.status || 'DRAFT']?.color}>
+                      {statusMeta[detail.status || 'DRAFT']?.text}
+                    </Tag>
+                  ),
+                },
+                {
+                  key: 'verification',
+                  label: '核销编号',
+                  children: detail.verificationNo,
+                },
+                {
+                  key: 'employee',
+                  label: '提成员工',
+                  children: detail.employeeName,
+                },
+                {
+                  key: 'rule',
+                  label: '规则快照',
+                  children: `${detail.ruleName || '-'}（v${detail.ruleVersion || 0}）`,
+                },
+                {
+                  key: 'basis',
+                  label: '角色/口径',
+                  children: `${personnelRoleText(detail.personnelRole)} · ${calculationBasisText(detail.calculationBasis)}`,
+                },
+                {
+                  key: 'rate',
+                  label: '比例',
+                  children: `${decimalText(detail.ratePercent)}%`,
+                },
+                {
+                  key: 'profit',
+                  label: '已实现毛利',
+                  children: `${decimalText(detail.realizedProfit)} ${detail.baseCurrency}`,
+                },
+                {
+                  key: 'amount',
+                  label: '提成金额',
+                  children: (
+                    <Typography.Text strong type="success">
+                      {`${decimalText(detail.commissionAmount)} ${detail.baseCurrency}`}
+                    </Typography.Text>
+                  ),
+                },
+                {
+                  key: 'calculationVersion',
+                  label: '计算版本',
+                  children: detail.calculationVersion || '-',
+                },
+                {
+                  key: 'createdAt',
+                  label: '生成时间',
+                  children: detail.createdAt
+                    ? dayjs(detail.createdAt).format('YYYY-MM-DD HH:mm:ss')
+                    : '-',
+                },
+                {
+                  key: 'confirmedAt',
+                  label: '确认时间',
+                  children: detail.confirmedAt
+                    ? dayjs(detail.confirmedAt).format('YYYY-MM-DD HH:mm:ss')
+                    : '-',
+                },
+                {
+                  key: 'paidAt',
+                  label: '发放时间',
+                  children: detail.paidAt
+                    ? dayjs(detail.paidAt).format('YYYY-MM-DD HH:mm:ss')
+                    : '-',
+                },
+              ]}
+            />
+            <Alert
+              type="info"
+              showIcon
+              message="逐订单计算快照"
+              description="下列金额是生成提成时固化的计算证据；规则或费用后续变化不会改写这份历史快照。"
+            />
+            <Table<API.FinanceCommissionLine>
+              size="small"
+              bordered
+              pagination={false}
+              rowKey={(line) => line.id || line.orderId || ''}
+              columns={previewColumns}
+              dataSource={detail.lines || []}
+              scroll={{ x: 1040 }}
+            />
+          </Space>
+        ) : null}
+      </Drawer>
       <Drawer
         title="提成考核规则"
         width={980}

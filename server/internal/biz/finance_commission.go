@@ -22,6 +22,7 @@ var (
 	ErrCommissionRuleInvalid     = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
 	ErrCommissionRuleConflict    = errors.Conflict("FINANCE_COMMISSION_RULE_CONFLICT", "提成规则名称已存在或版本已变化")
 	ErrCommissionEmployeeRole    = errors.Conflict("FINANCE_COMMISSION_EMPLOYEE_ROLE", "所选员工未在核销涉及订单中担任规则指定角色")
+	ErrCommissionSourceChanged   = errors.Conflict("FINANCE_COMMISSION_SOURCE_CHANGED", "提成来源数据已变化，请取消当前草稿并重新生成")
 )
 
 type CommissionStatus string
@@ -37,7 +38,32 @@ const (
 	CommissionRoleOperator         CommissionPersonnelRole    = "OPERATOR"
 	CommissionBasisRealizedProfit  CommissionCalculationBasis = "REALIZED_PROFIT"
 	CommissionBasisRealizedRevenue CommissionCalculationBasis = "REALIZED_REVENUE"
+	CommissionCalculationVersion                              = "ORDER_LINE_V1"
 )
+
+// FinanceCommissionLine 保存逐订单提成计算快照，保证汇总金额可追溯。
+type FinanceCommissionLine struct {
+	ID, OrganizationID, CommissionID, OrderID, PersonnelAssignmentID, PersonnelOrganizationID, EmployeeID uuid.UUID
+	OrderNo, EmployeeName, BaseCurrency                                                                   string
+	PersonnelRole                                                                                         CommissionPersonnelRole
+	CalculationBasis                                                                                      CommissionCalculationBasis
+	RealizedRevenue, AllocatedCost, RealizedProfit                                                        decimal.Decimal
+	RatePercent, CommissionAmount                                                                         decimal.Decimal
+	PersonnelAssignedAt, CreatedAt, UpdatedAt                                                             time.Time
+}
+
+// CommissionCalculation 是预览和创建提成共用的计算结果，不包含持久化状态。
+type CommissionCalculation struct {
+	VerificationID, EmployeeID, RuleID                   uuid.UUID
+	VerificationNo, EmployeeName, RuleName, BaseCurrency string
+	PersonnelRole                                        CommissionPersonnelRole
+	CalculationBasis                                     CommissionCalculationBasis
+	RuleVersion                                          uint64
+	CalculationVersion, SourceFingerprint                string
+	RealizedRevenue, AllocatedCost, RealizedProfit       decimal.Decimal
+	RatePercent, CommissionAmount                        decimal.Decimal
+	Lines                                                []*FinanceCommissionLine
+}
 
 type FinanceCommission struct {
 	ID, OrganizationID, VerificationID, EmployeeID, RuleID     uuid.UUID
@@ -45,6 +71,8 @@ type FinanceCommission struct {
 	RuleName                                                   string
 	PersonnelRole                                              CommissionPersonnelRole
 	CalculationBasis                                           CommissionCalculationBasis
+	RuleVersion                                                uint64
+	CalculationVersion, SourceFingerprint                      string
 	Status                                                     CommissionStatus
 	BaseCurrency                                               string
 	RealizedRevenue, AllocatedCost, RealizedProfit             decimal.Decimal
@@ -54,6 +82,7 @@ type FinanceCommission struct {
 	ConfirmedAt, PaidAt, CancelledAt                           *time.Time
 	CancellationReason                                         *string
 	CreatedAt, UpdatedAt                                       time.Time
+	Lines                                                      []*FinanceCommissionLine
 }
 
 type CommissionFilter struct {
@@ -111,8 +140,10 @@ type CreateCommissionInput struct {
 
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
+	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
 	ListEmployees(context.Context, uuid.UUID) ([]*CommissionEmployeeOption, error)
 	ListCandidates(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) ([]*CommissionEmployeeOption, error)
+	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	CreateRule(context.Context, uuid.UUID, *FinanceCommissionRule, *AuditEvent) (*FinanceCommissionRule, error)
 	UpdateRule(context.Context, uuid.UUID, UpdateCommissionRuleInput, *AuditEvent) (*FinanceCommissionRule, error)
@@ -149,6 +180,20 @@ func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f Commissio
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.List(ctx, org, f)
+}
+
+func (u *CommissionUsecase) Get(ctx context.Context, org, id uuid.UUID) (*FinanceCommission, error) {
+	if org == uuid.Nil || id == uuid.Nil {
+		return nil, ErrCommissionInvalid
+	}
+	return u.repo.Get(ctx, org, id)
+}
+
+func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*CommissionCalculation, error) {
+	if org == uuid.Nil || verificationID == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil {
+		return nil, ErrCommissionInvalid
+	}
+	return u.repo.Preview(ctx, org, verificationID, employeeID, ruleID)
 }
 
 func (u *CommissionUsecase) ListRules(ctx context.Context, org uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
@@ -199,6 +244,21 @@ func CalculateCommissionAmount(realizedRevenue, realizedProfit, ratePercent deci
 	return base.Mul(ratePercent).Div(decimal.NewFromInt(100)).Round(8), nil
 }
 
+// CalculateCommissionLine 按单个订单计算本次回款对应的成本、毛利和提成。
+// 提成必须逐订单归零后汇总，避免盈利订单与亏损订单先相互抵销而改变员工应得金额。
+func CalculateCommissionLine(realizedRevenue, totalReceivable, totalPayable, ratePercent decimal.Decimal, basis CommissionCalculationBasis) (decimal.Decimal, decimal.Decimal, decimal.Decimal, error) {
+	if !realizedRevenue.IsPositive() || !totalReceivable.IsPositive() || totalPayable.IsNegative() {
+		return decimal.Zero, decimal.Zero, decimal.Zero, ErrCommissionSource
+	}
+	allocatedCost := realizedRevenue.Mul(totalPayable).Div(totalReceivable).Round(8)
+	realizedProfit := realizedRevenue.Sub(allocatedCost).Round(8)
+	commissionAmount, err := CalculateCommissionAmount(realizedRevenue, realizedProfit, ratePercent, basis)
+	if err != nil {
+		return decimal.Zero, decimal.Zero, decimal.Zero, err
+	}
+	return allocatedCost, realizedProfit, commissionAmount, nil
+}
+
 func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateCommissionInput) (*FinanceCommission, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
@@ -219,7 +279,16 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		return nil, err
 	}
 	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
-	return u.repo.Create(ctx, org, actor, c, commissionAudit(org, actor, id, "finance.commission.create"))
+	created, err := u.repo.Create(ctx, org, actor, c, commissionAudit(org, actor, id, "finance.commission.create"))
+	if err == nil {
+		return created, nil
+	}
+	// 并发重试可能在预查后命中幂等唯一索引；仅在请求语义一致时重放原结果。
+	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
+	if lookupErr == nil && old != nil && old.VerificationID == in.VerificationID && old.EmployeeID == in.EmployeeID && old.RuleID == in.RuleID && stringPointersEqual(old.Note, in.Note) {
+		return old, nil
+	}
+	return nil, err
 }
 
 func (u *CommissionUsecase) Confirm(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommission, error) {
