@@ -78,6 +78,8 @@ const (
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
 	EdgeBackgroundTasks = "background_tasks"
+	// EdgeFinanceBills holds the string denoting the finance_bills edge name in mutations.
+	EdgeFinanceBills = "finance_bills"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -235,6 +237,13 @@ const (
 	BackgroundTasksInverseTable = "background_tasks"
 	// BackgroundTasksColumn is the table column denoting the background_tasks relation/edge.
 	BackgroundTasksColumn = "organization_id"
+	// FinanceBillsTable is the table that holds the finance_bills relation/edge.
+	FinanceBillsTable = "finance_bills"
+	// FinanceBillsInverseTable is the table name for the FinanceBill entity.
+	// It exists in this package in order to avoid circular dependency with the "financebill" package.
+	FinanceBillsInverseTable = "finance_bills"
+	// FinanceBillsColumn is the table column denoting the finance_bills relation/edge.
+	FinanceBillsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -666,6 +675,20 @@ func ByBackgroundTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newBackgroundTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceBillsCount orders the results by finance_bills count.
+func ByFinanceBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceBillsStep(), opts...)
+	}
+}
+
+// ByFinanceBills orders the results by finance_bills terms.
+func ByFinanceBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -825,5 +848,12 @@ func newBackgroundTasksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BackgroundTasksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, BackgroundTasksTable, BackgroundTasksColumn),
+	)
+}
+func newFinanceBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillsTable, FinanceBillsColumn),
 	)
 }

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -953,6 +954,21 @@ func (_c *OrderCreate) AddFees(v ...*OrderFee) *OrderCreate {
 	return _c.AddFeeIDs(ids...)
 }
 
+// AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
+func (_c *OrderCreate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddFinanceBillLineIDs(ids...)
+	return _c
+}
+
+// AddFinanceBillLines adds the "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_c *OrderCreate) AddFinanceBillLines(v ...*FinanceBillLine) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceBillLineIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -1741,6 +1757,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

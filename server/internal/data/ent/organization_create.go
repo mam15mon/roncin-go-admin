@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
@@ -477,6 +478,21 @@ func (_c *OrganizationCreate) AddBackgroundTasks(v ...*BackgroundTask) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddBackgroundTaskIDs(ids...)
+}
+
+// AddFinanceBillIDs adds the "finance_bills" edge to the FinanceBill entity by IDs.
+func (_c *OrganizationCreate) AddFinanceBillIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceBillIDs(ids...)
+	return _c
+}
+
+// AddFinanceBills adds the "finance_bills" edges to the FinanceBill entity.
+func (_c *OrganizationCreate) AddFinanceBills(v ...*FinanceBill) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceBillIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -997,6 +1013,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(backgroundtask.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillsTable,
+			Columns: []string{organization.FinanceBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

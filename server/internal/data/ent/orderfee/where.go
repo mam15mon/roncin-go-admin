@@ -2096,6 +2096,29 @@ func HasCancelledByUserWith(preds ...predicate.User) predicate.OrderFee {
 	})
 }
 
+// HasFinanceBillLines applies the HasEdge predicate on the "finance_bill_lines" edge.
+func HasFinanceBillLines() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillLinesTable, FinanceBillLinesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceBillLinesWith applies the HasEdge predicate on the "finance_bill_lines" edge with a given conditions (other predicates).
+func HasFinanceBillLinesWith(preds ...predicate.FinanceBillLine) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newFinanceBillLinesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.OrderFee) predicate.OrderFee {
 	return predicate.OrderFee(sql.AndPredicates(predicates...))

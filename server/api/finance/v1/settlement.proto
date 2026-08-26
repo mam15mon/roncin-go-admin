@@ -4,6 +4,7 @@ package finance.v1;
 
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
@@ -13,6 +14,36 @@ service SettlementService {
   rpc ListFeeLedger(ListFeeLedgerRequest) returns (ListFeeLedgerResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fees"};
+  }
+
+  rpc ListBills(ListBillsRequest) returns (ListBillsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bills"};
+  }
+
+  rpc GetBill(GetBillRequest) returns (GetBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bills/{id}"};
+  }
+
+  rpc CreateBill(CreateBillRequest) returns (CreateBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills" body: "*"};
+  }
+
+  rpc UpdateBill(UpdateBillRequest) returns (UpdateBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/bills/{id}" body: "*"};
+  }
+
+  rpc ConfirmBill(ConfirmBillRequest) returns (ConfirmBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.confirm" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills/{id}/confirm" body: "*"};
+  }
+
+  rpc CancelBill(CancelBillRequest) returns (CancelBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills/{id}/cancel" body: "*"};
   }
 }
 
@@ -73,4 +104,142 @@ message ListFeeLedgerResponse {
   int64 total = 5;
   FeeLedgerSummary summary = 6;
   string trace_id = 7;
+}
+
+message ListBillsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  optional string keyword = 3;
+  optional string direction = 4;
+  optional string status = 5;
+  optional string settlement_party_id = 6;
+  optional string currency = 7;
+  optional string bill_date_from = 8;
+  optional string bill_date_to = 9;
+}
+
+message GetBillRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CreateBillRequest {
+  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  string bill_date = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string due_date = 3;
+  optional string note = 4;
+  string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateBillRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  string bill_date = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string due_date = 3;
+  optional string note = 4;
+  uint64 expected_version = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ConfirmBillRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CancelBillRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message FinanceBillLine {
+  string id = 1;
+  string order_fee_id = 2;
+  string order_id = 3;
+  string order_no = 4;
+  string business_type = 5;
+  string fee_code = 6;
+  string fee_name = 7;
+  string total_amount = 8;
+  string net_amount = 9;
+  string tax_amount = 10;
+  string currency = 11;
+  string exchange_rate = 12;
+  string base_currency = 13;
+  string base_currency_amount = 14;
+  bool active = 15;
+}
+
+message FinanceBill {
+  string id = 1;
+  string bill_no = 2;
+  string direction = 3;
+  string status = 4;
+  string settlement_party_id = 5;
+  string settlement_party_name = 6;
+  string currency = 7;
+  string base_currency = 8;
+  string total_amount = 9;
+  string net_amount = 10;
+  string tax_amount = 11;
+  string base_currency_amount = 12;
+  int32 fee_count = 13;
+  string bill_date = 14;
+  optional string due_date = 15;
+  optional string note = 16;
+  uint64 version = 17;
+  optional string confirmed_at = 18;
+  optional string confirmed_by = 19;
+  optional string cancelled_at = 20;
+  optional string cancelled_by = 21;
+  optional string cancellation_reason = 22;
+  repeated FinanceBillLine lines = 23;
+  string created_at = 24;
+  string updated_at = 25;
+}
+
+message ListBillsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated FinanceBill data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+}
+
+message GetBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message CreateBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message UpdateBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message ConfirmBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message CancelBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
 }

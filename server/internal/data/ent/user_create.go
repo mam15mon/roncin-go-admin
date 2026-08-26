@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -265,6 +266,36 @@ func (_c *UserCreate) AddCancelledOrderFees(v ...*OrderFee) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCancelledOrderFeeIDs(ids...)
+}
+
+// AddConfirmedFinanceBillIDs adds the "confirmed_finance_bills" edge to the FinanceBill entity by IDs.
+func (_c *UserCreate) AddConfirmedFinanceBillIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedFinanceBillIDs(ids...)
+	return _c
+}
+
+// AddConfirmedFinanceBills adds the "confirmed_finance_bills" edges to the FinanceBill entity.
+func (_c *UserCreate) AddConfirmedFinanceBills(v ...*FinanceBill) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedFinanceBillIDs(ids...)
+}
+
+// AddCancelledFinanceBillIDs adds the "cancelled_finance_bills" edge to the FinanceBill entity by IDs.
+func (_c *UserCreate) AddCancelledFinanceBillIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCancelledFinanceBillIDs(ids...)
+	return _c
+}
+
+// AddCancelledFinanceBills adds the "cancelled_finance_bills" edges to the FinanceBill entity.
+func (_c *UserCreate) AddCancelledFinanceBills(v ...*FinanceBill) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCancelledFinanceBillIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -533,6 +564,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedFinanceBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceBillsTable,
+			Columns: []string{user.ConfirmedFinanceBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledFinanceBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceBillsTable,
+			Columns: []string{user.CancelledFinanceBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -36,6 +36,12 @@ type ExchangeRateTimeStandard func(*sql.Selector)
 // FeeSetting is the predicate function for feesetting builders.
 type FeeSetting func(*sql.Selector)
 
+// FinanceBill is the predicate function for financebill builders.
+type FinanceBill func(*sql.Selector)
+
+// FinanceBillLine is the predicate function for financebillline builders.
+type FinanceBillLine func(*sql.Selector)
+
 // LoginRateLimitBucket is the predicate function for loginratelimitbucket builders.
 type LoginRateLimitBucket func(*sql.Selector)
 

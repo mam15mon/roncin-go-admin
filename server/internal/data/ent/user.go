@@ -60,9 +60,13 @@ type UserEdges struct {
 	PartnerAssignments []*PartnerAssignment `json:"partner_assignments,omitempty"`
 	// CancelledOrderFees holds the value of the cancelled_order_fees edge.
 	CancelledOrderFees []*OrderFee `json:"cancelled_order_fees,omitempty"`
+	// ConfirmedFinanceBills holds the value of the confirmed_finance_bills edge.
+	ConfirmedFinanceBills []*FinanceBill `json:"confirmed_finance_bills,omitempty"`
+	// CancelledFinanceBills holds the value of the cancelled_finance_bills edge.
+	CancelledFinanceBills []*FinanceBill `json:"cancelled_finance_bills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -108,6 +112,24 @@ func (e UserEdges) CancelledOrderFeesOrErr() ([]*OrderFee, error) {
 		return e.CancelledOrderFees, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_order_fees"}
+}
+
+// ConfirmedFinanceBillsOrErr returns the ConfirmedFinanceBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ConfirmedFinanceBillsOrErr() ([]*FinanceBill, error) {
+	if e.loadedTypes[5] {
+		return e.ConfirmedFinanceBills, nil
+	}
+	return nil, &NotLoadedError{edge: "confirmed_finance_bills"}
+}
+
+// CancelledFinanceBillsOrErr returns the CancelledFinanceBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CancelledFinanceBillsOrErr() ([]*FinanceBill, error) {
+	if e.loadedTypes[6] {
+		return e.CancelledFinanceBills, nil
+	}
+	return nil, &NotLoadedError{edge: "cancelled_finance_bills"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -259,6 +281,16 @@ func (_m *User) QueryPartnerAssignments() *PartnerAssignmentQuery {
 // QueryCancelledOrderFees queries the "cancelled_order_fees" edge of the User entity.
 func (_m *User) QueryCancelledOrderFees() *OrderFeeQuery {
 	return NewUserClient(_m.config).QueryCancelledOrderFees(_m)
+}
+
+// QueryConfirmedFinanceBills queries the "confirmed_finance_bills" edge of the User entity.
+func (_m *User) QueryConfirmedFinanceBills() *FinanceBillQuery {
+	return NewUserClient(_m.config).QueryConfirmedFinanceBills(_m)
+}
+
+// QueryCancelledFinanceBills queries the "cancelled_finance_bills" edge of the User entity.
+func (_m *User) QueryCancelledFinanceBills() *FinanceBillQuery {
+	return NewUserClient(_m.config).QueryCancelledFinanceBills(_m)
 }
 
 // Update returns a builder for updating this User.

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -297,6 +298,21 @@ func (_c *PartnerCreate) AddOrderFees(v ...*OrderFee) *PartnerCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderFeeIDs(ids...)
+}
+
+// AddFinanceBillIDs adds the "finance_bills" edge to the FinanceBill entity by IDs.
+func (_c *PartnerCreate) AddFinanceBillIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddFinanceBillIDs(ids...)
+	return _c
+}
+
+// AddFinanceBills adds the "finance_bills" edges to the FinanceBill entity.
+func (_c *PartnerCreate) AddFinanceBills(v ...*FinanceBill) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceBillIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -640,6 +656,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.FinanceBillsTable,
+			Columns: []string{partner.FinanceBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -344,11 +344,38 @@ declare namespace API {
     isContainerUnit?: boolean;
   };
 
+  type CancelBillRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type CancelBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
+    traceId?: string;
+  };
+
   type CheckOrderReferenceResponse = {
     success?: boolean;
     code?: number;
     message?: string;
     data?: OrderReferenceCheck;
+    traceId?: string;
+  };
+
+  type ConfirmBillRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 
@@ -417,6 +444,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BillingUnit;
+    traceId?: string;
+  };
+
+  type CreateBillRequest = {
+    feeIds: string[];
+    billDate: string;
+    dueDate?: string;
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 
@@ -944,11 +987,65 @@ declare namespace API {
     updatedAt?: string;
   };
 
+  type FinanceBill = {
+    id?: string;
+    billNo?: string;
+    direction?: string;
+    status?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    baseCurrency?: string;
+    totalAmount?: string;
+    netAmount?: string;
+    taxAmount?: string;
+    baseCurrencyAmount?: string;
+    feeCount?: number;
+    billDate?: string;
+    dueDate?: string;
+    note?: string;
+    version?: string;
+    confirmedAt?: string;
+    confirmedBy?: string;
+    cancelledAt?: string;
+    cancelledBy?: string;
+    cancellationReason?: string;
+    lines?: FinanceBillLine[];
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type FinanceBillLine = {
+    id?: string;
+    orderFeeId?: string;
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    feeCode?: string;
+    feeName?: string;
+    totalAmount?: string;
+    netAmount?: string;
+    taxAmount?: string;
+    currency?: string;
+    exchangeRate?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    active?: boolean;
+  };
+
   type GetBackgroundTaskResponse = {
     success?: boolean;
     code?: number;
     message?: string;
     data?: BackgroundTask;
+    traceId?: string;
+  };
+
+  type GetBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 
@@ -1089,6 +1186,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BillingUnit[];
+    traceId?: string;
+  };
+
+  type ListBillsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill[];
+    total?: string;
     traceId?: string;
   };
 
@@ -2784,6 +2890,30 @@ declare namespace API {
     traceId?: string;
   };
 
+  type SettlementServiceCancelBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceConfirmBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceListBillsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    direction?: string;
+    status?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    billDateFrom?: string;
+    billDateTo?: string;
+  };
+
   type SettlementServiceListFeeLedgerParams = {
     page?: number;
     pageSize?: number;
@@ -2795,6 +2925,10 @@ declare namespace API {
     currency?: string;
     expenseDateFrom?: string;
     expenseDateTo?: string;
+  };
+
+  type SettlementServiceUpdateBillParams = {
+    id: string;
   };
 
   type ShippingLine = {
@@ -2972,6 +3106,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BillingUnit;
+    traceId?: string;
+  };
+
+  type UpdateBillRequest = {
+    id: string;
+    billDate: string;
+    dueDate?: string;
+    note?: string;
+    expectedVersion: string;
+  };
+
+  type UpdateBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 

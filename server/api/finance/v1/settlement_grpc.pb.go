@@ -20,6 +20,12 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	SettlementService_ListFeeLedger_FullMethodName = "/finance.v1.SettlementService/ListFeeLedger"
+	SettlementService_ListBills_FullMethodName     = "/finance.v1.SettlementService/ListBills"
+	SettlementService_GetBill_FullMethodName       = "/finance.v1.SettlementService/GetBill"
+	SettlementService_CreateBill_FullMethodName    = "/finance.v1.SettlementService/CreateBill"
+	SettlementService_UpdateBill_FullMethodName    = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ConfirmBill_FullMethodName   = "/finance.v1.SettlementService/ConfirmBill"
+	SettlementService_CancelBill_FullMethodName    = "/finance.v1.SettlementService/CancelBill"
 )
 
 // SettlementServiceClient is the client API for SettlementService service.
@@ -30,6 +36,12 @@ const (
 type SettlementServiceClient interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, in *ListFeeLedgerRequest, opts ...grpc.CallOption) (*ListFeeLedgerResponse, error)
+	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
+	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
+	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
+	UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error)
+	ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error)
+	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -50,6 +62,66 @@ func (c *settlementServiceClient) ListFeeLedger(ctx context.Context, in *ListFee
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBillsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListBills_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CreateBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_UpdateBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ConfirmBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelBillResponse)
+	err := c.cc.Invoke(ctx, SettlementService_CancelBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SettlementServiceServer is the server API for SettlementService service.
 // All implementations must embed UnimplementedSettlementServiceServer
 // for forward compatibility.
@@ -58,6 +130,12 @@ func (c *settlementServiceClient) ListFeeLedger(ctx context.Context, in *ListFee
 type SettlementServiceServer interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
+	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
+	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
+	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
+	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
+	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
+	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -70,6 +148,24 @@ type UnimplementedSettlementServiceServer struct{}
 
 func (UnimplementedSettlementServiceServer) ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFeeLedger not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBills not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelBill not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
 func (UnimplementedSettlementServiceServer) testEmbeddedByValue()                           {}
@@ -110,6 +206,114 @@ func _SettlementService_ListFeeLedger_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListBills_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListBills(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListBills_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListBills(ctx, req.(*ListBillsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetBill(ctx, req.(*GetBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CreateBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CreateBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CreateBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CreateBill(ctx, req.(*CreateBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_UpdateBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).UpdateBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_UpdateBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).UpdateBill(ctx, req.(*UpdateBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ConfirmBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ConfirmBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ConfirmBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ConfirmBill(ctx, req.(*ConfirmBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_CancelBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelBillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).CancelBill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_CancelBill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).CancelBill(ctx, req.(*CancelBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SettlementService_ServiceDesc is the grpc.ServiceDesc for SettlementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -120,6 +324,30 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFeeLedger",
 			Handler:    _SettlementService_ListFeeLedger_Handler,
+		},
+		{
+			MethodName: "ListBills",
+			Handler:    _SettlementService_ListBills_Handler,
+		},
+		{
+			MethodName: "GetBill",
+			Handler:    _SettlementService_GetBill_Handler,
+		},
+		{
+			MethodName: "CreateBill",
+			Handler:    _SettlementService_CreateBill_Handler,
+		},
+		{
+			MethodName: "UpdateBill",
+			Handler:    _SettlementService_UpdateBill_Handler,
+		},
+		{
+			MethodName: "ConfirmBill",
+			Handler:    _SettlementService_ConfirmBill_Handler,
+		},
+		{
+			MethodName: "CancelBill",
+			Handler:    _SettlementService_CancelBill_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

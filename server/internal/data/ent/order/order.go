@@ -156,6 +156,8 @@ const (
 	EdgeAbnormalCases = "abnormal_cases"
 	// EdgeFees holds the string denoting the fees edge name in mutations.
 	EdgeFees = "fees"
+	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
+	EdgeFinanceBillLines = "finance_bill_lines"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -270,6 +272,13 @@ const (
 	FeesInverseTable = "order_fees"
 	// FeesColumn is the table column denoting the fees relation/edge.
 	FeesColumn = "order_id"
+	// FinanceBillLinesTable is the table that holds the finance_bill_lines relation/edge.
+	FinanceBillLinesTable = "finance_bill_lines"
+	// FinanceBillLinesInverseTable is the table name for the FinanceBillLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillline" package.
+	FinanceBillLinesInverseTable = "finance_bill_lines"
+	// FinanceBillLinesColumn is the table column denoting the finance_bill_lines relation/edge.
+	FinanceBillLinesColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -1076,6 +1085,20 @@ func ByFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceBillLinesCount orders the results by finance_bill_lines count.
+func ByFinanceBillLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceBillLinesStep(), opts...)
+	}
+}
+
+// ByFinanceBillLines orders the results by finance_bill_lines terms.
+func ByFinanceBillLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceBillLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1186,5 +1209,12 @@ func newFeesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeesTable, FeesColumn),
+	)
+}
+func newFinanceBillLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceBillLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillLinesTable, FinanceBillLinesColumn),
 	)
 }

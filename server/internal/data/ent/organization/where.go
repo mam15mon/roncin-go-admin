@@ -965,6 +965,29 @@ func HasBackgroundTasksWith(preds ...predicate.BackgroundTask) predicate.Organiz
 	})
 }
 
+// HasFinanceBills applies the HasEdge predicate on the "finance_bills" edge.
+func HasFinanceBills() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillsTable, FinanceBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceBillsWith applies the HasEdge predicate on the "finance_bills" edge with a given conditions (other predicates).
+func HasFinanceBillsWith(preds ...predicate.FinanceBill) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFinanceBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

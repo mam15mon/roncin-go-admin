@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -47,6 +48,7 @@ type PartnerQuery struct {
 	withAttachments     *PartnerAttachmentQuery
 	withOrders          *OrderQuery
 	withOrderFees       *OrderFeeQuery
+	withFinanceBills    *FinanceBillQuery
 	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -326,6 +328,28 @@ func (_q *PartnerQuery) QueryOrderFees() *OrderFeeQuery {
 	return query
 }
 
+// QueryFinanceBills chains the current query on the "finance_bills" edge.
+func (_q *PartnerQuery) QueryFinanceBills() *FinanceBillQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceBillsTable, partner.FinanceBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Partner entity from the query.
 // Returns a *NotFoundError when no Partner was found.
 func (_q *PartnerQuery) First(ctx context.Context) (*Partner, error) {
@@ -529,6 +553,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withAttachments:     _q.withAttachments.Clone(),
 		withOrders:          _q.withOrders.Clone(),
 		withOrderFees:       _q.withOrderFees.Clone(),
+		withFinanceBills:    _q.withFinanceBills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -656,6 +681,17 @@ func (_q *PartnerQuery) WithOrderFees(opts ...func(*OrderFeeQuery)) *PartnerQuer
 	return _q
 }
 
+// WithFinanceBills tells the query-builder to eager-load the nodes that are connected to
+// the "finance_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithFinanceBills(opts ...func(*FinanceBillQuery)) *PartnerQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceBills = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -734,7 +770,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [11]bool{
+		loadedTypes = [12]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -746,6 +782,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withAttachments != nil,
 			_q.withOrders != nil,
 			_q.withOrderFees != nil,
+			_q.withFinanceBills != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -843,6 +880,13 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadOrderFees(ctx, query, nodes,
 			func(n *Partner) { n.Edges.OrderFees = []*OrderFee{} },
 			func(n *Partner, e *OrderFee) { n.Edges.OrderFees = append(n.Edges.OrderFees, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceBills; query != nil {
+		if err := _q.loadFinanceBills(ctx, query, nodes,
+			func(n *Partner) { n.Edges.FinanceBills = []*FinanceBill{} },
+			func(n *Partner, e *FinanceBill) { n.Edges.FinanceBills = append(n.Edges.FinanceBills, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1160,6 +1204,36 @@ func (_q *PartnerQuery) loadOrderFees(ctx context.Context, query *OrderFeeQuery,
 	}
 	query.Where(predicate.OrderFee(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.OrderFeesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SettlementPartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "settlement_party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadFinanceBills(ctx context.Context, query *FinanceBillQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *FinanceBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebill.FieldSettlementPartyID)
+	}
+	query.Where(predicate.FinanceBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.FinanceBillsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

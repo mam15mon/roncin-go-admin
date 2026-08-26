@@ -109,9 +109,11 @@ type OrderFeeEdges struct {
 	BillingUnitRef *BillingUnit `json:"billing_unit_ref,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
+	// FinanceBillLines holds the value of the finance_bill_lines edge.
+	FinanceBillLines []*FinanceBillLine `json:"finance_bill_lines,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -167,6 +169,15 @@ func (e OrderFeeEdges) CancelledByUserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
+}
+
+// FinanceBillLinesOrErr returns the FinanceBillLines value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
+	if e.loadedTypes[5] {
+		return e.FinanceBillLines, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_bill_lines"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -456,6 +467,11 @@ func (_m *OrderFee) QueryBillingUnitRef() *BillingUnitQuery {
 // QueryCancelledByUser queries the "cancelled_by_user" edge of the OrderFee entity.
 func (_m *OrderFee) QueryCancelledByUser() *UserQuery {
 	return NewOrderFeeClient(_m.config).QueryCancelledByUser(_m)
+}
+
+// QueryFinanceBillLines queries the "finance_bill_lines" edge of the OrderFee entity.
+func (_m *OrderFee) QueryFinanceBillLines() *FinanceBillLineQuery {
+	return NewOrderFeeClient(_m.config).QueryFinanceBillLines(_m)
 }
 
 // Update returns a builder for updating this OrderFee.

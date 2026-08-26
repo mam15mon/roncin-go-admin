@@ -94,6 +94,8 @@ const (
 	EdgeBillingUnitRef = "billing_unit_ref"
 	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
 	EdgeCancelledByUser = "cancelled_by_user"
+	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
+	EdgeFinanceBillLines = "finance_bill_lines"
 	// Table holds the table name of the orderfee in the database.
 	Table = "order_fees"
 	// OrderTable is the table that holds the order relation/edge.
@@ -131,6 +133,13 @@ const (
 	CancelledByUserInverseTable = "users"
 	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
 	CancelledByUserColumn = "cancelled_by"
+	// FinanceBillLinesTable is the table that holds the finance_bill_lines relation/edge.
+	FinanceBillLinesTable = "finance_bill_lines"
+	// FinanceBillLinesInverseTable is the table name for the FinanceBillLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillline" package.
+	FinanceBillLinesInverseTable = "finance_bill_lines"
+	// FinanceBillLinesColumn is the table column denoting the finance_bill_lines relation/edge.
+	FinanceBillLinesColumn = "order_fee_id"
 )
 
 // Columns holds all SQL columns for orderfee fields.
@@ -508,6 +517,20 @@ func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByFinanceBillLinesCount orders the results by finance_bill_lines count.
+func ByFinanceBillLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceBillLinesStep(), opts...)
+	}
+}
+
+// ByFinanceBillLines orders the results by finance_bill_lines terms.
+func ByFinanceBillLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceBillLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -541,5 +564,12 @@ func newCancelledByUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledByUserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
+	)
+}
+func newFinanceBillLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceBillLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillLinesTable, FinanceBillLinesColumn),
 	)
 }

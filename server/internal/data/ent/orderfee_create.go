@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -415,6 +416,21 @@ func (_c *OrderFeeCreate) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeC
 // SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
 func (_c *OrderFeeCreate) SetCancelledByUser(v *User) *OrderFeeCreate {
 	return _c.SetCancelledByUserID(v.ID)
+}
+
+// AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
+func (_c *OrderFeeCreate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderFeeCreate {
+	_c.mutation.AddFinanceBillLineIDs(ids...)
+	return _c
+}
+
+// AddFinanceBillLines adds the "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_c *OrderFeeCreate) AddFinanceBillLines(v ...*FinanceBillLine) *OrderFeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceBillLineIDs(ids...)
 }
 
 // Mutation returns the OrderFeeMutation object of the builder.
@@ -867,6 +883,22 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CancelledBy = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.FinanceBillLinesTable,
+			Columns: []string{orderfee.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

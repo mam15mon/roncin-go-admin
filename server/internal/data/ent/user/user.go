@@ -49,6 +49,10 @@ const (
 	EdgePartnerAssignments = "partner_assignments"
 	// EdgeCancelledOrderFees holds the string denoting the cancelled_order_fees edge name in mutations.
 	EdgeCancelledOrderFees = "cancelled_order_fees"
+	// EdgeConfirmedFinanceBills holds the string denoting the confirmed_finance_bills edge name in mutations.
+	EdgeConfirmedFinanceBills = "confirmed_finance_bills"
+	// EdgeCancelledFinanceBills holds the string denoting the cancelled_finance_bills edge name in mutations.
+	EdgeCancelledFinanceBills = "cancelled_finance_bills"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -86,6 +90,20 @@ const (
 	CancelledOrderFeesInverseTable = "order_fees"
 	// CancelledOrderFeesColumn is the table column denoting the cancelled_order_fees relation/edge.
 	CancelledOrderFeesColumn = "cancelled_by"
+	// ConfirmedFinanceBillsTable is the table that holds the confirmed_finance_bills relation/edge.
+	ConfirmedFinanceBillsTable = "finance_bills"
+	// ConfirmedFinanceBillsInverseTable is the table name for the FinanceBill entity.
+	// It exists in this package in order to avoid circular dependency with the "financebill" package.
+	ConfirmedFinanceBillsInverseTable = "finance_bills"
+	// ConfirmedFinanceBillsColumn is the table column denoting the confirmed_finance_bills relation/edge.
+	ConfirmedFinanceBillsColumn = "confirmed_by"
+	// CancelledFinanceBillsTable is the table that holds the cancelled_finance_bills relation/edge.
+	CancelledFinanceBillsTable = "finance_bills"
+	// CancelledFinanceBillsInverseTable is the table name for the FinanceBill entity.
+	// It exists in this package in order to avoid circular dependency with the "financebill" package.
+	CancelledFinanceBillsInverseTable = "finance_bills"
+	// CancelledFinanceBillsColumn is the table column denoting the cancelled_finance_bills relation/edge.
+	CancelledFinanceBillsColumn = "cancelled_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -281,6 +299,34 @@ func ByCancelledOrderFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newCancelledOrderFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByConfirmedFinanceBillsCount orders the results by confirmed_finance_bills count.
+func ByConfirmedFinanceBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfirmedFinanceBillsStep(), opts...)
+	}
+}
+
+// ByConfirmedFinanceBills orders the results by confirmed_finance_bills terms.
+func ByConfirmedFinanceBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfirmedFinanceBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCancelledFinanceBillsCount orders the results by cancelled_finance_bills count.
+func ByCancelledFinanceBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledFinanceBillsStep(), opts...)
+	}
+}
+
+// ByCancelledFinanceBills orders the results by cancelled_finance_bills terms.
+func ByCancelledFinanceBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -314,5 +360,19 @@ func newCancelledOrderFeesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledOrderFeesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledOrderFeesTable, CancelledOrderFeesColumn),
+	)
+}
+func newConfirmedFinanceBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfirmedFinanceBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceBillsTable, ConfirmedFinanceBillsColumn),
+	)
+}
+func newCancelledFinanceBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledFinanceBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceBillsTable, CancelledFinanceBillsColumn),
 	)
 }

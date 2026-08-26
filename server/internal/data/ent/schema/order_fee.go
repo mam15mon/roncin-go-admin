@@ -59,6 +59,7 @@ func (OrderFee) Edges() []ent.Edge {
 		edge.From("settlement_party", Partner.Type).Ref("order_fees").Field("settlement_party_id").Unique().Required(),
 		edge.From("billing_unit_ref", BillingUnit.Type).Ref("order_fees").Field("billing_unit_id").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_order_fees").Field("cancelled_by").Unique(),
+		edge.To("finance_bill_lines", FinanceBillLine.Type),
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -1254,6 +1255,21 @@ func (_u *OrderUpdate) AddFees(v ...*OrderFee) *OrderUpdate {
 	return _u.AddFeeIDs(ids...)
 }
 
+// AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
+func (_u *OrderUpdate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddFinanceBillLineIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillLines adds the "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_u *OrderUpdate) AddFinanceBillLines(v ...*FinanceBillLine) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillLineIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -1548,6 +1564,27 @@ func (_u *OrderUpdate) RemoveFees(v ...*OrderFee) *OrderUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeIDs(ids...)
+}
+
+// ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_u *OrderUpdate) ClearFinanceBillLines() *OrderUpdate {
+	_u.mutation.ClearFinanceBillLines()
+	return _u
+}
+
+// RemoveFinanceBillLineIDs removes the "finance_bill_lines" edge to FinanceBillLine entities by IDs.
+func (_u *OrderUpdate) RemoveFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveFinanceBillLineIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillLines removes "finance_bill_lines" edges to FinanceBillLine entities.
+func (_u *OrderUpdate) RemoveFinanceBillLines(v ...*FinanceBillLine) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillLineIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2757,6 +2794,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceBillLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillLinesIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3993,6 +4075,21 @@ func (_u *OrderUpdateOne) AddFees(v ...*OrderFee) *OrderUpdateOne {
 	return _u.AddFeeIDs(ids...)
 }
 
+// AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
+func (_u *OrderUpdateOne) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddFinanceBillLineIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillLines adds the "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_u *OrderUpdateOne) AddFinanceBillLines(v ...*FinanceBillLine) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillLineIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -4287,6 +4384,27 @@ func (_u *OrderUpdateOne) RemoveFees(v ...*OrderFee) *OrderUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeIDs(ids...)
+}
+
+// ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
+func (_u *OrderUpdateOne) ClearFinanceBillLines() *OrderUpdateOne {
+	_u.mutation.ClearFinanceBillLines()
+	return _u
+}
+
+// RemoveFinanceBillLineIDs removes the "finance_bill_lines" edge to FinanceBillLine entities by IDs.
+func (_u *OrderUpdateOne) RemoveFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveFinanceBillLineIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillLines removes "finance_bill_lines" edges to FinanceBillLine entities.
+func (_u *OrderUpdateOne) RemoveFinanceBillLines(v ...*FinanceBillLine) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillLineIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -5526,6 +5644,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceBillLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillLinesIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FinanceBillLinesTable,
+			Columns: []string{order.FinanceBillLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

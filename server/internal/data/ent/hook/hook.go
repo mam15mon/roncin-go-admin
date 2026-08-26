@@ -129,6 +129,30 @@ func (f FeeSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeeSettingMutation", m)
 }
 
+// The FinanceBillFunc type is an adapter to allow the use of ordinary
+// function as FinanceBill mutator.
+type FinanceBillFunc func(context.Context, *ent.FinanceBillMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceBillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillMutation", m)
+}
+
+// The FinanceBillLineFunc type is an adapter to allow the use of ordinary
+// function as FinanceBillLine mutator.
+type FinanceBillLineFunc func(context.Context, *ent.FinanceBillLineMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceBillLineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceBillLineMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillLineMutation", m)
+}
+
 // The LoginRateLimitBucketFunc type is an adapter to allow the use of ordinary
 // function as LoginRateLimitBucket mutator.
 type LoginRateLimitBucketFunc func(context.Context, *ent.LoginRateLimitBucketMutation) (ent.Value, error)

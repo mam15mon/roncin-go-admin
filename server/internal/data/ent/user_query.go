@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -26,16 +27,18 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []user.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.User
-	withMemberships        *MembershipQuery
-	withSessions           *SessionQuery
-	withOrderPersonnel     *OrderPersonnelQuery
-	withPartnerAssignments *PartnerAssignmentQuery
-	withCancelledOrderFees *OrderFeeQuery
-	modifiers              []func(*sql.Selector)
+	ctx                       *QueryContext
+	order                     []user.OrderOption
+	inters                    []Interceptor
+	predicates                []predicate.User
+	withMemberships           *MembershipQuery
+	withSessions              *SessionQuery
+	withOrderPersonnel        *OrderPersonnelQuery
+	withPartnerAssignments    *PartnerAssignmentQuery
+	withCancelledOrderFees    *OrderFeeQuery
+	withConfirmedFinanceBills *FinanceBillQuery
+	withCancelledFinanceBills *FinanceBillQuery
+	modifiers                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -175,6 +178,50 @@ func (_q *UserQuery) QueryCancelledOrderFees() *OrderFeeQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(orderfee.Table, orderfee.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledOrderFeesTable, user.CancelledOrderFeesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfirmedFinanceBills chains the current query on the "confirmed_finance_bills" edge.
+func (_q *UserQuery) QueryConfirmedFinanceBills() *FinanceBillQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConfirmedFinanceBillsTable, user.ConfirmedFinanceBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCancelledFinanceBills chains the current query on the "cancelled_finance_bills" edge.
+func (_q *UserQuery) QueryCancelledFinanceBills() *FinanceBillQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceBillsTable, user.CancelledFinanceBillsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -369,16 +416,18 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]user.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.User{}, _q.predicates...),
-		withMemberships:        _q.withMemberships.Clone(),
-		withSessions:           _q.withSessions.Clone(),
-		withOrderPersonnel:     _q.withOrderPersonnel.Clone(),
-		withPartnerAssignments: _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees: _q.withCancelledOrderFees.Clone(),
+		config:                    _q.config,
+		ctx:                       _q.ctx.Clone(),
+		order:                     append([]user.OrderOption{}, _q.order...),
+		inters:                    append([]Interceptor{}, _q.inters...),
+		predicates:                append([]predicate.User{}, _q.predicates...),
+		withMemberships:           _q.withMemberships.Clone(),
+		withSessions:              _q.withSessions.Clone(),
+		withOrderPersonnel:        _q.withOrderPersonnel.Clone(),
+		withPartnerAssignments:    _q.withPartnerAssignments.Clone(),
+		withCancelledOrderFees:    _q.withCancelledOrderFees.Clone(),
+		withConfirmedFinanceBills: _q.withConfirmedFinanceBills.Clone(),
+		withCancelledFinanceBills: _q.withCancelledFinanceBills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -437,6 +486,28 @@ func (_q *UserQuery) WithCancelledOrderFees(opts ...func(*OrderFeeQuery)) *UserQ
 		opt(query)
 	}
 	_q.withCancelledOrderFees = query
+	return _q
+}
+
+// WithConfirmedFinanceBills tells the query-builder to eager-load the nodes that are connected to
+// the "confirmed_finance_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConfirmedFinanceBills(opts ...func(*FinanceBillQuery)) *UserQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConfirmedFinanceBills = query
+	return _q
+}
+
+// WithCancelledFinanceBills tells the query-builder to eager-load the nodes that are connected to
+// the "cancelled_finance_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCancelledFinanceBills(opts ...func(*FinanceBillQuery)) *UserQuery {
+	query := (&FinanceBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCancelledFinanceBills = query
 	return _q
 }
 
@@ -518,12 +589,14 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
 			_q.withPartnerAssignments != nil,
 			_q.withCancelledOrderFees != nil,
+			_q.withConfirmedFinanceBills != nil,
+			_q.withCancelledFinanceBills != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -581,6 +654,24 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadCancelledOrderFees(ctx, query, nodes,
 			func(n *User) { n.Edges.CancelledOrderFees = []*OrderFee{} },
 			func(n *User, e *OrderFee) { n.Edges.CancelledOrderFees = append(n.Edges.CancelledOrderFees, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withConfirmedFinanceBills; query != nil {
+		if err := _q.loadConfirmedFinanceBills(ctx, query, nodes,
+			func(n *User) { n.Edges.ConfirmedFinanceBills = []*FinanceBill{} },
+			func(n *User, e *FinanceBill) {
+				n.Edges.ConfirmedFinanceBills = append(n.Edges.ConfirmedFinanceBills, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCancelledFinanceBills; query != nil {
+		if err := _q.loadCancelledFinanceBills(ctx, query, nodes,
+			func(n *User) { n.Edges.CancelledFinanceBills = []*FinanceBill{} },
+			func(n *User, e *FinanceBill) {
+				n.Edges.CancelledFinanceBills = append(n.Edges.CancelledFinanceBills, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -722,6 +813,72 @@ func (_q *UserQuery) loadCancelledOrderFees(ctx context.Context, query *OrderFee
 	}
 	query.Where(predicate.OrderFee(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.CancelledOrderFeesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CancelledBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConfirmedFinanceBills(ctx context.Context, query *FinanceBillQuery, nodes []*User, init func(*User), assign func(*User, *FinanceBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebill.FieldConfirmedBy)
+	}
+	query.Where(predicate.FinanceBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConfirmedFinanceBillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConfirmedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "confirmed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "confirmed_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCancelledFinanceBills(ctx context.Context, query *FinanceBillQuery, nodes []*User, init func(*User), assign func(*User, *FinanceBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebill.FieldCancelledBy)
+	}
+	query.Where(predicate.FinanceBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CancelledFinanceBillsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

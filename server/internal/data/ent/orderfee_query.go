@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -25,16 +27,17 @@ import (
 // OrderFeeQuery is the builder for querying OrderFee entities.
 type OrderFeeQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []orderfee.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.OrderFee
-	withOrder           *OrderQuery
-	withFeeSetting      *FeeSettingQuery
-	withSettlementParty *PartnerQuery
-	withBillingUnitRef  *BillingUnitQuery
-	withCancelledByUser *UserQuery
-	modifiers           []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []orderfee.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.OrderFee
+	withOrder            *OrderQuery
+	withFeeSetting       *FeeSettingQuery
+	withSettlementParty  *PartnerQuery
+	withBillingUnitRef   *BillingUnitQuery
+	withCancelledByUser  *UserQuery
+	withFinanceBillLines *FinanceBillLineQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -174,6 +177,28 @@ func (_q *OrderFeeQuery) QueryCancelledByUser() *UserQuery {
 			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.CancelledByUserTable, orderfee.CancelledByUserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceBillLines chains the current query on the "finance_bill_lines" edge.
+func (_q *OrderFeeQuery) QueryFinanceBillLines() *FinanceBillLineQuery {
+	query := (&FinanceBillLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(financebillline.Table, financebillline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.FinanceBillLinesTable, orderfee.FinanceBillLinesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -368,16 +393,17 @@ func (_q *OrderFeeQuery) Clone() *OrderFeeQuery {
 		return nil
 	}
 	return &OrderFeeQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]orderfee.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.OrderFee{}, _q.predicates...),
-		withOrder:           _q.withOrder.Clone(),
-		withFeeSetting:      _q.withFeeSetting.Clone(),
-		withSettlementParty: _q.withSettlementParty.Clone(),
-		withBillingUnitRef:  _q.withBillingUnitRef.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]orderfee.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.OrderFee{}, _q.predicates...),
+		withOrder:            _q.withOrder.Clone(),
+		withFeeSetting:       _q.withFeeSetting.Clone(),
+		withSettlementParty:  _q.withSettlementParty.Clone(),
+		withBillingUnitRef:   _q.withBillingUnitRef.Clone(),
+		withCancelledByUser:  _q.withCancelledByUser.Clone(),
+		withFinanceBillLines: _q.withFinanceBillLines.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -436,6 +462,17 @@ func (_q *OrderFeeQuery) WithCancelledByUser(opts ...func(*UserQuery)) *OrderFee
 		opt(query)
 	}
 	_q.withCancelledByUser = query
+	return _q
+}
+
+// WithFinanceBillLines tells the query-builder to eager-load the nodes that are connected to
+// the "finance_bill_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithFinanceBillLines(opts ...func(*FinanceBillLineQuery)) *OrderFeeQuery {
+	query := (&FinanceBillLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceBillLines = query
 	return _q
 }
 
@@ -517,12 +554,13 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	var (
 		nodes       = []*OrderFee{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrder != nil,
 			_q.withFeeSetting != nil,
 			_q.withSettlementParty != nil,
 			_q.withBillingUnitRef != nil,
 			_q.withCancelledByUser != nil,
+			_q.withFinanceBillLines != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -573,6 +611,13 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	if query := _q.withCancelledByUser; query != nil {
 		if err := _q.loadCancelledByUser(ctx, query, nodes, nil,
 			func(n *OrderFee, e *User) { n.Edges.CancelledByUser = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceBillLines; query != nil {
+		if err := _q.loadFinanceBillLines(ctx, query, nodes,
+			func(n *OrderFee) { n.Edges.FinanceBillLines = []*FinanceBillLine{} },
+			func(n *OrderFee, e *FinanceBillLine) { n.Edges.FinanceBillLines = append(n.Edges.FinanceBillLines, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -730,6 +775,36 @@ func (_q *OrderFeeQuery) loadCancelledByUser(ctx context.Context, query *UserQue
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadFinanceBillLines(ctx context.Context, query *FinanceBillLineQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *FinanceBillLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderFee)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebillline.FieldOrderFeeID)
+	}
+	query.Where(predicate.FinanceBillLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderfee.FinanceBillLinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderFeeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_fee_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

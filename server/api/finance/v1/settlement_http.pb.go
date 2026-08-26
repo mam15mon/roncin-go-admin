@@ -17,16 +17,34 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationSettlementServiceCancelBill = "/finance.v1.SettlementService/CancelBill"
+const OperationSettlementServiceConfirmBill = "/finance.v1.SettlementService/ConfirmBill"
+const OperationSettlementServiceCreateBill = "/finance.v1.SettlementService/CreateBill"
+const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
+const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
+const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 
 type SettlementServiceHTTPServer interface {
+	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
+	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
+	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
+	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
+	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
+	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 }
 
 func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/finance/fees", _SettlementService_ListFeeLedger0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/bills/{id}", _SettlementService_UpdateBill0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills/{id}/confirm", _SettlementService_ConfirmBill0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills/{id}/cancel", _SettlementService_CancelBill0_HTTP_Handler(srv))
 }
 
 func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
@@ -48,9 +66,141 @@ func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPSer
 	}
 }
 
+func _SettlementService_ListBills0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBillsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListBills)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBills(ctx, req.(*ListBillsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBillsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetBillRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetBill(ctx, req.(*GetBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CreateBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateBillRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCreateBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateBill(ctx, req.(*CreateBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_UpdateBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateBillRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceUpdateBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateBill(ctx, req.(*UpdateBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ConfirmBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmBillRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceConfirmBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmBill(ctx, req.(*ConfirmBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_CancelBill0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelBillRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceCancelBill)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelBill(ctx, req.(*CancelBillRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SettlementServiceHTTPClient interface {
+	CancelBill(ctx context.Context, req *CancelBillRequest, opts ...http.CallOption) (rsp *CancelBillResponse, err error)
+	ConfirmBill(ctx context.Context, req *ConfirmBillRequest, opts ...http.CallOption) (rsp *ConfirmBillResponse, err error)
+	CreateBill(ctx context.Context, req *CreateBillRequest, opts ...http.CallOption) (rsp *CreateBillResponse, err error)
+	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
+	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
+	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
 }
 
 type SettlementServiceHTTPClientImpl struct {
@@ -59,6 +209,89 @@ type SettlementServiceHTTPClientImpl struct {
 
 func NewSettlementServiceHTTPClient(client *http.Client) SettlementServiceHTTPClient {
 	return &SettlementServiceHTTPClientImpl{client}
+}
+
+func (c *SettlementServiceHTTPClientImpl) CancelBill(ctx context.Context, in *CancelBillRequest, opts ...http.CallOption) (*CancelBillResponse, error) {
+	var out CancelBillResponse
+	pattern := "/api/v1/finance/bills/{id}/cancel"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCancelBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...http.CallOption) (*ConfirmBillResponse, error) {
+	var out ConfirmBillResponse
+	pattern := "/api/v1/finance/bills/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceConfirmBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) CreateBill(ctx context.Context, in *CreateBillRequest, opts ...http.CallOption) (*CreateBillResponse, error) {
+	var out CreateBillResponse
+	pattern := "/api/v1/finance/bills"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceCreateBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) GetBill(ctx context.Context, in *GetBillRequest, opts ...http.CallOption) (*GetBillResponse, error) {
+	var out GetBillResponse
+	pattern := "/api/v1/finance/bills/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListBills(ctx context.Context, in *ListBillsRequest, opts ...http.CallOption) (*ListBillsResponse, error) {
+	var out ListBillsResponse
+	pattern := "/api/v1/finance/bills"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListBills),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
@@ -72,6 +305,23 @@ func (c *SettlementServiceHTTPClientImpl) ListFeeLedger(ctx context.Context, in 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...http.CallOption) (*UpdateBillResponse, error) {
+	var out UpdateBillResponse
+	pattern := "/api/v1/finance/bills/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceUpdateBill),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

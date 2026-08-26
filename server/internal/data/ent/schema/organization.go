@@ -48,6 +48,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("order_consolidations", OrderConsolidation.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("background_tasks", BackgroundTask.Type),
+		edge.To("finance_bills", FinanceBill.Type),
 	}
 }
 

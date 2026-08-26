@@ -88,9 +88,11 @@ type OrganizationEdges struct {
 	OrderPersonnel []*OrderPersonnel `json:"order_personnel,omitempty"`
 	// BackgroundTasks holds the value of the background_tasks edge.
 	BackgroundTasks []*BackgroundTask `json:"background_tasks,omitempty"`
+	// FinanceBills holds the value of the finance_bills edge.
+	FinanceBills []*FinanceBill `json:"finance_bills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [23]bool
+	loadedTypes [24]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -300,6 +302,15 @@ func (e OrganizationEdges) BackgroundTasksOrErr() ([]*BackgroundTask, error) {
 		return e.BackgroundTasks, nil
 	}
 	return nil, &NotLoadedError{edge: "background_tasks"}
+}
+
+// FinanceBillsOrErr returns the FinanceBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceBillsOrErr() ([]*FinanceBill, error) {
+	if e.loadedTypes[23] {
+		return e.FinanceBills, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_bills"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -514,6 +525,11 @@ func (_m *Organization) QueryOrderPersonnel() *OrderPersonnelQuery {
 // QueryBackgroundTasks queries the "background_tasks" edge of the Organization entity.
 func (_m *Organization) QueryBackgroundTasks() *BackgroundTaskQuery {
 	return NewOrganizationClient(_m.config).QueryBackgroundTasks(_m)
+}
+
+// QueryFinanceBills queries the "finance_bills" edge of the Organization entity.
+func (_m *Organization) QueryFinanceBills() *FinanceBillQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceBills(_m)
 }
 
 // Update returns a builder for updating this Organization.

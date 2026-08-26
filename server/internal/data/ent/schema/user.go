@@ -34,6 +34,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("partner_assignments", PartnerAssignment.Type),
 		edge.To("cancelled_order_fees", OrderFee.Type),
+		edge.To("confirmed_finance_bills", FinanceBill.Type),
+		edge.To("cancelled_finance_bills", FinanceBill.Type),
 	}
 }
 

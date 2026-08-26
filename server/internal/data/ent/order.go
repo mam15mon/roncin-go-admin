@@ -169,9 +169,11 @@ type OrderEdges struct {
 	AbnormalCases []*OrderAbnormalCase `json:"abnormal_cases,omitempty"`
 	// Fees holds the value of the fees edge.
 	Fees []*OrderFee `json:"fees,omitempty"`
+	// FinanceBillLines holds the value of the finance_bill_lines edge.
+	FinanceBillLines []*FinanceBillLine `json:"finance_bill_lines,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [16]bool
+	loadedTypes [17]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -322,6 +324,15 @@ func (e OrderEdges) FeesOrErr() ([]*OrderFee, error) {
 		return e.Fees, nil
 	}
 	return nil, &NotLoadedError{edge: "fees"}
+}
+
+// FinanceBillLinesOrErr returns the FinanceBillLines value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
+	if e.loadedTypes[16] {
+		return e.FinanceBillLines, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_bill_lines"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -791,6 +802,11 @@ func (_m *Order) QueryAbnormalCases() *OrderAbnormalCaseQuery {
 // QueryFees queries the "fees" edge of the Order entity.
 func (_m *Order) QueryFees() *OrderFeeQuery {
 	return NewOrderClient(_m.config).QueryFees(_m)
+}
+
+// QueryFinanceBillLines queries the "finance_bill_lines" edge of the Order entity.
+func (_m *Order) QueryFinanceBillLines() *FinanceBillLineQuery {
+	return NewOrderClient(_m.config).QueryFinanceBillLines(_m)
 }
 
 // Update returns a builder for updating this Order.

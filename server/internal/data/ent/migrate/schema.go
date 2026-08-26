@@ -507,6 +507,162 @@ var (
 			},
 		},
 	}
+	// FinanceBillsColumns holds the columns for the "finance_bills" table.
+	FinanceBillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "bill_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "CANCELLED"}, Default: "DRAFT"},
+		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "fee_count", Type: field.TypeInt},
+		{Name: "bill_date", Type: field.TypeString, Size: 10},
+		{Name: "due_date", Type: field.TypeString, Nullable: true, Size: 10},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceBillsTable holds the schema information for the "finance_bills" table.
+	FinanceBillsTable = &schema.Table{
+		Name:       "finance_bills",
+		Columns:    FinanceBillsColumns,
+		PrimaryKey: []*schema.Column{FinanceBillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_bills_organizations_finance_bills",
+				Columns:    []*schema.Column{FinanceBillsColumns[22]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bills_partners_finance_bills",
+				Columns:    []*schema.Column{FinanceBillsColumns[23]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bills_users_confirmed_finance_bills",
+				Columns:    []*schema.Column{FinanceBillsColumns[24]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_bills_users_cancelled_finance_bills",
+				Columns:    []*schema.Column{FinanceBillsColumns[25]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financebill_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[2]},
+			},
+			{
+				Name:    "financebill_organization_id_bill_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[3]},
+			},
+			{
+				Name:    "financebill_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[4]},
+			},
+			{
+				Name:    "financebill_organization_id_status_bill_date",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[22], FinanceBillsColumns[6], FinanceBillsColumns[15]},
+			},
+			{
+				Name:    "financebill_settlement_party_id_direction_currency",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[23], FinanceBillsColumns[5], FinanceBillsColumns[8]},
+			},
+		},
+	}
+	// FinanceBillLinesColumns holds the columns for the "finance_bill_lines" table.
+	FinanceBillLinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "order_no", Type: field.TypeString, Size: 64},
+		{Name: "fee_code", Type: field.TypeString, Size: 30},
+		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "bill_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "order_fee_id", Type: field.TypeUUID},
+	}
+	// FinanceBillLinesTable holds the schema information for the "finance_bill_lines" table.
+	FinanceBillLinesTable = &schema.Table{
+		Name:       "finance_bill_lines",
+		Columns:    FinanceBillLinesColumns,
+		PrimaryKey: []*schema.Column{FinanceBillLinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_bill_lines_finance_bills_lines",
+				Columns:    []*schema.Column{FinanceBillLinesColumns[14]},
+				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bill_lines_orders_finance_bill_lines",
+				Columns:    []*schema.Column{FinanceBillLinesColumns[15]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bill_lines_order_fees_finance_bill_lines",
+				Columns:    []*schema.Column{FinanceBillLinesColumns[16]},
+				RefColumns: []*schema.Column{OrderFeesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financebillline_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillLinesColumns[2]},
+			},
+			{
+				Name:    "financebillline_bill_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillLinesColumns[14], FinanceBillLinesColumns[13]},
+			},
+			{
+				Name:    "financebillline_order_fee_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillLinesColumns[16], FinanceBillLinesColumns[13]},
+			},
+			{
+				Name:    "financebillline_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillLinesColumns[15]},
+			},
+		},
+	}
 	// LoginRateLimitBucketsColumns holds the columns for the "login_rate_limit_buckets" table.
 	LoginRateLimitBucketsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2796,6 +2952,8 @@ var (
 		ExchangeRateSettingsTable,
 		ExchangeRateTimeStandardsTable,
 		FeeSettingsTable,
+		FinanceBillsTable,
+		FinanceBillLinesTable,
 		LoginRateLimitBucketsTable,
 		MasterDataItemsTable,
 		MembershipsTable,
@@ -2856,6 +3014,13 @@ func init() {
 	FeeSettingsTable.ForeignKeys[2].RefTable = MasterDataItemsTable
 	FeeSettingsTable.ForeignKeys[3].RefTable = OrganizationsTable
 	FeeSettingsTable.ForeignKeys[4].RefTable = TaxableServicesTable
+	FinanceBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceBillsTable.ForeignKeys[1].RefTable = PartnersTable
+	FinanceBillsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceBillsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceBillLinesTable.ForeignKeys[0].RefTable = FinanceBillsTable
+	FinanceBillLinesTable.ForeignKeys[1].RefTable = OrdersTable
+	FinanceBillLinesTable.ForeignKeys[2].RefTable = OrderFeesTable
 	MasterDataItemsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
