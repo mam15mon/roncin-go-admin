@@ -639,12 +639,12 @@ export default function OrderDetailPage() {
             保存
           </Button>
 
-          {/* 费用录入 */}
+          {/* 费用录入（直达独立全屏费用工作台页面） */}
           {access.canOrder(config.businessType, 'fee.read') && (
             <Button
               type="primary"
               icon={<DollarOutlined />}
-              onClick={() => orderFeePanelRef.current?.open(order)}
+              onClick={() => history.push(`/orders/${kind}/${orderId}/fees`)}
               style={{ fontWeight: 500 }}
             >
               费用录入

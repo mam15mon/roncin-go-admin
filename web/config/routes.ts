@@ -143,6 +143,12 @@ export default [
         hideInMenu: true,
         component: './orders/detail',
       },
+      {
+        path: '/orders/:kind/:id/fees',
+        name: '费用录入',
+        hideInMenu: true,
+        component: './orders/fees',
+      },
     ],
   },
   {
