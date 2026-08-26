@@ -98,13 +98,13 @@ func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f Commissio
 func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateCommissionInput) (*FinanceCommission, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
-	if org == uuid.Nil || actor == uuid.Nil || in.VerificationID == uuid.Nil || in.EmployeeID == uuid.Nil || in.IdempotencyKey == "" || !in.RatePercent.IsPositive() || in.RatePercent.GreaterThan(decimal.NewFromInt(100)) {
+	if org == uuid.Nil || actor == uuid.Nil || in.VerificationID == uuid.Nil || in.EmployeeID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) || !in.RatePercent.IsPositive() || in.RatePercent.GreaterThan(decimal.NewFromInt(100)) {
 		return nil, ErrCommissionInvalid
 	}
 	if old, err := u.repo.GetByKey(ctx, org, in.IdempotencyKey); err != nil {
 		return nil, err
 	} else if old != nil {
-		if old.VerificationID != in.VerificationID || old.EmployeeID != in.EmployeeID || !old.RatePercent.Equal(in.RatePercent) {
+		if old.VerificationID != in.VerificationID || old.EmployeeID != in.EmployeeID || !old.RatePercent.Equal(in.RatePercent) || !stringPointersEqual(old.Note, in.Note) {
 			return nil, ErrCommissionDuplicate
 		}
 		return old, nil
