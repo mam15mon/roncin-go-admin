@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
         new CustomEvent('roncin:update-tab-title', {
           detail: {
             path: window.location.pathname,
-            title: `${order.orderNo} 详情`,
+            title: `${order.orderNo}_${config.title}详情`,
           },
         }),
       );

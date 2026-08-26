@@ -163,7 +163,7 @@ export default function OrderFeesPage() {
         new CustomEvent('roncin:update-tab-title', {
           detail: {
             path: window.location.pathname,
-            title: `${order.orderNo} 费用`,
+            title: `${order.orderNo}_费用录入`,
           },
         }),
       );
