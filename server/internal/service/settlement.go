@@ -489,12 +489,19 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	f := biz.FinanceCashflowFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(r.Direction))), Status: biz.FinanceCashflowStatus(strings.ToUpper(financeOptionalString(r.Status)))}
+	f := biz.FinanceCashflowFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(r.Direction))), Status: biz.FinanceCashflowStatus(strings.ToUpper(financeOptionalString(r.Status))), Currency: strings.ToUpper(financeOptionalString(r.Currency))}
 	if f.Page == 0 {
 		f.Page = 1
 	}
 	if f.PageSize == 0 {
 		f.PageSize = 20
+	}
+	if r.SettlementPartyId != nil && strings.TrimSpace(*r.SettlementPartyId) != "" {
+		id, err := uuid.Parse(strings.TrimSpace(*r.SettlementPartyId))
+		if err != nil {
+			return nil, biz.ErrFinanceCashflowInvalidArgument
+		}
+		f.SettlementPartyID = &id
 	}
 	result, e := s.cashflowUsecase.List(ctx, p.Organization.ID, f)
 	if e != nil {

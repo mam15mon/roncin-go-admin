@@ -38,6 +38,7 @@ export function FinanceLedgerTemplate<
   primaryActionText = '创建账单',
   primaryActionIcon = <FileDoneOutlined />,
   onPrimaryAction,
+  primaryActionRequiresSelection = false,
   batchActions = [],
   exportFileName = `财务明细导出_${new Date().toISOString().slice(0, 10)}.csv`,
   onExport,
@@ -140,11 +141,15 @@ export function FinanceLedgerTemplate<
               key="primary-action"
               type="primary"
               icon={primaryActionIcon}
-              disabled={selectedRowKeys.length === 0}
+              disabled={
+                primaryActionRequiresSelection && selectedRowKeys.length === 0
+              }
               onClick={() => onPrimaryAction(selectedRowKeys, selectedRows)}
             >
               {primaryActionText}{' '}
-              {selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : ''}
+              {primaryActionRequiresSelection && selectedRowKeys.length > 0
+                ? `(${selectedRowKeys.length})`
+                : ''}
             </Button>
           ),
           batchActions.length > 0 && (

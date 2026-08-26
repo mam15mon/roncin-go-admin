@@ -6,7 +6,7 @@ function requiredEnvironment(name: string) {
   return value;
 }
 
-test('批量转账单、多开票抬头、订单费用入口与发票快照页面可完整访问', async ({
+test('费用、账单、开票、收付与核销页面可完成财务闭环操作', async ({
   page,
 }) => {
   await page.goto('/user/login');
@@ -21,7 +21,7 @@ test('批量转账单、多开票抬头、订单费用入口与发票快照页�
 
   await page.goto('/finance/bills');
   await expect(
-    page.getByTestId('pro-table').getByText('账单管理', { exact: true }),
+    page.getByTestId('pro-table').getByText('对账单管理', { exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: '生成账单' }).click();
   await expect(page.getByText('费用批量转账单', { exact: true })).toBeVisible();
@@ -78,7 +78,7 @@ test('批量转账单、多开票抬头、订单费用入口与发票快照页�
 
   await page.goto('/finance/invoices');
   await expect(
-    page.getByTestId('pro-table').getByText('开票记录', { exact: true }),
+    page.getByTestId('pro-table').getByText('发票明细管理', { exact: true }),
   ).toBeVisible();
   const firstRow = page.locator('.ant-table-tbody > tr.ant-table-row').first();
   await expect(firstRow).toBeVisible();
@@ -88,4 +88,58 @@ test('批量转账单、多开票抬头、订单费用入口与发票快照页�
   await expect(page.getByText('纳税人识别号', { exact: true })).toBeVisible();
   await expect(page.getByText('开票项目', { exact: true })).toBeVisible();
   await expect(page.getByText('来源行数', { exact: true })).toBeVisible();
+
+  await page.goto('/finance/cashflows');
+  await expect(
+    page.getByTestId('pro-table').getByText('资金流水管理', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: '登记流水' })).toBeEnabled();
+
+  await page.goto('/finance/verifications');
+  await expect(
+    page.getByTestId('pro-table').getByText('核销台账管理', { exact: true }),
+  ).toBeVisible();
+  const createVerification = page.getByRole('button', { name: '新建核销' });
+  await expect(createVerification).toBeEnabled();
+  await createVerification.click();
+  const verificationDialog = page.getByRole('dialog', {
+    name: '资金与账单核销工作台',
+  });
+  await expect(verificationDialog).toBeVisible();
+  await verificationDialog.getByLabel('结算单位').click();
+  await page
+    .locator('.ant-select-item-option')
+    .filter({ hasText: customer.data.legalName })
+    .first()
+    .click();
+  const cashflowCard = verificationDialog
+    .locator('.ant-card')
+    .filter({ hasText: '待核销资金' })
+    .first();
+  const billCard = verificationDialog
+    .locator('.ant-card')
+    .filter({ hasText: '待核销账单' })
+    .first();
+  await expect(cashflowCard.locator('.ant-table-row').first()).toBeVisible();
+  await expect(billCard.locator('.ant-table-row').first()).toBeVisible();
+  await cashflowCard
+    .locator('.ant-table-row input[type="checkbox"]')
+    .first()
+    .check({ force: true });
+  await billCard
+    .locator('.ant-table-row input[type="checkbox"]')
+    .first()
+    .check({ force: true });
+  await verificationDialog
+    .getByRole('button', { name: '按余额自动分配' })
+    .click();
+  await expect(
+    verificationDialog.getByLabel('第 1 行核销金额'),
+  ).toBeVisible();
+  const submitVerification = verificationDialog.getByRole('button', {
+    name: /提交核销/,
+  });
+  await expect(submitVerification).toBeEnabled();
+  await submitVerification.click();
+  await expect(verificationDialog).toBeHidden();
 });

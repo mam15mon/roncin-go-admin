@@ -3527,6 +3527,8 @@ declare namespace API {
     keyword?: string;
     direction?: string;
     status?: string;
+    settlementPartyId?: string;
+    currency?: string;
   };
 
   type SettlementServiceListCommissionCandidatesParams = {

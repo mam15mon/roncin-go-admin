@@ -52,6 +52,7 @@ export interface FinanceLedgerTemplateProps<
   primaryActionText?: string;
   primaryActionIcon?: ReactNode;
   onPrimaryAction?: (selectedKeys: React.Key[], selectedRows: T[]) => void;
+  primaryActionRequiresSelection?: boolean;
 
   // 批量操作下拉组
   batchActions?: FinanceBatchActionItem<T>[];

@@ -326,6 +326,7 @@ export default function FinanceFeeLedgerPage() {
         metricCards={metricCards}
         scrollX={2100}
         primaryActionText="创建账单"
+        primaryActionRequiresSelection
         onPrimaryAction={(keys) => {
           setSelectedFeeIds(keys.map(String));
           setBillWorkbenchOpen(true);

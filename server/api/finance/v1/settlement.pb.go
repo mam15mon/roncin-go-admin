@@ -4152,14 +4152,16 @@ func (x *RedFlushInvoiceResponse) GetTraceId() string {
 }
 
 type ListCashflowsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	Direction     *string                `protobuf:"bytes,4,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	Status        *string                `protobuf:"bytes,5,opt,name=status,proto3,oneof" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Page              int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize          int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword           *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	Direction         *string                `protobuf:"bytes,4,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
+	Status            *string                `protobuf:"bytes,5,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	SettlementPartyId *string                `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
+	Currency          *string                `protobuf:"bytes,7,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ListCashflowsRequest) Reset() {
@@ -4223,6 +4225,20 @@ func (x *ListCashflowsRequest) GetDirection() string {
 func (x *ListCashflowsRequest) GetStatus() string {
 	if x != nil && x.Status != nil {
 		return *x.Status
+	}
+	return ""
+}
+
+func (x *ListCashflowsRequest) GetSettlementPartyId() string {
+	if x != nil && x.SettlementPartyId != nil {
+		return *x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *ListCashflowsRequest) GetCurrency() string {
+	if x != nil && x.Currency != nil {
+		return *x.Currency
 	}
 	return ""
 }
@@ -7759,18 +7775,22 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x01(\v2\x1a.finance.v1.FinanceInvoiceR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcb\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc6\x02\n" +
 	"\x14ListCashflowsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12!\n" +
 	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x05 \x01(\tH\x02R\x06status\x88\x01\x01B\n" +
+	"\x06status\x18\x05 \x01(\tH\x02R\x06status\x88\x01\x01\x123\n" +
+	"\x13settlement_party_id\x18\x06 \x01(\tH\x03R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
+	"\bcurrency\x18\a \x01(\tH\x04R\bcurrency\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\f\n" +
 	"\n" +
 	"_directionB\t\n" +
-	"\a_status\"\xeb\x04\n" +
+	"\a_statusB\x16\n" +
+	"\x14_settlement_party_idB\v\n" +
+	"\t_currency\"\xeb\x04\n" +
 	"\x15CreateCashflowRequest\x12!\n" +
 	"\tdirection\x18\x01 \x01(\tB\x03\xe0A\x02R\tdirection\x123\n" +
 	"\x13settlement_party_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x11settlementPartyId\x12\x1f\n" +

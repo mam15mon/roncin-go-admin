@@ -495,6 +495,24 @@ const [confirmedCashflowAResponse, confirmedCashflowBResponse] =
   ]);
 const confirmedCashflowA = confirmedCashflowAResponse.data;
 const confirmedCashflowB = confirmedCashflowBResponse.data;
+const filteredCashflows = await request(
+  `/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED&direction=RECEIVABLE&settlementPartyId=${customer.id}&currency=${confirmedBill.currency}`,
+);
+assert(
+  [confirmedCashflowA.id, confirmedCashflowB.id].every((id) =>
+    filteredCashflows.data.some((item) => item.id === id),
+  ),
+  '核销候选条件未返回刚确认的资金流水',
+);
+assert(
+  filteredCashflows.data.every(
+    (item) =>
+      item.direction === 'RECEIVABLE' &&
+      item.settlementPartyId === customer.id &&
+      item.currency === confirmedBill.currency,
+  ),
+  '资金流水候选接口未按方向、结算单位和币种隔离',
+);
 
 const verificationBody = (cashflowId, amount, idempotencyKey) => ({
   allocations: [{ cashflowId, billId: confirmedBill.id, amount }],
@@ -675,6 +693,7 @@ console.log(
       verificationConcurrentIdempotencyVerified: true,
       overAllocationRejected: true,
       reverseBalanceRecoveryVerified: true,
+      cashflowCandidateFilterVerified: true,
     },
     null,
     2,

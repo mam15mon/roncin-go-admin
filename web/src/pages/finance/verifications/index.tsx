@@ -1,34 +1,17 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDatePicker,
-  ProFormList,
-  ProFormSelect,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, Input, Tag } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
 import {
-  settlementServiceCreateVerification,
-  settlementServiceListBills,
-  settlementServiceListCashflows,
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
-
-type Values = {
-  verificationDate: Dayjs;
-  note?: string;
-  allocations: { cashflowId: string; billId: string; amount: string }[];
-};
+import VerificationWorkbench from './VerificationWorkbench';
 
 export default function FinanceVerificationsPage() {
   const access = useAccess();
@@ -232,95 +215,11 @@ export default function FinanceVerificationsPage() {
           };
         }}
       />
-      <ModalForm<Values>
-        title="资金与账单多对多核销"
+      <VerificationWorkbench
         open={open}
-        width={900}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setOpen(false) }}
-        initialValues={{ verificationDate: dayjs(), allocations: [{}] }}
-        onFinish={async (v) => {
-          try {
-            await settlementServiceCreateVerification({
-              allocations: v.allocations,
-              verificationDate: dayjs(v.verificationDate).format('YYYY-MM-DD'),
-              note: v.note,
-              idempotencyKey: globalThis.crypto.randomUUID(),
-            });
-            message.success('核销成功');
-            setOpen(false);
-            reload();
-            return true;
-          } catch (e: any) {
-            message.error(e.message || '核销失败');
-            return false;
-          }
-        }}
-      >
-        <ProFormDatePicker
-          name="verificationDate"
-          label="核销日期"
-          rules={[{ required: true }]}
-        />
-        <ProFormTextArea
-          name="note"
-          label="备注"
-          fieldProps={{ maxLength: 500 }}
-        />
-        <ProFormList
-          name="allocations"
-          label="核销分配"
-          creatorButtonProps={{ creatorButtonText: '增加分配行' }}
-          copyIconProps={false}
-          min={1}
-        >
-          <ProFormSelect
-            name="cashflowId"
-            label="已确认资金流水"
-            rules={[{ required: true }]}
-            request={async () => {
-              const r = await settlementServiceListCashflows({
-                page: 1,
-                pageSize: 200,
-                status: 'CONFIRMED',
-              });
-              return (r.data || [])
-                .filter((x) => Number(x.unverifiedAmount || 0) > 0)
-                .map((x) => ({
-                  value: x.id,
-                  label: `${x.flowNo}｜${x.settlementPartyName}｜未核销 ${x.unverifiedAmount} ${x.currency}`,
-                }));
-            }}
-          />
-          <ProFormSelect
-            name="billId"
-            label="已确认账单"
-            rules={[{ required: true }]}
-            request={async () => {
-              const r = await settlementServiceListBills({
-                page: 1,
-                pageSize: 200,
-                status: 'CONFIRMED',
-              });
-              return (r.data || [])
-                .filter((x) => Number(x.unverifiedAmount || 0) > 0)
-                .map((x) => ({
-                  value: x.id,
-                  label: `${x.billNo}｜${x.settlementPartyName}｜未核销 ${x.unverifiedAmount} ${x.currency}`,
-                }));
-            }}
-          />
-          <ProFormText
-            name="amount"
-            label="本次核销金额"
-            rules={[
-              {
-                required: true,
-                pattern: /^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$/,
-              },
-            ]}
-          />
-        </ProFormList>
-      </ModalForm>
+        onClose={() => setOpen(false)}
+        onCreated={reload}
+      />
     </>
   );
 }

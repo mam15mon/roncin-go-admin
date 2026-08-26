@@ -401,7 +401,8 @@ export default function FinanceCashflowsPage() {
           request={async () => {
             const r = await partnerServiceListPartners({
               page: 1,
-              pageSize: 500,
+              pageSize: 100,
+              enabled: true,
             });
             return (r.data || []).map((x) => ({
               value: x.id,

@@ -43,10 +43,12 @@ type FinanceCashflow struct {
 	CreatedAt, UpdatedAt                                     time.Time
 }
 type FinanceCashflowFilter struct {
-	Page, PageSize int
-	Keyword        string
-	Direction      OrderFeeDirection
-	Status         FinanceCashflowStatus
+	Page, PageSize    int
+	Keyword           string
+	Direction         OrderFeeDirection
+	Status            FinanceCashflowStatus
+	SettlementPartyID *uuid.UUID
+	Currency          string
 }
 type FinanceCashflowListResult struct {
 	Items []*FinanceCashflow
@@ -79,7 +81,8 @@ func NewFinanceCashflowUsecase(repo FinanceCashflowRepo) *FinanceCashflowUsecase
 }
 func (uc *FinanceCashflowUsecase) List(ctx context.Context, org uuid.UUID, f FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || f.Page < 1 || f.PageSize < 1 || f.PageSize > 200 || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) {
+	f.Currency = strings.ToUpper(strings.TrimSpace(f.Currency))
+	if org == uuid.Nil || f.Page < 1 || f.PageSize < 1 || f.PageSize > 200 || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) || (f.SettlementPartyID != nil && *f.SettlementPartyID == uuid.Nil) || (f.Currency != "" && !financeBillCurrencyPattern.MatchString(f.Currency)) {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
 	return uc.repo.List(ctx, org, f)

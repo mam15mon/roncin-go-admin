@@ -30,6 +30,12 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 	if f.Status != "" {
 		p = append(p, cash.StatusEQ(cash.Status(f.Status)))
 	}
+	if f.SettlementPartyID != nil {
+		p = append(p, cash.SettlementPartyIDEQ(*f.SettlementPartyID))
+	}
+	if f.Currency != "" {
+		p = append(p, cash.CurrencyEQ(f.Currency))
+	}
 	q := r.data.db.FinanceCashflow.Query().Where(p...)
 	n, e := q.Clone().Count(ctx)
 	if e != nil {
