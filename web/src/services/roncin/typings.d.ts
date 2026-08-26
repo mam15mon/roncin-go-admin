@@ -332,6 +332,28 @@ declare namespace API {
     id: string;
   };
 
+  type BillBatchPreviewGroup = {
+    groupKey?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    baseCurrency?: string;
+    orderId?: string;
+    orderNo?: string;
+    taxRate?: string;
+    fees?: FeeLedgerItem[];
+    totalAmount?: string;
+    netAmount?: string;
+    taxAmount?: string;
+    baseCurrencyAmount?: string;
+  };
+
+  type BillGroupingPolicy = {
+    splitByOrder?: boolean;
+    splitByTaxRate?: boolean;
+  };
+
   type BillingUnit = {
     id?: string;
     organizationId?: string;
@@ -516,6 +538,31 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateBillBatchGroupInput = {
+    groupKey: string;
+    statementTitle: string;
+    billDate: string;
+    dueDate?: string;
+    paymentTermsDays?: number;
+    note?: string;
+  };
+
+  type CreateBillBatchRequest = {
+    feeIds: string[];
+    groupingPolicy: BillGroupingPolicy;
+    groups: CreateBillBatchGroupInput[];
+    previewToken: string;
+    idempotencyKey: string;
+  };
+
+  type CreateBillBatchResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBillBatch;
+    traceId?: string;
+  };
+
   type CreateBillingUnitRequest = {
     code: string;
     name: string;
@@ -537,6 +584,8 @@ declare namespace API {
     dueDate?: string;
     note?: string;
     idempotencyKey: string;
+    statementTitle?: string;
+    paymentTermsDays?: number;
   };
 
   type CreateBillResponse = {
@@ -1112,6 +1161,7 @@ declare namespace API {
     version?: string;
     createdAt?: string;
     updatedAt?: string;
+    taxRate?: string;
   };
 
   type FeeLedgerSummary = {
@@ -1173,6 +1223,23 @@ declare namespace API {
     updatedAt?: string;
     verifiedAmount?: string;
     unverifiedAmount?: string;
+    batchId?: string;
+    batchNo?: string;
+    statementTitle?: string;
+    paymentTermsDays?: number;
+  };
+
+  type FinanceBillBatch = {
+    id?: string;
+    batchNo?: string;
+    splitByOrder?: boolean;
+    splitByTaxRate?: boolean;
+    feeCount?: number;
+    billCount?: number;
+    totalBaseAmount?: string;
+    baseCurrency?: string;
+    bills?: FinanceBill[];
+    createdAt?: string;
   };
 
   type FinanceBillLine = {
@@ -1191,6 +1258,7 @@ declare namespace API {
     baseCurrency?: string;
     baseCurrencyAmount?: string;
     active?: boolean;
+    taxRate?: string;
   };
 
   type FinanceCashflow = {
@@ -3027,6 +3095,20 @@ declare namespace API {
     sourceHash?: string;
   };
 
+  type PreviewBillBatchRequest = {
+    feeIds: string[];
+    groupingPolicy: BillGroupingPolicy;
+  };
+
+  type PreviewBillBatchResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BillBatchPreviewGroup[];
+    previewToken?: string;
+    traceId?: string;
+  };
+
   type PublishMilestoneTemplateRequest = {
     id: string;
     isDefault?: boolean;
@@ -3604,6 +3686,8 @@ declare namespace API {
     dueDate?: string;
     note?: string;
     expectedVersion: string;
+    statementTitle?: string;
+    paymentTermsDays?: number;
   };
 
   type UpdateBillResponse = {

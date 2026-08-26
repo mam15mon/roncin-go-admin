@@ -33,7 +33,7 @@ service SettlementService {
 
   rpc PreviewBillBatch(PreviewBillBatchRequest) returns (PreviewBillBatchResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {post: "/api/v1/finance/bill-batches:preview" body: "*"};
+    option (google.api.http) = {post: "/api/v1/finance/bill-batches/preview" body: "*"};
   }
 
   rpc CreateBillBatch(CreateBillBatchRequest) returns (CreateBillBatchResponse) {

@@ -16,26 +16,24 @@ import {
   Drawer,
   Form,
   Input,
+  InputNumber,
   Modal,
   Popconfirm,
   Space,
   Table,
   Tag,
-  Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   settlementServiceCancelBill,
   settlementServiceConfirmBill,
-  settlementServiceCreateBill,
   settlementServiceGetBill,
   settlementServiceListBills,
-  settlementServiceListFeeLedger,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
+import BillCreationWorkbench from './components/BillCreationWorkbench';
 
-const { Text } = Typography;
 const statusOptions: Record<string, { text: string; color: string }> = {
   DRAFT: { text: '草稿', color: 'gold' },
   CONFIRMED: { text: '已确认', color: 'green' },
@@ -44,7 +42,8 @@ const statusOptions: Record<string, { text: string; color: string }> = {
 
 type BillFormValues = {
   billDate: Dayjs;
-  dueDate?: Dayjs;
+  statementTitle: string;
+  paymentTermsDays?: number;
   note?: string;
 };
 
@@ -53,10 +52,9 @@ export default function FinanceBillsPage() {
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<BillFormValues>();
-  const [createOpen, setCreateOpen] = useState(false);
+  const [workbenchOpen, setWorkbenchOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<API.FinanceBill>();
-  const [selectedFeeIDs, setSelectedFeeIDs] = useState<React.Key[]>([]);
-  const [selectedFees, setSelectedFees] = useState<API.FeeLedgerItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -64,20 +62,17 @@ export default function FinanceBillsPage() {
 
   const reload = () => actionRef.current?.reload();
   const openCreate = () => {
-    setEditing(undefined);
-    setSelectedFeeIDs([]);
-    setSelectedFees([]);
-    form.setFieldsValue({ billDate: dayjs(), dueDate: undefined, note: '' });
-    setCreateOpen(true);
+    setWorkbenchOpen(true);
   };
   const openEdit = (bill: API.FinanceBill) => {
     setEditing(bill);
     form.setFieldsValue({
       billDate: bill.billDate ? dayjs(bill.billDate) : dayjs(),
-      dueDate: bill.dueDate ? dayjs(bill.dueDate) : undefined,
+      statementTitle: bill.statementTitle || bill.settlementPartyName || '',
+      paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
     });
-    setCreateOpen(true);
+    setEditOpen(true);
   };
   const openDetail = async (bill: API.FinanceBill) => {
     if (!bill.id) return;
@@ -94,37 +89,23 @@ export default function FinanceBillsPage() {
   };
   const submitBill = async () => {
     const values = await form.validateFields();
-    if (!editing && selectedFeeIDs.length === 0) {
-      message.warning('请至少选择一笔已确认费用');
-      return;
-    }
+    if (!editing?.id) return;
     setSubmitting(true);
     try {
       const billDate = values.billDate.format('YYYY-MM-DD');
-      const dueDate = values.dueDate?.format('YYYY-MM-DD');
-      if (editing?.id) {
-        await settlementServiceUpdateBill(
-          { id: editing.id },
-          {
-            id: editing.id,
-            billDate,
-            dueDate,
-            note: values.note,
-            expectedVersion: editing.version || '0',
-          },
-        );
-        message.success('账单更新成功');
-      } else {
-        await settlementServiceCreateBill({
-          feeIds: selectedFeeIDs.map(String),
+      await settlementServiceUpdateBill(
+        { id: editing.id },
+        {
+          id: editing.id,
           billDate,
-          dueDate,
+          statementTitle: values.statementTitle.trim(),
+          paymentTermsDays: values.paymentTermsDays,
           note: values.note,
-          idempotencyKey: globalThis.crypto.randomUUID(),
-        });
-        message.success('账单创建成功，所选费用已锁定');
-      }
-      setCreateOpen(false);
+          expectedVersion: editing.version || '0',
+        },
+      );
+      message.success('账单更新成功');
+      setEditOpen(false);
       reload();
     } catch (error: any) {
       message.error(error.message || '保存账单失败');
@@ -195,6 +176,14 @@ export default function FinanceBillsPage() {
       search: false,
     },
     {
+      title: '建单批次',
+      dataIndex: 'batchNo',
+      width: 175,
+      copyable: true,
+      search: false,
+      renderText: (value) => value || '-',
+    },
+    {
       title: '方向',
       dataIndex: 'direction',
       width: 80,
@@ -228,6 +217,14 @@ export default function FinanceBillsPage() {
       width: 220,
       ellipsis: true,
       search: false,
+    },
+    {
+      title: '对账抬头',
+      dataIndex: 'statementTitle',
+      width: 200,
+      ellipsis: true,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '账单金额',
@@ -332,31 +329,6 @@ export default function FinanceBillsPage() {
       ],
     },
   ];
-  const feeColumns: ProColumns<API.FeeLedgerItem>[] = [
-    { title: '订单编号', dataIndex: 'orderNo', width: 145 },
-    {
-      title: '方向',
-      dataIndex: 'direction',
-      width: 75,
-      renderText: (value) => (value === 'RECEIVABLE' ? '应收' : '应付'),
-    },
-    {
-      title: '结算单位',
-      dataIndex: 'settlementPartyName',
-      width: 190,
-      ellipsis: true,
-    },
-    { title: '费用', dataIndex: 'feeName', width: 130 },
-    {
-      title: '金额',
-      dataIndex: 'totalAmount',
-      width: 130,
-      align: 'right',
-      render: (_, row) => `${row.totalAmount} ${row.currency}`,
-    },
-    { title: '费用日期', dataIndex: 'expenseDate', width: 110 },
-  ];
-
   return (
     <>
       <ProTable<API.FinanceBill>
@@ -366,7 +338,7 @@ export default function FinanceBillsPage() {
         columns={columns}
         bordered
         size="small"
-        scroll={{ x: 1450 }}
+        scroll={{ x: 1800 }}
         toolBarRender={() =>
           access.canCreateFinanceBills
             ? [
@@ -399,19 +371,28 @@ export default function FinanceBillsPage() {
         }}
       />
       <Modal
-        title={
-          editing ? `编辑账单 ${editing.billNo || ''}` : '从已确认费用生成账单'
-        }
-        open={createOpen}
-        width={editing ? 620 : 1100}
+        title={`编辑账单 ${editing?.billNo || ''}`}
+        open={editOpen}
+        width={680}
         destroyOnHidden
         confirmLoading={submitting}
-        okText={editing ? '保存' : '生成账单'}
-        onCancel={() => setCreateOpen(false)}
+        okText="保存"
+        onCancel={() => setEditOpen(false)}
         onOk={() => void submitBill()}
       >
         <Form form={form} layout="vertical">
-          <Space size={16} align="start" style={{ width: '100%' }}>
+          <Space size={16} align="start" wrap style={{ width: '100%' }}>
+            <Form.Item
+              name="statementTitle"
+              label="对账抬头"
+              rules={[
+                { required: true, whitespace: true, message: '请输入对账抬头' },
+                { max: 200, message: '对账抬头不能超过 200 字' },
+              ]}
+              style={{ minWidth: 260 }}
+            >
+              <Input maxLength={200} />
+            </Form.Item>
             <Form.Item
               name="billDate"
               label="账单日期"
@@ -419,84 +400,20 @@ export default function FinanceBillsPage() {
             >
               <DatePicker allowClear={false} />
             </Form.Item>
-            <Form.Item name="dueDate" label="到期日">
-              <DatePicker />
+            <Form.Item name="paymentTermsDays" label="账期（天，可选）">
+              <InputNumber min={0} max={3650} precision={0} />
             </Form.Item>
-            <Form.Item name="note" label="备注" style={{ minWidth: 380 }}>
+            <Form.Item name="note" label="备注" style={{ minWidth: 620 }}>
               <Input maxLength={500} />
             </Form.Item>
           </Space>
         </Form>
-        {!editing && (
-          <>
-            <Text type="secondary">
-              仅展示“已确认”费用。同一账单必须保持收付方向、结算单位和币种一致，服务端会在事务中再次校验并锁定。
-            </Text>
-            <ProTable<API.FeeLedgerItem>
-              rowKey="id"
-              columns={feeColumns}
-              size="small"
-              bordered
-              options={false}
-              pagination={{ defaultPageSize: 10 }}
-              rowSelection={{
-                selectedRowKeys: selectedFeeIDs,
-                preserveSelectedRowKeys: true,
-                onChange: (keys, rows) => {
-                  const merged = new Map(
-                    selectedFees.map((item) => [item.id, item]),
-                  );
-                  for (const row of rows) merged.set(row.id, row);
-                  setSelectedFeeIDs(keys);
-                  setSelectedFees(
-                    keys
-                      .map((key) => merged.get(String(key)))
-                      .filter(Boolean) as API.FeeLedgerItem[],
-                  );
-                },
-                getCheckboxProps: (record) => {
-                  const first = selectedFees[0];
-                  return {
-                    disabled:
-                      Boolean(first) &&
-                      (record.direction !== first.direction ||
-                        record.settlementPartyId !== first.settlementPartyId ||
-                        record.currency !== first.currency ||
-                        record.baseCurrency !== first.baseCurrency),
-                  };
-                },
-              }}
-              tableAlertRender={({ selectedRowKeys }) => (
-                <Space>
-                  已选择 {selectedRowKeys.length} 笔
-                  {selectedFees[0] && (
-                    <Text type="secondary">
-                      {selectedFees[0].direction === 'RECEIVABLE'
-                        ? '应收'
-                        : '应付'}{' '}
-                      / {selectedFees[0].settlementPartyName} /{' '}
-                      {selectedFees[0].currency}
-                    </Text>
-                  )}
-                </Space>
-              )}
-              request={async (params) => {
-                const response = await settlementServiceListFeeLedger({
-                  page: params.current,
-                  pageSize: params.pageSize,
-                  keyword: params.keyword,
-                  status: 'CONFIRMED',
-                });
-                return {
-                  data: response.data || [],
-                  total: Number(response.total || 0),
-                  success: response.success ?? true,
-                };
-              }}
-            />
-          </>
-        )}
       </Modal>
+      <BillCreationWorkbench
+        open={workbenchOpen}
+        onClose={() => setWorkbenchOpen(false)}
+        onCreated={() => reload()}
+      />
       <Drawer
         title={`账单详情 ${detail?.billNo || ''}`}
         open={detailOpen}
@@ -523,6 +440,12 @@ export default function FinanceBillsPage() {
               <Descriptions.Item label="结算单位">
                 {detail.settlementPartyName}
               </Descriptions.Item>
+              <Descriptions.Item label="建单批次">
+                {detail.batchNo || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="对账抬头">
+                {detail.statementTitle || '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="账单金额">
                 {detail.totalAmount} {detail.currency}
               </Descriptions.Item>
@@ -537,6 +460,11 @@ export default function FinanceBillsPage() {
               </Descriptions.Item>
               <Descriptions.Item label="到期日">
                 {detail.dueDate || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="账期">
+                {detail.paymentTermsDays == null
+                  ? '-'
+                  : `${detail.paymentTermsDays} 天`}
               </Descriptions.Item>
               <Descriptions.Item label="费用数">
                 {detail.feeCount}
@@ -560,6 +488,14 @@ export default function FinanceBillsPage() {
                 { title: '订单编号', dataIndex: 'orderNo', width: 150 },
                 { title: '费用代码', dataIndex: 'feeCode', width: 110 },
                 { title: '费用名称', dataIndex: 'feeName', width: 140 },
+                {
+                  title: '税率',
+                  dataIndex: 'taxRate',
+                  align: 'right',
+                  width: 90,
+                  render: (value) =>
+                    value == null ? '-' : `${Number(value)}%`,
+                },
                 {
                   title: '原币金额',
                   render: (_, row) => `${row.totalAmount} ${row.currency}`,

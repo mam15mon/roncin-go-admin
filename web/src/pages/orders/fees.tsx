@@ -1,6 +1,7 @@
 import {
   ArrowLeftOutlined,
   EditOutlined,
+  FileDoneOutlined,
   LockOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -18,7 +19,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useParams } from '@umijs/max';
+import { history, useAccess, useParams } from '@umijs/max';
 import {
   App,
   Button,
@@ -39,6 +40,7 @@ import {
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
+import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
   orderFeeServiceAddFee,
@@ -112,6 +114,7 @@ function positiveDecimalRule(pattern: RegExp, precisionMessage: string) {
 
 export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
+  const access = useAccess();
   const { message, modal } = App.useApp();
 
   const kind = params.kind || 'sea-export';
@@ -134,6 +137,14 @@ export default function OrderFeesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
   const [editingFee, setEditingFee] = useState<API.OrderFee>();
+  const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
+  const [billWorkbenchFeeIds, setBillWorkbenchFeeIds] = useState<string[]>([]);
+  const [selectedReceivableFeeIds, setSelectedReceivableFeeIds] = useState<
+    React.Key[]
+  >([]);
+  const [selectedPayableFeeIds, setSelectedPayableFeeIds] = useState<
+    React.Key[]
+  >([]);
 
   const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
     [],
@@ -844,16 +855,43 @@ export default function OrderFeesPage() {
                   search={false}
                   bordered
                   pagination={false}
-                  toolBarRender={() => [
-                    <Button
-                      key="add"
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={() => openFeeModal(RECEIVABLE)}
-                    >
-                      + 新增应收费用
-                    </Button>,
-                  ]}
+                  rowSelection={{
+                    selectedRowKeys: selectedReceivableFeeIds,
+                    onChange: setSelectedReceivableFeeIds,
+                    getCheckboxProps: (record) => ({
+                      disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+                    }),
+                  }}
+                  tableAlertRender={({ selectedRowKeys }) =>
+                    `已选择 ${selectedRowKeys.length} 笔已确认应收费用`
+                  }
+                  toolBarRender={() =>
+                    [
+                      access.canCreateFinanceBills && (
+                        <Button
+                          key="bill"
+                          icon={<FileDoneOutlined />}
+                          disabled={selectedReceivableFeeIds.length === 0}
+                          onClick={() => {
+                            setBillWorkbenchFeeIds(
+                              selectedReceivableFeeIds.map(String),
+                            );
+                            setBillWorkbenchOpen(true);
+                          }}
+                        >
+                          生成账单（{selectedReceivableFeeIds.length}）
+                        </Button>
+                      ),
+                      <Button
+                        key="add"
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => openFeeModal(RECEIVABLE)}
+                      >
+                        + 新增应收费用
+                      </Button>,
+                    ].filter(Boolean)
+                  }
                   request={async () => {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
@@ -896,20 +934,47 @@ export default function OrderFeesPage() {
                   search={false}
                   bordered
                   pagination={false}
-                  toolBarRender={() => [
-                    <Button
-                      key="add"
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      style={{
-                        backgroundColor: '#fa8c16',
-                        borderColor: '#fa8c16',
-                      }}
-                      onClick={() => openFeeModal(PAYABLE)}
-                    >
-                      + 新增应付费用
-                    </Button>,
-                  ]}
+                  rowSelection={{
+                    selectedRowKeys: selectedPayableFeeIds,
+                    onChange: setSelectedPayableFeeIds,
+                    getCheckboxProps: (record) => ({
+                      disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+                    }),
+                  }}
+                  tableAlertRender={({ selectedRowKeys }) =>
+                    `已选择 ${selectedRowKeys.length} 笔已确认应付费用`
+                  }
+                  toolBarRender={() =>
+                    [
+                      access.canCreateFinanceBills && (
+                        <Button
+                          key="bill"
+                          icon={<FileDoneOutlined />}
+                          disabled={selectedPayableFeeIds.length === 0}
+                          onClick={() => {
+                            setBillWorkbenchFeeIds(
+                              selectedPayableFeeIds.map(String),
+                            );
+                            setBillWorkbenchOpen(true);
+                          }}
+                        >
+                          生成账单（{selectedPayableFeeIds.length}）
+                        </Button>
+                      ),
+                      <Button
+                        key="add"
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        style={{
+                          backgroundColor: '#fa8c16',
+                          borderColor: '#fa8c16',
+                        }}
+                        onClick={() => openFeeModal(PAYABLE)}
+                      >
+                        + 新增应付费用
+                      </Button>,
+                    ].filter(Boolean)
+                  }
                   request={async () => {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
@@ -940,6 +1005,19 @@ export default function OrderFeesPage() {
           ]}
         />
       </div>
+
+      <BillCreationWorkbench
+        open={billWorkbenchOpen}
+        initialFeeIds={billWorkbenchFeeIds}
+        sourceLabel={`订单 ${order.orderNo || order.id}`}
+        onClose={() => setBillWorkbenchOpen(false)}
+        onCreated={() => {
+          setSelectedReceivableFeeIds([]);
+          setSelectedPayableFeeIds([]);
+          receivableActionRef.current?.reload();
+          payableActionRef.current?.reload();
+        }}
+      />
 
       {/* 4. 费用录入/编辑 ModalForm */}
       <ModalForm<FeeFormValues>

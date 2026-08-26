@@ -7675,7 +7675,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\aGetBill\x12\x1a.finance.v1.GetBillRequest\x1a\x1b.finance.v1.GetBillResponse\"D\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/finance/bills/{id}\x12\x91\x01\n" +
 	"\n" +
 	"CreateBill\x12\x1d.finance.v1.CreateBillRequest\x1a\x1e.finance.v1.CreateBillResponse\"D\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/finance/bills\x12\xb2\x01\n" +
-	"\x10PreviewBillBatch\x12#.finance.v1.PreviewBillBatchRequest\x1a$.finance.v1.PreviewBillBatchResponse\"S\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/finance/bill-batches:preview\x12\xa7\x01\n" +
+	"\x10PreviewBillBatch\x12#.finance.v1.PreviewBillBatchRequest\x1a$.finance.v1.PreviewBillBatchResponse\"S\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/finance/bill-batches/preview\x12\xa7\x01\n" +
 	"\x0fCreateBillBatch\x12\".finance.v1.CreateBillBatchRequest\x1a#.finance.v1.CreateBillBatchResponse\"K\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/finance/bill-batches\x12\x96\x01\n" +
 	"\n" +
 	"UpdateBill\x12\x1d.finance.v1.UpdateBillRequest\x1a\x1e.finance.v1.UpdateBillResponse\"I\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/finance/bills/{id}\x12\xa2\x01\n" +

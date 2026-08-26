@@ -92,7 +92,7 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/finance/bill-batches:preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bill-batches/preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches", _SettlementService_CreateBillBatch0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/bills/{id}", _SettlementService_UpdateBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/confirm", _SettlementService_ConfirmBill0_HTTP_Handler(srv))
@@ -1270,7 +1270,7 @@ func (c *SettlementServiceHTTPClientImpl) MarkCommissionPaid(ctx context.Context
 
 func (c *SettlementServiceHTTPClientImpl) PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...http.CallOption) (*PreviewBillBatchResponse, error) {
 	var out PreviewBillBatchResponse
-	pattern := "/api/v1/finance/bill-batches:preview"
+	pattern := "/api/v1/finance/bill-batches/preview"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),

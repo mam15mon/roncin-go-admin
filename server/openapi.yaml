@@ -577,7 +577,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateBillBatchResponse'
-    /api/v1/finance/bill-batches:preview:
+    /api/v1/finance/bill-batches/preview:
         post:
             tags:
                 - SettlementService
